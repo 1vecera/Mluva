@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+application_dir="@APPLICATION_DIR@"
+
+has_elevenlabs_credential() {
+    [[ -n "${ELEVENLABS_API_KEY:-}" ]] \
+        || [[ -n "${DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL:-}" ]] \
+        || [[ -n "${ELEVEN_LABS_STT_TOKEN:-}" ]]
+}
+
+if [[ "${MLUVA_SECRET_PROFILE:-${VOICE_SCRIBE_SECRET_PROFILE:-}}" != "1" ]] && ! has_elevenlabs_credential; then
+    secret_config_dir="${DAS_CONF_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/daniel-ai-skills}"
+    managed_launcher="${secret_config_dir}/bin/das-mcp-launch"
+    profile_references="${secret_config_dir}/env/voice-scribe.env"
+    if [[ -x "${managed_launcher}" && -s "${profile_references}" ]]; then
+        exec "${managed_launcher}" voice-scribe -- env MLUVA_SECRET_PROFILE=1 VOICE_SCRIBE_SECRET_PROFILE=1 "$0" "$@"
+    fi
+fi
+
+exec env PYTHONPATH="${application_dir}" "${application_dir}/.venv/bin/python" -m voice_scribe_linux.app "$@"

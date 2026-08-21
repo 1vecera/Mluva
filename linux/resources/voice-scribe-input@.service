@@ -1,0 +1,40 @@
+[Unit]
+Description=Mluva keyboard-only paste helper for user %i
+Documentation=https://github.com/1vecera/Mluva
+Requires=user-runtime-dir@%i.service
+After=user-runtime-dir@%i.service
+PartOf=user@%i.service
+ConditionPathExists=/dev/uinput
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ydotoold --socket-path=/run/user/%i/.ydotool_socket --socket-perm=0600 --socket-own=%i:%i --mouse-off
+Restart=on-failure
+RestartSec=1s
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/run/user/%i
+TemporaryFileSystem=/run/user:ro
+BindPaths=/run/user/%i:/run/user/%i
+# The broad home-directory sandbox also hides /run/user; hide only persistent homes so this socket stays reachable.
+ProtectHome=no
+InaccessiblePaths=/home /root
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectKernelLogs=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+DevicePolicy=closed
+DeviceAllow=/dev/uinput rw
+
+[Install]
+WantedBy=user@%i.service

@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package google.cloud.speech.v2;
+
+option swift_prefix = "GCPSpeechV2";
+
+service Speech {
+  rpc StreamingRecognize(stream StreamingRecognizeRequest)
+      returns (stream StreamingRecognizeResponse);
+}
+
+message ExplicitDecodingConfig {
+  enum AudioEncoding {
+    AUDIO_ENCODING_UNSPECIFIED = 0;
+    LINEAR16 = 1;
+  }
+
+  AudioEncoding encoding = 1;
+  int32 sample_rate_hertz = 2;
+  int32 audio_channel_count = 3;
+}
+
+message RecognitionFeatures {
+  bool enable_automatic_punctuation = 4;
+}
+
+message RecognitionConfig {
+  RecognitionFeatures features = 2;
+
+  oneof decoding_config {
+    ExplicitDecodingConfig explicit_decoding_config = 8;
+  }
+
+  string model = 9;
+  repeated string language_codes = 10;
+}
+
+message StreamingRecognitionFeatures {
+  bool interim_results = 2;
+}
+
+message StreamingRecognitionConfig {
+  RecognitionConfig config = 1;
+  StreamingRecognitionFeatures streaming_features = 2;
+}
+
+message StreamingRecognizeRequest {
+  string recognizer = 3;
+
+  oneof streaming_request {
+    bytes audio = 5;
+    StreamingRecognitionConfig streaming_config = 6;
+  }
+}
+
+message SpeechRecognitionAlternative {
+  string transcript = 1;
+  float confidence = 2;
+}
+
+message StreamingRecognitionResult {
+  repeated SpeechRecognitionAlternative alternatives = 1;
+  bool is_final = 2;
+  float stability = 3;
+  string language_code = 6;
+}
+
+message StreamingRecognizeResponse {
+  repeated StreamingRecognitionResult results = 6;
+}

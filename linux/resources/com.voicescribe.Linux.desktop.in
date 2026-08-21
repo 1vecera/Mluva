@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Mluva
+GenericName=Voice Dictation
+Comment=Dictate with ElevenLabs Scribe v2 and Codex
+Exec=@EXECUTABLE@
+Icon=com.voicescribe.Linux
+Terminal=false
+Categories=Utility;
+Keywords=Dictation;Transcription;Voice;Speech;
+StartupNotify=true

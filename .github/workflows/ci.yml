@@ -1,0 +1,89 @@
+name: CI on demand
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_intel:
+        description: Also validate and package on Intel
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: Validate Fedora Linux
+    runs-on: ubuntu-24.04
+    container:
+      image: registry.fedoraproject.org/fedora@sha256:a9f7d4b1147b4d1f7dd5ec90081cf2cc91f7ffde849f61f69a43127b18390775 # Fedora 44
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 20
+
+    steps:
+      - name: Install Fedora dependencies
+        run: >-
+          dnf -y --setopt=install_weak_deps=False install
+          at-spi2-core
+          dbus-daemon
+          git
+          gobject-introspection
+          gtk4
+          libadwaita
+          make
+          pipewire-utils
+          procps-ng
+          python3-gobject
+          shellcheck
+          uv
+          wl-clipboard
+          && dnf clean all
+
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Test and lint Linux client
+        run: make linux-test linux-shortcut-test
+
+      - name: Lint shell scripts
+        run: shellcheck linux/*.sh linux/tests/*.sh scripts/*.sh
+
+  macos:
+    name: Validate and package (${{ matrix.runner }})
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: ${{ fromJSON(inputs.include_intel && '["macos-26","macos-26-intel"]' || '["macos-26"]') }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Test
+        run: swift test --disable-dependency-cache
+
+      - name: Build app bundle
+        run: make ci-package
+
+      - name: Archive app bundle
+        run: ditto -c -k --keepParent "build/Mluva.app" "build/Mluva.zip"
+
+      - name: Upload app bundle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Mluva-${{ matrix.runner }}
+          path: build/Mluva.zip
+          if-no-files-found: error

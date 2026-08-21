@@ -1,0 +1,7 @@
+{
+  "uuid": "recording-status@voicescribe.local",
+  "name": "Mluva Recording Status",
+  "description": "Shows bounded, display-only recording status without taking focus.",
+  "shell-version": ["50"],
+  "url": "https://github.com/1vecera/Mluva"
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Mluva</title>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="#1B1826"/>
+  <path
+    d="M20 84H30V43L64 73L98 43V84H108"
+    fill="none"
+    stroke="#B9AAEE"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <circle cx="105" cy="27" r="6" fill="#FFFFFF"/>
+</svg>

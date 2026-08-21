@@ -1,0 +1,48 @@
+[project]
+name = "mluva-linux"
+version = "0.1.0"
+description = "Native Linux client for Mluva"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+dependencies = [
+    "dbus-next==0.2.3",
+    "websockets==17.0.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/1vecera/Mluva"
+Repository = "https://github.com/1vecera/Mluva"
+Issues = "https://github.com/1vecera/Mluva/issues"
+
+[dependency-groups]
+dev = [
+    "pytest==9.1.1",
+    "ruff==0.16.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = ["integration: requires a live external service or desktop session"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"voice_scribe_linux/app.py" = ["E402"]
+"voice_scribe_linux/history_view.py" = ["E402"]
+"voice_scribe_linux/meeting_view.py" = ["E402"]
+"voice_scribe_linux/personalization_view.py" = ["E402"]
+"voice_scribe_linux/text_target.py" = ["E402"]
+"voice_scribe_linux/ui.py" = ["E402"]
+
+[tool.uv]
+exclude-newer = false
+exclude-newer-package = { ruff = "2026-08-08T00:00:00Z" }
