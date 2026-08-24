@@ -1,4 +1,3 @@
-<p align="center"><img src="linux/resources/com.voicescribe.Linux.svg" width="112" alt="Mluva mark"></p>
 
 # Mluva
 
@@ -6,11 +5,14 @@
 
 Mluva is a native voice-input application for macOS and Linux. The macOS client transcribes privately with Apple Speech or streams harder technical and multilingual dictation to Google Cloud Speech-to-Text V2. The Linux client uses ElevenLabs Scribe v2 for recognition and the Codex app-server for optional faithful cleanup and Command mode. Linux always preserves the completed result on the clipboard. Its experimental automatic-insertion path may also return text to a safe restorable target, but that path is not reliable enough yet to claim as working.
 
-<p align="center"><img src="docs/assets/mluva-capture.png" width="49%" alt="Mluva Capture page with mode, delivery, privacy, recent capture, and F9 status cards"> <img src="docs/assets/mluva-recording.png" width="49%" alt="Mluva recording state with elapsed time, waveform, mode, copy-only delivery, transcript preview, and Stop action"></p>
+<img width="1542" height="1772" alt="image" src="https://github.com/user-attachments/assets/d5e31930-4579-4513-973c-e96c61ef4987" />
+
 
 <p align="center"><sub>Capture overview and the transient live recording bar, rendered with synthetic data on an isolated virtual display.</sub></p>
 
 Linux setup, dependencies, runtime behavior, and verification are documented in [linux/README.md](linux/README.md).
+
+
 
 ## Release status
 
