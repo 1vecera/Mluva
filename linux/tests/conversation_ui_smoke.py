@@ -3,10 +3,12 @@
 import json
 import os
 import subprocess
+import traceback
 from pathlib import Path
 from unittest.mock import patch
 
 import gi
+from conversation_lifecycle import exercise
 
 from voice_scribe_linux.app import MluvaApplication
 from voice_scribe_linux.conversation import STRUCTURED_NOTE
@@ -15,7 +17,7 @@ from voice_scribe_linux.pipewire import PipeWireDeviceCatalog
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("GdkX11", "4.0")
-from gi.repository import Adw, GLib  # noqa: E402
+from gi.repository import Adw, GLib, Gtk  # noqa: E402
 
 
 class IsolatedApplication(MluvaApplication):
@@ -50,6 +52,8 @@ def main() -> int:
             application.window.set_default_size(width, height)
             workspace = application.conversation_workspace
             assert workspace is not None
+            if scenario == "lifecycle":
+                exercise(application)
             for text in (
                 "A few ideas for Friday's meeting",
                 "Notes from the morning walk",
@@ -91,8 +95,8 @@ def main() -> int:
                 buffer = workspace.result_widgets[0].get_buffer()
                 assert buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False) == source
             GLib.timeout_add(900, capture)
-        except Exception as error:
-            errors.append(str(error))
+        except Exception:
+            errors.append(traceback.format_exc())
             application.quit()
         return GLib.SOURCE_REMOVE
 
@@ -100,6 +104,17 @@ def main() -> int:
         """Retain settled pixels, then assert navigation and close-to-background behavior."""
         try:
             window = application.window
+
+            def inspect_size(widget: Gtk.Widget) -> None:
+                """Reject clipping that GTK's application-window allocation otherwise allows."""
+                if widget.get_visible() and widget.measure(Gtk.Orientation.HORIZONTAL, -1)[0] > width - 10:
+                    print(f"MINIMUM_WIDTH {type(widget).__name__} {widget.measure(Gtk.Orientation.HORIZONTAL, -1)[0]}")
+                child = widget.get_first_child()
+                while child is not None:
+                    inspect_size(child)
+                    child = child.get_next_sibling()
+
+            inspect_size(window.get_content())
             assert window.get_surface().get_width() == width, (window.get_surface().get_width(), width)
             assert window.get_surface().get_height() == height, (window.get_surface().get_height(), height)
             subprocess.run(
@@ -126,8 +141,8 @@ def main() -> int:
                     }
                 )
             )
-        except Exception as error:
-            errors.append(str(error))
+        except Exception:
+            errors.append(traceback.format_exc())
         application.quit()
         return GLib.SOURCE_REMOVE
 

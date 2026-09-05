@@ -182,7 +182,7 @@ separator { background: @vs_outline_subtle; }
 .ml-history-sidebar row:selected { background: @vs_accent_soft; color: @vs_ink; }
 .ml-history-sidebar row:hover { background: alpha(@vs_accent_soft, 0.65); }
 .ml-history-sidebar button { min-height: 34px; }
-.ml-wordmark { font-size: 21px; font-weight: 650; letter-spacing: -0.5px; padding: 6px 0 14px; }
+.ml-wordmark { font-size: 21px; font-weight: 650; letter-spacing: -0.5px; }
 .ml-conversation { background: @vs_surface; }
 .ml-conversation-title { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 8px; }
 .ml-transcript, .ml-transcript text { background: transparent; color: @vs_ink; font-size: 16px; }
@@ -196,7 +196,7 @@ separator { background: @vs_outline_subtle; }
 .ml-prompt, .ml-prompt text { background: @vs_surface_subtle; color: @vs_ink; font-size: 14px; }
 .ml-prompt { padding: 10px 12px; border-radius: 12px; }
 .ml-recording-dock { background: @vs_canvas; }
-.ml-recording-dock button { min-height: 36px; padding: 4px 16px; }
+.ml-recording-dock button, button.ml-primary { min-height: 36px; padding: 4px 16px; }
 .ml-live { background: @vs_surface_subtle; border-radius: 12px; padding: 12px; }
 .ml-live .heading { color: @vs_accent_strong; }
 .ml-empty { margin-top: 12px; }

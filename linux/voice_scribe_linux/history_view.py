@@ -10,6 +10,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk  # noqa: E402
 
+from voice_scribe_linux.conversation import ConversationStore
 from voice_scribe_linux.history import (
     RECOGNITION_FALLBACK_STARTUP_FAILED,
     RECOGNITION_FALLBACK_STREAM_FAILED,
@@ -68,10 +69,12 @@ class HistoryPage(Gtk.Box):
         delete_entry: Callable[[HistoryEntry], bool],
         history_changed: Callable[[], None],
         show_message: Callable[[str], None],
+        conversations: ConversationStore | None = None,
     ) -> None:
         """Build one refreshable archive around injected application actions."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.store = store
+        self.conversations = conversations
         self.export_directory = export_directory
         self.copy_text = copy_text
         self.can_retry_delivery = can_retry_delivery
@@ -384,7 +387,8 @@ class HistoryPage(Gtk.Box):
     def _export(self, _button: Gtk.Button, entry: HistoryEntry, export_format: str) -> None:
         """Export one entry and reveal its exact owner-local path."""
         try:
-            output_path = self.store.export(entry, self.export_directory, export_format)
+            replies = self.conversations.replies(entry.identifier) if self.conversations else []
+            output_path = self.store.export(entry, self.export_directory, export_format, rewrites=replies)
         except Exception as error:
             self.show_message(f"History export failed: {error}")
             return
@@ -394,7 +398,7 @@ class HistoryPage(Gtk.Box):
         """Require confirmation before erasing a transcript and possible recovery audio."""
         dialog = Adw.AlertDialog.new(
             "Delete this history entry?",
-            "Its transcript and retained recovery audio will be permanently deleted.",
+            "Its original, saved rewrites and retained recovery audio will be permanently deleted.",
         )
         dialog.add_response("cancel", "Cancel")
         dialog.add_response("delete", "Delete permanently")

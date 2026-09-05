@@ -60,7 +60,9 @@ class CodexAppServerClient:
         if self._cancel_requested.is_set():
             self.close()
             raise CodexAppServerError("Codex app-server work was cancelled.")
-        self._reader = threading.Thread(target=self._read_messages, name="codex-app-server-reader", daemon=True)
+        self._reader = threading.Thread(
+            target=self._read_messages, args=(self.process,), name="codex-app-server-reader", daemon=True
+        )
         self._reader.start()
         try:
             self._request(
@@ -248,10 +250,9 @@ class CodexAppServerClient:
         self.process.stdin.write(json.dumps(message, separators=(",", ":")) + "\n")
         self.process.stdin.flush()
 
-    def _read_messages(self) -> None:
+    def _read_messages(self, process: subprocess.Popen[str]) -> None:
         """Dispatch response and notification frames without blocking callers."""
-        process = self.process
-        if process is None or process.stdout is None:
+        if process.stdout is None:
             raise CodexAppServerError("Codex app-server stdout is unavailable.")
         try:
             for line in process.stdout:

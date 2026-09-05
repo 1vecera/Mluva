@@ -35,7 +35,7 @@ export default class MluvaRecordingStatusExtension extends Extension {
         this._watch = Gio.bus_watch_name(
             Gio.BusType.SESSION, 'com.voicescribe.Linux', Gio.BusNameWatcherFlags.NONE,
             () => this._setRunning(true), () => this._setRunning(false));
-        this._overlay = new RecordingOverlay(phase => this._setPhase(phase));
+        this._overlay = new RecordingOverlay((phase, detail) => this._setPhase(phase, detail));
     }
 
     _setRunning(running) {
@@ -45,10 +45,10 @@ export default class MluvaRecordingStatusExtension extends Extension {
         this._setPhase('hidden');
     }
 
-    _setPhase(phase) {
+    _setPhase(phase, detail = '') {
         const labels = {
             preparing: 'Preparing microphone…', recording: 'Recording', processing: 'Processing…',
-            copied: 'Copied—ready to paste', error: 'Dictation needs attention', hidden: 'Ready to dictate',
+            copied: detail || 'Text copied', error: 'Dictation needs attention', hidden: 'Ready to dictate',
         };
         this._status.label.text = this._running ? labels[phase] : 'Mluva is not running';
         this._record.label.text = phase === 'recording' ? 'Stop dictation' :

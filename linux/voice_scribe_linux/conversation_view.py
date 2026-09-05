@@ -25,6 +25,7 @@ class ConversationWorkspace(Gtk.Box):
         paste_text: Callable[[str], None],
         open_archive: Callable[[], None],
         save_prompt: Callable[[str], None],
+        cancel_rewrite: Callable[[], None],
     ) -> None:
         """Bind user intentions while leaving recording and provider work to the application."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
@@ -34,9 +35,11 @@ class ConversationWorkspace(Gtk.Box):
         self.paste_text = paste_text
         self.open_archive = open_archive
         self.save_prompt = save_prompt
+        self.cancel_rewrite = cancel_rewrite
         self.entry: HistoryEntry | None = None
         self.busy = False
         self.private = False
+        self.drafts: dict[str, str] = {}
         self.result_widgets: list[Gtk.TextView] = []
         self.rows: dict[Gtk.ListBoxRow, str] = {}
         self.search_limit = 80
@@ -56,6 +59,8 @@ class ConversationWorkspace(Gtk.Box):
         sidebar.add_css_class("ml-history-sidebar")
         set_margins(sidebar, SPACE_3)
         brand = Gtk.Box(spacing=SPACE_2)
+        brand.set_margin_top(6)
+        brand.set_margin_bottom(10)
         icon = Gtk.Image.new_from_icon_name("com.voicescribe.Linux")
         icon.set_pixel_size(28)
         brand.append(icon)
@@ -99,21 +104,21 @@ class ConversationWorkspace(Gtk.Box):
         self.scroll.set_child(reading_width)
         content.append(self.scroll)
 
-        self.live_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2)
+        self.live_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2, vexpand=True)
         self.live_box.add_css_class("ml-live")
         set_margins(self.live_box, SPACE_3)
         self.live_title = Gtk.Label(xalign=0)
         self.live_title.add_css_class("heading")
         self.live_box.append(self.live_title)
         self.live_text = self._text_view("")
-        self.live_scroll = Gtk.ScrolledWindow(min_content_height=110, max_content_height=220)
-        self.live_scroll.set_propagate_natural_height(True)
+        self.live_scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER, vexpand=True)
         self.live_scroll.set_child(self.live_text)
         self.live_box.append(self.live_scroll)
         self.live_box.set_visible(False)
         content.append(self.live_box)
 
         composer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2)
+        self.composer = composer
         composer.add_css_class("ml-composer")
         set_margins(composer, SPACE_3)
         self.actions = Gtk.FlowBox(
@@ -121,6 +126,7 @@ class ConversationWorkspace(Gtk.Box):
             column_spacing=SPACE_2,
             row_spacing=SPACE_2,
             max_children_per_line=3,
+            min_children_per_line=1,
         )
         self.quick_polish = Gtk.Button(label="Quick Polish")
         self.quick_polish.set_tooltip_text("Remove filler words and fix phrasing while keeping your meaning")
@@ -140,7 +146,9 @@ class ConversationWorkspace(Gtk.Box):
         self.prompt = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, accepts_tab=False)
         self.prompt.add_css_class("ml-prompt")
         self.prompt.set_tooltip_text("Write a custom instruction, then press Ctrl+Enter to send")
-        prompt_scroll = Gtk.ScrolledWindow(min_content_height=64, max_content_height=140)
+        prompt_scroll = Gtk.ScrolledWindow(
+            min_content_height=64, max_content_height=140, hscrollbar_policy=Gtk.PolicyType.NEVER
+        )
         prompt_scroll.set_propagate_natural_height(True)
         prompt_scroll.set_child(self.prompt)
         composer.append(prompt_scroll)
@@ -150,13 +158,19 @@ class ConversationWorkspace(Gtk.Box):
         footer = Gtk.Box(spacing=SPACE_2)
         self.notice = Gtk.Label(xalign=0, wrap=True, hexpand=True, accessible_role=Gtk.AccessibleRole.STATUS)
         self.notice.add_css_class("caption")
+        self.notice.set_max_width_chars(28)
         footer.append(self.notice)
         self.save = Gtk.Button(icon_name="bookmark-new-symbolic")
         self.save.set_tooltip_text("Save this prompt for later")
         self.save.connect("clicked", lambda _button: self.save_prompt(self.prompt_text()))
         footer.append(self.save)
+        self.cancel = Gtk.Button(label="Cancel")
+        self.cancel.connect("clicked", lambda _button: self.cancel_rewrite())
+        self.cancel.set_visible(False)
+        footer.append(self.cancel)
         self.send = Gtk.Button(label="Rewrite")
         self.send.add_css_class("suggested-action")
+        self.send.add_css_class("ml-primary")
         self.send.connect("clicked", self._submit)
         footer.append(self.send)
         composer.append(footer)
@@ -193,6 +207,7 @@ class ConversationWorkspace(Gtk.Box):
 
     def show_conversation(self, entry: HistoryEntry | None, replies: list[Rewrite]) -> None:
         """Open the exact selected history item and every saved rewrite, preserving original text."""
+        self.drafts[self.entry.identifier if self.entry else "new"] = self.prompt_text()
         self.entry = entry
         self.result_widgets.clear()
         child = self.messages.get_first_child()
@@ -226,13 +241,13 @@ class ConversationWorkspace(Gtk.Box):
                 request.add_css_class("ml-instruction")
                 self.messages.append(request)
                 self._message("Rewrite", reply.text)
-        self.prompt.get_buffer().set_text("")
+        self.prompt.get_buffer().set_text(self.drafts.get(entry.identifier if entry else "new", ""))
         self.prompt_label.set_label(
             "Ask for a rewrite or a follow-up" if entry else "Paste or type text to get started"
         )
         self.send.set_label("Rewrite" if entry else "Start conversation")
         self.notice.set_label(
-            "Rewrites use Codex. Your original stays here." if entry else "Dictation copies automatically."
+            "Rewriting · Experimental. Your original stays here." if entry else "Dictation copies automatically."
         )
         self._update_actions()
         for row, identifier in self.rows.items():
@@ -333,6 +348,7 @@ class ConversationWorkspace(Gtk.Box):
 
     def _update_actions(self) -> None:
         """Make privacy and in-flight work authoritative for all rewrite entry points."""
+        self.cancel.set_visible(self.busy)
         self.actions.set_sensitive(self.entry is not None and not self.busy and not self.private)
         self.send.set_sensitive(not self.busy and (self.entry is None or not self.private))
         self.save.set_sensitive(self.entry is not None and not self.private and not self.busy)
@@ -342,11 +358,15 @@ class ConversationWorkspace(Gtk.Box):
     def set_private(self, private: bool) -> None:
         """Prevent rewrite and prompt persistence in Incognito."""
         self.private = private
+        if private:
+            self.drafts.clear()
         self._update_actions()
 
     def set_live(self, phase: str, text: str) -> None:
         """Show every live word separately from committed, copyable messages."""
         self.live_box.set_visible(True)
+        self.scroll.set_visible(False)
+        self.composer.set_visible(False)
         self.live_title.set_label(phase)
         buffer = self.live_text.get_buffer()
         adjustment = self.live_scroll.get_vadjustment()
@@ -361,6 +381,8 @@ class ConversationWorkspace(Gtk.Box):
         """Erase volatile text when finalization completes or capture is cancelled."""
         self.live_text.get_buffer().set_text("")
         self.live_box.set_visible(False)
+        self.scroll.set_visible(True)
+        self.composer.set_visible(True)
 
     def set_saved_prompts(self, prompts: list[tuple[str, str]]) -> None:
         """Expose existing custom styles as one-click rewrite prompts."""

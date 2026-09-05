@@ -165,7 +165,7 @@ export class RecordingOverlay {
         this._phaseIcon.icon_name = phase === 'copied' ? 'emblem-ok-symbolic' :
             phase === 'error' ? 'dialog-warning-symbolic' : 'media-record-symbolic';
         this._timeLabel.visible = phase === 'recording';
-        this._onPhase(phase);
+        this._onPhase(phase, this._bounded(detail, 80));
         this._timeLabel.text = this._formatElapsed(elapsed);
         this._modeLabel.text = this._bounded(mode, 32);
         this._modeLabel.visible = this._modeLabel.text.length > 0;

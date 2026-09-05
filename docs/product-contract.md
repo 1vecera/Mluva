@@ -21,6 +21,10 @@ The common behavioral contract below applies to both platforms unless a provider
 - Treat insertion, focus preservation, clipboard restoration, retry, and cancellation as core behavior.
 - Keep dictation and meeting capture separate because their latency, speaker, and output contracts differ.
 
+## Linux conversation workspace
+
+The accepted [conversation workspace contract](conversation-workspace.md) defines the current Linux primary surface: dictation, full live and completed transcripts, searchable history, and persistent rewrite conversations. Quick Polish, Structured Note, saved custom prompts, and contextual follow-ups use local Codex app-server. F9 remains clipboard-first; Shift+F9 opens the latest conversation when approved by the desktop. The optional shell extension adds explicit actions and bottom recording/processing/copied/error feedback. Advanced capture modes remain available through Settings and secondary pages.
+
 ## Capture modes
 
 ### Dictation
@@ -169,7 +173,7 @@ The common behavioral contract below applies to both platforms unless a provider
 - Support snippets with spoken triggers, deterministic variables, and per-application scope on both platforms. macOS additionally supports secure-field-aware typed expansion; Linux stores exact typed triggers for portability but does not run a broad desktop key listener under GNOME Wayland.
 - Support saved styles for messages, email, prose, technical notes, prompts, and custom instructions.
 - Present saved styles as output modes in the main menu, show the selected mode's full instructions, allow custom modes to be created and edited there, and include Google Chat and Tasks presets.
-- Keep the full Capture mode label visible, and explain Dictate, Command, Notes, Meeting, and the selected output mode on hover before recording.
+- Keep the full Capture mode label visible in Settings, and explain Dictate, Command, Notes, Meeting, and the selected output mode on hover before recording.
 - Remember the last mode and style per application when enabled.
 - Suggest vocabulary additions from corrected history without adding them automatically.
 

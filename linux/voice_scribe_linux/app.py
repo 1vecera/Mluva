@@ -261,6 +261,8 @@ class MluvaApplication(Adw.Application):
         self.audio_path: Path | None = None
         self.shortcut_service: GlobalShortcutService | None = None
         self.approved_recording_trigger: str | None = None
+        self.approved_rewrite_trigger: str | None = None
+        self.rewrite_shortcut_status_row: Adw.ActionRow | None = None
         self.focus_tracker: FocusedTextTargetTracker | None = None
         self.pending_mode = "dictation"
         self.pending_cleanup = False
@@ -307,6 +309,7 @@ class MluvaApplication(Adw.Application):
         self.conversation_workspace: ConversationWorkspace | None = None
         self.conversation_store: ConversationStore
         self.rewrite_client: CodexAppServerClient | None = None
+        self.rewrite_draft = ""
         self.overlay_timeout_id: int | None = None
         for name, callback in (
             ("latest", self._open_latest_conversation),
@@ -323,10 +326,10 @@ class MluvaApplication(Adw.Application):
 
     def _on_activate(self, _application: Adw.Application) -> None:
         """Build the adaptive primary window and validate external runtime dependencies."""
-        self._initialize_recording_overlay()
         if self.window is not None:
             self.window.present()
             return
+        self._initialize_recording_overlay()
         ThemeController().apply()
         Gtk.IconTheme.get_for_display(Gdk.Display.get_default()).add_search_path(
             str(Path(__file__).parents[1] / "resources")
@@ -369,6 +372,7 @@ class MluvaApplication(Adw.Application):
         stack.add_titled_with_icon(self.meeting_page, "meeting", "Meeting", "system-users-symbolic")
         self.history_page = HistoryPage(
             store=self.history_store,
+            conversations=self.conversation_store,
             export_directory=self.data_directory / "exports",
             copy_text=self._copy_text,
             can_retry_delivery=self._can_retry_history_delivery,
@@ -404,7 +408,8 @@ class MluvaApplication(Adw.Application):
         sidebar_button.set_tooltip_text("Show or hide history")
         sidebar_button.connect("clicked", self._toggle_history_sidebar)
         self.header_bar.pack_start(sidebar_button)
-        home = Gtk.Button(label="Conversations", has_frame=False)
+        home = Gtk.Button(icon_name="go-home-symbolic", has_frame=False)
+        home.set_tooltip_text("Conversations")
         home.connect("clicked", lambda _button: self._navigate_to_page("capture"))
         self.header_bar.pack_start(home)
         menu = Gio.Menu()
@@ -497,6 +502,7 @@ class MluvaApplication(Adw.Application):
         except Exception:
             workspace.set_busy(False, "Could not save this conversation. Your text is still in the editor.")
             return
+        workspace.prompt.get_buffer().set_text("")
         workspace.show_conversation(entry, [])
         self._history_changed()
 
@@ -516,6 +522,7 @@ class MluvaApplication(Adw.Application):
             return
         client = CodexAppServerClient()
         self.rewrite_client = client
+        self.rewrite_draft = workspace.prompt_text()
         workspace.set_busy(True, "Rewriting… You can keep browsing history.")
         threading.Thread(
             target=self._rewrite_worker,
@@ -571,10 +578,22 @@ class MluvaApplication(Adw.Application):
             workspace.set_busy(False, "Could not save the rewrite. The conversation may have been deleted.")
             return GLib.SOURCE_REMOVE
         if workspace.entry is not None and workspace.entry.identifier == identifier:
+            if workspace.prompt_text() == self.rewrite_draft:
+                workspace.prompt.get_buffer().set_text("")
             workspace.show_conversation(entry, self.conversation_store.replies(identifier))
         workspace.set_busy(False, "Rewrite ready. Choose Copy when you want to use it.")
         workspace.refresh_history()
         return GLib.SOURCE_REMOVE
+
+    def _cancel_rewrite(self) -> None:
+        """Invalidate the pending result immediately, then stop its provider off the UI thread."""
+        client = self.rewrite_client
+        if client is None:
+            return
+        self.rewrite_client = None
+        threading.Thread(target=client.cancel, name="cancel-rewrite", daemon=True).start()
+        if self.conversation_workspace is not None:
+            self.conversation_workspace.set_busy(False, "Rewrite cancelled. Your original is safe.")
 
     def _save_rewrite_prompt(self, instruction: str) -> None:
         """Name an explicitly supplied prompt using the existing saved-style store."""
@@ -637,6 +656,7 @@ class MluvaApplication(Adw.Application):
             paste_text=self._start_pasted_conversation,
             open_archive=self._open_history,
             save_prompt=self._save_rewrite_prompt,
+            cancel_rewrite=self._cancel_rewrite,
         )
         self.conversation_workspace.set_vexpand(True)
         body.append(self.conversation_workspace)
@@ -932,6 +952,11 @@ class MluvaApplication(Adw.Application):
             subtitle=f"Requesting {self.config.global_recording_key} through the desktop portal…",
         )
         shortcut.add(self.global_shortcut_status_row)
+        self.rewrite_shortcut_status_row = Adw.ActionRow(
+            title="Open latest conversation",
+            subtitle="Shift+F9 needs desktop approval. The shell menu also opens your latest dictation.",
+        )
+        shortcut.add(self.rewrite_shortcut_status_row)
         capture_page.add(shortcut)
 
         behavior = Adw.PreferencesGroup(title="Behavior")
@@ -1143,6 +1168,7 @@ class MluvaApplication(Adw.Application):
 
     def _show_settings(self, _button: Gtk.Button) -> None:
         """Present all infrequent configuration in one searchable native dialog."""
+        self.activate()
         if self.settings_dialog is not None and self.window is not None:
             self.settings_dialog.present(self.window)
 
@@ -1280,6 +1306,9 @@ class MluvaApplication(Adw.Application):
                 action_hint = f"{approved_recording_trigger} toggles global capture · automatic paste is unavailable"
             else:
                 action_hint = f"{approved_recording_trigger} toggles global capture · automatic paste is off"
+            rewrite_trigger = getattr(self, "approved_rewrite_trigger", None)
+            if rewrite_trigger:
+                action_hint += f" · {rewrite_trigger} opens rewriting"
             self.capture_action_hint.set_label(action_hint)
 
     def _output_visibility_changed(self, buffer: Gtk.TextBuffer) -> None:
@@ -1375,6 +1404,7 @@ class MluvaApplication(Adw.Application):
                 on_error=lambda message: GLib.idle_add(self._set_status, f"Global shortcut unavailable: {message}"),
                 preferred_recording_trigger=self.config.global_recording_key,
                 on_open_rewrite=lambda: GLib.idle_add(self._open_latest_conversation),
+                on_rewrite_binding_changed=lambda trigger: GLib.idle_add(self._rewrite_binding_changed, trigger),
             )
             self.shortcut_service.start()
         elif self.global_shortcut_status_row is not None:
@@ -2069,6 +2099,7 @@ class MluvaApplication(Adw.Application):
         self._clear_live_capture()
         self._reset_record_button()
         self._set_status(f"Codex preparation failed before microphone capture: {message}")
+        MluvaApplication._publish_completion_status(self, "error", "Could not prepare dictation. Open Mluva.")
         return GLib.SOURCE_REMOVE
 
     def _capture_prepared(
@@ -2172,6 +2203,7 @@ class MluvaApplication(Adw.Application):
             self._clear_live_capture()
             self._set_error(str(error))
             self._reset_record_button()
+            MluvaApplication._publish_completion_status(self, "error", "Microphone could not start. Open Mluva.")
             return GLib.SOURCE_REMOVE
         self._record_app_diagnostic(
             DiagnosticStage.CAPTURE_READY,
@@ -2411,12 +2443,18 @@ class MluvaApplication(Adw.Application):
         if workspace is not None and result.mode == "dictation":
             workspace.finish_live()
             if result.history_entry is not None:
-                workspace.show_conversation(result.history_entry, [])
+                if not workspace.prompt_text() and self.rewrite_client is None:
+                    workspace.show_conversation(result.history_entry, [])
             else:
                 workspace.show_transient(result.transcription.text, result.output_text)
         if not result.requires_acceptance:
-            MluvaApplication._publish_completion_status(self, "copied", "Copied—ready to paste")
-            self._set_status("Copied—ready to paste. Open the conversation to rewrite it.")
+            if result.delivery.pasted:
+                message = "Inserted. Text also stays on the clipboard."
+            elif result.delivery.paste_dispatched:
+                message = "Paste unconfirmed. Check the target before pasting again."
+            else:
+                message = "Copied. Ready to paste."
+            MluvaApplication._publish_completion_status(self, "copied", message)
         return GLib.SOURCE_REMOVE
 
     def _workflow_failed(
@@ -3517,9 +3555,11 @@ class MluvaApplication(Adw.Application):
             workspace.refresh_history()
             if workspace.entry is not None:
                 try:
-                    self.history_store.find(workspace.entry.identifier)
+                    entry = self.history_store.find(workspace.entry.identifier)
                 except KeyError:
                     workspace.show_conversation(None, [])
+                else:
+                    workspace.show_conversation(entry, self.conversation_store.replies(entry.identifier))
 
     def _retry_history_delivery(self, entry: HistoryEntry) -> None:
         """Paste to an exact retained target when safe, otherwise copy for manual recovery."""
@@ -3763,6 +3803,18 @@ class MluvaApplication(Adw.Application):
     def _shortcut_cancelled(self) -> bool:
         """Cancel once when the compositor activates the approved cancel shortcut."""
         self._cancel_capture()
+        return GLib.SOURCE_REMOVE
+
+    def _rewrite_binding_changed(self, trigger: str | None) -> bool:
+        """Show the compositor's assigned rewrite key without overstating the requested shortcut."""
+        self.approved_rewrite_trigger = trigger
+        if self.rewrite_shortcut_status_row is not None:
+            self.rewrite_shortcut_status_row.set_subtitle(
+                f"{trigger} opens the latest conversation"
+                if trigger
+                else "Shift+F9 is not approved. Open the latest conversation from the shell menu."
+            )
+        self._update_capture_status_rows()
         return GLib.SOURCE_REMOVE
 
     def _global_shortcut_binding_changed(

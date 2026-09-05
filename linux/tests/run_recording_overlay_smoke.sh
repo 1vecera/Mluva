@@ -19,12 +19,12 @@ output_dir=$(cd -- "${output_dir}" && pwd -P)
 gnome-extensions pack \
     --force \
     --extra-source mluva-symbolic.svg \
-        --extra-source recordingOverlay.js \
+    --extra-source recordingOverlay.js \
     --out-dir "${output_dir}" \
     "${extension_root}"
 extension_archive="${output_dir}/recording-status@voicescribe.local.shell-extension.zip"
 
-for scenario in preparing recording quiet; do
+for scenario in preparing recording quiet processing copied error; do
     runtime_dir=$(mktemp -d /tmp/mluva-shell.XXXXXX)
     chmod 0700 "${runtime_dir}"
     screenshot_path="${output_dir}/${scenario}-1280x720.png"
