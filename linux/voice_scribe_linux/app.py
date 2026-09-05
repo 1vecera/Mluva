@@ -306,6 +306,7 @@ class MluvaApplication(Adw.Application):
         for name, callback in (
             ("latest", self._open_latest_conversation),
             ("record", self._shell_record),
+            ("status", self._replay_overlay_status),
             ("history", self._open_history),
             ("settings", lambda: self._show_settings(self.settings_button)),
             ("meeting", lambda: self._navigate_to_page("meeting")),
@@ -444,6 +445,11 @@ class MluvaApplication(Adw.Application):
         """Keep the app and approved shortcuts running when its window is closed."""
         window.set_visible(False)
         return True
+
+    def _replay_overlay_status(self) -> None:
+        """Synchronize an attaching shell without changing any capture or delivery state."""
+        if self.recording_overlay_publisher is not None:
+            self.recording_overlay_publisher.replay()
 
     def _shell_record(self) -> None:
         """Use the visible-button copy boundary for a deliberate shell-menu action."""

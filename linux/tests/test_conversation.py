@@ -30,6 +30,8 @@ def test_existing_history_becomes_a_restart_safe_conversation(tmp_path: Path) ->
     assert context["next_instruction"] == "Make it shorter."
     assert history.find(source.identifier) == source
     assert reopened.search("Příliš")[0].identifier == source.identifier
+    assert reopened.search("PŘÍLIŠ")[0].identifier == source.identifier
+    assert reopened.search("ŽLUŤOUČKÝ")[0].identifier == source.identifier
 
 
 def test_searches_old_sources_and_replies_without_treating_wildcards_as_query_syntax(tmp_path: Path) -> None:

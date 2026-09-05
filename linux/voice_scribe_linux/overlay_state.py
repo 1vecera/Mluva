@@ -74,16 +74,22 @@ class RecordingOverlayPublisher:
     def __init__(self, connection: SignalConnection) -> None:
         """Retain the application-owned connection without owning another bus name."""
         self.connection = connection
+        self._parameters = GLib.Variant(OVERLAY_SIGNAL_SIGNATURE, RecordingOverlayState.hidden().as_signal_values())
 
     def publish(self, state: RecordingOverlayState) -> bool:
         """Broadcast one optional display snapshot without risking the capture path."""
+        self._parameters = GLib.Variant(OVERLAY_SIGNAL_SIGNATURE, state.as_signal_values())
+        return self.replay()
+
+    def replay(self) -> bool:
+        """Synchronize a newly attached shell using only the last bounded display snapshot."""
         try:
             self.connection.emit_signal(
                 None,
                 OVERLAY_OBJECT_PATH,
                 OVERLAY_INTERFACE,
                 OVERLAY_SIGNAL,
-                GLib.Variant(OVERLAY_SIGNAL_SIGNATURE, state.as_signal_values()),
+                self._parameters,
             )
         except GLib.Error:
             return False

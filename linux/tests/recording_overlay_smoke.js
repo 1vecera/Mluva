@@ -105,7 +105,7 @@ export async function run() {
     Main.overview.hide();
     await Scripting.waitLeisure();
 
-    const overlay = overlayActor();
+    let overlay = overlayActor();
     expect(overlay !== undefined, 'The recording overlay extension did not create its Shell actor');
     expect(!overlay.visible, 'The recording overlay must be absent while idle');
     expect(!overlay.reactive, 'The recording overlay container must not intercept pointer input');
@@ -114,11 +114,16 @@ export async function run() {
     const [ownerId, connection] = await ownApplicationName();
     const actions = new Gio.SimpleActionGroup();
     const activated = [];
+    let currentState = [false, 'hidden', '', 0, '', '', 0, '', ''];
     for (const name of ['record', 'latest', 'history', 'settings', 'quit']) {
         const action = new Gio.SimpleAction({name});
         action.connect('activate', () => activated.push(name));
         actions.add_action(action);
     }
+    const statusAction = new Gio.SimpleAction({name: 'status'});
+    statusAction.connect('activate', () => connection.emit_signal(
+        null, OBJECT_PATH, INTERFACE_NAME, SIGNAL_NAME, new GLib.Variant('(bssussdss)', currentState)));
+    actions.add_action(statusAction);
     const exportId = connection.export_action_group('/com/voicescribe/Linux', actions);
     try {
         const indicator = Main.panel.statusArea.mluva;
@@ -130,14 +135,25 @@ export async function run() {
             item.activate(null);
             await waitFor(() => activated.includes(name), `${label} did not reach the application action group`);
         }
+        currentState = visibleState();
         connection.emit_signal(
             null,
             OBJECT_PATH,
             INTERFACE_NAME,
             SIGNAL_NAME,
-            new GLib.Variant('(bssussdss)', visibleState()));
+            new GLib.Variant('(bssussdss)', currentState));
         await waitFor(() => overlay.visible, 'The recording signal did not reveal the overlay');
         await Scripting.waitLeisure();
+        if (currentState[1] === 'processing') {
+            const extension = Main.extensionManager.lookup('recording-status@voicescribe.local').stateObj;
+            extension.disable();
+            extension.enable();
+            overlay = overlayActor();
+            await waitFor(() => overlay.visible, 'Re-enabling the extension did not restore processing status');
+            await waitFor(() => Main.panel.statusArea.mluva.accessible_name.includes('Processing'),
+                'Re-enabling the extension falsely reported readiness');
+            await Scripting.waitLeisure();
+        }
 
         console.log(
             `VOICE_SCRIBE_OVERLAY_GEOMETRY bar=${overlay.width}x${overlay.height} ` +

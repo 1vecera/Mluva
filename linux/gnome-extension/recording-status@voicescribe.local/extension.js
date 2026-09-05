@@ -21,6 +21,10 @@ export default class MluvaRecordingStatusExtension extends Extension {
         this._indicator.menu.addMenuItem(this._status);
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this._actions = Gio.DBusActionGroup.get(Gio.DBus.session, 'com.voicescribe.Linux', '/com/voicescribe/Linux');
+        this._actionAdded = this._actions.connect('action-added', (_group, name) => {
+            if (name === 'status')
+                this._actions.activate_action('status', null);
+        });
         this._record = this._indicator.menu.addAction('Start dictation', () => this._actions.activate_action('record', null));
         this._latest = this._indicator.menu.addAction('Rewrite latest dictation', () => this._actions.activate_action('latest', null));
         this._history = this._indicator.menu.addAction('History', () => this._actions.activate_action('history', null));
@@ -43,6 +47,8 @@ export default class MluvaRecordingStatusExtension extends Extension {
         for (const item of [this._record, this._latest, this._history, this._settings, this._quit])
             item.setSensitive(running);
         this._setPhase('hidden');
+        if (running && this._actions.has_action('status'))
+            this._actions.activate_action('status', null);
     }
 
     _setPhase(phase, detail = '') {
@@ -59,6 +65,7 @@ export default class MluvaRecordingStatusExtension extends Extension {
     }
 
     disable() {
+        this._actions.disconnect(this._actionAdded);
         Gio.bus_unwatch_name(this._watch);
         this._overlay.destroy();
         this._overlay = null;

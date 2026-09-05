@@ -46,10 +46,12 @@ def exercise(application: MluvaApplication) -> None:
         first = application.conversation_store.replies(source.identifier)
         assert first[0].text == source.raw_text + "\n" + QUICK_POLISH
         workspace._submit(workspace.send)
+        workspace.prompt.get_buffer().set_text("Next draft while the reply is pending")
         settle()
         replies = application.conversation_store.replies(source.identifier)
         assert replies[-1].text == first[0].text + "\nA follow-up typed while rewriting"
-        assert workspace.prompt_text() == ""
+        assert workspace.prompt_text() == "Next draft while the reply is pending"
+        workspace.prompt.get_buffer().set_text("")
         assert copies == []
         workspace.messages.get_last_child().get_first_child().get_last_child().emit("clicked")
         assert copies == [replies[-1].text]

@@ -18,6 +18,8 @@ Follow-ups replay local context through an isolated Codex app-server transformat
 
 The bundled GNOME Shell extension adds a top-panel Mluva menu with recording, latest conversation, history, settings, open and quit actions. Actions delegate to the application's existing GApplication action group. The bottom bar remains noninteractive and does not change keyboard focus. It shows preparing, recording, processing, copied and error states. Copied feedback remains for five seconds and errors for ten seconds; a new recording cancels the older dismissal timer. The bar clears when the app's bus owner disappears.
 
+When the extension attaches or is re-enabled, it requests the last bounded display snapshot through the same application action group. Processing status therefore returns immediately without restarting capture or touching the clipboard.
+
 Closing the main window hides it while the app and approved shortcuts remain available. Quit Mluva explicitly exits. Meeting, vocabulary, snippets and recovery tools remain accessible through secondary menus and settings.
 
 Install the shell integration with `make linux-recording-overlay-install`, or `mluva-overlay install` from an installed application. A GNOME session that has not discovered a newly installed extension may require one logout/login before it can enable the extension. Automated verification uses a private nested shell and never enables the extension in the live desktop.

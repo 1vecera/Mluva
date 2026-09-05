@@ -86,15 +86,16 @@ class ConversationStore:
 
     def search(self, query: str = "", limit: int = 80) -> list[HistoryEntry]:
         """Search all source text, titles and replies before bounding the sidebar result set."""
-        pattern = "%" + query.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+        pattern = "%" + query.strip().casefold().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
         with closing(sqlite3.connect(self.history.path)) as connection:
             connection.row_factory = sqlite3.Row
+            connection.create_function("unicode_fold", 1, lambda text: (text or "").casefold(), deterministic=True)
             identifiers = connection.execute(
                 "SELECT h.identifier FROM transcription_history h WHERE "
-                "coalesce(h.title, '') LIKE ? ESCAPE '\\' OR h.raw_text LIKE ? ESCAPE '\\' "
-                "OR h.delivered_text LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM conversation_rewrites r "
+                "unicode_fold(h.title) LIKE ? ESCAPE '\\' OR unicode_fold(h.raw_text) LIKE ? ESCAPE '\\' "
+                "OR unicode_fold(h.delivered_text) LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM conversation_rewrites r "
                 "WHERE r.history_identifier = h.identifier AND "
-                "(r.text LIKE ? ESCAPE '\\' OR r.instruction LIKE ? ESCAPE '\\')) "
+                "(unicode_fold(r.text) LIKE ? ESCAPE '\\' OR unicode_fold(r.instruction) LIKE ? ESCAPE '\\')) "
                 "ORDER BY h.created_at DESC LIMIT ?",
                 (pattern, pattern, pattern, pattern, pattern, limit),
             ).fetchall()

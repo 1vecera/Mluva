@@ -74,6 +74,18 @@ def test_hidden_state_erases_every_display_field() -> None:
     ).as_signal_values() == (False, "hidden", "", 0, "", "", 0.0, "", "")
 
 
+def test_attaching_shell_receives_current_bounded_state_and_cannot_replay_cleared_text() -> None:
+    """Replay processing to late listeners while clearing all cached content at dismissal."""
+    connection = FakeConnection()
+    publisher = RecordingOverlayPublisher(connection)
+    publisher.publish(RecordingOverlayState(phase="processing", detail="Finishing dictation"))
+    publisher.replay()
+    assert connection.calls[-1][-1].unpack()[1:3] == ("processing", "Finishing dictation")
+    publisher.clear()
+    publisher.replay()
+    assert connection.calls[-1][-1].unpack() == (False, "hidden", "", 0, "", "", 0.0, "", "")
+
+
 def test_optional_publisher_failure_does_not_escape_into_capture() -> None:
     """A dead Shell/session-bus projection must never break recording."""
     publisher = RecordingOverlayPublisher(FailingConnection())
