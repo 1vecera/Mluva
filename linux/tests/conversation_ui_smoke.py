@@ -13,6 +13,7 @@ from conversation_lifecycle import exercise
 from voice_scribe_linux.app import MluvaApplication
 from voice_scribe_linux.conversation import STRUCTURED_NOTE
 from voice_scribe_linux.pipewire import PipeWireDeviceCatalog
+from voice_scribe_linux.ui import set_button_content
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -80,8 +81,14 @@ def main() -> int:
                 workspace.show_conversation(None, [])
             elif scenario == "recording":
                 workspace.set_live("Recording  01:13", source * 3)
+                application.capture_status_title.set_label("Recording")
+                application.status_label.set_label("Listening. Press F9 when you're done.")
+                set_button_content(application.record_button, "media-playback-stop-symbolic", "Stop")
             elif scenario == "processing":
                 workspace.set_live("Processing…", source)
+                application.capture_status_title.set_label("Processing…")
+                application.status_label.set_label("Finishing your dictation.")
+                application.record_button.set_sensitive(False)
             elif scenario == "rewriting":
                 workspace.set_busy(True, "Rewriting… You can keep browsing history.")
             elif scenario == "error":
@@ -105,16 +112,8 @@ def main() -> int:
         try:
             window = application.window
 
-            def inspect_size(widget: Gtk.Widget) -> None:
-                """Reject clipping that GTK's application-window allocation otherwise allows."""
-                if widget.get_visible() and widget.measure(Gtk.Orientation.HORIZONTAL, -1)[0] > width - 10:
-                    print(f"MINIMUM_WIDTH {type(widget).__name__} {widget.measure(Gtk.Orientation.HORIZONTAL, -1)[0]}")
-                child = widget.get_first_child()
-                while child is not None:
-                    inspect_size(child)
-                    child = child.get_next_sibling()
-
-            inspect_size(window.get_content())
+            assert window.get_content().measure(Gtk.Orientation.HORIZONTAL, -1)[0] <= width - 10
+            assert window.get_content().measure(Gtk.Orientation.VERTICAL, width - 10)[0] <= height - 10
             assert window.get_surface().get_width() == width, (window.get_surface().get_width(), width)
             assert window.get_surface().get_height() == height, (window.get_surface().get_height(), height)
             subprocess.run(

@@ -7,17 +7,22 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from gi.repository import GLib
+import gi
 
 from voice_scribe_linux.app import MluvaApplication
 from voice_scribe_linux.codex_client import CodexAppServerClient
 from voice_scribe_linux.conversation import QUICK_POLISH
 from voice_scribe_linux.delivery import DeliveryReceipt
 
+gi.require_version("Gtk", "4.0")
+from gi.repository import GLib, Gtk  # noqa: E402
+
 
 def exercise(application: MluvaApplication) -> None:
     """Verify draft races, contextual replies, cancellation, privacy, export and background delivery."""
     workspace = application.conversation_workspace
+    copies: list[str] = []
+    workspace.copy_text = copies.append
     source = application.history_store.add("Lifecycle source", "Lifecycle source", "dictation", "eng", None, "copied")
     workspace.show_conversation(source, [])
     client_factory = lambda: CodexAppServerClient(  # noqa: E731
@@ -33,10 +38,11 @@ def exercise(application: MluvaApplication) -> None:
         assert application.rewrite_client is None, "Synthetic rewrite timed out"
 
     with patch("voice_scribe_linux.app.CodexAppServerClient", side_effect=client_factory):
+        workspace.prompt.get_buffer().set_text("A follow-up typed before Quick Polish")
         application._request_rewrite(QUICK_POLISH)
-        workspace.prompt.get_buffer().set_text("A follow-up typed while rewriting")
         settle()
-        assert workspace.prompt_text() == "A follow-up typed while rewriting"
+        assert workspace.prompt_text() == "A follow-up typed before Quick Polish"
+        workspace.prompt.get_buffer().set_text("A follow-up typed while rewriting")
         first = application.conversation_store.replies(source.identifier)
         assert first[0].text == source.raw_text + "\n" + QUICK_POLISH
         workspace._submit(workspace.send)
@@ -44,6 +50,9 @@ def exercise(application: MluvaApplication) -> None:
         replies = application.conversation_store.replies(source.identifier)
         assert replies[-1].text == first[0].text + "\nA follow-up typed while rewriting"
         assert workspace.prompt_text() == ""
+        assert copies == []
+        workspace.messages.get_last_child().get_first_child().get_last_child().emit("clicked")
+        assert copies == [replies[-1].text]
         application._request_rewrite("Cancelled request")
         application._cancel_rewrite()
         time.sleep(0.3)
@@ -60,6 +69,16 @@ def exercise(application: MluvaApplication) -> None:
     application._history_changed()
     assert workspace.entry.delivered_text == "Corrected source"
     assert workspace.prompt_text() == "Keep this draft"
+    newer = [application.history_store.add("Newer", "Newer", "dictation", "eng", None, "copied") for _ in range(101)]
+    application._open_history()
+    assert source.identifier in application.history_page.entry_rows
+    assert application.history_page.entry_rows[source.identifier].get_expanded()
+    application.history_page._save_title(None, source, Gtk.Entry(text="Renamed conversation"))
+    assert workspace.entry.title == "Renamed conversation"
+    assert application.conversation_store.search("Renamed conversation")[0].identifier == source.identifier
+    for entry in newer:
+        application.history_store.delete(entry.identifier)
+    application._navigate_to_page("capture")
 
     for export_format in ("json", "markdown"):
         application.history_page._export(None, workspace.entry, export_format)
@@ -118,8 +137,13 @@ def exercise(application: MluvaApplication) -> None:
     workspace.show_conversation(source, replies)
     with patch("voice_scribe_linux.app.CodexAppServerClient", side_effect=client_factory):
         application._request_rewrite("Must not persist after privacy changes")
-        application.incognito_switch.set_active(True)
+        with patch("voice_scribe_linux.app.save_config", side_effect=OSError("Fixture read-only settings")):
+            application.incognito_switch.set_active(True)
         settle()
+    assert application.config.incognito_mode
+    previous_count = len(application.conversation_store.search())
+    application._start_pasted_conversation("Private imported text")
+    assert len(application.conversation_store.search()) == previous_count
     assert not workspace.quick_polish.is_sensitive()
     assert len(application.conversation_store.replies(source.identifier)) == 2
     application.incognito_switch.set_active(False)
@@ -130,3 +154,8 @@ def exercise(application: MluvaApplication) -> None:
     assert workspace.entry is None
     assert not application.conversation_store.replies(source.identifier)
     workspace.prompt.get_buffer().set_text("")
+    application._start_pasted_conversation("Imported text stays complete")
+    assert workspace.entry.raw_text == "Imported text stays complete"
+    assert copies == [replies[-1].text]
+    application.history_store.delete(workspace.entry.identifier)
+    application._history_changed()

@@ -88,6 +88,9 @@ linux-overlay-test:
 linux-text-target-test: linux-setup
 	bash linux/tests/run_native_text_target_smoke.sh
 
+linux-conversation-test: linux-setup
+	MLUVA_SMOKE=conversation bash linux/tests/run_native_text_target_smoke.sh tmp/conversation-smoke
+
 linux-run: linux-setup
 	cd linux && uv run --locked python -m voice_scribe_linux.app
 

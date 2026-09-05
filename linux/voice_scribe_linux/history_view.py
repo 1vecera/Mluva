@@ -85,6 +85,7 @@ class HistoryPage(Gtk.Box):
         self.history_changed = history_changed
         self.show_message = show_message
         self.entry_rows: dict[str, Adw.ExpanderRow] = {}
+        self.focused_identifier: str | None = None
 
         content = page_content()
         content.append(FeatureMaturityNotice("history"))
@@ -119,6 +120,13 @@ class HistoryPage(Gtk.Box):
         self.append(self.scroll)
         self.refresh()
 
+    def focus_entry(self, identifier: str | None) -> None:
+        """Expose the selected conversation's recovery tools even beyond the recent page."""
+        self.focused_identifier = identifier
+        self.refresh()
+        if identifier in self.entry_rows:
+            self.entry_rows[identifier].set_expanded(True)
+
     def refresh(self) -> None:
         """Rebuild durable rows while preserving open records and scroll position."""
         expanded = {identifier for identifier, row in self.entry_rows.items() if row.get_expanded()}
@@ -126,7 +134,14 @@ class HistoryPage(Gtk.Box):
         self._clear_list(self.list_box)
         self.entry_rows.clear()
         entries = self.store.recent()
-        self.count_label.set_label(f"{len(entries)} saved")
+        if self.focused_identifier is not None:
+            try:
+                selected = self.store.find(self.focused_identifier)
+            except KeyError:
+                self.focused_identifier = None
+            else:
+                entries = [selected, *(entry for entry in entries if entry.identifier != selected.identifier)]
+        self.count_label.set_label(f"{len(entries)} shown")
         if not entries:
             self.archive_stack.set_visible_child_name("empty")
         else:
@@ -330,6 +345,7 @@ class HistoryPage(Gtk.Box):
             return
         self.refresh()
         self.show_message("History title saved.")
+        self.history_changed()
 
     def _save_correction(
         self,

@@ -301,7 +301,7 @@ class MluvaApplication(Adw.Application):
         self.conversation_workspace: ConversationWorkspace | None = None
         self.conversation_store: ConversationStore
         self.rewrite_client: CodexAppServerClient | None = None
-        self.rewrite_draft = ""
+        self.rewrite_draft: str | None = None
         self.overlay_timeout_id: int | None = None
         for name, callback in (
             ("latest", self._open_latest_conversation),
@@ -466,6 +466,9 @@ class MluvaApplication(Adw.Application):
     def _open_history(self) -> None:
         """Present recovery and management tools without crowding daily dictation."""
         self.activate()
+        workspace = self.conversation_workspace
+        if self.history_page is not None:
+            self.history_page.focus_entry(workspace.entry.identifier if workspace and workspace.entry else None)
         self._navigate_to_page("history")
 
     def _toggle_history_sidebar(self, _button: Gtk.Button) -> None:
@@ -514,7 +517,7 @@ class MluvaApplication(Adw.Application):
             return
         client = CodexAppServerClient()
         self.rewrite_client = client
-        self.rewrite_draft = workspace.prompt_text()
+        self.rewrite_draft = instruction if instruction == workspace.prompt_text() else None
         workspace.set_busy(True, "Rewriting… You can keep browsing history.")
         threading.Thread(
             target=self._rewrite_worker,
@@ -573,6 +576,7 @@ class MluvaApplication(Adw.Application):
             if workspace.prompt_text() == self.rewrite_draft:
                 workspace.prompt.get_buffer().set_text("")
             workspace.show_conversation(entry, self.conversation_store.replies(identifier))
+            workspace.scroll_to_latest()
         workspace.set_busy(False, "Rewrite ready. Choose Copy when you want to use it.")
         workspace.refresh_history()
         return GLib.SOURCE_REMOVE
@@ -2751,6 +2755,13 @@ class MluvaApplication(Adw.Application):
             save_config(new_config, self.config_path)
         except Exception as error:
             self._set_status(f"Privacy settings could not be saved: {error}")
+            self.config = replace(self.config, incognito_mode=new_config.incognito_mode)
+            if self.workflow is not None:
+                self.workflow.config = self.config
+            if self.meeting_workflow is not None:
+                self.meeting_workflow.config = self.config
+            self._apply_incognito_controls()
+            self._set_status("Privacy settings could not be saved. The Incognito choice applies for this session.")
             return
         self.config = new_config
         if self.workflow is not None:

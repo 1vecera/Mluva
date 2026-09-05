@@ -11,7 +11,7 @@ from voice_scribe_linux.ui import SPACE_2, SPACE_3, set_margins
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gdk, Gtk, Pango  # noqa: E402
+from gi.repository import Adw, Gdk, GLib, Gtk, Pango  # noqa: E402
 
 
 class ConversationWorkspace(Gtk.Box):
@@ -255,6 +255,23 @@ class ConversationWorkspace(Gtk.Box):
                 self.history_list.select_row(row)
         if self.split.get_collapsed():
             self.split.set_show_sidebar(False)
+
+    def scroll_to_latest(self) -> None:
+        """Reveal a completed reply after GTK measures it without moving a newly selected conversation."""
+        if not self.result_widgets:
+            return
+        latest = self.result_widgets[-1]
+
+        def reveal() -> bool:
+            """Follow only the reply that requested this deferred scroll."""
+            if self.result_widgets and self.result_widgets[-1] is latest:
+                buffer = latest.get_buffer()
+                mark = buffer.create_mark(None, buffer.get_end_iter(), False)
+                latest.scroll_mark_onscreen(mark)
+                buffer.delete_mark(mark)
+            return GLib.SOURCE_REMOVE
+
+        GLib.timeout_add(50, reveal)
 
     def refresh_history(self) -> None:
         """Search the whole archive while rendering only the requested page of results."""

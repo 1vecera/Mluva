@@ -86,8 +86,24 @@ run_private_session() {
     fi
 
     cd "${LINUX_ROOT}"
-    OFFSCREEN_ARTIFACT_DIR="${artifact_dir}" PYTHONPATH=. GTK_A11Y=atspi \
-        .venv/bin/python tests/native_text_target_smoke.py
+    if [[ "${MLUVA_SMOKE:-}" == conversation ]]; then
+        local scenario width height scenario_dir
+        for specification in conversation:1060:780 lifecycle:1060:780 empty:480:640 \
+            recording:420:520 processing:480:640 rewriting:480:640 error:480:640 incognito:480:640 dark:1060:780; do
+            IFS=: read -r scenario width height <<<"${specification}"
+            scenario_dir="${artifact_dir}/${scenario}"
+            mkdir -p "${scenario_dir}/config" "${scenario_dir}/data"
+            OFFSCREEN_SESSION_ROOT="${artifact_dir}/session" OFFSCREEN_ARTIFACT_DIR="${scenario_dir}" \
+                XDG_CONFIG_HOME="${scenario_dir}/config" XDG_DATA_HOME="${scenario_dir}/data" \
+                PYTHONPATH=. GTK_A11Y=atspi ADW_DISABLE_PORTAL=1 GSK_RENDERER=cairo \
+                VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT=1 MLUVA_UI_SCENARIO="${scenario}" \
+                MLUVA_UI_WIDTH="${width}" MLUVA_UI_HEIGHT="${height}" \
+                uv run --locked python tests/conversation_ui_smoke.py
+        done
+    else
+        OFFSCREEN_ARTIFACT_DIR="${artifact_dir}" PYTHONPATH=. GTK_A11Y=atspi \
+            uv run --locked python tests/native_text_target_smoke.py
+    fi
 
     cleanup_accessibility
     trap - EXIT
@@ -119,7 +135,7 @@ case "${output_dir}" in
         ;;
 esac
 
-for command_name in dbus-run-session gdbus gsettings import realpath seq xvfb-run; do
+for command_name in dbus-run-session gdbus gsettings import realpath seq uv xvfb-run; do
     command -v "${command_name}" >/dev/null 2>&1 || {
         echo "Missing native text-target smoke dependency: ${command_name}" >&2
         exit 1
@@ -164,7 +180,7 @@ export GDK_BACKEND=x11
 export GIO_USE_VFS=local
 unset DISPLAY WAYLAND_DISPLAY AT_SPI_BUS_ADDRESS DBUS_SESSION_BUS_ADDRESS XAUTHORITY
 
-xvfb-run -a -s "-screen 0 900x300x24" \
+xvfb-run -a -s "-screen 0 1280x900x24" \
     dbus-run-session -- "${script_path}" --private-session "${artifact_dir}"
 
 printf 'Native text-target smoke passed; evidence: %s\n' "${artifact_dir}"

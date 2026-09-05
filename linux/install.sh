@@ -195,6 +195,7 @@ install -m 0644 \
     "${source_dir}/gnome-extension/recording-status@voicescribe.local/"*.js \
     "${source_dir}/gnome-extension/recording-status@voicescribe.local/"*.json \
     "${source_dir}/gnome-extension/recording-status@voicescribe.local/"*.css \
+    "${source_dir}/gnome-extension/recording-status@voicescribe.local/"*.svg \
     "${application_dir}/gnome-extension/recording-status@voicescribe.local/"
 install -m 0644 \
     "${source_dir}/resources/voice-scribe-input@.service" \
