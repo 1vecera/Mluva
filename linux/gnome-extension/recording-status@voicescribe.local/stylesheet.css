@@ -1,82 +1,23 @@
+/* Generated from voice_scribe_linux.theme; do not edit. */
 .mluva-recording-bar {
-  min-width: 520px;
-  max-width: 760px;
-  spacing: 7px;
-  padding: 13px 16px 12px;
-  color: #f8f6ff;
-  background-color: rgba(29, 26, 42, 0.97);
-  border: 1px solid rgba(217, 207, 255, 0.36);
-  border-radius: 17px;
-  box-shadow: 0 8px 26px 4px rgba(8, 7, 14, 0.4);
+  min-width: 360px; max-width: 600px; spacing: 7px; padding: 12px 18px;
+  color: #F2EFFA; background-color: #27272F;
+  border: 1px solid #3E3855; border-radius: 18px;
+  box-shadow: 0 5px 22px 2px rgba(0, 0, 0, 0.22);
 }
-
-.mluva-primary-row {
-  spacing: 10px;
-}
-
-.mluva-phase-icon {
-  icon-size: 13px;
-  color: #ff6d75;
-}
-
-.mluva-phase-icon.mluva-preparing {
-  color: #c8b7ff;
-}
-
-.mluva-phase-label {
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.mluva-time {
-  min-width: 42px;
-  color: #ffffff;
-  font-feature-settings: "tnum";
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.mluva-waveform {
-  min-width: 66px;
-  min-height: 24px;
-  spacing: 4px;
-}
-
-.mluva-wave-bar {
-  width: 4px;
-  min-height: 4px;
-  background-color: #b9a7ff;
-  border-radius: 4px;
-}
-
-.mluva-chip {
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.mluva-mode {
-  color: #221c36;
-  background-color: #cfc2ff;
-}
-
-.mluva-delivery {
-  color: #d7f8e7;
-  background-color: rgba(70, 151, 108, 0.3);
-  border: 1px solid rgba(126, 223, 169, 0.32);
-}
-
-.mluva-detail {
-  max-width: 680px;
-  color: #bdb6d2;
-  font-size: 11px;
-}
-
-.mluva-preview {
-  max-width: 680px;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
-}
+.mluva-primary-row { spacing: 10px; }
+.mluva-phase-icon { icon-size: 14px; color: #E2554E; }
+.mluva-phase-icon.mluva-preparing, .mluva-phase-icon.mluva-processing { color: #A998EF; }
+.mluva-phase-icon.mluva-copied { color: #4CC38A; }
+.mluva-phase-label { font-size: 13px; font-weight: 600; }
+.mluva-time { min-width: 42px; font-feature-settings: "tnum"; font-size: 13px; }
+.mluva-waveform { min-width: 66px; min-height: 22px; spacing: 4px; }
+.mluva-wave-bar { width: 4px; min-height: 4px; background-color: #A998EF; border-radius: 4px; }
+.mluva-chip { padding: 3px 7px; border-radius: 6px; font-size: 11px; }
+.mluva-mode { color: #B9B2D4; background-color: #303039; }
+.mluva-delivery { color: #B9B2D4; }
+.mluva-detail { max-width: 540px; color: #B9B2D4; font-size: 12px; }
+.mluva-preview { max-width: 540px; font-size: 13px; }
+.mluva-panel-recording, .mluva-panel-error { color: #E2554E; }
+.mluva-panel-processing, .mluva-panel-preparing { color: #A998EF; }
+.mluva-panel-copied { color: #4CC38A; }

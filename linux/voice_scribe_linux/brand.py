@@ -7,7 +7,7 @@ PRODUCT_DESCRIPTOR: Final = "Open-source AI dictation for Linux, with a source p
 PRODUCT_VERSION: Final = "0.1.0"
 LINUX_USER_AGENT: Final = f"MluvaLinux/{PRODUCT_VERSION}"
 
-BRAND_INK: Final = "#1B1826"
-BRAND_ACTION: Final = "#B9AAEE"
-BRAND_SURFACE: Final = "#F1EDF9"
+BRAND_INK: Final = "#242331"
+BRAND_ACTION: Final = "#6956D8"
+BRAND_SURFACE: Final = "#F4F3F8"
 BRAND_HIGHLIGHT: Final = "#FFFFFF"

@@ -11,10 +11,11 @@ const APPLICATION_BUS_NAME = 'com.voicescribe.Linux';
 const OBJECT_PATH = '/com/voicescribe/Linux/RecordingStatus';
 const INTERFACE_NAME = 'com.voicescribe.Linux.RecordingStatus';
 const SIGNAL_NAME = 'StateChanged';
-const VISIBLE_PHASES = new Set(['preparing', 'recording']);
+const VISIBLE_PHASES = new Set(['preparing', 'recording', 'processing', 'copied', 'error']);
 
 export class RecordingOverlay {
-    constructor() {
+    constructor(onPhase = () => {}) {
+        this._onPhase = onPhase;
         this._buildUi();
         Main.layoutManager.addChrome(this._container, {
             affectsStruts: false,
@@ -156,10 +157,15 @@ export class RecordingOverlay {
             return;
         }
         const safeLevel = Number.isFinite(level) ? Math.max(0, Math.min(level, 1)) : 0;
-        this._phaseLabel.text = phase === 'preparing' ? 'PREPARING' : 'RECORDING';
-        this._phaseIcon.style_class = phase === 'preparing'
-            ? 'mluva-phase-icon mluva-preparing'
-            : 'mluva-phase-icon';
+        this._phaseLabel.text = {
+            preparing: 'Preparing', recording: 'Recording', processing: 'Processing',
+            copied: 'Copied', error: 'Needs attention',
+        }[phase];
+        this._phaseIcon.style_class = `mluva-phase-icon mluva-${phase}`;
+        this._phaseIcon.icon_name = phase === 'copied' ? 'emblem-ok-symbolic' :
+            phase === 'error' ? 'dialog-warning-symbolic' : 'media-record-symbolic';
+        this._timeLabel.visible = phase === 'recording';
+        this._onPhase(phase, this._bounded(detail, 80));
         this._timeLabel.text = this._formatElapsed(elapsed);
         this._modeLabel.text = this._bounded(mode, 32);
         this._modeLabel.visible = this._modeLabel.text.length > 0;
@@ -192,6 +198,7 @@ export class RecordingOverlay {
     }
 
     _hide() {
+        this._onPhase('hidden');
         this._phaseLabel.text = '';
         this._timeLabel.text = '00:00';
         this._modeLabel.text = '';

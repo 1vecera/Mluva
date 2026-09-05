@@ -7,6 +7,10 @@ from contextlib import closing
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from voice_scribe_linux.conversation import Rewrite
 
 RECOGNITION_ROUTE_REALTIME = "scribe-v2-realtime"
 RECOGNITION_ROUTE_BATCH = "scribe-v2-batch"
@@ -454,14 +458,23 @@ class HistoryStore:
             removed += 1
         return removed
 
-    def export(self, entry: HistoryEntry, directory: Path, export_format: str) -> Path:
+    def export(
+        self, entry: HistoryEntry, directory: Path, export_format: str, *, rewrites: list["Rewrite"] | None = None
+    ) -> Path:
         """Write one selected history entry to an owner-local recovery artifact."""
         directory.mkdir(mode=0o700, parents=True, exist_ok=True)
         directory.chmod(0o700)
         filename = f"mluva-{entry.created_at[:19].replace(':', '')}-{entry.identifier[:8]}"
         if export_format == "json":
             output_path = directory / f"{filename}.json"
-            content = json.dumps(asdict(entry), indent=2) + "\n"
+            content = (
+                json.dumps(
+                    {**asdict(entry), "rewrites": [asdict(reply) for reply in rewrites or []]},
+                    ensure_ascii=False,
+                    indent=2,
+                )
+                + "\n"
+            )
         elif export_format == "markdown":
             output_path = directory / f"{filename}.md"
             title = entry.title or "Mluva transcript"
@@ -484,6 +497,12 @@ class HistoryStore:
                 f"## Delivered text\n\n{entry.delivered_text}\n\n"
                 f"## Raw transcript\n\n{entry.raw_text}\n"
             )
+            for reply in rewrites or []:
+                content += (
+                    f"\n## Rewrite · {reply.created_at}\n\n"
+                    f"### Instruction\n\n{reply.instruction}\n\n"
+                    f"### Result\n\n{reply.text}\n\nModel: {reply.model}\n"
+                )
         else:
             raise ValueError(export_format)
         output_path.write_text(content, encoding="utf-8")

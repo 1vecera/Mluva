@@ -64,7 +64,9 @@ fi
     )
 
     commands = command_log.read_text().splitlines()
-    assert commands[0].startswith("pack --force --extra-source recordingOverlay.js --out-dir ")
+    assert commands[0].startswith(
+        "pack --force --extra-source mluva-symbolic.svg --extra-source recordingOverlay.js --out-dir "
+    )
     assert commands[0].endswith(str(LINUX_ROOT / "gnome-extension" / "recording-status@voicescribe.local"))
     assert commands[1].startswith("install --force /tmp/mluva-overlay.")
     assert commands[2] == "info recording-status@voicescribe.local"

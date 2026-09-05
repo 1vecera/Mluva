@@ -19,13 +19,14 @@ Automatic paste is an explicit known limitation: it is not reliable in the curre
 
 | Feature | Current boundary |
 | --- | --- |
+| Rewrite conversations | Full transcripts, Quick Polish, Structured Note, custom follow-ups and conversation export have isolated tests; live acceptance is pending. |
 | Automatic paste | Known limitation: insertion is disabled by default and is not reliable in the current Fedora acceptance setup; completed text remains on the clipboard. |
 | Faithful cleanup | Optional Codex cleanup preserves the raw transcript and falls back safely, but still needs manual acceptance. |
 | Spoken structure | Punctuation, paragraph, and scratch-that commands still need manual acceptance. |
 | Command mode | Spoken editing instructions are previewed before delivery and still need manual acceptance. |
 | Notes mode | Longer acceptance-gated drafts and their relaunch recovery still need manual acceptance. |
 | Meeting mode | Microphone plus system-audio capture, diarization, review, and archive still need manual acceptance. |
-| Desktop recording bar | The optional display-only GNOME Shell overlay has off-screen evidence but still needs live-desktop acceptance. |
+| Shell menu and recording bar | The optional GNOME Shell menu and display-only bottom bar have off-screen evidence but still need live-desktop acceptance. |
 | Dictionary and vocabulary suggestions | Local replacements and review-only suggestions still need manual acceptance. |
 | Snippets | Explicit spoken expansions and portable typed-trigger storage still need manual acceptance. |
 | Per-application memory and context | Remembered modes, styles, rules, and bounded context controls still need manual acceptance. |

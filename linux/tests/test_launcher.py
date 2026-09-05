@@ -414,6 +414,11 @@ def test_installer_commits_a_complete_legacy_upgrade(tmp_path: Path) -> None:
     assert (install_home / ".local" / "bin" / "mluva").is_file()
     assert legacy_launcher.is_symlink()
     assert os.readlink(legacy_launcher) == "mluva"
+    extension = application_dir / "gnome-extension" / "recording-status@voicescribe.local"
+    for filename in ("extension.js", "recordingOverlay.js", "metadata.json", "stylesheet.css", "mluva-symbolic.svg"):
+        assert (extension / filename).read_bytes() == (
+            script.parent / "gnome-extension" / extension.name / filename
+        ).read_bytes()
 
 
 def test_installer_verifies_the_production_environment_without_resyncing_dev_dependencies() -> None:

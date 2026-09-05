@@ -10,6 +10,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk  # noqa: E402
 
+from voice_scribe_linux.conversation import ConversationStore
 from voice_scribe_linux.history import (
     RECOGNITION_FALLBACK_STARTUP_FAILED,
     RECOGNITION_FALLBACK_STREAM_FAILED,
@@ -68,10 +69,12 @@ class HistoryPage(Gtk.Box):
         delete_entry: Callable[[HistoryEntry], bool],
         history_changed: Callable[[], None],
         show_message: Callable[[str], None],
+        conversations: ConversationStore | None = None,
     ) -> None:
         """Build one refreshable archive around injected application actions."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.store = store
+        self.conversations = conversations
         self.export_directory = export_directory
         self.copy_text = copy_text
         self.can_retry_delivery = can_retry_delivery
@@ -82,6 +85,7 @@ class HistoryPage(Gtk.Box):
         self.history_changed = history_changed
         self.show_message = show_message
         self.entry_rows: dict[str, Adw.ExpanderRow] = {}
+        self.focused_identifier: str | None = None
 
         content = page_content()
         content.append(FeatureMaturityNotice("history"))
@@ -116,6 +120,13 @@ class HistoryPage(Gtk.Box):
         self.append(self.scroll)
         self.refresh()
 
+    def focus_entry(self, identifier: str | None) -> None:
+        """Expose the selected conversation's recovery tools even beyond the recent page."""
+        self.focused_identifier = identifier
+        self.refresh()
+        if identifier in self.entry_rows:
+            self.entry_rows[identifier].set_expanded(True)
+
     def refresh(self) -> None:
         """Rebuild durable rows while preserving open records and scroll position."""
         expanded = {identifier for identifier, row in self.entry_rows.items() if row.get_expanded()}
@@ -123,7 +134,14 @@ class HistoryPage(Gtk.Box):
         self._clear_list(self.list_box)
         self.entry_rows.clear()
         entries = self.store.recent()
-        self.count_label.set_label(f"{len(entries)} saved")
+        if self.focused_identifier is not None:
+            try:
+                selected = self.store.find(self.focused_identifier)
+            except KeyError:
+                self.focused_identifier = None
+            else:
+                entries = [selected, *(entry for entry in entries if entry.identifier != selected.identifier)]
+        self.count_label.set_label(f"{len(entries)} shown")
         if not entries:
             self.archive_stack.set_visible_child_name("empty")
         else:
@@ -327,6 +345,7 @@ class HistoryPage(Gtk.Box):
             return
         self.refresh()
         self.show_message("History title saved.")
+        self.history_changed()
 
     def _save_correction(
         self,
@@ -384,7 +403,8 @@ class HistoryPage(Gtk.Box):
     def _export(self, _button: Gtk.Button, entry: HistoryEntry, export_format: str) -> None:
         """Export one entry and reveal its exact owner-local path."""
         try:
-            output_path = self.store.export(entry, self.export_directory, export_format)
+            replies = self.conversations.replies(entry.identifier) if self.conversations else []
+            output_path = self.store.export(entry, self.export_directory, export_format, rewrites=replies)
         except Exception as error:
             self.show_message(f"History export failed: {error}")
             return
@@ -394,7 +414,7 @@ class HistoryPage(Gtk.Box):
         """Require confirmation before erasing a transcript and possible recovery audio."""
         dialog = Adw.AlertDialog.new(
             "Delete this history entry?",
-            "Its transcript and retained recovery audio will be permanently deleted.",
+            "Its original, saved rewrites and retained recovery audio will be permanently deleted.",
         )
         dialog.add_response("cancel", "Cancel")
         dialog.add_response("delete", "Delete permanently")

@@ -4,6 +4,7 @@ import json
 import queue
 import subprocess
 import threading
+import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -59,7 +60,9 @@ class CodexAppServerClient:
         if self._cancel_requested.is_set():
             self.close()
             raise CodexAppServerError("Codex app-server work was cancelled.")
-        self._reader = threading.Thread(target=self._read_messages, name="codex-app-server-reader", daemon=True)
+        self._reader = threading.Thread(
+            target=self._read_messages, args=(self.process,), name="codex-app-server-reader", daemon=True
+        )
         self._reader.start()
         try:
             self._request(
@@ -118,7 +121,14 @@ class CodexAppServerClient:
             turn_timeout_seconds=self.turn_timeout_seconds,
         )
 
-    def transform(self, prompt: str, cwd: Path, model: str | None = None) -> str:
+    def transform(
+        self,
+        prompt: str,
+        cwd: Path,
+        model: str | None = None,
+        *,
+        max_output_characters: int = MAX_TRANSFORMATION_OUTPUT_CHARACTERS,
+    ) -> str:
         """Return only the final agent text for one isolated transformation."""
         resolved_model = model or self.resolve_model(None)
         self.start()
@@ -150,9 +160,13 @@ class CodexAppServerClient:
         turn_id = started["turn"]["id"]
         output: list[str] = []
         output_characters = 0
+        deadline = time.monotonic() + self.turn_timeout_seconds
         while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise CodexAppServerError("Codex app-server timed out while producing text.")
             try:
-                message = self._notifications.get(timeout=self.turn_timeout_seconds)
+                message = self._notifications.get(timeout=remaining)
             except queue.Empty as error:
                 raise CodexAppServerError("Codex app-server timed out while producing text.") from error
             if message.get("method") == _SERVER_EXITED_METHOD:
@@ -166,7 +180,7 @@ class CodexAppServerClient:
                     self.close()
                     raise CodexAppServerError("Codex returned malformed replacement text.")
                 output_characters += len(delta)
-                if output_characters > MAX_TRANSFORMATION_OUTPUT_CHARACTERS:
+                if output_characters > max_output_characters:
                     self.close()
                     raise CodexAppServerError("Codex replacement text exceeded the supported bound.")
                 output.append(delta)
@@ -236,10 +250,9 @@ class CodexAppServerClient:
         self.process.stdin.write(json.dumps(message, separators=(",", ":")) + "\n")
         self.process.stdin.flush()
 
-    def _read_messages(self) -> None:
+    def _read_messages(self, process: subprocess.Popen[str]) -> None:
         """Dispatch response and notification frames without blocking callers."""
-        process = self.process
-        if process is None or process.stdout is None:
+        if process.stdout is None:
             raise CodexAppServerError("Codex app-server stdout is unavailable.")
         try:
             for line in process.stdout:

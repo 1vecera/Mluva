@@ -365,7 +365,7 @@ def test_capture_summary_yields_to_live_and_pending_review_states() -> None:
     application.recorder.process = None
     MluvaApplication._update_capture_status_rows(application)
 
-    assert title.label == "Ready to capture"
+    assert title.label == "Ready to dictate"
     assert summary.visible
 
 

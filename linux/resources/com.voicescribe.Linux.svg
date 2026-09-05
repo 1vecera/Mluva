@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
   <title id="title">Mluva</title>
-  <rect x="4" y="4" width="120" height="120" rx="28" fill="#1B1826"/>
+  <desc>A rounded m with two open arches and a soft speech tail.</desc>
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="#6956D8"/>
   <path
-    d="M20 84H30V43L64 73L98 43V84H108"
+    d="M30 84V52C30 34 62 34 62 52V76M62 52C62 34 94 34 94 52V76C94 88 86 94 78 98"
     fill="none"
-    stroke="#B9AAEE"
-    stroke-width="10"
+    stroke="#FFFFFF"
+    stroke-width="12"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
-  <circle cx="105" cy="27" r="6" fill="#FFFFFF"/>
 </svg>

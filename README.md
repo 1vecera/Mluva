@@ -5,10 +5,11 @@
 
 Mluva is a native voice-input application for macOS and Linux. The macOS client transcribes privately with Apple Speech or streams harder technical and multilingual dictation to Google Cloud Speech-to-Text V2. The Linux client uses ElevenLabs Scribe v2 for recognition and the Codex app-server for optional faithful cleanup and Command mode. Linux always preserves the completed result on the clipboard. Its experimental automatic-insertion path may also return text to a safe restorable target, but that path is not reliable enough yet to claim as working.
 
-<img width="1542" height="1772" alt="image" src="https://github.com/user-attachments/assets/d5e31930-4579-4513-973c-e96c61ef4987" />
+![Mluva conversation workspace](docs/assets/conversation-workspace.png)
 
+Dictate with F9, then rewrite the full transcript with Quick Polish, Structured Note, or your own prompt. History keeps the original and every completed rewrite together. Shift+F9 requests the latest conversation; the optional shell menu also provides recording, history, settings, and Quit. Closing the window keeps dictation available.
 
-<p align="center"><sub>Capture overview and the transient live recording bar, rendered with synthetic data on an isolated virtual display.</sub></p>
+The redesigned workspace and shell integration are Experimental until live desktop acceptance. The screenshot uses synthetic content on an isolated display. See the [workspace contract](docs/conversation-workspace.md).
 
 Linux setup, dependencies, runtime behavior, and verification are documented in [linux/README.md](linux/README.md).
 
@@ -38,7 +39,7 @@ make linux-install
 mluva
 ```
 
-The installer does not reserve Right Alt/AltGr and does not require a logout for the application or F9 shortcut. Automatic paste into keyboard-only targets and the display-only bottom recording bar are separate, explicit helpers documented in the [Linux guide](linux/README.md).
+The installer does not reserve Right Alt/AltGr and does not require a logout for the application or F9 shortcut. Automatic paste into keyboard-only targets and the shell menu with its display-only bottom recording bar are separate, explicit helpers documented in the [Linux guide](linux/README.md).
 
 ## Current product surface
 

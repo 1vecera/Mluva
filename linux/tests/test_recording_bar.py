@@ -238,11 +238,12 @@ def _button_stub() -> SimpleNamespace:
     return SimpleNamespace(set_sensitive=lambda sensitive: None)
 
 
-def test_stop_capture_erases_bar_immediately_without_finalizing_surface() -> None:
-    """Stop hides the bar and slot at once; recognition continues in the status card."""
+def test_stop_capture_projects_processing_until_the_clipboard_result_is_ready() -> None:
+    """Stop changes the shell status to processing instead of leaving the user without feedback."""
     bar = RecordingBarSpy()
     bar.present = lambda state: bar.__setattr__("presented", bar.presented + [state])  # type: ignore[method-assign]
     slot = RecordingSlotSpy()
+    signals: list[RecordingOverlayState] = []
     application = _application_stub(
         recorder=SimpleNamespace(process=object(), audio_level=0.2, cancel=lambda: None),
         workflow=None,
@@ -256,14 +257,14 @@ def test_stop_capture_erases_bar_immediately_without_finalizing_surface() -> Non
         status_label=None,
         scratchpad_store=SimpleNamespace(draft=None),
         pending_command_result=None,
+        recording_overlay_publisher=SimpleNamespace(publish=lambda state: signals.append(state)),
     )
     application.capture_allows_auto_paste = True
     MluvaApplication._stop_capture(application)
     assert application.capture_processing is True
-    assert slot.revealed[-1] is False
-    assert bar.cleared == 1
-    for state in bar.presented:
-        assert "Finalizing" not in state.detail
+    assert signals[-1].phase == "processing"
+    assert signals[-1].as_signal_values()[0] is True
+    assert bar.cleared == 0
 
 
 def test_clear_live_capture_is_the_shared_terminal_erase_for_all_paths() -> None:

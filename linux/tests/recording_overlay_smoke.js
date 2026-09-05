@@ -57,6 +57,10 @@ async function saveStage(path) {
 
 function visibleState() {
     const scenario = GLib.getenv('VOICE_SCRIBE_OVERLAY_SCENARIO') ?? 'recording';
+    if (['processing', 'copied', 'error'].includes(scenario)) {
+        const detail = {processing: 'Finishing transcription…', copied: 'Copied. Ready to paste.', error: 'Microphone could not start. Open Mluva.'}[scenario];
+        return [true, scenario, detail, 0, '', '', 0, '', ''];
+    }
     if (scenario === 'preparing') {
         return [
             true,
@@ -80,7 +84,7 @@ function visibleState() {
             'ElevenLabs Realtime',
             0.02,
             'Waiting for speech…',
-            'Paste ready',
+            'Copies when ready',
         ];
     }
     return [
@@ -91,8 +95,8 @@ function visibleState() {
         'Dictate',
         'ElevenLabs Realtime',
         0.68,
-        'This preview is volatile and disappears on stop.',
-        'Paste ready',
+        'Your full transcript stays visible in Mluva while recording.',
+        'Copies when ready',
     ];
 }
 
@@ -101,22 +105,55 @@ export async function run() {
     Main.overview.hide();
     await Scripting.waitLeisure();
 
-    const overlay = overlayActor();
+    let overlay = overlayActor();
     expect(overlay !== undefined, 'The recording overlay extension did not create its Shell actor');
     expect(!overlay.visible, 'The recording overlay must be absent while idle');
     expect(!overlay.reactive, 'The recording overlay container must not intercept pointer input');
 
     const focusBefore = global.stage.get_key_focus();
     const [ownerId, connection] = await ownApplicationName();
+    const actions = new Gio.SimpleActionGroup();
+    const activated = [];
+    let currentState = [false, 'hidden', '', 0, '', '', 0, '', ''];
+    for (const name of ['record', 'latest', 'history', 'settings', 'quit']) {
+        const action = new Gio.SimpleAction({name});
+        action.connect('activate', () => activated.push(name));
+        actions.add_action(action);
+    }
+    const statusAction = new Gio.SimpleAction({name: 'status'});
+    statusAction.connect('activate', () => connection.emit_signal(
+        null, OBJECT_PATH, INTERFACE_NAME, SIGNAL_NAME, new GLib.Variant('(bssussdss)', currentState)));
+    actions.add_action(statusAction);
+    const exportId = connection.export_action_group('/com/voicescribe/Linux', actions);
     try {
+        const indicator = Main.panel.statusArea.mluva;
+        expect(indicator !== undefined, 'Mluva has no top-panel menu');
+        const items = indicator.menu._getMenuItems();
+        await waitFor(() => items.find(item => item.label?.text === 'History')?.sensitive, 'Shell actions did not become ready');
+        for (const [label, name] of [['Start dictation', 'record'], ['Rewrite latest dictation', 'latest'], ['History', 'history'], ['Settings', 'settings'], ['Quit Mluva', 'quit']]) {
+            const item = items.find(candidate => candidate.label?.text === label);
+            item.activate(null);
+            await waitFor(() => activated.includes(name), `${label} did not reach the application action group`);
+        }
+        currentState = visibleState();
         connection.emit_signal(
             null,
             OBJECT_PATH,
             INTERFACE_NAME,
             SIGNAL_NAME,
-            new GLib.Variant('(bssussdss)', visibleState()));
+            new GLib.Variant('(bssussdss)', currentState));
         await waitFor(() => overlay.visible, 'The recording signal did not reveal the overlay');
         await Scripting.waitLeisure();
+        if (currentState[1] === 'processing') {
+            const extension = Main.extensionManager.lookup('recording-status@voicescribe.local').stateObj;
+            extension.disable();
+            extension.enable();
+            overlay = overlayActor();
+            await waitFor(() => overlay.visible, 'Re-enabling the extension did not restore processing status');
+            await waitFor(() => Main.panel.statusArea.mluva.accessible_name.includes('Processing'),
+                'Re-enabling the extension falsely reported readiness');
+            await Scripting.waitLeisure();
+        }
 
         console.log(
             `VOICE_SCRIBE_OVERLAY_GEOMETRY bar=${overlay.width}x${overlay.height} ` +
@@ -138,6 +175,7 @@ export async function run() {
             new GLib.Variant('(bssussdss)', [false, 'hidden', '', 0, '', '', 0, '', '']));
         await waitFor(() => !overlay.visible, 'The terminal state did not hide the overlay immediately');
     } finally {
+        connection.unexport_action_group(exportId);
         Gio.bus_unown_name(ownerId);
     }
 

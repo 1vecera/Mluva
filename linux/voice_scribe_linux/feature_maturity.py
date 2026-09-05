@@ -55,6 +55,15 @@ FEATURE_CAPABILITIES: Final[tuple[FeatureCapability, ...]] = (
         FeatureMaturity.VERIFIED,
     ),
     FeatureCapability(
+        "conversations",
+        "Rewrite conversations",
+        (
+            "Full transcripts, Quick Polish, Structured Note, custom follow-ups and conversation export "
+            "have isolated tests; live acceptance is pending."
+        ),
+        FeatureMaturity.EXPERIMENTAL,
+    ),
+    FeatureCapability(
         "automatic_paste",
         "Automatic paste",
         (
@@ -95,9 +104,9 @@ FEATURE_CAPABILITIES: Final[tuple[FeatureCapability, ...]] = (
     ),
     FeatureCapability(
         "desktop_overlay",
-        "Desktop recording bar",
+        "Shell menu and recording bar",
         (
-            "The optional display-only GNOME Shell overlay has off-screen evidence but still needs "
+            "The optional GNOME Shell menu and display-only bottom bar have off-screen evidence but still need "
             "live-desktop acceptance."
         ),
         FeatureMaturity.EXPERIMENTAL,
