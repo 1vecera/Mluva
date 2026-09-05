@@ -184,6 +184,7 @@ async def exercise_private_portal() -> None:
         on_cancel=lambda: activations.append("cancel"),
         on_binding_changed=bindings.append,
         on_error=errors.append,
+        on_open_rewrite=lambda: activations.append("rewrite"),
     )
     session = _PortalGlobalShortcutsSession("com.voicescribe.Linux", callback)
     try:
@@ -191,6 +192,7 @@ async def exercise_private_portal() -> None:
             [
                 Shortcut("toggle-recording-f9", "Start or stop Mluva recording with F9", "F9"),
                 Shortcut(CANCEL_SHORTCUT_ID, "Cancel active Mluva capture", "CTRL+ALT+ESCAPE"),
+                Shortcut("open-rewrite", "Open latest conversation", "SHIFT+F9"),
             ]
         )
         portal.emit_shortcut("Activated", "toggle-recording-f9")
@@ -199,21 +201,25 @@ async def exercise_private_portal() -> None:
         portal.emit_shortcut("Activated", "toggle-recording-f9")
         portal.emit_shortcut("Activated", CANCEL_SHORTCUT_ID)
         portal.emit_shortcut("Deactivated", CANCEL_SHORTCUT_ID)
+        portal.emit_shortcut("Activated", "open-rewrite")
+        portal.emit_shortcut("Activated", "open-rewrite")
+        portal.emit_shortcut("Deactivated", "open-rewrite")
         portal.emit_shortcuts_changed("F10")
         await asyncio.sleep(0.05)
 
         expected_bound = [
             BoundShortcut("toggle-recording-f9", "Start or stop Mluva recording with F9", "F9"),
             BoundShortcut(CANCEL_SHORTCUT_ID, "Cancel active Mluva capture", "CTRL+ALT+ESCAPE"),
+            BoundShortcut("open-rewrite", "Open latest conversation", "SHIFT+F9"),
         ]
         if bound != expected_bound:
             raise RuntimeError(f"Unexpected approved shortcuts: {bound!r}")
         if portal.registered_app_ids != ["com.voicescribe.Linux"]:
             raise RuntimeError(f"Unexpected registered app ids: {portal.registered_app_ids!r}")
         bound_identifiers = [shortcut_id for shortcut_id, _properties in portal.bound_shortcuts]
-        if bound_identifiers != ["toggle-recording-f9", CANCEL_SHORTCUT_ID]:
+        if bound_identifiers != ["toggle-recording-f9", CANCEL_SHORTCUT_ID, "open-rewrite"]:
             raise RuntimeError(f"Unexpected bound identifiers: {bound_identifiers!r}")
-        if activations != ["toggle", "toggle", "cancel"]:
+        if activations != ["toggle", "toggle", "cancel", "rewrite"]:
             raise RuntimeError(f"Shortcut activation filtering failed: {activations!r}")
         if bindings != ["F10"]:
             raise RuntimeError(f"Shortcut change propagation failed: {bindings!r}")

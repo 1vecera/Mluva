@@ -28,6 +28,8 @@ from voice_scribe_linux.config import (
     load_config,
     save_config,
 )
+from voice_scribe_linux.conversation import MAX_REWRITE_CHARACTERS, ConversationStore, rewrite_prompt
+from voice_scribe_linux.conversation_view import ConversationWorkspace
 from voice_scribe_linux.delivery import deliver_text, keyboard_paste_available
 from voice_scribe_linux.diagnostics import (
     DiagnosticOutcome,
@@ -82,12 +84,9 @@ from voice_scribe_linux.text_target import (
 from voice_scribe_linux.theme import ThemeController
 from voice_scribe_linux.ui import (
     COMPACT_LAYOUT_MAX_WIDTH,
-    PAGE_SPACING,
-    PRIMARY_ACTION_HEIGHT,
     RECORDING_KIND_PREPARING,
     RECORDING_KIND_RECORDING,
     RESULT_EDITOR_MIN_HEIGHT,
-    SECTION_SPACING,
     SPACE_1,
     SPACE_2,
     SPACE_3,
@@ -97,9 +96,7 @@ from voice_scribe_linux.ui import (
     RecordingStatusBar,
     SummaryRow,
     card_box,
-    clamp,
     maturity_badge,
-    page_content,
     segmented_control,
     set_button_content,
     set_margins,
@@ -307,6 +304,22 @@ class MluvaApplication(Adw.Application):
         self.config: AppConfig
         self.pipewire_catalog = PipeWireDeviceCatalog()
         self.pipewire_catalog_error: str | None = None
+        self.conversation_workspace: ConversationWorkspace | None = None
+        self.conversation_store: ConversationStore
+        self.rewrite_client: CodexAppServerClient | None = None
+        self.overlay_timeout_id: int | None = None
+        for name, callback in (
+            ("latest", self._open_latest_conversation),
+            ("record", self._shell_record),
+            ("history", self._open_history),
+            ("settings", lambda: self._show_settings(self.settings_button)),
+            ("meeting", lambda: self._navigate_to_page("meeting")),
+            ("personalization", lambda: self._navigate_to_page("personalization")),
+            ("quit", self.quit),
+        ):
+            action = Gio.SimpleAction.new(name, None)
+            action.connect("activate", lambda _action, _parameter, handler=callback: handler())
+            self.add_action(action)
 
     def _on_activate(self, _application: Adw.Application) -> None:
         """Build the adaptive primary window and validate external runtime dependencies."""
@@ -315,10 +328,15 @@ class MluvaApplication(Adw.Application):
             self.window.present()
             return
         ThemeController().apply()
+        Gtk.IconTheme.get_for_display(Gdk.Display.get_default()).add_search_path(
+            str(Path(__file__).parents[1] / "resources")
+        )
         self._initialize_local_services()
         self.window = Adw.ApplicationWindow(application=self, title="Mluva")
-        self.window.set_default_size(720, 720)
+        self.window.set_default_size(1060, 780)
         self.window.set_size_request(420, 520)
+        self.window.connect("close-request", self._hide_window)
+        self.hold()
         key_controller = Gtk.EventControllerKey()
         key_controller.connect("key-pressed", self._key_pressed)
         self.window.add_controller(key_controller)
@@ -334,7 +352,7 @@ class MluvaApplication(Adw.Application):
         stack.add_titled_with_icon(
             self._build_capture_page(),
             "capture",
-            "Capture",
+            "Conversations",
             "audio-input-microphone-symbolic",
         )
         self.meeting_page = MeetingPage(
@@ -382,18 +400,23 @@ class MluvaApplication(Adw.Application):
         self.settings_button.connect("clicked", self._show_settings)
         self.header_bar.pack_end(self.settings_button)
 
-        self.navigation_rail = NavigationRail(
-            items=(
-                ("capture", "Capture", "audio-input-microphone-symbolic"),
-                ("meeting", "Meeting", "system-users-symbolic"),
-                ("history", "History", "document-open-recent-symbolic"),
-                ("personalization", "Personalization", "document-edit-symbolic"),
-            ),
-            selected_name="capture",
-            on_activate=self._navigate_to_page,
-        )
-        self.navigation_bar = Adw.ViewSwitcherBar(stack=stack, reveal=False)
-        toolbar.add_bottom_bar(self.navigation_bar)
+        sidebar_button = Gtk.Button(icon_name="sidebar-show-symbolic")
+        sidebar_button.set_tooltip_text("Show or hide history")
+        sidebar_button.connect("clicked", self._toggle_history_sidebar)
+        self.header_bar.pack_start(sidebar_button)
+        home = Gtk.Button(label="Conversations", has_frame=False)
+        home.connect("clicked", lambda _button: self._navigate_to_page("capture"))
+        self.header_bar.pack_start(home)
+        menu = Gio.Menu()
+        for label, action_name in (
+            ("Latest conversation", "latest"),
+            ("Manage history", "history"),
+            ("Meeting recording", "meeting"),
+            ("Vocabulary and prompts", "personalization"),
+            ("Quit Mluva", "quit"),
+        ):
+            menu.append(label, f"app.{action_name}")
+        self.header_bar.pack_end(Gtk.MenuButton(icon_name="open-menu-symbolic", menu_model=menu))
 
         shell = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         shell.append(stack)
@@ -401,7 +424,6 @@ class MluvaApplication(Adw.Application):
         self.toast_overlay = Adw.ToastOverlay()
         self.toast_overlay.set_child(shell)
         workspace = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        workspace.append(self.navigation_rail)
         workspace.append(self.toast_overlay)
         toolbar.set_content(workspace)
         self.window.set_content(toolbar)
@@ -414,7 +436,176 @@ class MluvaApplication(Adw.Application):
         self._restore_scratchpad()
         self._update_capture_status_rows()
         self._visible_page_changed()
+        latest = self.conversation_store.search(limit=1)
+        if latest and self.conversation_workspace is not None:
+            self.conversation_workspace.show_conversation(
+                latest[0], self.conversation_store.replies(latest[0].identifier)
+            )
         self.window.present()
+
+    def _hide_window(self, window: Adw.ApplicationWindow) -> bool:
+        """Keep the app and approved shortcuts running when its window is closed."""
+        window.set_visible(False)
+        return True
+
+    def _shell_record(self) -> None:
+        """Use the visible-button copy boundary for a deliberate shell-menu action."""
+        if self.window is None:
+            self.activate()
+        self._toggle_recording(self.record_button)
+
+    def _open_latest_conversation(self) -> bool:
+        """Present the newest completed conversation and focus its rewrite composer."""
+        self.activate()
+        self._navigate_to_page("capture")
+        workspace = self.conversation_workspace
+        entries = self.conversation_store.search(limit=1)
+        if workspace is not None:
+            if entries:
+                workspace.show_conversation(entries[0], self.conversation_store.replies(entries[0].identifier))
+            workspace.prompt.grab_focus()
+        return GLib.SOURCE_REMOVE
+
+    def _open_history(self) -> None:
+        """Present recovery and management tools without crowding daily dictation."""
+        self.activate()
+        self._navigate_to_page("history")
+
+    def _toggle_history_sidebar(self, _button: Gtk.Button) -> None:
+        """Make history available even when the window uses the compact layout."""
+        self._navigate_to_page("capture")
+        if self.conversation_workspace is not None:
+            self.conversation_workspace.split.set_show_sidebar(not self.conversation_workspace.split.get_show_sidebar())
+
+    def _start_pasted_conversation(self, text: str) -> None:
+        """Import explicitly supplied text without replacing the clipboard."""
+        workspace = self.conversation_workspace
+        if workspace is None or not text.strip():
+            return
+        if self.config.incognito_mode:
+            workspace.show_transient(text, text)
+            return
+        try:
+            entry = self.history_store.add(
+                raw_text=text,
+                delivered_text=text,
+                mode="dictation",
+                language_code=self.config.language_code,
+                transcription_id=None,
+                delivery_outcome="imported",
+            )
+        except Exception:
+            workspace.set_busy(False, "Could not save this conversation. Your text is still in the editor.")
+            return
+        workspace.show_conversation(entry, [])
+        self._history_changed()
+
+    def _request_rewrite(self, instruction: str) -> None:
+        """Freeze the selected conversation before starting one background rewrite."""
+        workspace = self.conversation_workspace
+        if workspace is None or workspace.entry is None or self.rewrite_client is not None:
+            return
+        if self.config.incognito_mode:
+            workspace.set_busy(False, "Rewriting is unavailable in Incognito.")
+            return
+        try:
+            entry = self.history_store.find(workspace.entry.identifier)
+            prompt = rewrite_prompt(entry, self.conversation_store.replies(entry.identifier), instruction)
+        except (KeyError, ValueError):
+            workspace.set_busy(False, "This conversation cannot be rewritten. Reopen it or start with shorter text.")
+            return
+        client = CodexAppServerClient()
+        self.rewrite_client = client
+        workspace.set_busy(True, "Rewriting… You can keep browsing history.")
+        threading.Thread(
+            target=self._rewrite_worker,
+            args=(client, entry.identifier, instruction, prompt, self.config.codex_model),
+            name="conversation-rewrite",
+            daemon=True,
+        ).start()
+
+    def _rewrite_worker(
+        self,
+        client: CodexAppServerClient,
+        identifier: str,
+        instruction: str,
+        prompt: str,
+        configured_model: str | None,
+    ) -> None:
+        """Resolve and run the model away from GTK, leaving durable writes to the completion gate."""
+        try:
+            model = client.resolve_model(configured_model)
+            result = client.transform(prompt, self.codex_workspace, model, max_output_characters=MAX_REWRITE_CHARACTERS)
+        except Exception:
+            GLib.idle_add(self._rewrite_finished, client, identifier, instruction, "", "")
+        else:
+            GLib.idle_add(self._rewrite_finished, client, identifier, instruction, result, model)
+        finally:
+            client.close()
+
+    def _rewrite_finished(
+        self,
+        client: CodexAppServerClient,
+        identifier: str,
+        instruction: str,
+        result: str,
+        model: str,
+    ) -> bool:
+        """Commit a complete reply only while its request, source and privacy policy remain valid."""
+        if self.shutting_down or client is not self.rewrite_client:
+            return GLib.SOURCE_REMOVE
+        self.rewrite_client = None
+        workspace = self.conversation_workspace
+        if workspace is None:
+            return GLib.SOURCE_REMOVE
+        if self.config.incognito_mode:
+            workspace.set_busy(False, "Rewrite discarded because Incognito is enabled.")
+            return GLib.SOURCE_REMOVE
+        if not result:
+            workspace.set_busy(False, "Rewrite failed. Check Codex, then try again. Your original is safe.")
+            return GLib.SOURCE_REMOVE
+        try:
+            entry = self.history_store.find(identifier)
+            self.conversation_store.append(identifier, instruction, result, model)
+        except Exception:
+            workspace.set_busy(False, "Could not save the rewrite. The conversation may have been deleted.")
+            return GLib.SOURCE_REMOVE
+        if workspace.entry is not None and workspace.entry.identifier == identifier:
+            workspace.show_conversation(entry, self.conversation_store.replies(identifier))
+        workspace.set_busy(False, "Rewrite ready. Choose Copy when you want to use it.")
+        workspace.refresh_history()
+        return GLib.SOURCE_REMOVE
+
+    def _save_rewrite_prompt(self, instruction: str) -> None:
+        """Name an explicitly supplied prompt using the existing saved-style store."""
+        if not instruction.strip() or self.config.incognito_mode:
+            return
+        dialog = Adw.AlertDialog(heading="Save prompt", body="Give this rewrite prompt a short name.")
+        name = Gtk.Entry(placeholder_text="Prompt name", activates_default=True)
+        dialog.set_extra_child(name)
+        dialog.add_response("cancel", "Cancel")
+        dialog.add_response("save", "Save")
+        dialog.set_default_response("save")
+        dialog.set_response_appearance("save", Adw.ResponseAppearance.SUGGESTED)
+        dialog.connect("response", self._prompt_name_chosen, name, instruction)
+        dialog.present(self.window)
+
+    def _prompt_name_chosen(self, _dialog: Adw.AlertDialog, response: str, name: Gtk.Entry, instruction: str) -> None:
+        """Save a named prompt only after an explicit action and a fresh privacy check."""
+        if response != "save" or self.config.incognito_mode:
+            return
+        try:
+            if any(
+                style.name.casefold() == name.get_text().strip().casefold()
+                for style in self.personalization_store.styles
+            ):
+                raise ValueError("Choose a new prompt name.")
+            self.personalization_store.save_style(name.get_text(), instruction)
+        except (ValueError, OSError):
+            self._show_toast("Could not save the prompt. Use a unique name and a shorter instruction.")
+            return
+        self._refresh_style_controls()
+        self._show_toast("Prompt saved.")
 
     def _navigate_to_page(self, name: str) -> None:
         """Move the workspace to one rail or bottom-bar destination."""
@@ -431,51 +622,35 @@ class MluvaApplication(Adw.Application):
             self.navigation_rail.select_page(name)
         if self.page_title_label is not None:
             page = self.page_stack.get_page(child) if child is not None else None
-            self.page_title_label.set_label(page.get_title() if page is not None else "Capture")
+            self.page_title_label.set_label(page.get_title() if page is not None and name != "capture" else "")
 
     def _build_capture_page(self) -> Adw.ToolbarView:
-        """Build a focused capture surface with a persistent primary action."""
+        """Make the full conversation primary and keep recording controls in reach."""
         page = Adw.ToolbarView()
-        content = page_content()
+        body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.setup_callout = self._build_setup_callout()
-        content.append(self.setup_callout)
-
-        self.capture_grid = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=PAGE_SPACING)
-        primary = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SECTION_SPACING, hexpand=True)
-        primary.append(self._build_capture_status_card())
-        primary.append(self._build_output_section())
-        self.capture_secondary = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SECTION_SPACING)
-        self.capture_secondary.append(self._build_mode_card())
-        self.capture_secondary.append(self._build_recent_captures_card())
-        self.capture_grid.append(primary)
-        self.capture_grid.append(self.capture_secondary)
-        content.append(self.capture_grid)
-
-        scroll = Gtk.ScrolledWindow(
-            hscrollbar_policy=Gtk.PolicyType.NEVER,
-            vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+        body.append(self.setup_callout)
+        self.conversation_workspace = ConversationWorkspace(
+            store=self.conversation_store,
+            copy_text=self._copy_text,
+            rewrite=self._request_rewrite,
+            paste_text=self._start_pasted_conversation,
+            open_archive=self._open_history,
+            save_prompt=self._save_rewrite_prompt,
         )
-        scroll.set_child(clamp(content, maximum_size=CAPTURE_CONTENT_MAX_WIDTH))
-        page.set_content(scroll)
-        self.recording_bar = RecordingStatusBar()
-        self.recording_bar_slot = Gtk.Revealer(
-            transition_type=Gtk.RevealerTransitionType.SLIDE_UP,
-            transition_duration=180,
-            reveal_child=False,
-        )
-        self.recording_bar_slot.set_child(self.recording_bar)
-        recording_row = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        recording_row.add_css_class("vs-recording-slot")
-        recording_row.append(self.recording_bar_slot)
-        page.add_bottom_bar(recording_row)
+        self.conversation_workspace.set_vexpand(True)
+        body.append(self.conversation_workspace)
+        # Existing acceptance-gated recovery remains available for older drafts and advanced modes.
+        body.append(self._build_output_section())
+        page.set_content(body)
+        self.status_label = Gtk.Label(xalign=0, wrap=True, accessible_role=Gtk.AccessibleRole.STATUS)
+        self.status_label.add_css_class("caption")
+        self.capture_status_title = Gtk.Label(label="Ready to dictate", xalign=0)
+        self.capture_status_title.add_css_class("heading")
         self.capture_action_bar = self._build_capture_action_bar()
         page.add_bottom_bar(self.capture_action_bar)
         self.settings_dialog = self._build_settings_dialog()
-        if self.mode is not None:
-            self.mode.connect("notify::selected", self._segment_mode_changed)
-            self.mode.connect("notify::sensitive", self._segment_mode_sensitivity_changed)
         self._refresh_style_controls()
-        self._refresh_recent_captures()
         self._update_capture_status_rows()
         return page
 
@@ -671,23 +846,23 @@ class MluvaApplication(Adw.Application):
         return card
 
     def _build_capture_action_bar(self) -> Gtk.Box:
-        """Keep start, stop, and cancellation visible outside the scrolling page."""
-        action_bar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        action_bar.add_css_class("vs-dock")
-        action_content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_1)
-        set_margins(action_content, SPACE_3)
-        self.record_button = Gtk.Button(hexpand=True)
-        self.record_button.add_css_class("vs-record")
-        self.record_button.add_css_class("suggested-action")
-        set_button_content(self.record_button, "audio-input-microphone-symbolic", "Start copy-only capture")
-        self.record_button.set_size_request(-1, PRIMARY_ACTION_HEIGHT)
-        self.record_button.connect("clicked", self._toggle_recording)
-        action_content.append(self.record_button)
-        self.capture_action_hint = Gtk.Label(xalign=0.5, wrap=True)
+        """Keep recording status and a compact start/stop action outside the transcript scroll."""
+        dock = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=SPACE_3)
+        dock.add_css_class("ml-recording-dock")
+        set_margins(dock, SPACE_3)
+        status = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_1, hexpand=True)
+        status.append(self.capture_status_title)
+        status.append(self.status_label)
+        self.capture_action_hint = Gtk.Label(xalign=0, wrap=True)
         self.capture_action_hint.add_css_class("caption")
-        action_content.append(self.capture_action_hint)
-        action_bar.append(clamp(action_content))
-        return action_bar
+        status.append(self.capture_action_hint)
+        dock.append(status)
+        self.record_button = Gtk.Button(valign=Gtk.Align.CENTER)
+        self.record_button.add_css_class("suggested-action")
+        set_button_content(self.record_button, "audio-input-microphone-symbolic", "Dictate")
+        self.record_button.connect("clicked", self._toggle_recording)
+        dock.append(self.record_button)
+        return dock
 
     def _build_settings_dialog(self) -> Adw.PreferencesDialog:
         """Move infrequent capture, audio, privacy, and diagnostic controls off the primary surface."""
@@ -940,6 +1115,9 @@ class MluvaApplication(Adw.Application):
 
     def _apply_narrow_navigation(self, *_args: object) -> None:
         """Trade the wide left rail for compact bottom navigation."""
+        if self.conversation_workspace is not None:
+            self.conversation_workspace.split.set_collapsed(True)
+            self.conversation_workspace.split.set_show_sidebar(False)
         if self.navigation_rail is not None:
             self.navigation_rail.set_visible(False)
         if self.header_bar is not None:
@@ -951,6 +1129,9 @@ class MluvaApplication(Adw.Application):
 
     def _apply_wide_navigation(self, *_args: object) -> None:
         """Restore the stable left rail and the utility title above the workspace."""
+        if self.conversation_workspace is not None:
+            self.conversation_workspace.split.set_collapsed(False)
+            self.conversation_workspace.split.set_show_sidebar(True)
         if self.navigation_rail is not None:
             self.navigation_rail.set_visible(True)
         if self.header_bar is not None and self.page_title_label is not None:
@@ -1008,7 +1189,7 @@ class MluvaApplication(Adw.Application):
             elif review_active:
                 title = "Review required"
             else:
-                title = "Ready to capture"
+                title = "Ready to dictate"
             self.capture_status_title.set_label(title)
 
         if self.capture_summary_box is not None:
@@ -1109,7 +1290,9 @@ class MluvaApplication(Adw.Application):
         has_text = bool(buffer.get_text(start, end, include_hidden_chars=True).strip())
         has_command = self.command_actions is not None and self.command_actions.get_visible()
         has_scratchpad = self.scratchpad_actions is not None and self.scratchpad_actions.get_visible()
-        self.output_section.set_visible(has_text or has_command or has_scratchpad)
+        self.output_section.set_visible(
+            (has_text and self.pending_mode != "dictation") or has_command or has_scratchpad
+        )
 
     def _show_toast(self, message: str) -> None:
         """Show transient feedback on the page where the user performed the action."""
@@ -1147,6 +1330,8 @@ class MluvaApplication(Adw.Application):
             self.pipewire_catalog_error = str(error)
         self.history_store = HistoryStore(self.data_directory / "history.sqlite3")
         self.history_store.initialize()
+        self.conversation_store = ConversationStore(self.history_store)
+        self.conversation_store.initialize()
         self.meeting_store = MeetingStore(self.data_directory / "meetings" / "meetings.json")
         self.scratchpad_store = ScratchpadDraftStore(self.data_directory / "scratchpad-draft.json")
         self.diagnostics_store = DiagnosticsStore(self.data_directory / "diagnostics.sqlite3")
@@ -1189,6 +1374,7 @@ class MluvaApplication(Adw.Application):
                 ),
                 on_error=lambda message: GLib.idle_add(self._set_status, f"Global shortcut unavailable: {message}"),
                 preferred_recording_trigger=self.config.global_recording_key,
+                on_open_rewrite=lambda: GLib.idle_add(self._open_latest_conversation),
             )
             self.shortcut_service.start()
         elif self.global_shortcut_status_row is not None:
@@ -2027,9 +2213,7 @@ class MluvaApplication(Adw.Application):
         self._clear_capture_status_timeout()
         self.capture_processing = True
         self.record_button.set_sensitive(False)
-        # The recording surface is a recording affordance only: stop erases it
-        # immediately and the status card carries the finalizing state alone.
-        self._clear_live_capture()
+        MluvaApplication._publish_completion_status(self, "processing", "Finishing your dictation…")
         if self.realtime_session is not None and self.realtime_session.is_healthy:
             self._set_status("Finalizing committed ElevenLabs Scribe v2 Realtime text…")
         else:
@@ -2223,6 +2407,16 @@ class MluvaApplication(Adw.Application):
         self._history_changed()
         self._set_status(status)
         self._reset_record_button()
+        workspace = getattr(self, "conversation_workspace", None)
+        if workspace is not None and result.mode == "dictation":
+            workspace.finish_live()
+            if result.history_entry is not None:
+                workspace.show_conversation(result.history_entry, [])
+            else:
+                workspace.show_transient(result.transcription.text, result.output_text)
+        if not result.requires_acceptance:
+            MluvaApplication._publish_completion_status(self, "copied", "Copied—ready to paste")
+            self._set_status("Copied—ready to paste. Open the conversation to rewrite it.")
         return GLib.SOURCE_REMOVE
 
     def _workflow_failed(
@@ -2265,6 +2459,15 @@ class MluvaApplication(Adw.Application):
             self.history_page.refresh()
         self._set_error(f"Mluva could not complete: {message}. {recovery}")
         self._reset_record_button()
+        workspace = getattr(self, "conversation_workspace", None)
+        if workspace is not None:
+            workspace.finish_live()
+            if history_entry is not None:
+                workspace.show_conversation(history_entry, [])
+                workspace.refresh_history()
+            elif recovered_text:
+                workspace.show_transient(recovered_text, recovered_text)
+        MluvaApplication._publish_completion_status(self, "error", "Dictation needs attention. Open Mluva.")
         return GLib.SOURCE_REMOVE
 
     def _reset_record_button(self) -> None:
@@ -2275,7 +2478,7 @@ class MluvaApplication(Adw.Application):
         self._hide_recording_bar()
         if self.record_button is None:
             return
-        set_button_content(self.record_button, "audio-input-microphone-symbolic", "Start copy-only capture")
+        set_button_content(self.record_button, "audio-input-microphone-symbolic", "Dictate")
         meeting_busy = self.meeting_processing or self.meeting_retry_in_progress or self._meeting_capture_active()
         has_pending_review = self.pending_command_result is not None or self.scratchpad_store.draft is not None
         controls_available = not has_pending_review and not meeting_busy
@@ -2345,6 +2548,12 @@ class MluvaApplication(Adw.Application):
 
     def _present_recording_bar(self, state: RecordingBarState) -> None:
         """Project one snapshot into both bounded recording surfaces."""
+        MluvaApplication._clear_overlay_timeout(self)
+        workspace = getattr(self, "conversation_workspace", None)
+        if workspace is not None:
+            workspace.set_live(
+                "Preparing…" if state.kind == "preparing" else f"Recording  {state.elapsed}", state.preview
+            )
         revealed = state.kind in {RECORDING_KIND_PREPARING, RECORDING_KIND_RECORDING}
         if self.recording_bar is not None:
             revealed = self.recording_bar.present(state)
@@ -2373,6 +2582,36 @@ class MluvaApplication(Adw.Application):
             self.recording_bar_slot.set_reveal_child(False)
         if self.recording_overlay_publisher is not None and not self.recording_overlay_publisher.clear():
             self.recording_overlay_publisher = None
+
+    def _clear_overlay_timeout(self) -> None:
+        """Prevent an older ready indicator from hiding a newer recording."""
+        timeout_id = getattr(self, "overlay_timeout_id", None)
+        if timeout_id is not None:
+            GLib.source_remove(timeout_id)
+            self.overlay_timeout_id = None
+
+    def _publish_completion_status(self, phase: str, detail: str) -> None:
+        """Keep bottom-screen feedback visible through processing and clipboard readiness."""
+        MluvaApplication._clear_overlay_timeout(self)
+        publisher = getattr(self, "recording_overlay_publisher", None)
+        if publisher is not None:
+            publisher.publish(RecordingOverlayState(phase=phase, detail=detail))
+            if phase in {"copied", "error"}:
+                self.overlay_timeout_id = GLib.timeout_add_seconds(
+                    5 if phase == "copied" else 10,
+                    MluvaApplication._expire_completion_status,
+                    self,
+                )
+        workspace = getattr(self, "conversation_workspace", None)
+        if workspace is not None and phase == "processing":
+            workspace.live_title.set_label("Processing…")
+
+    def _expire_completion_status(self) -> bool:
+        """Dismiss a terminal indicator without touching microphone or clipboard state."""
+        self.overlay_timeout_id = None
+        if self.recording_overlay_publisher is not None:
+            self.recording_overlay_publisher.clear()
+        return GLib.SOURCE_REMOVE
 
     def _recording_bar_state(
         self,
@@ -2414,6 +2653,9 @@ class MluvaApplication(Adw.Application):
 
     def _clear_live_capture(self) -> None:
         """Erase every volatile projection once capture reaches a terminal state."""
+        workspace = getattr(self, "conversation_workspace", None)
+        if workspace is not None:
+            workspace.finish_live()
         self._hide_recording_bar()
         if self.capture_summary_box is not None:
             self.capture_summary_box.set_visible(True)
@@ -2763,6 +3005,11 @@ class MluvaApplication(Adw.Application):
 
     def _refresh_style_controls(self) -> None:
         """Rebuild capture output modes after load or custom-style mutation."""
+        workspace = getattr(self, "conversation_workspace", None)
+        if workspace is not None:
+            workspace.set_saved_prompts(
+                [(style.name, style.instructions) for style in self.personalization_store.styles]
+            )
         if self.output_style is None:
             return
         application_identifier = self.profile_application_identifier if self.config.remember_per_application else None
@@ -2921,6 +3168,15 @@ class MluvaApplication(Adw.Application):
         if self.incognito_switch is None or self.cleanup_switch is None:
             return
         incognito = self.incognito_switch.get_active()
+        workspace = getattr(self, "conversation_workspace", None)
+        if workspace is not None:
+            workspace.set_private(incognito)
+        if incognito and getattr(self, "rewrite_client", None) is not None:
+            client = self.rewrite_client
+            self.rewrite_client = None
+            threading.Thread(target=client.cancel, daemon=True).start()
+            if workspace is not None:
+                workspace.set_busy(False, "Rewrite cancelled for Incognito.")
         if incognito and self.cleanup_before_incognito is None:
             self.cleanup_before_incognito = self.cleanup_switch.get_active()
             self.cleanup_switch.set_active(False)
@@ -3256,6 +3512,14 @@ class MluvaApplication(Adw.Application):
         if self.personalization_page is not None:
             self.personalization_page.refresh()
         self._refresh_recent_captures()
+        workspace = getattr(self, "conversation_workspace", None)
+        if workspace is not None:
+            workspace.refresh_history()
+            if workspace.entry is not None:
+                try:
+                    self.history_store.find(workspace.entry.identifier)
+                except KeyError:
+                    workspace.show_conversation(None, [])
 
     def _retry_history_delivery(self, entry: HistoryEntry) -> None:
         """Paste to an exact retained target when safe, otherwise copy for manual recovery."""
@@ -3656,6 +3920,10 @@ class MluvaApplication(Adw.Application):
     def _on_shutdown(self, _application: Adw.Application) -> None:
         """Release child processes and portal registrations during application exit."""
         self.shutting_down = True
+        MluvaApplication._clear_overlay_timeout(self)
+        if self.rewrite_client is not None:
+            self.rewrite_client.cancel()
+            self.rewrite_client = None
         self._clear_meeting_capture_status_timeout()
         if self.recorder is not None and self.recorder.process is not None and self.capture_started_at is not None:
             self._record_app_diagnostic(

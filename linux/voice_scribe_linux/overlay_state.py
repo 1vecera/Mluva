@@ -13,7 +13,7 @@ OVERLAY_OBJECT_PATH = "/com/voicescribe/Linux/RecordingStatus"
 OVERLAY_INTERFACE = "com.voicescribe.Linux.RecordingStatus"
 OVERLAY_SIGNAL = "StateChanged"
 OVERLAY_SIGNAL_SIGNATURE = "(bssussdss)"
-VISIBLE_PHASES = frozenset({"preparing", "recording"})
+VISIBLE_PHASES = frozenset({"preparing", "recording", "processing", "copied", "error"})
 
 
 class SignalConnection(Protocol):

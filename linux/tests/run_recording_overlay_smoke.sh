@@ -18,7 +18,8 @@ mkdir -p -- "${output_dir}"
 output_dir=$(cd -- "${output_dir}" && pwd -P)
 gnome-extensions pack \
     --force \
-    --extra-source recordingOverlay.js \
+    --extra-source mluva-symbolic.svg \
+        --extra-source recordingOverlay.js \
     --out-dir "${output_dir}" \
     "${extension_root}"
 extension_archive="${output_dir}/recording-status@voicescribe.local.shell-extension.zip"
@@ -30,8 +31,11 @@ for scenario in preparing recording quiet; do
     log_path="${output_dir}/${scenario}-1280x720.log"
 
     set +e
-    dbus-run-session -- env \
+    timeout --kill-after=5s 45s dbus-run-session -- env \
         NO_AT_BRIDGE=1 \
+        GTK_A11Y=none \
+        LIBGL_ALWAYS_SOFTWARE=1 \
+        GALLIUM_DRIVER=llvmpipe \
         XDG_RUNTIME_DIR="${runtime_dir}" \
         VOICE_SCRIBE_OVERLAY_SCENARIO="${scenario}" \
         VOICE_SCRIBE_OVERLAY_SCREENSHOT="${screenshot_path}" \

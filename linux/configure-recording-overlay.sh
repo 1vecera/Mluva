@@ -24,6 +24,7 @@ pack_extension() {
     local output_dir=$1
     gnome-extensions pack \
         --force \
+        --extra-source mluva-symbolic.svg \
         --extra-source recordingOverlay.js \
         --out-dir "${output_dir}" \
         "${extension_source}"

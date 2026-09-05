@@ -10,6 +10,7 @@ from dbus_next import Message, MessageType, Variant
 import voice_scribe_linux.global_shortcuts as shortcut_module
 from voice_scribe_linux.global_shortcuts import (
     CANCEL_SHORTCUT_ID,
+    REWRITE_SHORTCUT_ID,
     BoundShortcut,
     GlobalShortcutService,
     PortalProtocolError,
@@ -42,6 +43,7 @@ def test_portal_callback_toggles_and_cancels_only_exact_actions() -> None:
         on_cancel=lambda: calls.append("cancel"),
         on_binding_changed=lambda trigger: calls.append(f"binding:{trigger}"),
         on_error=lambda message: calls.append(f"error:{message}"),
+        on_open_rewrite=lambda: calls.append("rewrite"),
     )
 
     callback.on_activated("unrelated")
@@ -55,7 +57,11 @@ def test_portal_callback_toggles_and_cancels_only_exact_actions() -> None:
     callback.on_activated(CANCEL_SHORTCUT_ID)
     callback.on_deactivated(CANCEL_SHORTCUT_ID)
 
-    assert calls == ["toggle", "toggle", "cancel"]
+    callback.on_activated(REWRITE_SHORTCUT_ID)
+    callback.on_activated(REWRITE_SHORTCUT_ID)
+    callback.on_deactivated(REWRITE_SHORTCUT_ID)
+    callback.on_activated(REWRITE_SHORTCUT_ID)
+    assert calls == ["toggle", "toggle", "cancel", "rewrite", "rewrite"]
 
 
 def test_portal_callback_reports_actual_recording_binding() -> None:
@@ -120,6 +126,7 @@ def test_portal_session_binds_f9_toggle_and_cancellation(monkeypatch: pytest.Mon
     assert [(shortcut.id, shortcut.preferred_trigger) for shortcut in bound_shortcuts] == [
         ("toggle-recording-f9", "F9"),
         (CANCEL_SHORTCUT_ID, "CTRL+ALT+ESCAPE"),
+        (REWRITE_SHORTCUT_ID, "SHIFT+F9"),
     ]
     assert triggers == [("F9", "F9")]
     asyncio.run(service._close_async())
@@ -168,8 +175,8 @@ def test_replacing_session_uses_a_key_specific_action(monkeypatch: pytest.Monkey
     asyncio.run(exercise_replacement())
 
     assert bound_identifiers == [
-        ["toggle-recording-f9", CANCEL_SHORTCUT_ID],
-        ["toggle-recording-f24", CANCEL_SHORTCUT_ID],
+        ["toggle-recording-f9", CANCEL_SHORTCUT_ID, REWRITE_SHORTCUT_ID],
+        ["toggle-recording-f24", CANCEL_SHORTCUT_ID, REWRITE_SHORTCUT_ID],
     ]
     assert closed_sessions == [0, 1]
 

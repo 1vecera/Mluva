@@ -18,6 +18,7 @@ from voice_scribe_linux.config import DEFAULT_GLOBAL_RECORDING_KEY, FUNCTION_KEY
 
 RECORDING_SHORTCUT_PREFIX = "toggle-recording-"
 CANCEL_SHORTCUT_ID = "cancel-capture"
+REWRITE_SHORTCUT_ID = "open-rewrite"
 
 _PORTAL_BUS_NAME: Final = "org.freedesktop.portal.Desktop"
 _PORTAL_PATH: Final = "/org/freedesktop/portal/desktop"
@@ -71,6 +72,7 @@ class _PortalShortcutCallback:
         on_cancel: Callable[[], None],
         on_binding_changed: Callable[[str | None], None],
         on_error: Callable[[str], None],
+        on_open_rewrite: Callable[[], None] = lambda: None,
     ):
         """Retain the exact shortcut ID and application callbacks."""
         self.recording_id = recording_id
@@ -78,17 +80,20 @@ class _PortalShortcutCallback:
         self.cancel_capture = on_cancel
         self.report_binding = on_binding_changed
         self.report_error = on_error
+        self.open_rewrite = on_open_rewrite
         self.active_shortcuts: set[str] = set()
 
     def on_activated(self, shortcut_id: str) -> None:
         """Toggle recording or cancel when the compositor activates a binding."""
-        if shortcut_id not in {self.recording_id, CANCEL_SHORTCUT_ID}:
+        if shortcut_id not in {self.recording_id, CANCEL_SHORTCUT_ID, REWRITE_SHORTCUT_ID}:
             return
         if shortcut_id in self.active_shortcuts:
             return
         self.active_shortcuts.add(shortcut_id)
         if shortcut_id == self.recording_id:
             self.toggle_recording()
+        elif shortcut_id == REWRITE_SHORTCUT_ID:
+            self.open_rewrite()
         else:
             self.cancel_capture()
 
@@ -470,6 +475,7 @@ class GlobalShortcutService:
     on_error: Callable[[str], None]
     preferred_recording_trigger: str = DEFAULT_GLOBAL_RECORDING_KEY
     preferred_cancel_trigger: str = "CTRL+ALT+ESCAPE"
+    on_open_rewrite: Callable[[], None] = lambda: None
     _thread: threading.Thread | None = None
     _loop: asyncio.AbstractEventLoop | None = None
     _session: _PortalGlobalShortcutsSession | None = None
@@ -543,6 +549,7 @@ class GlobalShortcutService:
             on_cancel=self.on_cancel,
             on_binding_changed=lambda trigger: self.on_binding_changed(function_key, trigger),
             on_error=self.on_error,
+            on_open_rewrite=self.on_open_rewrite,
         )
         session = _PortalGlobalShortcutsSession(
             app_id="com.voicescribe.Linux",
@@ -561,6 +568,11 @@ class GlobalShortcutService:
                         id=CANCEL_SHORTCUT_ID,
                         description="Cancel active Mluva capture",
                         preferred_trigger=self.preferred_cancel_trigger,
+                    ),
+                    Shortcut(
+                        id=REWRITE_SHORTCUT_ID,
+                        description="Open the latest Mluva conversation for rewriting",
+                        preferred_trigger="SHIFT+F9",
                     ),
                 ]
             )

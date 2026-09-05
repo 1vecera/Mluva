@@ -18,20 +18,20 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gtk  # noqa: E402
 
 LightTokens: Final[dict[str, str]] = {
-    "canvas": "#E9E4F3",
+    "canvas": "#FAFAFC",
     "surface": "#FFFFFF",
     "surface_subtle": BRAND_SURFACE,
     "ink": BRAND_INK,
-    "ink_secondary": "#5A5470",
-    "ink_muted": "#827B9F",
-    "outline": BRAND_INK,
-    "outline_subtle": "#CFC8E4",
+    "ink_secondary": "#666474",
+    "ink_muted": "#737180",
+    "outline": "#E3E2E9",
+    "outline_subtle": "#E3E2E9",
     "shadow": BRAND_INK,
     "action": BRAND_ACTION,
-    "action_hover": "#C7BAF3",
-    "on_action": BRAND_INK,
+    "action_hover": "#5946C4",
+    "on_action": "#FFFFFF",
     "accent_strong": "#5B49BE",
-    "accent_soft": "#DCD5F4",
+    "accent_soft": "#EEEBFA",
     "danger": "#E2483F",
     "on_danger": "#FFFFFF",
     "danger_soft": "#FBDBD7",
@@ -43,9 +43,9 @@ LightTokens: Final[dict[str, str]] = {
 }
 
 DarkTokens: Final[dict[str, str]] = {
-    "canvas": "#191622",
-    "surface": "#262234",
-    "surface_subtle": "#2F2A40",
+    "canvas": "#202027",
+    "surface": "#27272F",
+    "surface_subtle": "#303039",
     "ink": "#F2EFFA",
     "ink_secondary": "#B9B2D4",
     "ink_muted": "#8E86AC",
@@ -154,485 +154,105 @@ def _named_colors(tokens: dict[str, str]) -> str:
 
 
 def build_stylesheet(tokens: dict[str, str]) -> str:
-    """Derive the complete application stylesheet from one token table."""
-    return _named_colors(tokens) + _COMPONENT_RULES
-
-
-_COMPONENT_RULES = """
-/* Focus visibility stays strong on both canvas and surfaces. */
-*:focus-visible {
-  outline-style: solid;
-  outline-width: 2px;
-  outline-color: @vs_focus;
-  outline-offset: 2px;
-}
-
-window.background {
-  background: @vs_canvas;
-  color: @vs_ink;
-}
-
-/* Primary surfaces: white, crisp 1px outline, selective hard offset shadow. */
-.card {
-  background: @vs_surface;
-  color: @vs_ink;
-  border: 1px solid @vs_outline;
-  border-radius: 12px;
-  box-shadow: 4px 4px 0 @vs_shadow;
-  padding: 0;
-}
-
-/* Secondary lists sit flat: outlined once, never nested inside a shadow. */
-.boxed-list {
-  background: @vs_surface;
-  color: @vs_ink;
-  border: 1px solid @vs_outline;
-  border-radius: 10px;
-  box-shadow: none;
-}
-
-.boxed-list > row {
-  background: @vs_surface;
-  color: @vs_ink;
-  border-bottom: 1px solid @vs_divider;
-}
-
-.boxed-list > row:last-child {
-  border-bottom: none;
-}
-
-.boxed-list > row:hover {
-  background: @vs_surface_subtle;
-}
-
-.boxed-list > row:selected {
-  background: @vs_accent_soft;
-  color: @vs_ink;
-}
-
-/* Hairline inner separators never repeat the outer outline. */
-separator {
-  background: @vs_divider;
-}
-
-/* Simple, flat utility chrome above the workspace. */
-headerbar {
-  background: @vs_surface;
-  color: @vs_ink;
-  border-bottom: 1px solid @vs_outline;
-  box-shadow: none;
-}
-
-headerbar windowtitle .title {
-  font-weight: 800;
-  color: @vs_ink;
-}
-
-.vs-page-title {
-  font-weight: 800;
-  font-size: 112.5%;
-  color: @vs_ink;
-}
-
-/* Readable hierarchy: metadata and controls hold a real size floor. */
-.caption {
-  font-size: 13px;
-}
-
-.dim-label {
-  color: @vs_ink_secondary;
-  font-size: 14px;
-  opacity: 1;
-}
-
-.title-1,
-.title-2,
-.title-3,
-.title-4,
-.heading {
-  color: @vs_ink;
-  font-weight: 800;
-}
-
-.title-2 {
-  font-size: 127%;
-}
-
-.title-3 {
-  font-size: 114%;
-}
-
-/* Stable left navigation rail on wide layouts. */
-.vs-nav {
-  background: @vs_surface;
-  color: @vs_ink;
-  border-right: 1px solid @vs_outline;
-}
-
-.vs-nav list {
-  background: transparent;
-}
-
-.vs-nav-row {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 8px 10px;
-  margin: 2px 0;
-  font-weight: 650;
-  font-size: 15px;
-  color: @vs_ink_secondary;
-  transition: none;
-}
-
-.vs-nav-row:hover {
-  background: @vs_surface_subtle;
-  color: @vs_ink;
-}
-
-.vs-nav-row:active {
-  background: @vs_accent_soft;
-}
-
-.vs-nav-row:selected {
-  background: @vs_action;
-  color: @vs_on_action;
-  border-color: @vs_outline;
-  box-shadow: 2px 2px 0 @vs_shadow;
-}
-
-.vs-brand-chip {
-  background: @vs_action;
-  color: @vs_on_action;
-  border: 1px solid @vs_outline;
-  border-radius: 10px;
-  box-shadow: 2px 2px 0 @vs_shadow;
-  min-width: 32px;
-  min-height: 32px;
-}
-
-.vs-brand-mark {
-  font-weight: 900;
-  font-size: 17px;
-  color: @vs_on_action;
-}
-
-.vs-brand-name {
-  font-weight: 800;
-  font-size: 16px;
-  color: @vs_ink;
-}
-
-.vs-nav-hint {
-  color: @vs_ink_secondary;
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.vs-key-cap {
-  background: @vs_surface_subtle;
-  color: @vs_ink;
-  border: 1px solid @vs_outline;
-  border-radius: 8px;
-  padding: 3px 8px;
-  font-weight: 700;
-  font-size: 13px;
-}
-
-/* Clear segment states for the near-action capture decisions. */
-.vs-segment {
-  background: @vs_surface_subtle;
-  border: 1px solid @vs_outline;
-  border-radius: 10px;
-  padding: 3px;
-}
-
-.vs-segment button {
-  background: transparent;
-  border: none;
-  border-radius: 7px;
-  padding: 8px 12px;
-  font-weight: 700;
-  font-size: 14px;
-  color: @vs_ink_secondary;
-  box-shadow: none;
-}
-
-.vs-segment button:hover {
-  background: @vs_surface;
-  color: @vs_ink;
-}
-
-.vs-segment button:checked {
-  background: @vs_action;
-  color: @vs_on_action;
-  box-shadow: 2px 2px 0 @vs_shadow;
-}
-
-.vs-segment button:disabled {
-  opacity: 0.55;
-}
-
-/* One unmistakable recording action. */
-button.vs-record {
-  min-height: 52px;
-  border-radius: 12px;
-  border: 2px solid @vs_outline;
-  box-shadow: 4px 4px 0 @vs_shadow;
-  font-weight: 750;
-  font-size: 15px;
-  padding: 10px 18px;
-  background: @vs_surface_subtle;
-  color: @vs_ink;
-}
-
-button.vs-record.suggested-action {
-  background: @vs_action;
-  color: @vs_on_action;
-}
-
-button.vs-record.suggested-action:hover {
-  background: @vs_action_hover;
-}
-
-button.vs-record.destructive-action {
-  background: @vs_danger;
-  color: @vs_on_danger;
-}
-
-button.vs-record:active {
-  box-shadow: 2px 2px 0 @vs_shadow;
-}
-
-button.vs-record:disabled {
-  opacity: 0.55;
-  box-shadow: 2px 2px 0 @vs_shadow;
-}
-
-/* Secondary outlined actions stay tactile but calm. */
-button.suggested-action:not(.vs-record),
-button.destructive-action:not(.vs-record) {
-  border: 1px solid @vs_outline;
-  box-shadow: 2px 2px 0 @vs_shadow;
-  font-weight: 700;
-}
-
-button.suggested-action:not(.vs-record):active,
-button.destructive-action:not(.vs-record):active {
-  box-shadow: 1px 1px 0 @vs_shadow;
-}
-
-.vs-utility {
-  border: 1px solid @vs_outline;
-  border-radius: 10px;
-  background: @vs_surface;
-  color: @vs_ink;
-  box-shadow: 2px 2px 0 @vs_shadow;
-}
-
-.vs-utility:active {
-  box-shadow: 1px 1px 0 @vs_shadow;
-}
-
-/* Compact dismissible setup callout instead of a full-width slab. */
-.vs-callout {
-  background: @vs_surface;
-  color: @vs_ink;
-  border: 1px solid @vs_outline;
-  border-radius: 10px;
-  box-shadow: 2px 2px 0 @vs_shadow;
-}
-
-.vs-callout-title {
-  font-weight: 700;
-  font-size: 14px;
-  color: @vs_ink;
-}
-
-.vs-callout-body {
-  color: @vs_ink_secondary;
-  font-size: 13px;
-}
-
-/* Feature maturity is text-first and uses only reserved semantic colors. */
-.vs-maturity-notice {
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.vs-maturity-badge {
-  border: 1px solid @vs_outline;
-  border-radius: 999px;
-  padding: 2px 8px;
-  font-weight: 750;
-  font-size: 12px;
-}
-
-.vs-maturity-badge.vs-verified {
-  background: @vs_success_soft;
-  color: @vs_success;
-}
-
-.vs-maturity-badge.vs-experimental {
-  background: @vs_warning_soft;
-  color: @vs_warning;
-}
-
-.vs-maturity-detail {
-  color: @vs_ink_secondary;
-  font-size: 13px;
-}
-
-/* Live capture signal components. */
-levelbar trough {
-  border: 1px solid @vs_outline;
-  border-radius: 7px;
-  background: @vs_surface_subtle;
-}
-
-levelbar block.filled {
-  background: @vs_accent_strong;
-  border-radius: 4px;
-}
-
-levelbar block.empty {
-  background: transparent;
-}
-
-label.warning {
-  color: @vs_warning;
-}
-
-label.error {
-  color: @vs_danger;
-}
-
-/* Scrolled workspaces keep the pale canvas visible. */
-scrolledwindow undershoot.top,
-scrolledwindow undershoot.bottom,
-scrolledwindow undershoot.left,
-scrolledwindow undershoot.right {
-  background: none;
-}
-
-scrollbar slider {
-  background: @vs_outline_subtle;
-  border-radius: 4px;
-  min-width: 8px;
-  min-height: 32px;
-}
-
-scrollbar slider:hover {
-  background: @vs_ink_muted;
-}
-
-/* Bottom navigation stays compact on narrow layouts. */
-.viewswitcherbar actionbar > revealer > box {
-  background: @vs_surface;
-  border-top: 1px solid @vs_outline;
-}
-
-viewswitcher button {
-  font-weight: 650;
-}
-
-viewswitcher button:checked {
-  color: @vs_accent_strong;
-}
-
-/* The persistent capture dock sits on the canvas with a crisp top edge. */
-.vs-dock {
-  background: @vs_surface;
-  border-top: 1px solid @vs_outline;
-}
-
-banner {
-  border-bottom: 1px solid @vs_outline;
-}
-
-expander > title {
-  color: @vs_ink;
-  font-weight: 650;
-}
-
-/* Transient recording status bar: one compact bottom-centered strip that
-   lives in its own toolbar row above the persistent dock, so it can never
-   obscure Capture content and reserves its space only while revealed. */
-.vs-recording-slot {
-  background: transparent;
-  padding: 0;
-}
-
-.vs-recording-bar {
-  background: @vs_surface;
-  color: @vs_ink;
-  border: 1px solid @vs_outline;
-  border-radius: 12px;
-  box-shadow: 4px 4px 0 @vs_shadow;
-  padding: 8px 14px;
-  margin-bottom: 6px;
-  margin-top: 6px;
-}
-
-.vs-recording-bar levelbar trough {
-  min-height: 10px;
-}
-
-.vs-recording-time {
-  font-weight: 800;
-  font-size: 15px;
-  color: @vs_ink;
-}
-
-.vs-recording-phase {
-  font-weight: 650;
-  font-size: 13px;
-  color: @vs_ink_secondary;
-}
-
-.vs-recording-preview {
-  font-size: 13.5px;
-  color: @vs_ink;
-}
-
-.vs-recording-preview.vs-quiet {
-  color: @vs_ink_muted;
-}
-
-.vs-live-chip {
-  background: @vs_danger;
-  color: @vs_on_danger;
-  border: 1px solid @vs_outline;
-  border-radius: 8px;
-  padding: 2px 8px;
-  font-weight: 750;
-  font-size: 12.5px;
-}
-
-.vs-live-chip.vs-preparing {
-  background: @vs_warning_soft;
-  color: @vs_warning;
-}
-
-.vs-mode-chip {
-  background: @vs_accent_soft;
-  color: @vs_ink;
-  border: 1px solid @vs_outline;
-  border-radius: 8px;
-  padding: 2px 8px;
-  font-weight: 700;
-  font-size: 12.5px;
-}
-
-.vs-delivery-chip {
-  background: @vs_surface_subtle;
-  color: @vs_ink_secondary;
-  border: 1px solid @vs_outline;
-  border-radius: 8px;
-  padding: 2px 8px;
-  font-weight: 700;
-  font-size: 12.5px;
-}
+    """Generate coherent reading surfaces, focus states and controls from semantic tokens."""
+    return (
+        _named_colors(tokens)
+        + """
+window.background { background: @vs_canvas; color: @vs_ink; font-family: "Inter", sans-serif; }
+headerbar { background: @vs_surface; color: @vs_ink; border-bottom: 1px solid @vs_outline_subtle; box-shadow: none; }
+.vs-page-title { font-size: 14px; font-weight: 600; color: @vs_ink_secondary; }
+.caption { font-size: 12px; color: @vs_ink_secondary; }
+.dim-label { color: @vs_ink_secondary; opacity: 1; }
+.heading, .title-1, .title-2, .title-3, .title-4 { font-weight: 600; }
+button { min-height: 32px; border-radius: 9px; font-weight: 500; }
+button:focus-visible, textview:focus-visible, entry:focus-visible { outline: 2px solid @vs_focus; outline-offset: 2px; }
+button.suggested-action { background: @vs_action; color: @vs_on_action; }
+button.suggested-action:hover { background: @vs_action_hover; }
+button.destructive-action { background: @vs_danger; color: @vs_on_danger; }
+button:disabled { opacity: 0.48; }
+button.flat { box-shadow: none; }
+.card, .boxed-list { background: @vs_surface; border: 1px solid @vs_outline_subtle; border-radius: 12px;
+  box-shadow: none; }
+.boxed-list > row { border-bottom: 1px solid @vs_divider; }
+.boxed-list > row:last-child { border-bottom: none; }
+separator { background: @vs_outline_subtle; }
+.ml-history-pane, .ml-history-sidebar { background: @vs_surface_subtle; }
+.ml-history-sidebar list { background: transparent; }
+.ml-history-sidebar row { border-radius: 9px; margin: 2px 0; }
+.ml-history-sidebar row:selected { background: @vs_accent_soft; color: @vs_ink; }
+.ml-history-sidebar row:hover { background: alpha(@vs_accent_soft, 0.65); }
+.ml-history-sidebar button { min-height: 34px; }
+.ml-wordmark { font-size: 21px; font-weight: 650; letter-spacing: -0.5px; padding: 6px 0 14px; }
+.ml-conversation { background: @vs_surface; }
+.ml-conversation-title { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 8px; }
+.ml-transcript, .ml-transcript text { background: transparent; color: @vs_ink; font-size: 16px; }
+.ml-transcript { line-height: 1.3; }
+.ml-source { padding: 0 0 20px; border-bottom: 1px solid @vs_outline_subtle; }
+.ml-reply { padding: 0 0 12px; }
+.ml-instruction { background: @vs_surface_subtle; border-radius: 12px; padding: 12px 16px; color: @vs_ink_secondary; }
+.ml-composer { background: @vs_surface; border-top: 1px solid @vs_outline_subtle; padding-top: 12px; }
+.ml-composer flowboxchild { padding: 0; }
+.ml-composer flowbox { padding: 0; }
+.ml-prompt, .ml-prompt text { background: @vs_surface_subtle; color: @vs_ink; font-size: 14px; }
+.ml-prompt { padding: 10px 12px; border-radius: 12px; }
+.ml-recording-dock { background: @vs_canvas; }
+.ml-recording-dock button { min-height: 36px; padding: 4px 16px; }
+.ml-live { background: @vs_surface_subtle; border-radius: 12px; padding: 12px; }
+.ml-live .heading { color: @vs_accent_strong; }
+.ml-empty { margin-top: 12px; }
+.ml-empty image { -gtk-icon-size: 64px; }
+.vs-callout { background: @vs_warning_soft; border-radius: 12px; padding: 10px; }
+.vs-callout-title { font-weight: 600; }
+.vs-callout-body { font-size: 13px; }
+.vs-maturity-notice { padding: 4px 0; }
+.vs-maturity-badge { border-radius: 6px; padding: 3px 7px; font-size: 11px; }
+.vs-maturity-badge.vs-verified { background: @vs_success_soft; color: @vs_success; }
+.vs-maturity-badge.vs-experimental { background: @vs_surface_subtle; color: @vs_ink_secondary; }
+.vs-maturity-detail { font-size: 12px; color: @vs_ink_secondary; }
+.vs-segment button:checked { background: @vs_accent_soft; }
+.vs-key-cap { background: @vs_surface_subtle; border-radius: 5px; padding: 3px 6px; }
+.vs-recording-bar { background: @vs_surface; border-radius: 14px; padding: 12px 16px;
+  border: 1px solid @vs_outline_subtle; }
+.vs-recording-time { font-feature-settings: "tnum"; font-weight: 600; }
+.vs-live-chip { background: @vs_danger_soft; color: @vs_danger; padding: 3px 8px; border-radius: 6px; }
+.vs-live-chip.vs-preparing { color: @vs_accent_strong; background: @vs_accent_soft; }
+.vs-mode-chip, .vs-delivery-chip { font-size: 12px; color: @vs_ink_secondary; }
+.vs-recording-phase, .vs-recording-preview.vs-quiet { font-size: 12px; color: @vs_ink_secondary; }
+levelbar trough { background: @vs_surface_subtle; border-radius: 4px; }
+levelbar block.filled { background: @vs_action; border-radius: 3px; }
+label.warning { color: @vs_warning; }
+label.error { color: @vs_danger; }
+scrollbar slider { min-width: 5px; min-height: 5px; border-radius: 10px; background: alpha(@vs_ink_muted, 0.35); }
+scrollbar slider:hover { background: alpha(@vs_ink_muted, 0.6); }
+"""
+    )
+
+
+def build_shell_stylesheet(tokens: dict[str, str] = DarkTokens) -> str:
+    """Use the same semantic palette for the panel icon and noninteractive bottom bar."""
+    return f"""/* Generated from voice_scribe_linux.theme; do not edit. */
+.mluva-recording-bar {{
+  min-width: 360px; max-width: 600px; spacing: 7px; padding: 12px 18px;
+  color: {tokens["ink"]}; background-color: {tokens["surface"]};
+  border: 1px solid {tokens["outline_subtle"]}; border-radius: 18px;
+  box-shadow: 0 5px 22px 2px rgba(0, 0, 0, 0.22);
+}}
+.mluva-primary-row {{ spacing: 10px; }}
+.mluva-phase-icon {{ icon-size: 14px; color: {tokens["danger"]}; }}
+.mluva-phase-icon.mluva-preparing, .mluva-phase-icon.mluva-processing {{ color: {tokens["action"]}; }}
+.mluva-phase-icon.mluva-copied {{ color: {tokens["success"]}; }}
+.mluva-phase-label {{ font-size: 13px; font-weight: 600; }}
+.mluva-time {{ min-width: 42px; font-feature-settings: "tnum"; font-size: 13px; }}
+.mluva-waveform {{ min-width: 66px; min-height: 22px; spacing: 4px; }}
+.mluva-wave-bar {{ width: 4px; min-height: 4px; background-color: {tokens["action"]}; border-radius: 4px; }}
+.mluva-chip {{ padding: 3px 7px; border-radius: 6px; font-size: 11px; }}
+.mluva-mode {{ color: {tokens["ink_secondary"]}; background-color: {tokens["surface_subtle"]}; }}
+.mluva-delivery {{ color: {tokens["ink_secondary"]}; }}
+.mluva-detail {{ max-width: 540px; color: {tokens["ink_secondary"]}; font-size: 12px; }}
+.mluva-preview {{ max-width: 540px; font-size: 13px; }}
+.mluva-panel-recording, .mluva-panel-error {{ color: {tokens["danger"]}; }}
+.mluva-panel-processing, .mluva-panel-preparing {{ color: {tokens["action"]}; }}
+.mluva-panel-copied {{ color: {tokens["success"]}; }}
 """
 
 
