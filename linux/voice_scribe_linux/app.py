@@ -12,7 +12,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
+from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
 from voice_scribe_linux.audio import PipeWireMeetingRecorder, PipeWireRecorder
 from voice_scribe_linux.codex_client import CodexAppServerClient
@@ -97,11 +97,8 @@ from voice_scribe_linux.ui import (
     SummaryRow,
     card_box,
     maturity_badge,
-    segmented_control,
     set_button_content,
     set_margins,
-    summary_list,
-    sync_segment_group,
 )
 from voice_scribe_linux.workflow import (
     DictationWorkflow,
@@ -139,7 +136,6 @@ GLOBAL_RECORDING_KEY_TOOLTIP = (
 )
 MAX_IN_MEMORY_HISTORY_TARGETS = 32
 CAPTURE_CONTENT_MAX_WIDTH = 1120
-CAPTURE_WORKSPACE_BREAKPOINT_SP = 1040
 
 
 def capture_mode_description(selected_index: int) -> str:
@@ -202,10 +198,6 @@ class MluvaApplication(Adw.Application):
         self.capture_mode_maturity: FeatureMaturityNotice | None = None
         self.capture_segment_box: Gtk.Box | None = None
         self.capture_segment_buttons: list[Gtk.ToggleButton] = []
-        self.capture_grid: Gtk.Box | None = None
-        self.capture_secondary: Gtk.Box | None = None
-        self.recent_captures_card: Gtk.Box | None = None
-        self.recent_captures_list: Gtk.ListBox | None = None
         self.recording_bar: RecordingStatusBar | None = None
         self.recording_bar_slot: Gtk.Revealer | None = None
         self.recording_overlay_publisher: RecordingOverlayPublisher | None = None
@@ -698,130 +690,6 @@ class MluvaApplication(Adw.Application):
         revealer.set_child(card)
         return revealer
 
-    def _segment_mode_changed(self, *_args: object) -> None:
-        """Project the authoritative mode selection onto the segment group."""
-        if self.mode is not None:
-            selected_index = self.mode.get_selected()
-            sync_segment_group(self.capture_segment_buttons, selected_index)
-            if self.capture_mode_maturity is not None:
-                self.capture_mode_maturity.present(CAPTURE_MODE_FEATURE_IDS[selected_index])
-
-    def _segment_mode_sensitivity_changed(self, *_args: object) -> None:
-        """Freeze or release the near-action segment group with the settings row."""
-        if self.mode is not None:
-            sensitive = self.mode.get_sensitive()
-            for button in self.capture_segment_buttons:
-                button.set_sensitive(sensitive)
-
-    def _build_capture_status_card(self) -> Gtk.Box:
-        """Summarize the next capture without exposing infrequent configuration."""
-        card, body = card_box()
-        status_header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=SPACE_3)
-        microphone = Gtk.Image.new_from_icon_name("audio-input-microphone-symbolic")
-        microphone.set_pixel_size(32)
-        microphone.add_css_class("accent")
-        microphone.set_valign(Gtk.Align.START)
-        status_header.append(microphone)
-        status_copy = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_1)
-        self.capture_status_title = Gtk.Label(label="Ready to capture", xalign=0)
-        self.capture_status_title.add_css_class("title-2")
-        status_copy.append(self.capture_status_title)
-        self.status_label = Gtk.Label(
-            label="Ready",
-            xalign=0,
-            wrap=True,
-            selectable=False,
-            accessible_role=Gtk.AccessibleRole.STATUS,
-        )
-        self.status_label.add_css_class("dim-label")
-        status_copy.append(self.status_label)
-        status_header.append(status_copy)
-        body.append(status_header)
-        return card
-
-    def _segment_mode_clicked(self, index: int) -> None:
-        """Route one near-action mode decision through the settings-backed state."""
-        if self.mode is not None and self.mode.get_selected() != index:
-            self.mode.set_selected(index)
-
-    def _build_mode_card(self) -> Gtk.Box:
-        """Keep the frequent capture decisions adjacent to the primary action."""
-        card, body = card_box()
-        heading = Gtk.Label(label="Next capture", xalign=0)
-        heading.add_css_class("title-4")
-        body.append(heading)
-        mode_caption = Gtk.Label(label="Capture mode", xalign=0)
-        mode_caption.add_css_class("caption")
-        body.append(mode_caption)
-        self.capture_segment_box, self.capture_segment_buttons = segmented_control(
-            CAPTURE_MODE_LABELS,
-            CAPTURE_MODE_IDS.index(self.config.default_mode),
-            self._segment_mode_clicked,
-        )
-        body.append(self.capture_segment_box)
-        self.capture_mode_maturity = FeatureMaturityNotice(
-            CAPTURE_MODE_FEATURE_IDS[CAPTURE_MODE_IDS.index(self.config.default_mode)]
-        )
-        body.append(self.capture_mode_maturity)
-        self.capture_mode_status_row = SummaryRow("English · Faithful", "Language · Output style")
-        self.capture_delivery_status_row = SummaryRow("Copy only")
-        self.capture_privacy_status_row = SummaryRow("Private local history")
-        self.capture_summary_box = summary_list(
-            self.capture_mode_status_row,
-            self.capture_delivery_status_row,
-            self.capture_privacy_status_row,
-        )
-        body.append(self.capture_summary_box)
-        return card
-
-    def _build_recent_captures_card(self) -> Gtk.Box:
-        """Surface the newest recoverable results beside the primary workflow."""
-        card, body = card_box(spacing=SPACE_2)
-        self.recent_captures_card = card
-        heading = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=SPACE_2)
-        title = Gtk.Label(label="Recent captures", xalign=0, hexpand=True)
-        title.add_css_class("title-4")
-        heading.append(title)
-        body.append(heading)
-        self.recent_captures_list = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
-        self.recent_captures_list.add_css_class("boxed-list")
-        self.recent_captures_list.connect("row-activated", self._recent_capture_activated)
-        body.append(self.recent_captures_list)
-        return card
-
-    def _recent_capture_activated(self, _list: Gtk.ListBox, _row: Gtk.ListBoxRow) -> None:
-        """Send one explicit recent-capture activation to the History surface."""
-        self._navigate_to_page("history")
-
-    def _refresh_recent_captures(self) -> None:
-        """Mirror the newest history entries without duplicating archive detail."""
-        if self.recent_captures_list is None:
-            return
-        child = self.recent_captures_list.get_first_child()
-        while child is not None:
-            next_child = child.get_next_sibling()
-            self.recent_captures_list.remove(child)
-            child = next_child
-        entries = self.history_store.recent()[:3]
-        for entry in entries:
-            row_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_1)
-            set_margins(row_box, SPACE_2)
-            title = Gtk.Label(label=entry.delivered_text or entry.raw_text, xalign=0, ellipsize=True)
-            title.set_max_width_chars(42)
-            title.set_ellipsize(Pango.EllipsizeMode.END)
-            row_box.append(title)
-            try:
-                stamp = datetime.fromisoformat(entry.created_at).strftime("%H:%M")
-            except ValueError:
-                stamp = ""
-            meta = Gtk.Label(label=f"{entry.mode.title()} · {stamp}", xalign=0)
-            meta.add_css_class("caption")
-            meta.add_css_class("dim-label")
-            row_box.append(meta)
-            self.recent_captures_list.append(Gtk.ListBoxRow(child=row_box))
-        if self.recent_captures_card is not None:
-            self.recent_captures_card.set_visible(bool(entries))
-
     def _build_output_section(self) -> Gtk.Box:
         """Build the result editor and reveal it only when recoverable text exists."""
         card, body = card_box()
@@ -1116,27 +984,6 @@ class MluvaApplication(Adw.Application):
         breakpoint.connect("apply", self._apply_narrow_navigation)
         breakpoint.connect("unapply", self._apply_wide_navigation)
         self.window.add_breakpoint(breakpoint)
-        workspace_condition = Adw.BreakpointCondition.parse(f"min-width: {CAPTURE_WORKSPACE_BREAKPOINT_SP}sp")
-        workspace_breakpoint = Adw.Breakpoint.new(workspace_condition)
-        workspace_breakpoint.connect("apply", self._apply_columns_workspace)
-        workspace_breakpoint.connect("unapply", self._apply_stacked_workspace)
-        self.window.add_breakpoint(workspace_breakpoint)
-
-    def _apply_columns_workspace(self, *_args: object) -> None:
-        """Compose a deliberate two-column information grid on wide layouts."""
-        if self.capture_grid is not None:
-            self.capture_grid.set_orientation(Gtk.Orientation.HORIZONTAL)
-        if self.capture_secondary is not None:
-            self.capture_secondary.set_size_request(340, -1)
-            self.capture_secondary.set_hexpand(False)
-
-    def _apply_stacked_workspace(self, *_args: object) -> None:
-        """Stack the workspace in one column so frequent decisions hug the dock."""
-        if self.capture_grid is not None:
-            self.capture_grid.set_orientation(Gtk.Orientation.VERTICAL)
-        if self.capture_secondary is not None:
-            self.capture_secondary.set_size_request(-1, -1)
-            self.capture_secondary.set_hexpand(False)
 
     def _apply_narrow_navigation(self, *_args: object) -> None:
         """Trade the wide left rail for compact bottom navigation."""
@@ -3549,7 +3396,6 @@ class MluvaApplication(Adw.Application):
         """Refresh correction-derived personalization after a local history mutation."""
         if self.personalization_page is not None:
             self.personalization_page.refresh()
-        self._refresh_recent_captures()
         workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None:
             workspace.refresh_history()
