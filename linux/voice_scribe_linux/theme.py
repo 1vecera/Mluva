@@ -72,8 +72,10 @@ DarkTokens: Final[dict[str, str]] = {
 }
 
 BORDER_WIDTH: Final = 1
-RADIUS_CARD: Final = 12
-RADIUS_CONTROL: Final = 10
+RADIUS_CARD: Final = 4
+RADIUS_CONTROL: Final = 2
+WINDOW_OPACITY: Final = 0.82
+POPOVER_OPACITY: Final = 0.94
 SHADOW_OFFSET: Final = 4
 SHADOW_OFFSET_SMALL: Final = 2
 NAV_RAIL_WIDTH: Final = 224
@@ -162,58 +164,74 @@ def build_stylesheet(tokens: dict[str, str]) -> str:
     return (
         _named_colors(tokens)
         + """
-window.background { background: alpha(@vs_canvas, 0.90); color: @vs_ink;
+window.background { background: alpha(@vs_canvas, $WINDOW_OPACITY); color: @vs_ink;
   font-family: "Inter", "Adwaita Sans", "Noto Sans", sans-serif; font-size: 0.92em; }
+toolbarview, toolbarview > top-bar, toolbarview > bottom-bar { background: transparent; }
 headerbar { min-height: 38px; padding: 0 8px; background: transparent; color: @vs_ink; border: none; box-shadow: none; }
 headerbar button { min-height: 24px; min-width: 24px; padding: 2px 4px; }
+windowcontrols button { background: transparent; border-radius: $CONTROL_RADIUSpx; box-shadow: none; }
+windowcontrols button > image { background: transparent; border-radius: $CONTROL_RADIUSpx; box-shadow: none; }
+button image { opacity: 0.68; }
+button:hover image, button:focus-visible image, button:checked image { opacity: 1; }
 .vs-page-title { font-size: 1em; font-weight: 600; color: @vs_ink_secondary; }
 .caption { font-size: 0.9em; color: @vs_ink_secondary; }
 .dim-label { color: @vs_ink_secondary; opacity: 1; }
 .heading, .title-1, .title-2, .title-3, .title-4 { font-weight: 600; }
-button { min-height: 28px; border-radius: 7px; font-weight: 500; padding: 3px 10px; }
+button { min-height: 28px; border-radius: $CONTROL_RADIUSpx; font-weight: 500; padding: 3px 10px;
+  background: transparent; border: 1px solid transparent; box-shadow: none; color: @vs_ink_secondary; }
+button:hover { background: alpha(@vs_ink, 0.065); color: @vs_ink; }
+button:active, button:checked { background: alpha(@vs_action, 0.14); color: @vs_accent_strong; }
 button:focus-visible, textview:focus-visible, entry:focus-visible { outline: 2px solid @vs_focus; outline-offset: 2px; }
-button.suggested-action { background: @vs_action; color: @vs_on_action; }
-button.suggested-action:hover { background: @vs_action_hover; }
-button.destructive-action { background: @vs_danger; color: @vs_on_danger; }
+button.suggested-action { background: alpha(@vs_action, 0.10); border-color: alpha(@vs_action, 0.26);
+  color: @vs_accent_strong; }
+button.suggested-action:hover { background: alpha(@vs_action, 0.20); border-color: alpha(@vs_action, 0.45); }
+button.destructive-action { background: alpha(@vs_danger, 0.12); color: @vs_danger; }
 button:disabled { opacity: 0.48; }
 button.flat { box-shadow: none; }
-.card, .boxed-list { background: @vs_surface; border: 1px solid alpha(@vs_outline_subtle, 0.45); border-radius: 10px;
+.card, .boxed-list { background: @vs_surface; border: 1px solid alpha(@vs_outline_subtle, 0.45);
+  border-radius: $CARD_RADIUSpx;
   box-shadow: none; }
 .boxed-list > row { border-bottom: 1px solid @vs_divider; }
 .boxed-list > row:last-child { border-bottom: none; }
 separator { background: @vs_outline_subtle; }
-.ml-history-pane { background: alpha(@vs_surface_subtle, 0.45); }
+.ml-history-pane { background: alpha(@vs_ink, 0.025); border-right: 1px solid alpha(@vs_ink, 0.075); }
+overlay-split-view > .sidebar-pane, overlay-split-view > .content-pane { background: transparent; }
 .ml-history-sidebar { background: transparent; }
-.ml-history-sidebar searchentry { min-height: 28px; padding: 2px 8px; background: alpha(@vs_ink, 0.045);
-  border: none; box-shadow: none; border-radius: 7px; }
+.ml-history-sidebar entry.search { min-height: 28px; padding: 2px 8px; background: transparent;
+  border: 1px solid alpha(@vs_ink, 0.10); box-shadow: none; border-radius: $CONTROL_RADIUSpx; }
 .ml-history-sidebar list { background: transparent; }
-.ml-history-sidebar row { border-radius: 9px; margin: 2px 0; }
-.ml-history-sidebar row:selected { background: @vs_accent_soft; color: @vs_ink; }
-.ml-history-sidebar row:hover { background: alpha(@vs_accent_soft, 0.65); }
+.ml-history-sidebar row { border-radius: $CONTROL_RADIUSpx; margin: 2px 0; border-left: 2px solid transparent; }
+.ml-history-sidebar row:selected { background: alpha(@vs_action, 0.08); border-left-color: alpha(@vs_action, 0.7);
+  color: @vs_ink; }
+.ml-history-sidebar row:hover { background: alpha(@vs_ink, 0.055); }
 .ml-history-sidebar button { min-height: 28px; }
-.ml-wordmark { font-size: 1.4em; font-weight: 650; letter-spacing: -0.5px; }
-.ml-conversation { background: alpha(@vs_surface, 0.70); }
-.ml-conversation-title { font-size: 1.45em; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 2px; }
+.ml-wordmark, .ml-conversation-title { font-size: 1.12em; font-weight: 600; letter-spacing: -0.2px; }
+.ml-brand-mark { color: @vs_ink_secondary; opacity: 0.65; }
+.ml-conversation { background: transparent; }
 .ml-transcript, .ml-transcript text { background: transparent; color: @vs_ink; font-size: 1.04em; }
 .ml-transcript { line-height: 1.3; }
 .ml-source { padding: 0 0 8px; }
 .ml-source .heading, .ml-reply .heading { font-size: 0.9em; font-weight: 500; color: @vs_ink_secondary; }
 .ml-reply { padding: 0 0 4px; }
-.ml-instruction { background: alpha(@vs_ink, 0.045); border-radius: 8px; padding: 8px 12px; color: @vs_ink_secondary; }
+.ml-instruction { background: alpha(@vs_ink, 0.045); border-radius: $CONTROL_RADIUSpx;
+  padding: 8px 12px; color: @vs_ink_secondary; }
 .ml-composer { background: transparent; border: none; padding-top: 0; }
-.ml-composer flowbox button { background: alpha(@vs_ink, 0.045); box-shadow: none; }
-.ml-composer flowbox button:hover { background: alpha(@vs_action, 0.12); }
+.ml-composer flowbox button { background: transparent; box-shadow: none; }
+.ml-composer flowbox button:hover { background: alpha(@vs_ink, 0.065); }
 .ml-composer flowboxchild { padding: 0; }
 .ml-composer flowbox { padding: 0; }
-.ml-prompt, .ml-prompt text { background: alpha(@vs_ink, 0.035); color: @vs_ink; font-size: 1em; }
+.ml-prompt, .ml-prompt text { background: transparent; color: @vs_ink; font-size: 1em; }
 .ml-prompt text { background: transparent; }
-.ml-prompt { padding: 8px 10px; border-radius: 8px; }
+.ml-prompt { padding: 8px 10px; border: 1px solid alpha(@vs_ink, 0.16); border-radius: $CONTROL_RADIUSpx; }
 .ml-recording-dock { background: transparent; }
 .ml-recording-dock button, button.ml-primary { min-height: 30px; padding: 3px 12px; }
-.ml-live { background: @vs_surface_subtle; border-radius: 12px; padding: 12px; }
+.ml-live { background: transparent; border-radius: 0; padding: 0; }
 .ml-live .heading { color: @vs_accent_strong; }
-.ml-empty { margin-top: 12px; }
-.ml-empty image { -gtk-icon-size: 64px; }
+.ml-empty { margin-top: 24px; }
+popover > contents { background: alpha(@vs_surface, $POPOVER_OPACITY); border-radius: $CARD_RADIUSpx;
+  border: 1px solid alpha(@vs_ink, 0.16); box-shadow: 0 4px 16px alpha(@vs_shadow, 0.12); }
+popover modelbutton { min-height: 28px; padding: 4px 10px; border-radius: $CONTROL_RADIUSpx; }
+popover modelbutton:hover { background: alpha(@vs_ink, 0.065); }
 .vs-callout { background: @vs_warning_soft; border-radius: 12px; padding: 10px; }
 .vs-callout-title { font-weight: 600; }
 .vs-callout-body { font-size: 13px; }
@@ -237,7 +255,10 @@ label.warning { color: @vs_warning; }
 label.error { color: @vs_danger; }
 scrollbar slider { min-width: 5px; min-height: 5px; border-radius: 10px; background: alpha(@vs_ink_muted, 0.35); }
 scrollbar slider:hover { background: alpha(@vs_ink_muted, 0.6); }
-"""
+""".replace("$CONTROL_RADIUS", str(RADIUS_CONTROL))
+        .replace("$CARD_RADIUS", str(RADIUS_CARD))
+        .replace("$WINDOW_OPACITY", str(WINDOW_OPACITY))
+        .replace("$POPOVER_OPACITY", str(POPOVER_OPACITY))
     )
 
 

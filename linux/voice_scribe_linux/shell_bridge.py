@@ -44,6 +44,7 @@ def project_state(parameters: GLib.Variant, overlay: bool = False) -> dict[str, 
             "elapsed": max(0, min(int(values.get("elapsed", 0)), 86_400)),
             "level": max(0.0, min(float(values.get("level", 0)), 1.0)),
             "preview": " ".join(str(values.get("preview", "")).split())[-SHELL_PREVIEW_CHARACTERS:],
+            "preview_start": max(0, min(int(values.get("preview_start", 0)), 2**31 - 1)),
         }
         if phase in REVIEW_PHASES:
             state.update(

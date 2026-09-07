@@ -4,7 +4,7 @@ from typing import Final
 
 PRODUCT_NAME: Final = "Mluva"
 PRODUCT_DESCRIPTOR: Final = "Open-source AI dictation for Linux, with a source preview for macOS."
-PRODUCT_VERSION: Final = "0.1.0"
+PRODUCT_VERSION: Final = "0.1.1"
 LINUX_USER_AGENT: Final = f"MluvaLinux/{PRODUCT_VERSION}"
 
 BRAND_INK: Final = "#19342F"

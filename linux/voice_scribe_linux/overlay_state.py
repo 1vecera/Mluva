@@ -82,10 +82,17 @@ class RecordingOverlayState:
         values = {"phase": GLib.Variant("s", phase), "elapsed": GLib.Variant("u", 0)}
         if phase == "idle":
             return values
+        preview = " ".join(self.preview.split())
+        preview_start = max(0, len(preview) - SHELL_PREVIEW_CHARACTERS)
+        if preview_start:
+            boundary = preview.find(" ", preview_start - 1)
+            if boundary >= 0:
+                preview_start = boundary + 1
         values.update(
             elapsed=GLib.Variant("u", max(0, min(int(self.elapsed_seconds), 86_400))),
             level=GLib.Variant("d", max(0.0, min(self.level, 1.0)) if math.isfinite(self.level) else 0.0),
-            preview=GLib.Variant("s", " ".join(self.preview.split())[-SHELL_PREVIEW_CHARACTERS:]),
+            preview=GLib.Variant("s", preview[preview_start:]),
+            preview_start=GLib.Variant("u", preview_start),
         )
         if phase in REVIEW_PHASES:
             values.update(

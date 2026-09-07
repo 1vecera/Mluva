@@ -25,13 +25,16 @@ def render_icon_svg() -> str:
 
 def render_symbolic_svg() -> str:
     """Use the same geometry for a single-color panel mark without an enclosing tile."""
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 28 88 80">
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 28 88 80">
   <title>{PRODUCT_NAME}</title>
-  <path d="{MARK_PATH}" fill="none" stroke="currentColor" stroke-width="6"
-    stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="{WAVE_PATH}" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+  <path fill="currentColor" fill-rule="evenodd" d="M36 31H92Q105 31 105 44V76Q105 89 92 89H62L44 102
+    Q39 105 39 100V89H36Q23 89 23 76V44Q23 31 36 31Z
+    M36 37Q29 37 29 44V76Q29 83 36 83H45V94L60 83H92Q99 83 99 76V44Q99 37 92 37Z"/>
+  <path fill="currentColor" d="M42.5 55a3.5 3.5 0 0 1 7 0v10a3.5 3.5 0 0 1-7 0Z
+    M60.5 46a3.5 3.5 0 0 1 7 0v28a3.5 3.5 0 0 1-7 0Z
+    M78.5 55a3.5 3.5 0 0 1 7 0v10a3.5 3.5 0 0 1-7 0Z"/>
 </svg>
-'''
+"""
 
 
 def render_hero_svg() -> str:
