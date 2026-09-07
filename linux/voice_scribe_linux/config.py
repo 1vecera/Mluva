@@ -64,6 +64,7 @@ class AppConfig:
     default_mode: str = "dictation"
     global_recording_key: str = DEFAULT_GLOBAL_RECORDING_KEY
     auto_paste: bool = False
+    automatic_titles: bool = True
     spoken_commands_enabled: bool = True
     remember_per_application: bool = False
     audio_retention_policy: AudioRetentionPolicy = AudioRetentionPolicy.FAILURES
@@ -89,6 +90,8 @@ class AppConfig:
             raise ValueError("global_recording_key must be one of F1 through F24")
         if not isinstance(self.auto_paste, bool):
             raise TypeError("auto_paste must be a boolean")
+        if not isinstance(self.automatic_titles, bool):
+            raise TypeError("automatic_titles must be a boolean")
         if not isinstance(self.spoken_commands_enabled, bool):
             raise TypeError("spoken_commands_enabled must be a boolean")
         if not isinstance(self.remember_per_application, bool):

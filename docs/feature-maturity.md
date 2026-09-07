@@ -19,7 +19,7 @@ Automatic paste is an explicit known limitation: it is not reliable in the curre
 
 | Feature | Current boundary |
 | --- | --- |
-| Rewrite conversations | Full transcripts, Quick Polish, Structured Note, custom follow-ups and conversation export have isolated tests; live acceptance is pending. |
+| Rewrite conversations | Full transcripts, automatic titles, Quick Polish, Structured Note, follow-ups and conversation export have isolated tests; live acceptance is pending. |
 | Automatic paste | Known limitation: insertion is disabled by default and is not reliable in the current Fedora acceptance setup; completed text remains on the clipboard. |
 | Faithful cleanup | Optional Codex cleanup preserves the raw transcript and falls back safely, but still needs manual acceptance. |
 | Spoken structure | Punctuation, paragraph, and scratch-that commands still need manual acceptance. |

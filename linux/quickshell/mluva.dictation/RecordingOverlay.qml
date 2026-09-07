@@ -18,12 +18,18 @@ PanelWindow {
     property string message: ""
     property var bar
     property bool menuOpen: false
+    readonly property int reviewDuration: 8000
+    property real remaining: reviewDuration
+    property double lastTick: Date.now()
+    property bool dismissed: false
+    readonly property bool countdownPaused: reviewHover.hovered || menuOpen || surface.Window.active
     readonly property bool reviewing: ["ready", "rewriting", "review-error"].includes(phase)
     readonly property bool busy: phase === "rewriting"
     readonly property bool active: reviewing || ["preparing", "recording", "processing", "error"].includes(phase)
     readonly property color emphasis: phase === "recording" || phase === "error" || phase === "review-error"
         ? Color.urgent : Color.accent
-    readonly property int lineHeight: Math.ceil(Style.font.title * 1.4)
+    readonly property int textSize: Math.max(12, Style.font.body)
+    readonly property int lineHeight: Math.ceil(textSize * 1.4)
     readonly property string status: ({"preparing": "Preparing microphone…", "recording": "Recording",
         "processing": "Transcribing…", "error": "Dictation failed · open Mluva"})[phase] || ""
     readonly property string timer: Math.floor(elapsed / 60).toString().padStart(2, "0")
@@ -32,15 +38,27 @@ PanelWindow {
 
     function act(action, style) {
         menuOpen = false;
+        if (action === "dismiss" || action === "open") dismissed = true;
+        remaining = reviewDuration;
         review(action, style || "");
     }
-    onPhaseChanged: if (!reviewing || busy) menuOpen = false
-    onIdentifierChanged: menuOpen = false
-    visible: active
+    function resetCountdown() {
+        remaining = reviewDuration;
+        lastTick = Date.now();
+        dismissed = false;
+    }
+    onPhaseChanged: {
+        if (!reviewing || busy) menuOpen = false;
+        resetCountdown();
+    }
+    onIdentifierChanged: { menuOpen = false; resetCountdown(); }
+    onMessageChanged: resetCountdown()
+    onCountdownPausedChanged: lastTick = Date.now()
+    visible: active && !dismissed
     anchors.bottom: true
     margins.bottom: 24 + (bar && bar.position === "bottom" ? bar.barSize : 0)
-    implicitWidth: Math.min(520, screen ? screen.width - 32 : 520)
-    implicitHeight: body.implicitHeight + 24
+    implicitWidth: Math.min(500, screen ? screen.width - 32 : 500)
+    implicitHeight: body.implicitHeight + 20
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     focusable: reviewing
@@ -62,19 +80,33 @@ PanelWindow {
         focusable: true
     }
 
+    Timer {
+        interval: 40
+        repeat: true
+        running: root.visible && root.reviewing && !root.busy && !root.countdownPaused
+        onTriggered: {
+            const now = Date.now();
+            root.remaining = Math.max(0, root.remaining - Math.max(0, now - root.lastTick));
+            root.lastTick = now;
+            if (root.remaining === 0) root.act("dismiss");
+        }
+        onRunningChanged: root.lastTick = Date.now()
+    }
+
     BorderSurface {
         id: surface
         anchors.fill: parent
-        color: Color.popups.background
+        color: Qt.alpha(Color.popups.background, 0.93)
         radius: Style.cornerRadius
         borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, 1)
         Keys.onEscapePressed: root.menuOpen ? root.menuOpen = false : root.act("dismiss")
+        HoverHandler { id: reviewHover }
         Column {
             id: body
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
-            anchors.margins: 12
+            anchors.margins: 10
             spacing: 6
             RowLayout {
                 width: parent.width
@@ -120,7 +152,7 @@ PanelWindow {
                     text: root.preview
                     color: Color.popups.text
                     font.family: Style.font.family
-                    font.pixelSize: Style.font.title
+                    font.pixelSize: root.textSize
                     wrapMode: Text.Wrap
                     lineHeightMode: Text.FixedHeight
                     lineHeight: root.lineHeight
@@ -187,10 +219,39 @@ PanelWindow {
                     onClicked: root.act("open")
                 }
                 ActionButton {
+                    id: dismiss
                     objectName: "dismiss-button"
-                    text: "×"
-                    tooltipText: "Dismiss"
+                    text: ""
+                    implicitWidth: 30
+                    implicitHeight: 30
+                    tooltipText: root.busy ? "Dismiss" : "Dismiss · closes after 8 idle seconds"
+                    Accessible.name: "Dismiss review"
                     onClicked: root.act("dismiss")
+                    Canvas {
+                        id: countdownRing
+                        anchors.centerIn: parent
+                        width: 22
+                        height: 22
+                        property real fraction: root.remaining / root.reviewDuration
+                        property color ink: Color.popups.text
+                        onFractionChanged: requestPaint()
+                        onInkChanged: requestPaint()
+                        onPaint: {
+                            const ctx = getContext("2d");
+                            ctx.reset();
+                            ctx.strokeStyle = ink;
+                            ctx.lineWidth = 1.3;
+                            ctx.globalAlpha = 0.7;
+                            ctx.beginPath(); ctx.moveTo(8, 8); ctx.lineTo(14, 14);
+                            ctx.moveTo(14, 8); ctx.lineTo(8, 14); ctx.stroke();
+                            if (!root.busy) {
+                                ctx.globalAlpha = 0.4;
+                                ctx.beginPath(); ctx.arc(11, 11, 9, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * fraction);
+                                ctx.stroke();
+                            }
+                        }
+                        Connections { target: root; function onBusyChanged() { countdownRing.requestPaint(); } }
+                    }
                 }
             }
         }

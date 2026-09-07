@@ -63,6 +63,33 @@ def focus_editor() -> None:
         x11.XCloseDisplay(display)
 
 
+def move_pointer(x: int, y: int) -> None:
+    """Move only the synthetic pointer on the explicitly isolated X11 connection."""
+    x11 = ctypes.CDLL("libX11.so.6")
+    x11.XOpenDisplay.restype = ctypes.c_void_p
+    x11.XDefaultRootWindow.argtypes = [ctypes.c_void_p]
+    x11.XDefaultRootWindow.restype = ctypes.c_ulong
+    x11.XWarpPointer.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_ulong,
+        ctypes.c_ulong,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_uint,
+        ctypes.c_uint,
+        ctypes.c_int,
+        ctypes.c_int,
+    ]
+    x11.XSync.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
+    display = x11.XOpenDisplay(None)
+    try:
+        x11.XWarpPointer(display, 0, x11.XDefaultRootWindow(display), 0, 0, 0, 0, x, y)
+        x11.XSync(display, False)
+    finally:
+        x11.XCloseDisplay(display)
+
+
 def main() -> None:
     """Prove preview, lifecycle and focus behavior without microphone or live desktop access."""
     if "OFFSCREEN_SESSION_ROOT" not in os.environ:
@@ -153,6 +180,16 @@ def main() -> None:
                 time.sleep(0.01)
             assert commands == expected, commands
 
+        def countdown() -> dict[str, object]:
+            """Read timer state from the independently running production widget."""
+            result = subprocess.run(
+                ["quickshell", "ipc", "--pid", str(process.pid), "call", "fixture", "countdown"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            return json.loads(result.stdout)
+
         try:
             idle = observe("idle")
             assert not idle["visible"]
@@ -191,6 +228,19 @@ def main() -> None:
                 subprocess.run(
                     ["import", "-window", "root", str(output / f"ready-{'light' if light else 'dark'}.png")], check=True
                 )
+                position = countdown()
+                geometry = f"{state['width']}x{state['height']}+{position['x']}+{position['y']}"
+                subprocess.run(
+                    [
+                        "import",
+                        "-window",
+                        "root",
+                        "-crop",
+                        geometry,
+                        str(output / f"widget-{'light' if light else 'dark'}.png"),
+                    ],
+                    check=True,
+                )
                 ipc("click", "more")
                 assert observe("ready")["menuOpen"]
                 subprocess.run(
@@ -223,6 +273,65 @@ def main() -> None:
                 )
             )
             assert observe("review-error")["visible"]
+            publisher.publish(
+                RecordingOverlayState(phase="ready", preview="Timed review", review_identifier="timed-note")
+            )
+            state = observe("ready")
+            assert 0 < countdown()["remaining"] < 8000
+            position = countdown()
+            move_pointer(position["x"] + 20, position["y"] + 20)
+            observe("ready")
+            hovered = countdown()
+            assert hovered["paused"], hovered
+            time.sleep(0.6)
+            assert countdown()["remaining"] == hovered["remaining"]
+            move_pointer(5, 150)
+            ipc("click", "more")
+            observe("ready")
+            paused = countdown()
+            assert paused["paused"]
+            time.sleep(0.6)
+            assert countdown()["remaining"] == paused["remaining"]
+            ipc("closeMenu")
+            ipc("focusReview")
+            observe("ready")
+            focused = countdown()
+            assert focused["paused"]
+            time.sleep(0.6)
+            assert countdown()["remaining"] == focused["remaining"]
+            focus_editor()
+            publisher.publish(
+                RecordingOverlayState(phase="rewriting", preview="Working", review_identifier="timed-note")
+            )
+            observe("rewriting")
+            time.sleep(0.6)
+            assert countdown()["remaining"] == 8000
+            publisher.publish(
+                RecordingOverlayState(phase="ready", preview="Finished result", review_identifier="timed-note")
+            )
+            observe("ready")
+            assert countdown()["remaining"] > 7000
+            before_dismiss = list(commands)
+            deadline = time.monotonic() + 10
+            while countdown()["visible"] and time.monotonic() < deadline:
+                while GLib.MainContext.default().pending():
+                    GLib.MainContext.default().iteration(False)
+                time.sleep(0.1)
+            assert not countdown()["visible"]
+            expect_commands(before_dismiss + [("dismiss", "timed-note", "")])
+            (output / "countdown.json").write_text(
+                json.dumps(
+                    {
+                        "duration_ms": 8000,
+                        "hover": hovered,
+                        "menu": paused,
+                        "keyboard": focused,
+                        "expired": countdown(),
+                        "dismissed_note": "timed-note",
+                    },
+                    indent=2,
+                )
+            )
             publisher.clear()
             assert not observe("idle")["visible"]
             publisher.publish(RecordingOverlayState(phase="recording", preview="Must disappear on owner loss"))

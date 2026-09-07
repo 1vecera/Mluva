@@ -58,7 +58,7 @@ FEATURE_CAPABILITIES: Final[tuple[FeatureCapability, ...]] = (
         "conversations",
         "Rewrite conversations",
         (
-            "Full transcripts, Quick Polish, Structured Note, custom follow-ups and conversation export "
+            "Full transcripts, automatic titles, Quick Polish, Structured Note, follow-ups and conversation export "
             "have isolated tests; live acceptance is pending."
         ),
         FeatureMaturity.EXPERIMENTAL,

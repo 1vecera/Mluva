@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360"
+  role="img" aria-labelledby="title description">
+  <title id="title">Mluva — Speak freely. Write clearly.</title>
+  <desc id="description">Open-source dictation and rewriting for Linux.</desc>
+  <rect width="1280" height="360" rx="24" fill="#19342F"/>
+  <g fill="none" stroke="#91E6C8" opacity="0.10">
+    <circle cx="1080" cy="180" r="250"/><circle cx="1080" cy="180" r="190"/>
+  </g>
+  <g transform="translate(930 48) scale(2.05)">
+    <path d="M36 34H92Q102 34 102 44V76Q102 86 92 86H61L42 100V86H36Q26 86 26 76V44Q26 34 36 34Z" fill="#91E6C8"/>
+    <path d="M46 55V65M64 46V74M82 55V65" fill="none" stroke="#19342F" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <g font-family="Inter, Adwaita Sans, Noto Sans, sans-serif">
+    <text x="56" y="65" font-size="25" font-weight="650" fill="#91E6C8">Mluva</text>
+    <text x="56" y="156" font-size="60" font-weight="650" letter-spacing="-2" fill="#FFFFFF">Speak freely.</text>
+    <text x="56" y="224" font-size="60" font-weight="650" letter-spacing="-2" fill="#FFFFFF">Write clearly.</text>
+    <text x="58" y="299" font-size="22" fill="#91E6C8">Open-source dictation and rewriting for Linux.</text>
+  </g>
+</svg>

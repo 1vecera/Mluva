@@ -105,6 +105,7 @@ def exercise(application: MluvaApplication) -> None:
         application._workflow_finished(
             SimpleNamespace(
                 delivery=receipt,
+                incognito=False,
                 requires_acceptance=False,
                 mode="dictation",
                 history_entry=source,
@@ -166,6 +167,7 @@ def exercise(application: MluvaApplication) -> None:
 def exercise_widget_review(application: MluvaApplication) -> None:
     """Keep shell rewrites note-specific through browsing, cancellation, deletion and capture races."""
     workspace = application.conversation_workspace
+    completion_gate = application.codex_workspace / "fixture-rewrite-release"
     source = application.history_store.add("Widget source", "Widget source", "dictation", "eng", None, "copied")
     elsewhere = application.history_store.add("Other note", "Other note", "dictation", "eng", None, "copied")
     workspace.show_conversation(elsewhere, [])
@@ -185,6 +187,7 @@ def exercise_widget_review(application: MluvaApplication) -> None:
 
     def settle() -> None:
         """Wait for the fake subprocess and production GTK completion callback."""
+        completion_gate.touch()
         deadline = time.monotonic() + 10
         while application.rewrite_client is not None and time.monotonic() < deadline:
             GLib.MainContext.default().iteration(False)
@@ -197,12 +200,26 @@ def exercise_widget_review(application: MluvaApplication) -> None:
         while not workspace.rewrite_preview_text and time.monotonic() < deadline:
             GLib.MainContext.default().iteration(False)
             time.sleep(0.01)
-        assert application.rewrite_client is not None and workspace.rewrite_preview_text
+        assert application.rewrite_client is not None and workspace.rewrite_preview_text, (
+            application.rewrite_client,
+            workspace.notice.get_label(),
+            [(state.phase, state.message) for state in states if state is not None][-4:],
+        )
         return workspace.rewrite_preview_text
 
-    client_factory = lambda: CodexAppServerClient(  # noqa: E731
-        command=(sys.executable, str(Path(__file__).with_name("fake_app_server.py")), "--conversation")
-    )
+    def client_factory() -> CodexAppServerClient:
+        """Hold the fake's first delta until the test has observed the streaming state."""
+        completion_gate.unlink(missing_ok=True)
+        return CodexAppServerClient(
+            command=(
+                sys.executable,
+                str(Path(__file__).with_name("fake_app_server.py")),
+                "--conversation",
+                "--completion-gate",
+                str(completion_gate),
+            )
+        )
+
     with (
         patch("voice_scribe_linux.app.CodexAppServerClient", side_effect=client_factory) as factory,
         patch("voice_scribe_linux.app.deliver_text") as clipboard,

@@ -1,13 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
   <title id="title">Mluva</title>
-  <desc>A rounded m with two open arches and a soft speech tail.</desc>
-  <rect x="4" y="4" width="120" height="120" rx="30" fill="#6956D8"/>
-  <path
-    d="M30 84V52C30 34 62 34 62 52V76M62 52C62 34 94 34 94 52V76C94 88 86 94 78 98"
-    fill="none"
-    stroke="#FFFFFF"
-    stroke-width="12"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+  <desc>A voice signal inside a speech bubble, in mint on deep green.</desc>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="#19342F"/>
+  <path d="M36 34H92Q102 34 102 44V76Q102 86 92 86H61L42 100V86H36Q26 86 26 76V44Q26 34 36 34Z" fill="#91E6C8"/>
+  <path d="M46 55V65M64 46V74M82 55V65" fill="none" stroke="#19342F" stroke-width="7" stroke-linecap="round"/>
 </svg>

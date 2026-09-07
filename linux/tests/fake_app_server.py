@@ -3,6 +3,7 @@
 import json
 import sys
 import time
+from pathlib import Path
 
 
 def send(message: dict[str, object]) -> None:
@@ -72,6 +73,31 @@ def main() -> None:
             send({"id": message["id"], "result": {"turn": {"id": "turn-test"}}})
             if "--exit-during-turn" in sys.argv:
                 return
+            if "--title" in sys.argv:
+                context = json.loads(message["params"]["input"][0]["text"].split("\n", 1)[1])
+                assert 0 < len(context["transcript_excerpt"]) <= 6000
+                time.sleep(0.4)
+                send(
+                    {
+                        "method": "item/agentMessage/delta",
+                        "params": {
+                            "threadId": "thread-test",
+                            "turnId": "turn-test",
+                            "itemId": "item-test",
+                            "delta": "Plán pátečního vydání",
+                        },
+                    }
+                )
+                send(
+                    {
+                        "method": "turn/completed",
+                        "params": {
+                            "threadId": "thread-test",
+                            "turn": {"id": "turn-test", "status": "completed"},
+                        },
+                    }
+                )
+                continue
             if "--conversation" in sys.argv:
                 context = json.loads(message["params"]["input"][0]["text"].split("\n", 1)[1])
                 previous = context["completed_rewrites"]
@@ -91,6 +117,12 @@ def main() -> None:
                             },
                         }
                     )
+                    if "--completion-gate" in sys.argv:
+                        gate = Path(sys.argv[sys.argv.index("--completion-gate") + 1])
+                        deadline = time.monotonic() + 15
+                        while not gate.exists() and time.monotonic() < deadline:
+                            time.sleep(0.01)
+                        assert gate.exists(), "Fixture completion was never released"
                     time.sleep(0.15)
                 send(
                     {
