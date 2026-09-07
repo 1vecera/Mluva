@@ -1,52 +1,73 @@
 # Mluva launch kit
 
-This kit keeps public copy inside the evidence available on 2026-08-21. Linux is the initial supported release; macOS remains a source preview until a signed, notarized, updateable binary is independently verified.
+Copy for v0.1.1, prepared on 2026-09-08. Social and community posts are drafts for Daniel to review. The app release and plugin repository are public; marketplace approval is tracked separately.
 
-## Product copy
+## Positioning
 
-**One line:** Mluva is open-source AI dictation for Fedora GNOME that shows what it is hearing, preserves raw recognition, and keeps every completed result recoverable on the clipboard.
+**Headline:** Speak freely. Stay in flow.
 
-**Short description:** Press F9 once to start and again to stop. Mluva streams microphone audio to ElevenLabs Scribe v2, shows a transient waveform and volatile transcript, optionally cleans committed text through a locally authenticated Codex app-server, and keeps the completed result recoverable on the clipboard. Recording and transcription, recording setup controls, History, and custom saved styles are verified on Linux. Command, Notes, Meeting, automatic paste, and every other capability are visibly labeled Experimental until manually accepted.
+**One line:** Mluva brings live dictation, quick rewrites and recoverable originals to your Omarchy workflow.
 
-**Support boundary:** Fedora 44, GNOME Shell 50, and Wayland are the first supported public target. Automatic paste is an experimental known limitation, is disabled by default, and is not reliable in the current Fedora acceptance setup; inaccessible, ambiguous, and unsuccessful targets remain copy-only. The optional GNOME Shell recording bar is display-only, Experimental, and requires an explicit install. The complete status lives in the generated [feature-maturity matrix](feature-maturity.md).
+**Short description:** Talk through a coding task, a note or an idea. Mluva shows your words in a five-line floating preview, copies completed dictation, and offers Polish, Structure and saved prompts. The native app follows your desktop palette and keeps the original with every completed rewrite.
 
-## Screenshot assets
-
-| Asset | Recommended use | Alt text |
-| --- | --- | --- |
-| [`assets/mluva-capture.png`](assets/mluva-capture.png) | README hero, product overview, or the first LinkedIn image | Mluva Capture page showing Dictate, Command, and Notes modes, F9 global delivery, private recovery, recent captures, and the primary record action |
-| [`assets/mluva-recording.png`](assets/mluva-recording.png) | Second LinkedIn image or recording-state detail | Mluva recording with a bottom bar showing recording phase, elapsed time, waveform, Dictate mode, copy-only delivery, live transcript preview, and Stop action |
-
-Both images use synthetic content and production GTK widgets rendered at 1280×900 inside fresh X11, D-Bus, XDG, and AT-SPI namespaces. No live desktop, real transcript, user application, clipboard, credential, microphone, or input event appears in them.
+**Developer promise:** Make talking through a task feel natural on Omarchy. Win on a readable preview, coherent desktop behavior and a clear path from a rough thought to usable text. “Best dictation for Omarchy” is the ambition; no measured accuracy, speed or compatibility lead is claimed.
 
 ## LinkedIn draft
 
-I've built my own desktop dictation app - this time it escaped VS Code :)
+I've been building Mluva into the dictation app I want on #Omarchy.
 
-It's called Mluva.
+Talk through a coding task. Keep the rough version. Turn it into a clear note. Copy it into your editor or agent.
 
-Press F9 anywhere on Fedora GNOME, speak, press F9 again. Mluva keeps the full result on the clipboard. It has an experimental automatic-insertion path for accessible text fields, but that does not work reliably for me yet, so I am not calling it done. It fails back to a recoverable copy instead of typing into some random window.
+The bit I like most now is the little floating widget: five lines of live words, a translucent surface that follows the desktop theme, then Polish or Structure when you're done. The original stays there. So does every completed rewrite.
 
-Under the hood: native GTK 4 + Libadwaita, ElevenLabs Scribe v2 Realtime, GNOME Global Shortcuts, AT-SPI, PipeWire, and an optional local Codex app-server for cleanup and spoken commands.
+Native GTK app, Quickshell plugin, ElevenLabs Scribe for recognition and Codex for optional rewrites. Open source.
 
-It also has this little status bar at the bottom - recording phase, elapsed time, waveform, mode, recognition route, delivery state and volatile words. The same state can appear over other applications through an explicitly installed display-only GNOME Shell extension. That Shell bar takes no input, keeps focus where it was, and disappears on Stop.
+The ambition is the best dictation experience on Omarchy. It's an early release: the integration is still experimental, and the demo uses scripted content. Real recognition uses your ElevenLabs account.
 
-The set I have manually accepted is deliberately smaller: recording and transcription, recording controls, History, and my own saved writing styles. Command, Notes, Meeting, automatic paste, the desktop overlay, dictionary, snippets, Incognito, recovery tools, and everything else are labeled Experimental in the app until they earn their way out.
+Code and install: https://github.com/1vecera/Mluva
 
-Linux is the proper first target: Fedora 44, GNOME 50, Wayland. macOS is included as a source preview - no pretending I have a signed, notarized, auto-updating Mac release yet.
+Plugin: https://github.com/1vecera/omarchy-mluva
 
-Current gate: 285 tests, the exact staged installer and application launcher, a real private-bus shortcut peer, cross-process Unicode insertion plus production GTK pixels in private X11 and AT-SPI sessions, and preparing, recording and quiet states inside a headless GNOME Shell virtual monitor. I could keep using my actual desktop while agents tested the GUI - which is way cooler than watching them steal the mouse.
+## Short announcement draft
 
-Code and Fedora install instructions: https://github.com/1vecera/Mluva
+Mluva for Omarchy: five lines of live dictation, quick rewrites and your original kept intact. Native GTK + Quickshell. Open source; early experimental integration. ElevenLabs recognition, optional Codex rewrites. https://github.com/1vecera/Mluva
 
-Can someone on Fedora GNOME test it properly in GTK, Chrome, Electron, terminals and rich-text editors please? :)
+## Community post draft
 
-## Claim guardrails
+**Title:** Mluva: native dictation and a five-line Quickshell preview for Omarchy
 
-- Say **supported on Fedora 44 with GNOME Shell 50 and Wayland**, not “works on Linux” or “works everywhere.”
-- Say **conditional exact-target insertion with copy-only recovery**, not “automatic paste always works.”
-- Say **automatic paste is Experimental and is not reliable in the current Fedora acceptance setup**, not “insertion is verified.”
-- Keep **Verified on Linux** limited to recording and transcription, recording setup controls, History, and custom saved styles; describe every other capability as **Experimental**.
-- Say **ElevenLabs cloud recognition** and **optional locally authenticated Codex processing**; do not imply Linux transcription is offline or fully local.
-- Say **macOS source preview**, not “macOS release,” until a current binary passes signing, notarization, packaging, update, and clean-machine checks.
-- Do not publish speed, latency, accuracy, privacy, or compatibility percentages until a reproducible corpus or target matrix exists.
+I've released Mluva v0.1.1 and published its Omarchy plugin. The workflow is dictation → clipboard → an optional rewrite, with the original and every completed version kept together. The widget follows the desktop palette, shows five live lines with eased scrolling, and lets you run Polish or Structure without opening the main window.
+
+It uses ElevenLabs Scribe for speech recognition and an authenticated Codex app-server for optional rewrites. You need your own provider access. Linux recognition is cloud-based.
+
+This is an early release. Isolated GTK, Quickshell and D-Bus checks pass, but live Hyprland acceptance remains pending. Automatic insertion is disabled by default; use the clipboard. The video shows the real UI with a scripted transcript and rewrite provider.
+
+Install the app first, start Mluva, then add the plugin:
+
+```sh
+omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
+```
+
+App and setup: https://github.com/1vecera/Mluva
+
+Plugin source and removal: https://github.com/1vecera/omarchy-mluva
+
+Useful feedback would name the Omarchy/Hyprland version, keyboard layout and target app, then describe start, stop, rewrite and Copy. Keep real transcripts and recordings out of public issues.
+
+## Assets and release links
+
+- [Three videos and eight screenshots](promotion/README.md), with dimensions, alt text and reproduction instructions.
+- [Mluva v0.1.1](https://github.com/1vecera/Mluva/releases/tag/v0.1.1), with source archive and checksum.
+- [Installable plugin](https://github.com/1vecera/omarchy-mluva) and [marketplace submission](https://github.com/omacom/omarchy-plugin-marketplace/issues/5533).
+- [Feature maturity](feature-maturity.md) and [Omarchy verification boundary](omarchy-integration.md#verification).
+
+## Next evidence to earn
+
+- Record live Omarchy acceptance for F9 on US/Czech layouts, microphone stop/cancel, focus retention, theme changes and a session restart.
+- Check clipboard delivery in named browser, editor and terminal applications. Keep automatic-insertion claims separate.
+- Compare a declared task set using consented, reusable audio. Publish the corpus and actual recognition errors, correction effort and timing before a comparative “best” claim.
+- Supplement the scripted showcase with an identified real-audio demonstration after that acceptance.
+
+## Claim boundaries
+
+Keep Omarchy integration, rewriting and generated titles labeled Experimental until their own acceptance is recorded. Fedora 44 / GNOME 50 / Wayland remains the manually accepted recording baseline. macOS remains a source preview without a signed public binary. Do not present the plugin as official Omarchy software, an approved marketplace listing before approval, offline recognition, universal auto-paste or a measured performance winner.

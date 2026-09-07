@@ -2,7 +2,7 @@
 
 Turn a spoken thought into text you can use. Press **F9**, say what you mean, and paste the result. Then polish the wording, organize a note, or ask for another draft. Mluva keeps your original and every completed rewrite together.
 
-**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy integration](docs/omarchy-integration.md)** · **[Feature status](docs/feature-maturity.md)** · **[Contribute](#development)**
+**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy plugin](https://github.com/1vecera/omarchy-mluva)** · **[Watch the demo](docs/promotion/assets/mluva-omarchy-demo.mp4)** · **[Feature status](docs/feature-maturity.md)** · **[Contribute](#development)**
 
 ![Mluva's compact conversation workspace with searchable history, an original transcript and a structured rewrite](docs/assets/conversation-workspace.png)
 
@@ -21,6 +21,14 @@ Turn a spoken thought into text you can use. Press **F9**, say what you mean, an
 On **Omarchy**, a translucent widget shows five lines while you speak, easing upward as the current line fills. When you finish, rewrite directly from the widget. Its countdown ring closes the review after eight idle seconds; hovering, keyboard focus, menus and active rewrites pause it. **Shift+F9** reopens the latest conversation when that shortcut is configured.
 
 ![Omarchy review widget with Polish, Structure, More, Copy, Open and a countdown ring](docs/assets/omarchy-review.png)
+
+After installing and starting Mluva, add the [community plugin](https://github.com/1vecera/omarchy-mluva) on Omarchy Quattro:
+
+```sh
+omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
+```
+
+The [integration guide](docs/omarchy-integration.md) covers dependencies, existing manual installs and removal. [Videos, screenshots and launch copy](docs/promotion/README.md) are available for sharing; the demos use scripted content and the integration remains Experimental.
 
 Closing the main window keeps Mluva available. Open the shell menu or application menu to quit.
 
@@ -61,6 +69,8 @@ Audio retention, recovery, Command previews and other details are documented in 
 ## Development
 
 Linux uses **Python, GTK 4, Libadwaita and PipeWire**, with a separate QML plugin for Omarchy. macOS uses Swift. No webview is required for the conversation workspace.
+
+The [small Linux dev box](dev/README.md) provides local checks and reproducible screenshots/videos on a private desktop, including when the host is macOS.
 
 ```bash
 make linux-test linux-shortcut-test

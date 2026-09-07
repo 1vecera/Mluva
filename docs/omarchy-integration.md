@@ -12,11 +12,22 @@ The review surface accepts pointer input and requests keyboard focus only on dem
 
 ## Installation
 
-Install the Linux application with `make linux-install`. The installer packages `mluva-shell` and the plugin under `~/.local/share/voice-scribe/app/quickshell/mluva.dictation`. Copy the plugin into the user plugin directory and enable it through Omarchy:
+Install and start [Mluva v0.1.1](https://github.com/1vecera/Mluva/releases/tag/v0.1.1), including its [Linux dependencies](../linux/README.md). The installer supplies `mluva-shell`. On Omarchy Quattro, use the public plugin repository:
+
+```sh
+omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
+```
+
+The repository contains one root manifest, the released QML, an Apache license and a source/hash record. `omarchy plugin update mluva.dictation` updates that Git-managed copy. This is a community integration; [marketplace submission #5533](https://github.com/omacom/omarchy-plugin-marketplace/issues/5533) awaits a maintainer's listing decision.
+
+If a manually copied `mluva.dictation` directory already exists, back it up or remove it with `omarchy plugin remove mluva.dictation` before adding the Git-managed copy. Omarchy refuses duplicate plugin IDs. The application and saved conversations are separate from plugin removal.
+
+For development or a manual install, the application still packages the same plugin under `~/.local/share/voice-scribe/app/quickshell/mluva.dictation`:
 
 ```sh
 mkdir -p ~/.config/omarchy/plugins/mluva.dictation
 cp ~/.local/share/voice-scribe/app/quickshell/mluva.dictation/* ~/.config/omarchy/plugins/mluva.dictation/
+omarchy-shell shell rescanPlugins
 omarchy plugin enable mluva.dictation
 ```
 

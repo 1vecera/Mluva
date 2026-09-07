@@ -1,0 +1,11 @@
+{
+  "title": "A calmer way to ship",
+  "source": "Okay, a few thoughts for the next release. Let's keep the scope small. The dictation should feel at home on Omarchy. I want to see my words while I'm speaking, then turn the rough version into a clear note. Keep the original too. The little floating preview should stay readable as the thought gets longer. I don't want to chase a single disappearing line. Once the note is saved, I can come back to it, choose the version I like, and copy it into whatever I'm writing. Oh, and leave enough time to test it properly before we ship.",
+  "rewrite": "Keep the next release focused.\n\n• Make dictation feel at home on Omarchy.\n• Show live words while recording.\n• Turn rough thoughts into clear notes.\n• Preserve the original alongside every rewrite.\n• Leave time for testing before release.",
+  "history": [
+    "Notes from a morning walk",
+    "A simpler onboarding flow",
+    "Friday's demo ideas"
+  ],
+  "disclosure": "Production GTK and Quickshell UI with a scripted transcript and local fake rewrite provider. No real audio, speech recognition, provider latency or live Hyprland session is represented."
+}
