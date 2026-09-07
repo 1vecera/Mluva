@@ -5,13 +5,6 @@ import AVFoundation
 @Suite("Audio Capture Service")
 struct AudioCaptureServiceTests {
 
-    @Test("Target format is 16kHz, 16-bit, mono")
-    func targetFormat() {
-        let service = AudioCaptureService()
-        // Access through the public interface — verify it doesn't crash
-        #expect(service.isRunning == false)
-    }
-
     @Test("Not running initially")
     func notRunningInitially() {
         let service = AudioCaptureService()

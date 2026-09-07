@@ -63,7 +63,7 @@ class RecordingOverlayState:
             _one_line(self.mode, 32),
             _one_line(self.route, 48),
             max(0.0, min(level, 1.0)),
-            _one_line(self.preview, 180),
+            " ".join(str(self.preview).split())[-180:],
             _one_line(self.delivery, 48),
         )
 

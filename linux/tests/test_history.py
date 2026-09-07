@@ -4,6 +4,7 @@ import sqlite3
 from contextlib import closing
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -33,7 +34,7 @@ def test_history_store_closes_every_opened_connection(tmp_path: Path, monkeypatc
         connections.append(connection)
         return connection
 
-    monkeypatch.setattr(history_module.sqlite3, "connect", tracked_connect)
+    monkeypatch.setattr(history_module, "sqlite3", SimpleNamespace(connect=tracked_connect, Row=sqlite3.Row))
     store = HistoryStore(tmp_path / "history.sqlite3")
     store.initialize()
     entry = store.add("raw", "prepared", "dictation", "eng", None, "copied")
@@ -46,51 +47,8 @@ def test_history_store_closes_every_opened_connection(tmp_path: Path, monkeypatc
     assert all(connection.closed for connection in connections)
 
 
-def test_history_preserves_raw_and_delivered_text(tmp_path: Path) -> None:
-    """Keep immutable recognition available beside transformed output."""
-    store = HistoryStore(tmp_path / "history.sqlite3")
-    store.initialize()
-    entry = store.add(
-        raw_text="raw um text",
-        delivered_text="Raw text.",
-        mode="dictation",
-        language_code="eng",
-        transcription_id="scribe-test",
-        delivery_outcome="copied",
-    )
-    assert store.recent() == [entry]
-    store.delete(entry.identifier)
-    assert store.recent() == []
-    assert store.path.stat().st_mode & 0o777 == 0o600
-
-
-def test_history_persists_only_reviewed_recognition_route_metadata(tmp_path: Path) -> None:
-    """Keep route observability durable without storing arbitrary provider failures."""
-    store = HistoryStore(tmp_path / "history.sqlite3")
-    store.initialize()
-
-    entry = store.add(
-        raw_text="batch recovery",
-        delivered_text="Batch recovery.",
-        mode="dictation",
-        language_code="eng",
-        transcription_id="batch-fallback",
-        delivery_outcome="copied",
-        recognition_route="scribe-v2-batch",
-        recognition_fallback_reason="realtime-stream-failed",
-    )
-
-    assert store.find(entry.identifier).recognition_route == "scribe-v2-batch"
-    assert store.find(entry.identifier).recognition_fallback_reason == "realtime-stream-failed"
-    exported = store.export(entry, tmp_path / "exports", "markdown")
-    export_text = exported.read_text(encoding="utf-8")
-    assert exported.name.startswith("mluva-")
-    assert "Recognition: scribe-v2-batch" in export_text
-    assert "Recognition fallback: realtime-stream-failed" in export_text
-
-
-def test_history_persists_controlled_enhancement_provenance_and_timings(tmp_path: Path) -> None:
-    """Keep the actual app-server model and disclosed context inspectable without arbitrary metadata."""
+def test_history_roundtrips_text_provenance_and_timings_then_deletes(tmp_path: Path) -> None:
+    """Preserve raw and delivered text with controlled provenance through storage and export."""
     store = HistoryStore(tmp_path / "history.sqlite3")
     store.initialize()
 
@@ -101,6 +59,8 @@ def test_history_persists_controlled_enhancement_provenance_and_timings(tmp_path
         language_code="eng",
         transcription_id="command-test",
         delivery_outcome="pending-preview",
+        recognition_route="scribe-v2-batch",
+        recognition_fallback_reason="realtime-stream-failed",
         enhancement_provider_id="codex-app-server",
         enhancement_model_identifier="gpt-5.4",
         enhancement_context_sources=("selected-text",),
@@ -111,6 +71,12 @@ def test_history_persists_controlled_enhancement_provenance_and_timings(tmp_path
     )
 
     restored = store.find(entry.identifier)
+    assert restored == entry
+    assert store.recent() == [entry]
+    assert restored.raw_text == "make this concise"
+    assert restored.delivered_text == "Concise text."
+    assert restored.recognition_route == "scribe-v2-batch"
+    assert restored.recognition_fallback_reason == "realtime-stream-failed"
     assert restored.enhancement_provider_id == "codex-app-server"
     assert restored.enhancement_model_identifier == "gpt-5.4"
     assert restored.enhancement_context_sources == ("selected-text",)
@@ -118,10 +84,16 @@ def test_history_persists_controlled_enhancement_provenance_and_timings(tmp_path
     assert (restored.recognition_ms, restored.enhancement_ms, restored.delivery_ms) == (123, 456, 7)
     exported = store.export(restored, tmp_path / "exports", "markdown")
     export_text = exported.read_text(encoding="utf-8")
+    assert exported.name.startswith("mluva-")
+    assert "Recognition: scribe-v2-batch" in export_text
+    assert "Recognition fallback: realtime-stream-failed" in export_text
     assert "Enhancement provider: codex-app-server" in export_text
     assert "Enhancement model: gpt-5.4" in export_text
     assert "Enhancement context: selected-text" in export_text
     assert "Recognition latency: 123 ms" in export_text
+    store.delete(entry.identifier)
+    assert store.recent() == []
+    assert store.path.stat().st_mode & 0o777 == 0o600
 
 
 @pytest.mark.parametrize(

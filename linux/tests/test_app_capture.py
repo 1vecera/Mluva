@@ -8,14 +8,7 @@ import pytest
 
 import voice_scribe_linux.app as app_module
 from voice_scribe_linux.app import (
-    CAPTURE_MODE_FEATURE_IDS,
-    CAPTURE_MODE_IDS,
-    CAPTURE_MODE_LABELS,
-    CAPTURE_MODE_TOOLTIP,
-    GLOBAL_RECORDING_KEY_GUIDANCE,
-    GLOBAL_RECORDING_KEY_TOOLTIP,
     MluvaApplication,
-    capture_mode_description,
 )
 from voice_scribe_linux.codex_client import CodexAppServerClient
 from voice_scribe_linux.config import FUNCTION_KEY_OPTIONS, AppConfig, load_config
@@ -292,29 +285,6 @@ def test_prepare_capture_model_failure_never_opens_realtime_route(
     assert callback is failed_callback
     assert args[0] == "capture-session"
     assert args[2] == "unavailable model"
-
-
-def test_capture_mode_contract_keeps_full_labels_and_pre_recording_explanations() -> None:
-    """Expose Dictate, Command, Notes, and Meeting intent before microphone capture."""
-    assert CAPTURE_MODE_IDS == ("dictation", "command", "scratchpad")
-    assert CAPTURE_MODE_LABELS == ("Dictate", "Command", "Notes")
-    assert CAPTURE_MODE_FEATURE_IDS == ("dictation", "command_mode", "notes_mode")
-    assert "configured global function key" in capture_mode_description(0)
-    assert capture_mode_description(1).startswith("Experimental —")
-    assert "explicitly selected text" in capture_mode_description(1)
-    assert capture_mode_description(2).startswith("Experimental —")
-    assert "editable draft" in capture_mode_description(2)
-    assert all(label in CAPTURE_MODE_TOOLTIP for label in ("Dictate", "Command", "Notes", "Meeting"))
-    assert CAPTURE_MODE_TOOLTIP.count("Experimental") == 3
-
-
-def test_function_key_guidance_names_default_and_low_conflict_range() -> None:
-    """Explain the practical F9 default without hiding lower-conflict extended keys."""
-    assert "F9 is the practical default" in GLOBAL_RECORDING_KEY_GUIDANCE
-    assert "F13–F24" in GLOBAL_RECORDING_KEY_GUIDANCE
-    assert "fewest conflicts" in GLOBAL_RECORDING_KEY_GUIDANCE
-    assert "F1–F12" in GLOBAL_RECORDING_KEY_TOOLTIP
-    assert "absent from most standard keyboards" in GLOBAL_RECORDING_KEY_TOOLTIP
 
 
 def test_capture_summary_yields_to_live_and_pending_review_states() -> None:

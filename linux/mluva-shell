@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
+export PYTHONPATH="${source_dir}"
+exec /usr/bin/python3 -m voice_scribe_linux.shell_bridge "$@"

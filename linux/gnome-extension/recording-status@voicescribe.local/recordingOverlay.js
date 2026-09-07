@@ -115,7 +115,7 @@ export class RecordingOverlay {
             style_class: 'mluva-preview',
             y_align: Clutter.ActorAlign.CENTER,
         });
-        this._previewLabel.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+        this._previewLabel.clutter_text.ellipsize = Pango.EllipsizeMode.START;
         this._previewLabel.clutter_text.single_line_mode = true;
         this._bar.add_child(this._previewLabel);
     }

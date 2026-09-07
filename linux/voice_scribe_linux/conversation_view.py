@@ -40,7 +40,10 @@ class ConversationWorkspace(Gtk.Box):
         self.busy = False
         self.private = False
         self.drafts: dict[str, str] = {}
-        self.result_widgets: list[Gtk.TextView] = []
+        self.result_widgets: list[Gtk.Label] = []
+        self.follow_latest = True
+        self.tail_scroll_pending = False
+        self.live_scroll_pending = False
         self.rows: dict[Gtk.ListBoxRow, str] = {}
         self.search_limit = 80
         self.split = Adw.OverlaySplitView(vexpand=True)
@@ -102,6 +105,9 @@ class ConversationWorkspace(Gtk.Box):
         reading_width = Adw.Clamp(maximum_size=780, tightening_threshold=580, child=self.messages)
         self.scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER, vexpand=True)
         self.scroll.set_child(reading_width)
+        adjustment = self.scroll.get_vadjustment()
+        adjustment.connect("changed", self._conversation_size_changed)
+        adjustment.connect("value-changed", self._conversation_scrolled)
         content.append(self.scroll)
 
         self.live_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2, vexpand=True)
@@ -113,6 +119,7 @@ class ConversationWorkspace(Gtk.Box):
         self.live_text = self._text_view("")
         self.live_scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER, vexpand=True)
         self.live_scroll.set_child(self.live_text)
+        self.live_scroll.get_vadjustment().connect("changed", self._live_size_changed)
         self.live_box.append(self.live_scroll)
         self.live_box.set_visible(False)
         content.append(self.live_box)
@@ -200,7 +207,11 @@ class ConversationWorkspace(Gtk.Box):
         copy.connect("clicked", lambda _button: self.copy_text(text))
         header.append(copy)
         message.append(header)
-        view = self._text_view(text)
+        # TextView owns a viewport even inside a box; its document can be clipped
+        # independently of the conversation's scrollbar. Labels measure the full text.
+        view = Gtk.Label(label=text, xalign=0, yalign=0, wrap=True, selectable=True)
+        view.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        view.add_css_class("ml-transcript")
         self.result_widgets.append(view)
         message.append(view)
         self.messages.append(message)
@@ -255,23 +266,30 @@ class ConversationWorkspace(Gtk.Box):
                 self.history_list.select_row(row)
         if self.split.get_collapsed():
             self.split.set_show_sidebar(False)
+        self.scroll_to_latest()
 
     def scroll_to_latest(self) -> None:
-        """Reveal a completed reply after GTK measures it without moving a newly selected conversation."""
-        if not self.result_widgets:
-            return
-        latest = self.result_widgets[-1]
+        """Follow the conversation's outer viewport through GTK's deferred text measurement."""
+        self.follow_latest = True
+        self._conversation_size_changed(self.scroll.get_vadjustment())
 
-        def reveal() -> bool:
-            """Follow only the reply that requested this deferred scroll."""
-            if self.result_widgets and self.result_widgets[-1] is latest:
-                buffer = latest.get_buffer()
-                mark = buffer.create_mark(None, buffer.get_end_iter(), False)
-                latest.scroll_mark_onscreen(mark)
-                buffer.delete_mark(mark)
-            return GLib.SOURCE_REMOVE
+    def _conversation_size_changed(self, adjustment: Gtk.Adjustment) -> None:
+        """Keep the latest words visible as wrapping changes the document height."""
+        if self.follow_latest and not self.tail_scroll_pending:
+            self.tail_scroll_pending = True
+            GLib.idle_add(self._reveal_conversation_tail)
 
-        GLib.timeout_add(50, reveal)
+    def _reveal_conversation_tail(self) -> bool:
+        """Scroll after the viewport finishes allocation, avoiding a stale child transform."""
+        adjustment = self.scroll.get_vadjustment()
+        adjustment.set_value(adjustment.get_upper() - adjustment.get_page_size())
+        self.tail_scroll_pending = False
+        return GLib.SOURCE_REMOVE
+
+    def _conversation_scrolled(self, adjustment: Gtk.Adjustment) -> None:
+        """Allow deliberate scrolling back through a completed conversation."""
+        if not self.tail_scroll_pending:
+            self.follow_latest = adjustment.get_value() + adjustment.get_page_size() >= adjustment.get_upper() - 24
 
     def refresh_history(self) -> None:
         """Search the whole archive while rendering only the requested page of results."""
@@ -318,6 +336,7 @@ class ConversationWorkspace(Gtk.Box):
         if text != original:
             self._message("Dictation", text)
         self.notice.set_label("This conversation is not saved.")
+        self.scroll_to_latest()
 
     def _open_row(self, _list: Gtk.ListBox, row: Gtk.ListBoxRow) -> None:
         """Navigate to the selected source instead of a generic archive screen."""
@@ -386,13 +405,22 @@ class ConversationWorkspace(Gtk.Box):
         self.composer.set_visible(False)
         self.live_title.set_label(phase)
         buffer = self.live_text.get_buffer()
-        adjustment = self.live_scroll.get_vadjustment()
-        following = adjustment.get_value() + adjustment.get_page_size() >= adjustment.get_upper() - 24
         buffer.set_text(text)
-        if following:
-            mark = buffer.create_mark(None, buffer.get_end_iter(), False)
-            self.live_text.scroll_mark_onscreen(mark)
-            buffer.delete_mark(mark)
+        self._live_size_changed(self.live_scroll.get_vadjustment())
+
+    def _live_size_changed(self, _adjustment: Gtk.Adjustment) -> None:
+        """Follow growing recognition text after GTK finishes measuring the live viewport."""
+        if not self.live_scroll_pending:
+            self.live_scroll_pending = True
+            GLib.idle_add(self._reveal_live_tail)
+
+    def _reveal_live_tail(self) -> bool:
+        """Keep the newest dictated line visible without leaving a queued mark behind."""
+        self.live_scroll_pending = False
+        if self.live_box.get_visible():
+            adjustment = self.live_scroll.get_vadjustment()
+            adjustment.set_value(adjustment.get_upper() - adjustment.get_page_size())
+        return GLib.SOURCE_REMOVE
 
     def finish_live(self) -> None:
         """Erase volatile text when finalization completes or capture is cancelled."""

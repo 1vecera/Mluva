@@ -1,6 +1,7 @@
 """GTK 4 desktop application for Mluva on Linux."""
 
 import os
+import sys
 import threading
 import time
 import uuid
@@ -306,6 +307,7 @@ class MluvaApplication(Adw.Application):
         for name, callback in (
             ("latest", self._open_latest_conversation),
             ("record", self._shell_record),
+            ("cancel", self._shortcut_cancelled),
             ("status", self._replay_overlay_status),
             ("history", self._open_history),
             ("settings", lambda: self._show_settings(self.settings_button)),
@@ -3957,7 +3959,7 @@ class MluvaApplication(Adw.Application):
 def main() -> int:
     """Run the GTK application under the distro Python selected by the launcher."""
     application = MluvaApplication()
-    return application.run(None)
+    return application.run(sys.argv)
 
 
 if __name__ == "__main__":

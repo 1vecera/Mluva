@@ -2,6 +2,8 @@
 
 Mluva's primary Linux workflow is dictation, rewriting and history. F9 starts and stops recording without opening the main window. Completed dictation copies automatically for manual paste. The conversation shows the complete original transcript and every completed rewrite; no rewriting action silently replaces the clipboard.
 
+Live dictation follows the newest line. Completed notes and rewrites open at their end, with the rewrite controls available after recording finishes. The full text remains selectable and reachable by scrolling up; shortened shell previews keep the newest words.
+
 Shift+F9 requests the latest conversation through the desktop's Global Shortcuts portal. The desktop approves and may reassign shortcuts. The main window offers Quick Polish, Structured Note, saved prompts, and a multiline prompt for custom rewrites and follow-ups. Pasting text into a new conversation starts the same editing workflow without recording or copying it again.
 
 Quick Polish removes filler words, false starts and accidental repetitions, fixes grammar, and lightly improves phrasing while preserving language, voice and facts. Structured Note leads with a concise summary and organizes the remaining details into bullets. Custom instructions and follow-ups operate on the latest completed version with the original and earlier turns available as context. AI rewrites require review; the app preserves the source and provides an explicit Copy action for every version.
@@ -15,6 +17,8 @@ Deleting or pruning a source also deletes its replies. A completed background re
 Follow-ups replay local context through an isolated Codex app-server transformation instead of relying on a remote durable thread. Each request uses a concrete model resolved from the local app-server, read-only sandboxing, disabled approvals, and instructions prohibiting tools. Rewrites accept up to 120,000 characters of serialized conversation context and 40,000 output characters; exceeding a bound produces an explicit error rather than silently shortening text. The display does not truncate source text. Automatic capture cleanup retains its existing smaller output bound.
 
 ## Shell integration
+
+Omarchy has an optional [Quickshell plugin](omarchy-integration.md) with explicit recording controls and a display-only floating preview. It uses the same application-owned state and dismissal lifecycle described below. This integration remains Experimental pending live Hyprland acceptance.
 
 The bundled GNOME Shell extension adds a top-panel Mluva menu with recording, latest conversation, history, settings, open and quit actions. Actions delegate to the application's existing GApplication action group. The bottom bar remains noninteractive and does not change keyboard focus. It shows preparing, recording, processing, copied and error states. Copied feedback remains for five seconds and errors for ten seconds; a new recording cancels the older dismissal timer. The bar clears when the app's bus owner disappears.
 

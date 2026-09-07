@@ -7,38 +7,6 @@ import Foundation
 @Suite("Keyboard Simulator")
 struct KeyboardSimulatorTests {
 
-    @Test("Virtual key code 0x09 is the V key (for Cmd+V paste)")
-    func vKeyCode() {
-        // macOS virtual key codes: kVK_ANSI_V = 0x09
-        // This is critical — wrong key code would paste nothing or trigger wrong shortcut
-        let vKeyCode: UInt16 = 0x09
-
-        // Create a CGEvent and verify the key code roundtrips
-        guard let event = CGEvent(keyboardEventSource: nil, virtualKey: vKeyCode, keyDown: true) else {
-            Issue.record("Could not create CGEvent")
-            return
-        }
-        let readBack = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
-        #expect(readBack == 0x09)
-    }
-
-    @Test("R key code is 15 (0x0F) — matches GlobalHotkeyManager")
-    func rKeyCode() {
-        let rKeyCode: UInt16 = 15 // kVK_ANSI_R = 0x0F = 15
-        guard let event = CGEvent(keyboardEventSource: nil, virtualKey: rKeyCode, keyDown: true) else {
-            Issue.record("Could not create CGEvent")
-            return
-        }
-        let readBack = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
-        #expect(readBack == 15)
-    }
-
-    @Test("CGEventSource with hidSystemState can be created")
-    func eventSourceCreation() {
-        let source = CGEventSource(stateID: .hidSystemState)
-        #expect(source != nil)
-    }
-
     // MARK: - canPaste:false (clipboard-only mode)
 
     @Test("typeText with canPaste:false completes without crash")

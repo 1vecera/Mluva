@@ -334,7 +334,7 @@ class RecordingStatusBar(Gtk.Box):
         self.phase_label.set_max_width_chars(64)
         self.append(self.phase_label)
 
-        self.preview_label = Gtk.Label(xalign=0.5, wrap=False, ellipsize=Pango.EllipsizeMode.END)
+        self.preview_label = Gtk.Label(xalign=0.5, wrap=False, ellipsize=Pango.EllipsizeMode.START)
         self.preview_label.add_css_class("vs-recording-preview")
         self.preview_label.set_max_width_chars(48)
         self.append(self.preview_label)
