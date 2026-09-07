@@ -46,11 +46,14 @@ def main() -> int:
         "Quick Polish should keep my voice and remove the filler words. Structured Note should put the main point "
         "first, then organize the details into bullets. The original needs to stay here so I can always go back."
     )
+    if scenario in {"long-note", "long-live"}:
+        source = (source + "\n\n") * 40 + "LATEST WORDS: Žluťoučký kůň — this ending must be visible."
 
     def prepare() -> bool:
         """Seed synthetic content through the production stores and select the requested state."""
         try:
             application.window.set_default_size(width, height)
+            application.window.set_size_request(width, height)
             workspace = application.conversation_workspace
             assert workspace is not None
             if scenario == "lifecycle":
@@ -77,10 +80,14 @@ def main() -> int:
             )
             workspace.refresh_history()
             workspace.show_conversation(entry, application.conversation_store.replies(entry.identifier))
+            if scenario == "long-note":
+                workspace.set_live("Recording", source)
+                workspace.finish_live()
+                workspace.show_conversation(entry, [])
             if scenario == "empty":
                 workspace.show_conversation(None, [])
-            elif scenario == "recording":
-                workspace.set_live("Recording  01:13", source * 3)
+            elif scenario in {"recording", "long-live"}:
+                workspace.set_live("Recording  01:13", source if scenario == "long-live" else source * 3)
                 application.capture_status_title.set_label("Recording")
                 application.status_label.set_label("Listening. Press F9 when you're done.")
                 set_button_content(application.record_button, "media-playback-stop-symbolic", "Stop")
@@ -99,8 +106,7 @@ def main() -> int:
             elif scenario == "dark":
                 Adw.StyleManager.get_default().set_color_scheme(Adw.ColorScheme.FORCE_DARK)
             if scenario not in {"empty", "incognito"}:
-                buffer = workspace.result_widgets[0].get_buffer()
-                assert buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False) == source
+                assert workspace.result_widgets[0].get_text() == source
             GLib.timeout_add(900, capture)
         except Exception:
             errors.append(traceback.format_exc())
@@ -120,6 +126,35 @@ def main() -> int:
                 ["import", "-window", str(window.get_surface().get_xid()), str(output / "workspace.png")], check=True
             )
             workspace = application.conversation_workspace
+            if scenario in {"long-note", "long-live"}:
+                scroll = workspace.live_scroll if scenario == "long-live" else workspace.scroll
+                adjustment = scroll.get_vadjustment()
+                assert adjustment.get_upper() > adjustment.get_page_size()
+                assert abs(adjustment.get_value() + adjustment.get_page_size() - adjustment.get_upper()) <= 1, (
+                    adjustment.get_value(),
+                    adjustment.get_page_size(),
+                    adjustment.get_upper(),
+                )
+                assert workspace.composer.get_visible() == (scenario == "long-note")
+                assert workspace.quick_polish.is_sensitive()
+                if scenario == "long-note":
+                    label = workspace.result_widgets[-1]
+                    success, bounds = label.compute_bounds(scroll)
+                    assert success and bounds.get_y() < 0, (
+                        success,
+                        bounds.get_y(),
+                        bounds.get_height(),
+                        scroll.get_height(),
+                        adjustment.get_value(),
+                        adjustment.get_upper(),
+                        label.get_text()[-70:],
+                    )
+                    assert bounds.get_y() + bounds.get_height() <= scroll.get_height()
+                else:
+                    view = workspace.live_text
+                    ending = view.get_iter_location(view.get_buffer().get_end_iter())
+                    visible = view.get_visible_rect()
+                    assert visible.y <= ending.y < visible.y + visible.height
             assert workspace.quick_polish.get_label() == "Quick Polish"
             assert workspace.structured_note.get_label() == "Structured Note"
             application._hide_window(window)

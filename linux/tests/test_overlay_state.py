@@ -74,6 +74,13 @@ def test_hidden_state_erases_every_display_field() -> None:
     ).as_signal_values() == (False, "hidden", "", 0, "", "", 0.0, "", "")
 
 
+def test_long_preview_keeps_the_newest_words() -> None:
+    """Show current speech after a long dictation while preserving the public size bound."""
+    text = "Earlier words " * 100 + "\nNewest words: Žluťoučký kůň"
+    preview = RecordingOverlayState(phase="recording", preview=text).as_signal_values()[7]
+    assert preview == " ".join(text.split())[-180:]
+
+
 def test_attaching_shell_receives_current_bounded_state_and_cannot_replay_cleared_text() -> None:
     """Replay processing to late listeners while clearing all cached content at dismissal."""
     connection = FakeConnection()

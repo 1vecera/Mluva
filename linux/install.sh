@@ -87,6 +87,7 @@ require_managed_link \
     "${application_dir}/configure-recording-overlay.sh" \
     "mluva-overlay"
 require_managed_link "${bin_dir}/mluva-uninstall" "${application_dir}/uninstall.sh"
+require_managed_link "${bin_dir}/mluva-shell" "${application_dir}/mluva-shell"
 
 if [[ -L "${application_dir}" || ( -e "${application_dir}" && ! -d "${application_dir}" ) ]]; then
     echo "Refusing to replace an unexpected application path: ${application_dir}" >&2
@@ -203,6 +204,9 @@ install -m 0644 \
 install -m 0755 "${source_dir}/configure-input-helper.sh" "${application_dir}/configure-input-helper.sh"
 install -m 0755 "${source_dir}/configure-recording-overlay.sh" "${application_dir}/configure-recording-overlay.sh"
 install -m 0755 "${source_dir}/uninstall.sh" "${application_dir}/uninstall.sh"
+install -m 0755 "${source_dir}/mluva-shell" "${application_dir}/mluva-shell"
+install -d -m 0755 "${application_dir}/quickshell/mluva.dictation"
+install -m 0644 "${source_dir}/quickshell/mluva.dictation/"* "${application_dir}/quickshell/mluva.dictation/"
 uv venv --clear --system-site-packages --python /usr/bin/python3 "${application_dir}/.venv"
 uv sync --project "${application_dir}" --no-dev --frozen
 "${application_dir}/.venv/bin/python" -c 'import gi; gi.require_version("Gtk", "4.0"); gi.require_version("Adw", "1"); gi.require_version("Atspi", "2.0"); gi.require_version("DBus", "1.0"); gi.require_version("cairo", "1.0"); from gi.repository import Adw, Atspi, DBus, Gtk, cairo'
@@ -216,6 +220,7 @@ ln -sfn "mluva-input-helper" "${bin_dir}/voice-scribe-input-helper"
 ln -sfn "${application_dir}/configure-recording-overlay.sh" "${bin_dir}/mluva-overlay"
 ln -sfn "mluva-overlay" "${bin_dir}/voice-scribe-overlay"
 ln -sfn "${application_dir}/uninstall.sh" "${bin_dir}/mluva-uninstall"
+ln -sfn "${application_dir}/mluva-shell" "${bin_dir}/mluva-shell"
 sed "s|@EXECUTABLE@|${bin_dir}/mluva|g" "${source_dir}/resources/com.voicescribe.Linux.desktop.in" \
     > "${applications_dir}/com.voicescribe.Linux.desktop"
 chmod 0644 "${applications_dir}/com.voicescribe.Linux.desktop"
@@ -253,6 +258,8 @@ else
     fi
     if test -x "${secret_config_dir}/bin/das-mcp-launch" && test -s "${secret_config_dir}/env/voice-scribe.env"; then
         echo "The launcher will resolve only the reviewed ElevenLabs credential reference at runtime."
+    elif test -x "${secret_config_dir}/bin/das-agent-launch" && test -s "${secret_config_dir}/env/agent.env"; then
+        echo "The launcher will use das-agent-launch --only for the selected ElevenLabs credential at runtime."
     else
         echo "No managed secret launcher was found; set ELEVENLABS_API_KEY in the application process environment."
     fi

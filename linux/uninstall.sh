@@ -88,6 +88,7 @@ remove_exact_symlink "${bin_dir}/voice-scribe-input-helper" "mluva-input-helper"
 remove_exact_symlink "${bin_dir}/mluva-overlay" "${application_dir}/configure-recording-overlay.sh"
 remove_exact_symlink "${bin_dir}/voice-scribe-overlay" "mluva-overlay"
 remove_exact_symlink "${bin_dir}/mluva-uninstall" "${application_dir}/uninstall.sh"
+remove_exact_symlink "${bin_dir}/mluva-shell" "${application_dir}/mluva-shell"
 
 if [[ -f "${desktop_entry}" ]] \
     && grep -Fxq "Name=Mluva" "${desktop_entry}" \

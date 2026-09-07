@@ -174,6 +174,7 @@ def test_uninstaller_removes_only_staged_application_files(tmp_path: Path) -> No
     (bin_dir / "mluva-overlay").symlink_to(application_dir / "configure-recording-overlay.sh")
     (bin_dir / "voice-scribe-overlay").symlink_to("mluva-overlay")
     (bin_dir / "mluva-uninstall").symlink_to(application_dir / "uninstall.sh")
+    (bin_dir / "mluva-shell").symlink_to(application_dir / "mluva-shell")
     desktop_entry.write_text(f"[Desktop Entry]\nName=Mluva\nExec={bin_dir}/mluva\n", encoding="utf-8")
     icon_path.write_text('<svg><title id="title">Mluva</title></svg>\n', encoding="utf-8")
     config_marker.write_text("preserve\n", encoding="utf-8")
@@ -204,6 +205,7 @@ def test_uninstaller_removes_only_staged_application_files(tmp_path: Path) -> No
     assert not (bin_dir / "mluva-overlay").exists()
     assert not (bin_dir / "voice-scribe-overlay").exists()
     assert not (bin_dir / "mluva-uninstall").exists()
+    assert not (bin_dir / "mluva-shell").is_symlink()
     assert (bin_dir / "unrelated-command").read_text(encoding="utf-8") == "preserve\n"
     assert config_marker.read_text(encoding="utf-8") == "preserve\n"
     assert history_marker.read_text(encoding="utf-8") == "preserve\n"
@@ -414,6 +416,12 @@ def test_installer_commits_a_complete_legacy_upgrade(tmp_path: Path) -> None:
     assert (install_home / ".local" / "bin" / "mluva").is_file()
     assert legacy_launcher.is_symlink()
     assert os.readlink(legacy_launcher) == "mluva"
+    shell_launcher = install_home / ".local" / "bin" / "mluva-shell"
+    assert shell_launcher.resolve() == application_dir / "mluva-shell"
+    for filename in ("Widget.qml", "RecordingOverlay.qml", "manifest.json"):
+        assert (application_dir / "quickshell/mluva.dictation" / filename).read_bytes() == (
+            script.parent / "quickshell/mluva.dictation" / filename
+        ).read_bytes()
     extension = application_dir / "gnome-extension" / "recording-status@voicescribe.local"
     for filename in ("extension.js", "recordingOverlay.js", "metadata.json", "stylesheet.css", "mluva-symbolic.svg"):
         assert (extension / filename).read_bytes() == (

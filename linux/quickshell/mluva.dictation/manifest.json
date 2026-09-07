@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "mluva.dictation",
+  "name": "Mluva dictation",
+  "version": "0.1.0",
+  "author": "Mluva contributors",
+  "description": "Dictation controls and a floating recording preview",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Widget.qml" },
+  "barWidget": {
+    "displayName": "Mluva",
+    "category": "Audio",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": { "command": "mluva-shell" },
+    "schema": [{ "key": "command", "type": "string", "label": "Mluva shell executable" }]
+  }
+}
