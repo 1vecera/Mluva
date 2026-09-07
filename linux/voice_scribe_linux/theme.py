@@ -15,27 +15,27 @@ from typing import Final
 
 import gi
 
-from voice_scribe_linux.brand import BRAND_ACTION, BRAND_INK, BRAND_SURFACE
+from voice_scribe_linux.brand import BRAND_ACTION, BRAND_INK, BRAND_SIGNAL, BRAND_SURFACE
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, GLib, Gtk  # noqa: E402
 
 LightTokens: Final[dict[str, str]] = {
-    "canvas": "#FAFAFC",
+    "canvas": "#F7FAF8",
     "surface": "#FFFFFF",
     "surface_subtle": BRAND_SURFACE,
     "ink": BRAND_INK,
-    "ink_secondary": "#666474",
-    "ink_muted": "#737180",
-    "outline": "#E3E2E9",
-    "outline_subtle": "#E3E2E9",
+    "ink_secondary": "#536B62",
+    "ink_muted": "#62786F",
+    "outline": "#DFE8E2",
+    "outline_subtle": "#DFE8E2",
     "shadow": BRAND_INK,
     "action": BRAND_ACTION,
-    "action_hover": "#5946C4",
+    "action_hover": "#206755",
     "on_action": "#FFFFFF",
-    "accent_strong": "#5B49BE",
-    "accent_soft": "#EEEBFA",
+    "accent_strong": BRAND_ACTION,
+    "accent_soft": "#DCEFE6",
     "danger": "#E2483F",
     "on_danger": "#FFFFFF",
     "danger_soft": "#FBDBD7",
@@ -43,24 +43,24 @@ LightTokens: Final[dict[str, str]] = {
     "success_soft": "#D7F1E5",
     "warning": "#8A5F10",
     "warning_soft": "#F8EAC8",
-    "focus": "#5B49BE",
+    "focus": BRAND_ACTION,
 }
 
 DarkTokens: Final[dict[str, str]] = {
-    "canvas": "#202027",
-    "surface": "#27272F",
-    "surface_subtle": "#303039",
-    "ink": "#F2EFFA",
-    "ink_secondary": "#B9B2D4",
-    "ink_muted": "#8E86AC",
-    "outline": "#0D0B15",
-    "outline_subtle": "#3E3855",
-    "shadow": "#07060D",
-    "action": "#A998EF",
-    "action_hover": "#BCADF4",
-    "on_action": "#15121F",
-    "accent_strong": "#C3B5F5",
-    "accent_soft": "#443C66",
+    "canvas": "#151C1A",
+    "surface": "#1B2420",
+    "surface_subtle": "#232F29",
+    "ink": "#EDF5EF",
+    "ink_secondary": "#B8CDC0",
+    "ink_muted": "#8EA899",
+    "outline": "#0C1510",
+    "outline_subtle": "#354B3E",
+    "shadow": "#070D09",
+    "action": BRAND_SIGNAL,
+    "action_hover": "#ABEDD7",
+    "on_action": "#15382C",
+    "accent_strong": BRAND_SIGNAL,
+    "accent_soft": "#294C3C",
     "danger": "#E2554E",
     "on_danger": "#FFFFFF",
     "danger_soft": "#4A2E2B",
@@ -68,7 +68,7 @@ DarkTokens: Final[dict[str, str]] = {
     "success_soft": "#2E4439",
     "warning": "#D8A03E",
     "warning_soft": "#48402B",
-    "focus": "#C3B5F5",
+    "focus": BRAND_SIGNAL,
 }
 
 BORDER_WIDTH: Final = 1
@@ -162,45 +162,54 @@ def build_stylesheet(tokens: dict[str, str]) -> str:
     return (
         _named_colors(tokens)
         + """
-window.background { background: @vs_canvas; color: @vs_ink; font-family: "Inter", sans-serif; }
-headerbar { background: @vs_surface; color: @vs_ink; border-bottom: 1px solid @vs_outline_subtle; box-shadow: none; }
-.vs-page-title { font-size: 14px; font-weight: 600; color: @vs_ink_secondary; }
-.caption { font-size: 12px; color: @vs_ink_secondary; }
+window.background { background: alpha(@vs_canvas, 0.90); color: @vs_ink;
+  font-family: "Inter", "Adwaita Sans", "Noto Sans", sans-serif; font-size: 0.92em; }
+headerbar { min-height: 38px; padding: 0 8px; background: transparent; color: @vs_ink; border: none; box-shadow: none; }
+headerbar button { min-height: 24px; min-width: 24px; padding: 2px 4px; }
+.vs-page-title { font-size: 1em; font-weight: 600; color: @vs_ink_secondary; }
+.caption { font-size: 0.9em; color: @vs_ink_secondary; }
 .dim-label { color: @vs_ink_secondary; opacity: 1; }
 .heading, .title-1, .title-2, .title-3, .title-4 { font-weight: 600; }
-button { min-height: 32px; border-radius: 9px; font-weight: 500; }
+button { min-height: 28px; border-radius: 7px; font-weight: 500; padding: 3px 10px; }
 button:focus-visible, textview:focus-visible, entry:focus-visible { outline: 2px solid @vs_focus; outline-offset: 2px; }
 button.suggested-action { background: @vs_action; color: @vs_on_action; }
 button.suggested-action:hover { background: @vs_action_hover; }
 button.destructive-action { background: @vs_danger; color: @vs_on_danger; }
 button:disabled { opacity: 0.48; }
 button.flat { box-shadow: none; }
-.card, .boxed-list { background: @vs_surface; border: 1px solid @vs_outline_subtle; border-radius: 12px;
+.card, .boxed-list { background: @vs_surface; border: 1px solid alpha(@vs_outline_subtle, 0.45); border-radius: 10px;
   box-shadow: none; }
 .boxed-list > row { border-bottom: 1px solid @vs_divider; }
 .boxed-list > row:last-child { border-bottom: none; }
 separator { background: @vs_outline_subtle; }
-.ml-history-pane, .ml-history-sidebar { background: @vs_surface_subtle; }
+.ml-history-pane { background: alpha(@vs_surface_subtle, 0.45); }
+.ml-history-sidebar { background: transparent; }
+.ml-history-sidebar searchentry { min-height: 28px; padding: 2px 8px; background: alpha(@vs_ink, 0.045);
+  border: none; box-shadow: none; border-radius: 7px; }
 .ml-history-sidebar list { background: transparent; }
 .ml-history-sidebar row { border-radius: 9px; margin: 2px 0; }
 .ml-history-sidebar row:selected { background: @vs_accent_soft; color: @vs_ink; }
 .ml-history-sidebar row:hover { background: alpha(@vs_accent_soft, 0.65); }
-.ml-history-sidebar button { min-height: 34px; }
-.ml-wordmark { font-size: 21px; font-weight: 650; letter-spacing: -0.5px; }
-.ml-conversation { background: @vs_surface; }
-.ml-conversation-title { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 8px; }
-.ml-transcript, .ml-transcript text { background: transparent; color: @vs_ink; font-size: 16px; }
+.ml-history-sidebar button { min-height: 28px; }
+.ml-wordmark { font-size: 1.4em; font-weight: 650; letter-spacing: -0.5px; }
+.ml-conversation { background: alpha(@vs_surface, 0.70); }
+.ml-conversation-title { font-size: 1.45em; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 2px; }
+.ml-transcript, .ml-transcript text { background: transparent; color: @vs_ink; font-size: 1.04em; }
 .ml-transcript { line-height: 1.3; }
-.ml-source { padding: 0 0 20px; border-bottom: 1px solid @vs_outline_subtle; }
-.ml-reply { padding: 0 0 12px; }
-.ml-instruction { background: @vs_surface_subtle; border-radius: 12px; padding: 12px 16px; color: @vs_ink_secondary; }
-.ml-composer { background: @vs_surface; border-top: 1px solid @vs_outline_subtle; padding-top: 12px; }
+.ml-source { padding: 0 0 8px; }
+.ml-source .heading, .ml-reply .heading { font-size: 0.9em; font-weight: 500; color: @vs_ink_secondary; }
+.ml-reply { padding: 0 0 4px; }
+.ml-instruction { background: alpha(@vs_ink, 0.045); border-radius: 8px; padding: 8px 12px; color: @vs_ink_secondary; }
+.ml-composer { background: transparent; border: none; padding-top: 0; }
+.ml-composer flowbox button { background: alpha(@vs_ink, 0.045); box-shadow: none; }
+.ml-composer flowbox button:hover { background: alpha(@vs_action, 0.12); }
 .ml-composer flowboxchild { padding: 0; }
 .ml-composer flowbox { padding: 0; }
-.ml-prompt, .ml-prompt text { background: @vs_surface_subtle; color: @vs_ink; font-size: 14px; }
-.ml-prompt { padding: 10px 12px; border-radius: 12px; }
-.ml-recording-dock { background: @vs_canvas; }
-.ml-recording-dock button, button.ml-primary { min-height: 36px; padding: 4px 16px; }
+.ml-prompt, .ml-prompt text { background: alpha(@vs_ink, 0.035); color: @vs_ink; font-size: 1em; }
+.ml-prompt text { background: transparent; }
+.ml-prompt { padding: 8px 10px; border-radius: 8px; }
+.ml-recording-dock { background: transparent; }
+.ml-recording-dock button, button.ml-primary { min-height: 30px; padding: 3px 12px; }
 .ml-live { background: @vs_surface_subtle; border-radius: 12px; padding: 12px; }
 .ml-live .heading { color: @vs_accent_strong; }
 .ml-empty { margin-top: 12px; }
@@ -212,7 +221,7 @@ separator { background: @vs_outline_subtle; }
 .vs-maturity-badge { border-radius: 6px; padding: 3px 7px; font-size: 11px; }
 .vs-maturity-badge.vs-verified { background: @vs_success_soft; color: @vs_success; }
 .vs-maturity-badge.vs-experimental { background: @vs_surface_subtle; color: @vs_ink_secondary; }
-.vs-maturity-detail { font-size: 12px; color: @vs_ink_secondary; }
+.vs-maturity-detail { font-size: 0.9em; color: @vs_ink_secondary; }
 .vs-segment button:checked { background: @vs_accent_soft; }
 .vs-key-cap { background: @vs_surface_subtle; border-radius: 5px; padding: 3px 6px; }
 .vs-recording-bar { background: @vs_surface; border-radius: 14px; padding: 12px 16px;
@@ -220,8 +229,8 @@ separator { background: @vs_outline_subtle; }
 .vs-recording-time { font-feature-settings: "tnum"; font-weight: 600; }
 .vs-live-chip { background: @vs_danger_soft; color: @vs_danger; padding: 3px 8px; border-radius: 6px; }
 .vs-live-chip.vs-preparing { color: @vs_accent_strong; background: @vs_accent_soft; }
-.vs-mode-chip, .vs-delivery-chip { font-size: 12px; color: @vs_ink_secondary; }
-.vs-recording-phase, .vs-recording-preview.vs-quiet { font-size: 12px; color: @vs_ink_secondary; }
+.vs-mode-chip, .vs-delivery-chip { font-size: 0.9em; color: @vs_ink_secondary; }
+.vs-recording-phase, .vs-recording-preview.vs-quiet { font-size: 0.9em; color: @vs_ink_secondary; }
 levelbar trough { background: @vs_surface_subtle; border-radius: 4px; }
 levelbar block.filled { background: @vs_action; border-radius: 3px; }
 label.warning { color: @vs_warning; }
@@ -312,18 +321,7 @@ class ThemeController:
                 if self._previous_scheme is None:
                     self._previous_scheme = manager.get_color_scheme()
                 manager.set_color_scheme(Adw.ColorScheme.FORCE_DARK if dark else Adw.ColorScheme.FORCE_LIGHT)
-                css = (
-                    build_stylesheet(colors)
-                    + """
-window.background { font-family: monospace; }
-button, entry, searchentry, .card, .boxed-list, .ml-history-sidebar row,
-.ml-instruction, .ml-prompt, .ml-live, .vs-callout, .vs-recording-bar { border-radius: 0; }
-.ml-wordmark { font-size: 18px; letter-spacing: 0; }
-.ml-conversation-title { font-size: 20px; letter-spacing: 0; }
-.ml-live { background: transparent; padding: 0; }
-.ml-live .heading { color: @vs_ink_secondary; font-weight: 400; }
-"""
-                )
+                css = build_stylesheet(colors)
             self._provider.load_from_data(css.encode("utf-8"))
         finally:
             self._loading = False

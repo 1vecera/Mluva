@@ -107,6 +107,10 @@ class HistoryStore:
             columns = {row[1] for row in connection.execute("PRAGMA table_info(transcription_history)")}
             if "title" not in columns:
                 connection.execute("ALTER TABLE transcription_history ADD COLUMN title TEXT")
+            if "title_revision" not in columns:
+                connection.execute(
+                    "ALTER TABLE transcription_history ADD COLUMN title_revision INTEGER NOT NULL DEFAULT 0"
+                )
             if "retained_audio_path" not in columns:
                 connection.execute("ALTER TABLE transcription_history ADD COLUMN retained_audio_path TEXT")
             if "audio_retention_policy" not in columns:
@@ -279,7 +283,7 @@ class HistoryStore:
         """Persist an optional human label without rewriting transcript content."""
         with closing(sqlite3.connect(self.path)) as connection, connection:
             connection.execute(
-                "UPDATE transcription_history SET title = ? WHERE identifier = ?",
+                "UPDATE transcription_history SET title = ?, title_revision = title_revision + 1 WHERE identifier = ?",
                 (title, identifier),
             )
         return self.find(identifier)

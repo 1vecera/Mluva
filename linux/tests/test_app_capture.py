@@ -408,6 +408,8 @@ def test_incognito_temporarily_suspends_and_then_restores_cleanup() -> None:
     output_style = ToggleSpy(active=False)
     application = SimpleNamespace(
         incognito_switch=incognito,
+        automatic_titles_switch=None,
+        _cancel_titles=lambda: None,
         cleanup_switch=cleanup,
         cleanup_before_incognito=None,
         recorder=None,

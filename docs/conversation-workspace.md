@@ -18,9 +18,17 @@ Deleting or pruning a source also deletes its replies. A completed background re
 
 Follow-ups replay local context through an isolated Codex app-server transformation instead of relying on a remote durable thread. Each request uses a concrete model resolved from the local app-server, read-only sandboxing, disabled approvals, and instructions prohibiting tools. Rewrites accept up to 120,000 characters of serialized conversation context and 40,000 output characters; exceeding a bound produces an explicit error rather than silently shortening text. The display does not truncate source text. Automatic capture cleanup retains its existing smaller output bound.
 
+## Automatic conversation titles
+
+Each newly completed dictation or pasted conversation receives a short local label immediately. When automatic titles are enabled (the default), one background Codex request at a time generates a title in the source language from up to 6,000 characters of the original. The title is limited to 64 characters. Existing history is not sent to the model on startup; untitled older conversations display a local text label.
+
+Capture and copying never wait for a title. A missing, slow or invalid provider leaves the local label in place; there is no automatic retry. At most twenty titles wait behind the active request; excess completions retain their local labels. Manual renames, including clearing a title or saving the same text, increment a revision that prevents a late automatic title from replacing them. Deletion cannot be undone by a title response. Labels update without moving the selected note, scrolling the conversation, clearing a prompt draft or rebuilding a rename editor.
+
+Settings → Capture → Behavior can disable model-generated titles. Incognito cancels pending requests, clears the queue and discards late results. Turning it off does not replay missed conversations. Retention and deletion apply to titles with their source records.
+
 ## Shell integration
 
-Omarchy has an optional [Quickshell plugin](omarchy-integration.md) with explicit recording controls, a three-line floating preview, and direct rewrite actions after dictation. Its completed-note controls remain available until dismissal or a new recording; recording itself stays noninteractive. This integration remains Experimental pending live Hyprland acceptance.
+Omarchy has an optional [Quickshell plugin](omarchy-integration.md) with explicit recording controls, a three-line floating preview, and direct rewrite actions after dictation. Its completed-note controls dismiss after eight idle seconds, with an animated ring and pauses for hover, keyboard focus, menus and rewriting; recording itself stays noninteractive. This integration remains Experimental pending live Hyprland acceptance.
 
 The bundled GNOME Shell extension adds a top-panel Mluva menu with recording, latest conversation, history, settings, open and quit actions. Actions delegate to the application's existing GApplication action group. Its bottom bar remains noninteractive and does not change keyboard focus. It shows preparing, recording, processing and errors; a completed saved dictation hides that bar while Omarchy offers conversation controls. Other capture modes retain five-second copied feedback, and errors remain for ten seconds. A new recording cancels the older dismissal timer. The bar clears when the app's bus owner disappears.
 
@@ -32,9 +40,7 @@ Install the shell integration with `make linux-recording-overlay-install`, or `m
 
 ## Visual direction
 
-On Omarchy, the interface follows the active light/dark palette with monospace text, compact headings and flat controls; the widget uses native Omarchy controls and style tokens. Elsewhere the GTK interface retains its neutral reading surfaces, quiet sidebar, violet actions, sans-serif type scale and visible keyboard focus. The rounded lowercase m has two open arches and a trailing speech stroke. Its colored app tile and monochrome panel mark share one path, with no font or image dependencies. Keep at least one stroke width of clear space around the mark and use the monochrome variant on the panel. The symbol is intended to remain readable at 16 pixels; the app tile is used from 24 pixels upward.
-
-Visual guidance was fetched from the [logo-design skill](https://github.com/atypica-ai/marketing-skills/blob/main/skills/logo-design/SKILL.md) and [Anthropic frontend-design skill](https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md), together with [Apple's app-icon guidance](https://developer.apple.com/design/human-interface-guidelines/app-icons) and [sidebar guidance](https://developer.apple.com/design/human-interface-guidelines/sidebars). These inform visual craft; GNOME remains the runtime. Codex transport follows the [official app-server documentation](https://learn.chatgpt.com/docs/app-server) and is tested against an independent synthetic server process.
+The workspace uses smaller proportional type, compact action chips, a wider reading area and lightly translucent surfaces. Omarchy supplies the active light/dark palette; other desktops use a neutral green palette. The voice-signal mark, app tile and repository banner share token-generated SVG geometry. The symbolic variant is used on the panel; the app tile starts at 24 pixels. See the [UI design notes](ui-design.md) for research, typography, spacing and transparency choices.
 
 ## Verification
 

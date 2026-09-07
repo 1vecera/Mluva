@@ -2,13 +2,19 @@
 
 import json
 import os
+import sqlite3
+import struct
 import subprocess
+import time
 import traceback
+from dataclasses import replace
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 
 import gi
 from conversation_lifecycle import exercise, exercise_widget_review
+from title_lifecycle import exercise_titles
 
 from voice_scribe_linux.app import MluvaApplication
 from voice_scribe_linux.conversation import STRUCTURED_NOTE
@@ -24,6 +30,11 @@ from gi.repository import Adw, GLib, Gtk  # noqa: E402
 class IsolatedApplication(MluvaApplication):
     """Replace device, provider and desktop-target boundaries while retaining production UI construction."""
 
+    def _initialize_local_services(self) -> None:
+        """Keep optional automatic title requests off the real authenticated provider."""
+        super()._initialize_local_services()
+        self.config = replace(self.config, automatic_titles=False)
+
     def _initialize_capture_services(self) -> None:
         """Leave real microphone, portal and network transports unstarted for this visual fixture."""
         self.approved_recording_trigger = "F9"
@@ -35,6 +46,8 @@ def main() -> int:
     if "OFFSCREEN_SESSION_ROOT" not in os.environ or os.environ.get("GDK_BACKEND") != "x11":
         raise RuntimeError("Use the isolated X11 verification runner.")
     output = Path(os.environ["OFFSCREEN_ARTIFACT_DIR"])
+    os.environ["TZ"] = "UTC"
+    time.tzset()
     scenario = os.environ.get("MLUVA_UI_SCENARIO", "conversation")
     width = int(os.environ.get("MLUVA_UI_WIDTH", "1060"))
     height = int(os.environ.get("MLUVA_UI_HEIGHT", "780"))
@@ -59,6 +72,7 @@ def main() -> int:
     def prepare() -> bool:
         """Seed synthetic content through the production stores and select the requested state."""
         try:
+            Gtk.Settings.get_default().set_property("gtk-enable-animations", False)
             application.window.set_default_size(width, height)
             application.window.set_size_request(width, height)
             workspace = application.conversation_workspace
@@ -66,6 +80,9 @@ def main() -> int:
             if scenario == "lifecycle":
                 exercise(application)
                 exercise_widget_review(application)
+                exercise_titles(application)
+            elif scenario == "titles":
+                exercise_titles(application)
             for text in (
                 "A few ideas for Friday's meeting",
                 "Notes from the morning walk",
@@ -86,6 +103,14 @@ def main() -> int:
                 "• Preserve the original so it is always recoverable.",
                 "fixture-model",
             )
+            with sqlite3.connect(application.history_store.path) as connection:
+                for index, item in enumerate(application.history_store.recent()):
+                    stamp = datetime(2026, 9, 7, 9, 30, tzinfo=UTC) - timedelta(hours=index)
+                    connection.execute(
+                        "UPDATE transcription_history SET created_at = ? WHERE identifier = ?",
+                        (stamp.isoformat(), item.identifier),
+                    )
+            entry = application.history_store.find(entry.identifier)
             workspace.refresh_history()
             workspace.show_conversation(entry, application.conversation_store.replies(entry.identifier))
             if scenario == "long-note":
@@ -118,9 +143,22 @@ def main() -> int:
                 workspace.show_transient(source, source)
             elif scenario == "dark":
                 Adw.StyleManager.get_default().set_color_scheme(Adw.ColorScheme.FORCE_DARK)
+            elif scenario == "settings":
+                application._show_settings(application.settings_button)
             if scenario not in {"empty", "incognito"}:
                 assert workspace.result_widgets[0].get_text() == source
-            GLib.timeout_add(900, capture)
+            frames = 0
+
+            def settled_frame(_widget: Gtk.Widget, _clock: object) -> bool:
+                """Capture after GTK has allocated and painted the requested adaptive layout."""
+                nonlocal frames
+                frames += 1
+                if frames < 4:
+                    return GLib.SOURCE_CONTINUE
+                GLib.idle_add(capture)
+                return GLib.SOURCE_REMOVE
+
+            application.window.add_tick_callback(settled_frame)
         except Exception:
             errors.append(traceback.format_exc())
             application.quit()
@@ -131,13 +169,54 @@ def main() -> int:
         try:
             window = application.window
 
+            def oversized(widget: Gtk.Widget) -> list[dict[str, object]]:
+                """Retain geometry diagnostics for any production widget forcing a wider window."""
+                items = []
+                minimum = widget.measure(Gtk.Orientation.HORIZONTAL, -1)[0]
+                if minimum > width - 10:
+                    items.append(
+                        {
+                            "type": type(widget).__name__,
+                            "minimum": minimum,
+                            "classes": widget.get_css_classes(),
+                            "visible": widget.get_visible(),
+                            "label": widget.get_label() if isinstance(widget, Gtk.Label) else "",
+                        }
+                    )
+                child = widget.get_first_child()
+                while child is not None:
+                    items.extend(oversized(child))
+                    child = child.get_next_sibling()
+                return items
+
+            (output / "layout.json").write_text(json.dumps(oversized(window.get_content()), indent=2))
+            (output / "navigation.json").write_text(
+                json.dumps(
+                    {
+                        "window_width": window.get_width(),
+                        "content_width": window.get_content().get_width(),
+                        "collapsed": application.conversation_workspace.split.get_collapsed(),
+                        "sidebar": application.conversation_workspace.split.get_show_sidebar(),
+                        "breakpoint": window.get_current_breakpoint() is not None,
+                    },
+                    indent=2,
+                )
+            )
+
             assert window.get_content().measure(Gtk.Orientation.HORIZONTAL, -1)[0] <= width - 10
             assert window.get_content().measure(Gtk.Orientation.VERTICAL, width - 10)[0] <= height - 10
             assert window.get_surface().get_width() == width, (window.get_surface().get_width(), width)
             assert window.get_surface().get_height() == height, (window.get_surface().get_height(), height)
+            if width <= 600:
+                assert application.conversation_workspace.split.get_collapsed()
+                assert not application.conversation_workspace.split.get_show_sidebar()
+                assert application.conversation_workspace.split.get_content().get_width() >= width - 30
             subprocess.run(
                 ["import", "-window", str(window.get_surface().get_xid()), str(output / "workspace.png")], check=True
             )
+            png_size = struct.unpack(">II", (output / "workspace.png").read_bytes()[16:24])
+            scale = window.get_surface().get_scale_factor()
+            assert png_size == (width * scale, height * scale), "Virtual screen clipped the scaled window"
             workspace = application.conversation_workspace
             if scenario in {"long-note", "long-live"}:
                 scroll = workspace.live_scroll if scenario == "long-live" else workspace.scroll

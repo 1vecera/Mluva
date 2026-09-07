@@ -6,6 +6,7 @@ from datetime import datetime
 import gi
 
 from voice_scribe_linux.conversation import QUICK_POLISH, STRUCTURED_NOTE, ConversationStore, Rewrite
+from voice_scribe_linux.conversation_titles import fallback_title
 from voice_scribe_linux.history import HistoryEntry
 from voice_scribe_linux.ui import SPACE_2, SPACE_3, set_margins
 
@@ -37,6 +38,7 @@ class ConversationWorkspace(Gtk.Box):
         self.save_prompt = save_prompt
         self.cancel_rewrite = cancel_rewrite
         self.entry: HistoryEntry | None = None
+        self.title_label: Gtk.Label | None = None
         self.busy = False
         self.private = False
         self.drafts: dict[str, str] = {}
@@ -51,9 +53,9 @@ class ConversationWorkspace(Gtk.Box):
         self.rows: dict[Gtk.ListBoxRow, str] = {}
         self.search_limit = 80
         self.split = Adw.OverlaySplitView(vexpand=True)
-        self.split.set_min_sidebar_width(220)
-        self.split.set_max_sidebar_width(260)
-        self.split.set_sidebar_width_fraction(0.25)
+        self.split.set_min_sidebar_width(200)
+        self.split.set_max_sidebar_width(232)
+        self.split.set_sidebar_width_fraction(0.23)
         self.split.set_sidebar(self._build_sidebar())
         self.split.set_content(self._build_content())
         self.append(self.split)
@@ -64,12 +66,12 @@ class ConversationWorkspace(Gtk.Box):
         """Keep the identity small and give history the sidebar's useful space."""
         sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2)
         sidebar.add_css_class("ml-history-sidebar")
-        set_margins(sidebar, SPACE_3)
+        set_margins(sidebar, 12)
         brand = Gtk.Box(spacing=SPACE_2)
-        brand.set_margin_top(6)
-        brand.set_margin_bottom(10)
+        brand.set_margin_top(0)
+        brand.set_margin_bottom(4)
         icon = Gtk.Image.new_from_icon_name("com.voicescribe.Linux")
-        icon.set_pixel_size(28)
+        icon.set_pixel_size(24)
         brand.append(icon)
         wordmark = Gtk.Label(label="Mluva", xalign=0)
         wordmark.add_css_class("ml-wordmark")
@@ -104,9 +106,9 @@ class ConversationWorkspace(Gtk.Box):
         """Build a scrolling conversation and fixed, discoverable rewrite composer."""
         content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         content.add_css_class("ml-conversation")
-        self.messages = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
-        set_margins(self.messages, 24)
-        reading_width = Adw.Clamp(maximum_size=780, tightening_threshold=580, child=self.messages)
+        self.messages = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+        set_margins(self.messages, 20)
+        reading_width = Adw.Clamp(maximum_size=900, tightening_threshold=760, child=self.messages)
         self.scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER, vexpand=True)
         self.scroll.set_child(reading_width)
         adjustment = self.scroll.get_vadjustment()
@@ -139,6 +141,7 @@ class ConversationWorkspace(Gtk.Box):
             max_children_per_line=3,
             min_children_per_line=1,
         )
+        self.actions.set_halign(Gtk.Align.START)
         self.quick_polish = Gtk.Button(label="Polish")
         self.quick_polish.set_tooltip_text("Remove filler words and fix phrasing while keeping your meaning")
         self.quick_polish.connect("clicked", lambda _button: self.request_rewrite(QUICK_POLISH))
@@ -158,11 +161,24 @@ class ConversationWorkspace(Gtk.Box):
         self.prompt.add_css_class("ml-prompt")
         self.prompt.set_tooltip_text("Write a custom instruction, then press Ctrl+Enter to send")
         prompt_scroll = Gtk.ScrolledWindow(
-            min_content_height=64, max_content_height=140, hscrollbar_policy=Gtk.PolicyType.NEVER
+            min_content_height=40, max_content_height=120, hscrollbar_policy=Gtk.PolicyType.NEVER
         )
         prompt_scroll.set_propagate_natural_height(True)
         prompt_scroll.set_child(self.prompt)
-        composer.append(prompt_scroll)
+        prompt_overlay = Gtk.Overlay(child=prompt_scroll)
+        self.prompt_placeholder = Gtk.Label(
+            label="Ask for a rewrite…",
+            halign=Gtk.Align.START,
+            valign=Gtk.Align.CENTER,
+            margin_start=10,
+            can_target=False,
+        )
+        self.prompt_placeholder.add_css_class("dim-label")
+        prompt_overlay.add_overlay(self.prompt_placeholder)
+        self.prompt.get_buffer().connect(
+            "changed", lambda buffer: self.prompt_placeholder.set_visible(buffer.get_char_count() == 0)
+        )
+        composer.append(prompt_overlay)
         keys = Gtk.EventControllerKey()
         keys.connect("key-pressed", self._prompt_key)
         self.prompt.add_controller(keys)
@@ -224,6 +240,7 @@ class ConversationWorkspace(Gtk.Box):
         """Open the exact selected history item and every saved rewrite, preserving original text."""
         self.drafts[self.entry.identifier if self.entry else "new"] = self.prompt_text()
         self.entry = entry
+        self.title_label = None
         self.result_widgets.clear()
         self.rewrite_preview_box = None
         self.rewrite_preview_label = None
@@ -240,7 +257,8 @@ class ConversationWorkspace(Gtk.Box):
             empty.add_css_class("ml-empty")
             self.messages.append(empty)
         else:
-            title = Gtk.Label(label=entry.title or "Your dictation", xalign=0, wrap=True)
+            title = Gtk.Label(label=entry.title or fallback_title(entry.raw_text), xalign=0, wrap=True)
+            self.title_label = title
             title.add_css_class("ml-conversation-title")
             self.messages.append(title)
             self._message("Original", entry.raw_text, source=True)
@@ -255,6 +273,8 @@ class ConversationWorkspace(Gtk.Box):
                     else reply.instruction
                 )
                 request = Gtk.Label(label=instruction, xalign=1, wrap=True, selectable=True)
+                request.set_halign(Gtk.Align.END)
+                request.set_max_width_chars(64)
                 request.add_css_class("ml-instruction")
                 self.messages.append(request)
                 self._message("Rewrite", reply.text)
@@ -263,10 +283,10 @@ class ConversationWorkspace(Gtk.Box):
         self.prompt_label.set_label(
             "Ask for a rewrite or a follow-up" if entry else "Paste or type text to get started"
         )
+        self.prompt_label.set_visible(False)
+        self.prompt_placeholder.set_label("Ask for a rewrite…" if entry else "Paste or type text to start…")
         self.send.set_label("Rewrite" if entry else "Start conversation")
-        self.notice.set_label(
-            "Rewriting · Experimental. Your original stays here." if entry else "Dictation copies automatically."
-        )
+        self.notice.set_label("Original preserved" if entry else "Dictation copies automatically.")
         self._update_actions()
         for row, identifier in self.rows.items():
             if entry is not None and identifier == entry.identifier:
@@ -338,9 +358,9 @@ class ConversationWorkspace(Gtk.Box):
         entries = self.store.search(self.search.get_text(), self.search_limit)
         for entry in entries:
             box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-            set_margins(box, SPACE_2)
+            set_margins(box, 6)
             title = Gtk.Label(
-                label=entry.title or " ".join((entry.raw_text or "Transcription needs attention").split()),
+                label=entry.title or fallback_title(entry.raw_text),
                 xalign=0,
                 ellipsize=Pango.EllipsizeMode.END,
             )
@@ -364,6 +384,20 @@ class ConversationWorkspace(Gtk.Box):
             label.add_css_class("dim-label")
             self.history_list.append(label)
         self.more.set_visible(len(entries) == self.search_limit)
+
+    def refresh_title(self, identifier: str) -> None:
+        """Keep the reading position and active draft when an asynchronous label arrives."""
+        entry = self.store.history.find(identifier)
+        if self.entry is not None and self.entry.identifier == identifier:
+            self.entry = entry
+            if self.title_label is not None:
+                self.title_label.set_label(self.entry.title or fallback_title(self.entry.raw_text))
+        if self.search.get_text():
+            self.refresh_history()
+        else:
+            for row, row_identifier in self.rows.items():
+                if row_identifier == identifier:
+                    row.get_child().get_first_child().set_label(entry.title or fallback_title(entry.raw_text))
 
     def show_transient(self, original: str, text: str) -> None:
         """Show an unsaved Incognito result with explicit copying and no durable source."""

@@ -24,6 +24,16 @@ ShellRoot {
             const menu = root.overlay.data.find(item => item.objectName === "rewrite-menu");
             root.descendants(menu.contentItem).find(item => item.objectName === "rewrite-option-" + index).clicked();
         }
+        function countdown(): string {
+            const origin = root.overlay.contentItem.mapToGlobal(0, 0);
+            return JSON.stringify({remaining: root.overlay.remaining, paused: root.overlay.countdownPaused,
+                visible: root.overlay.visible, x: origin.x, y: origin.y});
+        }
+        function focusReview(): void {
+            root.descendants(root.overlay.contentItem).find(item => item.objectName === "polish-button").forceActiveFocus();
+            root.overlay.contentItem.Window.window.requestActivate();
+        }
+        function closeMenu(): void { root.overlay.menuOpen = false; }
     }
     FloatingWindow {
         id: editor

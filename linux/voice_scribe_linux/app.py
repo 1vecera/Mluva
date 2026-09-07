@@ -1,6 +1,7 @@
 """GTK 4 desktop application for Mluva on Linux."""
 
 import os
+import sqlite3
 import sys
 import threading
 import time
@@ -36,6 +37,7 @@ from voice_scribe_linux.conversation import (
     ConversationStore,
     rewrite_prompt,
 )
+from voice_scribe_linux.conversation_titles import clean_title, fallback_title, save_generated_title, title_prompt
 from voice_scribe_linux.conversation_view import ConversationWorkspace
 from voice_scribe_linux.delivery import deliver_text, keyboard_paste_available
 from voice_scribe_linux.diagnostics import (
@@ -308,6 +310,9 @@ class MluvaApplication(Adw.Application):
         self.conversation_workspace: ConversationWorkspace | None = None
         self.conversation_store: ConversationStore
         self.rewrite_client: CodexAppServerClient | None = None
+        self.title_client: CodexAppServerClient | None = None
+        self.title_queue: list[tuple[str, str]] = []
+        self.automatic_titles_switch: Adw.SwitchRow | None = None
         self.rewrite_draft: str | None = None
         self.rewrite_identifier: str | None = None
         self.overlay_review_identifier: str | None = None
@@ -453,6 +458,7 @@ class MluvaApplication(Adw.Application):
             self.conversation_workspace.show_conversation(
                 latest[0], self.conversation_store.replies(latest[0].identifier)
             )
+        self.window.set_focus(self.conversation_workspace.prompt)
         self.window.present()
 
     def _hide_window(self, window: Adw.ApplicationWindow) -> bool:
@@ -520,6 +526,110 @@ class MluvaApplication(Adw.Application):
         workspace.prompt.get_buffer().set_text("")
         workspace.show_conversation(entry, [])
         self._history_changed()
+        self._queue_conversation_title(entry)
+
+    def _queue_conversation_title(self, entry: HistoryEntry) -> None:
+        """Label new completions locally, then queue at most one background model at a time."""
+        if self.shutting_down or self.config.incognito_mode or entry.title or not entry.raw_text.strip():
+            return
+        fallback = fallback_title(entry.raw_text)
+        try:
+            saved = save_generated_title(self.history_store, entry.identifier, fallback)
+        except sqlite3.Error:
+            return
+        if not saved:
+            return
+        self._refresh_conversation_title(entry.identifier)
+        if self.config.automatic_titles and len(self.title_queue) < 20:
+            self.title_queue.append((entry.identifier, fallback))
+            self._start_next_title()
+
+    def _start_next_title(self) -> None:
+        """Skip removed notes; never replay old history or retry a failed provider automatically."""
+        if (
+            self.title_client is not None
+            or self.shutting_down
+            or self.config.incognito_mode
+            or not self.config.automatic_titles
+        ):
+            return
+        while self.title_queue:
+            identifier, fallback = self.title_queue.pop(0)
+            try:
+                entry = self.history_store.find(identifier)
+            except KeyError:
+                continue
+            if entry.title != fallback:
+                continue
+            client = CodexAppServerClient(request_timeout_seconds=10, turn_timeout_seconds=20)
+            self.title_client = client
+            threading.Thread(
+                target=self._title_worker,
+                args=(client, entry, fallback, self.config.codex_model),
+                name="conversation-title",
+                daemon=True,
+            ).start()
+            break
+
+    def _title_worker(
+        self, client: CodexAppServerClient, entry: HistoryEntry, fallback: str, model: str | None
+    ) -> None:
+        """Use the existing isolated, tool-free transport and keep failures out of the capture path."""
+        title = None
+        try:
+            resolved = client.resolve_model(model)
+            title = clean_title(
+                client.transform(title_prompt(entry), self.codex_workspace, resolved, max_output_characters=128)
+            )
+        except Exception:
+            pass
+        finally:
+            client.close()
+            GLib.idle_add(self._title_finished, client, entry.identifier, fallback, title)
+
+    def _title_finished(self, client: CodexAppServerClient, identifier: str, fallback: str, title: str | None) -> bool:
+        """Discard cancelled, private, deleted or manually renamed results at the commit boundary."""
+        if client is not self.title_client:
+            return GLib.SOURCE_REMOVE
+        self.title_client = None
+        if not self.shutting_down and not self.config.incognito_mode and self.config.automatic_titles:
+            try:
+                if title and save_generated_title(self.history_store, identifier, title, expected=fallback):
+                    self._refresh_conversation_title(identifier)
+            except sqlite3.Error:
+                pass
+            self._start_next_title()
+        return GLib.SOURCE_REMOVE
+
+    def _refresh_conversation_title(self, identifier: str) -> None:
+        """Update labels in place so a late title never changes selection, scroll or draft text."""
+        workspace = self.conversation_workspace
+        if workspace is not None:
+            workspace.refresh_title(identifier)
+        if self.history_page is not None:
+            self.history_page.refresh_title(identifier)
+
+    def _cancel_titles(self, wait: bool = False) -> None:
+        """Invalidate queued callbacks before asking the exact worker to stop."""
+        self.title_queue.clear()
+        client, self.title_client = self.title_client, None
+        if client is not None:
+            if wait:
+                client.cancel()
+            else:
+                threading.Thread(target=client.cancel, name="cancel-title", daemon=True).start()
+
+    def _automatic_titles_changed(self, row: Adw.SwitchRow, _param: object) -> None:
+        """Save the cloud-title preference independently of transcription settings."""
+        config = replace(self.config, automatic_titles=row.get_active())
+        try:
+            save_config(config, self.config_path)
+        except OSError:
+            self._show_toast("Could not save the title preference. It applies for this session.")
+        self.config = config
+        self._synchronize_workflow_config()
+        if not config.automatic_titles:
+            self._cancel_titles()
 
     def _request_rewrite(self, instruction: str) -> None:
         """Freeze the selected conversation before starting one background rewrite."""
@@ -567,7 +677,7 @@ class MluvaApplication(Adw.Application):
         ).start()
 
     def _publish_review(self, identifier: str, phase: str = "ready", message: str = "") -> None:
-        """Keep the completed note and deliberate rewrite actions visible until dismissed."""
+        """Offer the completed note to the shell for timed, deliberate review."""
         if self.config.incognito_mode:
             self._dismiss_review()
             return
@@ -908,15 +1018,18 @@ class MluvaApplication(Adw.Application):
         """Keep recording status and a compact start/stop action outside the transcript scroll."""
         dock = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=SPACE_3)
         dock.add_css_class("ml-recording-dock")
-        set_margins(dock, SPACE_3)
+        set_margins(dock, 10)
         status = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_1, hexpand=True)
+        self.capture_status_title.set_visible(False)
         status.append(self.capture_status_title)
         status.append(self.status_label)
         self.capture_action_hint = Gtk.Label(xalign=0, wrap=True)
         self.capture_action_hint.add_css_class("caption")
+        self.capture_action_hint.set_visible(False)
         status.append(self.capture_action_hint)
         dock.append(status)
         self.record_button = Gtk.Button(valign=Gtk.Align.CENTER)
+        self.record_button.set_tooltip_text("Start or stop dictation · F9")
         self.record_button.add_css_class("suggested-action")
         set_button_content(self.record_button, "audio-input-microphone-symbolic", "Dictate")
         self.record_button.connect("clicked", self._toggle_recording)
@@ -1011,6 +1124,15 @@ class MluvaApplication(Adw.Application):
             "Remove obvious filler and repair punctuation through the local Codex app-server"
         )
         behavior.add(self.cleanup_switch)
+        self.automatic_titles_switch = Adw.SwitchRow(
+            title=maturity_title("conversations", "Automatic conversation titles")
+        )
+        self.automatic_titles_switch.set_subtitle(
+            "Send an excerpt of each new conversation to Codex for a title. A local label is used if unavailable."
+        )
+        self.automatic_titles_switch.set_active(self.config.automatic_titles)
+        self.automatic_titles_switch.connect("notify::active", self._automatic_titles_changed)
+        behavior.add(self.automatic_titles_switch)
         self.spoken_commands_switch = Adw.SwitchRow(title=maturity_title("spoken_structure"))
         self.spoken_commands_switch.set_subtitle(
             "Apply explicit punctuation, new line, new paragraph, and scratch-that commands"
@@ -2371,11 +2493,7 @@ class MluvaApplication(Adw.Application):
         self.audio_path = None
         self.pending_realtime_fallback_reason = None
         self._clear_live_capture()
-        terminal_label = "preview" if result.requires_acceptance else "delivery"
-        status = (
-            f"{result.delivery.guidance} Recognition {result.recognition_ms} ms · "
-            f"enhancement {result.enhancement_ms} ms · {terminal_label} {result.delivery_ms} ms."
-        )
+        status = result.delivery.guidance
         delivery_target = self.pending_delivery_target
         if result.history_entry is not None and delivery_target is not None:
             self._remember_history_delivery_target(result.history_entry.identifier, delivery_target)
@@ -2476,6 +2594,8 @@ class MluvaApplication(Adw.Application):
                 self._publish_review(result.history_entry.identifier)
             else:
                 MluvaApplication._publish_completion_status(self, "copied", message)
+        if result.mode == "dictation" and result.history_entry is not None and not result.incognito:
+            self._queue_conversation_title(result.history_entry)
         return GLib.SOURCE_REMOVE
 
     def _workflow_failed(
@@ -3239,6 +3359,10 @@ class MluvaApplication(Adw.Application):
         if self.incognito_switch is None or self.cleanup_switch is None:
             return
         incognito = self.incognito_switch.get_active()
+        if incognito:
+            self._cancel_titles()
+        if self.automatic_titles_switch is not None:
+            self.automatic_titles_switch.set_sensitive(not incognito)
         if incognito and getattr(self, "overlay_review_identifier", None) is not None:
             self._dismiss_review()
         workspace = getattr(self, "conversation_workspace", None)
@@ -3763,6 +3887,8 @@ class MluvaApplication(Adw.Application):
             self.history_page.refresh()
         self._history_changed()
         self._set_status("Transcription recovered. Review it in History, then copy explicitly.")
+        if entry.mode == "dictation":
+            self._queue_conversation_title(entry)
         return GLib.SOURCE_REMOVE
 
     def _retry_history_recognition_failed(self, message: str) -> bool:
@@ -4010,6 +4136,7 @@ class MluvaApplication(Adw.Application):
     def _on_shutdown(self, _application: Adw.Application) -> None:
         """Release child processes and portal registrations during application exit."""
         self.shutting_down = True
+        self._cancel_titles(wait=True)
         self.theme_controller.close()
         MluvaApplication._clear_overlay_timeout(self)
         if self.rewrite_client is not None:

@@ -4,7 +4,10 @@ This file records user-visible Mluva releases. Linux is the first supported dist
 
 ## Unreleased
 
-No user-visible changes are queued beyond the initial public release candidate.
+- Added a compact conversation workspace with proportional typography, lightly translucent surfaces, searchable history and streaming rewrites. Omarchy colors update with the desktop theme.
+- Added automatic titles for new dictations and pasted conversations, with local fallback labels, protection for manual renames and an Incognito cancellation boundary.
+- Added an eight-second countdown to Omarchy's completed-note review controls, with pauses for pointer, keyboard, menus and rewriting.
+- Replaced the app icon and repository presentation with a shared voice-signal identity, current screenshots and a shorter installation and feature guide.
 
 ## 0.1.0 — 2026-08-21
 

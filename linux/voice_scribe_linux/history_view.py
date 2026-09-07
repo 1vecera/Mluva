@@ -85,6 +85,7 @@ class HistoryPage(Gtk.Box):
         self.history_changed = history_changed
         self.show_message = show_message
         self.entry_rows: dict[str, Adw.ExpanderRow] = {}
+        self.title_entries: dict[str, tuple[Gtk.Entry, str]] = {}
         self.focused_identifier: str | None = None
 
         content = page_content()
@@ -133,6 +134,7 @@ class HistoryPage(Gtk.Box):
         scroll_position = self.scroll.get_vadjustment().get_value()
         self._clear_list(self.list_box)
         self.entry_rows.clear()
+        self.title_entries.clear()
         entries = self.store.recent()
         if self.focused_identifier is not None:
             try:
@@ -160,6 +162,17 @@ class HistoryPage(Gtk.Box):
         adjustment.set_value(min(position, maximum))
         return GLib.SOURCE_REMOVE
 
+    def refresh_title(self, identifier: str) -> None:
+        """Update an automatic label without rebuilding or discarding an unsaved rename."""
+        if identifier not in self.entry_rows:
+            return
+        entry = self.store.find(identifier)
+        self.entry_rows[identifier].set_title(entry.title or "Empty transcript")
+        field, previous = self.title_entries[identifier]
+        if field.get_text() == previous and not field.has_focus():
+            field.set_text(entry.title or "")
+        self.title_entries[identifier] = field, entry.title or ""
+
     def _build_entry(self, entry: HistoryEntry) -> Adw.ExpanderRow:
         """Build one concise result row with editing and technical details nested below it."""
         preview = " ".join((entry.delivered_text or entry.raw_text).split())
@@ -172,6 +185,7 @@ class HistoryPage(Gtk.Box):
         set_margins(title_box, SPACE_3)
         title_entry = Gtk.Entry(hexpand=True, placeholder_text="Optional title")
         title_entry.set_text(entry.title or "")
+        self.title_entries[entry.identifier] = title_entry, entry.title or ""
         title_box.append(title_entry)
         save_title = Gtk.Button(label="Save title")
         save_title.connect("clicked", self._save_title, entry, title_entry)
