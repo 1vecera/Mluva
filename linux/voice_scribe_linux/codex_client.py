@@ -5,7 +5,7 @@ import queue
 import subprocess
 import threading
 import time
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Self
@@ -128,8 +128,9 @@ class CodexAppServerClient:
         model: str | None = None,
         *,
         max_output_characters: int = MAX_TRANSFORMATION_OUTPUT_CHARACTERS,
+        on_delta: Callable[[str], None] | None = None,
     ) -> str:
-        """Return only the final agent text for one isolated transformation."""
+        """Stream optional validated text deltas and return the complete successful transformation."""
         resolved_model = model or self.resolve_model(None)
         self.start()
         self.last_model_identifier = None
@@ -184,6 +185,8 @@ class CodexAppServerClient:
                     self.close()
                     raise CodexAppServerError("Codex replacement text exceeded the supported bound.")
                 output.append(delta)
+                if on_delta is not None:
+                    on_delta(delta)
             if message["method"] == "turn/completed" and params["turn"]["id"] == turn_id:
                 status = params["turn"]["status"]
                 if status != "completed":

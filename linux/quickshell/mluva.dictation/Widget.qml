@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.Commons
 
 Item {
     id: root
@@ -11,24 +12,33 @@ Item {
     property int elapsed: 0
     property real level: 0
     property string preview: ""
+    property string identifier: ""
+    property var options: []
+    property string message: ""
     property bool controlFailed: false
     readonly property string executable: settings && settings.command ? settings.command : "mluva-shell"
     readonly property var labels: ({
         "unavailable": "Mluva unavailable", "stopped": "Mluva stopped", "idle": "Mluva ready",
         "preparing": "Preparing", "recording": "REC " + elapsed + "s",
-        "processing": "Transcribing", "copied": "Copied", "error": "Mluva error"
+        "processing": "Transcribing", "ready": "Mluva", "rewriting": "Rewriting",
+        "review-error": "Rewrite failed", "error": "Mluva error"
     })
     readonly property string tooltip: controlFailed ? "Control failed. Start Mluva and inspect its setup status." :
         (labels[phase] + ". Left: start/stop (clipboard only). Right: cancel. Middle: open latest."
         + (phase === "error" ? " Open Mluva for error details." : ""))
     implicitWidth: bar && bar.vertical ? bar.barSize : (label ? label.implicitWidth + 16 : 26)
     implicitHeight: bar ? bar.barSize : 26
-    SystemPalette { id: palette }
 
     function control(action) {
         if (controlProcess.running) return;
         controlFailed = false;
         controlProcess.command = [executable, action];
+        controlProcess.running = true;
+    }
+    function review(action, style) {
+        if (controlProcess.running || !identifier) return;
+        controlFailed = false;
+        controlProcess.command = [executable, "review", action, identifier, style];
         controlProcess.running = true;
     }
 
@@ -43,12 +53,18 @@ Item {
                     root.phase = Object.prototype.hasOwnProperty.call(root.labels, state.phase) ? state.phase : "unavailable";
                     root.elapsed = Number.isInteger(state.elapsed) ? Math.max(0, Math.min(86400, state.elapsed)) : 0;
                     root.level = Number.isFinite(state.level) ? Math.max(0, Math.min(1, state.level)) : 0;
-                    root.preview = typeof state.preview === "string" ? state.preview.slice(-180) : "";
+                    root.preview = typeof state.preview === "string" ? state.preview.slice(-4096) : "";
+                    root.identifier = typeof state.identifier === "string" ? state.identifier.slice(0, 36) : "";
+                    root.options = Array.isArray(state.options) ? state.options.slice(0, 128) : [];
+                    root.message = typeof state.message === "string" ? state.message.slice(0, 96) : "";
                 } catch (error) {
                     root.phase = "unavailable";
                     root.elapsed = 0;
                     root.level = 0;
                     root.preview = "";
+                    root.identifier = "";
+                    root.options = [];
+                    root.message = "";
                 }
             }
         }
@@ -57,6 +73,9 @@ Item {
             root.elapsed = 0;
             root.level = 0;
             root.preview = "";
+            root.identifier = "";
+            root.options = [];
+            root.message = "";
         }
     }
     RecordingOverlay {
@@ -66,6 +85,10 @@ Item {
         elapsed: root.elapsed
         level: root.level
         preview: root.preview
+        identifier: root.identifier
+        options: root.options
+        message: root.controlFailed ? "Control failed · open Mluva" : root.message
+        onReview: function(action, style) { root.review(action, style); }
     }
     Timer {
         interval: 5000
@@ -82,8 +105,8 @@ Item {
         anchors.centerIn: parent
         text: root.bar && root.bar.vertical ? (root.phase === "recording" ? "REC" : "M") : root.labels[root.phase]
         color: root.phase === "recording" || root.phase === "error" || root.controlFailed ?
-            (root.bar ? root.bar.urgent : palette.highlight) : (root.bar ? root.bar.foreground : palette.windowText)
-        font.family: root.bar ? root.bar.fontFamily : "monospace"
+            Color.urgent : (root.bar ? root.bar.foreground : Color.foreground)
+        font.family: Style.font.family
         font.pixelSize: root.bar && root.bar.vertical ? 10 : 12
         textFormat: Text.PlainText
     }

@@ -116,7 +116,7 @@ def exercise(application: MluvaApplication) -> None:
         )
         assert workspace.entry is None and workspace.prompt_text() == "Unsaved pasted source"
         assert receipt.guidance in application.status_label.get_label()
-    assert states[-1].detail == "Paste unconfirmed. Check the target before pasting again."
+    assert states[-1].phase == "ready" and states[-1].review_identifier == source.identifier
 
     audio_path = application.codex_workspace / "never-recorded.wav"
     application.pending_session_identifier = "failed-start"
@@ -161,3 +161,118 @@ def exercise(application: MluvaApplication) -> None:
     assert copies == [replies[-1].text]
     application.history_store.delete(workspace.entry.identifier)
     application._history_changed()
+
+
+def exercise_widget_review(application: MluvaApplication) -> None:
+    """Keep shell rewrites note-specific through browsing, cancellation, deletion and capture races."""
+    workspace = application.conversation_workspace
+    source = application.history_store.add("Widget source", "Widget source", "dictation", "eng", None, "copied")
+    elsewhere = application.history_store.add("Other note", "Other note", "dictation", "eng", None, "copied")
+    workspace.show_conversation(elsewhere, [])
+    states = []
+    application.recording_overlay_publisher = SimpleNamespace(
+        publish=lambda state: states.append(state) or True,
+        clear=lambda: states.append(None) or True,
+    )
+    application._publish_review(source.identifier)
+    custom = application.personalization_store.save_style("My saved prompt", "Keep the essential details")
+    application._refresh_style_controls()
+    assert (custom.identifier, custom.name) in states[-1].review_options
+
+    def action(operation: str, option: str = "", identifier: str = source.identifier) -> None:
+        """Send the real application action with a bounded note and style identifier."""
+        application.activate_action("review", GLib.Variant("(sss)", (operation, identifier, option)))
+
+    def settle() -> None:
+        """Wait for the fake subprocess and production GTK completion callback."""
+        deadline = time.monotonic() + 10
+        while application.rewrite_client is not None and time.monotonic() < deadline:
+            GLib.MainContext.default().iteration(False)
+            time.sleep(0.01)
+        assert application.rewrite_client is None
+
+    def partial() -> str:
+        """Require visible progress while the fake provider has not completed its turn."""
+        deadline = time.monotonic() + 5
+        while not workspace.rewrite_preview_text and time.monotonic() < deadline:
+            GLib.MainContext.default().iteration(False)
+            time.sleep(0.01)
+        assert application.rewrite_client is not None and workspace.rewrite_preview_text
+        return workspace.rewrite_preview_text
+
+    client_factory = lambda: CodexAppServerClient(  # noqa: E731
+        command=(sys.executable, str(Path(__file__).with_name("fake_app_server.py")), "--conversation")
+    )
+    with (
+        patch("voice_scribe_linux.app.CodexAppServerClient", side_effect=client_factory) as factory,
+        patch("voice_scribe_linux.app.deliver_text") as clipboard,
+    ):
+        action("rewrite", "polish", elsewhere.identifier)
+        action("rewrite", "unknown-option")
+        application.capture_preparing = True
+        action("rewrite", "polish")
+        application.capture_preparing = False
+        assert not factory.called and not clipboard.called
+        failed_client = SimpleNamespace()
+        application.rewrite_client = failed_client
+        application.rewrite_identifier = source.identifier
+        application._rewrite_finished(failed_client, source.identifier, QUICK_POLISH, "", "")
+        assert states[-1].phase == "review-error" and states[-1].preview == "Widget source"
+        action("rewrite", "polish")
+        action("rewrite", "structure")
+        assert factory.call_count == 1 and states[-1].phase == "rewriting"
+        streamed = partial()
+        assert states[-1].preview == streamed
+        assert application.conversation_store.replies(source.identifier) == [] and not clipboard.called
+        assert workspace.rewrite_preview_label is None
+        workspace.show_conversation(source, [])
+        assert workspace.rewrite_preview_label.get_label() == streamed
+        assert len(workspace.result_widgets) == 1 and workspace.result_widgets[0].get_text() == source.raw_text
+        workspace.show_conversation(elsewhere, [])
+        settle()
+        replies = application.conversation_store.replies(source.identifier)
+        assert len(replies) == 1 and replies[0].text == "Widget source\n" + QUICK_POLISH
+        assert workspace.entry.identifier == elsewhere.identifier
+        assert application.conversation_store.replies(elsewhere.identifier) == []
+        assert states[-1].preview == replies[-1].text and not clipboard.called
+        assert workspace.rewrite_preview_text == "" and workspace.rewrite_preview_label is None
+        action("copy")
+        clipboard.assert_called_once_with(replies[-1].text, auto_paste=False)
+        action("rewrite", custom.identifier)
+        settle()
+        assert application.conversation_store.replies(source.identifier)[-1].instruction == custom.instructions
+        action("rewrite", "structure")
+        partial()
+        cancelled_client = application.rewrite_client
+        action("cancel")
+        settle()
+        application._rewrite_progress(cancelled_client, source.identifier, "Late cancelled text")
+        assert workspace.rewrite_preview_text == "" and "Late cancelled text" not in states[-1].preview
+        assert len(application.conversation_store.replies(source.identifier)) == 2
+        action("rewrite", "polish")
+        application._dismiss_review()  # Starting another capture also invalidates this note's projection.
+        settle()
+        assert states[-1] is None and application.overlay_review_identifier is None
+        assert len(application.conversation_store.replies(source.identifier)) == 3
+        application._publish_review(source.identifier)
+        action("rewrite", "polish")
+        partial()
+        private_client = application.rewrite_client
+        application.incognito_switch.set_active(True)
+        application._rewrite_progress(private_client, source.identifier, "Late private text")
+        assert application.overlay_review_identifier is None and states[-1] is None
+        assert workspace.rewrite_preview_text == "" and not workspace.quick_polish.is_sensitive()
+        assert len(application.conversation_store.replies(source.identifier)) == 3
+        application.incognito_switch.set_active(False)
+        application._publish_review(source.identifier)
+        action("rewrite", "polish")
+        application.history_store.delete(source.identifier)
+        application._history_changed()
+        settle()
+        assert application.overlay_review_identifier is None and states[-1] is None
+        assert application.conversation_store.replies(source.identifier) == []
+        assert application.history_store.find(elsewhere.identifier).raw_text == "Other note"
+        assert clipboard.call_count == 1
+    application.history_store.delete(elsewhere.identifier)
+    application._history_changed()
+    application.recording_overlay_publisher = None

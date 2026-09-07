@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "id": "mluva.dictation",
   "name": "Mluva dictation",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Mluva contributors",
-  "description": "Dictation controls and a floating recording preview",
+  "description": "Theme-aware dictation preview and direct conversation rewrites",
   "kinds": ["bar-widget"],
   "entryPoints": { "barWidget": "Widget.qml" },
   "barWidget": {

@@ -14,6 +14,12 @@ OVERLAY_INTERFACE = "com.voicescribe.Linux.RecordingStatus"
 OVERLAY_SIGNAL = "StateChanged"
 OVERLAY_SIGNAL_SIGNATURE = "(bssussdss)"
 VISIBLE_PHASES = frozenset({"preparing", "recording", "processing", "copied", "error"})
+SHELL_SIGNAL = "ShellStateChanged"
+SHELL_SIGNAL_SIGNATURE = "(a{sv})"
+REVIEW_PHASES = frozenset({"ready", "rewriting", "review-error"})
+SHELL_PHASES = frozenset({"preparing", "recording", "processing", "error"}) | REVIEW_PHASES
+SHELL_PREVIEW_CHARACTERS = 4096
+MAX_REVIEW_OPTIONS = 128
 
 
 class SignalConnection(Protocol):
@@ -42,6 +48,9 @@ class RecordingOverlayState:
     level: float = 0.0
     preview: str = ""
     delivery: str = ""
+    review_identifier: str = ""
+    review_options: tuple[tuple[str, str], ...] = ()
+    message: str = ""
 
     @classmethod
     def hidden(cls) -> "RecordingOverlayState":
@@ -67,6 +76,31 @@ class RecordingOverlayState:
             _one_line(self.delivery, 48),
         )
 
+    def as_shell_values(self) -> dict[str, GLib.Variant]:
+        """Expose bounded text and option IDs to the opt-in, interactive Omarchy widget."""
+        phase = self.phase if self.phase in SHELL_PHASES else "idle"
+        values = {"phase": GLib.Variant("s", phase), "elapsed": GLib.Variant("u", 0)}
+        if phase == "idle":
+            return values
+        values.update(
+            elapsed=GLib.Variant("u", max(0, min(int(self.elapsed_seconds), 86_400))),
+            level=GLib.Variant("d", max(0.0, min(self.level, 1.0)) if math.isfinite(self.level) else 0.0),
+            preview=GLib.Variant("s", " ".join(self.preview.split())[-SHELL_PREVIEW_CHARACTERS:]),
+        )
+        if phase in REVIEW_PHASES:
+            values.update(
+                identifier=GLib.Variant("s", self.review_identifier[:36]),
+                options=GLib.Variant(
+                    "a(ss)",
+                    [
+                        (identifier[:36], _one_line(label, 64))
+                        for identifier, label in self.review_options[:MAX_REVIEW_OPTIONS]
+                    ],
+                ),
+                message=GLib.Variant("s", _one_line(self.message, 96)),
+            )
+        return values
+
 
 class RecordingOverlayPublisher:
     """Publish bounded state on the application's existing session-bus connection."""
@@ -75,10 +109,14 @@ class RecordingOverlayPublisher:
         """Retain the application-owned connection without owning another bus name."""
         self.connection = connection
         self._parameters = GLib.Variant(OVERLAY_SIGNAL_SIGNATURE, RecordingOverlayState.hidden().as_signal_values())
+        self._shell_parameters = GLib.Variant(
+            SHELL_SIGNAL_SIGNATURE, (RecordingOverlayState.hidden().as_shell_values(),)
+        )
 
     def publish(self, state: RecordingOverlayState) -> bool:
         """Broadcast one optional display snapshot without risking the capture path."""
         self._parameters = GLib.Variant(OVERLAY_SIGNAL_SIGNATURE, state.as_signal_values())
+        self._shell_parameters = GLib.Variant(SHELL_SIGNAL_SIGNATURE, (state.as_shell_values(),))
         return self.replay()
 
     def replay(self) -> bool:
@@ -90,6 +128,9 @@ class RecordingOverlayPublisher:
                 OVERLAY_INTERFACE,
                 OVERLAY_SIGNAL,
                 self._parameters,
+            )
+            self.connection.emit_signal(
+                None, OVERLAY_OBJECT_PATH, OVERLAY_INTERFACE, SHELL_SIGNAL, self._shell_parameters
             )
         except GLib.Error:
             return False

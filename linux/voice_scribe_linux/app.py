@@ -29,7 +29,13 @@ from voice_scribe_linux.config import (
     load_config,
     save_config,
 )
-from voice_scribe_linux.conversation import MAX_REWRITE_CHARACTERS, ConversationStore, rewrite_prompt
+from voice_scribe_linux.conversation import (
+    MAX_REWRITE_CHARACTERS,
+    QUICK_POLISH,
+    STRUCTURED_NOTE,
+    ConversationStore,
+    rewrite_prompt,
+)
 from voice_scribe_linux.conversation_view import ConversationWorkspace
 from voice_scribe_linux.delivery import deliver_text, keyboard_paste_available
 from voice_scribe_linux.diagnostics import (
@@ -303,7 +309,10 @@ class MluvaApplication(Adw.Application):
         self.conversation_store: ConversationStore
         self.rewrite_client: CodexAppServerClient | None = None
         self.rewrite_draft: str | None = None
+        self.rewrite_identifier: str | None = None
+        self.overlay_review_identifier: str | None = None
         self.overlay_timeout_id: int | None = None
+        self.theme_controller = ThemeController()
         for name, callback in (
             ("latest", self._open_latest_conversation),
             ("record", self._shell_record),
@@ -318,6 +327,9 @@ class MluvaApplication(Adw.Application):
             action = Gio.SimpleAction.new(name, None)
             action.connect("activate", lambda _action, _parameter, handler=callback: handler())
             self.add_action(action)
+        review_action = Gio.SimpleAction.new("review", GLib.VariantType.new("(sss)"))
+        review_action.connect("activate", self._review_action)
+        self.add_action(review_action)
 
     def _on_activate(self, _application: Adw.Application) -> None:
         """Build the adaptive primary window and validate external runtime dependencies."""
@@ -325,7 +337,7 @@ class MluvaApplication(Adw.Application):
             self.window.present()
             return
         self._initialize_recording_overlay()
-        ThemeController().apply()
+        self.theme_controller.apply()
         Gtk.IconTheme.get_for_display(Gdk.Display.get_default()).add_search_path(
             str(Path(__file__).parents[1] / "resources")
         )
@@ -512,27 +524,125 @@ class MluvaApplication(Adw.Application):
     def _request_rewrite(self, instruction: str) -> None:
         """Freeze the selected conversation before starting one background rewrite."""
         workspace = self.conversation_workspace
-        if workspace is None or workspace.entry is None or self.rewrite_client is not None:
+        if workspace is None or workspace.entry is None:
+            return
+        self._begin_rewrite(workspace.entry.identifier, instruction)
+
+    def _begin_rewrite(self, identifier: str, instruction: str) -> None:
+        """Run either rewrite surface against one explicit conversation, regardless of selection."""
+        workspace = self.conversation_workspace
+        if workspace is None or self.shutting_down:
+            return
+        if self.rewrite_client is not None:
+            if self.overlay_review_identifier == identifier and self.rewrite_identifier != identifier:
+                self._publish_review(identifier, message="Another note is rewriting. Try again shortly.")
+            return
+        if self.capture_preparing or self.capture_processing or (self.recorder is not None and self.recorder.process):
             return
         if self.config.incognito_mode:
             workspace.set_busy(False, "Rewriting is unavailable in Incognito.")
             return
         try:
-            entry = self.history_store.find(workspace.entry.identifier)
+            entry = self.history_store.find(identifier)
             prompt = rewrite_prompt(entry, self.conversation_store.replies(entry.identifier), instruction)
         except (KeyError, ValueError):
             workspace.set_busy(False, "This conversation cannot be rewritten. Reopen it or start with shorter text.")
+            if self.overlay_review_identifier == identifier:
+                self._publish_review(identifier, "review-error", "Open this note to review it.")
             return
         client = CodexAppServerClient()
         self.rewrite_client = client
+        self.rewrite_identifier = identifier
         self.rewrite_draft = instruction if instruction == workspace.prompt_text() else None
-        workspace.set_busy(True, "Rewriting… You can keep browsing history.")
+        workspace.set_busy(True, "Rewriting…")
+        workspace.set_rewrite_preview(identifier, "")
+        if workspace.entry is not None and workspace.entry.identifier == identifier:
+            workspace.scroll_to_latest()
+        self._publish_review(identifier, "rewriting")
         threading.Thread(
             target=self._rewrite_worker,
             args=(client, entry.identifier, instruction, prompt, self.config.codex_model),
             name="conversation-rewrite",
             daemon=True,
         ).start()
+
+    def _publish_review(self, identifier: str, phase: str = "ready", message: str = "") -> None:
+        """Keep the completed note and deliberate rewrite actions visible until dismissed."""
+        if self.config.incognito_mode:
+            self._dismiss_review()
+            return
+        try:
+            entry = self.history_store.find(identifier)
+            replies = self.conversation_store.replies(identifier)
+        except KeyError:
+            self._dismiss_review()
+            if self.rewrite_identifier == identifier:
+                self._cancel_rewrite()
+            return
+        self._clear_overlay_timeout()
+        self.overlay_review_identifier = identifier
+        preview = replies[-1].text if replies else entry.delivered_text
+        workspace = self.conversation_workspace
+        if phase == "rewriting" and workspace is not None and workspace.rewrite_preview_identifier == identifier:
+            preview = workspace.rewrite_preview_text or preview
+        if self.recording_overlay_publisher is not None:
+            self.recording_overlay_publisher.publish(
+                RecordingOverlayState(
+                    phase=phase,
+                    preview=preview,
+                    review_identifier=identifier,
+                    review_options=tuple((style.identifier, style.name) for style in self.personalization_store.styles),
+                    message=message,
+                )
+            )
+
+    def _dismiss_review(self) -> None:
+        """Erase the widget's cached note without deleting history or changing the clipboard."""
+        self.overlay_review_identifier = None
+        self._clear_overlay_timeout()
+        if self.recording_overlay_publisher is not None:
+            self.recording_overlay_publisher.clear()
+
+    def _review_action(self, _action: Gio.SimpleAction, parameters: GLib.Variant) -> None:
+        """Accept only actions for the note currently offered by this application instance."""
+        operation, identifier, option = parameters.unpack()
+        if (
+            self.shutting_down
+            or self.config.incognito_mode
+            or not identifier
+            or identifier != self.overlay_review_identifier
+        ):
+            return
+        if operation == "dismiss":
+            self._dismiss_review()
+            return
+        try:
+            entry = self.history_store.find(identifier)
+        except KeyError:
+            self._dismiss_review()
+            return
+        if operation == "rewrite":
+            presets = {"polish": QUICK_POLISH, "structure": STRUCTURED_NOTE}
+            style = self.personalization_store.style(option)
+            instruction = presets.get(option) or (style.instructions if style is not None else None)
+            if instruction is not None:
+                self._begin_rewrite(identifier, instruction)
+        elif operation == "cancel" and self.rewrite_identifier == identifier:
+            self._cancel_rewrite()
+        elif operation == "copy" and self.rewrite_identifier != identifier:
+            replies = self.conversation_store.replies(identifier)
+            try:
+                deliver_text(replies[-1].text if replies else entry.delivered_text, auto_paste=False)
+            except Exception:
+                self._publish_review(identifier, "review-error", "Could not copy. Try again.")
+            else:
+                self._publish_review(identifier, message="Copied")
+        elif operation == "open":
+            self.activate()
+            self._navigate_to_page("capture")
+            self.conversation_workspace.show_conversation(entry, self.conversation_store.replies(identifier))
+            self.conversation_workspace.prompt.grab_focus()
+            self._dismiss_review()
 
     def _rewrite_worker(
         self,
@@ -543,15 +653,51 @@ class MluvaApplication(Adw.Application):
         configured_model: str | None,
     ) -> None:
         """Resolve and run the model away from GTK, leaving durable writes to the completion gate."""
+        parts: list[str] = []
+        last_update = 0.0
+
+        def progress(delta: str) -> None:
+            """Send bounded snapshots at most twenty times a second without blocking the model."""
+            nonlocal last_update
+            parts.append(delta)
+            now = time.monotonic()
+            if now - last_update >= 0.05:
+                last_update = now
+                GLib.idle_add(self._rewrite_progress, client, identifier, "".join(parts))
+
         try:
             model = client.resolve_model(configured_model)
-            result = client.transform(prompt, self.codex_workspace, model, max_output_characters=MAX_REWRITE_CHARACTERS)
+            result = client.transform(
+                prompt,
+                self.codex_workspace,
+                model,
+                max_output_characters=MAX_REWRITE_CHARACTERS,
+                on_delta=progress,
+            )
         except Exception:
             GLib.idle_add(self._rewrite_finished, client, identifier, instruction, "", "")
         else:
             GLib.idle_add(self._rewrite_finished, client, identifier, instruction, result, model)
         finally:
             client.close()
+
+    def _rewrite_progress(self, client: CodexAppServerClient, identifier: str, text: str) -> bool:
+        """Display only the active stream, discarding queued updates after cancellation or privacy changes."""
+        if (
+            self.shutting_down
+            or self.config.incognito_mode
+            or client is not self.rewrite_client
+            or identifier != self.rewrite_identifier
+        ):
+            return GLib.SOURCE_REMOVE
+        workspace = self.conversation_workspace
+        if workspace is not None:
+            workspace.set_rewrite_preview(identifier, text)
+        if self.overlay_review_identifier == identifier and self.recording_overlay_publisher is not None:
+            self.recording_overlay_publisher.publish(
+                RecordingOverlayState(phase="rewriting", preview=text, review_identifier=identifier)
+            )
+        return GLib.SOURCE_REMOVE
 
     def _rewrite_finished(
         self,
@@ -565,20 +711,26 @@ class MluvaApplication(Adw.Application):
         if self.shutting_down or client is not self.rewrite_client:
             return GLib.SOURCE_REMOVE
         self.rewrite_client = None
+        self.rewrite_identifier = None
         workspace = self.conversation_workspace
         if workspace is None:
             return GLib.SOURCE_REMOVE
+        workspace.clear_rewrite_preview()
         if self.config.incognito_mode:
             workspace.set_busy(False, "Rewrite discarded because Incognito is enabled.")
             return GLib.SOURCE_REMOVE
         if not result:
             workspace.set_busy(False, "Rewrite failed. Check Codex, then try again. Your original is safe.")
+            if self.overlay_review_identifier == identifier:
+                self._publish_review(identifier, "review-error", "Rewrite failed. Try again or open the note.")
             return GLib.SOURCE_REMOVE
         try:
             entry = self.history_store.find(identifier)
             self.conversation_store.append(identifier, instruction, result, model)
         except Exception:
             workspace.set_busy(False, "Could not save the rewrite. The conversation may have been deleted.")
+            if self.overlay_review_identifier == identifier:
+                self._publish_review(identifier, "review-error", "Could not save the rewrite. Original unchanged.")
             return GLib.SOURCE_REMOVE
         if workspace.entry is not None and workspace.entry.identifier == identifier:
             if workspace.prompt_text() == self.rewrite_draft:
@@ -587,6 +739,8 @@ class MluvaApplication(Adw.Application):
             workspace.scroll_to_latest()
         workspace.set_busy(False, "Rewrite ready. Choose Copy when you want to use it.")
         workspace.refresh_history()
+        if self.overlay_review_identifier == identifier:
+            self._publish_review(identifier)
         return GLib.SOURCE_REMOVE
 
     def _cancel_rewrite(self) -> None:
@@ -595,9 +749,14 @@ class MluvaApplication(Adw.Application):
         if client is None:
             return
         self.rewrite_client = None
+        identifier = self.rewrite_identifier
+        self.rewrite_identifier = None
         threading.Thread(target=client.cancel, name="cancel-rewrite", daemon=True).start()
         if self.conversation_workspace is not None:
+            self.conversation_workspace.clear_rewrite_preview()
             self.conversation_workspace.set_busy(False, "Rewrite cancelled. Your original is safe.")
+        if identifier is not None and self.overlay_review_identifier == identifier:
+            self._publish_review(identifier)
 
     def _save_rewrite_prompt(self, instruction: str) -> None:
         """Name an explicitly supplied prompt using the existing saved-style store."""
@@ -2313,7 +2472,10 @@ class MluvaApplication(Adw.Application):
                 message = "Paste unconfirmed. Check the target before pasting again."
             else:
                 message = "Copied. Ready to paste."
-            MluvaApplication._publish_completion_status(self, "copied", message)
+            if result.mode == "dictation" and result.history_entry is not None and not self.config.incognito_mode:
+                self._publish_review(result.history_entry.identifier)
+            else:
+                MluvaApplication._publish_completion_status(self, "copied", message)
         return GLib.SOURCE_REMOVE
 
     def _workflow_failed(
@@ -2446,6 +2608,7 @@ class MluvaApplication(Adw.Application):
     def _present_recording_bar(self, state: RecordingBarState) -> None:
         """Project one snapshot into both bounded recording surfaces."""
         MluvaApplication._clear_overlay_timeout(self)
+        self.overlay_review_identifier = None
         workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None:
             workspace.set_live(
@@ -2473,6 +2636,7 @@ class MluvaApplication(Adw.Application):
 
     def _hide_recording_bar(self) -> None:
         """Erase the bar and its slot immediately for any terminal state."""
+        self.overlay_review_identifier = None
         if self.recording_bar is not None:
             self.recording_bar.clear()
         if self.recording_bar_slot is not None:
@@ -2914,6 +3078,9 @@ class MluvaApplication(Adw.Application):
             workspace.set_saved_prompts(
                 [(style.name, style.instructions) for style in self.personalization_store.styles]
             )
+        identifier = getattr(self, "overlay_review_identifier", None)
+        if identifier is not None:
+            self._publish_review(identifier, "rewriting" if self.rewrite_identifier == identifier else "ready")
         if self.output_style is None:
             return
         application_identifier = self.profile_application_identifier if self.config.remember_per_application else None
@@ -3072,12 +3239,15 @@ class MluvaApplication(Adw.Application):
         if self.incognito_switch is None or self.cleanup_switch is None:
             return
         incognito = self.incognito_switch.get_active()
+        if incognito and getattr(self, "overlay_review_identifier", None) is not None:
+            self._dismiss_review()
         workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None:
             workspace.set_private(incognito)
         if incognito and getattr(self, "rewrite_client", None) is not None:
             client = self.rewrite_client
             self.rewrite_client = None
+            self.rewrite_identifier = None
             threading.Thread(target=client.cancel, daemon=True).start()
             if workspace is not None:
                 workspace.set_busy(False, "Rewrite cancelled for Incognito.")
@@ -3415,6 +3585,9 @@ class MluvaApplication(Adw.Application):
         """Refresh correction-derived personalization after a local history mutation."""
         if self.personalization_page is not None:
             self.personalization_page.refresh()
+        identifier = getattr(self, "overlay_review_identifier", None)
+        if identifier is not None:
+            self._publish_review(identifier, "rewriting" if self.rewrite_identifier == identifier else "ready")
         workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None:
             workspace.refresh_history()
@@ -3837,6 +4010,7 @@ class MluvaApplication(Adw.Application):
     def _on_shutdown(self, _application: Adw.Application) -> None:
         """Release child processes and portal registrations during application exit."""
         self.shutting_down = True
+        self.theme_controller.close()
         MluvaApplication._clear_overlay_timeout(self)
         if self.rewrite_client is not None:
             self.rewrite_client.cancel()

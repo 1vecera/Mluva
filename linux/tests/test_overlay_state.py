@@ -9,6 +9,7 @@ from voice_scribe_linux.overlay_state import (
     OVERLAY_INTERFACE,
     OVERLAY_OBJECT_PATH,
     OVERLAY_SIGNAL,
+    SHELL_SIGNAL,
     RecordingOverlayPublisher,
     RecordingOverlayState,
 )
@@ -80,10 +81,12 @@ def test_attaching_shell_receives_current_bounded_state_and_cannot_replay_cleare
     publisher = RecordingOverlayPublisher(connection)
     publisher.publish(RecordingOverlayState(phase="processing", detail="Finishing dictation"))
     publisher.replay()
-    assert connection.calls[-1][-1].unpack()[1:3] == ("processing", "Finishing dictation")
+    assert connection.calls[-2][-1].unpack()[1:3] == ("processing", "Finishing dictation")
+    assert connection.calls[-1][-1].unpack()[0]["phase"] == "processing"
     publisher.clear()
     publisher.replay()
-    assert connection.calls[-1][-1].unpack() == (False, "hidden", "", 0, "", "", 0.0, "", "")
+    assert connection.calls[-2][-1].unpack() == (False, "hidden", "", 0, "", "", 0.0, "", "")
+    assert connection.calls[-1][-1].unpack() == ({"phase": "idle", "elapsed": 0},)
 
 
 def test_optional_publisher_failure_does_not_escape_into_capture() -> None:
@@ -102,11 +105,11 @@ def test_publisher_emits_only_the_display_signal_and_clear() -> None:
     assert publisher.publish(RecordingOverlayState(phase="preparing", detail="Opening microphone"))
     assert publisher.clear()
 
-    assert len(connection.calls) == 2
+    assert len(connection.calls) == 4
     for destination, path, interface, signal, _parameters in connection.calls:
         assert destination is None
         assert path == OVERLAY_OBJECT_PATH
         assert interface == OVERLAY_INTERFACE
-        assert signal == OVERLAY_SIGNAL
+        assert signal in {OVERLAY_SIGNAL, SHELL_SIGNAL}
     assert connection.calls[0][-1].unpack()[0:3] == (True, "preparing", "Opening microphone")
-    assert connection.calls[1][-1].unpack() == (False, "hidden", "", 0, "", "", 0.0, "", "")
+    assert connection.calls[2][-1].unpack() == (False, "hidden", "", 0, "", "", 0.0, "", "")

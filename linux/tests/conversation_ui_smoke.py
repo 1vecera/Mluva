@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import gi
-from conversation_lifecycle import exercise
+from conversation_lifecycle import exercise, exercise_widget_review
 
 from voice_scribe_linux.app import MluvaApplication
 from voice_scribe_linux.conversation import STRUCTURED_NOTE
@@ -38,6 +38,13 @@ def main() -> int:
     scenario = os.environ.get("MLUVA_UI_SCENARIO", "conversation")
     width = int(os.environ.get("MLUVA_UI_WIDTH", "1060"))
     height = int(os.environ.get("MLUVA_UI_HEIGHT", "780"))
+    theme = os.environ.get("MLUVA_UI_THEME")
+    if theme in {"tokyo-night", "rose-pine"}:
+        theme_path = Path(os.environ["XDG_STATE_HOME"]) / "omarchy/current/theme"
+        theme_path.mkdir(parents=True)
+        theme_path.joinpath("colors.toml").write_text(
+            Path(f"/usr/share/omarchy/themes/{theme}/colors.toml").read_text()
+        )
     application = IsolatedApplication()
     errors: list[str] = []
     source = (
@@ -58,6 +65,7 @@ def main() -> int:
             assert workspace is not None
             if scenario == "lifecycle":
                 exercise(application)
+                exercise_widget_review(application)
             for text in (
                 "A few ideas for Friday's meeting",
                 "Notes from the morning walk",
@@ -97,7 +105,12 @@ def main() -> int:
                 application.status_label.set_label("Finishing your dictation.")
                 application.record_button.set_sensitive(False)
             elif scenario == "rewriting":
-                workspace.set_busy(True, "Rewriting… You can keep browsing history.")
+                workspace.set_busy(True, "Rewriting…")
+                workspace.set_rewrite_preview(
+                    entry.identifier,
+                    "Focus the first release on dictation, rewriting and history.\n\n"
+                    "• Keep the latest words visible.\n• Offer direct rewrites",
+                )
             elif scenario == "error":
                 workspace.set_busy(False, "Rewrite failed. Check Codex, then try again. Your original is safe.")
             elif scenario == "incognito":
@@ -155,8 +168,8 @@ def main() -> int:
                     ending = view.get_iter_location(view.get_buffer().get_end_iter())
                     visible = view.get_visible_rect()
                     assert visible.y <= ending.y < visible.y + visible.height
-            assert workspace.quick_polish.get_label() == "Quick Polish"
-            assert workspace.structured_note.get_label() == "Structured Note"
+            assert workspace.quick_polish.get_label() == "Polish"
+            assert workspace.structured_note.get_label() == "Structure"
             application._hide_window(window)
             assert not window.get_visible()
             application._open_latest_conversation()

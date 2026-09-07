@@ -3,7 +3,7 @@
 import pytest
 from gi.repository import Gio, GLib
 
-from voice_scribe_linux.overlay_state import OVERLAY_SIGNAL_SIGNATURE, RecordingOverlayState
+from voice_scribe_linux.overlay_state import OVERLAY_SIGNAL_SIGNATURE, SHELL_SIGNAL_SIGNATURE, RecordingOverlayState
 from voice_scribe_linux.shell_bridge import StatusWatch, activate, project_state
 
 
@@ -26,18 +26,18 @@ def test_hidden_and_invalid_signatures_do_not_preserve_stale_recording() -> None
 
 def test_overlay_preview_is_opt_in_bounded_and_erased_when_hidden() -> None:
     """Expose only the latest visible words to the floating preview, with no idle residue."""
-    text = "Earlier words " * 100 + "Newest words: Žluťoučký kůň"
+    text = "Earlier words " * 1000 + "Newest words: Žluťoučký kůň"
     parameters = GLib.Variant(
-        OVERLAY_SIGNAL_SIGNATURE, RecordingOverlayState(phase="recording", level=0.4, preview=text).as_signal_values()
+        SHELL_SIGNAL_SIGNATURE, (RecordingOverlayState(phase="recording", level=0.4, preview=text).as_shell_values(),)
     )
     assert project_state(parameters, overlay=True) == {
         "phase": "recording",
         "elapsed": 0,
         "level": 0.4,
-        "preview": text[-180:],
+        "preview": text[-4096:],
     }
     assert "preview" not in project_state(parameters)
-    hidden = GLib.Variant(OVERLAY_SIGNAL_SIGNATURE, RecordingOverlayState.hidden().as_signal_values())
+    hidden = GLib.Variant(SHELL_SIGNAL_SIGNATURE, (RecordingOverlayState.hidden().as_shell_values(),))
     assert project_state(hidden, overlay=True) == {"phase": "idle", "elapsed": 0}
 
 
@@ -97,3 +97,27 @@ def test_control_is_allowlisted_and_never_autostarts() -> None:
     assert call[7] == 1500
     with pytest.raises(ValueError):
         activate(connection, ":1.5", "arbitrary-command")
+    activate(connection, ":1.5", "review", ("rewrite", "note-id", "polish"))
+    assert connection.calls[-1][4].unpack() == ("review", [("rewrite", "note-id", "polish")], {})
+    with pytest.raises(ValueError):
+        activate(connection, ":1.5", "review", ("arbitrary-command", "note-id", "polish"))
+
+
+def test_review_projection_carries_option_ids_and_erases_all_review_content() -> None:
+    """Offer bounded labels without publishing the saved model instructions to the shell."""
+    state = RecordingOverlayState(
+        phase="ready",
+        preview="Synthetic result",
+        review_identifier="n" * 80,
+        review_options=tuple(("s" * 80, "Label " * 40) for _ in range(200)),
+        message="m" * 200,
+    )
+    parameters = GLib.Variant(SHELL_SIGNAL_SIGNATURE, (state.as_shell_values(),))
+    projected = project_state(parameters, overlay=True)
+    assert projected["identifier"] == "n" * 36
+    assert len(projected["options"]) == 128
+    assert projected["options"][0] == {"value": "s" * 36, "label": ("Label " * 40)[:64]}
+    assert projected["message"] == "m" * 96
+    assert "preview" not in project_state(parameters)
+    hidden = GLib.Variant(SHELL_SIGNAL_SIGNATURE, (RecordingOverlayState.hidden().as_shell_values(),))
+    assert project_state(hidden, overlay=True) == {"phase": "idle", "elapsed": 0}

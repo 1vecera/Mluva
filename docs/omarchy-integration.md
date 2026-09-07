@@ -1,27 +1,47 @@
-# Mluva on Omarchy
+# Omarchy integration
 
-The optional `mluva.dictation` Quickshell plugin shows a floating widget near the bottom of the bar's display while Mluva prepares the microphone, records, and transcribes. It briefly confirms clipboard readiness or an error, then disappears. The widget passes mouse and keyboard input through to the current application and reserves no desktop space. It shows the newest words when a live preview is too long to fit. Completed notes and rewrites open at their end; scroll up to read earlier text. Rewrite controls return when dictation finishes.
+Mluva’s optional `mluva.dictation` plugin uses Omarchy’s popup colors, border, corner radius, font scale, and button controls. The GTK app follows the active Omarchy `colors.toml` palette, including light/dark mode and theme changes while it is open. Outside Omarchy it follows the system scheme.
+
+During recording, a 520 × 106 pixel widget shows the newest three wrapped lines at the default shell font size. It shrinks to fit narrow displays and grows with the shell’s font scale. The status and timer use a compact row; text stays the same size, with no scrolling animation. The recording surface passes mouse and keyboard input through to the current application and reserves no desktop space.
+
+After dictation, the widget offers **Polish**, **Structure**, and **More** with the built-in styles and saved prompts. Choosing a rewrite runs it in the background against that exact note, even while another conversation is open. The result stays in the widget until dismissed or replaced by a recording. **Copy** copies the displayed version; **Open** opens that conversation and its instruction box. **Cancel** stops a pending rewrite. Rewrites preserve the source, append to the conversation, and change the clipboard only when Copy is chosen. Errors retain the note and its controls. Incognito does not expose a completed conversation for rewriting.
+
+Rewrites stream into the widget and the matching open conversation as text arrives, with display updates limited to twenty per second. Partial text stays in memory and has no Copy action. Only a successfully completed, bounded reply enters history. Cancellation, failure, deletion, and Incognito erase the partial preview; queued updates cannot revive a cancelled request. Browsing another note does not move the stream onto that note.
+
+The review surface accepts pointer input and requests keyboard focus only on demand. Recording never requests focus. Losing the application’s bus owner clears the preview, conversation ID, options, and menu.
+
+## Installation
 
 Install the Linux application with `make linux-install`. The installer packages `mluva-shell` and the plugin under `~/.local/share/voice-scribe/app/quickshell/mluva.dictation`. Copy the plugin into the user plugin directory and enable it through Omarchy:
 
-```bash
+```sh
 mkdir -p ~/.config/omarchy/plugins/mluva.dictation
 cp ~/.local/share/voice-scribe/app/quickshell/mluva.dictation/* ~/.config/omarchy/plugins/mluva.dictation/
 omarchy plugin enable mluva.dictation
 ```
 
-When updating an existing plugin, copy all three files, including `RecordingOverlay.qml`, and reload the Omarchy shell using its normal plugin workflow. Mluva must already be running; the plugin never starts the application or a recording on its own. No additional credential or provider setup is needed for the widget.
+Use the installed `~/.local/bin/mluva-shell` as the plugin’s command when it is absent from the shell’s PATH. When upgrading an already loaded plugin, use `omarchy restart shell` if the shell retains the previous QML components.
 
-The top-bar controls are left-click to start/stop dictation, right-click to cancel, and middle-click to open the latest note. These use Mluva's clipboard-only shell action. Existing keyboard bindings can call `mluva-shell record`, `mluva-shell cancel`, and `mluva-shell latest`. The widget does not grant a global shortcut or enable automatic pasting.
+The bar’s left click starts or stops clipboard-only dictation. Right click cancels capture; middle click opens the latest conversation. These commands address the existing application and never start it implicitly. F9 remains the configured dictation shortcut.
 
-`mluva-shell watch` emits only the capture phase and elapsed seconds. The plugin uses `watch --overlay` to receive an additional audio level and the last 180 characters of the volatile preview. This preview is passed through a pipe to Quickshell, is not logged or stored by the plugin, and is erased on completion, watcher failure, or application exit. The shell does not receive device names, target application names, or credentials. Do not redirect the preview stream into persistent logs.
+`mluva-shell watch` emits only capture phase and elapsed seconds. The plugin opts into `watch --overlay`, which carries audio level, up to 4,096 characters of volatile text, and bounded conversation/style identifiers and labels. Saved instructions, credentials, device names, and target application names are excluded. The production plugin does not log or persist this stream; do not redirect it into persistent logs. Review commands pass only action, conversation ID, and style ID through the existing GApplication action group.
 
 Disable with `omarchy plugin disable mluva.dictation`. Uninstalling Mluva removes its packaged bridge and plugin, while preserving the user-copied plugin and shell configuration.
 
+## Recording display rationale
+
+Google’s CHI 2023 study found that unstable live captions distract readers and developed ways to model and reduce that instability. That supports avoiding unnecessary visual motion, although it does not establish an optimal widget size for dictation. [Modeling and Improving Text Stability in Live Captions](https://research.google/pubs/modeling-and-improving-text-stability-in-live-captions/).
+
+Research on simultaneous subtitles compares word-at-a-time, block, and rolling-line presentation. It motivates retaining visible context, but the study concerns translated subtitles rather than this application. [Simultaneous Speech Translation for Live Subtitling: from Delay to Display](https://arxiv.org/abs/2107.08807).
+
+The resulting design choice is three fixed-height wrapped lines, with the latest line visible and no ticker or font shrinking. This is a product judgment informed by that research, not a measured comprehension improvement. Recognition corrections remain visible immediately; the UI does not freeze or alter the recognizer’s words. Qt’s [Text.Wrap and plain-text rendering](https://doc.qt.io/qt-6/qml-qtquick-text.html) handle long tokens and keep recognized markup literal. The stream remains bounded; after a very long dictation, truncating the retained prefix can change earlier line breaks.
+
 ## Verification
 
-Run `make linux-test linux-shortcut-test` and the repository shell checks. `linux/tests/shell_overlay_smoke.py` runs the actual Quickshell widget and bridge against a separate synthetic publisher on a private session bus. Run it under a private Xvfb display with isolated XDG state and the private AT-SPI registry. It checks recording, processing, copied/error feedback, hidden idle state, owner loss, preview bounds, keyboard focus, and monitor fit, and retains screenshots. `linux/tests/conversation_ui_smoke.py` accepts `MLUVA_UI_SCENARIO=long-note` or `long-live` and explicit `MLUVA_UI_WIDTH`/`MLUVA_UI_HEIGHT` to verify the final line and composer visibility in the production UI.
+Run `make linux-test linux-shortcut-test` and repository shell checks. The Omarchy runtime fixtures require an installed shell under `/usr/share/omarchy/shell` and a private X11 display, session bus, and XDG state. `linux/tests/shell_overlay_smoke.py` copies the installed controls into its private fixture and redirects desktop configuration reads. It runs the production widget and bridge against a separate synthetic publisher, checks focus retention while recording, three-line geometry, controls, light/dark colors, errors, preview erasure, owner loss, and monitor fit, and retains screenshots.
 
-Xvfb verifies rendering and the real process boundary. A live Hyprland recording remains the final acceptance check for layer-shell placement and physical shortcuts; no automated test should record from the user's microphone or send input to their desktop.
+`linux/tests/conversation_ui_smoke.py` with `MLUVA_UI_SCENARIO=lifecycle` tests the real GTK callbacks and a separate fake model subprocess, including note identity during browsing, deliberate Copy, saved prompts, duplicate clicks, cancellation, Incognito, deletion, and late completion after dismissal. `linux/tests/theme_ui_smoke.py` replaces only a private theme symlink and checks that an already open GTK window follows both schemes and recovers from malformed theme data.
 
-The panel uses Quickshell's documented [PanelWindow](https://quickshell.org/docs/v0.2.1/types/Quickshell/PanelWindow/), [input mask](https://quickshell.org/docs/types/Quickshell/QsWindow), and [layer-shell focus](https://quickshell.org/docs/v0.2.1/types/Quickshell.Wayland/WlrLayershell/) properties. The Omarchy widget interface is documented in the installed `/usr/share/omarchy/shell/plugins/bar/README.md`.
+The private X11 checks establish production QML rendering and application/bridge behavior. Physical F9 capture, Hyprland layer-shell focus handoff, popup outside-click dismissal, and insertion into real applications still require live desktop acceptance. This integration remains Experimental until that acceptance is recorded.
+
+The implementation follows Quickshell’s documented [PanelWindow](https://quickshell.org/docs/v0.2.1/types/Quickshell/PanelWindow/), [PopupAnchor](https://quickshell.org/docs/v0.2.1/types/Quickshell/PopupAnchor/), and [on-demand keyboard focus](https://quickshell.org/docs/v0.2.1/types/Quickshell.Wayland/WlrKeyboardFocus/) contracts. Omarchy’s native widget and style interfaces are documented in the installed shell’s `README.md` and `Commons`/`Ui` components.

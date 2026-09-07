@@ -4,6 +4,8 @@ Mluva's primary Linux workflow is dictation, rewriting and history. F9 starts an
 
 Live dictation follows the newest line. Completed notes and rewrites open at their end, with the rewrite controls available after recording finishes. The full text remains selectable and reachable by scrolling up; shortened shell previews keep the newest words.
 
+Rewrites stream into the matching conversation and Omarchy widget as text arrives. The incomplete reply stays in memory and cannot be copied through the rewrite controls. Completion saves one full reply; cancellation, failure, deletion, and Incognito discard the partial display and reject late updates.
+
 Shift+F9 requests the latest conversation through the desktop's Global Shortcuts portal. The desktop approves and may reassign shortcuts. The main window offers Quick Polish, Structured Note, saved prompts, and a multiline prompt for custom rewrites and follow-ups. Pasting text into a new conversation starts the same editing workflow without recording or copying it again.
 
 Quick Polish removes filler words, false starts and accidental repetitions, fixes grammar, and lightly improves phrasing while preserving language, voice and facts. Structured Note leads with a concise summary and organizes the remaining details into bullets. Custom instructions and follow-ups operate on the latest completed version with the original and earlier turns available as context. AI rewrites require review; the app preserves the source and provides an explicit Copy action for every version.
@@ -18,9 +20,9 @@ Follow-ups replay local context through an isolated Codex app-server transformat
 
 ## Shell integration
 
-Omarchy has an optional [Quickshell plugin](omarchy-integration.md) with explicit recording controls and a display-only floating preview. It uses the same application-owned state and dismissal lifecycle described below. This integration remains Experimental pending live Hyprland acceptance.
+Omarchy has an optional [Quickshell plugin](omarchy-integration.md) with explicit recording controls, a three-line floating preview, and direct rewrite actions after dictation. Its completed-note controls remain available until dismissal or a new recording; recording itself stays noninteractive. This integration remains Experimental pending live Hyprland acceptance.
 
-The bundled GNOME Shell extension adds a top-panel Mluva menu with recording, latest conversation, history, settings, open and quit actions. Actions delegate to the application's existing GApplication action group. The bottom bar remains noninteractive and does not change keyboard focus. It shows preparing, recording, processing, copied and error states. Copied feedback remains for five seconds and errors for ten seconds; a new recording cancels the older dismissal timer. The bar clears when the app's bus owner disappears.
+The bundled GNOME Shell extension adds a top-panel Mluva menu with recording, latest conversation, history, settings, open and quit actions. Actions delegate to the application's existing GApplication action group. Its bottom bar remains noninteractive and does not change keyboard focus. It shows preparing, recording, processing and errors; a completed saved dictation hides that bar while Omarchy offers conversation controls. Other capture modes retain five-second copied feedback, and errors remain for ten seconds. A new recording cancels the older dismissal timer. The bar clears when the app's bus owner disappears.
 
 When the extension attaches or is re-enabled, it requests the last bounded display snapshot through the same application action group. Processing status therefore returns immediately without restarting capture or touching the clipboard.
 
@@ -30,7 +32,7 @@ Install the shell integration with `make linux-recording-overlay-install`, or `m
 
 ## Visual direction
 
-The interface uses neutral reading surfaces, a quiet sidebar, restrained violet actions, a consistent sans-serif type scale and visible keyboard focus. The rounded lowercase m has two open arches and a trailing speech stroke. Its colored app tile and monochrome panel mark share one path, with no font or image dependencies. Keep at least one stroke width of clear space around the mark and use the monochrome variant on the panel. The symbol is intended to remain readable at 16 pixels; the app tile is used from 24 pixels upward.
+On Omarchy, the interface follows the active light/dark palette with monospace text, compact headings and flat controls; the widget uses native Omarchy controls and style tokens. Elsewhere the GTK interface retains its neutral reading surfaces, quiet sidebar, violet actions, sans-serif type scale and visible keyboard focus. The rounded lowercase m has two open arches and a trailing speech stroke. Its colored app tile and monochrome panel mark share one path, with no font or image dependencies. Keep at least one stroke width of clear space around the mark and use the monochrome variant on the panel. The symbol is intended to remain readable at 16 pixels; the app tile is used from 24 pixels upward.
 
 Visual guidance was fetched from the [logo-design skill](https://github.com/atypica-ai/marketing-skills/blob/main/skills/logo-design/SKILL.md) and [Anthropic frontend-design skill](https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md), together with [Apple's app-icon guidance](https://developer.apple.com/design/human-interface-guidelines/app-icons) and [sidebar guidance](https://developer.apple.com/design/human-interface-guidelines/sidebars). These inform visual craft; GNOME remains the runtime. Codex transport follows the [official app-server documentation](https://learn.chatgpt.com/docs/app-server) and is tested against an independent synthetic server process.
 
