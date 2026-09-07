@@ -144,6 +144,15 @@ def main() -> None:
             """Drive only the retained private Quickshell process."""
             subprocess.run(["quickshell", "ipc", "--pid", str(process.pid), "call", "fixture", *arguments], check=True)
 
+        def expect_commands(expected: list[tuple[str, str, str]]) -> None:
+            """Wait for the separate control process's D-Bus delivery, independently of frame timing."""
+            deadline = time.monotonic() + 5
+            while len(commands) < len(expected) and time.monotonic() < deadline:
+                while GLib.MainContext.default().pending():
+                    GLib.MainContext.default().iteration(False)
+                time.sleep(0.01)
+            assert commands == expected, commands
+
         try:
             idle = observe("idle")
             assert not idle["visible"]
@@ -188,11 +197,13 @@ def main() -> None:
                     ["import", "-window", "root", str(output / f"menu-{'light' if light else 'dark'}.png")], check=True
                 )
             ipc("click", "polish")
+            expect_commands([("rewrite", "synthetic-note", "polish")])
             observe("ready")
             assert commands == [("rewrite", "synthetic-note", "polish")]
             ipc("click", "more")
             observe("ready")
             ipc("option", "2")
+            expect_commands([("rewrite", "synthetic-note", "polish"), ("rewrite", "synthetic-note", "custom")])
             observe("ready")
             assert commands[-1] == ("rewrite", "synthetic-note", "custom")
             for preview in ("A streamed rewrite", "A streamed rewrite grows as the model responds. " * 8):
