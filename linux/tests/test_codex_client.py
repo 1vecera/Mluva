@@ -12,10 +12,15 @@ def test_transform_uses_current_app_server_protocol() -> None:
     """Prove the client handshake and turn lifecycle against an independent process."""
     fake_server = Path(__file__).with_name("fake_app_server.py")
     client = CodexAppServerClient(command=(sys.executable, str(fake_server)))
+    deltas = []
     try:
         assert client.resolve_model(None) == "gpt-5.4"
         assert client.resolve_model("codex-explicit") == "gpt-5.4-mini"
-        assert client.transform("Clean this", cwd=Path.cwd(), model="gpt-5.4-mini") == "Clean text."
+        assert (
+            client.transform("Clean this", cwd=Path.cwd(), model="gpt-5.4-mini", on_delta=deltas.append)
+            == "Clean text."
+        )
+        assert deltas == ["Clean ", "text."]
         assert client.last_model_identifier == "gpt-5.4-mini"
     finally:
         client.close()
@@ -118,8 +123,10 @@ def test_oversized_stream_is_stopped_at_the_client_boundary() -> None:
     """Bound accumulated app-server output before workflow validation or History can see it."""
     fake_server = Path(__file__).with_name("fake_app_server.py")
     client = CodexAppServerClient(command=(sys.executable, str(fake_server), "--oversized-output"))
+    deltas = []
 
     with pytest.raises(CodexAppServerError, match="exceeded the supported bound"):
-        client.transform("Clean this", cwd=Path.cwd())
+        client.transform("Clean this", cwd=Path.cwd(), on_delta=deltas.append)
 
     assert client.process is None
+    assert deltas == []

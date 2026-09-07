@@ -77,6 +77,10 @@ def main() -> None:
     exported = connection.export_action_group("/com/voicescribe/Linux", actions)
     owner = Gio.bus_own_name_on_connection(connection, "com.voicescribe.Linux", Gio.BusNameOwnerFlags.NONE, None, None)
     receipts = []
+    commands = []
+    review_action = Gio.SimpleAction.new("review", GLib.VariantType.new("(sss)"))
+    review_action.connect("activate", lambda _action, parameters: commands.append(parameters.unpack()))
+    actions.add_action(review_action)
     environment = {**os.environ, "MLUVA_SHELL_COMMAND": str(Path(__file__).resolve().parents[1] / "mluva-shell")}
     fixture = output / "shell.qml"
     fixture.write_text(
@@ -86,6 +90,20 @@ def main() -> None:
         .replace('"../quickshell/mluva.dictation"', '"./mluva.dictation"')
     )
     shutil.copytree(Path(__file__).resolve().parents[1] / "quickshell/mluva.dictation", output / "mluva.dictation")
+    # Use the installed Omarchy controls, redirecting only their desktop reads to
+    # the runner's private configuration. Never switch the user's active theme.
+    for module in ("Commons", "Ui"):
+        shutil.copytree(Path("/usr/share/omarchy/shell") / module, output / module)
+        for qml in (output / module).glob("*.qml"):
+            qml.write_text(
+                qml.read_text().replace('Quickshell.env("HOME")', 'Quickshell.env("OFFSCREEN_SESSION_ROOT")')
+            )
+    binaries = output / "bin"
+    binaries.mkdir()
+    hyprctl = binaries / "hyprctl"
+    hyprctl.write_text("#!/bin/sh\nprintf '{\"int\":0}\\n'\n")
+    hyprctl.chmod(0o700)
+    environment["PATH"] = str(binaries) + os.pathsep + environment["PATH"]
     with (output / "quickshell.log").open("w") as log:
         process = subprocess.Popen(
             ["quickshell", "--no-color", "-p", str(fixture)],
@@ -94,7 +112,7 @@ def main() -> None:
             stderr=subprocess.STDOUT,
         )
 
-        def observe(phase: str) -> dict[str, object]:
+        def observe(phase: str, preview: str | None = None) -> dict[str, object]:
             """Wait for a frame-stable snapshot from the separately running production QML."""
             deadline = time.monotonic() + 30
             previous = None
@@ -111,12 +129,20 @@ def main() -> None:
                 observed_lines = len(lines)
                 if payloads:
                     state = json.loads(payloads[-1])
-                    if state["phase"] == phase and state == previous:
+                    if (
+                        state["phase"] == phase
+                        and state == previous
+                        and (preview is None or state["preview"] == preview)
+                    ):
                         receipts.append(state)
                         return state
                     previous = state
                 time.sleep(0.05)
             raise AssertionError(f"Widget did not settle in {phase}: {previous}")
+
+        def ipc(*arguments: str) -> None:
+            """Drive only the retained private Quickshell process."""
+            subprocess.run(["quickshell", "ipc", "--pid", str(process.pid), "call", "fixture", *arguments], check=True)
 
         try:
             idle = observe("idle")
@@ -124,7 +150,8 @@ def main() -> None:
             focus_editor()
             idle = observe("idle")
             assert idle["focus"]
-            for phase in ("preparing", "recording", "processing", "copied", "error"):
+            ipc("theme", "false")
+            for phase in ("preparing", "recording", "processing", "error"):
                 preview = ("Earlier words " * 100 + "LATEST WORDS: Žluťoučký kůň") if phase == "recording" else ""
                 publisher.publish(RecordingOverlayState(phase=phase, elapsed_seconds=73, level=0.4, preview=preview))
                 state = observe(phase)
@@ -132,8 +159,59 @@ def main() -> None:
                 assert state["focus"] == idle["focus"]
                 assert state["width"] <= state["screenWidth"] - 32
                 assert state["height"] + state["bottom"] <= state["screenHeight"]
-                assert state["preview"] == preview[-180:]
+                assert state["preview"] == preview[-4096:]
+                if phase == "recording":
+                    assert state["viewportHeight"] == state["lineHeight"] * 3
+                    assert state["textY"] < 0
+                    assert state["textY"] + state["textHeight"] == state["viewportHeight"]
                 subprocess.run(["import", "-window", "root", str(output / f"{phase}.png")], check=True)
+            for light in (False, True):
+                ipc("theme", str(light).lower())
+                publisher.publish(
+                    RecordingOverlayState(
+                        phase="ready",
+                        preview="A concise note with enough room to review the final words before choosing a rewrite.",
+                        review_identifier="synthetic-note",
+                        review_options=(("email", "Email"), ("tasks", "Tasks"), ("custom", "Saved prompt")),
+                    )
+                )
+                state = observe("ready")
+                assert state["focusable"] and state["identifier"] == "synthetic-note"
+                assert state["background"] == ("#faf4ed" if light else "#1a1b26")
+                assert commands == []
+                subprocess.run(
+                    ["import", "-window", "root", str(output / f"ready-{'light' if light else 'dark'}.png")], check=True
+                )
+                ipc("click", "more")
+                assert observe("ready")["menuOpen"]
+                subprocess.run(
+                    ["import", "-window", "root", str(output / f"menu-{'light' if light else 'dark'}.png")], check=True
+                )
+            ipc("click", "polish")
+            observe("ready")
+            assert commands == [("rewrite", "synthetic-note", "polish")]
+            ipc("click", "more")
+            observe("ready")
+            ipc("option", "2")
+            observe("ready")
+            assert commands[-1] == ("rewrite", "synthetic-note", "custom")
+            for preview in ("A streamed rewrite", "A streamed rewrite grows as the model responds. " * 8):
+                preview = preview.strip()
+                publisher.publish(
+                    RecordingOverlayState(phase="rewriting", preview=preview, review_identifier="synthetic-note")
+                )
+                state = observe("rewriting", preview)
+                assert state["visible"] and not state["copyEnabled"] and state["renderedText"] == preview
+            subprocess.run(["import", "-window", "root", str(output / "streaming.png")], check=True)
+            publisher.publish(
+                RecordingOverlayState(
+                    phase="review-error",
+                    preview="Original stays safe",
+                    review_identifier="synthetic-note",
+                    message="Rewrite failed. Try again or open the note.",
+                )
+            )
+            assert observe("review-error")["visible"]
             publisher.clear()
             assert not observe("idle")["visible"]
             publisher.publish(RecordingOverlayState(phase="recording", preview="Must disappear on owner loss"))

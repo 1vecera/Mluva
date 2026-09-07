@@ -7,6 +7,10 @@ and dialogs stay coherent, and adds the editorial surface components used by
 the application shell.
 """
 
+import os
+import re
+import tomllib
+from pathlib import Path
 from typing import Final
 
 import gi
@@ -15,7 +19,7 @@ from voice_scribe_linux.brand import BRAND_ACTION, BRAND_INK, BRAND_SURFACE
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gdk, Gtk  # noqa: E402
+from gi.repository import Adw, Gdk, GLib, Gtk  # noqa: E402
 
 LightTokens: Final[dict[str, str]] = {
     "canvas": "#FAFAFC",
@@ -259,15 +263,22 @@ def build_shell_stylesheet(tokens: dict[str, str] = DarkTokens) -> str:
 class ThemeController:
     """Install and re-load the token-derived stylesheet for the whole app."""
 
-    def __init__(self) -> None:
-        """Prepare one provider that will follow the system color scheme."""
+    def __init__(self, theme_directory: Path | None = None) -> None:
+        """Follow Omarchy's active palette when available, otherwise the system scheme."""
         self._provider = Gtk.CssProvider()
         self._installed = False
+        state_home = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state"))
+        self.theme_directory = theme_directory or state_home / "omarchy/current/theme"
+        self._timer = 0
+        self._scheme_handler = 0
+        self._loading = False
+        self._stamp: tuple[int, int, int] | None = None
+        self._previous_scheme: Adw.ColorScheme | None = None
 
     def apply(self) -> None:
         """Load the stylesheet for the active scheme onto the default display."""
         style_manager = Adw.StyleManager.get_default()
-        self._load(style_manager.get_dark())
+        self._load()
         display = Gdk.Display.get_default()
         if display is None:
             return
@@ -278,13 +289,114 @@ class ThemeController:
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
             )
             self._installed = True
-        style_manager.connect("notify::dark", self._on_scheme_changed)
+        if not self._scheme_handler:
+            self._scheme_handler = style_manager.connect("notify::dark", self._on_scheme_changed)
+        if not self._timer:
+            self._timer = GLib.timeout_add_seconds(1, self._check_theme)
 
-    def _load(self, dark: bool) -> None:
-        """Swap the token table behind the installed stylesheet."""
-        tokens = DarkTokens if dark else LightTokens
-        self._provider.load_from_data(build_stylesheet(tokens).encode("utf-8"))
+    def _load(self) -> None:
+        """Derive all GTK colors from the current theme without writing desktop configuration."""
+        if self._loading:
+            return
+        self._loading = True
+        try:
+            manager = Adw.StyleManager.get_default()
+            palette = read_omarchy_palette(self.theme_directory / "colors.toml")
+            if palette is None:
+                if self._previous_scheme is not None:
+                    manager.set_color_scheme(self._previous_scheme)
+                    self._previous_scheme = None
+                css = build_stylesheet(DarkTokens if manager.get_dark() else LightTokens)
+            else:
+                colors, dark = palette
+                if self._previous_scheme is None:
+                    self._previous_scheme = manager.get_color_scheme()
+                manager.set_color_scheme(Adw.ColorScheme.FORCE_DARK if dark else Adw.ColorScheme.FORCE_LIGHT)
+                css = (
+                    build_stylesheet(colors)
+                    + """
+window.background { font-family: monospace; }
+button, entry, searchentry, .card, .boxed-list, .ml-history-sidebar row,
+.ml-instruction, .ml-prompt, .ml-live, .vs-callout, .vs-recording-bar { border-radius: 0; }
+.ml-wordmark { font-size: 18px; letter-spacing: 0; }
+.ml-conversation-title { font-size: 20px; letter-spacing: 0; }
+.ml-live { background: transparent; padding: 0; }
+.ml-live .heading { color: @vs_ink_secondary; font-weight: 400; }
+"""
+                )
+            self._provider.load_from_data(css.encode("utf-8"))
+        finally:
+            self._loading = False
+
+    def _check_theme(self) -> bool:
+        """Notice file replacement and theme-symlink swaps with one inexpensive stat call."""
+        try:
+            stat = (self.theme_directory / "colors.toml").stat()
+            stamp = (stat.st_ino, stat.st_mtime_ns, stat.st_size)
+        except OSError:
+            stamp = None
+        if stamp != self._stamp:
+            self._stamp = stamp
+            self._load()
+        return GLib.SOURCE_CONTINUE
 
     def _on_scheme_changed(self, manager: Adw.StyleManager, _param: object) -> None:
         """Reload when the system scheme flips."""
-        self._load(manager.get_dark())
+        self._load()
+
+    def close(self) -> None:
+        """Release the stylesheet's lifetime hooks when the application exits."""
+        if self._timer:
+            GLib.source_remove(self._timer)
+            self._timer = 0
+        if self._scheme_handler:
+            Adw.StyleManager.get_default().disconnect(self._scheme_handler)
+            self._scheme_handler = 0
+
+
+def read_omarchy_palette(path: Path) -> tuple[dict[str, str], bool] | None:
+    """Map a valid Omarchy palette onto the existing semantic tokens, with no CSS interpolation from prose."""
+    try:
+        palette = tomllib.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not all(
+        isinstance(palette.get(key), str) and re.fullmatch(r"#[0-9a-fA-F]{6}", palette[key])
+        for key in ("background", "foreground", "accent")
+    ):
+        return None
+    background, foreground, accent = (palette[key] for key in ("background", "foreground", "accent"))
+    dark = palette.get("mode", "dark") == "dark"
+
+    def color(key: str, fallback: str) -> str:
+        """Use only complete color literals from optional palette roles."""
+        value = palette.get(key)
+        return value if isinstance(value, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", value) else fallback
+
+    danger = color("red", accent)
+    success = color("green", accent)
+    warning = color("yellow", accent)
+    return {
+        "canvas": background,
+        "surface": background,
+        "surface_subtle": color("selection", _blend(foreground, background, 0.06)),
+        "ink": foreground,
+        "ink_secondary": _blend(foreground, background, 0.85),
+        "ink_muted": _blend(foreground, background, 0.65),
+        "outline": color("muted", _blend(foreground, background, 0.3)),
+        "outline_subtle": _blend(foreground, background, 0.18),
+        "shadow": background,
+        "action": accent,
+        "action_hover": _blend(accent, foreground, 0.85),
+        "on_action": background,
+        "accent_strong": accent,
+        "accent_soft": color("selection", _blend(accent, background, 0.15)),
+        "danger": danger,
+        "on_danger": background,
+        "danger_soft": _blend(danger, background, 0.12),
+        "success": success,
+        "success_soft": _blend(success, background, 0.12),
+        "warning": warning,
+        "warning_soft": _blend(warning, background, 0.12),
+        "focus": accent,
+    }, dark

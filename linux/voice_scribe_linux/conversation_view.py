@@ -41,6 +41,10 @@ class ConversationWorkspace(Gtk.Box):
         self.private = False
         self.drafts: dict[str, str] = {}
         self.result_widgets: list[Gtk.Label] = []
+        self.rewrite_preview_identifier: str | None = None
+        self.rewrite_preview_text = ""
+        self.rewrite_preview_box: Gtk.Box | None = None
+        self.rewrite_preview_label: Gtk.Label | None = None
         self.follow_latest = True
         self.tail_scroll_pending = False
         self.live_scroll_pending = False
@@ -135,15 +139,15 @@ class ConversationWorkspace(Gtk.Box):
             max_children_per_line=3,
             min_children_per_line=1,
         )
-        self.quick_polish = Gtk.Button(label="Quick Polish")
+        self.quick_polish = Gtk.Button(label="Polish")
         self.quick_polish.set_tooltip_text("Remove filler words and fix phrasing while keeping your meaning")
         self.quick_polish.connect("clicked", lambda _button: self.request_rewrite(QUICK_POLISH))
         self.actions.insert(self.quick_polish, -1)
-        self.structured_note = Gtk.Button(label="Structured Note")
+        self.structured_note = Gtk.Button(label="Structure")
         self.structured_note.set_tooltip_text("A concise summary followed by organized bullet points")
         self.structured_note.connect("clicked", lambda _button: self.request_rewrite(STRUCTURED_NOTE))
         self.actions.insert(self.structured_note, -1)
-        self.saved_prompts = Gtk.MenuButton(label="Saved prompts")
+        self.saved_prompts = Gtk.MenuButton(label="More")
         self.actions.insert(self.saved_prompts, -1)
         composer.append(self.actions)
 
@@ -221,6 +225,8 @@ class ConversationWorkspace(Gtk.Box):
         self.drafts[self.entry.identifier if self.entry else "new"] = self.prompt_text()
         self.entry = entry
         self.result_widgets.clear()
+        self.rewrite_preview_box = None
+        self.rewrite_preview_label = None
         child = self.messages.get_first_child()
         while child is not None:
             self.messages.remove(child)
@@ -252,6 +258,7 @@ class ConversationWorkspace(Gtk.Box):
                 request.add_css_class("ml-instruction")
                 self.messages.append(request)
                 self._message("Rewrite", reply.text)
+            self._render_rewrite_preview()
         self.prompt.get_buffer().set_text(self.drafts.get(entry.identifier if entry else "new", ""))
         self.prompt_label.set_label(
             "Ask for a rewrite or a follow-up" if entry else "Paste or type text to get started"
@@ -267,6 +274,36 @@ class ConversationWorkspace(Gtk.Box):
         if self.split.get_collapsed():
             self.split.set_show_sidebar(False)
         self.scroll_to_latest()
+
+    def set_rewrite_preview(self, identifier: str, text: str) -> None:
+        """Retain one volatile stream across navigation, with no partial Copy or persistence."""
+        self.rewrite_preview_identifier = identifier
+        self.rewrite_preview_text = text
+        self._render_rewrite_preview()
+
+    def _render_rewrite_preview(self) -> None:
+        """Update only the selected note's streaming reply without rebuilding its history."""
+        if self.entry is None or self.entry.identifier != self.rewrite_preview_identifier or self.private:
+            return
+        if self.rewrite_preview_box is None:
+            self.rewrite_preview_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2)
+            self.rewrite_preview_box.add_css_class("ml-reply")
+            self.rewrite_preview_box.append(Gtk.Label(label="Rewriting…", xalign=0, css_classes=["heading"]))
+            self.rewrite_preview_label = Gtk.Label(xalign=0, yalign=0, wrap=True)
+            self.rewrite_preview_label.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
+            self.rewrite_preview_label.add_css_class("ml-transcript")
+            self.rewrite_preview_box.append(self.rewrite_preview_label)
+            self.messages.append(self.rewrite_preview_box)
+        self.rewrite_preview_label.set_label(self.rewrite_preview_text)
+
+    def clear_rewrite_preview(self) -> None:
+        """Erase partial text on completion, failure, cancellation or privacy changes."""
+        self.rewrite_preview_identifier = None
+        self.rewrite_preview_text = ""
+        if self.rewrite_preview_box is not None:
+            self.messages.remove(self.rewrite_preview_box)
+        self.rewrite_preview_box = None
+        self.rewrite_preview_label = None
 
     def scroll_to_latest(self) -> None:
         """Follow the conversation's outer viewport through GTK's deferred text measurement."""
@@ -396,6 +433,7 @@ class ConversationWorkspace(Gtk.Box):
         self.private = private
         if private:
             self.drafts.clear()
+            self.clear_rewrite_preview()
         self._update_actions()
 
     def set_live(self, phase: str, text: str) -> None:

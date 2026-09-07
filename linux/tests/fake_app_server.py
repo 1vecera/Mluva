@@ -77,17 +77,21 @@ def main() -> None:
                 previous = context["completed_rewrites"]
                 text = previous[-1]["text"] if previous else context["initial_text"]
                 time.sleep(0.2)
-                send(
-                    {
-                        "method": "item/agentMessage/delta",
-                        "params": {
-                            "threadId": "thread-test",
-                            "turnId": "turn-test",
-                            "itemId": "item-test",
-                            "delta": text + "\n" + context["next_instruction"],
-                        },
-                    }
-                )
+                replacement = text + "\n" + context["next_instruction"]
+                midpoint = len(replacement) // 2
+                for delta in (replacement[:midpoint], replacement[midpoint:]):
+                    send(
+                        {
+                            "method": "item/agentMessage/delta",
+                            "params": {
+                                "threadId": "thread-test",
+                                "turnId": "turn-test",
+                                "itemId": "item-test",
+                                "delta": delta,
+                            },
+                        }
+                    )
+                    time.sleep(0.15)
                 send(
                     {
                         "method": "turn/completed",

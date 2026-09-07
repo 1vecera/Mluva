@@ -6,7 +6,7 @@ The supported Fedora GNOME behavior and the security reasons for its deliberate 
 
 ## Daily workflow
 
-Omarchy users can enable the optional [Quickshell recording widget](../docs/omarchy-integration.md), which shows listening, transcription, and clipboard readiness above the current application without taking focus.
+Omarchy users can enable the optional [Quickshell recording widget](../docs/omarchy-integration.md), which follows the desktop theme, shows three wrapped lines while recording, and offers Polish, Structure, and saved prompts directly after dictation. Recording keeps keyboard focus in the current application.
 
 F9 starts and stops background dictation. Completed text is copied automatically and saved as a conversation. Use Quick Polish for faithful cleanup, Structured Note for a summary and bullets, or enter a custom instruction and press Ctrl+Enter. Follow-ups use the previous completed replies. Every message has its own Copy action; a rewrite does not overwrite the clipboard until you choose it. New conversation accepts pasted or typed text without replacing the clipboard.
 

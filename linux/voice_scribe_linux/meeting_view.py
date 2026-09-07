@@ -113,7 +113,7 @@ class MeetingPage(Gtk.Box):
         icon.set_valign(Gtk.Align.START)
         heading.append(icon)
         status_copy = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_1)
-        title = Gtk.Label(label="Ready for an explicit Meeting", xalign=0)
+        title = Gtk.Label(label="Ready for an explicit Meeting", xalign=0, wrap=True)
         title.add_css_class("title-2")
         status_copy.append(title)
         self.status_label = Gtk.Label(
