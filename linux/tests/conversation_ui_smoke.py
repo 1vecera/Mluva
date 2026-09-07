@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 import gi
 from conversation_lifecycle import exercise, exercise_widget_review
+from scroll_lifecycle import exercise_scrolling
 from title_lifecycle import exercise_titles
 
 from voice_scribe_linux.app import MluvaApplication
@@ -24,7 +25,39 @@ from voice_scribe_linux.ui import set_button_content
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("GdkX11", "4.0")
-from gi.repository import Adw, GLib, Gtk  # noqa: E402
+gi.require_version("Gsk", "4.0")
+gi.require_version("Graphene", "1.0")
+from gi.repository import Adw, Gdk, GLib, Graphene, Gsk, Gtk  # noqa: E402, F401
+
+
+def render_widget(widget: Gtk.Widget) -> Gdk.Texture:
+    """Keep the native render bounds and alpha, including for a separate popover surface."""
+    snapshot = Gtk.Snapshot()
+    width, height = widget.get_width(), widget.get_height()
+    Gtk.WidgetPaintable.new(widget).snapshot(snapshot, width, height)
+    viewport = Graphene.Rect().init(0, 0, width, height)
+    return widget.get_native().get_renderer().render_texture(snapshot.to_node(), viewport)
+
+
+def capture_alpha(window: Gtk.Window, workspace, output: Path) -> None:
+    """Inspect the production render's alpha without needing a live desktop compositor."""
+    texture = render_widget(window)
+    texture.save_to_png(str(output / "workspace-alpha.png"))
+    downloader = Gdk.TextureDownloader.new(texture)
+    downloader.set_format(Gdk.MemoryFormat.R8G8B8A8)
+    data, stride = downloader.download_bytes()
+    pixels = data.get_data()
+    samples = {}
+    for name, widget in (("conversation", workspace.content), ("history", workspace.split.get_sidebar())):
+        if name == "history" and workspace.split.get_collapsed():
+            continue
+        success, bounds = widget.compute_bounds(window)
+        assert success
+        x = round(bounds.get_x() + 4)
+        y = round(bounds.get_y() + bounds.get_height() / 2)
+        samples[name] = pixels[y * stride + x * 4 + 3]
+    (output / "transparency.json").write_text(json.dumps(samples))
+    assert all(180 <= alpha <= 230 for alpha in samples.values()), samples
 
 
 class IsolatedApplication(MluvaApplication):
@@ -83,6 +116,9 @@ def main() -> int:
                 exercise_titles(application)
             elif scenario == "titles":
                 exercise_titles(application)
+            elif scenario == "scroll-motion":
+                exercise_scrolling(application, output)
+            application._navigate_to_page("capture")
             for text in (
                 "A few ideas for Friday's meeting",
                 "Notes from the morning walk",
@@ -145,6 +181,10 @@ def main() -> int:
                 Adw.StyleManager.get_default().set_color_scheme(Adw.ColorScheme.FORCE_DARK)
             elif scenario == "settings":
                 application._show_settings(application.settings_button)
+            elif scenario == "menu":
+                application.main_menu_button.popup()
+            elif scenario == "prompts":
+                workspace.saved_prompts.popup()
             if scenario not in {"empty", "incognito"}:
                 assert workspace.result_widgets[0].get_text() == source
             frames = 0
@@ -218,6 +258,29 @@ def main() -> int:
             scale = window.get_surface().get_scale_factor()
             assert png_size == (width * scale, height * scale), "Virtual screen clipped the scaled window"
             workspace = application.conversation_workspace
+            if scenario in {"menu", "prompts"}:
+                button = application.main_menu_button if scenario == "menu" else workspace.saved_prompts
+                render_widget(button.get_popover()).save_to_png(str(output / "menu.png"))
+            if os.environ.get("MLUVA_UI_ALPHA_CHECK") == "1":
+                capture_alpha(window, workspace, output)
+            aligned = {}
+            for name, widget in (
+                ("heading", workspace.heading),
+                ("messages", workspace.messages),
+                ("composer", workspace.composer),
+                ("recording", application.capture_action_bar),
+            ):
+                if widget.get_mapped():
+                    success, bounds = widget.compute_bounds(window)
+                    assert success
+                    aligned[name] = bounds.get_x()
+            assert "heading" in aligned, "The capture workspace must be mapped for layout checks"
+            assert max(aligned.values()) - min(aligned.values()) <= 1, aligned
+            if not workspace.split.get_collapsed():
+                _, sidebar_bounds = workspace.sidebar_heading.compute_bounds(window)
+                _, heading_bounds = workspace.heading.compute_bounds(window)
+                assert abs(sidebar_bounds.get_y() - heading_bounds.get_y()) <= 1
+                (output / "alignment.json").write_text(json.dumps(aligned))
             if scenario in {"long-note", "long-live"}:
                 scroll = workspace.live_scroll if scenario == "long-live" else workspace.scroll
                 adjustment = scroll.get_vadjustment()

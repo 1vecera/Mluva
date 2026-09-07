@@ -99,6 +99,7 @@ from voice_scribe_linux.ui import (
     SPACE_1,
     SPACE_2,
     SPACE_3,
+    SPACE_4,
     FeatureMaturityNotice,
     NavigationRail,
     RecordingBarState,
@@ -433,7 +434,9 @@ class MluvaApplication(Adw.Application):
             ("Quit Mluva", "quit"),
         ):
             menu.append(label, f"app.{action_name}")
-        self.header_bar.pack_end(Gtk.MenuButton(icon_name="open-menu-symbolic", menu_model=menu))
+        self.main_menu_button = Gtk.MenuButton(icon_name="open-menu-symbolic", menu_model=menu)
+        self.main_menu_button.set_tooltip_text("Mluva menu")
+        self.header_bar.pack_end(self.main_menu_button)
 
         shell = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         shell.append(stack)
@@ -941,7 +944,7 @@ class MluvaApplication(Adw.Application):
         self.capture_status_title = Gtk.Label(label="Ready to dictate", xalign=0)
         self.capture_status_title.add_css_class("heading")
         self.capture_action_bar = self._build_capture_action_bar()
-        page.add_bottom_bar(self.capture_action_bar)
+        self.conversation_workspace.set_capture_controls(self.capture_action_bar)
         self.settings_dialog = self._build_settings_dialog()
         self._refresh_style_controls()
         self._update_capture_status_rows()
@@ -1018,7 +1021,8 @@ class MluvaApplication(Adw.Application):
         """Keep recording status and a compact start/stop action outside the transcript scroll."""
         dock = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=SPACE_3)
         dock.add_css_class("ml-recording-dock")
-        set_margins(dock, 10)
+        set_margins(dock, SPACE_4)
+        dock.set_margin_top(SPACE_2)
         status = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_1, hexpand=True)
         self.capture_status_title.set_visible(False)
         status.append(self.capture_status_title)
@@ -1031,6 +1035,7 @@ class MluvaApplication(Adw.Application):
         self.record_button = Gtk.Button(valign=Gtk.Align.CENTER)
         self.record_button.set_tooltip_text("Start or stop dictation · F9")
         self.record_button.add_css_class("suggested-action")
+        self.record_button.add_css_class("ml-record-toggle")
         set_button_content(self.record_button, "audio-input-microphone-symbolic", "Dictate")
         self.record_button.connect("clicked", self._toggle_recording)
         dock.append(self.record_button)

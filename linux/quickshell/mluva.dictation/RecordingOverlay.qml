@@ -13,6 +13,7 @@ PanelWindow {
     required property int elapsed
     required property real level
     required property string preview
+    property int previewStart: 0
     property string identifier: ""
     property var options: []
     property string message: ""
@@ -30,6 +31,15 @@ PanelWindow {
         ? Color.urgent : Color.accent
     readonly property int textSize: Math.max(12, Style.font.body)
     readonly property int lineHeight: Math.ceil(textSize * 1.4)
+    readonly property int previewLines: 5
+    readonly property real surfaceOpacity: 0.82
+    property bool animatePreview: false
+    property bool previewReady: false
+    property string displayedPreview: ""
+    property int displayedStart: 0
+    property string displayedIdentifier: ""
+    property real leadingIndent: 0
+    property real discardedHeight: 0
     readonly property string status: ({"preparing": "Preparing microphone…", "recording": "Recording",
         "processing": "Transcribing…", "error": "Dictation failed · open Mluva"})[phase] || ""
     readonly property string timer: Math.floor(elapsed / 60).toString().padStart(2, "0")
@@ -47,11 +57,61 @@ PanelWindow {
         lastTick = Date.now();
         dismissed = false;
     }
+    function resetPreviewMotion() {
+        animatePreview = false;
+        Qt.callLater(() => { animatePreview = true; });
+    }
+    function syncPreview() {
+        if (!previewReady) return;
+        // QML strings use UTF-16; the bridge's offset counts Unicode characters.
+        const previous = displayedPreview.match(/[\uD800-\uDBFF][\uDC00-\uDFFF]|[\s\S]/g) || [];
+        const removed = previewStart - displayedStart;
+        const overlap = previous.slice(removed, removed + 64).join("");
+        const continuous = displayedPreview.length > 0 && displayedIdentifier === identifier
+            && removed >= 0 && removed < previous.length && preview.startsWith(overlap);
+        if (!continuous) {
+            resetPreviewMotion();
+            leadingIndent = 0;
+            discardedHeight = 0;
+        } else if (removed > 0) {
+            // Carry the old line's indentation across the bounded prefix cut.
+            // Discarded rows change the local origin, never the visible reading position.
+            prefixMeasure.indent = leadingIndent;
+            prefixMeasure.text = previous.slice(0, removed).join("") + "\u200b";
+            prefixMeasure.forceLayout();
+            let indent = prefixMeasure.lastEnd;
+            let rows = prefixMeasure.lastRow;
+            prefixMeasure.text = "";
+            const nextWord = preview.split(" ", 1)[0];
+            const nextWidth = previewMetrics.advanceWidth(nextWord);
+            if (indent >= transcript.width - 0.1
+                || (nextWidth <= transcript.width && nextWidth > transcript.width - indent)) {
+                indent = 0;
+                rows++;
+            }
+            leadingIndent = indent;
+            discardedHeight += rows * lineHeight;
+        }
+        displayedStart = previewStart;
+        displayedIdentifier = identifier;
+        displayedPreview = preview;
+        transcript.forceLayout();
+    }
+    function resetPreviewLayout() {
+        if (!previewReady) return;
+        displayedPreview = "";
+        Qt.callLater(syncPreview);
+    }
+    onWidthChanged: resetPreviewLayout()
+    onTextSizeChanged: resetPreviewLayout()
+    onPreviewChanged: Qt.callLater(syncPreview)
+    onPreviewStartChanged: Qt.callLater(syncPreview)
     onPhaseChanged: {
         if (!reviewing || busy) menuOpen = false;
         resetCountdown();
+        resetPreviewMotion();
     }
-    onIdentifierChanged: { menuOpen = false; resetCountdown(); }
+    onIdentifierChanged: { menuOpen = false; resetCountdown(); resetPreviewMotion(); Qt.callLater(syncPreview); }
     onMessageChanged: resetCountdown()
     onCountdownPausedChanged: lastTick = Date.now()
     visible: active && !dismissed
@@ -64,6 +124,8 @@ PanelWindow {
     focusable: reviewing
     mask: Region { item: root.reviewing ? surface : null }
     Component.onCompleted: {
+        previewReady = true;
+        syncPreview();
         if (root.WlrLayershell != null) {
             root.WlrLayershell.namespace = "mluva-recording-overlay";
             root.WlrLayershell.layer = WlrLayer.Overlay;
@@ -95,8 +157,9 @@ PanelWindow {
 
     BorderSurface {
         id: surface
+        objectName: "overlay-surface"
         anchors.fill: parent
-        color: Qt.alpha(Color.popups.background, 0.93)
+        color: Qt.alpha(Color.popups.background, root.surfaceOpacity)
         radius: Style.cornerRadius
         borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, 1)
         Keys.onEscapePressed: root.menuOpen ? root.menuOpen = false : root.act("dismiss")
@@ -139,24 +202,50 @@ PanelWindow {
                 id: transcriptViewport
                 objectName: "transcript-viewport"
                 width: parent.width
-                height: root.lineHeight * 3
+                height: root.lineHeight * root.previewLines
                 visible: root.preview.length > 0 || root.phase === "recording"
                 clip: true
-                // Keep three complete wrapped lines in a fixed viewport. New lines
-                // move by one line; partial updates never animate or shrink the type.
+                Item {
+                    id: previewMotion
+                    property real offset: Math.min(0, transcriptViewport.height - transcript.height
+                        - root.discardedHeight - transcript.lookAhead)
+                    Behavior on offset {
+                        enabled: root.animatePreview && root.visible
+                        SmoothedAnimation {
+                            velocity: root.lineHeight * 1.7
+                            duration: 800
+                            maximumEasingTime: 160
+                            reversingMode: SmoothedAnimation.Immediate
+                        }
+                    }
+                }
+                // Start making room near the end of the last visible line, then
+                // follow wraps smoothly instead of shifting a whole line at once.
                 Text {
                     id: transcript
                     objectName: "transcript-text"
+                    property real lastLineFill: 0
+                    readonly property real lookAhead: (root.phase === "recording" || root.busy)
+                        && lineCount >= root.previewLines
+                        ? root.lineHeight * 0.65 * Math.max(0, Math.min(1, (lastLineFill - 0.72) / 0.28)) : 0
                     width: parent.width
-                    y: Math.min(0, parent.height - height)
-                    text: root.preview
+                    y: previewMotion.offset + root.discardedHeight
+                    text: root.displayedPreview
                     color: Color.popups.text
                     font.family: Style.font.family
                     font.pixelSize: root.textSize
+                    onFontChanged: root.resetPreviewLayout()
                     wrapMode: Text.Wrap
                     lineHeightMode: Text.FixedHeight
                     lineHeight: root.lineHeight
                     textFormat: Text.PlainText
+                    onLineLaidOut: line => {
+                        if (line.number === 0 && root.leadingIndent > 0) {
+                            line.x = effectiveHorizontalAlignment === Text.AlignRight ? 0 : root.leadingIndent;
+                            line.width = width - root.leadingIndent;
+                        }
+                        if (line.isLast) lastLineFill = line.implicitWidth / Math.max(1, line.width);
+                    }
                 }
             }
             Text {
@@ -265,6 +354,27 @@ PanelWindow {
             visible: root.phase === "recording"
         }
     }
+    FontMetrics { id: previewMetrics; font: transcript.font }
+    Text {
+        id: prefixMeasure
+        visible: false
+        property real indent: 0
+        property real lastEnd: 0
+        property int lastRow: 0
+        width: transcript.width
+        font: transcript.font
+        wrapMode: Text.Wrap
+        lineHeightMode: Text.FixedHeight
+        lineHeight: root.lineHeight
+        textFormat: Text.PlainText
+        onLineLaidOut: line => {
+            if (line.number === 0 && indent > 0) {
+                line.x = effectiveHorizontalAlignment === Text.AlignRight ? 0 : indent;
+                line.width = width - indent;
+            }
+            if (line.isLast) { lastEnd = (line.number === 0 ? indent : 0) + line.implicitWidth; lastRow = line.number; }
+        }
+    }
     PopupWindow {
         id: menu
         objectName: "rewrite-menu"
@@ -278,7 +388,7 @@ PanelWindow {
         onVisibleChanged: if (visible) optionsList.forceActiveFocus()
         BorderSurface {
             anchors.fill: parent
-            color: Color.popups.background
+            color: Qt.alpha(Color.popups.background, 0.94)
             radius: Style.cornerRadius
             borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, 1)
             ListView {

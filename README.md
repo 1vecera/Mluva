@@ -18,7 +18,7 @@ Turn a spoken thought into text you can use. Press **F9**, say what you mean, an
 | Keep your own voice | Custom instructions, follow-ups, saved prompts and a Copy action for each version. |
 | Find it later | Automatic conversation titles and search across originals, rewrites and instructions. |
 
-On **Omarchy**, a compact widget shows the latest three lines while you speak. When you finish, rewrite directly from the widget. Its countdown ring closes the review after eight idle seconds; hovering, keyboard focus, menus and active rewrites pause it. **Shift+F9** reopens the latest conversation when that shortcut is configured.
+On **Omarchy**, a translucent widget shows five lines while you speak, easing upward as the current line fills. When you finish, rewrite directly from the widget. Its countdown ring closes the review after eight idle seconds; hovering, keyboard focus, menus and active rewrites pause it. **Shift+F9** reopens the latest conversation when that shortcut is configured.
 
 ![Omarchy review widget with Polish, Structure, More, Copy, Open and a countdown ring](docs/assets/omarchy-review.png)
 

@@ -139,17 +139,21 @@ def main() -> None:
             stderr=subprocess.STDOUT,
         )
 
+        def log_lines() -> list[str]:
+            """Read only complete records; a long snapshot can span several pipe writes."""
+            return [line.decode("utf-8") for line in (output / "quickshell.log").read_bytes().split(b"\n")[:-1]]
+
         def observe(phase: str, preview: str | None = None) -> dict[str, object]:
             """Wait for a frame-stable snapshot from the separately running production QML."""
             deadline = time.monotonic() + 30
             previous = None
-            observed_lines = len((output / "quickshell.log").read_text().splitlines())
+            observed_lines = len(log_lines())
             while time.monotonic() < deadline:
                 while GLib.MainContext.default().pending():
                     GLib.MainContext.default().iteration(False)
                 if process.poll() is not None:
                     raise RuntimeError(f"Quickshell exited; inspect {output / 'quickshell.log'}")
-                lines = (output / "quickshell.log").read_text().splitlines()
+                lines = log_lines()
                 payloads = [
                     line.split("MLUVA_SNAPSHOT ", 1)[1] for line in lines[observed_lines:] if "MLUVA_SNAPSHOT " in line
                 ]
@@ -190,6 +194,22 @@ def main() -> None:
             )
             return json.loads(result.stdout)
 
+        def motion_frames(preview: str) -> list[dict[str, object]]:
+            """Observe intermediate production animation frames as real D-Bus text updates arrive."""
+            start = len(log_lines())
+            publisher.publish(RecordingOverlayState(phase="recording", preview=preview))
+            deadline = time.monotonic() + 1.4
+            while time.monotonic() < deadline:
+                while GLib.MainContext.default().pending():
+                    GLib.MainContext.default().iteration(False)
+                time.sleep(0.01)
+            frames = [
+                json.loads(line.split("MLUVA_SNAPSHOT ", 1)[1])
+                for line in log_lines()[start:]
+                if "MLUVA_SNAPSHOT " in line
+            ]
+            return [frame for frame in frames if frame["preview"] == preview[frame["previewStart"] :]]
+
         try:
             idle = observe("idle")
             assert not idle["visible"]
@@ -207,10 +227,85 @@ def main() -> None:
                 assert state["height"] + state["bottom"] <= state["screenHeight"]
                 assert state["preview"] == preview[-4096:]
                 if phase == "recording":
-                    assert state["viewportHeight"] == state["lineHeight"] * 3
+                    assert state["viewportHeight"] == state["lineHeight"] * 5
                     assert state["textY"] < 0
-                    assert state["textY"] + state["textHeight"] == state["viewportHeight"]
+                    assert abs(state["textY"] - state["targetY"]) < 0.1
+                    assert 0.75 <= state["surfaceOpacity"] <= 0.85
                 subprocess.run(["import", "-window", "root", str(output / f"{phase}.png")], check=True)
+            samples = json.loads(
+                subprocess.check_output(
+                    ["quickshell", "ipc", "--pid", str(process.pid), "call", "fixture", "motionSamples"],
+                    text=True,
+                )
+            )
+            assert samples["nearEdge"] and samples["wrapped"].startswith(samples["nearEdge"])
+            publisher.publish(RecordingOverlayState(phase="recording", preview=samples["shortText"]))
+            short = observe("recording", samples["shortText"])
+            assert short["lineCount"] == 4 and short["textY"] == 0
+            near = motion_frames(samples["nearEdge"])
+            assert near[-1]["lineCount"] == 5 and near[-1]["lookAhead"] > 0
+            wrapped = motion_frames(samples["wrapped"])
+            assert wrapped[-1]["lineCount"] == 6
+            for initial, frames in ((short, near), (near[-1], wrapped)):
+                target = frames[-1]["targetY"]
+                assert target < initial["textY"]
+                assert any(target + 0.1 < frame["textY"] < initial["textY"] - 0.1 for frame in frames), frames
+                assert abs(frames[-1]["textY"] - target) < 0.1
+                assert all(frame["height"] == short["height"] for frame in frames)
+                assert all(
+                    abs(after["textY"] - before["textY"]) < short["lineHeight"] * 0.65
+                    for before, after in zip([initial, *frames], frames, strict=False)
+                ), frames
+            position = countdown()
+            assert abs(position["x"] - (short["screenWidth"] - short["width"]) / 2) <= 1
+            (output / "scroll-motion.json").write_text(
+                json.dumps({"before": short, "near_edge": near, "wrap": wrapped}, indent=2)
+            )
+            subprocess.run(["import", "-window", "root", str(output / "five-lines.png")], check=True)
+            full_text = " ".join(f"{'🙂' if index < 12 else 'w'}{index:04d}" for index in range(670))
+            assert len(full_text) < 4096
+            publisher.publish(RecordingOverlayState(phase="recording", preview=full_text))
+            observe("recording", full_text)
+            retained_tail = []
+            for index in range(8):
+                full_text += f" x{index:04d} y{index:04d} café🙂 z{index:04d}"
+                motion_frames(full_text)
+                state = observe("recording")
+                expected = json.loads(
+                    subprocess.check_output(
+                        ["quickshell", "ipc", "--pid", str(process.pid), "call", "fixture", "expectedTail", full_text],
+                        text=True,
+                    )
+                )
+                assert abs(state["lastLineFill"] - expected["lastFill"]) < 0.002, (state, expected)
+                unanchored = json.loads(
+                    subprocess.check_output(
+                        [
+                            "quickshell",
+                            "ipc",
+                            "--pid",
+                            str(process.pid),
+                            "call",
+                            "fixture",
+                            "expectedTail",
+                            state["preview"],
+                        ],
+                        text=True,
+                    )
+                )
+                assert state["preview"] == full_text[state["previewStart"] :]
+                assert len(state["preview"]) <= 4096
+                retained_tail.append(
+                    {
+                        "offset": state["previewStart"],
+                        "actual": state["lastLineFill"],
+                        "expected": expected["lastFill"],
+                        "without_anchor": unanchored["lastFill"],
+                    }
+                )
+            assert retained_tail[-1]["offset"] > 0 and state["discardedHeight"] > 0
+            assert any(abs(frame["without_anchor"] - frame["expected"]) > 0.05 for frame in retained_tail)
+            (output / "bounded-preview.json").write_text(json.dumps(retained_tail, indent=2))
             for light in (False, True):
                 ipc("theme", str(light).lower())
                 publisher.publish(

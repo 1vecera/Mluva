@@ -34,6 +34,35 @@ ShellRoot {
             root.overlay.contentItem.Window.window.requestActivate();
         }
         function closeMenu(): void { root.overlay.menuOpen = false; }
+        function motionSamples(): string {
+            let shortText = "", nearEdge = "", wrapped = "";
+            for (let count = 1; count < 200; count++) {
+                probe.text = ("Steady words for a readable preview. ".repeat(40)).split(" ").slice(0, count).join(" ");
+                probe.forceLayout();
+                if (probe.lineCount < 5) shortText = probe.text;
+                if (probe.lineCount === 5 && probe.lastFill > 0.8) nearEdge = probe.text;
+                if (probe.lineCount === 6 && nearEdge) { wrapped = probe.text; break; }
+            }
+            return JSON.stringify({shortText, nearEdge, wrapped});
+        }
+        function expectedTail(value: string): string {
+            probe.text = value;
+            probe.forceLayout();
+            return JSON.stringify({lastFill: probe.lastFill, lineCount: probe.lineCount});
+        }
+    }
+    Text {
+        id: probe
+        visible: false
+        width: root.overlay ? root.overlay.width - 20 : 480
+        font.family: Style.font.family
+        font.pixelSize: root.overlay ? root.overlay.textSize : 12
+        wrapMode: Text.Wrap
+        lineHeightMode: Text.FixedHeight
+        lineHeight: root.overlay ? root.overlay.lineHeight : 17
+        textFormat: Text.PlainText
+        property real lastFill: 0
+        onLineLaidOut: line => { if (line.isLast) lastFill = line.implicitWidth / Math.max(1, line.width); }
     }
     FloatingWindow {
         id: editor
@@ -58,10 +87,16 @@ ShellRoot {
             const text = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-text");
             const viewport = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-viewport");
             const copy = root.descendants(overlay.contentItem).find(item => item.objectName === "copy-button");
+            const surface = root.descendants(overlay.contentItem).find(item => item.objectName === "overlay-surface");
             return JSON.stringify({phase: widget.phase, preview: widget.preview, elapsed: widget.elapsed,
                 identifier: widget.identifier, options: widget.options, menuOpen: overlay.menuOpen,
                 copyEnabled: copy.enabled, renderedText: text.text,
                 textHeight: text.height, textY: text.y, viewportHeight: viewport.height, lineHeight: overlay.lineHeight,
+                lineCount: text.lineCount, lookAhead: text.lookAhead,
+                lastLineFill: text.lastLineFill, previewStart: widget.previewStart,
+                leadingIndent: overlay.leadingIndent, discardedHeight: overlay.discardedHeight,
+                targetY: Math.min(0, viewport.height - text.height - text.lookAhead),
+                surfaceOpacity: surface.color.a,
                 background: Color.popups.background.toString(), ink: Color.popups.text.toString(),
                 visible: overlay.visible, focusable: overlay.focusable, mask: overlay.mask !== null,
                 width: overlay.width, height: overlay.height, screenWidth: overlay.screen.width,

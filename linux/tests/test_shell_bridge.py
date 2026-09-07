@@ -30,15 +30,24 @@ def test_overlay_preview_is_opt_in_bounded_and_erased_when_hidden() -> None:
     parameters = GLib.Variant(
         SHELL_SIGNAL_SIGNATURE, (RecordingOverlayState(phase="recording", level=0.4, preview=text).as_shell_values(),)
     )
-    assert project_state(parameters, overlay=True) == {
-        "phase": "recording",
-        "elapsed": 0,
-        "level": 0.4,
-        "preview": text[-4096:],
-    }
+    projected = project_state(parameters, overlay=True)
+    assert projected["phase"] == "recording" and projected["elapsed"] == 0 and projected["level"] == 0.4
+    start = projected["preview_start"]
+    assert start > 0 and text[start - 1] == " "
+    assert projected["preview"] == text[start:] and len(projected["preview"]) <= 4096
+    assert projected["preview"].endswith("Newest words: Žluťoučký kůň")
     assert "preview" not in project_state(parameters)
     hidden = GLib.Variant(SHELL_SIGNAL_SIGNATURE, (RecordingOverlayState.hidden().as_shell_values(),))
     assert project_state(hidden, overlay=True) == {"phase": "idle", "elapsed": 0}
+
+
+def test_preview_offset_counts_unicode_characters_and_handles_unbroken_tokens() -> None:
+    """Preserve a usable origin without losing the newest words or splitting surrogate pairs."""
+    for text in ("🙂 café " * 1000 + "newest", "a" * 6000):
+        values = RecordingOverlayState(phase="recording", preview=text).as_shell_values()
+        projected = project_state(GLib.Variant(SHELL_SIGNAL_SIGNATURE, (values,)), overlay=True)
+        assert projected["preview"] == text[projected["preview_start"] :]
+        assert 0 < len(projected["preview"]) <= 4096
 
 
 class FakeConnection:

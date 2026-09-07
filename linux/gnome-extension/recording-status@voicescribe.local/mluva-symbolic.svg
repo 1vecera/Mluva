@@ -1,6 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="20 28 88 80">
   <title>Mluva</title>
-  <path d="M36 34H92Q102 34 102 44V76Q102 86 92 86H61L42 100V86H36Q26 86 26 76V44Q26 34 36 34Z" fill="none" stroke="currentColor" stroke-width="6"
-    stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M46 55V65M64 46V74M82 55V65" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+  <path fill="currentColor" fill-rule="evenodd" d="M36 31H92Q105 31 105 44V76Q105 89 92 89H62L44 102
+    Q39 105 39 100V89H36Q23 89 23 76V44Q23 31 36 31Z
+    M36 37Q29 37 29 44V76Q29 83 36 83H45V94L60 83H92Q99 83 99 76V44Q99 37 92 37Z"/>
+  <path fill="currentColor" d="M42.5 55a3.5 3.5 0 0 1 7 0v10a3.5 3.5 0 0 1-7 0Z
+    M60.5 46a3.5 3.5 0 0 1 7 0v28a3.5 3.5 0 0 1-7 0Z
+    M78.5 55a3.5 3.5 0 0 1 7 0v10a3.5 3.5 0 0 1-7 0Z"/>
 </svg>

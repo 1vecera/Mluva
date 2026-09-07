@@ -4,6 +4,8 @@ This file records user-visible Mluva releases. Linux is the first supported dist
 
 ## Unreleased
 
+- Expanded the centered Omarchy preview to five lines, with eased scrolling, advance room near a line ending, and stable wrapping across the bounded text limit.
+- Unified translucent main-window surfaces, flat controls, symbolic icons and aligned history/conversation layouts. Live dictation updates preserve the text buffer and respect manual scrolling.
 - Added a compact conversation workspace with proportional typography, lightly translucent surfaces, searchable history and streaming rewrites. Omarchy colors update with the desktop theme.
 - Added automatic titles for new dictations and pasted conversations, with local fallback labels, protection for manual renames and an Incognito cancellation boundary.
 - Added an eight-second countdown to Omarchy's completed-note review controls, with pauses for pointer, keyboard, menus and rewriting.

@@ -12,6 +12,7 @@ Item {
     property int elapsed: 0
     property real level: 0
     property string preview: ""
+    property int previewStart: 0
     property string identifier: ""
     property var options: []
     property string message: ""
@@ -53,7 +54,10 @@ Item {
                     root.phase = Object.prototype.hasOwnProperty.call(root.labels, state.phase) ? state.phase : "unavailable";
                     root.elapsed = Number.isInteger(state.elapsed) ? Math.max(0, Math.min(86400, state.elapsed)) : 0;
                     root.level = Number.isFinite(state.level) ? Math.max(0, Math.min(1, state.level)) : 0;
-                    root.preview = typeof state.preview === "string" ? state.preview.slice(-4096) : "";
+                    root.previewStart = Number.isInteger(state.preview_start)
+                        ? Math.max(0, Math.min(2147483647, state.preview_start)) : 0;
+                    // The bridge bounds Unicode characters before serializing this string.
+                    root.preview = typeof state.preview === "string" ? state.preview : "";
                     root.identifier = typeof state.identifier === "string" ? state.identifier.slice(0, 36) : "";
                     root.options = Array.isArray(state.options) ? state.options.slice(0, 128) : [];
                     root.message = typeof state.message === "string" ? state.message.slice(0, 96) : "";
@@ -62,6 +66,7 @@ Item {
                     root.elapsed = 0;
                     root.level = 0;
                     root.preview = "";
+                    root.previewStart = 0;
                     root.identifier = "";
                     root.options = [];
                     root.message = "";
@@ -73,6 +78,7 @@ Item {
             root.elapsed = 0;
             root.level = 0;
             root.preview = "";
+            root.previewStart = 0;
             root.identifier = "";
             root.options = [];
             root.message = "";
@@ -85,6 +91,7 @@ Item {
         elapsed: root.elapsed
         level: root.level
         preview: root.preview
+        previewStart: root.previewStart
         identifier: root.identifier
         options: root.options
         message: root.controlFailed ? "Control failed · open Mluva" : root.message

@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Final
 
 import gi
@@ -9,7 +10,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("Pango", "1.0")
-from gi.repository import Adw, Gtk, Pango  # noqa: E402
+from gi.repository import Adw, Gio, Gtk, Pango  # noqa: E402
 
 from voice_scribe_linux.brand import PRODUCT_NAME
 from voice_scribe_linux.feature_maturity import FeatureMaturity, feature_capability
@@ -28,6 +29,15 @@ CONTENT_MAX_WIDTH: Final = 680
 CONTENT_TIGHTENING_THRESHOLD: Final = 640
 PRIMARY_ACTION_HEIGHT: Final = 56
 RESULT_EDITOR_MIN_HEIGHT: Final = 120
+
+
+def brand_mark(size: int) -> Gtk.Image:
+    """Use the existing symbolic mark as transparent, theme-colored application chrome."""
+    path = Path(__file__).parents[1] / "gnome-extension/recording-status@voicescribe.local/mluva-symbolic.svg"
+    image = Gtk.Image.new_from_gicon(Gio.FileIcon.new(Gio.File.new_for_path(str(path))))
+    image.set_pixel_size(size)
+    image.add_css_class("ml-brand-mark")
+    return image
 
 
 class SummaryRow(Gtk.Box):
