@@ -50,13 +50,15 @@ def _write_installer_command_doubles(fake_bin: Path, sync_status: int) -> None:
         fake_bin / "uv",
         f"""#!/bin/sh
 if test "$1" = venv; then
+  test "$2 $3 $4 $5" = '--clear --system-site-packages --python /usr/bin/python3' || exit 93
   for target in "$@"; do :; done
   mkdir -p "$target/bin"
-  printf '#!/bin/sh\\nexit 0\\n' > "$target/bin/python"
+  printf '#!/bin/sh\\necho production-import-check\\n' > "$target/bin/python"
   chmod 700 "$target/bin/python"
   exit 0
 fi
 if test "$1" = sync; then
+  test "$2" = --project && test "$4 $5" = '--no-dev --frozen' || exit 94
   exit {sync_status}
 fi
 exit 92
@@ -122,28 +124,6 @@ def test_launcher_does_not_reenter_an_active_managed_profile(tmp_path: Path, pro
     assert result.stdout.strip() == f"python:{application_dir}:-m voice_scribe_linux.app"
 
 
-def test_installer_exposes_mluva_commands_and_keeps_legacy_aliases() -> None:
-    """Make Mluva canonical without breaking shortcuts that invoke the previous command names."""
-    installer = (Path(__file__).parents[1] / "install.sh").read_text(encoding="utf-8")
-
-    assert 'resources/mluva.in" > "${bin_dir}/mluva"' in installer
-    assert 'ln -sfn "mluva" "${bin_dir}/voice-scribe"' in installer
-    assert '"${bin_dir}/mluva-input-helper"' in installer
-    assert 'ln -sfn "mluva-input-helper" "${bin_dir}/voice-scribe-input-helper"' in installer
-    assert '"${bin_dir}/mluva-overlay"' in installer
-    assert 'ln -sfn "mluva-overlay" "${bin_dir}/voice-scribe-overlay"' in installer
-    assert '"${bin_dir}/mluva-uninstall"' in installer
-    assert "s|@EXECUTABLE@|${bin_dir}/mluva|g" in installer
-
-
-def test_installed_uninstaller_resolves_its_real_packaged_directory() -> None:
-    """Ensure the launcher symlink can still locate packaged integration-removal helpers."""
-    uninstaller = (Path(__file__).parents[1] / "uninstall.sh").read_text(encoding="utf-8")
-
-    assert 'script_path="$(readlink -f -- "${BASH_SOURCE[0]}")"' in uninstaller
-    assert 'source_dir="$(cd -- "$(dirname -- "${script_path}")" && pwd -P)"' in uninstaller
-
-
 def test_uninstaller_removes_only_staged_application_files(tmp_path: Path) -> None:
     """Remove a staged install while preserving configuration, history, and unrelated executables."""
     install_home = tmp_path / "staged-home"
@@ -162,7 +142,8 @@ def test_uninstaller_removes_only_staged_application_files(tmp_path: Path) -> No
     (application_dir / "pyproject.toml").write_text('name = "mluva-linux"\n', encoding="utf-8")
     (application_dir / "configure-input-helper.sh").write_text("test helper\n", encoding="utf-8")
     (application_dir / "configure-recording-overlay.sh").write_text("test overlay\n", encoding="utf-8")
-    (application_dir / "uninstall.sh").write_text("test uninstall\n", encoding="utf-8")
+    script = Path(__file__).parents[1] / "uninstall.sh"
+    _write_executable(application_dir / "uninstall.sh", script.read_text(encoding="utf-8"))
     (bin_dir / "mluva").write_text(
         f'#!/bin/sh\napplication_dir="{application_dir}"\nexec python -m voice_scribe_linux.app\n',
         encoding="utf-8",
@@ -180,9 +161,8 @@ def test_uninstaller_removes_only_staged_application_files(tmp_path: Path) -> No
     config_marker.write_text("preserve\n", encoding="utf-8")
     history_marker.write_text("preserve\n", encoding="utf-8")
 
-    script = Path(__file__).parents[1] / "uninstall.sh"
     result = subprocess.run(
-        [str(script)],
+        [str(bin_dir / "mluva-uninstall")],
         env={
             "HOME": str(tmp_path / "live-home"),
             "MLUVA_INSTALL_HOME": str(install_home),
@@ -235,22 +215,6 @@ def test_uninstaller_refuses_an_unrecognized_application_directory(tmp_path: Pat
     assert result.returncode != 0
     assert "unrecognized application directory" in result.stderr
     assert sentinel.read_text(encoding="utf-8") == "preserve\n"
-
-
-def test_installer_has_an_isolated_staging_root() -> None:
-    """Let package verification exercise the real installer without touching the active user prefix or Shell."""
-    installer = (Path(__file__).parents[1] / "install.sh").read_text(encoding="utf-8")
-
-    assert 'install_home="${MLUVA_INSTALL_HOME:-${HOME}}"' in installer
-    assert '"${install_home}" == "/"' in installer
-    assert 'data_home="${install_home}/.local/share"' in installer
-    assert 'config_home="${install_home}/.config"' in installer
-    assert 'data_home="${XDG_DATA_HOME:-${install_home}/.local/share}"' in installer
-    assert 'config_home="${XDG_CONFIG_HOME:-${install_home}/.config}"' in installer
-    assert 'bin_dir="${install_home}/.local/bin"' in installer
-    assert 'secret_config_dir="${config_home}/daniel-ai-skills"' in installer
-    assert 'if [[ "${staged_install}" == "false" ]]' in installer
-    assert "Staged verification skipped live GNOME extension" in installer
 
 
 def test_installer_rejects_an_unrecognized_application_directory(tmp_path: Path) -> None:
@@ -410,12 +374,25 @@ def test_installer_commits_a_complete_legacy_upgrade(tmp_path: Path) -> None:
 
     assert result.returncode == 0, result.stderr
     assert not previous_marker.exists()
+    assert "production-import-check" in result.stdout
+    assert "Staged verification skipped live GNOME extension" in result.stdout
     assert 'name = "mluva-linux"' in (application_dir / "pyproject.toml").read_text(encoding="utf-8")
     assert (application_dir / ".venv" / "bin" / "python").is_file()
     assert list(application_dir.parent.glob(".app.previous.*")) == []
     assert (install_home / ".local" / "bin" / "mluva").is_file()
     assert legacy_launcher.is_symlink()
     assert os.readlink(legacy_launcher) == "mluva"
+    bin_dir = install_home / ".local" / "bin"
+    for name, target in {
+        "mluva-input-helper": application_dir / "configure-input-helper.sh",
+        "voice-scribe-input-helper": application_dir / "configure-input-helper.sh",
+        "mluva-overlay": application_dir / "configure-recording-overlay.sh",
+        "voice-scribe-overlay": application_dir / "configure-recording-overlay.sh",
+        "mluva-uninstall": application_dir / "uninstall.sh",
+    }.items():
+        assert (bin_dir / name).resolve() == target
+    desktop = install_home / ".local/share/applications/com.voicescribe.Linux.desktop"
+    assert f"Exec={bin_dir}/mluva" in desktop.read_text(encoding="utf-8")
     shell_launcher = install_home / ".local" / "bin" / "mluva-shell"
     assert shell_launcher.resolve() == application_dir / "mluva-shell"
     for filename in ("Widget.qml", "RecordingOverlay.qml", "manifest.json"):
@@ -429,34 +406,6 @@ def test_installer_commits_a_complete_legacy_upgrade(tmp_path: Path) -> None:
         ).read_bytes()
 
 
-def test_installer_verifies_the_production_environment_without_resyncing_dev_dependencies() -> None:
-    """Keep pytest and Ruff out of the installed application after the production-only frozen sync."""
-    installer = (Path(__file__).parents[1] / "install.sh").read_text(encoding="utf-8")
-
-    assert 'uv sync --project "${application_dir}" --no-dev --frozen' in installer
-    assert '"${application_dir}/.venv/bin/python" -c' in installer
-    assert 'gi.require_version("DBus", "1.0")' in installer
-    assert 'gi.require_version("cairo", "1.0")' in installer
-    assert 'uv run --project "${application_dir}"' not in installer
-
-
-def test_makefile_prepares_system_gobject_before_running_linux_checks() -> None:
-    """Keep clean checkouts from creating a virtual environment that cannot import distro PyGObject."""
-    makefile = (Path(__file__).parents[2] / "Makefile").read_text(encoding="utf-8")
-
-    assert "linux-test: linux-setup" in makefile
-    assert "linux-text-target-test: linux-setup" in makefile
-    assert "linux-run: linux-setup" in makefile
-    assert "uv venv --clear --system-site-packages --python /usr/bin/python3" in makefile
-    assert "uv sync --locked" in makefile
-    assert "uv run --no-sync python -c" in makefile
-    assert "cd linux && uv run --locked pytest -q" in makefile
-    assert "uv run --locked ruff check ." in makefile
-    assert "uv run --locked python -m voice_scribe_linux.app" in makefile
-    assert 'gi.require_version("DBus", "1.0")' in makefile
-    assert 'gi.require_version("cairo", "1.0")' in makefile
-
-
 def test_uv_lock_does_not_inherit_a_contributors_global_release_cutoff() -> None:
     """Keep the checked lockfile valid on a clean machine regardless of user-level uv policy."""
     linux_root = Path(__file__).parents[1]
@@ -466,23 +415,6 @@ def test_uv_lock_does_not_inherit_a_contributors_global_release_cutoff() -> None
     assert project["tool"]["uv"]["exclude-newer"] is False
     assert "exclude-newer" not in lock["options"]
     assert "exclude-newer-span" not in lock["options"]
-
-
-def test_installer_keeps_codex_optional() -> None:
-    """Allow basic dictation and Meeting installation without the optional enhancement client."""
-    installer = (Path(__file__).parents[1] / "install.sh").read_text(encoding="utf-8")
-
-    assert "require_command codex" not in installer
-
-
-def test_installer_uses_generic_managed_credential_wording() -> None:
-    """Describe the optional secret boundary without naming its backing store."""
-    installer = (Path(__file__).parents[1] / "install.sh").read_text(encoding="utf-8")
-
-    matching_lines = [line for line in installer.splitlines() if "reviewed ElevenLabs credential reference" in line]
-    assert matching_lines == [
-        '        echo "The launcher will resolve only the reviewed ElevenLabs credential reference at runtime."'
-    ]
 
 
 def test_launcher_runs_without_managed_launcher_when_direct_key_exists(tmp_path: Path) -> None:

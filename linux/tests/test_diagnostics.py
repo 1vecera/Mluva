@@ -5,6 +5,7 @@ import sqlite3
 import uuid
 from contextlib import closing
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -40,7 +41,7 @@ def test_diagnostics_store_closes_every_opened_connection(tmp_path: Path, monkey
         connections.append(connection)
         return connection
 
-    monkeypatch.setattr(diagnostics_module.sqlite3, "connect", tracked_connect)
+    monkeypatch.setattr(diagnostics_module, "sqlite3", SimpleNamespace(connect=tracked_connect))
     store = DiagnosticsStore(tmp_path / "diagnostics.sqlite3")
     store.initialize()
     store.record(
@@ -89,6 +90,8 @@ def test_diagnostic_schema_and_export_exclude_content_and_secrets(tmp_path: Path
     assert output_path.name.startswith("mluva-diagnostics-")
     assert payload["schema"] == "mluva-diagnostics-v1"
     assert payload["configuration"]["codex_model_configured"] is True
+    assert payload["configuration"]["language_code"] == "eng"
+    assert payload["configuration"]["transcription_model"] == "scribe_v2"
     assert payload["configuration"]["microphone_target_configured"] is True
     assert payload["configuration"]["system_audio_target_configured"] is True
     assert payload["configuration"]["global_recording_key"] == "F9"
@@ -118,24 +121,6 @@ def test_diagnostic_schema_and_export_exclude_content_and_secrets(tmp_path: Path
         "outcome",
         "duration_ms",
     }
-
-
-def test_export_redacts_free_form_provider_configuration(tmp_path: Path) -> None:
-    """Do not trust a hand-edited model string as safe diagnostic metadata."""
-    store = DiagnosticsStore(tmp_path / "diagnostics.sqlite3")
-    store.initialize()
-    output_path = store.export(
-        tmp_path / "exports",
-        AppConfig(
-            codex_model="sensitive-custom-model-alias",
-        ),
-    )
-    serialized = output_path.read_text(encoding="utf-8")
-    assert "sensitive-custom-model-alias" not in serialized
-    payload = json.loads(serialized)
-    assert payload["configuration"]["language_code"] == "eng"
-    assert payload["configuration"]["transcription_model"] == "scribe_v2"
-    assert payload["configuration"]["codex_model_configured"] is True
 
 
 def test_diagnostics_reject_unbounded_identifiers_modes_and_durations(tmp_path: Path) -> None:

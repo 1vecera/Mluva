@@ -8,7 +8,6 @@ from voice_scribe_linux.overlay_state import RecordingOverlayPublisher, Recordin
 from voice_scribe_linux.ui import (
     RECORDING_KIND_PREPARING,
     RECORDING_KIND_RECORDING,
-    RECORDING_KIND_TERMINAL,
     RecordingBarState,
     is_compact_layout,
 )
@@ -181,22 +180,6 @@ class RecordingOverlayPublisherSpy(SimpleNamespace):
         return True
 
 
-def test_terminal_projection_hides_bar_and_slot_immediately() -> None:
-    """The terminal path blanks the bar and un-reveals the slot in one step."""
-    bar = RecordingBarSpy()
-    slot = RecordingSlotSpy()
-    overlay = RecordingOverlayPublisherSpy()
-    application = _application_stub(
-        recording_bar=bar,
-        recording_bar_slot=slot,
-        recording_overlay_publisher=overlay,
-    )
-    MluvaApplication._hide_recording_bar(application)
-    assert slot.revealed == [False]
-    assert bar.cleared == 1
-    assert overlay.cleared == 1
-
-
 def test_present_projection_follows_widget_visibility_contract() -> None:
     """The slot reveal follows the bar's own visibility decision."""
     bar = RecordingBarSpy()
@@ -271,19 +254,15 @@ def test_clear_live_capture_is_the_shared_terminal_erase_for_all_paths() -> None
     """Cancel, failure, and shutdown all route through the same immediate erase."""
     bar = RecordingBarSpy()
     slot = RecordingSlotSpy()
+    overlay = RecordingOverlayPublisherSpy()
     summary = SimpleNamespace(set_visible=lambda visible: None)
     application = _application_stub(
         recording_bar=bar,
         recording_bar_slot=slot,
+        recording_overlay_publisher=overlay,
         capture_summary_box=summary,
     )
     MluvaApplication._clear_live_capture(application)
     assert bar.cleared == 1
     assert slot.revealed == [False]
-
-
-def test_terminal_state_constant_is_recognized() -> None:
-    """The terminal kind stays a distinct explicit state."""
-    assert RECORDING_KIND_TERMINAL == "terminal"
-    assert RECORDING_KIND_PREPARING == "preparing"
-    assert RECORDING_KIND_RECORDING == "recording"
+    assert overlay.cleared == 1

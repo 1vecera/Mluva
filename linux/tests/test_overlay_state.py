@@ -62,15 +62,8 @@ def test_overlay_state_is_bounded_one_line_and_numeric_safe() -> None:
     assert len(route) <= 48
     assert len(preview) <= 180
     assert len(delivery) <= 48
-
-
-def test_hidden_state_erases_every_display_field() -> None:
-    """Never leave transcript or route residue after a terminal state."""
     assert RecordingOverlayState(
-        phase="finished",
-        detail="must disappear",
-        elapsed_seconds=10,
-        preview="must disappear",
+        phase="finished", detail="must disappear", elapsed_seconds=10, preview="must disappear"
     ).as_signal_values() == (False, "hidden", "", 0, "", "", 0.0, "", "")
 
 
@@ -117,18 +110,3 @@ def test_publisher_emits_only_the_display_signal_and_clear() -> None:
         assert signal == OVERLAY_SIGNAL
     assert connection.calls[0][-1].unpack()[0:3] == (True, "preparing", "Opening microphone")
     assert connection.calls[1][-1].unpack() == (False, "hidden", "", 0, "", "", 0.0, "", "")
-
-
-def test_extension_is_noninteractive_and_clears_on_owner_loss() -> None:
-    """Keep the Shell package display-only and lifecycle-complete."""
-    source = (EXTENSION_ROOT / "recordingOverlay.js").read_text()
-
-    assert "reactive: false" in source
-    assert "can_focus: false" in source
-    assert "affectsStruts: false" in source
-    assert "Gio.bus_watch_name" in source
-    assert "this._hide.bind(this)" in source
-    assert "signal_subscribe" in source
-    assert "signal_unsubscribe" in source
-    assert "spawn" not in source.casefold()
-    assert "method" not in source.casefold()

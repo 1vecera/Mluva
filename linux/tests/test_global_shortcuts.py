@@ -87,137 +87,63 @@ def test_portal_callback_reports_actual_recording_binding() -> None:
     assert triggers == ["F10", None, None]
 
 
-def test_portal_session_binds_f9_toggle_and_cancellation(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Register the requested F9 toggle and cancellation in one approved session."""
-    bound_shortcuts: list[object] = []
-    app_ids: list[str] = []
-    triggers: list[tuple[str, str | None]] = []
-
-    class SessionStub:
-        """Capture the shortcut list sent by the service."""
-
-        def __init__(self, app_id: str, callback: object):
-            """Retain the registered desktop identity and callback."""
-            app_ids.append(app_id)
-            self.callback = callback
-
-        async def connect(self, shortcuts: list[Shortcut]) -> list[BoundShortcut]:
-            """Retain the exact proposed binding list."""
-            bound_shortcuts.extend(shortcuts)
-            return [
-                BoundShortcut("toggle-recording-f9", "Record", "F9"),
-                BoundShortcut(CANCEL_SHORTCUT_ID, "Cancel", "Ctrl+Alt+Escape"),
-            ]
-
-        async def close(self) -> None:
-            """Accept the synthetic session close."""
-
-    monkeypatch.setattr(shortcut_module, "_PortalGlobalShortcutsSession", SessionStub)
-    service = GlobalShortcutService(
-        on_toggle_recording=lambda: None,
-        on_cancel=lambda: None,
-        on_binding_changed=lambda function_key, trigger: triggers.append((function_key, trigger)),
-        on_error=lambda _message: None,
-    )
-
-    asyncio.run(service._connect("F9"))
-
-    assert app_ids == ["com.voicescribe.Linux"]
-    assert [(shortcut.id, shortcut.preferred_trigger) for shortcut in bound_shortcuts] == [
-        ("toggle-recording-f9", "F9"),
-        (CANCEL_SHORTCUT_ID, "CTRL+ALT+ESCAPE"),
-        (REWRITE_SHORTCUT_ID, "SHIFT+F9"),
-    ]
-    assert triggers == [("F9", "F9")]
-    asyncio.run(service._close_async())
-
-
-def test_replacing_session_uses_a_key_specific_action(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Prevent a persisted F9 action from silently surviving an F24 selection."""
-    bound_identifiers: list[list[str]] = []
-    closed_sessions: list[int] = []
-
-    class SessionStub:
-        """Record each binding set and close operation."""
-
-        def __init__(self, *_args: object, **_kwargs: object):
-            """Assign a stable synthetic instance number."""
-            self.instance = len(bound_identifiers)
-
-        async def connect(self, shortcuts: list[Shortcut]) -> list[BoundShortcut]:
-            """Return the preferred recording trigger as the approved one."""
-            bound_identifiers.append([shortcut.id for shortcut in shortcuts])
-            recording = shortcuts[0]
-            return [
-                BoundShortcut(recording.id, recording.description, recording.preferred_trigger),
-            ]
-
-        async def close(self) -> None:
-            """Record release of the superseded session."""
-            closed_sessions.append(self.instance)
-
-    monkeypatch.setattr(shortcut_module, "_PortalGlobalShortcutsSession", SessionStub)
-    service = GlobalShortcutService(
-        on_toggle_recording=lambda: None,
-        on_cancel=lambda: None,
-        on_binding_changed=lambda _function_key, _trigger: None,
-        on_error=lambda _message: None,
-    )
-
-    async def exercise_replacement() -> None:
-        """Create F9, then replace it with F24 on the same service."""
-        service._session_lock = asyncio.Lock()
-        await service._connect("F9")
-        service.preferred_recording_trigger = "F24"
-        await service._replace_session("F24")
-        await service._close_async()
-
-    asyncio.run(exercise_replacement())
-
-    assert bound_identifiers == [
-        ["toggle-recording-f9", CANCEL_SHORTCUT_ID, REWRITE_SHORTCUT_ID],
-        ["toggle-recording-f24", CANCEL_SHORTCUT_ID, REWRITE_SHORTCUT_ID],
-    ]
-    assert closed_sessions == [0, 1]
-
-
 def test_running_service_serializes_function_key_replacement(monkeypatch: pytest.MonkeyPatch) -> None:
     """Queue a settings change behind startup instead of racing two portal sessions."""
-    bound_identifiers: list[str] = []
+    bindings: list[list[tuple[str, str]]] = []
+    app_ids: list[str] = []
+    closed_sessions: list[int] = []
+    triggers: list[tuple[str, str | None]] = []
     rebound = threading.Event()
 
     class SessionStub:
         """Return the preferred key for every synthetic binding."""
 
-        def __init__(self, *_args: object, **_kwargs: object):
-            """Accept the production constructor contract."""
+        def __init__(self, app_id: str, callback: object):
+            """Retain the public identity and each session's close boundary."""
+            app_ids.append(app_id)
+            self.instance = len(app_ids) - 1
 
         async def connect(self, shortcuts: list[Shortcut]) -> list[BoundShortcut]:
             """Record the ordered recording action IDs."""
             recording = shortcuts[0]
-            bound_identifiers.append(recording.id)
+            bindings.append([(shortcut.id, shortcut.preferred_trigger) for shortcut in shortcuts])
             return [
                 BoundShortcut(recording.id, recording.description, recording.preferred_trigger),
             ]
 
         async def close(self) -> None:
-            """Accept release of a superseded session."""
+            """Record release of each session after replacement and shutdown."""
+            closed_sessions.append(self.instance)
+
+    def binding_changed(function_key: str, trigger: str | None) -> None:
+        """Keep actual approval evidence and release the waiting test after replacement."""
+        triggers.append((function_key, trigger))
+        if function_key == "F24":
+            rebound.set()
 
     monkeypatch.setattr(shortcut_module, "_PortalGlobalShortcutsSession", SessionStub)
     service = GlobalShortcutService(
         on_toggle_recording=lambda: None,
         on_cancel=lambda: None,
-        on_binding_changed=lambda function_key, _trigger: rebound.set() if function_key == "F24" else None,
+        on_binding_changed=binding_changed,
         on_error=lambda _message: None,
     )
 
     service.start()
-    assert service._ready.wait(timeout=1)
-    service.set_recording_key("F24")
-    assert rebound.wait(timeout=1)
-    service.close()
+    try:
+        assert service._ready.wait(timeout=1)
+        service.set_recording_key("F24")
+        assert rebound.wait(timeout=1)
+    finally:
+        service.close()
 
-    assert bound_identifiers == ["toggle-recording-f9", "toggle-recording-f24"]
+    assert app_ids == ["com.voicescribe.Linux"] * 2
+    assert bindings == [
+        [("toggle-recording-f9", "F9"), (CANCEL_SHORTCUT_ID, "CTRL+ALT+ESCAPE"), (REWRITE_SHORTCUT_ID, "SHIFT+F9")],
+        [("toggle-recording-f24", "F24"), (CANCEL_SHORTCUT_ID, "CTRL+ALT+ESCAPE"), (REWRITE_SHORTCUT_ID, "SHIFT+F9")],
+    ]
+    assert triggers == [("F9", "F9"), ("F24", "F24")]
+    assert closed_sessions == [0, 1]
 
 
 class _PortalBusStub:

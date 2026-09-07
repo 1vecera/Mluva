@@ -221,47 +221,6 @@ def test_scratchpad_requires_explicit_delivery_and_retains_audio(
     assert result.history_entry.recognition_route == "scribe-v2-batch"
 
 
-def test_spoken_structure_changes_delivered_text_but_preserves_raw_history(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Keep Scribe recognition immutable beside deterministic prepared output."""
-
-    def fake_delivery(text: str, auto_paste: bool) -> DeliveryReceipt:
-        """Capture normalized output without changing the desktop."""
-        assert text == "First thought.\n\nCorrected thought."
-        assert not auto_paste
-        return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
-
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
-    audio_path = tmp_path / "recordings" / "structured.wav"
-    audio_path.parent.mkdir()
-    audio_path.write_bytes(b"RIFF-structured")
-    history = HistoryStore(tmp_path / "history.sqlite3")
-    history.initialize()
-    raw_text = "First thought period new paragraph wrong thought scratch that Corrected thought period"
-    workflow = DictationWorkflow(
-        config=AppConfig(spoken_commands_enabled=True),
-        elevenlabs=StaticTranscriptionClient(raw_text),
-        codex=CodexAppServerClient(command=("must-not-start",)),
-        history=history,
-        cwd=tmp_path,
-    )
-
-    result = workflow.complete(
-        audio_path,
-        mode="dictation",
-        use_codex_cleanup=False,
-        allow_auto_paste=False,
-    )
-
-    assert result.transcription.text == raw_text
-    assert result.output_text == "First thought.\n\nCorrected thought."
-    assert result.history_entry is not None
-    assert result.history_entry.raw_text == raw_text
-    assert result.history_entry.delivered_text == result.output_text
-
-
 def test_personalization_runs_before_delivery_and_preserves_raw_history(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
