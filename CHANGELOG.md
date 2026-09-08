@@ -6,6 +6,13 @@ This file records user-visible Mluva releases. Linux is the first supported dist
 
 No changes queued.
 
+## 0.2.0 — 2026-09-08
+
+- Added persistent Codex model and optional Fast mode choices for rewrites in the main workspace and Omarchy widget, using the installed app-server's model catalog. Capture cleanup and automatic titles keep their existing model settings.
+- Rewrites request low reasoning when the selected model supports it and display elapsed time to first text. Fast mode discloses increased credit usage; no general latency improvement is claimed.
+- Preserved the picker model when its choices are unchanged, avoiding an invalid-object notification during selection changes. Failed settings saves restore the previous choice, unavailable tiers fail explicitly, and failed catalog loads can be retried.
+- Replaced outlined scrollbar tracks with transparent tracks and narrow solid thumbs in light and dark appearances.
+
 ## 0.1.1 — 2026-09-08
 
 - Expanded the centered Omarchy preview to five lines, with eased scrolling, advance room near a line ending, and stable wrapping across the bounded text limit.
