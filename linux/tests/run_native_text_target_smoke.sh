@@ -21,7 +21,7 @@ run_private_session() {
     trap cleanup_accessibility EXIT
 
     gsettings set org.gnome.desktop.interface toolkit-accessibility true
-    /usr/libexec/at-spi-bus-launcher --launch-immediately --a11y=1 >"${launcher_log}" 2>&1 &
+    "${ATSPI_LIBEXEC}/at-spi-bus-launcher" --launch-immediately --a11y=1 >"${launcher_log}" 2>&1 &
     launcher_pid=$!
 
     local accessibility_address=""
@@ -65,7 +65,7 @@ run_private_session() {
     fi
 
     export AT_SPI_BUS_ADDRESS="${accessibility_address}"
-    /usr/libexec/at-spi2-registryd --use-gnome-session >"${registry_log}" 2>&1 &
+    "${ATSPI_LIBEXEC}/at-spi2-registryd" --use-gnome-session >"${registry_log}" 2>&1 &
     registry_pid=$!
     local registry_ready=false
     for _attempt in $(seq 1 100); do
@@ -88,7 +88,8 @@ run_private_session() {
     cd "${LINUX_ROOT}"
     if [[ "${MLUVA_SMOKE:-}" == conversation ]]; then
         local scenario width height scenario_dir
-        for specification in conversation:1060:780 lifecycle:1060:780 empty:480:640 \
+        for specification in conversation:1060:780 lifecycle:1060:780 rewrite-settings-lifecycle:1060:780 \
+            rewrite-models:420:520 rewrite-models-error:480:640 scrollbars:480:640 scrollbars-dark:1060:780 empty:480:640 \
             recording:420:520 processing:480:640 rewriting:480:640 error:480:640 incognito:480:640 dark:1060:780; do
             IFS=: read -r scenario width height <<<"${specification}"
             scenario_dir="${artifact_dir}/${scenario}"
@@ -114,6 +115,11 @@ script_dir="$(cd -- "$(dirname -- "${script_path}")" && pwd -P)"
 LINUX_ROOT="$(cd -- "${script_dir}/.." && pwd -P)"
 project_root="$(cd -- "${LINUX_ROOT}/.." && pwd -P)"
 export LINUX_ROOT
+ATSPI_LIBEXEC=/usr/libexec
+if [[ ! -x "${ATSPI_LIBEXEC}/at-spi-bus-launcher" && -x /usr/lib/at-spi-bus-launcher ]]; then
+    ATSPI_LIBEXEC=/usr/lib
+fi
+export ATSPI_LIBEXEC
 
 if [[ "${1:-}" == "--private-session" ]]; then
     [[ $# -eq 2 ]] || {
@@ -145,7 +151,7 @@ done
     echo "Missing the prepared Linux environment; run make linux-setup first." >&2
     exit 1
 }
-for executable_path in /usr/libexec/at-spi-bus-launcher /usr/libexec/at-spi2-registryd; do
+for executable_path in "${ATSPI_LIBEXEC}/at-spi-bus-launcher" "${ATSPI_LIBEXEC}/at-spi2-registryd"; do
     [[ -x "${executable_path}" ]] || {
         echo "Missing native text-target smoke dependency: ${executable_path}" >&2
         exit 1

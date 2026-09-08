@@ -253,8 +253,16 @@ levelbar trough { background: @vs_surface_subtle; border-radius: 4px; }
 levelbar block.filled { background: @vs_action; border-radius: 3px; }
 label.warning { color: @vs_warning; }
 label.error { color: @vs_danger; }
-scrollbar slider { min-width: 5px; min-height: 5px; border-radius: 10px; background: alpha(@vs_ink_muted, 0.35); }
-scrollbar slider:hover { background: alpha(@vs_ink_muted, 0.6); }
+scrollbar, scrollbar trough { background: transparent; border: none; box-shadow: none; }
+scrollbar { padding: 0; }
+scrollbar.vertical { min-width: 10px; }
+scrollbar.horizontal { min-height: 10px; }
+scrollbar slider { border: none; outline: none; box-shadow: none; padding: 0;
+  border-radius: 6px; background: alpha(@vs_ink_muted, 0.4); }
+scrollbar.vertical slider { min-width: 6px; min-height: 32px; margin: 2px; }
+scrollbar.horizontal slider { min-height: 6px; min-width: 32px; margin: 2px; }
+scrollbar slider:hover { background: alpha(@vs_ink_muted, 0.65); }
+scrollbar slider:active { background: alpha(@vs_ink_secondary, 0.8); }
 """.replace("$CONTROL_RADIUS", str(RADIUS_CONTROL))
         .replace("$CARD_RADIUS", str(RADIUS_CARD))
         .replace("$WINDOW_OPACITY", str(WINDOW_OPACITY))

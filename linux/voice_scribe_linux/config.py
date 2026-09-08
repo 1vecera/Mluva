@@ -59,6 +59,8 @@ class AppConfig:
     language_code: str = "eng"
     transcription_model: str = "scribe_v2"
     codex_model: str | None = None
+    rewrite_model: str | None = None
+    rewrite_fast_mode: bool = False
     microphone_target: str | None = None
     system_audio_target: str | None = None
     default_mode: str = "dictation"
@@ -80,6 +82,9 @@ class AppConfig:
         if self.transcription_model != "scribe_v2":
             raise ValueError("transcription_model must be 'scribe_v2'")
         _validate_codex_model(self.codex_model)
+        _validate_codex_model(self.rewrite_model)
+        if not isinstance(self.rewrite_fast_mode, bool):
+            raise TypeError("rewrite_fast_mode must be a boolean")
         _validate_pipewire_target(self.microphone_target, "microphone_target")
         _validate_pipewire_target(self.system_audio_target, "system_audio_target")
         if self.default_mode not in SUPPORTED_CAPTURE_MODES:

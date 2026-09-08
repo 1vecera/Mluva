@@ -22,6 +22,56 @@ class CodexAppServerError(RuntimeError):
     """Report protocol, lifecycle, and server-side Codex failures."""
 
 
+@dataclass(frozen=True, slots=True)
+class CodexModel:
+    """Keep model choices and rewrite speed settings tied to the installed server's catalog."""
+
+    id: str
+    identifier: str
+    name: str
+    is_default: bool
+    hidden: bool = False
+    rewrite_effort: str | None = None
+    fast_tier: str | None = None
+
+    @classmethod
+    def from_catalog(cls, model: dict[str, object]) -> Self:
+        """Accept older catalogs without inventing unsupported effort or service tiers."""
+        efforts = {option["reasoningEffort"] for option in model.get("supportedReasoningEfforts", [])}
+        fast_tier = next(
+            (
+                tier["id"]
+                for tier in model.get("serviceTiers", [])
+                if tier["name"].casefold() == "fast" or tier["id"] in {"fast", "priority"}
+            ),
+            None,
+        )
+        if fast_tier is None and "fast" in model.get("additionalSpeedTiers", []):
+            fast_tier = "fast"
+        return cls(
+            id=model["id"],
+            identifier=model["model"],
+            name=model.get("displayName", model["model"]),
+            is_default=model["isDefault"],
+            hidden=model.get("hidden", False),
+            rewrite_effort="low" if "low" in efforts else model.get("defaultReasoningEffort"),
+            fast_tier=fast_tier,
+        )
+
+
+def select_model(models: Sequence[CodexModel], requested_model: str | None) -> CodexModel:
+    """Resolve an explicit identifier or exactly one advertised default without silently switching models."""
+    if requested_model is not None:
+        for model in models:
+            if requested_model in {model.id, model.identifier}:
+                return model
+        raise CodexAppServerError("The configured Codex model is unavailable.")
+    defaults = [model for model in models if model.is_default]
+    if len(defaults) != 1:
+        raise CodexAppServerError("Codex app-server did not expose exactly one default model.")
+    return defaults[0]
+
+
 @dataclass(slots=True)
 class CodexAppServerClient:
     """Run bounded text transformations through the installed Codex app-server."""
@@ -129,6 +179,8 @@ class CodexAppServerClient:
         *,
         max_output_characters: int = MAX_TRANSFORMATION_OUTPUT_CHARACTERS,
         on_delta: Callable[[str], None] | None = None,
+        effort: str | None = None,
+        service_tier: str | None = None,
     ) -> str:
         """Stream optional validated text deltas and return the complete successful transformation."""
         resolved_model = model or self.resolve_model(None)
@@ -154,10 +206,12 @@ class CodexAppServerClient:
         self.last_model_identifier = actual_model
         thread = thread_result["thread"]
         thread_id = thread["id"]
-        started = self._request(
-            "turn/start",
-            {"threadId": thread_id, "input": [{"type": "text", "text": prompt}]},
-        )
+        turn_params: dict[str, object] = {"threadId": thread_id, "input": [{"type": "text", "text": prompt}]}
+        if effort is not None:
+            turn_params["effort"] = effort
+        if service_tier is not None:
+            turn_params["serviceTier"] = service_tier
+        started = self._request("turn/start", turn_params)
         turn_id = started["turn"]["id"]
         output: list[str] = []
         output_characters = 0
@@ -198,30 +252,25 @@ class CodexAppServerClient:
 
     def resolve_model(self, requested_model: str | None) -> str:
         """Resolve one configured or default app-server model to the concrete identifier used by a capture."""
+        return select_model(self.list_models(), requested_model).identifier
+
+    def list_models(self) -> list[CodexModel]:
+        """Read the bounded catalog, including hidden models for existing explicit configurations."""
         self.start()
         cursor: str | None = None
-        default_models: list[str] = []
+        models: list[CodexModel] = []
         for _page in range(MAX_MODEL_PAGES):
             params: dict[str, object] = {"includeHidden": True, "limit": MODEL_PAGE_SIZE}
             if cursor is not None:
                 params["cursor"] = cursor
             result = self._request("model/list", params)
-            for model in result["data"]:
-                identifier = model["model"]
-                if requested_model is not None and requested_model in {model["id"], identifier}:
-                    return identifier
-                if model["isDefault"]:
-                    default_models.append(identifier)
+            models.extend(CodexModel.from_catalog(model) for model in result["data"])
             cursor = result["nextCursor"] if "nextCursor" in result else None
             if cursor is None:
                 break
         else:
             raise CodexAppServerError("Codex app-server returned too many model-list pages.")
-        if requested_model is not None:
-            raise CodexAppServerError("The configured Codex model is unavailable.")
-        if len(default_models) != 1:
-            raise CodexAppServerError("Codex app-server did not expose exactly one default model.")
-        return default_models[0]
+        return models
 
     def _request(self, method: str, params: dict[str, object]) -> dict[str, object]:
         """Send one request and correlate its response across the reader thread."""

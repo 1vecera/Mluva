@@ -43,12 +43,19 @@ def main() -> None:
                             {
                                 "id": "codex-default",
                                 "model": "gpt-5.4",
+                                "displayName": "GPT-5.4",
                                 "isDefault": True,
+                                "defaultReasoningEffort": "medium",
+                                "supportedReasoningEfforts": [{"reasoningEffort": "low"}],
+                                "serviceTiers": [{"id": "priority", "name": "Fast"}],
                             },
                             {
                                 "id": "codex-explicit",
                                 "model": "gpt-5.4-mini",
+                                "displayName": "GPT-5.4 Mini",
                                 "isDefault": False,
+                                "defaultReasoningEffort": "medium",
+                                "supportedReasoningEfforts": [{"reasoningEffort": "low"}],
                             },
                         ],
                         "nextCursor": None,
@@ -70,6 +77,9 @@ def main() -> None:
             )
         elif method == "turn/start":
             assert message["params"]["input"][0]["type"] == "text"
+            if "--expect-fast" in sys.argv or "--expect-standard" in sys.argv:
+                assert message["params"]["effort"] == "low"
+                assert message["params"]["serviceTier"] == ("priority" if "--expect-fast" in sys.argv else "default")
             send({"id": message["id"], "result": {"turn": {"id": "turn-test"}}})
             if "--exit-during-turn" in sys.argv:
                 return

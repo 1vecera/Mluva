@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 import gi
 from conversation_lifecycle import exercise, exercise_widget_review
+from rewrite_settings_lifecycle import exercise_rewrite_settings, seed_rewrite_models
 from scroll_lifecycle import exercise_scrolling
 from title_lifecycle import exercise_titles
 
@@ -114,6 +115,8 @@ def main() -> int:
                 exercise(application)
                 exercise_widget_review(application)
                 exercise_titles(application)
+            elif scenario == "rewrite-settings-lifecycle":
+                exercise_rewrite_settings(application)
             elif scenario == "titles":
                 exercise_titles(application)
             elif scenario == "scroll-motion":
@@ -125,6 +128,10 @@ def main() -> int:
                 "Follow up with the design team",
             ):
                 application.history_store.add(text, text, "dictation", "eng", None, "copied")
+            if scenario.startswith("scrollbars"):
+                for index in range(40):
+                    text = f"Synthetic conversation {index + 1}"
+                    application.history_store.add(text, text, "dictation", "eng", None, "copied")
             entry = application.history_store.add(source, source, "dictation", "eng", None, "copied")
             application.history_store.update_title(entry.identifier, "A simpler dictation workflow")
             entry = application.history_store.find(entry.identifier)
@@ -185,6 +192,19 @@ def main() -> int:
                 application.main_menu_button.popup()
             elif scenario == "prompts":
                 workspace.saved_prompts.popup()
+            elif scenario == "rewrite-models":
+                seed_rewrite_models(application)
+            elif scenario == "rewrite-models-error":
+                application.rewrite_settings.set_models(None)
+            if scenario.startswith("scrollbars"):
+                # Force the production non-overlay track as seen on desktops with always-visible scrollbars.
+                sidebar_scroll = workspace.history_list.get_parent()
+                while not isinstance(sidebar_scroll, Gtk.ScrolledWindow):
+                    sidebar_scroll = sidebar_scroll.get_parent()
+                sidebar_scroll.set_overlay_scrolling(False)
+                workspace.scroll.set_overlay_scrolling(False)
+                if scenario == "scrollbars-dark":
+                    Adw.StyleManager.get_default().set_color_scheme(Adw.ColorScheme.FORCE_DARK)
             if scenario not in {"empty", "incognito"}:
                 assert workspace.result_widgets[0].get_text() == source
             frames = 0
@@ -195,6 +215,18 @@ def main() -> int:
                 frames += 1
                 if frames < 4:
                     return GLib.SOURCE_CONTINUE
+                if scenario == "long-note" and frames < 60:
+                    # The adjustment can reach the tail one frame before the viewport translates its child.
+                    visible, bounds = workspace.result_widgets[-1].compute_bounds(workspace.scroll)
+                    if not visible or bounds.get_y() + bounds.get_height() > workspace.scroll.get_height():
+                        return GLib.SOURCE_CONTINUE
+                if scenario.startswith("rewrite-models"):
+                    if frames == 4:
+                        # Open after allocation; startup resizing can dismiss an earlier popover.
+                        with patch.object(application.rewrite_settings, "load_models"):
+                            application.rewrite_settings.popup()
+                    if frames < 8:
+                        return GLib.SOURCE_CONTINUE
                 GLib.idle_add(capture)
                 return GLib.SOURCE_REMOVE
 
@@ -258,8 +290,14 @@ def main() -> int:
             scale = window.get_surface().get_scale_factor()
             assert png_size == (width * scale, height * scale), "Virtual screen clipped the scaled window"
             workspace = application.conversation_workspace
-            if scenario in {"menu", "prompts"}:
-                button = application.main_menu_button if scenario == "menu" else workspace.saved_prompts
+            if scenario in {"menu", "prompts", "rewrite-models", "rewrite-models-error"}:
+                button = (
+                    application.main_menu_button
+                    if scenario == "menu"
+                    else application.rewrite_settings
+                    if scenario.startswith("rewrite-models")
+                    else workspace.saved_prompts
+                )
                 render_widget(button.get_popover()).save_to_png(str(output / "menu.png"))
             if os.environ.get("MLUVA_UI_ALPHA_CHECK") == "1":
                 capture_alpha(window, workspace, output)

@@ -225,7 +225,7 @@ class ConversationWorkspace(Gtk.Box):
             selection_mode=Gtk.SelectionMode.NONE,
             column_spacing=SPACE_2,
             row_spacing=SPACE_2,
-            max_children_per_line=3,
+            max_children_per_line=4,
             min_children_per_line=1,
         )
         self.actions.set_halign(Gtk.Align.START)
@@ -300,6 +300,10 @@ class ConversationWorkspace(Gtk.Box):
     def set_capture_controls(self, controls: Gtk.Widget) -> None:
         """Keep the recording footer inside the conversation while history reaches the window bottom."""
         self.content.append(self._reading_column(controls))
+
+    def set_rewrite_settings(self, settings: Gtk.Widget) -> None:
+        """Keep model and speed choices beside the operations they affect."""
+        self.actions.insert(settings, -1)
 
     @staticmethod
     def _text_view(text: str) -> Gtk.TextView:
