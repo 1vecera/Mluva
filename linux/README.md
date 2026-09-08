@@ -10,6 +10,8 @@ Omarchy users can enable the optional [Quickshell recording widget](../docs/omar
 
 F9 starts and stops background dictation. Completed text is copied automatically and saved as a conversation. Use Quick Polish for faithful cleanup, Structured Note for a summary and bullets, or enter a custom instruction and press Ctrl+Enter. Follow-ups use the previous completed replies. Every message has its own Copy action; a rewrite does not overwrite the clipboard until you choose it. New conversation accepts pasted or typed text without replacing the clipboard.
 
+Use **Codex model** beside the rewrite actions to select an installed model and optionally enable **Fast mode**, which uses more Codex credits. Choices persist for main-window and widget rewrites; capture cleanup and title generation keep their existing settings. Rewrites request low reasoning when supported and report how long the first text took to arrive. Default preserves the existing model choice, and Fast starts off. See [latency measurements and the opt-in benchmark](../docs/rewrite-latency.md) before assuming Fast will improve a particular prompt.
+
 New conversations get short titles automatically; Settings can disable Codex titles and keep local text labels. Renames take precedence, and Incognito cancels title generation. Search history by title, original, rewrite text, or instruction. Manage history contains corrections, export, retention, and deletion; JSON and Markdown exports include the original and saved rewrites. Incognito creates no conversation history and disables Codex rewriting. Closing the window keeps Mluva running; use Quit in the app or shell menu to exit.
 
 ## Feature maturity

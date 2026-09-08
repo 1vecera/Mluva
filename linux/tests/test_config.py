@@ -34,6 +34,8 @@ def test_config_round_trip_does_not_include_api_key(tmp_path: Path) -> None:
     config = AppConfig(
         language_code="ces",
         codex_model="gpt-5.4",
+        rewrite_model="gpt-5.4-mini",
+        rewrite_fast_mode=True,
         microphone_target="alsa_input.usb_microphone",
         system_audio_target="alsa_output.usb_headset",
     )
@@ -59,6 +61,15 @@ def test_privacy_defaults_and_legacy_audio_retention_migration(tmp_path: Path) -
     migrated = load_config(path)
     assert migrated.audio_retention_policy is AudioRetentionPolicy.NEVER
     assert migrated.global_recording_key == "F9"
+    assert migrated.rewrite_model is None and not migrated.rewrite_fast_mode
+
+
+def test_rewrite_settings_reject_malformed_persisted_choices() -> None:
+    """Keep model identifiers bounded and require an explicit boolean for increased-usage mode."""
+    with pytest.raises(ValueError, match="model identifier"):
+        AppConfig(rewrite_model="model\nother-setting")
+    with pytest.raises(TypeError, match="rewrite_fast_mode"):
+        AppConfig(rewrite_fast_mode="false")
 
 
 def test_explicit_experimental_auto_paste_choice_is_preserved(tmp_path: Path) -> None:

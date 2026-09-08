@@ -17,7 +17,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
 from voice_scribe_linux.audio import PipeWireMeetingRecorder, PipeWireRecorder
-from voice_scribe_linux.codex_client import CodexAppServerClient
+from voice_scribe_linux.codex_client import CodexAppServerClient, CodexModel, select_model
 from voice_scribe_linux.config import (
     FUNCTION_KEY_OPTIONS,
     TRANSCRIPTION_LANGUAGE_OPTIONS,
@@ -80,6 +80,7 @@ from voice_scribe_linux.realtime import (
     ElevenLabsRealtimeClient,
     RealtimeTranscriptionSession,
 )
+from voice_scribe_linux.rewrite_settings import RewriteSettings
 from voice_scribe_linux.scratchpad import ScratchpadDraft, ScratchpadDraftStore
 from voice_scribe_linux.segment_cleanup import (
     CodexSegmentCleanupAttempt,
@@ -311,6 +312,8 @@ class MluvaApplication(Adw.Application):
         self.conversation_workspace: ConversationWorkspace | None = None
         self.conversation_store: ConversationStore
         self.rewrite_client: CodexAppServerClient | None = None
+        self.model_catalog_client: CodexAppServerClient | None = None
+        self.rewrite_settings: RewriteSettings | None = None
         self.title_client: CodexAppServerClient | None = None
         self.title_queue: list[tuple[str, str]] = []
         self.automatic_titles_switch: Adw.SwitchRow | None = None
@@ -641,6 +644,50 @@ class MluvaApplication(Adw.Application):
             return
         self._begin_rewrite(workspace.entry.identifier, instruction)
 
+    def _load_rewrite_models(self) -> None:
+        """Discover installed models only when requested, without sending conversation text."""
+        if self.shutting_down or self.model_catalog_client is not None or self.rewrite_settings is None:
+            return
+        client = CodexAppServerClient(request_timeout_seconds=10)
+        self.model_catalog_client = client
+        self.rewrite_settings.set_loading()
+
+        def load() -> None:
+            """Keep catalog startup, errors and process cleanup off GTK."""
+            try:
+                models = client.list_models()
+            except Exception:
+                models = None
+            finally:
+                client.close()
+            GLib.idle_add(self._rewrite_models_loaded, client, models)
+
+        threading.Thread(target=load, name="rewrite-models", daemon=True).start()
+
+    def _rewrite_models_loaded(self, client: CodexAppServerClient, models: list[CodexModel] | None) -> bool:
+        """Discard stale discovery after shutdown and let the picker recover from offline Codex."""
+        if self.shutting_down or client is not self.model_catalog_client:
+            return GLib.SOURCE_REMOVE
+        self.model_catalog_client = None
+        if self.rewrite_settings is not None:
+            self.rewrite_settings.set_models(models)
+        return GLib.SOURCE_REMOVE
+
+    def _save_rewrite_settings(self, model: str | None, fast: bool) -> None:
+        """Persist rewrite-only preferences, restoring the controls when the write fails."""
+        config = replace(self.config, rewrite_model=model, rewrite_fast_mode=fast)
+        try:
+            save_config(config, self.config_path)
+        except OSError:
+            if self.rewrite_settings is not None:
+                self.rewrite_settings.set_config(self.config)
+                self.rewrite_settings.status.set_label("Could not save rewrite settings. Your previous choices remain.")
+            return
+        self.config = config
+        self._synchronize_workflow_config()
+        if self.rewrite_settings is not None:
+            self.rewrite_settings.set_config(config)
+
     def _begin_rewrite(self, identifier: str, instruction: str) -> None:
         """Run either rewrite surface against one explicit conversation, regardless of selection."""
         workspace = self.conversation_workspace
@@ -674,7 +721,15 @@ class MluvaApplication(Adw.Application):
         self._publish_review(identifier, "rewriting")
         threading.Thread(
             target=self._rewrite_worker,
-            args=(client, entry.identifier, instruction, prompt, self.config.codex_model),
+            args=(
+                client,
+                entry.identifier,
+                instruction,
+                prompt,
+                self.config.rewrite_model or self.config.codex_model,
+                self.config.rewrite_fast_mode,
+                time.monotonic(),
+            ),
             name="conversation-rewrite",
             daemon=True,
         ).start()
@@ -764,33 +819,48 @@ class MluvaApplication(Adw.Application):
         instruction: str,
         prompt: str,
         configured_model: str | None,
+        fast_mode: bool,
+        started_at: float,
     ) -> None:
         """Resolve and run the model away from GTK, leaving durable writes to the completion gate."""
         parts: list[str] = []
         last_update = 0.0
+        first_text_seconds: float | None = None
+        failure_message = "Rewrite failed. Check Codex, then try again. Your original is safe."
 
         def progress(delta: str) -> None:
             """Send bounded snapshots at most twenty times a second without blocking the model."""
-            nonlocal last_update
+            nonlocal last_update, first_text_seconds
+            if not delta:
+                return
             parts.append(delta)
             now = time.monotonic()
+            if first_text_seconds is None:
+                first_text_seconds = now - started_at
             if now - last_update >= 0.05:
                 last_update = now
                 GLib.idle_add(self._rewrite_progress, client, identifier, "".join(parts))
 
         try:
-            model = client.resolve_model(configured_model)
+            model = select_model(client.list_models(), configured_model)
+            if fast_mode and model.fast_tier is None:
+                failure_message = "Fast mode is unavailable for this model. Turn it off or choose another model."
+                raise ValueError("Unsupported rewrite service tier")
             result = client.transform(
                 prompt,
                 self.codex_workspace,
-                model,
+                model.identifier,
                 max_output_characters=MAX_REWRITE_CHARACTERS,
                 on_delta=progress,
+                effort=model.rewrite_effort,
+                service_tier=model.fast_tier if fast_mode else "default",
             )
         except Exception:
-            GLib.idle_add(self._rewrite_finished, client, identifier, instruction, "", "")
+            GLib.idle_add(self._rewrite_finished, client, identifier, instruction, "", "", None, failure_message)
         else:
-            GLib.idle_add(self._rewrite_finished, client, identifier, instruction, result, model)
+            GLib.idle_add(
+                self._rewrite_finished, client, identifier, instruction, result, model.identifier, first_text_seconds
+            )
         finally:
             client.close()
 
@@ -819,6 +889,8 @@ class MluvaApplication(Adw.Application):
         instruction: str,
         result: str,
         model: str,
+        first_text_seconds: float | None = None,
+        failure_message: str = "Rewrite failed. Check Codex, then try again. Your original is safe.",
     ) -> bool:
         """Commit a complete reply only while its request, source and privacy policy remain valid."""
         if self.shutting_down or client is not self.rewrite_client:
@@ -833,7 +905,7 @@ class MluvaApplication(Adw.Application):
             workspace.set_busy(False, "Rewrite discarded because Incognito is enabled.")
             return GLib.SOURCE_REMOVE
         if not result:
-            workspace.set_busy(False, "Rewrite failed. Check Codex, then try again. Your original is safe.")
+            workspace.set_busy(False, failure_message)
             if self.overlay_review_identifier == identifier:
                 self._publish_review(identifier, "review-error", "Rewrite failed. Try again or open the note.")
             return GLib.SOURCE_REMOVE
@@ -850,7 +922,8 @@ class MluvaApplication(Adw.Application):
                 workspace.prompt.get_buffer().set_text("")
             workspace.show_conversation(entry, self.conversation_store.replies(identifier))
             workspace.scroll_to_latest()
-        workspace.set_busy(False, "Rewrite ready. Choose Copy when you want to use it.")
+        timing = f" · first text {first_text_seconds:.1f} s" if first_text_seconds is not None else ""
+        workspace.set_busy(False, f"Rewrite ready{timing}. Choose Copy to use it.")
         workspace.refresh_history()
         if self.overlay_review_identifier == identifier:
             self._publish_review(identifier)
@@ -935,6 +1008,8 @@ class MluvaApplication(Adw.Application):
             cancel_rewrite=self._cancel_rewrite,
         )
         self.conversation_workspace.set_vexpand(True)
+        self.rewrite_settings = RewriteSettings(self.config, self._load_rewrite_models, self._save_rewrite_settings)
+        self.conversation_workspace.set_rewrite_settings(self.rewrite_settings)
         body.append(self.conversation_workspace)
         # Existing acceptance-gated recovery remains available for older drafts and advanced modes.
         body.append(self._build_output_section())
@@ -4147,6 +4222,9 @@ class MluvaApplication(Adw.Application):
         if self.rewrite_client is not None:
             self.rewrite_client.cancel()
             self.rewrite_client = None
+        if self.model_catalog_client is not None:
+            self.model_catalog_client.cancel()
+            self.model_catalog_client = None
         self._clear_meeting_capture_status_timeout()
         if self.recorder is not None and self.recorder.process is not None and self.capture_started_at is not None:
             self._record_app_diagnostic(
