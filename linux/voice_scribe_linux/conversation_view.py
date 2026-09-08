@@ -5,6 +5,7 @@ from datetime import datetime
 
 import gi
 
+from voice_scribe_linux.config import AppConfig
 from voice_scribe_linux.conversation import QUICK_POLISH, STRUCTURED_NOTE, ConversationStore, Rewrite
 from voice_scribe_linux.conversation_titles import fallback_title
 from voice_scribe_linux.history import HistoryEntry
@@ -26,6 +27,8 @@ class _TailFollower:
         self.writing = False
         self.snap_next = True
         self.animation: Adw.Animation | None = None
+        self.duration_ms = 800
+        self.smooth = True
         adjustment = scroll.get_vadjustment()
         adjustment.connect("changed", self.queue)
         adjustment.connect("value-changed", self._scrolled)
@@ -67,14 +70,19 @@ class _TailFollower:
         adjustment = self.scroll.get_vadjustment()
         destination = max(0, adjustment.get_upper() - adjustment.get_page_size())
         self._pause()
-        if self.snap_next or not self.scroll.get_mapped() or abs(destination - adjustment.get_value()) < 1:
+        if (
+            self.snap_next
+            or not self.smooth
+            or not self.scroll.get_mapped()
+            or abs(destination - adjustment.get_value()) < 1
+        ):
             self._write(destination)
         else:
             self.animation = Adw.TimedAnimation.new(
                 self.scroll,
                 adjustment.get_value(),
                 destination,
-                420,
+                self.duration_ms,
                 Adw.CallbackAnimationTarget.new(self._write),
             )
             self.animation.set_easing(Adw.Easing.EASE_OUT_CUBIC)
@@ -88,6 +96,41 @@ class _TailFollower:
             self.following = adjustment.get_value() + adjustment.get_page_size() >= adjustment.get_upper() - 24
             if not self.following:
                 self._pause()
+
+
+class DocumentEditor(Gtk.TextView):
+    """Measure the entire editable document for one shared outer scrollbar."""
+
+    def __init__(self, text: str) -> None:
+        """Keep wrapping, selection and editing in the same visible document."""
+        super().__init__(editable=True, cursor_visible=True, wrap_mode=Gtk.WrapMode.WORD_CHAR, accepts_tab=False)
+        self.add_css_class("ml-transcript")
+        self.set_top_margin(4)
+        self.set_bottom_margin(12)
+        self.get_buffer().set_text(text)
+        self.get_buffer().connect("changed", lambda _buffer: self.queue_resize())
+
+    def get_text(self) -> str:
+        """Return the current document including deliberate whitespace."""
+        buffer = self.get_buffer()
+        return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
+
+    def do_get_request_mode(self):
+        """Ask GTK to measure wrapped height using the allocated column width."""
+        return Gtk.SizeRequestMode.HEIGHT_FOR_WIDTH
+
+    def do_measure(self, orientation, for_size):
+        """Size the editor to its wrapped content, retaining space for the caret."""
+        if orientation == Gtk.Orientation.HORIZONTAL:
+            return (0, 300, -1, -1)
+        layout = self.create_pango_layout(self.get_text() or " ")
+        layout.set_width(max(1, for_size - self.get_left_margin() - self.get_right_margin()) * Pango.SCALE)
+        layout.set_wrap(Pango.WrapMode.WORD_CHAR)
+        attributes = Pango.AttrList()
+        attributes.insert(Pango.attr_line_height_new(1.3))
+        layout.set_attributes(attributes)
+        height = layout.get_pixel_size()[1] + self.get_top_margin() + self.get_bottom_margin() + 8
+        return (height, height, -1, -1)
 
 
 class ConversationWorkspace(Gtk.Box):
@@ -106,6 +149,11 @@ class ConversationWorkspace(Gtk.Box):
         """Bind user intentions while leaving recording and provider work to the application."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.store = store
+        self.config = AppConfig()
+        self.edit_drafts: dict[tuple[str, int | None], str] = {}
+        self.editors: dict[tuple[str, int | None], DocumentEditor] = {}
+        self.copy_buttons: list[Gtk.Button] = []
+        self.save_buttons: list[Gtk.Button] = []
         self.copy_text = copy_text
         self.request_rewrite = rewrite
         self.paste_text = paste_text
@@ -117,7 +165,7 @@ class ConversationWorkspace(Gtk.Box):
         self.busy = False
         self.private = False
         self.drafts: dict[str, str] = {}
-        self.result_widgets: list[Gtk.Label] = []
+        self.result_widgets: list[DocumentEditor] = []
         self.rewrite_preview_identifier: str | None = None
         self.rewrite_preview_text = ""
         self.rewrite_preview_box: Gtk.Box | None = None
@@ -201,15 +249,28 @@ class ConversationWorkspace(Gtk.Box):
         self.conversation_follower = _TailFollower(self.scroll)
         content.append(self.scroll)
 
-        self.live_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2, vexpand=True)
+        self.live_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16, vexpand=True)
         self.live_box.add_css_class("ml-live")
         set_margins(self.live_box, SPACE_4)
         self.live_box.set_margin_top(0)
         self.live_text = self._text_view("")
         self.live_scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER, vexpand=True)
+        self.live_scroll.set_hexpand(True)
         self.live_scroll.set_child(self.live_text)
         self.live_follower = _TailFollower(self.live_scroll)
         self.live_box.append(self.live_scroll)
+        self.live_draft_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2, hexpand=True)
+        self.live_draft_status = Gtk.Label(label="Live draft", xalign=0, wrap=True, css_classes=["heading"])
+        self.live_draft_box.append(self.live_draft_status)
+        self.live_draft_text = self._text_view("")
+        self.live_draft_text.set_editable(True)
+        self.live_draft_text.set_cursor_visible(True)
+        self.live_draft_scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER, vexpand=True)
+        self.live_draft_scroll.set_child(self.live_draft_text)
+        self.live_draft_box.append(self.live_draft_scroll)
+        self.live_draft_follower = _TailFollower(self.live_draft_scroll)
+        self.live_box.append(self.live_draft_box)
+        self.live_draft_box.set_visible(False)
         self.live_box.set_visible(False)
         self.live_column = self._reading_column(self.live_box)
         self.live_column.set_visible(False)
@@ -295,7 +356,7 @@ class ConversationWorkspace(Gtk.Box):
     @staticmethod
     def _reading_column(child: Gtk.Widget) -> Adw.Clamp:
         """Keep the heading, text, composer and recording controls on the same horizontal guides."""
-        return Adw.Clamp(maximum_size=900, tightening_threshold=760, child=child)
+        return Adw.Clamp(maximum_size=900, tightening_threshold=900, child=child)
 
     def set_capture_controls(self, controls: Gtk.Widget) -> None:
         """Keep the recording footer inside the conversation while history reaches the window bottom."""
@@ -315,31 +376,104 @@ class ConversationWorkspace(Gtk.Box):
         view.get_buffer().set_text(text)
         return view
 
-    def _message(self, title: str, text: str, source: bool = False) -> None:
-        """Add a source or rewrite with its own explicit Copy action."""
+    def set_config(self, config: AppConfig) -> None:
+        """Apply the same persisted behavior to all document and live surfaces."""
+        self.config = config
+        for follower in (self.conversation_follower, self.live_follower, self.live_draft_follower):
+            follower.smooth = config.smooth_scrolling
+            follower.duration_ms = config.scroll_duration_ms
+        self.messages.set_margin_bottom(16 + config.scroll_lookahead_lines * 20)
+        for button in self.copy_buttons:
+            button.set_visible(config.show_copy_action)
+        for button in self.save_buttons:
+            button.set_visible(config.show_save_action)
+
+    def _message(self, title: str, text: str, source: bool = False, reply_identifier: int | None = None) -> None:
+        """Add a directly editable document with compact Copy and Save actions."""
         message = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2)
         message.add_css_class("ml-source" if source else "ml-reply")
         header = Gtk.Box(spacing=SPACE_2)
         heading = Gtk.Label(label=title, xalign=0, hexpand=True)
         heading.add_css_class("heading")
         header.append(heading)
-        copy = Gtk.Button(label="Copy", has_frame=False)
-        copy.set_tooltip_text(f"Copy {title.lower()}")
-        copy.connect("clicked", lambda _button: self.copy_text(text))
+        key = (self.entry.identifier, reply_identifier) if self.entry is not None else None
+        view = DocumentEditor(self.edit_drafts.get(key, text))
+        self.result_widgets.append(view)
+        save = Gtk.Button(icon_name="document-save-symbolic", has_frame=False, tooltip_text="Save edits")
+        save.set_visible(self.config.show_save_action)
+        save.set_sensitive(False)
+        self.save_buttons.append(save)
+        if key is not None:
+            self.editors[key] = view
+
+            def changed(_buffer):
+                """Retain edits across navigation without changing stored recognition."""
+                self.edit_drafts[key] = view.get_text()
+                save.set_sensitive(view.get_text() != text)
+
+            view.get_buffer().connect("changed", changed)
+            save.connect("clicked", lambda _button: self.save_edits(key))
+            save.set_sensitive(key in self.edit_drafts and self.edit_drafts[key] != text)
+        header.append(save)
+        copy = Gtk.Button(icon_name="edit-copy-symbolic", has_frame=False, tooltip_text=f"Copy {title.lower()}")
+        copy.set_visible(self.config.show_copy_action)
+        copy.connect("clicked", lambda _button: self.copy_text(view.get_text()))
+        self.copy_buttons.append(copy)
         header.append(copy)
         message.append(header)
-        # TextView owns a viewport even inside a box; its document can be clipped
-        # independently of the conversation's scrollbar. Labels measure the full text.
-        view = Gtk.Label(label=text, xalign=0, yalign=0, wrap=True, selectable=True)
-        view.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        view.add_css_class("ml-transcript")
-        self.result_widgets.append(view)
         message.append(view)
+        keys = Gtk.EventControllerKey()
+        keys.connect("key-pressed", self._document_key)
+        view.add_controller(keys)
         self.messages.append(message)
+
+    def _document_key(self, _controller, key, _code, state):
+        """Keep explicit saving available from the keyboard when toolbar icons are hidden."""
+        if key == Gdk.KEY_s and state & Gdk.ModifierType.CONTROL_MASK:
+            self.save_edits()
+            return True
+        return False
+
+    def save_edits(self, key: tuple[str, int | None] | None = None) -> bool:
+        """Save explicit edits, also called before rewriting so the new text is authoritative."""
+        keys = (
+            [key]
+            if key is not None
+            else [key for key in self.edit_drafts if self.entry and key[0] == self.entry.identifier]
+        )
+        try:
+            for selected in keys:
+                if selected in self.edit_drafts:
+                    self.store.save_text(selected[0], self.edit_drafts[selected], selected[1])
+                    del self.edit_drafts[selected]
+        except Exception:
+            self.notice.set_label("Could not save edits. Keep the document open and try again.")
+            return False
+        self.notice.set_label("Edits saved")
+        self.refresh_history()
+        return True
+
+    def live_draft(self) -> str:
+        """Read the structured live draft, including the speaker's manual edits."""
+        buffer = self.live_draft_text.get_buffer()
+        return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
+
+    def show_live_draft(self, text: str, status: str = "Live draft") -> None:
+        """Replace a completed snapshot without rendering a partially restructured document."""
+        self.live_draft_box.set_visible(True)
+        self.live_draft_text.get_buffer().set_text(text)
+        self.live_draft_status.set_label(status)
+        self.live_draft_follower.queue()
 
     def show_conversation(self, entry: HistoryEntry | None, replies: list[Rewrite]) -> None:
         """Open the exact selected history item and every saved rewrite, preserving original text."""
         self.drafts[self.entry.identifier if self.entry else "new"] = self.prompt_text()
+        same_entry = self.entry is not None and entry is not None and self.entry.identifier == entry.identifier
+        position = self.scroll.get_vadjustment().get_value()
+        following = self.conversation_follower.following
+        self.editors.clear()
+        self.copy_buttons.clear()
+        self.save_buttons.clear()
         self.entry = entry
         self.title_label = None
         self.conversation_title.set_label("New conversation")
@@ -372,9 +506,10 @@ class ConversationWorkspace(Gtk.Box):
             title = entry.title or fallback_title(entry.raw_text)
             self.title_label.set_label(title)
             self.title_label.set_tooltip_text(title)
-            self._message("Original", entry.raw_text, source=True)
+            self._message("Original", self.store.source_text(entry), source=True)
             if entry.delivered_text and entry.delivered_text != entry.raw_text:
-                self._message("Copied dictation", entry.delivered_text)
+                # Prepared text remains recoverable in History; the workspace edits its source directly.
+                pass
             for reply in replies:
                 instruction = (
                     "Quick Polish"
@@ -388,7 +523,7 @@ class ConversationWorkspace(Gtk.Box):
                 request.set_max_width_chars(64)
                 request.add_css_class("ml-instruction")
                 self.messages.append(request)
-                self._message("Rewrite", reply.text)
+                self._message("Rewrite", reply.text, reply_identifier=reply.identifier)
             self._render_rewrite_preview()
         self.prompt.get_buffer().set_text(self.drafts.get(entry.identifier if entry else "new", ""))
         self.prompt_label.set_label(
@@ -397,14 +532,22 @@ class ConversationWorkspace(Gtk.Box):
         self.prompt_label.set_visible(False)
         self.prompt_placeholder.set_label("Ask for a rewrite…" if entry else "Paste or type text to start…")
         self.send.set_label("Rewrite" if entry else "Start conversation")
-        self.notice.set_label("Original preserved" if entry else "Dictation copies automatically.")
+        self.notice.set_label(
+            "Edit either document. Save edits or rewrite to keep them." if entry else "Dictation copies automatically."
+        )
         self._update_actions()
         for row, identifier in self.rows.items():
             if entry is not None and identifier == entry.identifier:
                 self.history_list.select_row(row)
         if self.split.get_collapsed():
             self.split.set_show_sidebar(False)
-        self.scroll_to_latest()
+        if not same_entry:
+            self.scroll_to_latest()
+        elif following:
+            self.conversation_follower.follow()
+        else:
+            self.conversation_follower.stop()
+            GLib.idle_add(lambda: self.conversation_follower._write(position))
 
     def set_rewrite_preview(self, identifier: str, text: str) -> None:
         """Retain one volatile stream across navigation, with no partial Copy or persistence."""
@@ -426,6 +569,7 @@ class ConversationWorkspace(Gtk.Box):
             self.rewrite_preview_box.append(self.rewrite_preview_label)
             self.messages.append(self.rewrite_preview_box)
         self.rewrite_preview_label.set_label(self.rewrite_preview_text)
+        self.conversation_follower.queue()
 
     def clear_rewrite_preview(self) -> None:
         """Erase partial text on completion, failure, cancellation or privacy changes."""
@@ -549,6 +693,8 @@ class ConversationWorkspace(Gtk.Box):
 
     def _update_actions(self) -> None:
         """Make privacy and in-flight work authoritative for all rewrite entry points."""
+        for editor in self.editors.values():
+            editor.set_editable(not self.busy)
         self.cancel.set_visible(self.busy)
         self.actions.set_sensitive(self.entry is not None and not self.busy and not self.private)
         self.send.set_sensitive(not self.busy and (self.entry is None or not self.private))
@@ -595,6 +741,8 @@ class ConversationWorkspace(Gtk.Box):
     def finish_live(self) -> None:
         """Erase volatile text when finalization completes or capture is cancelled."""
         self.live_follower.stop()
+        self.live_draft_follower.stop()
+        self.live_draft_box.set_visible(False)
         self.live_text.get_buffer().set_text("")
         self.live_box.set_visible(False)
         self.live_column.set_visible(False)

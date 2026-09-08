@@ -41,7 +41,7 @@ class ConversationStore:
     history: HistoryStore
 
     def initialize(self) -> None:
-        """Add an append-only reply table without copying or migrating user transcripts."""
+        """Store editable documents beside immutable recognition, with shared retention."""
         with closing(sqlite3.connect(self.history.path)) as connection, connection:
             connection.executescript("""
                 CREATE TABLE IF NOT EXISTS conversation_rewrites (
@@ -54,11 +54,47 @@ class ConversationStore:
                 );
                 CREATE INDEX IF NOT EXISTS conversation_rewrites_history
                     ON conversation_rewrites(history_identifier, identifier);
+                CREATE TABLE IF NOT EXISTS conversation_sources (
+                    history_identifier TEXT PRIMARY KEY REFERENCES transcription_history(identifier),
+                    text TEXT NOT NULL
+                );
+                CREATE TRIGGER IF NOT EXISTS erase_conversation_sources
+                AFTER DELETE ON transcription_history BEGIN
+                    DELETE FROM conversation_sources WHERE history_identifier = OLD.identifier;
+                END;
                 CREATE TRIGGER IF NOT EXISTS erase_conversation_rewrites
                 AFTER DELETE ON transcription_history BEGIN
                     DELETE FROM conversation_rewrites WHERE history_identifier = OLD.identifier;
                 END;
             """)
+
+    def source_text(self, entry: HistoryEntry, *, delivered_fallback: bool = False) -> str:
+        """Read working text, with a delivered fallback for the shell's completed-note preview."""
+        with closing(sqlite3.connect(self.history.path)) as connection:
+            row = connection.execute(
+                "SELECT text FROM conversation_sources WHERE history_identifier = ?", (entry.identifier,)
+            ).fetchone()
+        return row[0] if row else entry.delivered_text if delivered_fallback else entry.raw_text
+
+    def save_text(self, identifier: str, text: str, reply_identifier: int | None = None) -> None:
+        """Save one explicitly edited source or rewrite without recreating a deleted conversation."""
+        if not text.strip() or len(text) > MAX_CONVERSATION_CHARACTERS:
+            raise ValueError("A document needs text and must fit within 120,000 characters.")
+        with closing(sqlite3.connect(self.history.path)) as connection, connection:
+            connection.execute("PRAGMA foreign_keys = ON")
+            if reply_identifier is None:
+                connection.execute(
+                    "INSERT INTO conversation_sources(history_identifier, text) VALUES (?, ?) "
+                    "ON CONFLICT(history_identifier) DO UPDATE SET text = excluded.text",
+                    (identifier, text),
+                )
+            else:
+                cursor = connection.execute(
+                    "UPDATE conversation_rewrites SET text = ? WHERE identifier = ? AND history_identifier = ?",
+                    (text, reply_identifier, identifier),
+                )
+                if cursor.rowcount != 1:
+                    raise KeyError(identifier)
 
     def replies(self, identifier: str) -> list[Rewrite]:
         """Read the complete ordered conversation for display or contextual rewriting."""
@@ -82,6 +118,7 @@ class ConversationStore:
                 "VALUES (?, ?, ?, ?, ?)",
                 (identifier, instruction, text, model, stamp),
             )
+            assert cursor.lastrowid is not None
             return Rewrite(cursor.lastrowid, identifier, instruction, text, model, stamp)
 
     def search(self, query: str = "", limit: int = 80) -> list[HistoryEntry]:
@@ -93,23 +130,29 @@ class ConversationStore:
             identifiers = connection.execute(
                 "SELECT h.identifier FROM transcription_history h WHERE "
                 "unicode_fold(h.title) LIKE ? ESCAPE '\\' OR unicode_fold(h.raw_text) LIKE ? ESCAPE '\\' "
-                "OR unicode_fold(h.delivered_text) LIKE ? ESCAPE '\\' OR EXISTS (SELECT 1 FROM conversation_rewrites r "
+                "OR unicode_fold(h.delivered_text) LIKE ? ESCAPE '\\' "
+                "OR EXISTS (SELECT 1 FROM conversation_sources s WHERE s.history_identifier = h.identifier "
+                "AND unicode_fold(s.text) LIKE ? ESCAPE '\\') OR EXISTS (SELECT 1 FROM conversation_rewrites r "
                 "WHERE r.history_identifier = h.identifier AND "
                 "(unicode_fold(r.text) LIKE ? ESCAPE '\\' OR unicode_fold(r.instruction) LIKE ? ESCAPE '\\')) "
                 "ORDER BY h.created_at DESC LIMIT ?",
-                (pattern, pattern, pattern, pattern, pattern, limit),
+                (pattern, pattern, pattern, pattern, pattern, pattern, limit),
             ).fetchall()
         return [self.history.find(row["identifier"]) for row in identifiers]
 
 
-def rewrite_prompt(entry: HistoryEntry, replies: list[Rewrite], instruction: str) -> str:
+def rewrite_prompt(
+    entry: HistoryEntry, replies: list[Rewrite], instruction: str, source_text: str | None = None
+) -> str:
     """Replay local conversation context in an isolated request without silent context truncation."""
     if not instruction.strip():
         raise ValueError("Describe how you want to rewrite the text.")
     context = json.dumps(
         {
-            "original_transcript": entry.raw_text,
-            "initial_text": entry.delivered_text,
+            "original_transcript": source_text if source_text is not None else entry.raw_text,
+            "initial_text": source_text
+            if source_text is not None and source_text != entry.raw_text
+            else entry.delivered_text,
             "completed_rewrites": [{"instruction": reply.instruction, "text": reply.text} for reply in replies],
             "next_instruction": instruction.strip(),
         },

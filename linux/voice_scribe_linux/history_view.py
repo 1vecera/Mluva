@@ -418,7 +418,13 @@ class HistoryPage(Gtk.Box):
         """Export one entry and reveal its exact owner-local path."""
         try:
             replies = self.conversations.replies(entry.identifier) if self.conversations else []
-            output_path = self.store.export(entry, self.export_directory, export_format, rewrites=replies)
+            output_path = self.store.export(
+                entry,
+                self.export_directory,
+                export_format,
+                rewrites=replies,
+                source_text=self.conversations.source_text(entry) if self.conversations else None,
+            )
         except Exception as error:
             self.show_message(f"History export failed: {error}")
             return

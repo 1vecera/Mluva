@@ -19,7 +19,11 @@ PanelWindow {
     property string message: ""
     property var bar
     property bool menuOpen: false
-    readonly property int reviewDuration: 8000
+    property int reviewDuration: 4000
+    property bool showCopy: true
+    property bool smoothScrolling: true
+    property int scrollDuration: 800
+    property int scrollLookahead: 2
     property real remaining: reviewDuration
     property double lastTick: Date.now()
     property bool dismissed: false
@@ -210,10 +214,10 @@ PanelWindow {
                     property real offset: Math.min(0, transcriptViewport.height - transcript.height
                         - root.discardedHeight - transcript.lookAhead)
                     Behavior on offset {
-                        enabled: root.animatePreview && root.visible
+                        enabled: root.animatePreview && root.visible && root.smoothScrolling
                         SmoothedAnimation {
                             velocity: root.lineHeight * 1.7
-                            duration: 800
+                            duration: root.scrollDuration
                             maximumEasingTime: 160
                             reversingMode: SmoothedAnimation.Immediate
                         }
@@ -227,7 +231,7 @@ PanelWindow {
                     property real lastLineFill: 0
                     readonly property real lookAhead: (root.phase === "recording" || root.busy)
                         && lineCount >= root.previewLines
-                        ? root.lineHeight * 0.65 * Math.max(0, Math.min(1, (lastLineFill - 0.72) / 0.28)) : 0
+                        ? root.lineHeight * Math.min(1.5, root.scrollLookahead * 0.325) * Math.max(0, Math.min(1, (lastLineFill - 0.72) / 0.28)) : 0
                     width: parent.width
                     y: previewMotion.offset + root.discardedHeight
                     text: root.displayedPreview
@@ -298,7 +302,10 @@ PanelWindow {
                 Item { Layout.fillWidth: true }
                 ActionButton {
                     objectName: "copy-button"
-                    text: "Copy"
+                    iconText: "⧉"
+                    tooltipText: "Copy"
+                    Accessible.name: "Copy"
+                    visible: root.showCopy
                     enabled: !root.busy
                     onClicked: root.act("copy")
                 }
@@ -313,7 +320,7 @@ PanelWindow {
                     text: ""
                     implicitWidth: 30
                     implicitHeight: 30
-                    tooltipText: root.busy ? "Dismiss" : "Dismiss · closes after 8 idle seconds"
+                    tooltipText: root.busy ? "Dismiss" : "Dismiss · closes after " + root.reviewDuration / 1000 + " idle seconds"
                     Accessible.name: "Dismiss review"
                     onClicked: root.act("dismiss")
                     Canvas {

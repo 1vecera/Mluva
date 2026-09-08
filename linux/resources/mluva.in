@@ -8,7 +8,22 @@ has_elevenlabs_credential() {
         || [[ -n "${ELEVEN_LABS_STT_TOKEN:-}" ]]
 }
 
-if [[ "${MLUVA_SECRET_PROFILE:-${VOICE_SCRIBE_SECRET_PROFILE:-}}" != "1" ]] && ! has_elevenlabs_credential; then
+needs_elevenlabs_credential() {
+    local config_path="${XDG_CONFIG_HOME:-${HOME}/.config}/voice-scribe/config.json"
+    [[ ! -f "${config_path}" ]] && return 0
+    /usr/bin/python3 - "${config_path}" <<'PYCONFIG'
+import json
+import sys
+try:
+    with open(sys.argv[1], encoding="utf-8") as stream:
+        provider = json.load(stream).get("transcription_provider", "elevenlabs")
+except (OSError, ValueError, AttributeError):
+    provider = "elevenlabs"
+sys.exit(0 if provider == "elevenlabs" else 1)
+PYCONFIG
+}
+
+if needs_elevenlabs_credential && [[ "${MLUVA_SECRET_PROFILE:-${VOICE_SCRIBE_SECRET_PROFILE:-}}" != "1" ]] && ! has_elevenlabs_credential; then
     secret_config_dir="${DAS_CONF_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/daniel-ai-skills}"
     managed_launcher="${secret_config_dir}/bin/das-mcp-launch"
     profile_references="${secret_config_dir}/env/voice-scribe.env"

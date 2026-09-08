@@ -51,6 +51,11 @@ class RecordingOverlayState:
     review_identifier: str = ""
     review_options: tuple[tuple[str, str], ...] = ()
     message: str = ""
+    review_timeout_seconds: int = 4
+    show_copy_action: bool = True
+    smooth_scrolling: bool = True
+    scroll_duration_ms: int = 800
+    scroll_lookahead_lines: int = 2
 
     @classmethod
     def hidden(cls) -> "RecordingOverlayState":
@@ -89,6 +94,11 @@ class RecordingOverlayState:
             if boundary >= 0:
                 preview_start = boundary + 1
         values.update(
+            review_timeout=GLib.Variant("u", max(1, min(60, self.review_timeout_seconds))),
+            show_copy=GLib.Variant("b", self.show_copy_action),
+            smooth_scrolling=GLib.Variant("b", self.smooth_scrolling),
+            scroll_duration=GLib.Variant("u", max(0, min(2000, self.scroll_duration_ms))),
+            scroll_lookahead=GLib.Variant("u", max(0, min(6, self.scroll_lookahead_lines))),
             elapsed=GLib.Variant("u", max(0, min(int(self.elapsed_seconds), 86_400))),
             level=GLib.Variant("d", max(0.0, min(self.level, 1.0)) if math.isfinite(self.level) else 0.0),
             preview=GLib.Variant("s", preview[preview_start:]),

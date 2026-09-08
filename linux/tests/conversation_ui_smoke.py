@@ -67,7 +67,7 @@ class IsolatedApplication(MluvaApplication):
     def _initialize_local_services(self) -> None:
         """Keep optional automatic title requests off the real authenticated provider."""
         super()._initialize_local_services()
-        self.config = replace(self.config, automatic_titles=False)
+        self.config = replace(self.config, automatic_titles=False, auto_copy_rewrite=False)
 
     def _initialize_capture_services(self) -> None:
         """Leave real microphone, portal and network transports unstarted for this visual fixture."""

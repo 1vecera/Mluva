@@ -32,7 +32,7 @@ class DeliveryReceipt:
             return "pasted"
         if self.paste_dispatched:
             return "paste-unconfirmed"
-        return "copied"
+        return "copied" if self.copied else "ready"
 
 
 def deliver_text(

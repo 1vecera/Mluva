@@ -32,6 +32,8 @@ class DiagnosticProvider(StrEnum):
     CODEX_APP_SERVER = "codex-app-server"
     DESKTOP = "desktop"
     LOCAL = "local"
+    LITELLM = "litellm"
+    VOXTYPE = "voxtype"
 
 
 class DiagnosticOutcome(StrEnum):

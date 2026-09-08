@@ -208,8 +208,8 @@ overlay-split-view > .sidebar-pane, overlay-split-view > .content-pane { backgro
 .ml-wordmark, .ml-conversation-title { font-size: 1.12em; font-weight: 600; letter-spacing: -0.2px; }
 .ml-brand-mark { color: @vs_ink_secondary; opacity: 0.65; }
 .ml-conversation { background: transparent; }
-.ml-transcript, .ml-transcript text { background: transparent; color: @vs_ink; font-size: 1.04em; }
-.ml-transcript { line-height: 1.3; }
+.ml-transcript, .ml-transcript text { background: transparent; color: @vs_ink; }
+.ml-transcript { font-size: 1.04em; line-height: 1.3; }
 .ml-source { padding: 0 0 8px; }
 .ml-source .heading, .ml-reply .heading { font-size: 0.9em; font-weight: 500; color: @vs_ink_secondary; }
 .ml-reply { padding: 0 0 4px; }

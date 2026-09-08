@@ -2,7 +2,7 @@
 
 ## Product outcome
 
-Mluva is a native macOS and Linux voice-input system that turns speech into faithful, finished text. macOS can work privately on-device through Apple Speech or use Google Cloud Speech-to-Text for harder technical and multilingual dictation. The supported Fedora GNOME client uses ElevenLabs Scribe v2 for recognition and the local Codex app-server for optional cleanup, styles, and Command mode. Both keep recognition, enhancement, and delivery independently replaceable.
+Mluva is a native macOS and Linux voice-input system that turns speech into faithful, finished text. macOS can work privately on-device through Apple Speech or use Google Cloud Speech-to-Text for harder technical and multilingual dictation. The supported Fedora GNOME client defaults to ElevenLabs Scribe v2 and Codex app-server, with independent choices for local Voxtype/Whisper or LiteLLM-compatible recognition and LiteLLM-compatible rewriting, cleanup, styles and Command mode. Both keep recognition, enhancement, and delivery independently replaceable.
 
 The initial public support boundary is Fedora 44, GNOME Shell 50, and Wayland. macOS remains a source preview until its current implementation, signing, notarization, packaging, and update path are independently verified; this contract describes intended macOS behavior without implying a supported public binary. Implemented behavior is not automatically accepted behavior: the generated [feature-maturity matrix](feature-maturity.md) and the matching in-app registry limit **Verified on Linux** to the current manual acceptance boundary and label every other capability **Experimental**.
 
@@ -13,7 +13,7 @@ The common behavioral contract below applies to both platforms unless a provider
 ## Product principles
 
 - Prefer a faithful awkward transcript over a fluent factual change.
-- Keep the raw transcript immutable and inspectable beside every derived version.
+- Keep raw recognition immutable and inspectable in History, while allowing the working source and rewritten documents to be edited and saved.
 - Show volatile recognition in Mluva's display-only live surface; commit to the target application only when provider text is final and eligible for delivery.
 - Make provider choice explicit. “Automatic” may route work, but it must reveal which provider handled it.
 - Keep macOS Apple-only operation functional without an account, API key, downloaded third-party model, or network.
@@ -23,7 +23,7 @@ The common behavioral contract below applies to both platforms unless a provider
 
 ## Linux conversation workspace
 
-The accepted [conversation workspace contract](conversation-workspace.md) defines the current Linux primary surface: dictation, full live and completed transcripts, searchable history, and persistent rewrite conversations. Quick Polish, Structured Note, saved custom prompts, and contextual follow-ups use local Codex app-server. F9 remains clipboard-first; Shift+F9 opens the latest conversation when approved by the desktop. The optional shell extension adds explicit actions and bottom recording/processing/copied/error feedback. Advanced capture modes remain available through Settings and secondary pages.
+The accepted [conversation workspace contract](conversation-workspace.md) defines the current Linux primary surface: dictation, full live and completed transcripts, searchable history, and persistent rewrite conversations. Quick Polish, Structured Note, saved custom prompts, contextual follow-ups and opt-in Live rewrite use the selected Codex or LiteLLM-compatible provider. Completed dictation and rewrites copy automatically by default; the UI and dotfile control copying, icons and scrolling. F9 remains clipboard-first; Shift+F9 opens the latest conversation when approved by the desktop. The optional shell extension adds explicit actions and bottom recording/processing/copied/error feedback. Advanced capture modes remain available through Settings and secondary pages.
 
 ## Capture modes
 
@@ -43,7 +43,7 @@ The accepted [conversation workspace contract](conversation-workspace.md) define
 - Interpret speech as a short question or drafting instruction when no text is selected.
 - On macOS, use Gemini 3.6 Flash first whenever Google Cloud processing is configured and allowed, regardless of the recognition provider; use Apple Intelligence as the command fallback.
 - On macOS, keep Incognito commands local-only and use Apple Intelligence when Google Cloud processing is unavailable.
-- On Linux, use a locally authenticated Codex app-server thread for Command mode and fail closed in Incognito while ephemeral Codex durability cannot be proven.
+- On Linux, use the selected Codex or LiteLLM-compatible provider for Command mode and fail closed in Incognito while ephemeral Codex durability cannot be proven.
 - Send a Command provider only the bounded spoken instruction and explicit selected text; exclude application identity, window title, and nearby text.
 - Preview destructive or meaning-changing edits before replacing the selection.
 
@@ -112,7 +112,7 @@ The accepted [conversation workspace contract](conversation-workspace.md) define
 - Remove fillers and false starts only when enabled.
 - Offer faithful cleanup and rewrite as distinct operations.
 - On macOS, use Gemini 3.6 Flash through Vertex AI for Command whenever Google Cloud processing is enabled, with Apple Intelligence as fallback, and use Gemini for faithful cleanup and output-mode rewrites when Google Cloud handled recognition.
-- On Linux, use the local Codex app-server for Command, optional faithful cleanup, and saved-style rewriting, then reject optional output that changes protected facts or technical tokens.
+- On Linux, use the selected Codex or LiteLLM-compatible provider for Command, optional faithful cleanup, and saved-style rewriting, then reject optional output that changes protected facts or technical tokens.
 - Validate enhanced output against protected terms, URLs, numbers, file paths, code identifiers, and negation before delivery.
 - Let users inspect and restore the raw transcript from history.
 

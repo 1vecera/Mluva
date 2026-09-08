@@ -46,6 +46,13 @@ def project_state(parameters: GLib.Variant, overlay: bool = False) -> dict[str, 
             "preview": " ".join(str(values.get("preview", "")).split())[-SHELL_PREVIEW_CHARACTERS:],
             "preview_start": max(0, min(int(values.get("preview_start", 0)), 2**31 - 1)),
         }
+        state.update(
+            review_timeout=max(1, min(60, int(values.get("review_timeout", 4)))),
+            show_copy=bool(values.get("show_copy", True)),
+            smooth_scrolling=bool(values.get("smooth_scrolling", True)),
+            scroll_duration=max(0, min(2000, int(values.get("scroll_duration", 800)))),
+            scroll_lookahead=max(0, min(6, int(values.get("scroll_lookahead", 2)))),
+        )
         if phase in REVIEW_PHASES:
             state.update(
                 identifier=str(values.get("identifier", ""))[:36],

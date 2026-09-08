@@ -1,6 +1,7 @@
 """Catalog-backed Codex controls beside the conversation's rewrite actions."""
 
 from collections.abc import Callable
+from dataclasses import replace
 
 import gi
 
@@ -61,7 +62,15 @@ class RewriteSettings(Gtk.MenuButton):
 
     def set_config(self, config: AppConfig) -> None:
         """Reflect saved settings, guarding GTK notifications during a catalog refresh or rollback."""
+        remote = config.rewrite_provider == "litellm"
         self.config = config
+        self.model_row.set_title("LiteLLM model" if remote else "Codex model")
+        self.fast_row.set_visible(not remote)
+        self.set_tooltip_text("Choose the rewrite model and speed")
+        if remote:
+            config = replace(
+                config, rewrite_model=config.litellm_model, codex_model=config.litellm_model, rewrite_fast_mode=False
+            )
         self.updating = True
         selected = config.rewrite_model
         choices = [None]
@@ -112,11 +121,15 @@ class RewriteSettings(Gtk.MenuButton):
         """Publish catalog results without changing persisted selections on discovery failure."""
         self.refresh.set_sensitive(True)
         if not models:
-            self.status.set_label("Could not load models. Check Codex, then refresh.")
+            self.status.set_label("Could not load models. Check your provider, then refresh.")
             return
         self.models = models
         self.set_config(self.config)
-        self.status.set_label("Rewrites use low reasoning when supported. Default follows your Codex model setting.")
+        self.status.set_label(
+            "Select an available deployment. You can also enter its alias in Settings → Providers."
+            if self.config.rewrite_provider == "litellm"
+            else "Rewrites use low reasoning when supported. Default follows your Codex model setting."
+        )
 
     def _changed(self, *_args: object) -> None:
         """Save an explicit choice, clearing Fast when the newly chosen model cannot serve it."""
@@ -129,6 +142,10 @@ class RewriteSettings(Gtk.MenuButton):
             fast = False
         else:
             fast = self.fast_row.get_active() and model.fast_tier is not None
+        if self.config.rewrite_provider == "litellm":
+            if selected != self.config.litellm_model:
+                self.save_settings(selected, False)
+            return
         if (selected, fast) == (self.config.rewrite_model, self.config.rewrite_fast_mode):
             return
         self.save_settings(selected, fast)

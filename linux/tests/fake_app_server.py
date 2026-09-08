@@ -108,12 +108,15 @@ def main() -> None:
                     }
                 )
                 continue
-            if "--conversation" in sys.argv:
+            if "--conversation" in sys.argv or "--live" in sys.argv:
                 context = json.loads(message["params"]["input"][0]["text"].split("\n", 1)[1])
-                previous = context["completed_rewrites"]
-                text = previous[-1]["text"] if previous else context["initial_text"]
+                if "--live" in sys.argv:
+                    replacement = context["current_draft"] + "\n## Dictated details\n" + context["transcript"]
+                else:
+                    previous = context["completed_rewrites"]
+                    text = previous[-1]["text"] if previous else context["initial_text"]
+                    replacement = text + "\n" + context["next_instruction"]
                 time.sleep(0.2)
-                replacement = text + "\n" + context["next_instruction"]
                 midpoint = len(replacement) // 2
                 for delta in (replacement[:midpoint], replacement[midpoint:]):
                     send(

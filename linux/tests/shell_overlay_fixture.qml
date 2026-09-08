@@ -90,7 +90,9 @@ ShellRoot {
             const surface = root.descendants(overlay.contentItem).find(item => item.objectName === "overlay-surface");
             return JSON.stringify({phase: widget.phase, preview: widget.preview, elapsed: widget.elapsed,
                 identifier: widget.identifier, options: widget.options, menuOpen: overlay.menuOpen,
-                copyEnabled: copy.enabled, renderedText: text.text,
+                copyEnabled: copy.enabled, copyVisible: copy.visible, renderedText: text.text,
+                reviewDuration: overlay.reviewDuration, smoothScrolling: overlay.smoothScrolling,
+                scrollDuration: overlay.scrollDuration, scrollLookahead: overlay.scrollLookahead,
                 textHeight: text.height, textY: text.y, viewportHeight: viewport.height, lineHeight: overlay.lineHeight,
                 lineCount: text.lineCount, lookAhead: text.lookAhead,
                 lastLineFill: text.lastLineFill, previewStart: widget.previewStart,

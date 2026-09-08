@@ -64,6 +64,24 @@ FEATURE_CAPABILITIES: Final[tuple[FeatureCapability, ...]] = (
         FeatureMaturity.EXPERIMENTAL,
     ),
     FeatureCapability(
+        "editable_documents",
+        "Editable documents and automatic copy",
+        "Editable originals and rewrites, icon actions and configurable automatic copy still need acceptance.",
+        FeatureMaturity.EXPERIMENTAL,
+    ),
+    FeatureCapability(
+        "provider_choice",
+        "Independent rewrite and speech providers",
+        "LiteLLM transports and local Voxtype have controlled checks; cloud account compatibility needs acceptance.",
+        FeatureMaturity.EXPERIMENTAL,
+    ),
+    FeatureCapability(
+        "live_rewrite",
+        "Live structured rewriting",
+        "Opt-in task, note, polish and custom drafts expose missing information; model quality needs acceptance.",
+        FeatureMaturity.EXPERIMENTAL,
+    ),
+    FeatureCapability(
         "automatic_paste",
         "Automatic paste",
         (
