@@ -1,6 +1,7 @@
 """Headless readiness coverage for the GTK application's capture handoff."""
 
 import time
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -14,7 +15,7 @@ from voice_scribe_linux.codex_client import CodexAppServerClient
 from voice_scribe_linux.config import FUNCTION_KEY_OPTIONS, AppConfig, load_config
 from voice_scribe_linux.delivery import DeliveryReceipt
 from voice_scribe_linux.history import HistoryStore
-from voice_scribe_linux.realtime import RealtimeCommittedSegment
+from voice_scribe_linux.realtime import ElevenLabsRealtimeClient, RealtimeCommittedSegment
 from voice_scribe_linux.segment_cleanup import SegmentCleanupSession, SegmentCleanupState
 from voice_scribe_linux.workflow import TranscriptPreparationSnapshot
 
@@ -70,7 +71,7 @@ class CapturingRealtimeClient:
         self.on_committed_segment = None
         self.session = SimpleNamespace(cancel=lambda: None)
 
-    def start(self, language_code: str, on_committed_segment: object = None) -> object:
+    def start(self, language_code: str, on_committed_segment: object = None, on_preview: object = None) -> object:
         """Record provider readiness and retain the callback for a synthetic commit."""
         self.events.append("realtime-ready")
         assert language_code == "eng"
@@ -286,6 +287,50 @@ def test_prepare_capture_model_failure_never_opens_realtime_route(
     assert callback is failed_callback
     assert args[0] == "capture-session"
     assert args[2] == "unavailable model"
+
+
+@pytest.mark.parametrize(
+    ("enabled", "mode", "live_session", "expected_preview"),
+    [
+        (True, "dictation", "capture", True),
+        (False, "dictation", None, False),
+        (True, "dictation", None, False),
+        (True, "command", None, False),
+        (True, "notes", None, False),
+    ],
+)
+def test_prepare_capture_offers_provisional_input_only_to_active_live_dictation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, enabled, mode, live_session, expected_preview
+) -> None:
+    """Keep the same recognition transport; only opted-in Live dictation receives provisional input."""
+    starts = []
+    prepared = []
+    preview_callback = object()
+    realtime = ElevenLabsRealtimeClient(api_key="write-only-test-key")
+    application = SimpleNamespace(
+        shutting_down=False,
+        pending_session_identifier="capture",
+        live_session_identifier=live_session,
+        config=replace(AppConfig(), live_rewrite_enabled=enabled),
+        realtime_client=realtime,
+        _live_preview_callback=lambda _session: preview_callback,
+        _capture_prepared=object(),
+    )
+
+    def start(client, language_code, **callbacks):
+        starts.append((client, language_code, callbacks))
+        return object()
+
+    monkeypatch.setattr(ElevenLabsRealtimeClient, "start", start)
+    monkeypatch.setattr(app_module.GLib, "idle_add", lambda *args: prepared.append(args))
+    MluvaApplication._prepare_capture(
+        application, "capture", tmp_path / "capture.wav", "eng", False, None, mode, False, _preparation()
+    )
+    assert len(starts) == len(prepared) == 1
+    client, language, callbacks = starts[0]
+    assert client is realtime
+    assert language == "eng"
+    assert callbacks["on_preview"] is (preview_callback if expected_preview else None)
 
 
 def test_capture_summary_yields_to_live_and_pending_review_states() -> None:

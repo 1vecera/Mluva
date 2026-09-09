@@ -14,6 +14,7 @@ from gi.repository import Gdk, GLib, Graphene, Gtk
 
 from voice_scribe_linux.codex_client import CodexAppServerClient
 from voice_scribe_linux.delivery import DeliveryReceipt
+from voice_scribe_linux.realtime import RealtimePreview
 
 
 def settle(predicate, timeout: float = 6) -> None:
@@ -126,22 +127,35 @@ def main() -> int:
             app._start_live_rewrite()
             transcript = "Build a clear task specification and preserve the existing settings."
             workspace.set_live("Recording · synthetic speech", transcript)
+            live_contexts = []
+
+            class TrackingLiveClient(CodexAppServerClient):
+                """Observe real serialized requests at the independent provider transport boundary."""
+
+                def transform(self, prompt, *args, **kwargs):
+                    """Retain synthetic context so provisional input and final reconciliation can be distinguished."""
+                    live_contexts.append(json.loads(prompt.split("\n", 1)[1]))
+                    return super().transform(prompt, *args, **kwargs)
 
             def live_client(*_args, **_kwargs):
                 """Return a structured fixture derived from the actual serialized live context."""
-                return CodexAppServerClient(command=(sys.executable, str(fixture), "--live"), turn_timeout_seconds=5)
+                return TrackingLiveClient(command=(sys.executable, str(fixture), "--live"), turn_timeout_seconds=5)
 
             count = len(copies)
             with (
                 patch.object(app, "_new_rewrite_client", side_effect=live_client),
                 patch("voice_scribe_linux.app.deliver_text", side_effect=copy),
             ):
-                app._maybe_live_rewrite(transcript)
+                callback = app._live_preview_callback(app.live_session_identifier)
+                callback(RealtimePreview("", transcript + " PROVISIONAL_ONLY"))
+                settle(lambda: app.live_rewrite_client is not None)
                 buffer = workspace.live_draft_text.get_buffer()
                 buffer.insert(buffer.get_end_iter(), "\nDeliberate manual edit")
                 settle(lambda: app.live_rewrite_client is None)
                 assert "Deliberate manual edit" in workspace.live_draft()
                 assert "Dictated details" not in workspace.live_draft()
+                assert live_contexts[0]["transcript"].endswith("PROVISIONAL_ONLY")
+                assert live_contexts[0]["transcript_status"].startswith("provisional")
                 assert len(copies) == count
                 app.live_schedule.last_started = float("-inf")
                 app._maybe_live_rewrite(transcript + " Keep the original transcript for recovery.")
@@ -149,6 +163,7 @@ def main() -> int:
                 assert "Deliberate manual edit" in workspace.live_draft()
                 assert "Dictated details" in workspace.live_draft()
                 assert "[Missing:" in workspace.live_draft()
+                assert "provisional until Stop" in workspace.live_draft_status.get_label()
                 assert len(copies) == count
                 settle(lambda: app.window.get_mapped())
                 paint(app.window, output / "live-rewrite.png")
@@ -158,18 +173,62 @@ def main() -> int:
                 assert workspace.live_box.get_orientation().value_nick == "vertical"
                 app.window.set_default_size(1060, 780)
                 final_entry = app.history_store.add(transcript, transcript, "dictation", "eng", None, "copied")
+                app.live_schedule.last_started = float("-inf")
+                app._maybe_live_rewrite(transcript + " One update is still running at Stop.")
+                assert app.live_rewrite_client is not None
                 app.live_final_entry = final_entry.identifier
                 app.live_final_text = transcript + " Final tail: verify restoration after restart."
                 app._maybe_live_rewrite(app.live_final_text, final=True)
+                buffer.insert(buffer.get_end_iter(), "\nManual edit during finalization")
                 settle(lambda: app.live_schedule is None)
                 saved = app.conversation_store.replies(final_entry.identifier)
                 assert len(saved) == 1 and "Final tail" in saved[0].text
+                assert "Manual edit during finalization" in saved[0].text
+                assert app.history_store.find(final_entry.identifier).raw_text == transcript
+                assert live_contexts[-1]["transcript_status"] == "final committed recognition"
+                assert live_contexts[-1]["transcript"] == app.live_final_text
+                assert "PROVISIONAL_ONLY" not in live_contexts[-1]["transcript"]
+                assert "Manual edit during finalization" in live_contexts[-1]["current_draft"]
                 assert copies[-1] == saved[0].text and len(copies) == count + 1
+                app._maybe_live_rewrite(app.live_final_text, final=True)
+                assert len(app.conversation_store.replies(final_entry.identifier)) == 1
                 app.pending_session_identifier = "cancelled-live-session"
                 app._start_live_rewrite()
                 app._maybe_live_rewrite(transcript)
+                cancelled_client = app.live_rewrite_client
+                cancelled_session = app.live_session_identifier
                 app._cancel_live_rewrite()
+                app._live_rewrite_finished(
+                    cancelled_session, cancelled_client, app.live_revision, "Late result", "fake"
+                )
+                assert not workspace.live_draft_box.get_visible()
+                assert len(copies) == count + 1
+                app.pending_session_identifier = "failed-live-session"
+                app._start_live_rewrite()
+                with patch.object(app, "_new_rewrite_client", side_effect=RuntimeError("Controlled provider failure")):
+                    app._maybe_live_rewrite(transcript)
+                assert app.live_schedule.failed
+                failed_entry = app.history_store.add(transcript, transcript, "dictation", "eng", None, "copied")
+                app.live_final_entry = failed_entry.identifier
+                app._maybe_live_rewrite(transcript, final=True)
+                failed = app.conversation_store.replies(failed_entry.identifier)
+                assert len(failed) == 1 and "partial draft" in failed[0].instruction
+                assert len(copies) == count + 1
+                app.pending_session_identifier = "matching-final-session"
+                app._start_live_rewrite()
+                same_text = "The final recognized words match the provisional preview."
+                app._maybe_live_rewrite(same_text)
                 settle(lambda: app.live_rewrite_client is None)
+                final_entry = app.history_store.add(same_text, same_text, "dictation", "eng", None, "copied")
+                app.live_final_entry = final_entry.identifier
+                app.live_final_text = same_text
+                requests_before_stop = len(live_contexts)
+                app._maybe_live_rewrite(app.live_final_text, final=True)
+                settle(lambda: app.live_schedule is None)
+                assert len(live_contexts) == requests_before_stop + 1
+                assert live_contexts[-1]["transcript_status"] == "final committed recognition"
+                assert len(app.conversation_store.replies(final_entry.identifier)) == 1
+                assert len(copies) == count + 2
                 app.config = replace(app.config, incognito_mode=True)
                 app.pending_incognito = True
                 app._start_live_rewrite()
@@ -190,6 +249,11 @@ def main() -> int:
                         "manual_edit_race_preserved": True,
                         "live_template_gaps": True,
                         "one_final_saved_draft": True,
+                        "manual_edit_during_finalization": True,
+                        "provisional_input_never_used_as_raw": True,
+                        "matching_final_still_reconciled": True,
+                        "failed_final_never_copied": True,
+                        "cancelled_late_result_discarded": True,
                         "cancel_and_incognito": True,
                     },
                     indent=2,
@@ -200,7 +264,12 @@ def main() -> int:
         app.quit()
         return GLib.SOURCE_REMOVE
 
-    app.connect("activate", lambda _app: GLib.timeout_add(500, exercise))
+    def activate_once(_app):
+        """Opening Settings reactivates the app; it must not start a second nested test run."""
+        app.disconnect(activation)
+        GLib.timeout_add(500, exercise)
+
+    activation = app.connect("activate", activate_once)
     app.run([])
     if errors:
         raise RuntimeError("\n".join(errors))

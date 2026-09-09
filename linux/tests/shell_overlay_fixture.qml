@@ -88,11 +88,16 @@ ShellRoot {
             const viewport = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-viewport");
             const copy = root.descendants(overlay.contentItem).find(item => item.objectName === "copy-button");
             const surface = root.descendants(overlay.contentItem).find(item => item.objectName === "overlay-surface");
+            const dot = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-dot");
+            const header = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-header");
+            const timer = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-timer");
             return JSON.stringify({phase: widget.phase, preview: widget.preview, elapsed: widget.elapsed,
                 identifier: widget.identifier, options: widget.options, menuOpen: overlay.menuOpen,
                 copyEnabled: copy.enabled, copyVisible: copy.visible, renderedText: text.text,
                 reviewDuration: overlay.reviewDuration, smoothScrolling: overlay.smoothScrolling,
                 scrollDuration: overlay.scrollDuration, scrollLookahead: overlay.scrollLookahead,
+                dotOpacity: dot.opacity, headerVisible: header.visible, timerVisible: timer.visible, timerText: timer.text,
+                headerBottom: header.y + header.height, viewportTop: viewport.y,
                 textHeight: text.height, textY: text.y, viewportHeight: viewport.height, lineHeight: overlay.lineHeight,
                 lineCount: text.lineCount, lookAhead: text.lookAhead,
                 lastLineFill: text.lastLineFill, previewStart: widget.previewStart,

@@ -112,6 +112,8 @@ def main() -> None:
                 context = json.loads(message["params"]["input"][0]["text"].split("\n", 1)[1])
                 if "--live" in sys.argv:
                     replacement = context["current_draft"] + "\n## Dictated details\n" + context["transcript"]
+                    if "--compact-live" in sys.argv:
+                        replacement = "# Dictated details\n" + context["transcript"] + "\n[Missing: deadline]"
                 else:
                     previous = context["completed_rewrites"]
                     text = previous[-1]["text"] if previous else context["initial_text"]

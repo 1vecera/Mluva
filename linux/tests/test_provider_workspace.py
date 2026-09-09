@@ -167,7 +167,7 @@ def test_saved_source_and_reply_edits_survive_restart_and_deletion(tmp_path):
 def test_live_schedule_coalesces_and_marks_missing_information():
     """Test thresholds, in-flight coalescing, final tails and explicit template gaps."""
     schedule = LiveRewriteSchedule(40, 4)
-    assert schedule.take("x" * 39, 0) is None
+    assert schedule.take("x", 0) is None
     assert schedule.take("x" * 40, 0) == "x" * 40
     assert schedule.take("x" * 90, 5) is None
     schedule.finish(True)

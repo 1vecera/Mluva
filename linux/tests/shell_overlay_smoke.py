@@ -160,14 +160,15 @@ def main() -> None:
                 observed_lines = len(lines)
                 if payloads:
                     state = json.loads(payloads[-1])
+                    stable = {key: value for key, value in state.items() if key != "dotOpacity"}
                     if (
                         state["phase"] == phase
-                        and state == previous
+                        and stable == previous
                         and (preview is None or state["preview"] == preview)
                     ):
                         receipts.append(state)
                         return state
-                    previous = state
+                    previous = stable
                 time.sleep(0.05)
             raise AssertionError(f"Widget did not settle in {phase}: {previous}")
 
@@ -194,10 +195,10 @@ def main() -> None:
             )
             return json.loads(result.stdout)
 
-        def motion_frames(preview: str) -> list[dict[str, object]]:
+        def motion_frames(preview: str, **preferences) -> list[dict[str, object]]:
             """Observe intermediate production animation frames as real D-Bus text updates arrive."""
             start = len(log_lines())
-            publisher.publish(RecordingOverlayState(phase="recording", preview=preview))
+            publisher.publish(RecordingOverlayState(phase="recording", preview=preview, **preferences))
             deadline = time.monotonic() + 1.4
             while time.monotonic() < deadline:
                 while GLib.MainContext.default().pending():
@@ -227,6 +228,8 @@ def main() -> None:
                 assert state["height"] + state["bottom"] <= state["screenHeight"]
                 assert state["preview"] == preview[-4096:]
                 if phase == "recording":
+                    assert state["headerVisible"] and state["timerVisible"] and state["timerText"] == "01:13"
+                    assert state["headerBottom"] < state["viewportTop"]
                     assert state["viewportHeight"] == state["lineHeight"] * 5
                     assert state["textY"] < 0
                     assert abs(state["textY"] - state["targetY"]) < 0.1
@@ -262,6 +265,18 @@ def main() -> None:
                 json.dumps({"before": short, "near_edge": near, "wrap": wrapped}, indent=2)
             )
             subprocess.run(["import", "-window", "root", str(output / "five-lines.png")], check=True)
+            pulse = motion_frames(samples["wrapped"])
+            opacity = [frame["dotOpacity"] for frame in pulse]
+            assert len({round(value, 3) for value in opacity}) >= 10, opacity
+            assert min(opacity) >= 0.54 and max(opacity) <= 1 and max(opacity) - min(opacity) > 0.25
+            assert all(abs(a - b) < 0.15 for a, b in zip(opacity, opacity[1:], strict=False)), opacity
+            for preferences in ({"smooth_scrolling": False}, {"scroll_duration_ms": 0}):
+                still = motion_frames(samples["wrapped"] + " Motion is disabled.", **preferences)
+                assert all(frame["dotOpacity"] == 1 for frame in still), still
+                assert all(abs(frame["textY"] - frame["targetY"]) < 0.1 for frame in still), still
+            (output / "recording-pulse.json").write_text(
+                json.dumps({"opacity_frames": opacity, "disabled_is_static": True, "header_retained": True}, indent=2)
+            )
             full_text = " ".join(f"{'🙂' if index < 12 else 'w'}{index:04d}" for index in range(670))
             assert len(full_text) < 4096
             publisher.publish(RecordingOverlayState(phase="recording", preview=full_text))

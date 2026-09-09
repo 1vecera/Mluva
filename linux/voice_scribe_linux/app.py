@@ -178,6 +178,16 @@ def _elapsed_seconds(elapsed: str) -> int:
     return min((minutes * 60) + seconds, 86_400)
 
 
+def _smooth_motion_enabled(config: AppConfig) -> bool:
+    """Carry the desktop's reduced-motion preference across the GTK-to-QML boundary."""
+    settings = Gtk.Settings.get_default()
+    return (
+        config.smooth_scrolling
+        and config.scroll_duration_ms > 0
+        and (settings is None or settings.get_property("gtk-enable-animations"))
+    )
+
+
 def _overlay_detail_and_route(detail: str) -> tuple[str, str]:
     """Separate a concise phase from provider/device detail for the Shell layout."""
     phase, separator, route = detail.partition(" · ")
@@ -326,6 +336,7 @@ class MluvaApplication(Adw.Application):
         self.live_revision = 0
         self.live_updating = False
         self.live_mode_switch = None
+        self.live_template_buttons = {}
         self.rewrite_client: CodexAppServerClient | LiteLLMClient | None = None
         self.model_catalog_client: CodexAppServerClient | None = None
         self.rewrite_settings: RewriteSettings | None = None
@@ -665,6 +676,48 @@ class MluvaApplication(Adw.Application):
             button.set_active(self.config.live_rewrite_enabled)
             self._show_toast("Finish active work before changing Live rewrite.")
 
+    def _live_template_changed(self, button, template: str) -> None:
+        """Persist a menu choice through the same settings path as the Workspace page."""
+        if not button.get_active() or template == self.config.live_rewrite_template:
+            return
+        if not self._apply_workspace_settings({"live_rewrite_template": template}):
+            self._sync_live_mode()
+            self._show_toast("Finish active work before changing the Live rewrite template.")
+        self.live_mode_menu.popdown()
+
+    def _sync_live_mode(self) -> None:
+        """Reflect saved settings in the single Live rewrite control and its selected menu item."""
+        if self.live_mode_switch is None:
+            return
+        self.live_mode_switch.set_active(self.config.live_rewrite_enabled)
+        template = self.config.live_rewrite_template
+        self.live_template_buttons[template].set_active(True)
+        label = dict(TEMPLATE_CHOICES)[template]
+        self.live_mode_switch.set_tooltip_text(
+            f"Build a {label.lower()} draft from provisional speech; reconcile with the final transcript at Stop"
+        )
+        self.live_mode_menu.set_tooltip_text(f"Live rewrite template: {label}")
+
+    def _live_preview_callback(self, session: str):
+        """Offer provisional recognition only to the explicitly enabled Live rewrite session."""
+        previous = ""
+
+        def preview_changed(preview):
+            """Keep the provider thread off GTK and discard callbacks from cancelled captures."""
+            nonlocal previous
+            text = preview.display_text
+            if text and text != previous and session == self.live_session_identifier:
+                previous = text
+                GLib.idle_add(self._live_preview_arrived, session, text)
+
+        return preview_changed
+
+    def _live_preview_arrived(self, session: str, text: str) -> bool:
+        """Start an eligible draft without waiting for the recording header's refresh timer."""
+        if session == self.live_session_identifier and not self.capture_processing and self.live_final_entry is None:
+            self._maybe_live_rewrite(text)
+        return GLib.SOURCE_REMOVE
+
     def _start_live_rewrite(self) -> None:
         """Freeze the template and thresholds before recording starts."""
         self._cancel_live_rewrite()
@@ -680,7 +733,9 @@ class MluvaApplication(Adw.Application):
         self.live_revision = 0
         self.live_last_model = ""
         self.live_updating = True
-        self.conversation_workspace.show_live_draft(initial_draft(self.config), "Live draft · waiting for speech")
+        self.conversation_workspace.show_live_draft(
+            initial_draft(self.config), "Live draft · provisional until Stop · waiting for speech"
+        )
         self.live_updating = False
         self.conversation_workspace.live_draft_follower.follow(snap=True)
 
@@ -694,14 +749,18 @@ class MluvaApplication(Adw.Application):
         schedule = self.live_schedule
         if schedule is None or self.config.incognito_mode or self.shutting_down:
             return
-        if final and not schedule.in_flight and (text.strip() == schedule.last_text or schedule.failed):
+        if (
+            final
+            and not schedule.in_flight
+            and ((schedule.last_final and text.strip() == schedule.last_text) or schedule.failed)
+        ):
             self._save_live_draft(stale=schedule.failed)
             return
         snapshot = schedule.take(text, time.monotonic(), final=final)
         if snapshot is None:
             return
         try:
-            prompt = live_prompt(self.live_config, snapshot, self.conversation_workspace.live_draft())
+            prompt = live_prompt(self.live_config, snapshot, self.conversation_workspace.live_draft(), final=final)
             client = self._new_rewrite_client(self.live_config)
         except Exception as error:
             schedule.finish(False)
@@ -710,7 +769,9 @@ class MluvaApplication(Adw.Application):
                 self._save_live_draft(stale=True)
             return
         self.live_rewrite_client = client
-        self.conversation_workspace.live_draft_status.set_label("Updating live draft…")
+        self.conversation_workspace.live_draft_status.set_label(
+            "Reconciling the final transcript…" if final else "Updating live draft · provisional recognition…"
+        )
         revision = self.live_revision
         session = self.live_session_identifier
         config = self.live_config
@@ -758,7 +819,12 @@ class MluvaApplication(Adw.Application):
         self.live_schedule.finish(bool(result))
         if result and revision == self.live_revision:
             self.live_updating = True
-            self.conversation_workspace.show_live_draft(result, "Live draft · up to date")
+            self.conversation_workspace.show_live_draft(
+                result,
+                "Live draft · final transcript reconciled"
+                if self.live_schedule.last_final
+                else "Live draft · provisional until Stop",
+            )
             self.live_updating = False
             self.live_last_model = model
         elif result:
@@ -834,7 +900,7 @@ class MluvaApplication(Adw.Application):
         """Persist UI choices to the shared dotfile and replace idle provider transports."""
         if self.capture_preparing or self.capture_processing or (self.recorder and self.recorder.process):
             return False
-        if self.rewrite_client is not None or self.live_rewrite_client is not None:
+        if self.rewrite_client is not None or self.live_schedule is not None:
             return False
         config = replace(self.config, **changes)
         try:
@@ -875,8 +941,7 @@ class MluvaApplication(Adw.Application):
         if self.rewrite_settings is not None:
             self.rewrite_settings.models = []
             self.rewrite_settings.set_config(config)
-        if self.live_mode_switch is not None:
-            self.live_mode_switch.set_active(config.live_rewrite_enabled)
+        self._sync_live_mode()
         self._reset_record_button()
         if self.workflow is None:
             self.record_button.set_sensitive(False)
@@ -1044,7 +1109,7 @@ class MluvaApplication(Adw.Application):
                     message=message,
                     review_timeout_seconds=self.config.review_timeout_seconds,
                     show_copy_action=self.config.show_copy_action,
-                    smooth_scrolling=self.config.smooth_scrolling,
+                    smooth_scrolling=_smooth_motion_enabled(self.config),
                     scroll_duration_ms=self.config.scroll_duration_ms,
                     scroll_lookahead_lines=self.config.scroll_lookahead_lines,
                 )
@@ -1179,7 +1244,7 @@ class MluvaApplication(Adw.Application):
                     review_identifier=identifier,
                     review_timeout_seconds=self.config.review_timeout_seconds,
                     show_copy_action=self.config.show_copy_action,
-                    smooth_scrolling=self.config.smooth_scrolling,
+                    smooth_scrolling=_smooth_motion_enabled(self.config),
                     scroll_duration_ms=self.config.scroll_duration_ms,
                     scroll_lookahead_lines=self.config.scroll_lookahead_lines,
                 )
@@ -1429,12 +1494,29 @@ class MluvaApplication(Adw.Application):
         set_button_content(self.record_button, "audio-input-microphone-symbolic", "Dictate")
         self.record_button.connect("clicked", self._toggle_recording)
         dock.append(self.record_button)
+        live_control = Gtk.Box(valign=Gtk.Align.CENTER, css_classes=["linked"])
         self.live_mode_switch = Gtk.ToggleButton(label="Live rewrite", active=self.config.live_rewrite_enabled)
-        self.live_mode_switch.set_tooltip_text(
-            "Build a structured draft while speaking · configure templates in Settings"
-        )
         self.live_mode_switch.connect("toggled", self._live_mode_changed)
-        dock.append(self.live_mode_switch)
+        live_control.append(self.live_mode_switch)
+        self.live_mode_menu = Gtk.MenuButton(icon_name="pan-down-symbolic")
+        popover = Gtk.Popover()
+        choices = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        set_margins(choices, 8)
+        group = None
+        for template, label in TEMPLATE_CHOICES:
+            choice = Gtk.CheckButton(label=label)
+            if group is not None:
+                choice.set_group(group)
+            else:
+                group = choice
+            choice.connect("toggled", self._live_template_changed, template)
+            self.live_template_buttons[template] = choice
+            choices.append(choice)
+        popover.set_child(choices)
+        self.live_mode_menu.set_popover(popover)
+        live_control.append(self.live_mode_menu)
+        self._sync_live_mode()
+        dock.append(live_control)
         return dock
 
     def _build_settings_dialog(self) -> Adw.PreferencesDialog:
@@ -2597,8 +2679,14 @@ class MluvaApplication(Adw.Application):
             fallback_reason = RECOGNITION_FALLBACK_UNAVAILABLE
         else:
             try:
+                live_capture = (
+                    self.config.live_rewrite_enabled
+                    and mode == "dictation"
+                    and self.live_session_identifier == session_identifier
+                )
                 realtime_session = self.realtime_client.start(
                     language_code,
+                    on_preview=self._live_preview_callback(session_identifier) if live_capture else None,
                     on_committed_segment=(
                         None
                         if segment_cleanup_session is None
@@ -3185,7 +3273,7 @@ class MluvaApplication(Adw.Application):
                 level=state.level,
                 preview=state.preview,
                 delivery=state.delivery,
-                smooth_scrolling=self.config.smooth_scrolling,
+                smooth_scrolling=_smooth_motion_enabled(self.config),
                 scroll_duration_ms=self.config.scroll_duration_ms,
                 scroll_lookahead_lines=self.config.scroll_lookahead_lines,
             )
@@ -4479,7 +4567,7 @@ class MluvaApplication(Adw.Application):
             )
             snapshot = realtime_session.snapshot()
             preview_text = snapshot.display_text or "Waiting for speech…"
-            self._maybe_live_rewrite(snapshot.committed_text)
+            self._maybe_live_rewrite(snapshot.display_text)
         self._present_recording_bar(
             self._recording_bar_state(
                 kind=RECORDING_KIND_RECORDING,

@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 from websockets.sync.server import Server, ServerConnection, serve
 
+from voice_scribe_linux.audio import SAMPLE_RATE, SAMPLE_WIDTH_BYTES
 from voice_scribe_linux.realtime import (
     ElevenLabsRealtimeClient,
     RealtimeCommittedSegment,
@@ -343,6 +344,75 @@ def test_long_capture_commits_every_twenty_five_seconds_before_final_commit() ->
     assert len(commits) == 2
     assert result.transcription.text == "segment 1 segment 2"
     assert result.transcription.audio_duration_seconds == pytest.approx(25.1)
+
+
+@pytest.mark.parametrize(
+    ("chunks", "commit_offsets"),
+    [([0.1] * 501, [25, 50, 50.1]), ([0.1] * 500, [25, 50]), ([27], [27]), ([27, 0.1], [27, 27.1])],
+)
+def test_commit_cadence_preserves_segments_and_flushes_only_unsent_tail(chunks, commit_offsets) -> None:
+    """Stop awaits all committed segments without an empty extra commit or an overshoot burst."""
+    connection = CommitTrackingConnection()
+    segments = []
+    session = RealtimeTranscriptionSession(
+        connection=connection,
+        configured_language_code="eng",
+        session_identifier="live-session",
+        on_committed_segment=segments.append,
+        maximum_queued_chunks=512,
+        finalization_timeout_seconds=2,
+    )
+    for seconds in chunks:
+        assert session.submit_audio(bytes(round(seconds * SAMPLE_RATE) * SAMPLE_WIDTH_BYTES))
+    result = session.finish()
+
+    bytes_sent = 0
+    actual_offsets = []
+    for event in connection.events:
+        bytes_sent += len(base64.b64decode(event["audio_base_64"]))
+        if event.get("commit") is True:
+            actual_offsets.append(bytes_sent / (SAMPLE_RATE * SAMPLE_WIDTH_BYTES))
+    assert actual_offsets == pytest.approx(commit_offsets)
+    assert result.transcription.audio_duration_seconds == pytest.approx(sum(chunks))
+    assert result.transcription.text == " ".join(f"segment {index + 1}" for index in range(len(commit_offsets)))
+    assert [segment.sequence for segment in segments] == list(range(len(commit_offsets)))
+    assert result.transcription.text == " ".join(segment.text for segment in segments)
+
+
+def test_cancel_keeps_committed_preview_out_of_final_delivery() -> None:
+    """An early stable preview does not make Cancel deliver a final transcript or flush its tail."""
+    committed = threading.Event()
+    connection = CommitTrackingConnection()
+    session = RealtimeTranscriptionSession(
+        connection=connection,
+        configured_language_code="eng",
+        session_identifier="cancel-live-session",
+        on_committed_segment=lambda _segment: committed.set(),
+    )
+    assert session.submit_audio(bytes(25 * SAMPLE_RATE * SAMPLE_WIDTH_BYTES))
+    assert committed.wait(timeout=2)
+    session._handle_event({"message_type": "partial_transcript", "text": "uncommitted tail"})
+    session.cancel()
+    assert session._sender_done.wait(timeout=2)
+    assert sum(event.get("commit") is True for event in connection.events) == 1
+    assert session.snapshot().volatile_text == ""
+    with pytest.raises(RealtimeTranscriptionError, match="cancelled"):
+        session.finish()
+
+
+def test_cancel_while_audio_send_is_blocked_cannot_trigger_a_commit() -> None:
+    """Cancellation wins when the boundary audio send returns after the socket has closed."""
+    connection = BlockingConnection()
+    session = RealtimeTranscriptionSession(
+        connection=connection,
+        configured_language_code="eng",
+        session_identifier="cancel-blocked-live-session",
+    )
+    assert session.submit_audio(bytes(25 * SAMPLE_RATE * SAMPLE_WIDTH_BYTES))
+    assert connection.send_started.wait(timeout=2)
+    session.cancel()
+    assert session._sender_done.wait(timeout=2)
+    assert session._commits_sent == 0
 
 
 def test_provider_close_after_final_commit_is_not_a_route_failure(
