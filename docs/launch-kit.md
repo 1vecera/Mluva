@@ -18,7 +18,7 @@ Copy for v0.3.0, prepared on 2026-09-09. Social and community posts are drafts f
 
 I'm building the cleanest, smartest dictation app for #Omarchy. It's called Mluva, and I'm using it all the time as an interface for computing.
 
-Talk through a task, including the bits you haven't figured out. Live rewrite starts putting it into a spec while you're still speaking. Missing owner? Missing deadline? Those stay visible instead of quietly becoming invented requirements.
+Talk through a task, including the bits you haven't figured out. Live rewrite starts putting it into a spec while you're still speaking. In the recorded demo, the owner and deadline stay open because I haven't chosen them yet.
 
 That's the part I care about: getting useful structure out of a thought before I've finished tidying it up in my head.
 
@@ -26,7 +26,7 @@ The UI stays small. Five lines in a translucent recording widget, a native GTK w
 
 v0.3.0 adds editable documents, automatic copy, live task specs and notes, plus separate speech and rewrite engines. ElevenLabs Scribe, local Voxtype/Whisper, Codex or a LiteLLM-compatible service. Bring the provider access you use.
 
-It's early. Live output arrives in updates, with latency depending on the speech engine and model. I'm making that faster and making provider selection simpler next.
+It's early. Live output arrives in updates, with latency depending on the speech engine and model. The video labels the released dictation app and the upcoming Live update separately. The simpler provider picker and earlier Live previews are in review.
 
 [Source and install](https://github.com/1vecera/Mluva) · [v0.3.0](https://github.com/1vecera/Mluva/releases/tag/v0.3.0)
 
@@ -54,7 +54,7 @@ omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
 
 ## Product intro
 
-Use real v0.3.0 frames from the Lenovo/Omarchy capture. Keep product text and controls readable; use the H3 Max animation for motion and transitions around those frames. Show the app's actual output in workflow shots. Keep any accelerated segment identifiable in the accompanying manifest.
+Use real frames from the Lenovo/Omarchy capture. The historical-speech demonstration runs tagged v0.3.0; the faster Live demonstration is an explicitly labeled unreleased build. Keep product text and controls readable; identify the H3 Max animation as a designed transition. Its closing reference is an actual saved partial draft, not a completed task or a timing demonstration. Workflow shots show actual output. Source excerpts play at their recorded speed; the edit manifest records cuts and crossfades.
 
 | Beat | Picture | Copy |
 | --- | --- | --- |
@@ -64,7 +64,9 @@ Use real v0.3.0 frames from the Lenovo/Omarchy capture. Keep product text and co
 | Refine | Editable source and completed draft, including a missing-detail marker | Keep the thought. Make it clear. |
 | Close | Real app frame, held still long enough to read | Built for Omarchy. Open source. |
 
-The full demonstration videos carry the original public or synthetic audio. The short intro can select and cut those moments. Publish each asset with its source audio, release commit, provider/model, editing notes and hashes in the manifest. The H3 Max experiment has a $5 total budget; record the actual request charge before claiming a cost.
+The full demonstration videos carry the original public or synthetic audio. The short intro selects and cuts those moments. Each asset records its source audio, release commit or unreleased source hashes, provider/model, editing notes and hashes in the manifest. One 15-second H3 Max generation completed with a conservative $1.20 reservation against the $5 total cap. The supplied key cannot read the billing endpoint (HTTP 403), so the actual charge is unverified; no further generations are planned.
+
+The selected Live capture uses unreleased commit `cdc0023`, ElevenLabs Scribe v2 Realtime and native Codex `gpt-5.6-luna`, low effort, standard tier. An incomplete Intent field first painted 11.06 seconds after the first captured sample; a task with requirements appeared at 22.73 seconds, while the source speech continued. Stop occurred at 40.74 seconds and final reconciliation painted at 54.91 seconds. The final task includes the missing-ID, preview and totals requirements, with owner and deadline unresolved. These are distinct stages from one observed run, not a general latency or accuracy claim; source, recognition and draft wording remain available for review. A four-second speech-commit experiment dropped requirements and was rejected. The selected implementation keeps longer recognition commits and uses provisional speech only for the live draft before final reconciliation.
 
 ## Assets and evidence
 
