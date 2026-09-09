@@ -63,8 +63,15 @@ class RewriteSettings(Gtk.MenuButton):
     def set_config(self, config: AppConfig) -> None:
         """Reflect saved settings, guarding GTK notifications during a catalog refresh or rollback."""
         remote = config.rewrite_provider == "litellm"
+        if any(
+            getattr(config, name) != getattr(self.config, name)
+            for name in ("rewrite_provider", "litellm_base_url", "litellm_api_key_env")
+        ):
+            self.models = []
+            self.refresh.set_sensitive(True)
+            self.status.set_label("")
         self.config = config
-        self.model_row.set_title("LiteLLM model" if remote else "Codex model")
+        self.model_row.set_title("Server model" if remote else "Codex model")
         self.fast_row.set_visible(not remote)
         self.set_tooltip_text("Choose the rewrite model and speed")
         if remote:
@@ -73,8 +80,8 @@ class RewriteSettings(Gtk.MenuButton):
             )
         self.updating = True
         selected = config.rewrite_model
-        choices = [None]
-        labels = ["Default"]
+        choices = [] if remote and selected else [None]
+        labels = [] if remote and selected else ["Choose in Settings → Providers" if remote else "Default"]
         for model in self.models:
             if not model.hidden or selected in {model.id, model.identifier}:
                 choices.append(model.identifier)
@@ -83,7 +90,13 @@ class RewriteSettings(Gtk.MenuButton):
                     selected = model.identifier
         if selected not in choices:
             choices.append(selected)
-            labels.append(f"{selected} (unavailable)" if self.models else selected)
+            labels.append(
+                f"{selected} (not listed)"
+                if self.models and remote
+                else f"{selected} (unavailable)"
+                if self.models
+                else selected
+            )
         if choices != self.choices or labels != self.choice_labels:
             self.choices = choices
             self.choice_labels = labels
@@ -108,7 +121,11 @@ class RewriteSettings(Gtk.MenuButton):
         self.model_row.set_subtitle(
             f"Default: {effective.name}" if selected is None and effective is not None else "Applies to rewrites only"
         )
-        label = effective.name if effective is not None else config.rewrite_model or "Codex model"
+        label = (
+            effective.name
+            if effective is not None
+            else config.rewrite_model or ("Choose rewrite model" if remote else "Codex model")
+        )
         self.caption.set_label(f"{label} · Fast" if config.rewrite_fast_mode else label)
         self.updating = False
 

@@ -78,6 +78,7 @@ from voice_scribe_linux.overlay_state import RecordingOverlayPublisher, Recordin
 from voice_scribe_linux.personalization import PersonalizationStore, SavedStyle
 from voice_scribe_linux.personalization_view import PersonalizationPage
 from voice_scribe_linux.pipewire import PipeWireCatalogError, PipeWireDeviceCatalog, PipeWireDeviceKind
+from voice_scribe_linux.provider_settings import ProviderSettings
 from voice_scribe_linux.providers import LiteLLMClient, transcription_client
 from voice_scribe_linux.realtime import (
     ElevenLabsRealtimeClient,
@@ -1442,7 +1443,7 @@ class MluvaApplication(Adw.Application):
         dialog.set_search_enabled(True)
         self.workspace_settings_pages = (
             WorkspaceSettings(self.config, self._apply_workspace_settings),
-            WorkspaceSettings(self.config, self._apply_workspace_settings, providers=True),
+            ProviderSettings(self.config, self._apply_workspace_settings),
         )
         for page in self.workspace_settings_pages:
             dialog.add(page)

@@ -2,6 +2,8 @@
 
 Settings → **Workspace** controls editing actions, automatic copying, scrolling and Live rewrite. Settings → **Providers** chooses speech recognition independently from rewriting. Press **Apply** to save a page. Provider changes apply to the next recording or request and are unavailable while work is active.
 
+The [provider selection guide](provider-selection.md) covers provider → model choices, optional discovery, connection guidance and advanced endpoint/key-variable settings.
+
 The same settings live in `$XDG_CONFIG_HOME/voice-scribe/config.json`, normally `~/.config/voice-scribe/config.json`. Edit this JSON while Mluva is closed, then restart; it is not watched for external changes. Existing installations keep their previous settings, and omitted new keys receive the defaults below. The file is owner-only. It contains environment variable **names**, never API key values.
 
 ## Editable documents and clipboard behavior

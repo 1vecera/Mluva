@@ -94,6 +94,15 @@ linux-conversation-test: linux-setup
 linux-live-rewrite-test: linux-setup
 	MLUVA_SMOKE=live bash linux/tests/run_native_text_target_smoke.sh tmp/live-workspace
 
+.PHONY: linux-provider-settings-test
+linux-provider-settings-test: linux-setup
+	@set -e; for spec in flow:1060:780 minimum:420:520 narrow:480:640 wide:1060:780 details:480:640 error:480:640; do \
+		scenario=$${spec%%:*}; dimensions=$${spec#*:}; \
+		MLUVA_SMOKE=providers MLUVA_PROVIDER_SCENARIO="$$scenario" \
+		MLUVA_UI_WIDTH="$${dimensions%:*}" MLUVA_UI_HEIGHT="$${dimensions#*:}" \
+			bash linux/tests/run_native_text_target_smoke.sh "tmp/provider-settings-smoke/$$scenario"; \
+	done
+
 linux-run: linux-setup
 	cd linux && uv run --locked python -m voice_scribe_linux.app
 

@@ -70,18 +70,32 @@ class LiteLLMClient:
         except (OSError, ValueError):
             raise ProviderError("Could not connect to the configured provider.") from None
 
-    def list_models(self) -> list[CodexModel]:
-        """Read model identifiers without sending any transcript."""
+    def list_models(self, *, capability: str | None = None) -> list[CodexModel]:
+        """Read bounded identifiers, filtering explicit task metadata without guessing from aliases."""
         try:
             with self._open("/models") as response:
-                payload = json.loads(response.read(MAX_HTTP_BYTES + 1))
-            identifiers = [row["id"] for row in payload["data"]]
-            if not identifiers or len(identifiers) > 2000:
+                raw = response.read(MAX_HTTP_BYTES + 1)
+            if len(raw) > MAX_HTTP_BYTES:
                 raise ValueError
-            if any(not isinstance(value, str) or not value or len(value) > 200 for value in identifiers):
+            rows = json.loads(raw)["data"]
+            if not isinstance(rows, list) or len(rows) > 2000:
                 raise ValueError
+            identifiers = []
+            for row in rows:
+                if not isinstance(row, dict) or not valid_model_id(row["id"]):
+                    raise ValueError
+                info = row.get("model_info", {})
+                if not isinstance(info, dict):
+                    raise ValueError
+                mode = info.get("mode", row.get("mode"))
+                if mode is not None and not isinstance(mode, str):
+                    raise ValueError
+                allowed = {"speech": {"audio_transcription", "transcription", "stt"}, "rewrite": {"chat"}}
+                if capability in allowed and mode and mode not in allowed[capability]:
+                    continue
+                identifiers.append(row["id"])
             return [CodexModel(value, value, value, value == self.model) for value in dict.fromkeys(identifiers)]
-        except (ValueError, KeyError, TypeError):
+        except (OSError, ValueError, KeyError, TypeError):
             raise ProviderError("The provider returned an invalid model catalog.") from None
 
     def resolve_model(self, requested_model: str | None) -> str:
@@ -270,3 +284,13 @@ def transcription_client(config: AppConfig) -> ElevenLabsClient | LiteLLMClient 
             300,
         )
     return ElevenLabsClient(elevenlabs_api_key())
+
+
+def valid_model_id(value: object) -> bool:
+    """Keep catalog identifiers bounded, printable and free of hidden whitespace."""
+    return (
+        isinstance(value, str)
+        and 0 < len(value) <= 200
+        and value.isprintable()
+        and not any(char.isspace() for char in value)
+    )

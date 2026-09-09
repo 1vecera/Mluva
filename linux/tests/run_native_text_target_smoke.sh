@@ -101,6 +101,11 @@ run_private_session() {
                 MLUVA_UI_WIDTH="${width}" MLUVA_UI_HEIGHT="${height}" \
                 uv run --locked python tests/conversation_ui_smoke.py
         done
+    elif [[ "${MLUVA_SMOKE:-}" == providers ]]; then
+        OFFSCREEN_SESSION_ROOT="${artifact_dir}/session" OFFSCREEN_ARTIFACT_DIR="${artifact_dir}" \
+            PYTHONPATH=.:tests GTK_A11Y=atspi ADW_DISABLE_PORTAL=1 GSK_RENDERER=cairo \
+            VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT=1 \
+            uv run --locked python tests/provider_settings_smoke.py
     elif [[ "${MLUVA_SMOKE:-}" == live ]]; then
         OFFSCREEN_SESSION_ROOT="${artifact_dir}/session" OFFSCREEN_ARTIFACT_DIR="${artifact_dir}" \
             PYTHONPATH=.:tests GTK_A11Y=atspi ADW_DISABLE_PORTAL=1 GSK_RENDERER=cairo \
@@ -191,7 +196,29 @@ export GDK_BACKEND=x11
 export GIO_USE_VFS=local
 unset DISPLAY WAYLAND_DISPLAY AT_SPI_BUS_ADDRESS DBUS_SESSION_BUS_ADDRESS XAUTHORITY
 
-xvfb-run -a -s "-screen 0 1280x900x24" \
+display_args=(-a)
+if [[ -n "${OFFSCREEN_DISPLAY_NUMBER:-}" ]]; then
+    [[ "${OFFSCREEN_DISPLAY_NUMBER}" =~ ^[0-9]+$ ]] || {
+        echo "OFFSCREEN_DISPLAY_NUMBER must be a display number." >&2
+        exit 2
+    }
+    display_args=(-n "${OFFSCREEN_DISPLAY_NUMBER}")
+    # Some xvfb-run versions return immediately after SIGTERM. Allow the prior
+    # isolated run to release this reserved display; never remove another server's lock.
+    for _attempt in $(seq 1 100); do
+        if [[ ! -e "/tmp/.X${OFFSCREEN_DISPLAY_NUMBER}-lock" \
+            && ! -e "/tmp/.X11-unix/X${OFFSCREEN_DISPLAY_NUMBER}" ]]; then
+            break
+        fi
+        sleep 0.05
+    done
+    if [[ -e "/tmp/.X${OFFSCREEN_DISPLAY_NUMBER}-lock" \
+        || -e "/tmp/.X11-unix/X${OFFSCREEN_DISPLAY_NUMBER}" ]]; then
+        echo "Reserved Xvfb display is still in use; choose another unused display." >&2
+        exit 1
+    fi
+fi
+xvfb-run "${display_args[@]}" -e "${artifact_dir}/xvfb.log" -s "-screen 0 1280x900x24" \
     dbus-run-session -- "${script_path}" --private-session "${artifact_dir}"
 
 printf 'Native text-target smoke passed; evidence: %s\n' "${artifact_dir}"
