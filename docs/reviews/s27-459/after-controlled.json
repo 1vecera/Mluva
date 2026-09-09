@@ -21,29 +21,29 @@
   ],
   "samples": [
     {
-      "scheduler_ms": 0.16143699940585066,
-      "setup_ms": 22.380303000318236,
-      "provider_ms": 501.00032599948463,
-      "paint_ms": 34.10824900129228,
-      "committed_to_visible_ms": 557.650315000501,
+      "scheduler_ms": 0.15155199980654288,
+      "setup_ms": 18.03387499967357,
+      "provider_ms": 501.0834150016308,
+      "paint_ms": 43.01953699905425,
+      "committed_to_visible_ms": 562.2883790001652,
       "model_identifier": "gpt-5.4",
       "callback_registered": true
     },
     {
-      "scheduler_ms": 0.29739800083916634,
-      "setup_ms": 21.236517999568605,
-      "provider_ms": 500.713777000783,
-      "paint_ms": 5.035285999838379,
-      "committed_to_visible_ms": 527.2829790010292,
+      "scheduler_ms": 0.19365299885976128,
+      "setup_ms": 17.3033220016805,
+      "provider_ms": 500.6427199987229,
+      "paint_ms": 8.10688900128298,
+      "committed_to_visible_ms": 526.2465840005461,
       "model_identifier": "gpt-5.4",
       "callback_registered": true
     },
     {
-      "scheduler_ms": 0.19988200074294582,
-      "setup_ms": 21.213643998635234,
-      "provider_ms": 500.969842001723,
-      "paint_ms": 3.8246039985097013,
-      "committed_to_visible_ms": 526.2079719996109,
+      "scheduler_ms": 0.3216519999114098,
+      "setup_ms": 17.738328000632464,
+      "provider_ms": 500.75670600017474,
+      "paint_ms": 6.378975998813985,
+      "committed_to_visible_ms": 525.1956619995326,
       "model_identifier": "gpt-5.4",
       "callback_registered": true
     }

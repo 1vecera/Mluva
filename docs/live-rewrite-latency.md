@@ -16,13 +16,13 @@ Both runs received committed snapshots of 43, 112 and 203 characters at 0, 2 and
 
 | Stage, median of three runs | v0.3.0 | Updated |
 | --- | ---: | ---: |
-| First committed speech → request dispatch | 4,072.04 ms | 0.20 ms |
-| Process/model setup | 64.76 ms | 21.24 ms |
-| Provider transform, controlled 500 ms response | 501.85 ms | 500.97 ms |
-| Transform completion → visible paint | 15.91 ms | 5.04 ms |
-| First committed speech → visible draft | **4,654.57 ms** | **527.28 ms** |
+| First committed speech → request dispatch | 4,072.04 ms | 0.19 ms |
+| Process/model setup | 64.76 ms | 17.74 ms |
+| Provider transform, controlled 500 ms response | 501.85 ms | 500.76 ms |
+| Transform completion → visible paint | 15.91 ms | 8.11 ms |
+| First committed speech → visible draft | **4,654.57 ms** | **526.25 ms** |
 
-Total ranges were 4,651.56–4,668.25 ms before and 526.21–557.65 ms after. Stage medians need not sum to the total median. Setup varies with process startup and machine load; the scheduler accounts for the material improvement. These numbers exclude audio collection and speech-provider commitment, so they are not speech-to-draft latency promises. Per-run receipts: [baseline](reviews/s27-459/baseline-controlled.json), [updated](reviews/s27-459/after-controlled.json).
+Total ranges were 4,651.56–4,668.25 ms before and 525.20–562.29 ms after. Stage medians need not sum to the total median. Setup varies with process startup and machine load; the scheduler accounts for the material improvement. These numbers exclude audio collection and speech-provider commitment, so they are not speech-to-draft latency promises. Per-run receipts: [baseline](reviews/s27-459/baseline-controlled.json), [updated](reviews/s27-459/after-controlled.json).
 
 ## Speech-provider boundary
 
@@ -34,7 +34,26 @@ The choice follows a rejected real experiment. A four-second Scribe commit caden
 
 ElevenLabs recommends generally 20–30-second commits and logical speech boundaries for transcription quality; frequent commits can reduce quality. The observed loss supports keeping that recognition boundary and using provisional text only for the opt-in draft. See the provider's [transcript and commit guidance](https://elevenlabs.io/docs/eleven-api/guides/how-to/speech-to-text/realtime/transcripts-and-commit-strategies.mdx).
 
-## Real provisional-input capture
+## Selected final real capture
+
+The accepted take used exact commit `cdc00237595f8cfb29e75cd87a980311ea3bcc98`, including the 40-character-or-pause initial gate and provider-settings PR #14. It used the same full Fish speech file, Scribe's 25-second commits and `gpt-5.6-luna` at low effort/default service tier. The configured later thresholds remained 160 characters/four seconds. All 119 recorded runtime files were verified unchanged afterward. No additional provider call followed this take.
+
+| Observable stage | Seconds after first PCM |
+| --- | ---: |
+| First actual model `turn/start` request | 4.919 |
+| First speech-derived, incomplete Intent field painted | **11.057** |
+| Task, Intent and Requirements painted while speech is active | **22.730** |
+| First committed recognition received | 25.378 |
+| Expanded draft painted; recording active, voiced source already ended | 34.603 |
+| Stop | 40.742 |
+| Canonical final request | 46.773 |
+| Final saved result painted | 54.911 |
+
+The first field update is not a filled task. The substantial task structure arrives while the source is still voiced; the expanded update at 34.603 seconds follows the approximately 33.67-second end of voiced speech. Five sequential requests produced one saved final reply. Raw recognition exactly matches every received committed segment; the missing-ID, preview and totals requirements and open owner/deadline are retained. The result still needs review: raw preserves “check crowns” and an extra owner sentence during padded silence, and the final success criteria narrow “bad rows” to rows missing order identifiers. Open owner/deadline information is expressed in prose rather than literal `[Missing]` markers. This is one observed run, with no general latency or accuracy promise.
+
+The [selected receipt summary](reviews/s27-459/real-native.json) contains separate stages, caveats, the raw hash and runtime verification. Full evidence is in the media worktree's `tmp/campaign/s27-459-selected-native/`, including `capture.json`, `runtime-verification.json`, `runtime-files.json`, raw recognition, final reply, audio and video. That exact runtime is the final implementation; subsequent commits update evidence only.
+
+## Earlier provisional-input capture
 
 An initial provisional-input capture used the same 40.716-second Fish speech file through real private PipeWire, Scribe v2 Realtime and the authenticated Codex app-server on `:193`. The catalog-selected model was `gpt-5.6-luna`, low effort, Fast off / default service tier. It used the default 160-character grouping and four-second request interval, before adding the final 40-character-or-pause initial gate. These results describe one observed run, not a general latency or recognition-quality benchmark.
 
@@ -51,11 +70,11 @@ An initial provisional-input capture used the same 40.716-second Fish speech fil
 
 Five model requests ran sequentially, including final reconciliation. The first request contained only the early speech fragment and returned the unchanged template; it is not counted as a meaningful visible draft. The later draft appeared before the first committed recognition and before voiced speech ended at approximately 33.67 seconds. Final recognition used the established 25-second commit plus the Stop tail at audio offset 40.832 seconds, with no batch fallback. Exactly one final reply was saved. Raw text exactly equals the concatenation of all received committed segments; both raw and final draft retain the missing-ID, preview and totals requirements, with unresolved owner/deadline information retained. Recognition still contains filler and wording errors, so this is not a verbatim-accuracy claim.
 
-The [real-run summary](reviews/s27-459/real-native.json) records the separate stages, immutable raw hash and all 115 frozen runtime-file hashes. Full local evidence is under the S27-461 worktree's `tmp/campaign/s27-459-final-native/`, including `capture.json`, `runtime.patch`, `runtime-files.json`, `recognition.json`, `replies.json` and video. The failed cadence experiment and its `boundary-review.json` remain under `tmp/campaign/s27-459-experiment-real/`. The final Live commit is stacked on provider-settings PR #14; the captured Live/motion implementation predates that settings-only integration, with the exact source preserved by those hashes and patch.
+The [earlier-run summary](reviews/s27-459/real-native-before-initial-gate.json) records the separate stages, immutable raw hash and all 115 frozen runtime-file hashes. Full local evidence is under the S27-461 worktree's `tmp/campaign/s27-459-final-native/`, including `capture.json`, `runtime.patch`, `runtime-files.json`, `recognition.json`, `replies.json` and video. The failed cadence experiment and its `boundary-review.json` remain under `tmp/campaign/s27-459-experiment-real/`. The earlier captured implementation predates the provider-settings integration and final initial gate; its exact source is preserved by those hashes and patch.
 
 ## Verification and reproduction
 
-`make linux-test` checks the complete deterministic suite, feature maturity validation, Ruff lint and formatting. `make linux-shortcut-test` passes the private portal lifecycle. The repository's real cross-process AT-SPI test passes focus capture, restoration and exact Unicode insertion on `:192`. The complete conversation scenarios and Live workspace fixture also pass, including provisional input kept out of raw text, mandatory final reconciliation for matching previews, manual edits during an in-flight final update, one saved final reply, final-only rewrite copying, failed-final labeling, cancellation and Incognito.
+`make linux-test` passes all 358 tests on the combined provider/Live branch, feature maturity validation, Ruff lint and formatting. `make linux-shortcut-test` passes the private portal lifecycle. `make linux-text-target-test linux-conversation-test linux-live-rewrite-test` passes on reserved `:192`, covering real cross-process AT-SPI focus capture, restoration and exact Unicode insertion, all 14 conversation scenarios and the Live workspace. This includes provisional input kept out of raw text, mandatory final reconciliation for matching previews, manual edits during an in-flight final update, one saved final reply, final-only rewrite copying, failed-final labeling, cancellation and Incognito.
 
 The GTK motion fixture samples actual scroll positions, including repeated updates with the same destination and full draft replacement while reading above the bottom. The QML fixture samples intermediate scroll and dot-opacity values, keeps five preview lines and the header/timer, checks bounded Unicode prefix changes, and verifies static output when smooth scrolling is off or duration is zero. Desktop reduced motion is tested at the GTK-to-QML bridge. The dot uses a gentle 2.2-second opacity cycle; QML's [SmoothedAnimation](https://doc.qt.io/qt-6/qml-qtquick-smoothedanimation.html) eases across the full configured duration.
 
