@@ -84,6 +84,7 @@ ShellRoot {
     }
     function snapshot(): string {
             const overlay = root.overlay;
+            const origin = overlay.contentItem.mapToGlobal(0, 0);
             const text = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-text");
             const viewport = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-viewport");
             const copy = root.descendants(overlay.contentItem).find(item => item.objectName === "copy-button");
@@ -106,7 +107,7 @@ ShellRoot {
                 surfaceOpacity: surface.color.a,
                 background: Color.popups.background.toString(), ink: Color.popups.text.toString(),
                 visible: overlay.visible, focusable: overlay.focusable, mask: overlay.mask !== null,
-                width: overlay.width, height: overlay.height, screenWidth: overlay.screen.width,
+                x: origin.x, y: origin.y, width: overlay.width, height: overlay.height, screenWidth: overlay.screen.width,
                 screenHeight: overlay.screen.height, bottom: overlay.margins.bottom, focus: input.activeFocus});
     }
     Timer {

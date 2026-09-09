@@ -245,7 +245,11 @@ PanelWindow {
                         && lineCount >= root.previewLines
                         ? root.lineHeight * Math.min(1.5, root.scrollLookahead * 0.325) * Math.max(0, Math.min(1, (lastLineFill - 0.72) / 0.28)) : 0
                     width: parent.width
-                    y: previewMotion.offset + root.discardedHeight
+                    // A corrected/committed preview can be shorter than the
+                    // preceding partial. Never paint above its new tail while
+                    // the old scroll animation is still catching up.
+                    y: Math.max(previewMotion.offset + root.discardedHeight,
+                        Math.min(0, transcriptViewport.height - height - lookAhead))
                     text: root.displayedPreview
                     color: Color.popups.text
                     font.family: Style.font.family

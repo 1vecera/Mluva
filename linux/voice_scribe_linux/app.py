@@ -846,6 +846,8 @@ class MluvaApplication(Adw.Application):
         config = self.live_config
         if identifier is None:
             return
+        review_phase = "ready"
+        review_message = "Partial draft · final update failed." if stale else ""
         try:
             entry = self.history_store.find(identifier)
             instruction = "Live rewrite · " + dict(TEMPLATE_CHOICES)[config.live_rewrite_template]
@@ -853,10 +855,9 @@ class MluvaApplication(Adw.Application):
                 instruction += " (partial draft; final update failed)"
             if text.strip():
                 self.conversation_store.append(identifier, instruction, text, self.live_last_model or "live-draft")
+            workspace.finish_live()
             if workspace.entry is not None and workspace.entry.identifier == identifier:
                 workspace.show_conversation(entry, self.conversation_store.replies(identifier))
-            if text.strip() and config.auto_copy_rewrite and not stale:
-                deliver_text(text, auto_paste=False)
             workspace.set_busy(
                 False,
                 "Live draft saved. Final update failed; review the remaining gaps."
@@ -866,15 +867,25 @@ class MluvaApplication(Adw.Application):
                 else "Live draft saved.",
             )
             workspace.refresh_history()
-            self._publish_review(identifier)
         except Exception:
+            review_phase = "review-error"
+            review_message = "Could not save the live draft. Open Mluva to copy it."
+            workspace.finish_live()
+            workspace.show_transient(self.live_final_text, text)
             workspace.set_busy(
-                False, "Could not save or copy the live draft. The text remains available in the live editor."
+                False, "Could not save the live draft. Your original and draft remain available to copy."
             )
-            workspace.live_draft_box.set_visible(True)
+        else:
+            if text.strip() and config.auto_copy_rewrite and not stale:
+                try:
+                    deliver_text(text, auto_paste=False)
+                except Exception:
+                    review_message = "Automatic copy failed. Use Copy."
+                    workspace.set_busy(False, "Live draft saved. Automatic copy failed; use the Copy icon.")
         self.live_schedule = None
         self.live_final_entry = None
         self.live_session_identifier = None
+        self._publish_review(identifier, review_phase, review_message)
 
     def _cancel_live_rewrite(self) -> None:
         """Invalidate pending callbacks before cancelling provider work off GTK."""
@@ -1097,6 +1108,10 @@ class MluvaApplication(Adw.Application):
         source = self.conversation_store.source_text(entry, delivered_fallback=True)
         preview = replies[-1].text if replies else source
         workspace = self.conversation_workspace
+        if identifier == self.live_final_entry and workspace is not None:
+            phase = "rewriting"
+            preview = workspace.live_draft()
+            message = "Reconciling the final transcript…"
         if phase == "rewriting" and workspace is not None and workspace.rewrite_preview_identifier == identifier:
             preview = workspace.rewrite_preview_text or preview
         if self.recording_overlay_publisher is not None:
@@ -1146,9 +1161,9 @@ class MluvaApplication(Adw.Application):
             instruction = presets.get(option) or (style.instructions if style is not None else None)
             if instruction is not None:
                 self._begin_rewrite(identifier, instruction)
-        elif operation == "cancel" and self.rewrite_identifier == identifier:
+        elif operation == "cancel" and identifier in {self.rewrite_identifier, self.live_final_entry}:
             self._cancel_rewrite()
-        elif operation == "copy" and self.rewrite_identifier != identifier:
+        elif operation == "copy" and identifier not in {self.rewrite_identifier, self.live_final_entry}:
             replies = self.conversation_store.replies(identifier)
             try:
                 deliver_text(
@@ -1165,7 +1180,10 @@ class MluvaApplication(Adw.Application):
             self.activate()
             self._navigate_to_page("capture")
             self.conversation_workspace.show_conversation(entry, self.conversation_store.replies(identifier))
-            self.conversation_workspace.prompt.grab_focus()
+            if self.live_final_entry == identifier:
+                self.conversation_workspace.live_draft_text.grab_focus()
+            else:
+                self.conversation_workspace.prompt.grab_focus()
             self._dismiss_review()
 
     def _rewrite_worker(
@@ -1308,7 +1326,12 @@ class MluvaApplication(Adw.Application):
     def _cancel_rewrite(self) -> None:
         """Invalidate the pending result immediately, then stop its provider off the UI thread."""
         if self.live_schedule is not None and self.live_final_entry is not None:
+            identifier = self.live_final_entry
             self._cancel_live_rewrite()
+            self.conversation_workspace.finish_live()
+            self.conversation_workspace.set_busy(False, "Live rewrite cancelled. Your original is safe.")
+            self._publish_review(identifier, message="Live rewrite cancelled. Original kept.")
+            return
         client = self.rewrite_client
         if client is None:
             return
@@ -3001,7 +3024,17 @@ class MluvaApplication(Adw.Application):
         self.segment_cleanup_session = None
         self.audio_path = None
         self.pending_realtime_fallback_reason = None
-        self._clear_live_capture()
+        finishing_live = (
+            self.live_schedule is not None
+            and result.mode == "dictation"
+            and result.history_entry is not None
+            and not result.incognito
+        )
+        if finishing_live:
+            self.live_final_entry = result.history_entry.identifier
+            self.live_final_text = result.transcription.text
+        else:
+            self._clear_live_capture()
         status = result.delivery.guidance
         delivery_target = self.pending_delivery_target
         if result.history_entry is not None and delivery_target is not None:
@@ -3083,10 +3116,13 @@ class MluvaApplication(Adw.Application):
             self.history_page.refresh()
         self._history_changed()
         self._set_status(status)
-        self._reset_record_button()
+        self._reset_record_button(keep_overlay=finishing_live)
         workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None and result.mode == "dictation":
-            workspace.finish_live()
+            if finishing_live:
+                workspace.set_live("Finishing live draft…", result.transcription.text)
+            else:
+                workspace.finish_live()
             if result.history_entry is not None:
                 if not workspace.prompt_text() and self.rewrite_client is None:
                     workspace.show_conversation(result.history_entry, [])
@@ -3107,8 +3143,6 @@ class MluvaApplication(Adw.Application):
             self._queue_conversation_title(result.history_entry)
         if self.live_schedule is not None and result.mode == "dictation":
             if result.history_entry is not None and not result.incognito:
-                self.live_final_entry = result.history_entry.identifier
-                self.live_final_text = result.transcription.text
                 if workspace is not None:
                     workspace.set_busy(True, "Finishing live draft…")
                 self._maybe_live_rewrite(self.live_final_text, final=True)
@@ -3172,12 +3206,12 @@ class MluvaApplication(Adw.Application):
             self.conversation_workspace.notice.set_label("Capture failed. Your live draft is available to copy.")
         return GLib.SOURCE_REMOVE
 
-    def _reset_record_button(self) -> None:
+    def _reset_record_button(self, *, keep_overlay: bool = False) -> None:
         """Return the primary action to the idle capture state."""
         self._clear_capture_status_timeout()
         self.capture_preparing = False
         self.capture_stop_requested = False
-        self._hide_recording_bar()
+        self._hide_recording_bar(keep_overlay=keep_overlay)
         if self.record_button is None:
             return
         set_button_content(self.record_button, "audio-input-microphone-symbolic", "Dictate")
@@ -3280,14 +3314,19 @@ class MluvaApplication(Adw.Application):
             if not self.recording_overlay_publisher.publish(overlay_state):
                 self.recording_overlay_publisher = None
 
-    def _hide_recording_bar(self) -> None:
-        """Erase the bar and its slot immediately for any terminal state."""
-        self.overlay_review_identifier = None
+    def _hide_recording_bar(self, *, keep_overlay: bool = False) -> None:
+        """Erase the capture bar; final Live reconciliation still owns the shell surface."""
+        if not keep_overlay:
+            self.overlay_review_identifier = None
         if self.recording_bar is not None:
             self.recording_bar.clear()
         if self.recording_bar_slot is not None:
             self.recording_bar_slot.set_reveal_child(False)
-        if self.recording_overlay_publisher is not None and not self.recording_overlay_publisher.clear():
+        if (
+            not keep_overlay
+            and self.recording_overlay_publisher is not None
+            and not self.recording_overlay_publisher.clear()
+        ):
             self.recording_overlay_publisher = None
 
     def _clear_overlay_timeout(self) -> None:
@@ -3301,15 +3340,19 @@ class MluvaApplication(Adw.Application):
         """Keep bottom-screen feedback visible through processing and clipboard readiness."""
         MluvaApplication._clear_overlay_timeout(self)
         publisher = getattr(self, "recording_overlay_publisher", None)
+        workspace = getattr(self, "conversation_workspace", None)
+        preview = ""
+        if workspace is not None and phase == "processing":
+            buffer = workspace.live_text.get_buffer()
+            preview = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
         if publisher is not None:
-            publisher.publish(RecordingOverlayState(phase=phase, detail=detail))
+            publisher.publish(RecordingOverlayState(phase=phase, detail=detail, preview=preview))
             if phase in {"copied", "error"}:
                 self.overlay_timeout_id = GLib.timeout_add_seconds(
                     5 if phase == "copied" else 10,
                     MluvaApplication._expire_completion_status,
                     self,
                 )
-        workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None and phase == "processing":
             workspace.live_title.set_label("Processing…")
 

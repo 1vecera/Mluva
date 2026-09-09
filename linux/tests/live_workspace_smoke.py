@@ -3,10 +3,12 @@
 import json
 import os
 import sys
+import threading
 import time
 import traceback
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from conversation_ui_smoke import IsolatedApplication
@@ -14,7 +16,9 @@ from gi.repository import Gdk, GLib, Graphene, Gtk
 
 from voice_scribe_linux.codex_client import CodexAppServerClient
 from voice_scribe_linux.delivery import DeliveryReceipt
+from voice_scribe_linux.elevenlabs import TranscriptionResult
 from voice_scribe_linux.realtime import RealtimePreview
+from voice_scribe_linux.workflow import WorkflowResult
 
 
 def settle(predicate, timeout: float = 6) -> None:
@@ -60,6 +64,158 @@ def paint(window, path):
     textures[-1].save_to_png(str(path))
 
 
+def exercise_finalization_panel(app, output: Path) -> None:
+    """Hold a real workflow completion at the provider boundary and inspect every GTK frame."""
+    workspace = app.conversation_workspace
+    app.config = replace(app.config, live_rewrite_enabled=True, auto_copy_rewrite=True)
+    workspace.set_config(app.config)
+    gate = threading.Event()
+    contexts, copies, overlays, geometry = [], [], [], []
+    fixture = Path(__file__).with_name("fake_app_server.py")
+    source = "\n".join(f"Keep the original dictated requirement {index}." for index in range(50))
+    draft = "\n".join(f"Editable draft requirement {index}." for index in range(50))
+
+    class HeldClient(CodexAppServerClient):
+        """Delay only the synthetic provider, preserving the real app's finalization callbacks."""
+
+        def transform(self, prompt, *args, **kwargs):
+            """Expose the request before allowing its independent JSONL provider to reply."""
+            contexts.append(json.loads(prompt.split("\n", 1)[1]))
+            if not gate.wait(10):
+                raise TimeoutError("The test did not release final reconciliation")
+            return super().transform(prompt, *args, **kwargs)
+
+    def client(*_args, **_kwargs):
+        """Start only the repository's unauthenticated local provider fixture."""
+        return HeldClient(command=(sys.executable, str(fixture), "--live"), turn_timeout_seconds=5)
+
+    def sample(_widget=None, _clock=None):
+        """Measure the mapped Live panel and native scrollbar while finalization is held."""
+        success, bounds = workspace.live_box.compute_bounds(app.window)
+        geometry.append(
+            {
+                "mapped": workspace.live_box.get_mapped() and workspace.live_draft_text.get_mapped(),
+                "bounds": [bounds.get_x(), bounds.get_y(), bounds.get_width(), bounds.get_height()] if success else [],
+                "reading_position": workspace.live_draft_scroll.get_vadjustment().get_value(),
+                "original_reading_position": workspace.live_scroll.get_vadjustment().get_value(),
+            }
+        )
+        return GLib.SOURCE_CONTINUE
+
+    def start(identifier):
+        """Enter recording through the production Live session and provide committed recognition at Stop."""
+        app.pending_session_identifier = identifier
+        app.pending_incognito = False
+        app.pending_mode = "dictation"
+        app._start_live_rewrite()
+        workspace.set_live("Recording  00:40", source + " PROVISIONAL_ONLY")
+        workspace.show_live_draft(draft)
+        paint(app.window, output / f"{identifier}-recording.png")
+        workspace.live_draft_scroll.get_vadjustment().set_value(80)
+        workspace.live_scroll.get_vadjustment().set_value(90)
+        entry = app.history_store.add(source, source, "dictation", "eng", None, "ready")
+        result = WorkflowResult(
+            transcription=TranscriptionResult(source, "eng", None, None),
+            output_text=source,
+            delivery=DeliveryReceipt(False, False, "Dictation ready."),
+            history_entry=entry,
+            retained_audio_path=None,
+            requires_acceptance=False,
+            incognito=False,
+            mode="dictation",
+            recognition_ms=0,
+            enhancement_ms=0,
+            delivery_ms=0,
+            session_identifier=identifier,
+            recognition_fallback=False,
+            recognition_route="scribe-v2-realtime",
+            recognition_fallback_reason=None,
+        )
+        sample()
+        app.capture_processing = True
+        app._publish_completion_status("processing", "Finishing your dictation…")
+        assert overlays[-1].preview == source + " PROVISIONAL_ONLY"
+        overlays.clear()
+        app._workflow_finished(result)
+        return entry
+
+    publisher = SimpleNamespace(
+        publish=lambda state: overlays.append(state) or True, clear=lambda: overlays.append(None)
+    )
+    with (
+        patch.object(app, "_new_rewrite_client", side_effect=client),
+        patch.object(app, "recording_overlay_publisher", publisher),
+        patch("voice_scribe_linux.app.deliver_text", side_effect=lambda text, **_kw: copies.append(text)),
+    ):
+        try:
+            entry = start("final-panel")
+            settle(lambda: bool(contexts))
+            tick = app.window.add_tick_callback(sample)
+            settle(lambda: len(geometry) >= 30)
+            app.window.remove_tick_callback(tick)
+            (output / "final-panel-geometry.json").write_text(json.dumps(geometry, indent=2))
+            assert all(frame["mapped"] for frame in geometry), "Live editor disappeared during final reconciliation"
+            assert len({tuple(frame["bounds"]) for frame in geometry}) == 1, geometry
+            assert all(abs(frame["reading_position"] - 80) < 1 for frame in geometry), geometry
+            assert all(abs(frame["original_reading_position"] - 90) < 1 for frame in geometry), geometry
+            assert workspace.live_cancel.get_mapped()
+            assert all(state is not None and state.phase == "rewriting" for state in overlays), overlays
+            app._review_action(None, GLib.Variant("(sss)", ("copy", entry.identifier, "")))
+            assert copies == []
+            paint(app.window, output / "final-panel-pending.png")
+            buffer = workspace.live_draft_text.get_buffer()
+            buffer.insert(buffer.get_end_iter(), "\nManual edit while finalizing")
+            gate.set()
+            settle(lambda: app.live_schedule is None)
+            saved = app.conversation_store.replies(entry.identifier)
+            assert len(saved) == 1 and "Manual edit while finalizing" in saved[0].text
+            assert copies == [saved[0].text] and "PROVISIONAL_ONLY" not in contexts[-1]["transcript"]
+            assert app.history_store.find(entry.identifier).raw_text == source
+            assert not workspace.live_box.get_visible() and overlays[-1].phase == "ready"
+            paint(app.window, output / "final-panel-saved.png")
+
+            for failure in ("save", "copy"):
+                gate.clear()
+                contexts.clear()
+                entry = start(f"{failure}-panel")
+                settle(lambda: bool(contexts))
+                target = (
+                    patch.object(type(app.conversation_store), "append", side_effect=OSError("Controlled save failure"))
+                    if failure == "save"
+                    else patch(
+                        "voice_scribe_linux.app.deliver_text", side_effect=RuntimeError("Controlled copy failure")
+                    )
+                )
+                with target:
+                    gate.set()
+                    settle(lambda: app.live_schedule is None)
+                assert not workspace.live_box.get_visible() and workspace.scroll.get_visible()
+                assert (
+                    "Could not save" if failure == "save" else "Automatic copy failed"
+                ) in workspace.notice.get_label()
+                assert len(app.conversation_store.replies(entry.identifier)) == (0 if failure == "save" else 1)
+                assert len(workspace.copy_buttons) == 2 and all(
+                    button.get_sensitive() for button in workspace.copy_buttons
+                )
+                assert len(copies) == 1 and app.history_store.find(entry.identifier).raw_text == source
+                assert overlays[-1].phase == ("review-error" if failure == "save" else "ready")
+
+            gate.clear()
+            contexts.clear()
+            entry = start("cancel-panel")
+            settle(lambda: bool(contexts))
+            pending, session, revision = app.live_rewrite_client, app.live_session_identifier, app.live_revision
+            workspace.live_cancel.emit("clicked")
+            assert app.live_schedule is None and not workspace.live_box.get_visible()
+            assert overlays[-1].message == "Live rewrite cancelled. Original kept."
+            gate.set()
+            app._live_rewrite_finished(session, pending, revision, "Late cancelled result", "fake")
+            assert app.conversation_store.replies(entry.identifier) == [] and len(copies) == 1
+            assert app.history_store.find(entry.identifier).raw_text == source
+        finally:
+            gate.set()
+
+
 def main() -> int:
     """Cover editing, copy defaults, live races, finalization, cancellation and privacy."""
     if "OFFSCREEN_SESSION_ROOT" not in os.environ or os.environ.get("GDK_BACKEND") != "x11":
@@ -83,6 +239,7 @@ def main() -> int:
         """Operate real widgets and inspect saved records across request races."""
         try:
             workspace = app.conversation_workspace
+            exercise_finalization_panel(app, output)
             app.config = replace(app.config, auto_copy_rewrite=True)
             workspace.set_config(app.config)
             entry = app.history_store.add("Original speech", "Original speech", "dictation", "eng", None, "copied")
