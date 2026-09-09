@@ -27,6 +27,7 @@ class _TailFollower:
         self.writing = False
         self.snap_next = True
         self.animation: Adw.Animation | None = None
+        self.destination = 0.0
         self.duration_ms = 800
         self.smooth = True
         adjustment = scroll.get_vadjustment()
@@ -69,7 +70,16 @@ class _TailFollower:
             return GLib.SOURCE_REMOVE
         adjustment = self.scroll.get_vadjustment()
         destination = max(0, adjustment.get_upper() - adjustment.get_page_size())
+        if (
+            not self.snap_next
+            and self.smooth
+            and self.animation is not None
+            and self.animation.get_state() == Adw.AnimationState.PLAYING
+            and abs(destination - self.destination) < 1
+        ):
+            return GLib.SOURCE_REMOVE
         self._pause()
+        self.destination = destination
         if (
             self.snap_next
             or not self.smooth
@@ -85,7 +95,7 @@ class _TailFollower:
                 self.duration_ms,
                 Adw.CallbackAnimationTarget.new(self._write),
             )
-            self.animation.set_easing(Adw.Easing.EASE_OUT_CUBIC)
+            self.animation.set_easing(Adw.Easing.EASE_IN_OUT_CUBIC)
             self.animation.play()
         self.snap_next = False
         return GLib.SOURCE_REMOVE
@@ -383,6 +393,8 @@ class ConversationWorkspace(Gtk.Box):
             follower.smooth = config.smooth_scrolling
             follower.duration_ms = config.scroll_duration_ms
         self.messages.set_margin_bottom(16 + config.scroll_lookahead_lines * 20)
+        for view in (self.live_text, self.live_draft_text):
+            view.set_bottom_margin(4 + config.scroll_lookahead_lines * 20)
         for button in self.copy_buttons:
             button.set_visible(config.show_copy_action)
         for button in self.save_buttons:
@@ -460,10 +472,18 @@ class ConversationWorkspace(Gtk.Box):
 
     def show_live_draft(self, text: str, status: str = "Live draft") -> None:
         """Replace a completed snapshot without rendering a partially restructured document."""
+        follower = self.live_draft_follower
+        following = follower.following
+        position = self.live_draft_scroll.get_vadjustment().get_value()
         self.live_draft_box.set_visible(True)
+        follower.writing = True
         self.live_draft_text.get_buffer().set_text(text)
+        follower.writing = False
         self.live_draft_status.set_label(status)
-        self.live_draft_follower.queue()
+        if following:
+            follower.follow()
+        else:
+            GLib.idle_add(lambda: follower._write(position))
 
     def show_conversation(self, entry: HistoryEntry | None, replies: list[Rewrite]) -> None:
         """Open the exact selected history item and every saved rewrite, preserving original text."""

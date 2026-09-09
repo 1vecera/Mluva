@@ -42,11 +42,16 @@ class WorkspaceSettings(Adw.PreferencesPage):
         self.add(behavior)
         live = Adw.PreferencesGroup(
             title="Live rewrite",
-            description="See a structured draft while speaking. Extra provider requests may use credits.",
+            description=(
+                "Live rewrite sends provisional recognition to the model as speech arrives. "
+                "Stop reconciles the draft with the final transcript. Later updates are grouped; "
+                "short tails update after a pause. Batch speech engines update by chunk, not every word. "
+                "Extra provider requests may use credits."
+            ),
         )
         self.switch(live, "live_rewrite_enabled", "Enable live rewrite for the next dictation")
         self.choice(live, "live_rewrite_template", "Template", TEMPLATE_CHOICES)
-        self.spin(live, "live_rewrite_min_characters", "New characters before updating", 40, 4000)
+        self.spin(live, "live_rewrite_min_characters", "New characters to group after the first draft", 40, 4000)
         self.spin(live, "live_rewrite_interval_seconds", "Minimum time between updates (seconds)", 2, 60)
         custom = Adw.ExpanderRow(title="Custom template instructions")
         editor = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, accepts_tab=False)

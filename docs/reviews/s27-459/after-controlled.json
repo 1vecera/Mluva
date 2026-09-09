@@ -1,0 +1,51 @@
+{
+  "nature": "Controlled speech and Codex JSONL subprocess; real app scheduler, transport and GTK paint",
+  "provider": "fake_app_server.py --live --compact-live (500 ms reply; model identifier is a fixture)",
+  "display": ":192",
+  "application_source": "/home/vecera/code/mluva/.claude/worktrees/s27-459-live-motion/linux/voice_scribe_linux/app.py",
+  "viewport": [
+    1050,
+    770
+  ],
+  "minimum_characters": 160,
+  "interval_seconds": 4,
+  "committed_chunks_at_seconds": [
+    0,
+    2,
+    4
+  ],
+  "committed_characters": [
+    43,
+    112,
+    203
+  ],
+  "samples": [
+    {
+      "scheduler_ms": 0.16143699940585066,
+      "setup_ms": 22.380303000318236,
+      "provider_ms": 501.00032599948463,
+      "paint_ms": 34.10824900129228,
+      "committed_to_visible_ms": 557.650315000501,
+      "model_identifier": "gpt-5.4",
+      "callback_registered": true
+    },
+    {
+      "scheduler_ms": 0.29739800083916634,
+      "setup_ms": 21.236517999568605,
+      "provider_ms": 500.713777000783,
+      "paint_ms": 5.035285999838379,
+      "committed_to_visible_ms": 527.2829790010292,
+      "model_identifier": "gpt-5.4",
+      "callback_registered": true
+    },
+    {
+      "scheduler_ms": 0.19988200074294582,
+      "setup_ms": 21.213643998635234,
+      "provider_ms": 500.969842001723,
+      "paint_ms": 3.8246039985097013,
+      "committed_to_visible_ms": 526.2079719996109,
+      "model_identifier": "gpt-5.4",
+      "callback_registered": true
+    }
+  ]
+}

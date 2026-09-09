@@ -176,14 +176,25 @@ PanelWindow {
             anchors.margins: 10
             spacing: 6
             RowLayout {
+                objectName: "recording-header"
                 width: parent.width
                 visible: !root.reviewing
                 spacing: 8
                 Rectangle {
+                    id: recordingDot
+                    objectName: "recording-dot"
                     width: 6
                     height: 6
                     radius: 3
                     color: root.emphasis
+                    SequentialAnimation on opacity {
+                        running: root.visible && root.phase === "recording"
+                            && root.smoothScrolling && root.scrollDuration > 0
+                        loops: Animation.Infinite
+                        NumberAnimation { from: 1; to: 0.55; duration: 1100; easing.type: Easing.InOutSine }
+                        NumberAnimation { from: 0.55; to: 1; duration: 1100; easing.type: Easing.InOutSine }
+                        onStopped: recordingDot.opacity = 1
+                    }
                 }
                 Text {
                     Layout.fillWidth: true
@@ -195,6 +206,7 @@ PanelWindow {
                     elide: Text.ElideRight
                 }
                 Text {
+                    objectName: "recording-timer"
                     visible: root.phase === "recording"
                     text: root.timer
                     color: Color.popups.text
@@ -214,12 +226,12 @@ PanelWindow {
                     property real offset: Math.min(0, transcriptViewport.height - transcript.height
                         - root.discardedHeight - transcript.lookAhead)
                     Behavior on offset {
-                        enabled: root.animatePreview && root.visible && root.smoothScrolling
+                        enabled: root.animatePreview && root.visible && root.smoothScrolling && root.scrollDuration > 0
                         SmoothedAnimation {
-                            velocity: root.lineHeight * 1.7
+                            velocity: -1
                             duration: root.scrollDuration
-                            maximumEasingTime: 160
-                            reversingMode: SmoothedAnimation.Immediate
+                            maximumEasingTime: -1
+                            reversingMode: SmoothedAnimation.Eased
                         }
                     }
                 }

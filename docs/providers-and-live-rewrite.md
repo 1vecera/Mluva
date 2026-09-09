@@ -77,19 +77,21 @@ For example, a partial config for local speech with a local or remote rewrite pr
 
 ## Live rewrite
 
-Turn on **Live rewrite** beside Dictate, then start dictation. The original speech appears beside an editable structured draft; narrow windows stack them. Choose **Task spec**, **Structured note**, **Polish** or **Custom** in Settings → Workspace. Task and note templates initially show `[Missing: …]` markers so the speaker can see which details remain to be supplied. A custom template's instructions can contain the desired structure and required fields.
+Turn on **Live rewrite** beside Dictate, then start dictation. Its small downward arrow selects **Task spec**, **Structured note**, **Polish** or **Custom**. The selection persists and stays in sync with Settings → Workspace, where custom instructions can be edited. The original speech appears beside an editable structured draft; narrow windows stack them. Task and note templates initially show `[Missing: …]` markers so the speaker can see which details remain to be supplied. A custom template's instructions can contain the desired structure and required fields.
 
 | JSON setting | Default | Meaning |
 | --- | --- | --- |
 | `live_rewrite_enabled` | `false` | Enable for the next Dictation capture. |
 | `live_rewrite_template` | `"task-spec"` | `task-spec`, `structured-note`, `polish` or `custom`. |
 | `live_rewrite_custom_instructions` | `""` | Instructions required when the custom template is selected. |
-| `live_rewrite_min_characters` | `160` | New characters before another update, 40–4,000. |
-| `live_rewrite_interval_seconds` | `4` | Minimum time between requests, 2–60 seconds. |
+| `live_rewrite_min_characters` | `160` | Group new characters after the first draft, 40–4,000; a paused short tail also updates. |
+| `live_rewrite_interval_seconds` | `4` | Minimum time between later requests and pause before flushing a short tail, 2–60 seconds. |
 
-Each update uses a frozen speech/draft snapshot, with at most one request in flight. Whole draft updates keep template structure readable. If you type during a request, that result cannot replace the newer edit; a later request incorporates your current draft. The model is instructed to preserve supplied facts and deliberate edits, mark gaps, and avoid inventing owners, dates or decisions. These are model instructions, so review the result.
+Live rewrite is off by default. Switching it on allows provisional recognition to be sent to the selected rewrite model before the speech provider commits it. The live editor and model input identify this text as provisional. The first nonempty recognition starts a request immediately, without waiting for the character threshold or recording timer. Later requests follow the configured interval and character grouping; short additions and same-length corrections update after a pause. Batch speech engines still update by chunk, not every word. Model processing remains part of the wait; see the [measured latency and verification](live-rewrite-latency.md).
 
-Stop requests the final tail even below the normal thresholds, then saves one final reply with the source. A failed update pauses automatic requests, retains the available draft and labels an incomplete saved draft; it never auto-copies a failed final update. Cancellation, deletion and Incognito invalidate late results. Live rewrite is unavailable in Incognito and does not run for Command or Notes captures. Closing the window leaves capture running; quitting ends it.
+Each update uses a frozen speech/draft snapshot, with at most one request in flight. Whole draft updates keep template structure readable and retain a manual reading position. If you type during a request, that result cannot replace the newer edit; a later request incorporates your current draft. The model is instructed to preserve supplied facts and deliberate edits, mark gaps, and avoid inventing owners, dates or decisions. These are model instructions, so review the result.
+
+Scribe keeps its established 25-second commit cadence. Provisional recognition is model input only: it never replaces raw recognition or automatic dictation delivery. Stop always reconciles against the complete committed transcript, even when its text matches the last preview or is below the usual thresholds, then saves one final reply with the source. Only a successful final rewrite may auto-copy. A failed update pauses automatic requests, retains the available draft and labels an incomplete saved draft; it never auto-copies a failed final update. Cancellation, deletion and Incognito invalidate late results. Live rewrite is unavailable in Incognito and does not run for Command or Notes captures. Closing the window leaves capture running; quitting ends it.
 
 ## Verification boundary
 

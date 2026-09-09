@@ -338,10 +338,13 @@ class RealtimeTranscriptionSession:
                 self._connection.send(_audio_event(chunk))
                 with self._lock:
                     self._bytes_sent += len(chunk)
+                    if self._cancelled:
+                        return
                     self._bytes_since_commit += len(chunk)
                     should_commit = self._bytes_since_commit >= MANUAL_COMMIT_INTERVAL_BYTES
                     if should_commit:
-                        self._bytes_since_commit -= MANUAL_COMMIT_INTERVAL_BYTES
+                        # A commit covers every byte already sent, including a chunk's overshoot.
+                        self._bytes_since_commit = 0
                         self._commits_sent += 1
                 if should_commit:
                     self._connection.send(_audio_event(b"", commit=True))
