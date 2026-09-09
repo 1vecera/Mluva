@@ -1,0 +1,10 @@
+[
+  {
+    "identifier": 1,
+    "history_identifier": "7fba981b-dd1d-42f5-b3e7-cfe7b2289e0c",
+    "instruction": "Polish the text faithfully. Remove filler words, false starts and accidental repetitions; fix grammar and punctuation and lightly paraphrase for clarity. Keep the speaker's language, voice, meaning, facts, names, numbers and technical terms. Do not summarize or invent details.",
+    "text": "Keep Friday's demo focused: show the upload preview, flag missing order IDs, and check the totals before saving.",
+    "model": "scripted-ui-demo",
+    "created_at": "2026-09-09T16:01:15.446732+00:00"
+  }
+]

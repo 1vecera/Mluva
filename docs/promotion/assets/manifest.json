@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
   "created": "2026-09-09",
-  "issue": "S27-461",
+  "issue": "S27-465",
   "file_paths_relative_to": "repository root: files and capture_tool_hashes maps, and the reproduction entry",
-  "disclosure": "Real source audio, production GTK/Quickshell and actual provider output. Automated controls and editorial background. Full workflow videos have no cuts or speed changes. Intro has explicit cuts and AI captions. No volatile recognition is pasted; raw history remains committed provider text.",
+  "disclosure": "83.6 s product film: actual released JFK and unreleased Live audio/output at 1x, labeled offline native UI feature walkthroughs, and clean generated scenery with software vector/text overlays. Continuous real recordings and their raw/provider output are unchanged. Full fixture and source/build boundaries below.",
   "release": {
     "tag": "v0.3.0",
     "commit": "4ce8dc49537da98d8f32f25726f63193774d3b91",
@@ -202,13 +202,19 @@
     "continuous": "v0.3.0/speech/export.json and unreleased-live/export.json preserve actual offsets and full waits.",
     "portrait": "v0.3.0/speech/vertical-export.json: widget crop; source AAC packets copied; no speed/cut changes.",
     "portrait_poster": "Native UI reopens the real saved speech history without a provider call.",
-    "intro": "mluva-product-intro.edit.json and portable mluva-product-intro.plan.json; exact coordinator handoff; all source cuts 1x.",
+    "intro": "mluva-product-intro.plan.json and mluva-product-intro.edit.json; 83.6 s / 2508 frames / 1920x1080 / 30 fps. Original-speed cuts, 0.2 s non-overlapping edge fades; source audio timing and initial delay preserved.",
     "intro_qa_contact_mapping": {
-      "original_handoff_name": "intro-final-contact.png",
-      "retained_repository_file": "docs/promotion/evidence/mluva-product-intro-contact.png"
+      "current": [
+        "docs/promotion/evidence/polished/opening-contact.jpg",
+        "docs/promotion/evidence/polished/film-contact.jpg",
+        "docs/promotion/evidence/polished/scenery-contact.jpg"
+      ],
+      "archive": "docs/promotion/evidence/mluva-product-intro-contact.png (old 44.7-second intro only)"
     },
-    "ai": "h3-max/generation.json; one coordinator-owned H3 Max request; $1.20 conservative reservation against $5 total; actual charge unverified (billing endpoint 403). No fal calls by the capture task.",
-    "partial_reference": "v0.3.0/task-saved-partial-desktop.png is a real saved partial task whose final update failed; H3 uses it only as an illustrative image reference."
+    "ai": "Clean H3 Max background from coordinator request 01a086e3-c4b8-7801-aa8e-cb1a81ed9618; complete source and provenance under polished/motion. Generated audio muted, no generated UI/text in film. Selected Sunburst mark redrawn as flat SVG with outlined Adwaita Sans wordmark; source and license under polished/brand. Conservative campaign reservation $3.40/$5, actual billing unavailable. No generation calls by S27-465.",
+    "partial_reference": "v0.3.0/task-saved-partial-desktop.png remains real saved partial evidence. Only archived old H3 used it as a reference; neither enters the polished film.",
+    "jfk": "Source [0,14.8); initial empty UI replaced by source card through 4.666667 s without advancing UI/audio. Initial source-audio delay 0.277938 s retained. Visible label JFK \u00b7 Rice University \u00b7 1962; Scribe and v0.3.0 build evidence remain in released_speech and edit receipt.",
+    "live": "Crop [568,146,1288,670] excludes original floating panel, including its blank-text defect. Source [17,30) then [55.4,59.2), explicitly labeled cut forward. Stop/finalization wait and old lifecycle defects stay in complete original. Original cdc00237595f runtime provenance retained; no fix/performance claim."
   },
   "stable_aliases_relative_to_assets": {
     "workspace-dark.png": "v0.3.0/speech/hero.png",
@@ -222,7 +228,10 @@
     "intro": "mluva-product-intro.qa.json",
     "prior_initial_echo": "../evidence/initial-echo-take",
     "rejected_four_second_commits": "../evidence/rejected-four-second-commits",
-    "legacy": "legacy-v0.1.1/manifest.json"
+    "legacy": "legacy-v0.1.1/manifest.json",
+    "polished_visual": "../evidence/polished/visual-review.json",
+    "polished_checks": "../evidence/polished/checks.json",
+    "separate_runtime_fix": "https://github.com/1vecera/Mluva/pull/18; offline replay and finalization evidence only, not substituted for original provider footage"
   },
   "reproduction": "dev/README.md",
   "capture_tool_hashes": {
@@ -230,12 +239,21 @@
     "dev/campaign_session.py": "056e977adc55b0a73d6f11ac206b326439b391b936d0a9f6556ad938b6b1da35",
     "dev/campaign-stage.qml": "6804790e19b266c9fd762eb13c0eac237aca0015528695c7773ada1ac3025ad2",
     "dev/export_campaign.py": "383894970cb8288cf8ff19f294ff340c0b6395369bb860835cacf54a1390df92",
-    "dev/compose_campaign_intro.py": "fc28ef22d1c902aedc564324c471d9d9dfe3327765d368da46ecda88cf4dd2ad"
+    "dev/compose_campaign_intro.py": "acc2ce11b1ff3c7d78bd444a0de0c492c4ba99d8f9706f737b96aeebccd0e171",
+    "dev/capture_features.py": "0125ac9f3ab36706508fb891a5d06ccf0f1d6e3b99bc791dab445abb6d8fe1d3",
+    "dev/feature_session.py": "700f95b22c5ada06ba635fb9e16828d4c51c51514528fb09546f821f97f82a15",
+    "dev/feature-stage.qml": "c09504da36769588a1da6c3425a81a5de0c79ae2a41b2498ff6465da3c91a242",
+    "dev/export_features.py": "a10b4ac2d6dc37d61111e6bf707afb1d4776394ea3098c6b5df6ccf0b9f40fb4",
+    "dev/verify_product_film.py": "b0f16e0967697fea6a800a00b97943026960829201b50b23c1f581c563d942c9"
   },
   "files": {
+    "dev/README.md": {
+      "sha256": "249586eca9949bf34015e1cc6afce1994a72d61c5d60846087f77777fca4f445",
+      "bytes": 10277
+    },
     "docs/promotion/README.md": {
-      "sha256": "fd62322f42fd3572f00c0727d9a18d64b4f8b00232017379e6dd2a9531ce0a0f",
-      "bytes": 8919
+      "sha256": "d23e1e6c918c9e51aa492521fb476e76120b7cff93469ba541642d9664df396d",
+      "bytes": 16017
     },
     "docs/promotion/assets/h3-max/generation.json": {
       "sha256": "bc709e97659e251bf4b1edeb05b4c26108e50b47cc255c89ff813a481f317546",
@@ -631,12 +649,12 @@
       }
     },
     "docs/promotion/assets/mluva-product-intro.edit.json": {
-      "sha256": "6614523bedaa4698bd1fcfa6392e585b231465b6cbe1aafebe1aa054656a6c4e",
-      "bytes": 4457
+      "sha256": "fc2ff86065d18ecb1a56ccc3094aed986cf24abd478cb45077acb760e908bde9",
+      "bytes": 62196
     },
     "docs/promotion/assets/mluva-product-intro.mp4": {
-      "sha256": "a3733854ad9a74a1c9c8680177ba7cadda1d343ee651593a57ddcda9604de1b0",
-      "bytes": 8786412,
+      "sha256": "7968caaeee2f69f82c9be761d9b119573f319897427d06f07639c899cb4677bb",
+      "bytes": 12919760,
       "media": {
         "programs": [],
         "stream_groups": [],
@@ -648,8 +666,8 @@
             "height": 1080,
             "pix_fmt": "yuv420p",
             "r_frame_rate": "30/1",
-            "start_time": "0.000000",
-            "duration": "44.700000"
+            "duration": "83.600000",
+            "nb_frames": "2508"
           },
           {
             "codec_name": "aac",
@@ -657,23 +675,970 @@
             "sample_rate": "48000",
             "channels": 2,
             "r_frame_rate": "0/0",
-            "start_time": "0.000000",
-            "duration": "44.700000"
+            "duration": "83.600000",
+            "nb_frames": "3920"
           }
         ],
         "format": {
-          "duration": "44.700000",
-          "size": "8786412"
+          "duration": "83.600000",
+          "size": "12919760"
         }
       }
     },
     "docs/promotion/assets/mluva-product-intro.plan.json": {
-      "sha256": "bd1ef6a6cb09a2dd2cfa7ed26e2cfe26429deae258f5436f51141ca35935ba63",
-      "bytes": 1721
+      "sha256": "c0b8325a526ba40bd1049db806a21ff16900c5c09472e8b52ced6f1c5f4e9932",
+      "bytes": 8910
     },
     "docs/promotion/assets/mluva-product-intro.qa.json": {
-      "sha256": "4cb2c30ffa94787fb4f38189468a131017d28842dc79bbfce1dd9fa5bd47fb6a",
-      "bytes": 970
+      "sha256": "b4a699f6bc0cfa0985f6a2dfa2a5f130b401006fd5d645ede3a3cdb59cf3d0d2",
+      "bytes": 2807
+    },
+    "docs/promotion/assets/mluva-product-poster.png": {
+      "sha256": "0b9b00319108229d91839dd333946c0ef7f8d902666c97a49ee12e8be047455e",
+      "bytes": 505232,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "505232"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/brand/Adwaita-Sans-LICENSE.txt": {
+      "sha256": "459687971d21c53923c1d1c9c062ec273a7ea03226b36195b79ec6af7d98dc81",
+      "bytes": 4554
+    },
+    "docs/promotion/assets/polished/brand/brand.json": {
+      "sha256": "b5e3d589fe9e06e9444a2a2cf8b6cf97a5f97521676fcb60e04a3e4af03a0bef",
+      "bytes": 351
+    },
+    "docs/promotion/assets/polished/brand/mluva-lockup.png": {
+      "sha256": "05578fe4d38f97d4a557e8cc19fb7024e75c5673e628fa97d685af1145d460da",
+      "bytes": 16137,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 848,
+            "height": 256,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "16137"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/brand/mluva-lockup.svg": {
+      "sha256": "381a4fb8b2296b308e33c4af5c74be0826a14865d7e443bd283df182b357dc29",
+      "bytes": 4869
+    },
+    "docs/promotion/assets/polished/brand/mluva-mark.svg": {
+      "sha256": "41883bee029e3ddda7438a056a0778cc268d243ddaeceab83d7543e26650e3a1",
+      "bytes": 472
+    },
+    "docs/promotion/assets/polished/brand/mluva-wordmark.svg": {
+      "sha256": "d1a151b9a2295da679de0abc90b14e75f6bdc37fa047b719bf99d905411603de",
+      "bytes": 4630
+    },
+    "docs/promotion/assets/polished/brand/source/mluva-mark-sunburst.png": {
+      "sha256": "f691081440073f1e4fd11a0f9d4f612f342f271ae08f83cf0ff7aef3be1460e8",
+      "bytes": 731270,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1024,
+            "height": 1024,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "731270"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/brand/source/prompt.txt": {
+      "sha256": "ba67f337846d958bb0497ed60cdd3384510aacd586b85faca581556a3e22102d",
+      "bytes": 1604
+    },
+    "docs/promotion/assets/polished/brand/source/provenance.json": {
+      "sha256": "1b1c8434b7e7cd334a93ccbe933371d42f0af68191d6c26529ba7d518a298ef0",
+      "bytes": 1418
+    },
+    "docs/promotion/assets/polished/brand/source/request.json": {
+      "sha256": "3ab4692d2c93c30741d11f127c5bb90bf600dda780a0da149323b559554c4500",
+      "bytes": 1802
+    },
+    "docs/promotion/assets/polished/brand/source/response.json": {
+      "sha256": "870eb0bce9067a40df2b1c5cc293aad1aa0a9216ea3607de1957cc183791d375",
+      "bytes": 283
+    },
+    "docs/promotion/assets/polished/brand/wordmark-outline.svg": {
+      "sha256": "a188e76f2564d29185af8ed6b57ba696a5085141d7e970b2c2e637ac457789b1",
+      "bytes": 4617
+    },
+    "docs/promotion/assets/polished/brand/wordmark-provenance.json": {
+      "sha256": "2fd43d4e7311593add32171470f706b012de34811b9a364c647d965bc6e41222",
+      "bytes": 548
+    },
+    "docs/promotion/assets/polished/features/expanded/after.png": {
+      "sha256": "801958301418357b1300a1592c631909503847e68fe3ba26f68325390beff1a8",
+      "bytes": 85872,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "85872"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/expanded/before.png": {
+      "sha256": "037f528e4615191cddf10692ad971713465cc7b99b2b77a5348e6a14044adc12",
+      "bytes": 89203,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "89203"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/expanded/capture.json": {
+      "sha256": "3fd90b2624e3b8af86dea0a94f9b87b9f56a2976bf350c2935abdb00f83a38c1",
+      "bytes": 1128
+    },
+    "docs/promotion/assets/polished/features/expanded/export-receipt.json": {
+      "sha256": "8bf5ad70bcf09b4e3688657e9b5d6bbaca4bfbce1d29db040bd4213ac52b63e8",
+      "bytes": 1332
+    },
+    "docs/promotion/assets/polished/features/expanded/harness/capture_features.py": {
+      "sha256": "0125ac9f3ab36706508fb891a5d06ccf0f1d6e3b99bc791dab445abb6d8fe1d3",
+      "bytes": 4761
+    },
+    "docs/promotion/assets/polished/features/expanded/harness/feature-stage.qml": {
+      "sha256": "c09504da36769588a1da6c3425a81a5de0c79ae2a41b2498ff6465da3c91a242",
+      "bytes": 1744
+    },
+    "docs/promotion/assets/polished/features/expanded/harness/feature_session.py": {
+      "sha256": "f1f1e2c90e8cce9e5ba0bf2a2923e3077471799cc585af159e6cc70264c6422a",
+      "bytes": 17051
+    },
+    "docs/promotion/assets/polished/features/expanded/recognition.json": {
+      "sha256": "6a386cb709f570a6f55093ec1e92aeaaacd91b0e22c2e4946891309b4034b4fc",
+      "bytes": 951
+    },
+    "docs/promotion/assets/polished/features/expanded/replies.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    "docs/promotion/assets/polished/features/expanded/runtime-files.json": {
+      "sha256": "0273b0fc1111eeb4f87019b423810bf618743aee4a07711b1c1fa8de3fed3b33",
+      "bytes": 13170
+    },
+    "docs/promotion/assets/polished/features/expanded/workflow.mp4": {
+      "sha256": "45427c77d6c91c02e24f710d26968f9f1cd6607af1a4d0aa4a8185f8c1c4efd3",
+      "bytes": 147080,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "duration": "6.566000",
+            "nb_frames": "195"
+          }
+        ],
+        "format": {
+          "duration": "6.566000",
+          "size": "147080"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/export/after.png": {
+      "sha256": "572abe2b2a8dcb59e02b98d4097b3c73885b6f575cd689a57dfe16c10555551f",
+      "bytes": 132866,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "132866"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/export/before.png": {
+      "sha256": "13a88e1131259fe082433d5d56288ef71b126efb2505d91e84a62270c608f44e",
+      "bytes": 129025,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "129025"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/export/capture.json": {
+      "sha256": "55e3b064cf99cc3e71b765f26efe670773dd5f2590af9c5e41ef48b1b7ffe3d6",
+      "bytes": 1121
+    },
+    "docs/promotion/assets/polished/features/export/export-receipt.json": {
+      "sha256": "387d31920ff6ab34755f3580052ac48ca4a4da2a0b5fcca57f761c9a95c2ba11",
+      "bytes": 1332
+    },
+    "docs/promotion/assets/polished/features/export/export.json": {
+      "sha256": "7c0cbde358b1d55af58fb893b0e93010fdee495bdacaa4154f367d926272667d",
+      "bytes": 1115
+    },
+    "docs/promotion/assets/polished/features/export/export.md": {
+      "sha256": "e821e44d64f022ad97686822502ca45d5048f4775a236d7dbaafb19c2d34beb9",
+      "bytes": 701
+    },
+    "docs/promotion/assets/polished/features/export/harness/capture_features.py": {
+      "sha256": "0125ac9f3ab36706508fb891a5d06ccf0f1d6e3b99bc791dab445abb6d8fe1d3",
+      "bytes": 4761
+    },
+    "docs/promotion/assets/polished/features/export/harness/feature-stage.qml": {
+      "sha256": "c09504da36769588a1da6c3425a81a5de0c79ae2a41b2498ff6465da3c91a242",
+      "bytes": 1744
+    },
+    "docs/promotion/assets/polished/features/export/harness/feature_session.py": {
+      "sha256": "f1f1e2c90e8cce9e5ba0bf2a2923e3077471799cc585af159e6cc70264c6422a",
+      "bytes": 17051
+    },
+    "docs/promotion/assets/polished/features/export/recognition.json": {
+      "sha256": "c0225605abf084c2a1a5646608379441441863e4a5b4412f8a3e1595341546a1",
+      "bytes": 951
+    },
+    "docs/promotion/assets/polished/features/export/replies.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    "docs/promotion/assets/polished/features/export/runtime-files.json": {
+      "sha256": "0273b0fc1111eeb4f87019b423810bf618743aee4a07711b1c1fa8de3fed3b33",
+      "bytes": 13170
+    },
+    "docs/promotion/assets/polished/features/export/workflow.mp4": {
+      "sha256": "9e6856509bf3ed539309321455696fed1768bf6eba1dd9e4d3b85853d85dc483",
+      "bytes": 205386,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "duration": "5.566000",
+            "nb_frames": "166"
+          }
+        ],
+        "format": {
+          "duration": "5.566000",
+          "size": "205386"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/floating/after.png": {
+      "sha256": "d9d6c0fafcd23f3d35e93bd0095fc0855a21417f9009b03bd6426ca9021453ed",
+      "bytes": 89207,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "89207"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/floating/capture.json": {
+      "sha256": "418b2b83b91c62ee162d43e9cdfc1a0860ec2eafb88a3072d3d2891c8eed85c8",
+      "bytes": 1029
+    },
+    "docs/promotion/assets/polished/features/floating/export-receipt.json": {
+      "sha256": "3c38250bafaa07782f2fbf3698d30dfaf70c11394036557649462c91b36c42b6",
+      "bytes": 1332
+    },
+    "docs/promotion/assets/polished/features/floating/harness/capture_features.py": {
+      "sha256": "0125ac9f3ab36706508fb891a5d06ccf0f1d6e3b99bc791dab445abb6d8fe1d3",
+      "bytes": 4761
+    },
+    "docs/promotion/assets/polished/features/floating/harness/feature-stage.qml": {
+      "sha256": "c09504da36769588a1da6c3425a81a5de0c79ae2a41b2498ff6465da3c91a242",
+      "bytes": 1744
+    },
+    "docs/promotion/assets/polished/features/floating/harness/feature_session.py": {
+      "sha256": "f1f1e2c90e8cce9e5ba0bf2a2923e3077471799cc585af159e6cc70264c6422a",
+      "bytes": 17051
+    },
+    "docs/promotion/assets/polished/features/floating/overlay.png": {
+      "sha256": "efca2e3423bedf9c1311fb8fd45a2d3d33630cf21303ce371ee9e87a380bb4b8",
+      "bytes": 17400,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 164,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "17400"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/floating/recognition.json": {
+      "sha256": "0ea189f49a0cb037330378a97d34a3b5a707dc60e3a05b8529b5529b47d29a42",
+      "bytes": 951
+    },
+    "docs/promotion/assets/polished/features/floating/replies.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    "docs/promotion/assets/polished/features/floating/runtime-files.json": {
+      "sha256": "0273b0fc1111eeb4f87019b423810bf618743aee4a07711b1c1fa8de3fed3b33",
+      "bytes": 13170
+    },
+    "docs/promotion/assets/polished/features/floating/workflow.mp4": {
+      "sha256": "2177e0849a7078a6ec8460d26bbfe2fd1f4850d09877252dbb99b0c45faea0b8",
+      "bytes": 240751,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "duration": "8.566000",
+            "nb_frames": "256"
+          }
+        ],
+        "format": {
+          "duration": "8.566000",
+          "size": "240751"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/history/after.png": {
+      "sha256": "fe8fa214bb372707ee9f67bc7931def41df4027da8cad54ca9badd1e13faf32d",
+      "bytes": 77797,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "77797"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/history/before.png": {
+      "sha256": "037f528e4615191cddf10692ad971713465cc7b99b2b77a5348e6a14044adc12",
+      "bytes": 89203,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "89203"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/history/capture.json": {
+      "sha256": "f9f3546d21b72cd1088c4d6e79cce79bfcb0a65d00f178607db9651904fca441",
+      "bytes": 1105
+    },
+    "docs/promotion/assets/polished/features/history/export-receipt.json": {
+      "sha256": "857be8c5e2428fe7df7dac886bd12ffb0954b39830a75ff2796e78243f69ec77",
+      "bytes": 1332
+    },
+    "docs/promotion/assets/polished/features/history/harness/capture_features.py": {
+      "sha256": "0125ac9f3ab36706508fb891a5d06ccf0f1d6e3b99bc791dab445abb6d8fe1d3",
+      "bytes": 4761
+    },
+    "docs/promotion/assets/polished/features/history/harness/feature-stage.qml": {
+      "sha256": "c09504da36769588a1da6c3425a81a5de0c79ae2a41b2498ff6465da3c91a242",
+      "bytes": 1744
+    },
+    "docs/promotion/assets/polished/features/history/harness/feature_session.py": {
+      "sha256": "f1f1e2c90e8cce9e5ba0bf2a2923e3077471799cc585af159e6cc70264c6422a",
+      "bytes": 17051
+    },
+    "docs/promotion/assets/polished/features/history/recognition.json": {
+      "sha256": "9507510e46f54e02acf5973e2b5671cfa99538c50c06bef83ed6b0ade3e5b038",
+      "bytes": 951
+    },
+    "docs/promotion/assets/polished/features/history/replies.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    "docs/promotion/assets/polished/features/history/runtime-files.json": {
+      "sha256": "0273b0fc1111eeb4f87019b423810bf618743aee4a07711b1c1fa8de3fed3b33",
+      "bytes": 13170
+    },
+    "docs/promotion/assets/polished/features/history/workflow.mp4": {
+      "sha256": "6d5ec8d579a20d5613e7926083963c3b1e39fef32567fa0bb8ba1f32cf547fe1",
+      "bytes": 122431,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "duration": "6.066000",
+            "nb_frames": "180"
+          }
+        ],
+        "format": {
+          "duration": "6.066000",
+          "size": "122431"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/polish/after.png": {
+      "sha256": "10a6e7a1bba1b1e5a786577b853653efb0c030be39598b961ae3589f2fa1ffc2",
+      "bytes": 123598,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "123598"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/polish/before.png": {
+      "sha256": "7e8fe325691f557644e19bcc5af328712b98d8e03e89ca5f2ea1cdce96a92951",
+      "bytes": 100538,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "100538"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/polish/capture.json": {
+      "sha256": "c212ba4d57c82fa55287a6e72f0955ef1c4aefc396a00c80afb4c0a294440e14",
+      "bytes": 1125
+    },
+    "docs/promotion/assets/polished/features/polish/export-receipt.json": {
+      "sha256": "9dfd486b33c65b94879d277bce14f7f624269562d8c4f0662e0c00b2a1d25066",
+      "bytes": 1332
+    },
+    "docs/promotion/assets/polished/features/polish/harness/capture_features.py": {
+      "sha256": "0125ac9f3ab36706508fb891a5d06ccf0f1d6e3b99bc791dab445abb6d8fe1d3",
+      "bytes": 4761
+    },
+    "docs/promotion/assets/polished/features/polish/harness/feature-stage.qml": {
+      "sha256": "c09504da36769588a1da6c3425a81a5de0c79ae2a41b2498ff6465da3c91a242",
+      "bytes": 1744
+    },
+    "docs/promotion/assets/polished/features/polish/harness/feature_session.py": {
+      "sha256": "f1f1e2c90e8cce9e5ba0bf2a2923e3077471799cc585af159e6cc70264c6422a",
+      "bytes": 17051
+    },
+    "docs/promotion/assets/polished/features/polish/recognition.json": {
+      "sha256": "c7f42ce086f626cace64d0c836bb249fb28dc047e636b845c2fcf72a99540603",
+      "bytes": 972
+    },
+    "docs/promotion/assets/polished/features/polish/replies.json": {
+      "sha256": "a9441f503640e436adc287dbcdd69ccdc22d140f5351415b234ad07d7784181e",
+      "bytes": 613
+    },
+    "docs/promotion/assets/polished/features/polish/runtime-files.json": {
+      "sha256": "0273b0fc1111eeb4f87019b423810bf618743aee4a07711b1c1fa8de3fed3b33",
+      "bytes": 13170
+    },
+    "docs/promotion/assets/polished/features/polish/workflow.mp4": {
+      "sha256": "9b8340b187139d85967bf13fed07627e5b69b3887e614324123cdf03093bd8f3",
+      "bytes": 271471,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "duration": "7.566000",
+            "nb_frames": "225"
+          }
+        ],
+        "format": {
+          "duration": "7.566000",
+          "size": "271471"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/providers/after.png": {
+      "sha256": "a3b0b3c093c15f3e6e2a2c3bd1c106afc38c526fc20fa7d76161d3925111ae9f",
+      "bytes": 142209,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "142209"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/providers/before.png": {
+      "sha256": "a3b0b3c093c15f3e6e2a2c3bd1c106afc38c526fc20fa7d76161d3925111ae9f",
+      "bytes": 142209,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "142209"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/features/providers/capture.json": {
+      "sha256": "767f2463ea9631e9fa2833387d26c3d05b1475fbd05a927ededeb5875b50958d",
+      "bytes": 1127
+    },
+    "docs/promotion/assets/polished/features/providers/export-receipt.json": {
+      "sha256": "91820a4ee9d5fbb8e04fd0af2b7921cb3388ba2b1f58dadc4fba3f96eaa1b37c",
+      "bytes": 1332
+    },
+    "docs/promotion/assets/polished/features/providers/harness/capture_features.py": {
+      "sha256": "0125ac9f3ab36706508fb891a5d06ccf0f1d6e3b99bc791dab445abb6d8fe1d3",
+      "bytes": 4761
+    },
+    "docs/promotion/assets/polished/features/providers/harness/feature-stage.qml": {
+      "sha256": "c09504da36769588a1da6c3425a81a5de0c79ae2a41b2498ff6465da3c91a242",
+      "bytes": 1744
+    },
+    "docs/promotion/assets/polished/features/providers/harness/feature_session.py": {
+      "sha256": "f1f1e2c90e8cce9e5ba0bf2a2923e3077471799cc585af159e6cc70264c6422a",
+      "bytes": 17051
+    },
+    "docs/promotion/assets/polished/features/providers/recognition.json": {
+      "sha256": "489df5a56f88596a4716c187f35c50c4ce225073af590136f297325fd5aba870",
+      "bytes": 951
+    },
+    "docs/promotion/assets/polished/features/providers/replies.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    "docs/promotion/assets/polished/features/providers/runtime-files.json": {
+      "sha256": "0273b0fc1111eeb4f87019b423810bf618743aee4a07711b1c1fa8de3fed3b33",
+      "bytes": 13170
+    },
+    "docs/promotion/assets/polished/features/providers/workflow.mp4": {
+      "sha256": "09f41667728af037bdd3db660589671f1e979f08eaef4b5e10a4810ba547b1ba",
+      "bytes": 479644,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "duration": "9.066000",
+            "nb_frames": "270"
+          }
+        ],
+        "format": {
+          "duration": "9.066000",
+          "size": "479644"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/motion/h3-max-clean-background.mp4": {
+      "sha256": "c2b44688636a6073f512886aea68eafc87dd4126fc6708608e5febebfbf1094d",
+      "bytes": 26659686,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1152,
+            "height": 768,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "24/1",
+            "duration": "15.083333",
+            "nb_frames": "362"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "32000",
+            "channels": 2,
+            "r_frame_rate": "0/0",
+            "duration": "15.104000",
+            "nb_frames": "473"
+          }
+        ],
+        "format": {
+          "duration": "15.104000",
+          "size": "26659686"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/motion/media.json": {
+      "sha256": "f66f7f5873363683e2c167657f5ff5ace1801f28d09a62f06aec155246fa1c98",
+      "bytes": 372
+    },
+    "docs/promotion/assets/polished/motion/nord-black-moon.jpg": {
+      "sha256": "6873fbf7d4cbb9a39604094dd8d804eb6d231e63ecf56e5c297aae90358eff81",
+      "bytes": 3255290,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "mjpeg",
+            "codec_type": "video",
+            "width": 4096,
+            "height": 2730,
+            "pix_fmt": "yuvj420p",
+            "r_frame_rate": "25/1",
+            "duration": "0.040000"
+          }
+        ],
+        "format": {
+          "duration": "0.040000",
+          "size": "3255290"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/motion/prompt.txt": {
+      "sha256": "54e9237bada712f9d252837bc755be151f82891c67536381a7a8e10f1a653e33",
+      "bytes": 1098
+    },
+    "docs/promotion/assets/polished/motion/provenance.json": {
+      "sha256": "92d394b08fb3006808e00c6c9f77d07c160de26727ceb1e6715146d7943a8f20",
+      "bytes": 1435
+    },
+    "docs/promotion/assets/polished/motion/request.json": {
+      "sha256": "3caec200970bae663b50815c29536d613f8f0163a5fdd11cc4c1d969fc2ff4fa",
+      "bytes": 1449
+    },
+    "docs/promotion/assets/polished/motion/response.json": {
+      "sha256": "14eaea85be9ab7c3417c8072f5c540361a4642995433dbcfff0b6079041a1835",
+      "bytes": 2731
+    },
+    "docs/promotion/assets/polished/screenshots/dictation.png": {
+      "sha256": "b98b9c3be1252dfe9a340250ea745df65555afceed629a59cafaca42c1b7116b",
+      "bytes": 974462,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "974462"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/screenshots/expanded-editing.png": {
+      "sha256": "a1e6fb382f2bd157f87cabf8b36a0f2537a938953aaeb63b7ed0706f3eab376b",
+      "bytes": 167627,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "167627"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/screenshots/export.png": {
+      "sha256": "d62716c648cd7a3a7ee87bc77cd964ba7a3378774527797c9e0951e03c812f97",
+      "bytes": 254753,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "254753"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/screenshots/floating-controls.png": {
+      "sha256": "89a0023142c56802c227c900a9c91f0c6acec132f462a84a592c2f59ab16749e",
+      "bytes": 177817,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "177817"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/screenshots/history-search.png": {
+      "sha256": "91b1cbd8d62bd01303edec7e212125cf6a544167cf90b933661081ed3c3c30d6",
+      "bytes": 139759,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "139759"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/screenshots/live-rewrite.png": {
+      "sha256": "cf29b5744072afa3a322e4c69f162f73504aa884019da6f547d0cc73ccb127bd",
+      "bytes": 1116438,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "1116438"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/screenshots/polish.png": {
+      "sha256": "2da78fce791e72dc4c90db31ab1c41d6a8814dc86fe3904b0e0aa3a0fc946b78",
+      "bytes": 238570,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "238570"
+        }
+      }
+    },
+    "docs/promotion/assets/polished/screenshots/provider-choices.png": {
+      "sha256": "c5a801605ff23dc119742bb4ec5f493ca31c57c9f7b5f675a640657b8851e8c4",
+      "bytes": 276734,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "276734"
+        }
+      }
     },
     "docs/promotion/assets/sources/jfk-iconic-input.wav": {
       "sha256": "3352730d14f57e1019ebfddb297febe082815d6a496ca2e57aef1bec3245b661",
@@ -1021,6 +1986,35 @@
         }
       }
     },
+    "docs/promotion/assets/v0.3.0/speech-portrait-capture.json": {
+      "sha256": "9d86196aae604b3837ad43469983ca830582f4f147f62df7ab6028fb67c4ab96",
+      "bytes": 2061
+    },
+    "docs/promotion/assets/v0.3.0/speech-portrait.png": {
+      "sha256": "d484f65c3f53b14d647c67ecc02c78b69561628004994b0d61c1ce64f6258a43",
+      "bytes": 2682437,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1080,
+            "height": 1920,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2682437"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/speech-provenance.json": {
+      "sha256": "d708866d35703df06e2f55270cc9f84888d229a543502c38ff419461a426b09e",
+      "bytes": 2317
+    },
     "docs/promotion/assets/v0.3.0/speech/capture.json": {
       "sha256": "9e1a3e63e3e6ddd90a3b3b619b4ce0fd0c18e3c4df1fcb7dd617d8568b8c4fca",
       "bytes": 8634
@@ -1220,35 +2214,6 @@
           "size": "2121267"
         }
       }
-    },
-    "docs/promotion/assets/v0.3.0/speech-portrait-capture.json": {
-      "sha256": "9d86196aae604b3837ad43469983ca830582f4f147f62df7ab6028fb67c4ab96",
-      "bytes": 2061
-    },
-    "docs/promotion/assets/v0.3.0/speech-portrait.png": {
-      "sha256": "d484f65c3f53b14d647c67ecc02c78b69561628004994b0d61c1ce64f6258a43",
-      "bytes": 2682437,
-      "media": {
-        "programs": [],
-        "stream_groups": [],
-        "streams": [
-          {
-            "codec_name": "png",
-            "codec_type": "video",
-            "width": 1080,
-            "height": 1920,
-            "pix_fmt": "rgb24",
-            "r_frame_rate": "25/1"
-          }
-        ],
-        "format": {
-          "size": "2682437"
-        }
-      }
-    },
-    "docs/promotion/assets/v0.3.0/speech-provenance.json": {
-      "sha256": "d708866d35703df06e2f55270cc9f84888d229a543502c38ff419461a426b09e",
-      "bytes": 2317
     },
     "docs/promotion/assets/v0.3.0/task-saved-partial-desktop.png": {
       "sha256": "58306db040b699500fcf346bba5262338171ef4a835f569ef1754a18856a558e",
@@ -1559,6 +2524,95 @@
         }
       }
     },
+    "docs/promotion/evidence/polished/checks.json": {
+      "sha256": "d6f0e57f839a4880204d6aee2ce7a7379806c93ac1935b6409a197065ef626c2",
+      "bytes": 1778
+    },
+    "docs/promotion/evidence/polished/film-contact.jpg": {
+      "sha256": "be1ae959e2314fc4caa1111eb85a48bccd71a15ded47689aca7836e9b86db00d",
+      "bytes": 449566,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "mjpeg",
+            "codec_type": "video",
+            "width": 1952,
+            "height": 1824,
+            "pix_fmt": "yuvj444p",
+            "r_frame_rate": "25/1",
+            "duration": "0.040000"
+          }
+        ],
+        "format": {
+          "duration": "0.040000",
+          "size": "449566"
+        }
+      }
+    },
+    "docs/promotion/evidence/polished/linux-test.log": {
+      "sha256": "6000a9dc51257f90d9676b7f630d0f3d5686e09269739d8a137fe55fe93ebc44",
+      "bytes": 1215
+    },
+    "docs/promotion/evidence/polished/opening-contact.jpg": {
+      "sha256": "8ddb67a7c1212dede18050a2ad6003813d470c24d850d21fa76549ec4850822d",
+      "bytes": 365985,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "mjpeg",
+            "codec_type": "video",
+            "width": 1464,
+            "height": 1216,
+            "pix_fmt": "yuvj444p",
+            "r_frame_rate": "25/1",
+            "duration": "0.040000"
+          }
+        ],
+        "format": {
+          "duration": "0.040000",
+          "size": "365985"
+        }
+      }
+    },
+    "docs/promotion/evidence/polished/scenery-contact.jpg": {
+      "sha256": "9a8d3473f5ace1cbe9a1be32dac3117a51b367e8351222a4ac10aebb745771ab",
+      "bytes": 1563466,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "mjpeg",
+            "codec_type": "video",
+            "width": 2440,
+            "height": 2478,
+            "pix_fmt": "yuvj444p",
+            "r_frame_rate": "25/1",
+            "duration": "0.040000"
+          }
+        ],
+        "format": {
+          "duration": "0.040000",
+          "size": "1563466"
+        }
+      }
+    },
+    "docs/promotion/evidence/polished/text-target-followup.log": {
+      "sha256": "3df84bf21aa2c6adcd4710264757d25165fdd322b0b04b4853c25af0febf4482",
+      "bytes": 1361
+    },
+    "docs/promotion/evidence/polished/text-target-original.log": {
+      "sha256": "3f56f3488cc5794862598b7ce32b2675a41a638c71681f1aeb1d6f9ee7925b93",
+      "bytes": 1380
+    },
+    "docs/promotion/evidence/polished/visual-review.json": {
+      "sha256": "18ecd71f76c641f7036cb8d60aa354345103577a8ea78bfa881d5703b21ba84c",
+      "bytes": 3957
+    },
     "docs/promotion/evidence/rejected-four-second-commits/boundary-review.json": {
       "sha256": "0b522638d42d16591cec444a6e1ff3f28956dc1e7a0f69bc2e12dc4ba7d32f5a",
       "bytes": 9180
@@ -1589,5 +2643,107 @@
     }
   },
   "asset_references_relative_to": "docs/promotion/assets; individual copied receipts and source-provenance excerpts preserve their original path context",
-  "embedded_source_provenance_paths_relative_to": "docs/promotion/assets/v0.3.0, matching speech-provenance.json"
+  "embedded_source_provenance_paths_relative_to": "docs/promotion/assets/v0.3.0, matching speech-provenance.json",
+  "real_capture_issue": "S27-461",
+  "polished_features": {
+    "runtime_commit": "18004cc98cd73f1b038883e59db6274ee9f0be4b",
+    "directory": "polished/features",
+    "scenario_names": [
+      "polish",
+      "floating",
+      "expanded",
+      "history",
+      "export",
+      "providers"
+    ],
+    "label": "Feature walkthrough \u00b7 example text",
+    "display": ":195",
+    "screen": [
+      1920,
+      1080
+    ],
+    "application_xywh": [
+      40,
+      94,
+      1840,
+      920
+    ],
+    "font_requested": "Inter 15",
+    "font_resolved": "Liberation Sans",
+    "method": "Production GTK/Quickshell views, callbacks and stores with local text and scripted streaming rewrite. Provider/microphone/input-target/portal services disabled. Separate private display, session bus, AT-SPI, XDG and clipboard for each scenario.",
+    "preserved": "Exact harness and runtime hashes, before/after screenshots, synthetic immutable input and replies, action assertions, uncut 1x MP4, export receipt; real Markdown/JSON exports in export scenario.",
+    "event_clock_limit": "Before screenshot is setup-process time; action/after are time since FFmpeg launch. Captured events are not exact video-frame or provider-latency measurements.",
+    "provider_calls": 0,
+    "claim_boundaries": [
+      "No fixture recognition, model-quality or latency claims; displayed first text 0.0 s is local synthetic status.",
+      "Floating controls act on the Mluva note, not arbitrary selected text.",
+      "Expanded workspace is editable; no dedicated full-screen feature.",
+      "Rewriting, Live, expanded editing, export and conversation search remain Experimental; Live is opt-in.",
+      "Independent Linux STT: Scribe, installed Voxtype/local Whisper, compatible audio API. LLM: Codex client or compatible chat API. No every-provider or local-inference guarantee."
+    ],
+    "source_audit": {
+      "issue": "S27-466",
+      "runtime_commit": "18004cc98cd73f1b038883e59db6274ee9f0be4b",
+      "repository_documents": [
+        "docs/providers-and-live-rewrite.md",
+        "docs/feature-maturity.md"
+      ]
+    },
+    "scenarios": {
+      "expanded": {
+        "duration_seconds": 6.566,
+        "checks": [
+          "Native document editor and Save edits action persisted edited source separately",
+          "Raw input unchanged; no automatic paste or inference"
+        ],
+        "capture": "polished/features/expanded/capture.json",
+        "export": "polished/features/expanded/export-receipt.json"
+      },
+      "export": {
+        "duration_seconds": 5.566,
+        "checks": [
+          "Both visible export buttons produced files containing the unchanged original",
+          "Raw input unchanged; no automatic paste or inference"
+        ],
+        "capture": "polished/features/export/capture.json",
+        "export": "polished/features/export/export-receipt.json"
+      },
+      "floating": {
+        "duration_seconds": 8.566,
+        "checks": [
+          "Production floating Copy and Open actions; only private X11 clipboard used",
+          "Raw input unchanged; no automatic paste or inference"
+        ],
+        "capture": "polished/features/floating/capture.json",
+        "export": "polished/features/floating/export-receipt.json"
+      },
+      "history": {
+        "duration_seconds": 6.066,
+        "checks": [
+          "Search history filtered to one matching note and opened it",
+          "Raw input unchanged; no automatic paste or inference"
+        ],
+        "capture": "polished/features/history/capture.json",
+        "export": "polished/features/history/export-receipt.json"
+      },
+      "polish": {
+        "duration_seconds": 7.566,
+        "checks": [
+          "Pasted existing text and Polish button exercised; local scripted reply persisted",
+          "Raw input unchanged; no automatic paste or inference"
+        ],
+        "capture": "polished/features/polish/capture.json",
+        "export": "polished/features/polish/export-receipt.json"
+      },
+      "providers": {
+        "duration_seconds": 9.066,
+        "checks": [
+          "STT and LLM selections changed independently; no catalog or provider request",
+          "Raw input unchanged; no automatic paste or inference"
+        ],
+        "capture": "polished/features/providers/capture.json",
+        "export": "polished/features/providers/export-receipt.json"
+      }
+    }
+  }
 }

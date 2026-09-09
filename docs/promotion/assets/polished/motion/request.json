@@ -1,0 +1,10 @@
+{
+  "prompt": "Animate only this Nordic cosmic landscape as a premium cinematic product-film background. A boundless, immersive frozen mountain landscape beneath a vast dark moon, fine frost-colored stellar arcs and slow drifting particles. Use elegant camera movement: a gentle forward glide and subtle orbit/parallax, a restrained sense of scale and depth, with softly moving starlight and snow. Let the orbital trails sweep gracefully through the scene, preserving the Nord blue-grey and pale-cyan palette, dark moon, mountain silhouette and original restrained photographic/collage character. Keep a calm, relatively dark central area for a logo and titles that will be composited later in software. This is exclusively animated scenery. NO text of any kind, NO letters, NO wordmarks, NO logo, NO subtitles, NO screen, NO panels, NO app interface, NO mockups, NO icons, NO typography, NO watermark, NO characters, NO flashing or strobing. Smooth continuous motion, polished and atmospheric. Return toward the reference composition at the end so the background can transition gracefully into real app footage.",
+  "prompt_expansion_mode": "quality",
+  "duration": 15,
+  "resolution": "768P",
+  "image_url": "https://v3b.fal.media/files/b/0aa9c032/g--ztD7FjRkipLToVkRul_nord-black-moon.jpg",
+  "end_image_url": "https://v3b.fal.media/files/b/0aa9c032/g--ztD7FjRkipLToVkRul_nord-black-moon.jpg",
+  "seed": 270909,
+  "enable_safety_checker": true
+}

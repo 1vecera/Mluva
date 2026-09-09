@@ -1,44 +1,295 @@
 {
+  "schema_version": 2,
+  "description": "App-led Mluva film with software titles/brand over clean generated scenery, original-speed real audio excerpts, and explicitly labeled native UI fixtures.",
+  "brand": "polished/brand/brand.json",
   "clips": [
     {
-      "source": "h3-max/h3-max-transition-raw.mp4",
-      "asset": "h3-max/h3-max-transition-raw.mp4",
-      "start": 2.8,
-      "duration": 10,
-      "label": "AI transition · H3 Max",
-      "kind": "Designed AI transition from real empty-workspace and partial-draft references; no runtime or completion claim",
-      "build": "References captured from tagged v0.3.0",
-      "volume": 0.5
-    },
-    {
-      "source": "v0.3.0/speech/workflow.mp4",
-      "asset": "v0.3.0/speech/workflow.mp4",
+      "id": "opening",
+      "source": "polished/motion/h3-max-clean-background.mp4",
       "start": 0,
-      "duration": 16,
-      "label": "Real screen recording · v0.3.0",
-      "kind": "Public-domain JFK speech through actual Scribe v2 Realtime, captured audio aligned to the screen",
-      "build": "4ce8dc49537da98d8f32f25726f63193774d3b91",
-      "volume": 1
+      "duration": 6,
+      "title": "",
+      "label": "Example text · AI scenery",
+      "crop": [
+        0,
+        60,
+        1152,
+        648
+      ],
+      "type": "intro",
+      "audio": false,
+      "gain": 1,
+      "build": "Software composition",
+      "ui": "polished/features/polish/after.png",
+      "ui_crop": [
+        40,
+        94,
+        1840,
+        920
+      ],
+      "intro_motion": {
+        "brand_width": 560,
+        "brand_hold": 2,
+        "brand_duration": 0.75,
+        "app_start": 2.2,
+        "app_duration": 0.9
+      },
+      "disclosure": "Clean H3 scenery; centered 560 px lockup and 50 px hook held for 2 s; logo moves into header by 2.75 s. Hero hook fades out at 2–2.28 s before header hook fades in at 2.35–2.75 s. Native UI screenshot of local synthetic rewrite fixture arrives at 2.2–3.1 s."
     },
     {
+      "id": "dictation",
+      "source": "v0.3.0/speech/workflow.mp4",
+      "start": 0,
+      "duration": 14.8,
+      "title": "Speak. See your words.",
+      "label": "JFK · Rice University · 1962",
+      "crop": [
+        568,
+        146,
+        1288,
+        670
+      ],
+      "type": "jfk",
+      "audio": true,
+      "gain": 1,
+      "build": "4ce8dc49537da98d8f32f25726f63193774d3b91",
+      "source_card_seconds": 4.666667,
+      "disclosure": "Initial empty UI replaced visually by a JFK source card; all opening audio retained at original timing including measured 0.277938 s stream delay. UI revealed at source 4.667 s, after its first partial appears. Trailing 2.233 s omitted."
+    },
+    {
+      "id": "polish",
+      "source": "polished/features/polish/workflow.mp4",
+      "start": 0,
+      "duration": 7.2,
+      "title": "Polish text you already have",
+      "label": "Feature walkthrough · example text",
+      "crop": [
+        40,
+        94,
+        1840,
+        920
+      ],
+      "type": "video",
+      "audio": false,
+      "gain": 1,
+      "build": "18004cc98cd73f1b038883e59db6274ee9f0be4b",
+      "disclosure": "Local example text and scripted rewrite; real native Start conversation and Polish callbacks. No provider latency claim."
+    },
+    {
+      "id": "transition-to-live",
+      "source": "polished/motion/h3-max-clean-background.mp4",
+      "start": 6,
+      "duration": 1,
+      "title": "",
+      "label": "",
+      "crop": [
+        0,
+        60,
+        1152,
+        648
+      ],
+      "type": "transition",
+      "audio": false,
+      "gain": 1,
+      "build": "Software transition over AI scenery"
+    },
+    {
+      "id": "live-rewrite",
       "source": "unreleased-live/workflow.mp4",
-      "asset": "unreleased-live/workflow.mp4",
       "start": 17,
       "duration": 13,
-      "label": "Real Live draft · preview build",
-      "kind": "Actual provisional structure appears at source video 23.077 seconds while original Fish speech continues; this excerpt starts during the recording",
-      "build": "cdc00237595f8cfb29e75cd87a980311ea3bcc98 — unreleased",
-      "volume": 1
+      "title": "Live rewrite · experimental",
+      "label": "Real run · synthetic voice · 1×",
+      "crop": [
+        568,
+        146,
+        1288,
+        670
+      ],
+      "type": "video",
+      "audio": true,
+      "gain": 1,
+      "build": "cdc00237595f8cfb29e75cd87a980311ea3bcc98",
+      "disclosure": "During-speech actual draft, grouped updates and unchanged recognition. Viewport crop excludes floating panel; original [26.800,27.067) blank preview defect remains in continuous source. No runtime-fix claim."
     },
     {
+      "id": "saved-draft",
       "source": "unreleased-live/workflow.mp4",
-      "asset": "unreleased-live/workflow.mp4",
       "start": 55.4,
       "duration": 3.8,
-      "label": "After Stop · saved draft · preview build",
-      "kind": "Cut forward to the actual saved canonical reconciliation; intervening recording and provider wait remain in the full continuous video",
-      "build": "cdc00237595f8cfb29e75cd87a980311ea3bcc98 — unreleased",
-      "volume": 1
+      "title": "Keep the original and the finished draft",
+      "label": "Cut forward · experimental",
+      "crop": [
+        568,
+        146,
+        1288,
+        670
+      ],
+      "type": "video",
+      "audio": true,
+      "gain": 1,
+      "build": "cdc00237595f8cfb29e75cd87a980311ea3bcc98",
+      "disclosure": "Source gap 30–55.4 s omitted, including Stop/finalization wait and known old panel/editor lifecycle defects. Actual saved output preserved; no instantaneous-completion claim."
+    },
+    {
+      "id": "transition-to-features",
+      "source": "polished/motion/h3-max-clean-background.mp4",
+      "start": 8,
+      "duration": 1,
+      "title": "",
+      "label": "",
+      "crop": [
+        0,
+        60,
+        1152,
+        648
+      ],
+      "type": "transition",
+      "audio": false,
+      "gain": 1,
+      "build": "Software transition over AI scenery"
+    },
+    {
+      "id": "floating-controls",
+      "source": "polished/features/floating/workflow.mp4",
+      "start": 0,
+      "duration": 3.5,
+      "title": "Keep useful controls close",
+      "label": "Feature walkthrough · example text",
+      "crop": [
+        670,
+        680,
+        580,
+        260
+      ],
+      "type": "video",
+      "audio": false,
+      "gain": 1,
+      "build": "18004cc98cd73f1b038883e59db6274ee9f0be4b",
+      "disclosure": "Enlarged crop of completed-note controls; real Copy action uses private X11 clipboard. No toolbar for arbitrary selected text."
+    },
+    {
+      "id": "open-workspace",
+      "source": "polished/features/floating/workflow.mp4",
+      "start": 4.6,
+      "duration": 3.5,
+      "title": "Open the full note",
+      "label": "Feature walkthrough · example text",
+      "crop": [
+        40,
+        94,
+        1840,
+        920
+      ],
+      "type": "video",
+      "audio": false,
+      "gain": 1,
+      "build": "18004cc98cd73f1b038883e59db6274ee9f0be4b",
+      "disclosure": "Cut forward past the Open action to the settled native workspace; full 8.566 s fixture retained."
+    },
+    {
+      "id": "expanded-editing",
+      "source": "polished/features/expanded/workflow.mp4",
+      "start": 0,
+      "duration": 6.2,
+      "title": "Edit and save the full text",
+      "label": "Feature walkthrough · example text",
+      "crop": [
+        40,
+        94,
+        1840,
+        920
+      ],
+      "type": "video",
+      "audio": false,
+      "gain": 1,
+      "build": "18004cc98cd73f1b038883e59db6274ee9f0be4b",
+      "disclosure": "Expanded native workspace, not a dedicated full-screen feature. Save edits persists working text separately from raw input."
+    },
+    {
+      "id": "history-search",
+      "source": "polished/features/history/workflow.mp4",
+      "start": 0,
+      "duration": 5.8,
+      "title": "Find it again",
+      "label": "Feature walkthrough · example text",
+      "crop": [
+        40,
+        94,
+        1840,
+        920
+      ],
+      "type": "video",
+      "audio": false,
+      "gain": 1,
+      "build": "18004cc98cd73f1b038883e59db6274ee9f0be4b",
+      "disclosure": "Actual title/text search and row activation in private SQLite history."
+    },
+    {
+      "id": "export",
+      "source": "polished/features/export/workflow.mp4",
+      "start": 0,
+      "duration": 5.2,
+      "title": "Export Markdown or JSON",
+      "label": "Feature walkthrough · example text",
+      "crop": [
+        40,
+        94,
+        1840,
+        920
+      ],
+      "type": "video",
+      "audio": false,
+      "gain": 1,
+      "build": "18004cc98cd73f1b038883e59db6274ee9f0be4b",
+      "disclosure": "Both real local export buttons verified. Fixture output directory redirected to isolated session/Exports for readable path feedback."
+    },
+    {
+      "id": "provider-choices",
+      "source": "polished/features/providers/workflow.mp4",
+      "start": 0,
+      "duration": 8.6,
+      "title": "Choose speech and rewriting independently",
+      "label": "Feature walkthrough · example text",
+      "crop": [
+        40,
+        94,
+        1840,
+        920
+      ],
+      "type": "video",
+      "audio": false,
+      "gain": 1,
+      "build": "18004cc98cd73f1b038883e59db6274ee9f0be4b",
+      "disclosure": "Settings selections only. STT: ElevenLabs, Voxtype/local Whisper, compatible audio API. Rewriting: Codex or compatible chat API. No universal-deployment, connection or catalog claim."
+    },
+    {
+      "id": "closing",
+      "source": "polished/motion/h3-max-clean-background.mp4",
+      "start": 10,
+      "duration": 4,
+      "title": "",
+      "label": "",
+      "crop": [
+        0,
+        60,
+        1152,
+        648
+      ],
+      "type": "outro",
+      "audio": false,
+      "gain": 1,
+      "build": "Software composition with supplied brand"
     }
-  ]
+  ],
+  "source_speed": "1x for every clip; Fish input was prepared previously with atempo=0.85, unchanged in this edit.",
+  "fixture_label": "Feature walkthrough · example text",
+  "continuous_evidence": [
+    "v0.3.0/speech/workflow.mp4",
+    "unreleased-live/workflow.mp4",
+    "polished/features/"
+  ],
+  "provider_calls_this_issue": 0,
+  "generation_calls_this_issue": 0,
+  "source_generation_owner": "Coordinator; supplied assets, campaign reservation $3.40/$5; actual billing unavailable."
 }
