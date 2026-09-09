@@ -180,25 +180,18 @@ PanelWindow {
                 width: parent.width
                 visible: !root.reviewing
                 spacing: 8
-                Rectangle {
+                RecordingLight {
                     id: recordingDot
                     objectName: "recording-dot"
-                    width: 6
-                    height: 6
-                    radius: 3
-                    color: root.emphasis
-                    SequentialAnimation on opacity {
-                        running: root.visible && root.phase === "recording"
-                            && root.smoothScrolling && root.scrollDuration > 0
-                        loops: Animation.Infinite
-                        NumberAnimation { from: 1; to: 0.55; duration: 1100; easing.type: Easing.InOutSine }
-                        NumberAnimation { from: 0.55; to: 1; duration: 1100; easing.type: Easing.InOutSine }
-                        onStopped: recordingDot.opacity = 1
-                    }
+                    active: root.phase === "recording"
+                    animate: root.smoothScrolling && root.scrollDuration > 0
+                    ink: root.emphasis
+                    Accessible.name: root.status
                 }
                 Text {
+                    objectName: "recording-status"
                     Layout.fillWidth: true
-                    text: root.status
+                    text: root.phase === "recording" ? "" : root.status
                     color: Color.popups.text
                     font.family: Style.font.family
                     font.pixelSize: Style.font.body

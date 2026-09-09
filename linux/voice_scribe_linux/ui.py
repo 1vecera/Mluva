@@ -14,6 +14,7 @@ from gi.repository import Adw, Gio, Gtk, Pango  # noqa: E402
 
 from voice_scribe_linux.brand import PRODUCT_NAME
 from voice_scribe_linux.feature_maturity import FeatureMaturity, feature_capability
+from voice_scribe_linux.recording_control import RecordingLight
 from voice_scribe_linux.theme import NAV_RAIL_WIDTH
 
 SPACE_1: Final = 4
@@ -117,6 +118,27 @@ def set_margins(widget: Gtk.Widget, margin: int) -> None:
     widget.set_margin_bottom(margin)
     widget.set_margin_start(margin)
     widget.set_margin_end(margin)
+
+
+def document_scroll(child: Gtk.Widget, *, vexpand: bool = True) -> Gtk.ScrolledWindow:
+    """Reserve a separate scrollbar gutter so overflow never covers or rewraps the document."""
+    scroll = Gtk.ScrolledWindow(
+        hscrollbar_policy=Gtk.PolicyType.NEVER,
+        vscrollbar_policy=Gtk.PolicyType.ALWAYS,
+        overlay_scrolling=False,
+        vexpand=vexpand,
+    )
+    scroll.add_css_class("ml-scroll-gutter")
+    scroll.set_child(child)
+    adjustment = scroll.get_vadjustment()
+
+    def show_track(adjustment: Gtk.Adjustment) -> None:
+        """Keep an inactive full-height thumb out of the otherwise empty gutter."""
+        scroll.get_vscrollbar().set_opacity(float(adjustment.get_upper() > adjustment.get_page_size() + 1))
+
+    adjustment.connect("changed", show_track)
+    show_track(adjustment)
+    return scroll
 
 
 def page_content(*, spacing: int = PAGE_SPACING) -> Gtk.Box:
@@ -317,8 +339,7 @@ class RecordingStatusBar(Gtk.Box):
         self._compact = False
 
         meters = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=SPACE_3)
-        self.phase_chip = Gtk.Label(label="REC")
-        self.phase_chip.add_css_class("vs-live-chip")
+        self.phase_chip = RecordingLight()
         meters.append(self.phase_chip)
         self.time_label = Gtk.Label(label="00:00")
         self.time_label.add_css_class("vs-recording-time")
@@ -363,7 +384,7 @@ class RecordingStatusBar(Gtk.Box):
             self.clear()
             return False
         preparing = state.kind == RECORDING_KIND_PREPARING
-        self.phase_chip.set_label("PREPARE" if preparing else "REC")
+        self.phase_chip.set_recording(not preparing)
         if preparing:
             self.phase_chip.add_css_class("vs-preparing")
         else:
@@ -372,7 +393,8 @@ class RecordingStatusBar(Gtk.Box):
         self.level_bar.set_value(max(0.0, min(1.0, state.level)))
         self.mode_chip.set_label(state.mode)
         self.delivery_chip.set_label(state.delivery)
-        self.phase_label.set_label(state.detail)
+        detail = state.detail if preparing else state.detail.removeprefix("Recording").removeprefix(" · ")
+        self.phase_label.set_label(detail)
         self.preview_label.set_label(state.preview)
         if state.quiet:
             self.preview_label.add_css_class("vs-quiet")
@@ -382,7 +404,7 @@ class RecordingStatusBar(Gtk.Box):
 
     def clear(self) -> None:
         """Erase every volatile projection immediately for any terminal state."""
-        self.phase_chip.set_label("REC")
+        self.phase_chip.set_recording(False)
         self.phase_chip.remove_css_class("vs-preparing")
         self.time_label.set_label("00:00")
         self.level_bar.set_value(0)

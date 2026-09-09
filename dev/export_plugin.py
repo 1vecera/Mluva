@@ -22,12 +22,28 @@ def main() -> None:
         parser.error("Export beneath this repository's tmp/ directory.")
     if not re.fullmatch(r"v\d+\.\d+\.\d+", args.release):
         parser.error("Use an explicit release tag such as v0.1.1.")
-    commit = subprocess.check_output(["git", "rev-parse", f"{args.release}^{{commit}}"], cwd=root, text=True).strip()
+    commit = subprocess.check_output(
+        ["git", "rev-parse", f"{args.release}^{{commit}}"], cwd=root, text=True
+    ).strip()
     destination.mkdir(parents=True, exist_ok=False)
     hashes = {}
-    for name in ("manifest.json", "Widget.qml", "RecordingOverlay.qml", "LICENSE"):
-        source = name if name == "LICENSE" else f"linux/quickshell/mluva.dictation/{name}"
-        contents = subprocess.check_output(["git", "show", f"{commit}:{source}"], cwd=root)
+    plugin_directory = "linux/quickshell/mluva.dictation"
+    files = subprocess.check_output(
+        ["git", "ls-tree", "--name-only", f"{commit}:{plugin_directory}"],
+        cwd=root,
+        text=True,
+    ).splitlines()
+    for name in (
+        "manifest.json",
+        *(name for name in files if name.endswith(".qml")),
+        "LICENSE",
+    ):
+        source = (
+            name if name == "LICENSE" else f"linux/quickshell/mluva.dictation/{name}"
+        )
+        contents = subprocess.check_output(
+            ["git", "show", f"{commit}:{source}"], cwd=root
+        )
         (destination / name).write_bytes(contents)
         hashes[name] = hashlib.sha256(contents).hexdigest()
     template = (root / "dev/plugin-README.md").read_text()

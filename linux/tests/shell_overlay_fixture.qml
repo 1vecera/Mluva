@@ -90,6 +90,7 @@ ShellRoot {
             const copy = root.descendants(overlay.contentItem).find(item => item.objectName === "copy-button");
             const surface = root.descendants(overlay.contentItem).find(item => item.objectName === "overlay-surface");
             const dot = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-dot");
+            const status = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-status");
             const header = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-header");
             const timer = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-timer");
             return JSON.stringify({phase: widget.phase, preview: widget.preview, elapsed: widget.elapsed,
@@ -97,7 +98,10 @@ ShellRoot {
                 copyEnabled: copy.enabled, copyVisible: copy.visible, renderedText: text.text,
                 reviewDuration: overlay.reviewDuration, smoothScrolling: overlay.smoothScrolling,
                 scrollDuration: overlay.scrollDuration, scrollLookahead: overlay.scrollLookahead,
-                dotOpacity: dot.opacity, headerVisible: header.visible, timerVisible: timer.visible, timerText: timer.text,
+                dotOpacity: dot.pulseOpacity, dotScale: dot.pulseScale,
+                dotCenterX: dot.x + dot.width / 2, dotCenterY: dot.y + dot.height / 2,
+                dotWidth: dot.width, dotHeight: dot.height, dotLabel: dot.Accessible.name, statusText: status.text,
+                headerVisible: header.visible, timerVisible: timer.visible, timerText: timer.text,
                 headerBottom: header.y + header.height, viewportTop: viewport.y,
                 textHeight: text.height, textY: text.y, viewportHeight: viewport.height, lineHeight: overlay.lineHeight,
                 lineCount: text.lineCount, lookAhead: text.lookAhead,

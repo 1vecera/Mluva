@@ -32,8 +32,16 @@ Item {
     readonly property string tooltip: controlFailed ? "Control failed. Start Mluva and inspect its setup status." :
         (labels[phase] + ". Left: start/stop (clipboard only). Right: cancel. Middle: open latest."
         + (phase === "error" ? " Open Mluva for error details." : ""))
-    implicitWidth: bar && bar.vertical ? bar.barSize : (label ? label.implicitWidth + 16 : 26)
+    implicitWidth: bar && bar.vertical ? bar.barSize : content.implicitWidth + 16
     implicitHeight: bar ? bar.barSize : 26
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: phase === "recording" ? "Recording · " + elapsed + " seconds · Stop dictation" : labels[phase]
+    Accessible.description: tooltip
+    Accessible.onPressAction: if (phase !== "processing") control("record")
+    Keys.onSpacePressed: if (phase !== "processing") control("record")
+    Keys.onReturnPressed: if (phase !== "processing") control("record")
+    Keys.onEscapePressed: control("cancel")
 
     function control(action) {
         if (controlProcess.running) return;
@@ -122,15 +130,38 @@ Item {
         id: controlProcess
         onExited: function(exitCode) { root.controlFailed = exitCode !== 0; }
     }
-    Text {
-        id: label
+    Row {
+        id: content
         anchors.centerIn: parent
-        text: root.bar && root.bar.vertical ? (root.phase === "recording" ? "REC" : "M") : root.labels[root.phase]
-        color: root.phase === "recording" || root.phase === "error" || root.controlFailed ?
-            Color.urgent : (root.bar ? root.bar.foreground : Color.foreground)
-        font.family: Style.font.family
-        font.pixelSize: root.bar && root.bar.vertical ? 10 : 12
-        textFormat: Text.PlainText
+        spacing: 4
+        RecordingLight {
+            anchors.verticalCenter: parent.verticalCenter
+            visible: root.phase === "recording"
+            active: root.phase === "recording"
+            animate: root.smoothScrolling && root.scrollDuration > 0
+            ink: Color.urgent
+            Accessible.ignored: true
+        }
+        Text {
+            id: label
+            anchors.verticalCenter: parent.verticalCenter
+            visible: !(root.bar && root.bar.vertical && root.phase === "recording")
+            text: root.bar && root.bar.vertical ? "M" : root.phase === "recording"
+                ? Math.floor(root.elapsed / 60).toString().padStart(2, "0")
+                    + ":" + (root.elapsed % 60).toString().padStart(2, "0") : root.labels[root.phase]
+            color: root.phase === "error" || root.controlFailed ? Color.urgent
+                : (root.bar ? root.bar.foreground : Color.foreground)
+            font.family: Style.font.family
+            font.pixelSize: root.bar && root.bar.vertical ? 10 : 12
+            textFormat: Text.PlainText
+        }
+    }
+    Rectangle {
+        anchors.fill: parent
+        color: "transparent"
+        border.color: Color.accent
+        radius: 2
+        visible: root.activeFocus
     }
     MouseArea {
         anchors.fill: parent

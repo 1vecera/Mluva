@@ -164,7 +164,7 @@ def main() -> None:
                 observed_lines = len(lines)
                 if payloads:
                     state = json.loads(payloads[-1])
-                    stable = {key: value for key, value in state.items() if key != "dotOpacity"}
+                    stable = {key: value for key, value in state.items() if key not in ("dotOpacity", "dotScale")}
                     if (
                         state["phase"] == phase
                         and stable == previous
@@ -236,6 +236,7 @@ def main() -> None:
                 assert state["preview"] == preview[-4096:]
                 if phase == "recording":
                     assert state["headerVisible"] and state["timerVisible"] and state["timerText"] == "01:13"
+                    assert state["dotLabel"] == "Recording" and state["statusText"] == ""
                     assert state["headerBottom"] < state["viewportTop"]
                     assert state["viewportHeight"] == state["lineHeight"] * 5
                     assert state["textY"] < 0
@@ -298,15 +299,27 @@ def main() -> None:
             observe("recording", samples["wrapped"])
             pulse = motion_frames(samples["wrapped"])
             opacity = [frame["dotOpacity"] for frame in pulse]
-            assert len({round(value, 3) for value in opacity}) >= 10, opacity
-            assert min(opacity) >= 0.54 and max(opacity) <= 1 and max(opacity) - min(opacity) > 0.25
-            assert all(abs(a - b) < 0.15 for a, b in zip(opacity, opacity[1:], strict=False)), opacity
+            scale = [frame["dotScale"] for frame in pulse]
+            assert len({round(value, 3) for value in scale}) >= 10, scale
+            assert min(scale) >= 0.82 and max(scale) <= 1.18 and max(scale) - min(scale) > 0.16
+            assert min(opacity) >= 0.84 and max(opacity) <= 1
+            assert all(abs(a - b) < 0.06 for a, b in zip(scale, scale[1:], strict=False)), scale
+            fixed_keys = ("dotCenterX", "dotCenterY", "dotWidth", "dotHeight", *geometry_keys)
+            assert all(all(frame[key] == pulse[0][key] for key in fixed_keys) for frame in pulse), pulse
             for preferences in ({"smooth_scrolling": False}, {"scroll_duration_ms": 0}):
                 still = motion_frames(samples["wrapped"] + " Motion is disabled.", **preferences)
-                assert all(frame["dotOpacity"] == 1 for frame in still), still
+                assert all(frame["dotScale"] == 1 and frame["dotOpacity"] == 0.92 for frame in still), still
                 assert all(abs(frame["textY"] - frame["targetY"]) < 0.1 for frame in still), still
             (output / "recording-pulse.json").write_text(
-                json.dumps({"opacity_frames": opacity, "disabled_is_static": True, "header_retained": True}, indent=2)
+                json.dumps(
+                    {
+                        "scale_frames": scale,
+                        "opacity_frames": opacity,
+                        "disabled_is_static": True,
+                        "fixed_geometry": True,
+                    },
+                    indent=2,
+                )
             )
             full_text = " ".join(f"{'🙂' if index < 12 else 'w'}{index:04d}" for index in range(670))
             assert len(full_text) < 4096
