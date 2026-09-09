@@ -1,44 +1,78 @@
 {
-  "media": {
-    "programs": [],
-    "stream_groups": [],
-    "streams": [
-      {
-        "codec_name": "h264",
-        "codec_type": "video",
-        "width": 1920,
-        "height": 1080,
-        "r_frame_rate": "30/1",
-        "start_time": "0.000000",
-        "duration": "44.700000"
-      },
-      {
-        "codec_name": "aac",
-        "codec_type": "audio",
-        "sample_rate": "48000",
-        "r_frame_rate": "0/0",
-        "start_time": "0.000000",
-        "duration": "44.700000"
-      }
-    ],
-    "format": {
-      "duration": "44.700000",
-      "size": "8786412"
-    }
-  },
-  "full_decode": "passed",
-  "peak_dbfs": -1.0480810403823853,
-  "alignment": [
+  "output_sha256": "7968caaeee2f69f82c9be761d9b119573f319897427d06f07639c899cb4677bb",
+  "duration_seconds": 83.6,
+  "frames": 2508,
+  "format": "1920x1080 / 30 fps / H.264 yuv420p / AAC 48 kHz stereo",
+  "decode": "Complete video and audio decode passed",
+  "audio_checks": [
     {
-      "clip": "speech",
-      "best_audio_shift_seconds": 0.0,
-      "aligned_correlation": 0.9999946704173808
+      "clip": "dictation",
+      "correlation_at_zero_shift": 0.9999945483820022,
+      "best_shift_ms": 0,
+      "window_seconds": 10,
+      "source_start": 0.5,
+      "film_start": 6.5
     },
     {
-      "clip": "live",
-      "best_audio_shift_seconds": 0.0,
-      "aligned_correlation": 0.999891231189242
+      "clip": "live-rewrite",
+      "correlation_at_zero_shift": 0.9999205084169994,
+      "best_shift_ms": 0,
+      "window_seconds": 10,
+      "source_start": 17.5,
+      "film_start": 29.5
     }
   ],
-  "contact_sheet": "intro-final-contact.png"
+  "peak_audio_amplitude": 0.9249952435493469,
+  "silent_fixture_and_generated_sections": "Passed",
+  "source_hashes": "Sources, UI/brand inputs, plan and composer match edit receipt",
+  "old_generated_UI_in_timeline": false,
+  "screenshots": {
+    "mluva-product-poster.png": {
+      "film_seconds": 3.4,
+      "sha256": "0b9b00319108229d91839dd333946c0ef7f8d902666c97a49ee12e8be047455e",
+      "bytes": 505232
+    },
+    "polished/screenshots/dictation.png": {
+      "film_seconds": 18.5,
+      "sha256": "b98b9c3be1252dfe9a340250ea745df65555afceed629a59cafaca42c1b7116b",
+      "bytes": 974462
+    },
+    "polished/screenshots/polish.png": {
+      "film_seconds": 25.8,
+      "sha256": "2da78fce791e72dc4c90db31ab1c41d6a8814dc86fe3904b0e0aa3a0fc946b78",
+      "bytes": 238570
+    },
+    "polished/screenshots/live-rewrite.png": {
+      "film_seconds": 37.0,
+      "sha256": "cf29b5744072afa3a322e4c69f162f73504aa884019da6f547d0cc73ccb127bd",
+      "bytes": 1116438
+    },
+    "polished/screenshots/floating-controls.png": {
+      "film_seconds": 48.8,
+      "sha256": "89a0023142c56802c227c900a9c91f0c6acec132f462a84a592c2f59ab16749e",
+      "bytes": 177817
+    },
+    "polished/screenshots/expanded-editing.png": {
+      "film_seconds": 57.8,
+      "sha256": "a1e6fb382f2bd157f87cabf8b36a0f2537a938953aaeb63b7ed0706f3eab376b",
+      "bytes": 167627
+    },
+    "polished/screenshots/history-search.png": {
+      "film_seconds": 64.0,
+      "sha256": "91b1cbd8d62bd01303edec7e212125cf6a544167cf90b933661081ed3c3c30d6",
+      "bytes": 139759
+    },
+    "polished/screenshots/export.png": {
+      "film_seconds": 68.8,
+      "sha256": "d62716c648cd7a3a7ee87bc77cd964ba7a3378774527797c9e0951e03c812f97",
+      "bytes": 254753
+    },
+    "polished/screenshots/provider-choices.png": {
+      "film_seconds": 74.4,
+      "sha256": "c5a801605ff23dc119742bb4ec5f493ca31c57c9f7b5f675a640657b8851e8c4",
+      "bytes": 276734
+    }
+  },
+  "verification_numpy": "2.5.2",
+  "limits": "Audio alignment is relative to the original captured screen/PCM clock, not a physical-microphone measurement. Human visual review is separate."
 }
