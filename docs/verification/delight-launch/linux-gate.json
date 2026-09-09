@@ -1,0 +1,13 @@
+{
+  "source_revision": "3df0ccfae420ec0ec1d3002b930054241164f6af",
+  "command": "make linux-test",
+  "exit_code": 0,
+  "unit_tests_passed": 381,
+  "known_warnings": [
+    "Existing GLib.unix_signal_add_full PyGObject deprecation"
+  ],
+  "feature_maturity_check": "pass",
+  "ruff_lint": "pass",
+  "ruff_format_python_files": 105,
+  "log_sha256": "3e468e2df95377d74f386ab6741983dbe1d19e413d5cf6071ec2f3223a02e06b"
+}

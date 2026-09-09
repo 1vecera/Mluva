@@ -1,6 +1,6 @@
 ![Mluva — Speak a rough idea. Shape it into useful text.](docs/assets/mluva-hero.svg)
 
-**Building the best STT experience for Omarchy.**
+**The most delightful dictation app for Omarchy.**
 
 Speak a rough idea. Shape it into useful text. Keep the original. Mluva brings dictation, rewriting and searchable history into a native workspace that follows your Omarchy theme. Paste existing text to polish it, or enable **Live rewrite** to build a task spec or structured note while you speak.
 
@@ -18,12 +18,13 @@ Speak a rough idea. Shape it into useful text. Keep the original. Mluva brings d
 | Polish text you already have | Paste it into a new conversation, then use **Polish**, **Structure** or your own instruction. |
 | Make sense of a long note | **Structure** creates a summary and organized points. |
 | Keep your own voice | Editable originals and rewrites, custom instructions, follow-ups and saved prompts. |
+| Keep the interface out of your way | Stable Live panes, quiet recording motion, restrained Markdown and a searchable **Ctrl+P** command panel. |
 | See what is missing while speaking | **Live rewrite** fills a task spec, structured note or custom template with editable drafts. |
 | Find it later | Automatic conversation titles and search across originals, rewrites and instructions. |
 | Take the result elsewhere | Copy the text, or export a saved conversation from History as Markdown or JSON. |
 | Choose where processing happens | Select speech and rewrite providers independently, including local Whisper and compatible API deployments. |
 
-Live rewrite is opt-in and Experimental. Stop reconciles the provisional draft with the committed transcript before a successful final rewrite can copy automatically. “Best” is our product ambition; see the [source-backed feature guide](docs/feature-story.md) for behavior and acceptance limits.
+Live rewrite is opt-in and Experimental. Stop reconciles the provisional draft with the committed transcript before a successful final rewrite can copy automatically. Delight is our design direction; see the [source-backed feature guide](docs/feature-story.md) for behavior and acceptance limits.
 
 On **Omarchy**, a translucent widget shows five lines while you speak, easing upward as the current line fills. When you finish, rewrite directly from the widget. Hovering, keyboard focus, menus and active rewrites pause its four-second default dismissal. **Open** expands the note into the editable workspace; **Shift+F9** reopens the latest conversation when configured.
 
@@ -50,7 +51,7 @@ make linux-install
 mluva
 ```
 
-The installer installs for your user. Dictation copies completed text automatically. **Ctrl+Enter** sends a custom rewrite; completed rewrites copy automatically too. Edit either document directly, then Save or press Ctrl+S. Change copying and icon visibility in Settings → Workspace. See the [Linux guide](linux/README.md) for microphone selection, language, shortcuts, saved styles and recovery.
+The installer installs for your user. Dictation copies completed text automatically. **Ctrl+P** opens searchable actions; **Ctrl+Enter** sends a custom rewrite. Completed rewrites copy automatically too. Edit either document directly, then Save or press Ctrl+S. Markdown output uses subtle headings and emphasis; focusing it reveals the source for editing, and Copy/Save retain the formatting. Change copying and icon visibility in Settings → Workspace. See the [Linux guide](linux/README.md) for microphone selection, language, shortcuts, saved styles and recovery.
 
 ## Where things stand
 

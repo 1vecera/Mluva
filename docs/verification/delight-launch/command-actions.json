@@ -1,0 +1,16 @@
+{
+  "ctrl_p_from_native_editor": true,
+  "escape_does_not_cancel_capture": true,
+  "popover_escape_does_not_cancel_capture": true,
+  "copy_preserves_markdown_and_edits": true,
+  "empty_workspace_document_actions_disabled": true,
+  "save_preserves_raw_recognition": true,
+  "empty_search_does_not_dispatch": true,
+  "stale_action_is_rechecked": true,
+  "hidden_document_actions_disabled": true,
+  "changed_conversation_cannot_redirect_command": true,
+  "settings_focus_transfer": true,
+  "provisional_live_actions_disabled": true,
+  "narrow_dialog_fits": true,
+  "keyboard_selection_scrolls_into_view": true
+}

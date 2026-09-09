@@ -1,0 +1,22 @@
+{
+  "installed_runtime": "/home/vecera/.claude/worktrees/mluva-delight-launch/tmp/delight-launch/final-staged-home/.local/share/voice-scribe/app",
+  "entrypoint": "/home/vecera/.claude/worktrees/mluva-delight-launch/tmp/delight-launch/final-staged-home/.local/bin/mluva",
+  "launch_cwd": "/tmp",
+  "production_modules": {
+    "app": "/home/vecera/.claude/worktrees/mluva-delight-launch/tmp/delight-launch/final-staged-home/.local/share/voice-scribe/app/voice_scribe_linux/app.py",
+    "command_palette": "/home/vecera/.claude/worktrees/mluva-delight-launch/tmp/delight-launch/final-staged-home/.local/share/voice-scribe/app/voice_scribe_linux/command_palette.py",
+    "markdown_view": "/home/vecera/.claude/worktrees/mluva-delight-launch/tmp/delight-launch/final-staged-home/.local/share/voice-scribe/app/voice_scribe_linux/markdown_view.py",
+    "minimal_markdown": "/home/vecera/.claude/worktrees/mluva-delight-launch/tmp/delight-launch/final-staged-home/.local/share/voice-scribe/app/voice_scribe_linux/minimal_markdown.py",
+    "recording_control": "/home/vecera/.claude/worktrees/mluva-delight-launch/tmp/delight-launch/final-staged-home/.local/share/voice-scribe/app/voice_scribe_linux/recording_control.py"
+  },
+  "display": ":204",
+  "private_bus": true,
+  "exact_installed_command": true,
+  "native_commands_window_mapped": true,
+  "source_fallback": false,
+  "real_credentials": false,
+  "microphone_started": false,
+  "provider_called": false,
+  "clean_shutdown": true,
+  "launcher_sha256": "ffd89b579c6cf5b7f842bcad292cdb5d28e401f1fce20a8fb1ac24ae603aeaec"
+}

@@ -2,7 +2,7 @@
 
 The public product name is **Mluva** (roughly “MLOO-vah”), the Czech noun for speech or manner of speaking. The category descriptor is **Open-source AI dictation for Linux, with a source preview for macOS.** Public copy, application titles, launchers, distributable filenames, screenshots, and release notes use Mluva.
 
-For the September identity draft, Mluva is the coordinator's reversible assumption. Daniel's Mluva versus BlueVox decision remains pending; this artwork is not a confirmed naming change. The campaign direction is **“Best STT built for Omarchy”**, expressed publicly as **“Building the best STT experience for Omarchy”** until a comparative benchmark exists.
+The September launch direction retains **Mluva** and the production identity below. The dictated variants Mlouva, Lluva and Blueva do not constitute a rename. The positioning is **“The most delightful dictation app for Omarchy”**: a design ambition expressed through calm motion, minimal chrome, editable text and native theming. Shipping with Omarchy and a dedicated bundled shortcut remain future aspirations.
 
 ## Production artwork
 

@@ -1,0 +1,10 @@
+{
+  "display": ":205",
+  "checks": {
+    "same_entry_new_editor_rejects_stale_copy": true,
+    "no_identifier_transient_change_rejects_stale_copy": true,
+    "same_editor_late_edit_copies_exact_markdown": true,
+    "incognito_transition_rejects_pending_save": true,
+    "raw_recognition_unchanged": true
+  }
+}
