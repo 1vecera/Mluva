@@ -1,73 +1,80 @@
 # Mluva launch kit
 
-Copy for v0.1.1, prepared on 2026-09-08. Social and community posts are drafts for Daniel to review. The app release and plugin repository are public; marketplace approval is tracked separately.
+Copy for v0.3.0, prepared on 2026-09-09. Social and community posts are drafts for Daniel to review. The release and plugin are public; the asset manifest records the version, audio sources and capture method for each demonstration.
 
 ## Positioning
 
-**Headline:** Speak freely. Stay in flow.
+**Direction:** Build the cleanest, smartest dictation app for Omarchy.
 
-**One line:** Mluva brings live dictation, quick rewrites and recoverable originals to your Omarchy workflow.
+**Headline:** Speak freely. Watch your thoughts take shape.
 
-**Short description:** Talk through a coding task, a note or an idea. Mluva shows your words in a five-line floating preview, copies completed dictation, and offers Polish, Structure and saved prompts. The native app follows your desktop palette and keeps the original with every completed rewrite.
+**One line:** Mluva turns spoken thoughts into editable notes, clear drafts and structured tasks in a minimal Omarchy workspace.
 
-**Developer promise:** Make talking through a task feel natural on Omarchy. Win on a readable preview, coherent desktop behavior and a clear path from a rough thought to usable text. “Best dictation for Omarchy” is the ambition; no measured accuracy, speed or compatibility lead is claimed.
+**Short description:** Talk through an idea. Keep the original, refine the wording, or see a structured draft emerge while you speak. Mluva pairs a small translucent recording preview with a native editing workspace. Choose your speech and rewrite engines, save the useful version, and carry it into your next task.
+
+**Product character:** As direct as a terminal interface, with the comforts of a small native GUI. A readable five-line preview, restrained motion, your Omarchy palette, and advanced controls revealed when needed. The ambition is a clean, smart everyday interface for computing; comparative accuracy and speed claims need a reproducible benchmark.
 
 ## LinkedIn draft
 
-I've been building Mluva into the dictation app I want on #Omarchy.
+I'm building the cleanest, smartest dictation app for #Omarchy. It's called Mluva, and I'm using it all the time as an interface for computing.
 
-Talk through a coding task. Keep the rough version. Turn it into a clear note. Copy it into your editor or agent.
+Talk through a task, including the bits you haven't figured out. Live rewrite starts putting it into a spec while you're still speaking. Missing owner? Missing deadline? Those stay visible instead of quietly becoming invented requirements.
 
-The bit I like most now is the little floating widget: five lines of live words, a translucent surface that follows the desktop theme, then Polish or Structure when you're done. The original stays there. So does every completed rewrite.
+That's the part I care about: getting useful structure out of a thought before I've finished tidying it up in my head.
 
-Native GTK app, Quickshell plugin, ElevenLabs Scribe for recognition and Codex for optional rewrites. Open source.
+The UI stays small. Five lines in a translucent recording widget, a native GTK workspace for the original and rewritten text, and room to edit either. It follows the Omarchy theme and feels close to a terminal interface.
 
-The ambition is the best dictation experience on Omarchy. It's an early release: the integration is still experimental, and the demo uses scripted content. Real recognition uses your ElevenLabs account.
+v0.3.0 adds editable documents, automatic copy, live task specs and notes, plus separate speech and rewrite engines. ElevenLabs Scribe, local Voxtype/Whisper, Codex or a LiteLLM-compatible service. Bring the provider access you use.
 
-Code and install: https://github.com/1vecera/Mluva
+It's early. Live output arrives in updates, with latency depending on the speech engine and model. I'm making that faster and making provider selection simpler next.
 
-Plugin: https://github.com/1vecera/omarchy-mluva
+[Source and install](https://github.com/1vecera/Mluva) · [v0.3.0](https://github.com/1vecera/Mluva/releases/tag/v0.3.0)
 
 ## Short announcement draft
 
-Mluva for Omarchy: five lines of live dictation, quick rewrites and your original kept intact. Native GTK + Quickshell. Open source; early experimental integration. ElevenLabs recognition, optional Codex rewrites. https://github.com/1vecera/Mluva
+Mluva v0.3.0 for Omarchy: speak, rewrite and shape a task while you're still thinking through it. Editable originals and drafts, live structure with missing details marked, a small translucent preview, and your choice of speech and rewrite engines. Native GTK + Quickshell. Open source; early experimental integration. [Try Mluva](https://github.com/1vecera/Mluva/releases/tag/v0.3.0).
 
 ## Community post draft
 
-**Title:** Mluva: native dictation and a five-line Quickshell preview for Omarchy
+**Title:** Mluva v0.3.0: live structured dictation in a small Omarchy workspace
 
-I've released Mluva v0.1.1 and published its Omarchy plugin. The workflow is dictation → clipboard → an optional rewrite, with the original and every completed version kept together. The widget follows the desktop palette, shows five live lines with eased scrolling, and lets you run Polish or Structure without opening the main window.
+I've released Mluva v0.3.0 and updated its Omarchy plugin. Dictate into a five-line preview, polish a note, or enable Live and watch a task spec take shape while you speak. Both the original document and the rewrite are editable. Raw recognition stays available, and completed text copies automatically by default.
 
-It uses ElevenLabs Scribe for speech recognition and an authenticated Codex app-server for optional rewrites. You need your own provider access. Linux recognition is cloud-based.
+The app is native GTK, with a Quickshell widget that follows the desktop palette. Speech and rewriting are separate choices: ElevenLabs Scribe or a compatible speech endpoint, local Voxtype/Whisper, and native Codex or a LiteLLM-compatible rewrite service. Local recognition is available; whether a rewrite leaves your machine depends on the engine you select.
 
-This is an early release. Isolated GTK, Quickshell and D-Bus checks pass, but live Hyprland acceptance remains pending. Automatic insertion is disabled by default; use the clipboard. The video shows the real UI with a scripted transcript and rewrite provider.
+Live rewrite produces periodic drafts rather than an update for every word. Batch speech engines also wait for audio chunks. The integration and advanced features remain Experimental, with exact verification recorded in the repository.
 
-Install the app first, start Mluva, then add the plugin:
+Install and start the app, then add the plugin:
 
 ```sh
 omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
 ```
 
-App and setup: https://github.com/1vecera/Mluva
+[Release and source archive](https://github.com/1vecera/Mluva/releases/tag/v0.3.0) · [Provider and Live setup](providers-and-live-rewrite.md) · [Plugin](https://github.com/1vecera/omarchy-mluva)
 
-Plugin source and removal: https://github.com/1vecera/omarchy-mluva
+## Product intro
 
-Useful feedback would name the Omarchy/Hyprland version, keyboard layout and target app, then describe start, stop, rewrite and Copy. Keep real transcripts and recordings out of public issues.
+Use real v0.3.0 frames from the Lenovo/Omarchy capture. Keep product text and controls readable; use the H3 Max animation for motion and transitions around those frames. Show the app's actual output in workflow shots. Keep any accelerated segment identifiable in the accompanying manifest.
 
-## Assets and release links
+| Beat | Picture | Copy |
+| --- | --- | --- |
+| Open | Omarchy theme and a quiet recording surface | Mluva. Speak freely. |
+| Dictate | Public-domain speech drives the real transcription preview | Your words, ready to use. |
+| Structure | Synthetic messy task speech drives an actual live draft | See the task take shape. |
+| Refine | Editable source and completed draft, including a missing-detail marker | Keep the thought. Make it clear. |
+| Close | Real app frame, held still long enough to read | Built for Omarchy. Open source. |
 
-- [Three videos and eight screenshots](promotion/README.md), with dimensions, alt text and reproduction instructions.
-- [Mluva v0.1.1](https://github.com/1vecera/Mluva/releases/tag/v0.1.1), with source archive and checksum.
-- [Installable plugin](https://github.com/1vecera/omarchy-mluva) and [marketplace submission](https://github.com/omacom/omarchy-plugin-marketplace/issues/5533).
-- [Feature maturity](feature-maturity.md) and [Omarchy verification boundary](omarchy-integration.md#verification).
+The full demonstration videos carry the original public or synthetic audio. The short intro can select and cut those moments. Publish each asset with its source audio, release commit, provider/model, editing notes and hashes in the manifest. The H3 Max experiment has a $5 total budget; record the actual request charge before claiming a cost.
 
-## Next evidence to earn
+## Assets and evidence
 
-- Record live Omarchy acceptance for F9 on US/Czech layouts, microphone stop/cancel, focus retention, theme changes and a session restart.
-- Check clipboard delivery in named browser, editor and terminal applications. Keep automatic-insertion claims separate.
-- Compare a declared task set using consented, reusable audio. Publish the corpus and actual recognition errors, correction effort and timing before a comparative “best” claim.
-- Supplement the scripted showcase with an identified real-audio demonstration after that acceptance.
+- [Promotion assets and capture provenance](promotion/README.md).
+- [Mluva v0.3.0](https://github.com/1vecera/Mluva/releases/tag/v0.3.0), with source archive and checksum.
+- [Installable plugin](https://github.com/1vecera/omarchy-mluva) and [marketplace submission](https://github.com/omacom/omarchy-plugin-marketplace/issues/5533). A submission is separate from marketplace approval.
+- [Feature maturity](feature-maturity.md), [provider behavior](providers-and-live-rewrite.md) and [Omarchy verification](omarchy-integration.md#verification).
 
-## Claim boundaries
+## Future story
 
-Keep Omarchy integration, rewriting and generated titles labeled Experimental until their own acceptance is recorded. Fedora 44 / GNOME 50 / Wayland remains the manually accepted recording baseline. macOS remains a source preview without a signed public binary. Do not present the plugin as official Omarchy software, an approved marketplace listing before approval, offline recognition, universal auto-paste or a measured performance winner.
+The longer-term vision is an interface that helps Daniel think while he works. Agents may eventually talk back or ask a useful clarifying question. That is future direction. The current product story is structured dictation, editable notes and reliable handoff into the next task.
+
+Next proof should show actual microphone and physical-shortcut behavior on named Omarchy setups, then a declared reusable audio corpus with recognition errors, correction effort and timing. Keep those claims separate from scripted visual checks and short public-audio demonstrations.
