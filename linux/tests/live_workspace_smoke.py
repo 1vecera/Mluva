@@ -216,13 +216,12 @@ def main() -> int:
                 assert len(copies) == count + 1
                 app.pending_session_identifier = "matching-final-session"
                 app._start_live_rewrite()
-                app._maybe_live_rewrite("Same recognized words")
+                same_text = "The final recognized words match the provisional preview."
+                app._maybe_live_rewrite(same_text)
                 settle(lambda: app.live_rewrite_client is None)
-                final_entry = app.history_store.add(
-                    "Same recognized words", "Same recognized words", "dictation", "eng", None, "copied"
-                )
+                final_entry = app.history_store.add(same_text, same_text, "dictation", "eng", None, "copied")
                 app.live_final_entry = final_entry.identifier
-                app.live_final_text = "Same recognized words"
+                app.live_final_text = same_text
                 requests_before_stop = len(live_contexts)
                 app._maybe_live_rewrite(app.live_final_text, final=True)
                 settle(lambda: app.live_schedule is None)

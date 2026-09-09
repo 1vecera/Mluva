@@ -11,11 +11,13 @@ from voice_scribe_linux.live_rewrite import LiveRewriteSchedule, live_prompt
 from voice_scribe_linux.realtime import RealtimePreview
 
 
-def test_first_recognized_word_starts_once_and_growth_remains_bounded():
-    """A short first utterance needs no character gate, even with conservative saved thresholds."""
+def test_first_phrase_starts_once_without_waiting_for_the_later_character_threshold():
+    """Opening filler waits for a short phrase, independent of a conservative saved later threshold."""
     schedule = LiveRewriteSchedule(4000, 60)
     assert schedule.take("  ", 0) is None
-    assert schedule.take("Go", 0) == "Go"
+    assert schedule.take("Okay, uh", 0) is None
+    assert schedule.take("x" * 39, 1) is None
+    assert schedule.take("x" * 40, 2) == "x" * 40
     assert all(schedule.take("Go " + "x" * size, size) is None for size in range(1, 200))
     schedule.finish(True)
     assert schedule.take("Go " + "x" * 199, 199) is None
@@ -24,9 +26,22 @@ def test_first_recognized_word_starts_once_and_growth_remains_bounded():
     assert schedule.take("Go " + "x" * 199, 1000) is None
 
 
+def test_short_initial_utterance_starts_after_a_pause_or_immediately_at_stop():
+    """Short speech cannot wait forever for 40 characters, and Stop never waits for the pause."""
+    schedule = LiveRewriteSchedule(160, 4)
+    assert schedule.take("Go", 0) is None
+    assert schedule.take("Go now", 1) is None
+    assert schedule.take("Go now", 4.9) is None
+    assert schedule.take("Go now", 5) == "Go now"
+    other = LiveRewriteSchedule(160, 4)
+    assert other.take("Go", 0) is None
+    assert other.take("Go", 0.1, final=True) == "Go"
+
+
 def test_short_tail_and_equal_length_correction_flush_after_a_pause():
     """Small additions and batch corrections cannot wait indefinitely for character growth."""
     schedule = LiveRewriteSchedule(160, 4)
+    assert schedule.take("Ship", -4) is None
     assert schedule.take("Ship", 0) == "Ship"
     schedule.finish(True)
     assert schedule.take("Ship today", 1) is None
@@ -55,7 +70,7 @@ def test_manual_edit_retry_cannot_bypass_the_request_interval():
 def test_provider_failure_stops_automatic_retries():
     """A bad provider cannot produce an automatic request storm while more speech arrives."""
     schedule = LiveRewriteSchedule(40, 4)
-    assert schedule.take("Start", 0)
+    assert schedule.take("Start the task with the requirements supplied so far.", 0)
     schedule.finish(False)
     assert schedule.take("More speech " * 100, 90) is None
     assert schedule.take("Final speech", 100, final=True) is None
@@ -100,6 +115,7 @@ def test_preview_callback_queues_changed_provisional_text_only_for_the_active_se
 def test_final_recognition_always_reconciles_even_when_preview_text_matches():
     """A provisional draft never becomes copyable merely because its last text matches the final transcript."""
     schedule = LiveRewriteSchedule(160, 4)
+    assert schedule.take("Same words", -4) is None
     assert schedule.take("Same words", 0) == "Same words"
     schedule.finish(True)
     assert schedule.take("Same words", 1, final=True) == "Same words"

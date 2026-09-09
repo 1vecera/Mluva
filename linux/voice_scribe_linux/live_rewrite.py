@@ -43,6 +43,7 @@ TEMPLATE_CHOICES = (
     ("polish", "Polish"),
     ("custom", "Custom"),
 )
+INITIAL_MINIMUM_CHARACTERS = 40
 
 
 def initial_draft(config: AppConfig) -> str:
@@ -87,7 +88,7 @@ def live_prompt(config: AppConfig, transcript: str, draft: str, *, final: bool =
 
 @dataclass(slots=True)
 class LiveRewriteSchedule:
-    """Start on the first speech preview, coalesce updates and always reconcile final recognition."""
+    """Start on a short phrase or paused utterance, coalesce updates and reconcile final recognition."""
 
     minimum_characters: int
     interval_seconds: float
@@ -107,16 +108,12 @@ class LiveRewriteSchedule:
             self.changed_at = now
         if self.in_flight or self.failed or not text or (text == self.last_text and (not final or self.last_final)):
             return None
-        if (
-            not final
-            and self.last_started != float("-inf")
-            and (
-                now - self.last_started < self.interval_seconds
-                or (
-                    len(text) - len(self.last_text) < self.minimum_characters
-                    and now - self.changed_at < self.interval_seconds
-                )
-            )
+        first = self.last_started == float("-inf")
+        characters = len(text) if first else len(text) - len(self.last_text)
+        minimum = INITIAL_MINIMUM_CHARACTERS if first else self.minimum_characters
+        if not final and (
+            now - self.last_started < self.interval_seconds
+            or (characters < minimum and now - self.changed_at < self.interval_seconds)
         ):
             return None
         self.last_text = text

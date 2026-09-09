@@ -1,6 +1,6 @@
 # Live rewrite latency and recording motion
 
-S27-459 starts a clearly provisional draft from recognition as soon as Live rewrite is switched on and speech arrives, then coalesces updates without overlapping requests. Stop always reconciles against committed recognition before automatic copying. The main Live rewrite control saves its template selection through the same settings path as Workspace. The recording header and timer stay in their existing position; the five-line preview and GTK document followers retain spare room, eased movement and manual reading position.
+S27-459 starts a clearly provisional draft after 40 recognized characters or a short paused utterance, then coalesces updates without overlapping requests. Live rewrite is opt-in. The small initial gate avoids opening-filler requests while bypassing the larger threshold for subsequent updates. Stop always reconciles against committed recognition before automatic copying. The main Live rewrite control saves its template selection through the same settings path as Workspace. The recording header and timer stay in their existing position; the five-line preview and GTK document followers retain spare room, eased movement and manual reading position.
 
 ![Live rewrite at the minimum 420 × 520 window size](reviews/s27-459/live-control.png)
 
@@ -36,7 +36,7 @@ ElevenLabs recommends generally 20–30-second commits and logical speech bounda
 
 ## Real provisional-input capture
 
-One subsequent capture used the same 40.716-second Fish speech file through real private PipeWire, Scribe v2 Realtime and the authenticated Codex app-server on `:193`. The catalog-selected model was `gpt-5.6-luna`, low effort, Fast off / default service tier. It used the default 160-character grouping and four-second request interval. These results describe one observed run, not a general latency or recognition-quality benchmark.
+An initial provisional-input capture used the same 40.716-second Fish speech file through real private PipeWire, Scribe v2 Realtime and the authenticated Codex app-server on `:193`. The catalog-selected model was `gpt-5.6-luna`, low effort, Fast off / default service tier. It used the default 160-character grouping and four-second request interval, before adding the final 40-character-or-pause initial gate. These results describe one observed run, not a general latency or recognition-quality benchmark.
 
 | Observable stage | Seconds after first PCM |
 | --- | ---: |
