@@ -19,7 +19,15 @@ RECOGNITION_FALLBACK_UNAVAILABLE = "realtime-unavailable"
 RECOGNITION_FALLBACK_STARTUP_FAILED = "realtime-startup-failed"
 RECOGNITION_FALLBACK_STREAM_FAILED = "realtime-stream-failed"
 SUPPORTED_RECOGNITION_ROUTES = frozenset(
-    (RECOGNITION_ROUTE_REALTIME, RECOGNITION_ROUTE_BATCH, RECOGNITION_ROUTE_BATCH_RETRY)
+    (
+        RECOGNITION_ROUTE_REALTIME,
+        RECOGNITION_ROUTE_BATCH,
+        RECOGNITION_ROUTE_BATCH_RETRY,
+        "litellm-batch",
+        "voxtype-local",
+        "litellm-batch-retry",
+        "voxtype-local-retry",
+    )
 )
 SUPPORTED_RECOGNITION_FALLBACK_REASONS = frozenset(
     (
@@ -31,7 +39,7 @@ SUPPORTED_RECOGNITION_FALLBACK_REASONS = frozenset(
 ENHANCEMENT_PROVIDER_CODEX_APP_SERVER = "codex-app-server"
 ENHANCEMENT_CONTEXT_SELECTED_TEXT = "selected-text"
 ENHANCEMENT_CONTEXT_STYLE_INSTRUCTIONS = "style-instructions"
-SUPPORTED_ENHANCEMENT_PROVIDERS = frozenset((ENHANCEMENT_PROVIDER_CODEX_APP_SERVER,))
+SUPPORTED_ENHANCEMENT_PROVIDERS = frozenset((ENHANCEMENT_PROVIDER_CODEX_APP_SERVER, "litellm"))
 SUPPORTED_ENHANCEMENT_CONTEXT_SOURCES = frozenset(
     (ENHANCEMENT_CONTEXT_SELECTED_TEXT, ENHANCEMENT_CONTEXT_STYLE_INSTRUCTIONS)
 )
@@ -391,6 +399,7 @@ class HistoryStore:
         transcription_id: str | None,
         retain_audio: bool,
         recognition_ms: int | None = None,
+        recognition_route: str = RECOGNITION_ROUTE_BATCH_RETRY,
     ) -> HistoryEntry:
         """Store recovered recognition as a preview without delivering it automatically."""
         entry = self.find(identifier)
@@ -401,7 +410,7 @@ class HistoryStore:
                 UPDATE transcription_history SET
                     raw_text = ?, delivered_text = ?, language_code = ?,
                     transcription_id = ?, correction_source_text = NULL,
-                    recognition_route = 'scribe-v2-batch-retry',
+                    recognition_route = ?,
                     recognition_fallback_reason = NULL,
                     enhancement_provider_id = NULL,
                     enhancement_model_identifier = NULL,
@@ -413,7 +422,15 @@ class HistoryStore:
                     delivery_outcome = 'retry-ready'
                 WHERE identifier = ?
                 """,
-                (raw_text, delivered_text, language_code, transcription_id, recognition_ms, identifier),
+                (
+                    raw_text,
+                    delivered_text,
+                    language_code,
+                    transcription_id,
+                    recognition_route,
+                    recognition_ms,
+                    identifier,
+                ),
             )
         if not retain_audio:
             self._delete_retained_audio(entry)
@@ -463,7 +480,13 @@ class HistoryStore:
         return removed
 
     def export(
-        self, entry: HistoryEntry, directory: Path, export_format: str, *, rewrites: list["Rewrite"] | None = None
+        self,
+        entry: HistoryEntry,
+        directory: Path,
+        export_format: str,
+        *,
+        rewrites: list["Rewrite"] | None = None,
+        source_text: str | None = None,
     ) -> Path:
         """Write one selected history entry to an owner-local recovery artifact."""
         directory.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -473,7 +496,11 @@ class HistoryStore:
             output_path = directory / f"{filename}.json"
             content = (
                 json.dumps(
-                    {**asdict(entry), "rewrites": [asdict(reply) for reply in rewrites or []]},
+                    {
+                        **asdict(entry),
+                        "working_source": source_text if source_text is not None else entry.raw_text,
+                        "rewrites": [asdict(reply) for reply in rewrites or []],
+                    },
                     ensure_ascii=False,
                     indent=2,
                 )
@@ -501,6 +528,8 @@ class HistoryStore:
                 f"## Delivered text\n\n{entry.delivered_text}\n\n"
                 f"## Raw transcript\n\n{entry.raw_text}\n"
             )
+            if source_text is not None and source_text != entry.raw_text:
+                content += f"\n## Edited source\n\n{source_text}\n"
             for reply in rewrites or []:
                 content += (
                     f"\n## Rewrite · {reply.created_at}\n\n"

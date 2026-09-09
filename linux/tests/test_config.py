@@ -41,7 +41,9 @@ def test_config_round_trip_does_not_include_api_key(tmp_path: Path) -> None:
     )
     save_config(config, path)
     assert load_config(path) == config
-    assert "api_key" not in path.read_text(encoding="utf-8")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["litellm_api_key_env"] == "LITELLM_API_KEY"
+    assert "api_key" not in payload and "transcription_api_key" not in payload
     assert path.stat().st_mode & 0o777 == 0o600
 
 

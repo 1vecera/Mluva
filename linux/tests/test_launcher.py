@@ -1,5 +1,6 @@
 """Contract tests for the installed Linux entrypoint."""
 
+import json
 import os
 import subprocess
 import tomllib
@@ -435,6 +436,24 @@ def test_launcher_runs_without_managed_launcher_when_direct_key_exists(tmp_path:
         check=False,
     )
 
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == f"python:{application_dir}:-m voice_scribe_linux.app"
+
+
+@pytest.mark.parametrize("provider", ["voxtype", "litellm"])
+def test_launcher_skips_scribe_secret_resolution_for_other_providers(tmp_path: Path, provider: str) -> None:
+    """Launch local and proxy dictation without contacting an unrelated managed secret service."""
+    launcher, application_dir = _render_launcher(tmp_path)
+    environ, home = _launcher_environment(tmp_path)
+    config_root = home / ".config"
+    config = config_root / "voice-scribe" / "config.json"
+    config.parent.mkdir(parents=True)
+    config.write_text(json.dumps({"transcription_provider": provider}), encoding="utf-8")
+    profile = config_root / "daniel-ai-skills" / "env" / "voice-scribe.env"
+    profile.parent.mkdir(parents=True)
+    profile.write_text("ELEVENLABS_API_KEY=op://test/item/credential\n", encoding="utf-8")
+    _write_executable(config_root / "daniel-ai-skills" / "bin" / "das-mcp-launch", "#!/bin/sh\nexit 91\n")
+    result = subprocess.run([str(launcher)], env=environ, capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == f"python:{application_dir}:-m voice_scribe_linux.app"
 

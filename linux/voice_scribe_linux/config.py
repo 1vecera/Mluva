@@ -3,9 +3,11 @@
 import json
 import os
 import re
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 from pathlib import Path
+from urllib.parse import urlsplit
 
 ELEVENLABS_API_KEY_ENVIRONMENT_VARIABLES = (
     "ELEVENLABS_API_KEY",
@@ -61,6 +63,29 @@ class AppConfig:
     codex_model: str | None = None
     rewrite_model: str | None = None
     rewrite_fast_mode: bool = False
+    rewrite_provider: str = "codex"
+    litellm_base_url: str = "http://localhost:4000/v1"
+    litellm_model: str | None = None
+    litellm_api_key_env: str = "LITELLM_API_KEY"
+    transcription_provider: str = "elevenlabs"
+    transcription_base_url: str = "http://localhost:4000/v1"
+    transcription_api_key_env: str = "LITELLM_API_KEY"
+    transcription_remote_model: str = "whisper"
+    voxtype_model: str | None = None
+    transcription_chunk_seconds: int = 8
+    auto_copy_dictation: bool = True
+    auto_copy_rewrite: bool = True
+    show_copy_action: bool = True
+    show_save_action: bool = True
+    review_timeout_seconds: int = 4
+    smooth_scrolling: bool = True
+    scroll_duration_ms: int = 800
+    scroll_lookahead_lines: int = 2
+    live_rewrite_enabled: bool = False
+    live_rewrite_template: str = "task-spec"
+    live_rewrite_custom_instructions: str = ""
+    live_rewrite_min_characters: int = 160
+    live_rewrite_interval_seconds: int = 4
     microphone_target: str | None = None
     system_audio_target: str | None = None
     default_mode: str = "dictation"
@@ -83,6 +108,46 @@ class AppConfig:
             raise ValueError("transcription_model must be 'scribe_v2'")
         _validate_codex_model(self.codex_model)
         _validate_codex_model(self.rewrite_model)
+        _validate_codex_model(self.litellm_model)
+        _validate_codex_model(self.voxtype_model)
+        _validate_codex_model(self.transcription_remote_model)
+        if self.rewrite_provider not in {"codex", "litellm"}:
+            raise ValueError("rewrite_provider must be codex or litellm")
+        if self.transcription_provider not in {"elevenlabs", "litellm", "voxtype"}:
+            raise ValueError("transcription_provider must be elevenlabs, litellm or voxtype")
+        for endpoint in (self.litellm_base_url, self.transcription_base_url):
+            validate_provider_url(endpoint)
+        for name in (self.litellm_api_key_env, self.transcription_api_key_env):
+            if not isinstance(name, str) or re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,127}", name) is None:
+                raise ValueError("API key settings must name an environment variable, never contain a key")
+        for name in (
+            "auto_copy_dictation",
+            "auto_copy_rewrite",
+            "show_copy_action",
+            "show_save_action",
+            "smooth_scrolling",
+            "live_rewrite_enabled",
+        ):
+            if not isinstance(getattr(self, name), bool):
+                raise TypeError(f"{name} must be a boolean")
+        for name, minimum, maximum in (
+            ("review_timeout_seconds", 1, 60),
+            ("scroll_duration_ms", 0, 2000),
+            ("scroll_lookahead_lines", 0, 6),
+            ("transcription_chunk_seconds", 3, 30),
+            ("live_rewrite_min_characters", 40, 4000),
+            ("live_rewrite_interval_seconds", 2, 60),
+        ):
+            value = getattr(self, name)
+            if type(value) is not int or not minimum <= value <= maximum:
+                raise ValueError(f"{name} must be an integer from {minimum} to {maximum}")
+        if self.live_rewrite_template not in {"task-spec", "structured-note", "polish", "custom"}:
+            raise ValueError("Unsupported live rewrite template")
+        if (
+            not isinstance(self.live_rewrite_custom_instructions, str)
+            or len(self.live_rewrite_custom_instructions) > 8000
+        ):
+            raise ValueError("Custom live instructions must contain at most 8000 characters")
         if not isinstance(self.rewrite_fast_mode, bool):
             raise TypeError("rewrite_fast_mode must be a boolean")
         _validate_pipewire_target(self.microphone_target, "microphone_target")
@@ -155,7 +220,7 @@ def save_config(config: AppConfig, path: Path) -> None:
 
 
 def elevenlabs_api_key(
-    environ: dict[str, str] = os.environ,
+    environ: Mapping[str, str] = os.environ,
     variable_names: tuple[str, ...] = ELEVENLABS_API_KEY_ENVIRONMENT_VARIABLES,
 ) -> str:
     """Resolve the first supported ElevenLabs credential without persisting it."""
@@ -192,3 +257,21 @@ def _validate_codex_model(value: str | None) -> None:
         or any(ord(character) < 32 for character in value)
     ):
         raise ValueError("codex_model must be a bounded single-line model identifier")
+
+
+def validate_provider_url(value: str) -> None:
+    """Allow HTTPS services and loopback HTTP without credentials or secret URL components."""
+    if not isinstance(value, str) or value != value.strip() or any(ord(char) < 32 for char in value):
+        raise ValueError("Provider URL must be a plain HTTP(S) base URL")
+    parsed = urlsplit(value)
+    if (
+        not parsed.hostname
+        or parsed.scheme not in {"http", "https"}
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.query
+        or parsed.fragment
+        or (parsed.scheme == "http" and parsed.hostname not in {"localhost", "127.0.0.1", "::1"})
+    ):
+        raise ValueError("Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments")
+    _ = parsed.port

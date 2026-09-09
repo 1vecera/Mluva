@@ -17,6 +17,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
 from voice_scribe_linux.audio import PipeWireMeetingRecorder, PipeWireRecorder
+from voice_scribe_linux.batch_preview import BatchPreviewClient
 from voice_scribe_linux.codex_client import CodexAppServerClient, CodexModel, select_model
 from voice_scribe_linux.config import (
     FUNCTION_KEY_OPTIONS,
@@ -64,6 +65,7 @@ from voice_scribe_linux.history import (
     HistoryStore,
 )
 from voice_scribe_linux.history_view import HistoryPage
+from voice_scribe_linux.live_rewrite import TEMPLATE_CHOICES, LiveRewriteSchedule, initial_draft, live_prompt
 from voice_scribe_linux.meeting import (
     MeetingFailure,
     MeetingRecord,
@@ -76,6 +78,7 @@ from voice_scribe_linux.overlay_state import RecordingOverlayPublisher, Recordin
 from voice_scribe_linux.personalization import PersonalizationStore, SavedStyle
 from voice_scribe_linux.personalization_view import PersonalizationPage
 from voice_scribe_linux.pipewire import PipeWireCatalogError, PipeWireDeviceCatalog, PipeWireDeviceKind
+from voice_scribe_linux.providers import LiteLLMClient, transcription_client
 from voice_scribe_linux.realtime import (
     ElevenLabsRealtimeClient,
     RealtimeTranscriptionSession,
@@ -118,6 +121,7 @@ from voice_scribe_linux.workflow import (
     WorkflowResult,
     reprocess_history_entry,
 )
+from voice_scribe_linux.workspace_settings import WorkspaceSettings
 
 CAPTURE_MODE_OPTIONS = (
     (
@@ -311,7 +315,17 @@ class MluvaApplication(Adw.Application):
         self.pipewire_catalog_error: str | None = None
         self.conversation_workspace: ConversationWorkspace | None = None
         self.conversation_store: ConversationStore
-        self.rewrite_client: CodexAppServerClient | None = None
+        self.live_rewrite_client = None
+        self.live_schedule = None
+        self.live_config = None
+        self.live_session_identifier = None
+        self.live_final_entry = None
+        self.live_final_text = ""
+        self.live_last_model = ""
+        self.live_revision = 0
+        self.live_updating = False
+        self.live_mode_switch = None
+        self.rewrite_client: CodexAppServerClient | LiteLLMClient | None = None
         self.model_catalog_client: CodexAppServerClient | None = None
         self.rewrite_settings: RewriteSettings | None = None
         self.title_client: CodexAppServerClient | None = None
@@ -567,11 +581,16 @@ class MluvaApplication(Adw.Application):
                 continue
             if entry.title != fallback:
                 continue
-            client = CodexAppServerClient(request_timeout_seconds=10, turn_timeout_seconds=20)
+            client = self._new_rewrite_client(request_timeout_seconds=10, turn_timeout_seconds=20)
             self.title_client = client
             threading.Thread(
                 target=self._title_worker,
-                args=(client, entry, fallback, self.config.codex_model),
+                args=(
+                    client,
+                    entry,
+                    fallback,
+                    self.config.litellm_model if self.config.rewrite_provider == "litellm" else self.config.codex_model,
+                ),
                 name="conversation-title",
                 daemon=True,
             ).start()
@@ -637,18 +656,262 @@ class MluvaApplication(Adw.Application):
         if not config.automatic_titles:
             self._cancel_titles()
 
+    def _live_mode_changed(self, button) -> None:
+        """Persist the explicit next-capture mode and roll back an unavailable change."""
+        if button.get_active() == self.config.live_rewrite_enabled:
+            return
+        if not self._apply_workspace_settings({"live_rewrite_enabled": button.get_active()}):
+            button.set_active(self.config.live_rewrite_enabled)
+            self._show_toast("Finish active work before changing Live rewrite.")
+
+    def _start_live_rewrite(self) -> None:
+        """Freeze the template and thresholds before recording starts."""
+        self._cancel_live_rewrite()
+        if not self.config.live_rewrite_enabled or self.pending_incognito or self.pending_mode != "dictation":
+            return
+        self.live_config = self.config
+        self.live_session_identifier = self.pending_session_identifier
+        self.live_schedule = LiveRewriteSchedule(
+            self.config.live_rewrite_min_characters, self.config.live_rewrite_interval_seconds
+        )
+        self.live_final_entry = None
+        self.live_final_text = ""
+        self.live_revision = 0
+        self.live_last_model = ""
+        self.live_updating = True
+        self.conversation_workspace.show_live_draft(initial_draft(self.config), "Live draft · waiting for speech")
+        self.live_updating = False
+        self.conversation_workspace.live_draft_follower.follow(snap=True)
+
+    def _live_draft_edited(self, _buffer) -> None:
+        """Protect edits made while a provider is preparing an older draft snapshot."""
+        if not self.live_updating:
+            self.live_revision += 1
+
+    def _maybe_live_rewrite(self, text: str, *, final: bool = False) -> None:
+        """Coalesce speech snapshots, keeping at most one bounded rewrite in flight."""
+        schedule = self.live_schedule
+        if schedule is None or self.config.incognito_mode or self.shutting_down:
+            return
+        if final and not schedule.in_flight and (text.strip() == schedule.last_text or schedule.failed):
+            self._save_live_draft(stale=schedule.failed)
+            return
+        snapshot = schedule.take(text, time.monotonic(), final=final)
+        if snapshot is None:
+            return
+        try:
+            prompt = live_prompt(self.live_config, snapshot, self.conversation_workspace.live_draft())
+            client = self._new_rewrite_client(self.live_config)
+        except Exception as error:
+            schedule.finish(False)
+            self.conversation_workspace.live_draft_status.set_label(str(error))
+            if final:
+                self._save_live_draft(stale=True)
+            return
+        self.live_rewrite_client = client
+        self.conversation_workspace.live_draft_status.set_label("Updating live draft…")
+        revision = self.live_revision
+        session = self.live_session_identifier
+        config = self.live_config
+
+        def run():
+            """Compute one whole draft, never streaming half a template into the editor."""
+            try:
+                if isinstance(client, LiteLLMClient):
+                    model = client.resolve_model(config.litellm_model)
+                    result = client.transform(
+                        prompt, self.codex_workspace, model, max_output_characters=MAX_REWRITE_CHARACTERS
+                    )
+                else:
+                    selected = select_model(client.list_models(), config.rewrite_model or config.codex_model)
+                    if config.rewrite_fast_mode and selected.fast_tier is None:
+                        raise ValueError("Fast mode unavailable")
+                    model = selected.identifier
+                    result = client.transform(
+                        prompt,
+                        self.codex_workspace,
+                        model,
+                        max_output_characters=MAX_REWRITE_CHARACTERS,
+                        effort=selected.rewrite_effort,
+                        service_tier=selected.fast_tier if config.rewrite_fast_mode else "default",
+                    )
+            except Exception:
+                result, model = "", ""
+            finally:
+                client.close()
+            GLib.idle_add(self._live_rewrite_finished, session, client, revision, result, model)
+
+        threading.Thread(target=run, name="live-rewrite", daemon=True).start()
+
+    def _live_rewrite_finished(self, session, client, revision, result, model) -> bool:
+        """Reject stale sessions and preserve edits typed after this request began."""
+        if (
+            self.shutting_down
+            or self.config.incognito_mode
+            or session != self.live_session_identifier
+            or client is not self.live_rewrite_client
+            or self.live_schedule is None
+        ):
+            return GLib.SOURCE_REMOVE
+        self.live_rewrite_client = None
+        self.live_schedule.finish(bool(result))
+        if result and revision == self.live_revision:
+            self.live_updating = True
+            self.conversation_workspace.show_live_draft(result, "Live draft · up to date")
+            self.live_updating = False
+            self.live_last_model = model
+        elif result:
+            self.live_schedule.last_text = ""
+            self.conversation_workspace.live_draft_status.set_label("Your edit kept · awaiting next update")
+        else:
+            self.conversation_workspace.live_draft_status.set_label(
+                "Live rewrite paused · provider failed; your draft is kept"
+            )
+        if self.live_final_entry is not None:
+            self._maybe_live_rewrite(self.live_final_text, final=True)
+        return GLib.SOURCE_REMOVE
+
+    def _save_live_draft(self, *, stale: bool = False) -> None:
+        """Save one final document with its source; only a complete final rewrite may auto-copy."""
+        identifier = self.live_final_entry
+        workspace = self.conversation_workspace
+        text = workspace.live_draft()
+        config = self.live_config
+        if identifier is None:
+            return
+        try:
+            entry = self.history_store.find(identifier)
+            instruction = "Live rewrite · " + dict(TEMPLATE_CHOICES)[config.live_rewrite_template]
+            if stale:
+                instruction += " (partial draft; final update failed)"
+            if text.strip():
+                self.conversation_store.append(identifier, instruction, text, self.live_last_model or "live-draft")
+            if workspace.entry is not None and workspace.entry.identifier == identifier:
+                workspace.show_conversation(entry, self.conversation_store.replies(identifier))
+            if text.strip() and config.auto_copy_rewrite and not stale:
+                deliver_text(text, auto_paste=False)
+            workspace.set_busy(
+                False,
+                "Live draft saved. Final update failed; review the remaining gaps."
+                if stale
+                else "Live draft copied."
+                if config.auto_copy_rewrite
+                else "Live draft saved.",
+            )
+            workspace.refresh_history()
+            self._publish_review(identifier)
+        except Exception:
+            workspace.set_busy(
+                False, "Could not save or copy the live draft. The text remains available in the live editor."
+            )
+            workspace.live_draft_box.set_visible(True)
+        self.live_schedule = None
+        self.live_final_entry = None
+        self.live_session_identifier = None
+
+    def _cancel_live_rewrite(self) -> None:
+        """Invalidate pending callbacks before cancelling provider work off GTK."""
+        client = self.live_rewrite_client
+        self.live_rewrite_client = None
+        self.live_schedule = None
+        self.live_session_identifier = None
+        self.live_final_entry = None
+        if client is not None:
+            threading.Thread(target=client.cancel, name="cancel-live-rewrite", daemon=True).start()
+        if self.conversation_workspace is not None:
+            self.conversation_workspace.live_draft_box.set_visible(False)
+            self.conversation_workspace.set_busy(False, "")
+
+    def _new_rewrite_client(self, config: AppConfig | None = None, **options):
+        """Freeze an isolated provider client without requiring another provider's credentials."""
+        config = config or self.config
+        if config.rewrite_provider == "litellm":
+            return LiteLLMClient(config.litellm_base_url, config.litellm_api_key_env, config.litellm_model)
+        return CodexAppServerClient(**options)
+
+    def _apply_workspace_settings(self, changes: dict) -> bool:
+        """Persist UI choices to the shared dotfile and replace idle provider transports."""
+        if self.capture_preparing or self.capture_processing or (self.recorder and self.recorder.process):
+            return False
+        if self.rewrite_client is not None or self.live_rewrite_client is not None:
+            return False
+        config = replace(self.config, **changes)
+        try:
+            speech = transcription_client(config)
+        except RuntimeError:
+            speech = None
+        try:
+            save_config(config, self.config_path)
+        except OSError:
+            return False
+        self._cancel_titles()
+        if self.model_catalog_client is not None:
+            client = self.model_catalog_client
+            self.model_catalog_client = None
+            threading.Thread(target=client.close, daemon=True).start()
+        self.config = config
+        if speech is None:
+            if self.workflow is not None:
+                self.workflow.codex.close()
+            self.workflow = None
+        elif self.workflow is not None:
+            self.workflow.elevenlabs = speech
+            self.workflow.codex.close()
+            self.workflow.codex = self._new_rewrite_client()
+        else:
+            self.workflow = DictationWorkflow(
+                config,
+                speech,
+                self._new_rewrite_client(),
+                self.history_store,
+                self.codex_workspace,
+                self.personalization_store,
+                self.diagnostics_store,
+            )
+        self._configure_realtime_provider()
+        self._synchronize_workflow_config()
+        self.conversation_workspace.set_config(config)
+        if self.rewrite_settings is not None:
+            self.rewrite_settings.models = []
+            self.rewrite_settings.set_config(config)
+        if self.live_mode_switch is not None:
+            self.live_mode_switch.set_active(config.live_rewrite_enabled)
+        self._reset_record_button()
+        if self.workflow is None:
+            self.record_button.set_sensitive(False)
+            self._set_status("Speech provider needs credentials. Editing and rewriting remain available.")
+        return True
+
+    def _configure_realtime_provider(self) -> None:
+        """Keep Scribe streaming native and enable batch previews only for explicit live mode."""
+        config = self.config
+        if config.transcription_provider == "elevenlabs":
+            try:
+                self.realtime_client = ElevenLabsRealtimeClient(api_key=elevenlabs_api_key())
+            except RuntimeError:
+                self.realtime_client = None
+        elif config.live_rewrite_enabled:
+            self.realtime_client = BatchPreviewClient(
+                lambda: transcription_client(config),
+                self.codex_workspace.parent / "speech-previews",
+                config.transcription_chunk_seconds,
+            )
+        else:
+            self.realtime_client = None
+
     def _request_rewrite(self, instruction: str) -> None:
         """Freeze the selected conversation before starting one background rewrite."""
         workspace = self.conversation_workspace
         if workspace is None or workspace.entry is None:
             return
-        self._begin_rewrite(workspace.entry.identifier, instruction)
+        if workspace.save_edits():
+            self._begin_rewrite(workspace.entry.identifier, instruction)
 
     def _load_rewrite_models(self) -> None:
         """Discover installed models only when requested, without sending conversation text."""
         if self.shutting_down or self.model_catalog_client is not None or self.rewrite_settings is None:
             return
-        client = CodexAppServerClient(request_timeout_seconds=10)
+        client = self._new_rewrite_client(request_timeout_seconds=10)
         self.model_catalog_client = client
         self.rewrite_settings.set_loading()
 
@@ -675,7 +938,11 @@ class MluvaApplication(Adw.Application):
 
     def _save_rewrite_settings(self, model: str | None, fast: bool) -> None:
         """Persist rewrite-only preferences, restoring the controls when the write fails."""
-        config = replace(self.config, rewrite_model=model, rewrite_fast_mode=fast)
+        config = (
+            replace(self.config, litellm_model=model)
+            if self.config.rewrite_provider == "litellm"
+            else replace(self.config, rewrite_model=model, rewrite_fast_mode=fast)
+        )
         try:
             save_config(config, self.config_path)
         except OSError:
@@ -693,6 +960,8 @@ class MluvaApplication(Adw.Application):
         workspace = self.conversation_workspace
         if workspace is None or self.shutting_down:
             return
+        if self.live_schedule is not None and self.live_final_entry is not None:
+            return
         if self.rewrite_client is not None:
             if self.overlay_review_identifier == identifier and self.rewrite_identifier != identifier:
                 self._publish_review(identifier, message="Another note is rewriting. Try again shortly.")
@@ -704,13 +973,19 @@ class MluvaApplication(Adw.Application):
             return
         try:
             entry = self.history_store.find(identifier)
-            prompt = rewrite_prompt(entry, self.conversation_store.replies(entry.identifier), instruction)
+            prompt = rewrite_prompt(
+                entry,
+                self.conversation_store.replies(entry.identifier),
+                instruction,
+                self.conversation_store.source_text(entry),
+            )
         except (KeyError, ValueError):
             workspace.set_busy(False, "This conversation cannot be rewritten. Reopen it or start with shorter text.")
             if self.overlay_review_identifier == identifier:
                 self._publish_review(identifier, "review-error", "Open this note to review it.")
             return
-        client = CodexAppServerClient()
+        client = self._new_rewrite_client()
+        self.rewrite_auto_copy = self.config.auto_copy_rewrite
         self.rewrite_client = client
         self.rewrite_identifier = identifier
         self.rewrite_draft = instruction if instruction == workspace.prompt_text() else None
@@ -726,8 +1001,12 @@ class MluvaApplication(Adw.Application):
                 entry.identifier,
                 instruction,
                 prompt,
-                self.config.rewrite_model or self.config.codex_model,
-                self.config.rewrite_fast_mode,
+                (
+                    self.config.litellm_model
+                    if self.config.rewrite_provider == "litellm"
+                    else self.config.rewrite_model or self.config.codex_model
+                ),
+                self.config.rewrite_fast_mode if self.config.rewrite_provider == "codex" else False,
                 time.monotonic(),
             ),
             name="conversation-rewrite",
@@ -749,7 +1028,8 @@ class MluvaApplication(Adw.Application):
             return
         self._clear_overlay_timeout()
         self.overlay_review_identifier = identifier
-        preview = replies[-1].text if replies else entry.delivered_text
+        source = self.conversation_store.source_text(entry, delivered_fallback=True)
+        preview = replies[-1].text if replies else source
         workspace = self.conversation_workspace
         if phase == "rewriting" and workspace is not None and workspace.rewrite_preview_identifier == identifier:
             preview = workspace.rewrite_preview_text or preview
@@ -761,6 +1041,11 @@ class MluvaApplication(Adw.Application):
                     review_identifier=identifier,
                     review_options=tuple((style.identifier, style.name) for style in self.personalization_store.styles),
                     message=message,
+                    review_timeout_seconds=self.config.review_timeout_seconds,
+                    show_copy_action=self.config.show_copy_action,
+                    smooth_scrolling=self.config.smooth_scrolling,
+                    scroll_duration_ms=self.config.scroll_duration_ms,
+                    scroll_lookahead_lines=self.config.scroll_lookahead_lines,
                 )
             )
 
@@ -800,7 +1085,12 @@ class MluvaApplication(Adw.Application):
         elif operation == "copy" and self.rewrite_identifier != identifier:
             replies = self.conversation_store.replies(identifier)
             try:
-                deliver_text(replies[-1].text if replies else entry.delivered_text, auto_paste=False)
+                deliver_text(
+                    replies[-1].text
+                    if replies
+                    else self.conversation_store.source_text(entry, delivered_fallback=True),
+                    auto_paste=False,
+                )
             except Exception:
                 self._publish_review(identifier, "review-error", "Could not copy. Try again.")
             else:
@@ -826,7 +1116,7 @@ class MluvaApplication(Adw.Application):
         parts: list[str] = []
         last_update = 0.0
         first_text_seconds: float | None = None
-        failure_message = "Rewrite failed. Check Codex, then try again. Your original is safe."
+        failure_message = "Rewrite failed. Check the selected provider, then try again. Your text is safe."
 
         def progress(delta: str) -> None:
             """Send bounded snapshots at most twenty times a second without blocking the model."""
@@ -842,7 +1132,11 @@ class MluvaApplication(Adw.Application):
                 GLib.idle_add(self._rewrite_progress, client, identifier, "".join(parts))
 
         try:
-            model = select_model(client.list_models(), configured_model)
+            model = (
+                CodexModel(configured_model, configured_model, configured_model, True)
+                if isinstance(client, LiteLLMClient) and configured_model
+                else select_model(client.list_models(), configured_model)
+            )
             if fast_mode and model.fast_tier is None:
                 failure_message = "Fast mode is unavailable for this model. Turn it off or choose another model."
                 raise ValueError("Unsupported rewrite service tier")
@@ -878,7 +1172,16 @@ class MluvaApplication(Adw.Application):
             workspace.set_rewrite_preview(identifier, text)
         if self.overlay_review_identifier == identifier and self.recording_overlay_publisher is not None:
             self.recording_overlay_publisher.publish(
-                RecordingOverlayState(phase="rewriting", preview=text, review_identifier=identifier)
+                RecordingOverlayState(
+                    phase="rewriting",
+                    preview=text,
+                    review_identifier=identifier,
+                    review_timeout_seconds=self.config.review_timeout_seconds,
+                    show_copy_action=self.config.show_copy_action,
+                    smooth_scrolling=self.config.smooth_scrolling,
+                    scroll_duration_ms=self.config.scroll_duration_ms,
+                    scroll_lookahead_lines=self.config.scroll_lookahead_lines,
+                )
             )
         return GLib.SOURCE_REMOVE
 
@@ -890,7 +1193,7 @@ class MluvaApplication(Adw.Application):
         result: str,
         model: str,
         first_text_seconds: float | None = None,
-        failure_message: str = "Rewrite failed. Check Codex, then try again. Your original is safe.",
+        failure_message: str = "Rewrite failed. Check the selected provider, then try again. Your text is safe.",
     ) -> bool:
         """Commit a complete reply only while its request, source and privacy policy remain valid."""
         if self.shutting_down or client is not self.rewrite_client:
@@ -921,9 +1224,16 @@ class MluvaApplication(Adw.Application):
             if workspace.prompt_text() == self.rewrite_draft:
                 workspace.prompt.get_buffer().set_text("")
             workspace.show_conversation(entry, self.conversation_store.replies(identifier))
-            workspace.scroll_to_latest()
         timing = f" · first text {first_text_seconds:.1f} s" if first_text_seconds is not None else ""
-        workspace.set_busy(False, f"Rewrite ready{timing}. Choose Copy to use it.")
+        copied = False
+        if getattr(self, "rewrite_auto_copy", self.config.auto_copy_rewrite):
+            try:
+                deliver_text(result, auto_paste=False)
+                copied = True
+            except Exception:
+                workspace.set_busy(False, f"Rewrite saved{timing}. Automatic copy failed; use the Copy icon.")
+        if copied or not getattr(self, "rewrite_auto_copy", self.config.auto_copy_rewrite):
+            workspace.set_busy(False, f"Rewrite {'copied' if copied else 'saved'}{timing}.")
         workspace.refresh_history()
         if self.overlay_review_identifier == identifier:
             self._publish_review(identifier)
@@ -931,6 +1241,8 @@ class MluvaApplication(Adw.Application):
 
     def _cancel_rewrite(self) -> None:
         """Invalidate the pending result immediately, then stop its provider off the UI thread."""
+        if self.live_schedule is not None and self.live_final_entry is not None:
+            self._cancel_live_rewrite()
         client = self.rewrite_client
         if client is None:
             return
@@ -1019,6 +1331,8 @@ class MluvaApplication(Adw.Application):
         self.capture_status_title = Gtk.Label(label="Ready to dictate", xalign=0)
         self.capture_status_title.add_css_class("heading")
         self.capture_action_bar = self._build_capture_action_bar()
+        self.conversation_workspace.live_draft_text.get_buffer().connect("changed", self._live_draft_edited)
+        self.conversation_workspace.set_config(self.config)
         self.conversation_workspace.set_capture_controls(self.capture_action_bar)
         self.settings_dialog = self._build_settings_dialog()
         self._refresh_style_controls()
@@ -1114,12 +1428,24 @@ class MluvaApplication(Adw.Application):
         set_button_content(self.record_button, "audio-input-microphone-symbolic", "Dictate")
         self.record_button.connect("clicked", self._toggle_recording)
         dock.append(self.record_button)
+        self.live_mode_switch = Gtk.ToggleButton(label="Live rewrite", active=self.config.live_rewrite_enabled)
+        self.live_mode_switch.set_tooltip_text(
+            "Build a structured draft while speaking · configure templates in Settings"
+        )
+        self.live_mode_switch.connect("toggled", self._live_mode_changed)
+        dock.append(self.live_mode_switch)
         return dock
 
     def _build_settings_dialog(self) -> Adw.PreferencesDialog:
         """Move infrequent capture, audio, privacy, and diagnostic controls off the primary surface."""
         dialog = Adw.PreferencesDialog(title="Mluva settings")
         dialog.set_search_enabled(True)
+        self.workspace_settings_pages = (
+            WorkspaceSettings(self.config, self._apply_workspace_settings),
+            WorkspaceSettings(self.config, self._apply_workspace_settings, providers=True),
+        )
+        for page in self.workspace_settings_pages:
+            dialog.add(page)
 
         capture_page = Adw.PreferencesPage(
             name="capture",
@@ -1146,7 +1472,7 @@ class MluvaApplication(Adw.Application):
             language_names.append(f"Custom ISO code ({self.config.language_code})")
         self.language.set_model(Gtk.StringList.new(language_names))
         self.language.set_selected(self.language_codes.index(self.config.language_code))
-        self.language.set_subtitle("Auto-detect omits the optional Scribe language field")
+        self.language.set_subtitle("Auto-detect lets the selected speech provider choose the language")
         self.language.connect("notify::selected", self._language_changed)
         self.language.connect("notify::selected", self._capture_configuration_changed)
         defaults.add(self.language)
@@ -1199,16 +1525,17 @@ class MluvaApplication(Adw.Application):
         self.remember_application_switch.set_active(self.config.remember_per_application)
         self.remember_application_switch.connect("notify::active", self._general_setting_changed)
         behavior.add(self.remember_application_switch)
-        self.cleanup_switch = Adw.SwitchRow(title=maturity_title("faithful_cleanup", "Faithful Codex cleanup"))
+        self.cleanup_switch = Adw.SwitchRow(title=maturity_title("faithful_cleanup", "Faithful cleanup"))
         self.cleanup_switch.set_subtitle(
-            "Remove obvious filler and repair punctuation through the local Codex app-server"
+            "Remove obvious filler and repair punctuation through the selected rewrite provider"
         )
         behavior.add(self.cleanup_switch)
         self.automatic_titles_switch = Adw.SwitchRow(
             title=maturity_title("conversations", "Automatic conversation titles")
         )
         self.automatic_titles_switch.set_subtitle(
-            "Send an excerpt of each new conversation to Codex for a title. A local label is used if unavailable."
+            "Send an excerpt of each new conversation to the rewrite provider for a title. "
+            "A local label is used if unavailable."
         )
         self.automatic_titles_switch.set_active(self.config.automatic_titles)
         self.automatic_titles_switch.connect("notify::active", self._automatic_titles_changed)
@@ -1265,7 +1592,7 @@ class MluvaApplication(Adw.Application):
         privacy = Adw.PreferencesGroup(title="Privacy and retention")
         self.incognito_switch = Adw.SwitchRow(title=maturity_title("recovery_privacy", "Incognito"))
         self.incognito_switch.set_subtitle(
-            "New sessions write no local history or recovery audio. Recognition still uses ElevenLabs."
+            "New sessions write no local history or recovery audio. Recognition uses your selected speech provider."
         )
         self.incognito_switch.set_active(self.config.incognito_mode)
         self.incognito_switch.connect("notify::active", self._privacy_setting_changed)
@@ -1362,6 +1689,7 @@ class MluvaApplication(Adw.Application):
         """Trade the wide left rail for compact bottom navigation."""
         if self.conversation_workspace is not None:
             self.conversation_workspace.split.set_collapsed(True)
+            self.conversation_workspace.live_box.set_orientation(Gtk.Orientation.VERTICAL)
             self.conversation_workspace.split.set_show_sidebar(False)
         if self.navigation_rail is not None:
             self.navigation_rail.set_visible(False)
@@ -1376,6 +1704,7 @@ class MluvaApplication(Adw.Application):
         """Restore the stable left rail and the utility title above the workspace."""
         if self.conversation_workspace is not None:
             self.conversation_workspace.split.set_collapsed(False)
+            self.conversation_workspace.live_box.set_orientation(Gtk.Orientation.HORIZONTAL)
             self.conversation_workspace.split.set_show_sidebar(True)
         if self.navigation_rail is not None:
             self.navigation_rail.set_visible(True)
@@ -1390,6 +1719,8 @@ class MluvaApplication(Adw.Application):
         """Present all infrequent configuration in one searchable native dialog."""
         self.activate()
         if self.settings_dialog is not None and self.window is not None:
+            for page in self.workspace_settings_pages:
+                page.refresh_config(self.config)
             self.settings_dialog.present(self.window)
 
     def _capture_configuration_changed(self, *_args: object) -> None:
@@ -1500,7 +1831,7 @@ class MluvaApplication(Adw.Application):
             if self.config.incognito_mode:
                 self.capture_privacy_status_row.set_title("Incognito")
                 self.capture_privacy_status_row.set_subtitle(
-                    "No local history or recovery audio; recognition still uses ElevenLabs"
+                    "No local history or recovery audio; recognition uses your selected speech provider"
                 )
             else:
                 audio_policy = self.config.audio_retention_policy.value.title()
@@ -1595,23 +1926,23 @@ class MluvaApplication(Adw.Application):
             microphone_target=self.config.microphone_target,
             system_target=self.config.system_audio_target,
         )
-        api_key = elevenlabs_api_key()
-        elevenlabs = ElevenLabsClient(api_key=api_key)
-        self.realtime_client = ElevenLabsRealtimeClient(api_key=api_key)
+        elevenlabs = transcription_client(self.config)
+        self._configure_realtime_provider()
         self.workflow = DictationWorkflow(
             config=self.config,
             elevenlabs=elevenlabs,
-            codex=CodexAppServerClient(),
+            codex=self._new_rewrite_client(),
             history=self.history_store,
             cwd=self.codex_workspace,
             personalization=self.personalization_store,
             diagnostics=self.diagnostics_store,
         )
-        self.meeting_workflow = MeetingWorkflow(
-            config=self.config,
-            elevenlabs=elevenlabs,
-            store=self.meeting_store,
-        )
+        try:
+            meeting_client = ElevenLabsClient(elevenlabs_api_key())
+        except RuntimeError:
+            self.meeting_workflow = None
+        else:
+            self.meeting_workflow = MeetingWorkflow(self.config, meeting_client, self.meeting_store)
         if "VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT" not in os.environ:
             self.shortcut_service = GlobalShortcutService(
                 on_toggle_recording=lambda: GLib.idle_add(self._shortcut_toggled),
@@ -2027,6 +2358,9 @@ class MluvaApplication(Adw.Application):
         """Start or finalize capture from the primary control."""
         if self.record_button is None or self.recorder is None:
             return
+        if self.live_final_entry is not None:
+            self._set_status("Finishing the live draft. Cancel it before starting another recording.")
+            return
         if self.capture_processing:
             self._set_status("The stopped recording is still being processed.")
             return
@@ -2148,6 +2482,7 @@ class MluvaApplication(Adw.Application):
         stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%f")
         self.audio_path = data_dir / f"{stamp}.wav"
         self.pending_session_identifier = str(uuid.uuid4())
+        self._start_live_rewrite()
         self.capture_preparing = True
         self.capture_stop_requested = False
         self.pending_realtime_fallback_reason = None
@@ -2215,7 +2550,12 @@ class MluvaApplication(Adw.Application):
         if self.shutting_down or self.pending_session_identifier != session_identifier:
             return
         segment_cleanup_session = None
-        if use_codex_cleanup and mode != "command":
+        if (
+            use_codex_cleanup
+            and mode != "command"
+            and self.config.rewrite_provider == "codex"
+            and self.config.transcription_provider == "elevenlabs"
+        ):
             if self.workflow is None or codex_model_identifier is None:
                 GLib.idle_add(
                     self._capture_preparation_failed,
@@ -2469,7 +2809,7 @@ class MluvaApplication(Adw.Application):
         if self.realtime_session is not None and self.realtime_session.is_healthy:
             self._set_status("Finalizing committed ElevenLabs Scribe v2 Realtime text…")
         else:
-            self._set_status("Transcribing with ElevenLabs Scribe v2 batch fallback…")
+            self._set_status("Transcribing with the selected speech provider…")
         threading.Thread(target=self._finish_recording, name="dictation-workflow", daemon=True).start()
 
     def _finish_recording(self) -> None:
@@ -2669,13 +3009,22 @@ class MluvaApplication(Adw.Application):
             elif result.delivery.paste_dispatched:
                 message = "Paste unconfirmed. Check the target before pasting again."
             else:
-                message = "Copied. Ready to paste."
+                message = "Copied. Ready to paste." if result.delivery.copied else "Dictation ready."
             if result.mode == "dictation" and result.history_entry is not None and not self.config.incognito_mode:
                 self._publish_review(result.history_entry.identifier)
             else:
                 MluvaApplication._publish_completion_status(self, "copied", message)
         if result.mode == "dictation" and result.history_entry is not None and not result.incognito:
             self._queue_conversation_title(result.history_entry)
+        if self.live_schedule is not None and result.mode == "dictation":
+            if result.history_entry is not None and not result.incognito:
+                self.live_final_entry = result.history_entry.identifier
+                self.live_final_text = result.transcription.text
+                if workspace is not None:
+                    workspace.set_busy(True, "Finishing live draft…")
+                self._maybe_live_rewrite(self.live_final_text, final=True)
+            else:
+                self._cancel_live_rewrite()
         return GLib.SOURCE_REMOVE
 
     def _workflow_failed(
@@ -2686,6 +3035,8 @@ class MluvaApplication(Adw.Application):
         output_text: str,
     ) -> bool:
         """Expose whether frozen privacy policy retained failure audio for retry."""
+        live_text = self.conversation_workspace.live_draft() if self.live_schedule is not None else ""
+        self._cancel_live_rewrite()
         self.capture_processing = False
         if history_entry is not None and self.pending_delivery_target is not None:
             self._remember_history_delivery_target(history_entry.identifier, self.pending_delivery_target)
@@ -2727,6 +3078,9 @@ class MluvaApplication(Adw.Application):
             elif recovered_text:
                 workspace.show_transient(recovered_text, recovered_text)
         MluvaApplication._publish_completion_status(self, "error", "Dictation needs attention. Open Mluva.")
+        if live_text.strip() and not self.config.incognito_mode:
+            self.conversation_workspace.show_transient(live_text, live_text)
+            self.conversation_workspace.notice.set_label("Capture failed. Your live draft is available to copy.")
         return GLib.SOURCE_REMOVE
 
     def _reset_record_button(self) -> None:
@@ -2830,6 +3184,9 @@ class MluvaApplication(Adw.Application):
                 level=state.level,
                 preview=state.preview,
                 delivery=state.delivery,
+                smooth_scrolling=self.config.smooth_scrolling,
+                scroll_duration_ms=self.config.scroll_duration_ms,
+                scroll_lookahead_lines=self.config.scroll_lookahead_lines,
             )
             if not self.recording_overlay_publisher.publish(overlay_state):
                 self.recording_overlay_publisher = None
@@ -3154,7 +3511,7 @@ class MluvaApplication(Adw.Application):
         if self.config.incognito_mode:
             self._set_status(
                 "Incognito enabled for new sessions: no local history or recovery audio; "
-                "ElevenLabs remains cloud-based."
+                "Recognition uses your selected speech provider."
             )
         else:
             self._set_status("Privacy and retention settings saved.")
@@ -3440,6 +3797,7 @@ class MluvaApplication(Adw.Application):
             return
         incognito = self.incognito_switch.get_active()
         if incognito:
+            self._cancel_live_rewrite()
             self._cancel_titles()
         if self.automatic_titles_switch is not None:
             self.automatic_titles_switch.set_sensitive(not incognito)
@@ -3465,7 +3823,7 @@ class MluvaApplication(Adw.Application):
             self.cleanup_switch.set_active(self.cleanup_before_incognito)
             self.cleanup_before_incognito = None
             self.cleanup_switch.set_subtitle(
-                "Remove obvious filler and repair punctuation through the local Codex app-server"
+                "Remove obvious filler and repair punctuation through the selected rewrite provider"
             )
         recorder_idle = (
             (self.recorder is None or self.recorder.process is None)
@@ -4110,11 +4468,17 @@ class MluvaApplication(Adw.Application):
                     if realtime_session is not None
                     else RECOGNITION_FALLBACK_UNAVAILABLE
                 )
-            provider = "ElevenLabs Scribe v2 batch fallback"
+            provider = f"{self.config.transcription_provider} · final transcription at Stop"
             preview_text = "Realtime preview unavailable; finalized local audio will use batch recognition."
         else:
-            provider = "ElevenLabs Scribe v2 Realtime"
-            preview_text = realtime_session.snapshot().display_text or "Waiting for speech…"
+            provider = (
+                "Scribe Realtime"
+                if self.config.transcription_provider == "elevenlabs"
+                else f"{self.config.transcription_provider} · chunk preview"
+            )
+            snapshot = realtime_session.snapshot()
+            preview_text = snapshot.display_text or "Waiting for speech…"
+            self._maybe_live_rewrite(snapshot.committed_text)
         self._present_recording_bar(
             self._recording_bar_state(
                 kind=RECORDING_KIND_RECORDING,
@@ -4147,6 +4511,7 @@ class MluvaApplication(Adw.Application):
 
     def _cancel_capture(self) -> bool:
         """Erase active audio and reset capture state without recognition or delivery."""
+        self._cancel_live_rewrite()
         if self._meeting_capture_active() and not self.meeting_processing and self.meeting_recorder is not None:
             if self.meeting_capture_started_at is not None:
                 self._record_meeting_diagnostic(
@@ -4207,15 +4572,16 @@ class MluvaApplication(Adw.Application):
         self._clear_live_capture()
         self._reset_record_button()
         self._set_status(
-            "Recording cancelled. Local audio was erased; audio already streamed to ElevenLabs cannot be recalled."
+            "Recording cancelled. Local audio was erased; already processed audio cannot be recalled."
             if audio_was_streamed
-            else "Recording cancelled. Local audio was erased; no audio was sent to ElevenLabs."
+            else "Recording cancelled. Local audio was erased."
         )
         return True
 
     def _on_shutdown(self, _application: Adw.Application) -> None:
         """Release child processes and portal registrations during application exit."""
         self.shutting_down = True
+        self._cancel_live_rewrite()
         self._cancel_titles(wait=True)
         self.theme_controller.close()
         MluvaApplication._clear_overlay_timeout(self)

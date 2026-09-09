@@ -1,6 +1,6 @@
 [project]
 name = "mluva-linux"
-version = "0.2.0"
+version = "0.3.0"
 description = "Native Linux client for Mluva"
 requires-python = ">=3.12"
 license = "Apache-2.0"

@@ -201,6 +201,7 @@ def test_prepare_capture_resolves_model_before_realtime_and_wires_segment_cleanu
         shutting_down=False,
         pending_session_identifier="capture-session",
         realtime_client=realtime,
+        config=AppConfig(),
         codex_workspace=tmp_path / "codex-workspace",
         _capture_prepared=prepared_callback,
         _capture_preparation_failed=failed_callback,
@@ -410,6 +411,7 @@ def test_incognito_temporarily_suspends_and_then_restores_cleanup() -> None:
         incognito_switch=incognito,
         automatic_titles_switch=None,
         _cancel_titles=lambda: None,
+        _cancel_live_rewrite=lambda: None,
         cleanup_switch=cleanup,
         cleanup_before_incognito=None,
         recorder=None,
@@ -436,7 +438,7 @@ def test_incognito_temporarily_suspends_and_then_restores_cleanup() -> None:
     assert application.cleanup_before_incognito is None
     assert cleanup.active
     assert cleanup.sensitive
-    assert "local Codex app-server" in cleanup.subtitle
+    assert "selected rewrite provider" in cleanup.subtitle
     assert output_style.sensitive
 
 

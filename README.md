@@ -15,10 +15,11 @@ Turn a spoken thought into text you can use. Press **F9**, say what you mean, an
 | Get an idea down quickly | Background dictation, live words and a completed result on the clipboard. |
 | Clean up the wording | **Polish** removes filler and repairs phrasing; your source stays available. |
 | Make sense of a long note | **Structure** creates a summary and organized points. |
-| Keep your own voice | Custom instructions, follow-ups, saved prompts and a Copy action for each version. |
+| Keep your own voice | Editable originals and rewrites, custom instructions, follow-ups and saved prompts. |
+| See what is missing while speaking | **Live rewrite** fills a task spec, structured note or custom template with editable drafts. |
 | Find it later | Automatic conversation titles and search across originals, rewrites and instructions. |
 
-On **Omarchy**, a translucent widget shows five lines while you speak, easing upward as the current line fills. When you finish, rewrite directly from the widget. Its countdown ring closes the review after eight idle seconds; hovering, keyboard focus, menus and active rewrites pause it. **Shift+F9** reopens the latest conversation when that shortcut is configured.
+On **Omarchy**, a translucent widget shows five lines while you speak, easing upward as the current line fills. When you finish, rewrite directly from the widget. Its countdown ring closes the review after four idle seconds by default; hovering, keyboard focus, menus and active rewrites pause it. **Shift+F9** reopens the latest conversation when that shortcut is configured.
 
 ![Omarchy review widget with Polish, Structure, More, Copy, Open and a countdown ring](docs/assets/omarchy-review.png)
 
@@ -34,7 +35,7 @@ Closing the main window keeps Mluva available. Open the shell menu or applicatio
 
 ## Try it on Linux
 
-Install the [Linux dependencies](linux/README.md#supported-desktop-contract), provide `ELEVENLABS_API_KEY` through your secret manager, and optionally authenticate a local Codex installation for rewriting and generated titles. Then:
+Install the [Linux dependencies](linux/README.md#supported-desktop-contract), choose a [speech and rewrite provider](docs/providers-and-live-rewrite.md), and provide any required credentials through your secret manager. The defaults are ElevenLabs Scribe and an authenticated Codex app-server; local Voxtype/Whisper and LiteLLM-compatible services are also available. Then:
 
 ```bash
 git clone https://github.com/1vecera/Mluva.git mluva
@@ -43,7 +44,7 @@ make linux-install
 mluva
 ```
 
-The installer installs for your user. Dictation copies completed text automatically. **Ctrl+Enter** sends a custom rewrite; rewriting changes the clipboard only when you choose **Copy**. See the [Linux guide](linux/README.md) for microphone selection, language, shortcuts, saved styles and recovery.
+The installer installs for your user. Dictation copies completed text automatically. **Ctrl+Enter** sends a custom rewrite; completed rewrites copy automatically too. Edit either document directly, then Save or press Ctrl+S. Change copying and icon visibility in Settings → Workspace. See the [Linux guide](linux/README.md) for microphone selection, language, shortcuts, saved styles and recovery.
 
 ## Where things stand
 
@@ -59,10 +60,10 @@ Conversation rewriting, generated titles, Meeting mode and other advanced surfac
 
 ## Your text and the cloud
 
-- **Recognition on Linux:** microphone audio goes to ElevenLabs Scribe. This is cloud dictation.
-- **Rewriting and titles:** text goes through your locally authenticated Codex app-server. Automatic titles use up to 6,000 characters from each new conversation; disable them in Settings to keep local text labels. Existing history is not sent in bulk.
+- **Recognition on Linux:** choose cloud ElevenLabs Scribe, local Voxtype/Whisper, or an audio-transcription deployment through a LiteLLM-compatible endpoint.
+- **Rewriting and titles:** text goes through your authenticated Codex app-server or configured LiteLLM-compatible endpoint; the selected provider determines where inference runs. Automatic titles use up to 6,000 characters from each new conversation; disable them in Settings to keep local text labels. Existing history is not sent in bulk.
 - **Local history:** originals, completed rewrites and titles stay together in a local SQLite database. You can rename, export or delete them. A manual title takes precedence over an automatic one.
-- **Incognito:** Mluva saves neither history nor recovery audio and disables conversation rewriting and generated titles. Recognition still uses ElevenLabs; cancellation cannot recall audio already sent.
+- **Incognito:** Mluva saves neither history nor recovery audio and disables conversation rewriting and generated titles. Recognition still uses your selected speech provider; cancellation cannot recall audio already sent to a cloud service.
 
 Audio retention, recovery, Command previews and other details are documented in the [product contract](docs/product-contract.md) and [Linux guide](linux/README.md).
 

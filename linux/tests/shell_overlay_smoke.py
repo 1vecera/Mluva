@@ -372,7 +372,7 @@ def main() -> None:
                 RecordingOverlayState(phase="ready", preview="Timed review", review_identifier="timed-note")
             )
             state = observe("ready")
-            assert 0 < countdown()["remaining"] < 8000
+            assert 0 < countdown()["remaining"] < 4000
             position = countdown()
             move_pointer(position["x"] + 20, position["y"] + 20)
             observe("ready")
@@ -400,12 +400,12 @@ def main() -> None:
             )
             observe("rewriting")
             time.sleep(0.6)
-            assert countdown()["remaining"] == 8000
+            assert countdown()["remaining"] == 4000
             publisher.publish(
                 RecordingOverlayState(phase="ready", preview="Finished result", review_identifier="timed-note")
             )
             observe("ready")
-            assert countdown()["remaining"] > 7000
+            assert countdown()["remaining"] > 3000
             before_dismiss = list(commands)
             deadline = time.monotonic() + 10
             while countdown()["visible"] and time.monotonic() < deadline:
@@ -417,7 +417,7 @@ def main() -> None:
             (output / "countdown.json").write_text(
                 json.dumps(
                     {
-                        "duration_ms": 8000,
+                        "duration_ms": 4000,
                         "hover": hovered,
                         "menu": paused,
                         "keyboard": focused,
@@ -429,6 +429,22 @@ def main() -> None:
             )
             publisher.clear()
             assert not observe("idle")["visible"]
+            publisher.publish(
+                RecordingOverlayState(
+                    phase="ready",
+                    preview="Custom settings",
+                    review_identifier="custom-settings",
+                    review_timeout_seconds=3,
+                    show_copy_action=False,
+                    smooth_scrolling=False,
+                    scroll_duration_ms=1200,
+                    scroll_lookahead_lines=0,
+                )
+            )
+            configured = observe("ready")
+            assert configured["reviewDuration"] == 3000 and not configured["copyVisible"]
+            assert configured["scrollDuration"] == 1200 and not configured["smoothScrolling"]
+            assert configured["scrollLookahead"] == 0
             publisher.publish(RecordingOverlayState(phase="recording", preview="Must disappear on owner loss"))
             observe("recording")
             Gio.bus_unown_name(owner)

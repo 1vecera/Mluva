@@ -16,6 +16,11 @@ Item {
     property string identifier: ""
     property var options: []
     property string message: ""
+    property int reviewTimeout: 4
+    property bool showCopy: true
+    property bool smoothScrolling: true
+    property int scrollDuration: 800
+    property int scrollLookahead: 2
     property bool controlFailed: false
     readonly property string executable: settings && settings.command ? settings.command : "mluva-shell"
     readonly property var labels: ({
@@ -60,6 +65,11 @@ Item {
                     root.preview = typeof state.preview === "string" ? state.preview : "";
                     root.identifier = typeof state.identifier === "string" ? state.identifier.slice(0, 36) : "";
                     root.options = Array.isArray(state.options) ? state.options.slice(0, 128) : [];
+                    root.reviewTimeout = Number.isInteger(state.review_timeout) ? Math.max(1, Math.min(60, state.review_timeout)) : 4;
+                    root.showCopy = state.show_copy !== false;
+                    root.smoothScrolling = state.smooth_scrolling !== false;
+                    root.scrollDuration = Number.isInteger(state.scroll_duration) ? state.scroll_duration : 800;
+                    root.scrollLookahead = Number.isInteger(state.scroll_lookahead) ? state.scroll_lookahead : 2;
                     root.message = typeof state.message === "string" ? state.message.slice(0, 96) : "";
                 } catch (error) {
                     root.phase = "unavailable";
@@ -87,6 +97,11 @@ Item {
     RecordingOverlay {
         screen: root.QsWindow.window ? root.QsWindow.window.screen : null
         bar: root.bar
+        reviewDuration: root.reviewTimeout * 1000
+        showCopy: root.showCopy
+        smoothScrolling: root.smoothScrolling
+        scrollDuration: root.scrollDuration
+        scrollLookahead: root.scrollLookahead
         phase: root.phase
         elapsed: root.elapsed
         level: root.level

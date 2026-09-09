@@ -186,6 +186,24 @@ class DictationWorkflow:
     personalization: PersonalizationStore | None = None
     diagnostics: DiagnosticsStore | None = None
 
+    @property
+    def recognition_provider(self) -> DiagnosticProvider:
+        """Keep provider metadata accurate without retaining arbitrary service names."""
+        return {
+            "elevenlabs": DiagnosticProvider.ELEVENLABS_SCRIBE_V2,
+            "litellm": DiagnosticProvider.LITELLM,
+            "voxtype": DiagnosticProvider.VOXTYPE,
+        }[self.config.transcription_provider]
+
+    @property
+    def enhancement_provider(self) -> DiagnosticProvider:
+        """Record the transport actually used for optional rewriting."""
+        return (
+            DiagnosticProvider.CODEX_APP_SERVER
+            if self.config.rewrite_provider == "codex"
+            else DiagnosticProvider.LITELLM
+        )
+
     def freeze_transcript_preparation(
         self,
         mode: str,
@@ -254,6 +272,12 @@ class DictationWorkflow:
                 used_batch_fallback=recognition_used_batch_fallback,
                 fallback_reason=recognition_fallback_reason,
             )
+            if self.config.transcription_provider != "elevenlabs":
+                recognition_route = {"litellm": "litellm-batch", "voxtype": "voxtype-local"}[
+                    self.config.transcription_provider
+                ]
+                resolved_fallback_reason = None
+                recognition_used_batch_fallback = False
             if recognized_transcription is None:
                 transcription = self.elevenlabs.transcribe(
                     audio_path,
@@ -278,7 +302,7 @@ class DictationWorkflow:
                 session_identifier,
                 mode,
                 DiagnosticStage.RECOGNITION,
-                DiagnosticProvider.ELEVENLABS_SCRIBE_V2,
+                self.recognition_provider,
                 DiagnosticOutcome.FAILED,
                 recognition_failure_seconds,
                 incognito,
@@ -301,7 +325,7 @@ class DictationWorkflow:
             session_identifier,
             mode,
             DiagnosticStage.RECOGNITION,
-            DiagnosticProvider.ELEVENLABS_SCRIBE_V2,
+            self.recognition_provider,
             (DiagnosticOutcome.SAFE_FALLBACK if recognition_used_batch_fallback else DiagnosticOutcome.COMPLETED),
             recognition_seconds,
             incognito,
@@ -367,7 +391,7 @@ class DictationWorkflow:
                 + (segment_cleanup.stop_drain_seconds if segment_cleanup is not None else 0)
             )
             provider_failure = isinstance(error, EnhancementProviderFailure)
-            enhancement_provider = DiagnosticProvider.CODEX_APP_SERVER if provider_failure else DiagnosticProvider.LOCAL
+            enhancement_provider = self.enhancement_provider if provider_failure else DiagnosticProvider.LOCAL
             self._record_diagnostic(
                 session_identifier,
                 mode,
@@ -389,7 +413,7 @@ class DictationWorkflow:
                 application_identifier=application_identifier,
                 recognition_route=recognition_route,
                 recognition_fallback_reason=resolved_fallback_reason,
-                enhancement_provider_id=(ENHANCEMENT_PROVIDER_CODEX_APP_SERVER if provider_failure else None),
+                enhancement_provider_id=(self.enhancement_provider.value if provider_failure else None),
                 enhancement_model_identifier=codex_model_identifier if provider_failure else None,
                 enhancement_context_sources=(enhancement_context_sources if provider_failure else ()),
                 enhancement_outcome="failed" if provider_failure else None,
@@ -411,9 +435,7 @@ class DictationWorkflow:
                 )
             else:
                 enhancement_outcome = DiagnosticOutcome.COMPLETED
-        enhancement_provider = (
-            DiagnosticProvider.CODEX_APP_SERVER if transformation.codex_requested else DiagnosticProvider.LOCAL
-        )
+        enhancement_provider = self.enhancement_provider if transformation.codex_requested else DiagnosticProvider.LOCAL
         enhancement_ms = round(enhancement_seconds * 1_000)
         self._record_diagnostic(
             session_identifier,
@@ -441,6 +463,8 @@ class DictationWorkflow:
                         )
                     ),
                 )
+            elif not self.config.auto_copy_dictation:
+                delivery = DeliveryReceipt(False, False, "Dictation ready. Automatic copying is off.")
             else:
                 auto_paste = self.config.auto_paste and allow_auto_paste
                 restored_target = False
@@ -487,9 +511,7 @@ class DictationWorkflow:
                 application_identifier=application_identifier,
                 recognition_route=recognition_route,
                 recognition_fallback_reason=resolved_fallback_reason,
-                enhancement_provider_id=(
-                    ENHANCEMENT_PROVIDER_CODEX_APP_SERVER if transformation.codex_requested else None
-                ),
+                enhancement_provider_id=(self.enhancement_provider.value if transformation.codex_requested else None),
                 enhancement_model_identifier=transformation.model_identifier,
                 enhancement_context_sources=transformation.context_sources,
                 enhancement_outcome=(enhancement_outcome.value if transformation.codex_requested else None),
@@ -551,7 +573,7 @@ class DictationWorkflow:
                     recognition_route=recognition_route,
                     recognition_fallback_reason=resolved_fallback_reason,
                     enhancement_provider_id=(
-                        ENHANCEMENT_PROVIDER_CODEX_APP_SERVER if transformation.codex_requested else None
+                        self.enhancement_provider.value if transformation.codex_requested else None
                     ),
                     enhancement_model_identifier=transformation.model_identifier,
                     enhancement_context_sources=transformation.context_sources,
@@ -619,6 +641,11 @@ class DictationWorkflow:
             transcription_id=transcription.transcription_id,
             retain_audio=policy is not AudioRetentionPolicy.NEVER,
             recognition_ms=recognition_ms,
+            recognition_route={
+                "elevenlabs": "scribe-v2-batch-retry",
+                "litellm": "litellm-batch-retry",
+                "voxtype": "voxtype-local-retry",
+            }[self.config.transcription_provider],
         )
 
     def _record_failure(

@@ -5,8 +5,8 @@ run_private_session() {
     local artifact_dir=$1
     local launcher_log="${artifact_dir}/atspi-bus-launcher.log"
     local registry_log="${artifact_dir}/atspi-registry.log"
-    local launcher_pid=""
-    local registry_pid=""
+    launcher_pid=""
+    registry_pid=""
 
     cleanup_accessibility() {
         if [[ -n "${registry_pid}" ]] && kill -0 "${registry_pid}" 2>/dev/null; then
@@ -101,6 +101,11 @@ run_private_session() {
                 MLUVA_UI_WIDTH="${width}" MLUVA_UI_HEIGHT="${height}" \
                 uv run --locked python tests/conversation_ui_smoke.py
         done
+    elif [[ "${MLUVA_SMOKE:-}" == live ]]; then
+        OFFSCREEN_SESSION_ROOT="${artifact_dir}/session" OFFSCREEN_ARTIFACT_DIR="${artifact_dir}" \
+            PYTHONPATH=.:tests GTK_A11Y=atspi ADW_DISABLE_PORTAL=1 GSK_RENDERER=cairo \
+            VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT=1 \
+            uv run --locked python tests/live_workspace_smoke.py
     else
         OFFSCREEN_ARTIFACT_DIR="${artifact_dir}" PYTHONPATH=. GTK_A11Y=atspi \
             uv run --locked python tests/native_text_target_smoke.py

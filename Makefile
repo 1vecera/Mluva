@@ -1,4 +1,4 @@
-.PHONY: build test run setup-signing release distribution ci-package open install clean smoke linux-setup linux-test linux-feature-maturity linux-feature-maturity-check linux-shortcut-test linux-overlay-test linux-text-target-test linux-run linux-install linux-uninstall linux-input-helper-install linux-input-helper-status linux-input-helper-remove linux-recording-overlay-install linux-recording-overlay-status linux-recording-overlay-remove
+.PHONY: build test run setup-signing release distribution ci-package open install clean smoke linux-setup linux-test linux-feature-maturity linux-feature-maturity-check linux-shortcut-test linux-overlay-test linux-text-target-test linux-conversation-test linux-live-rewrite-test linux-run linux-install linux-uninstall linux-input-helper-install linux-input-helper-status linux-input-helper-remove linux-recording-overlay-install linux-recording-overlay-status linux-recording-overlay-remove
 
 # Debug build
 build:
@@ -90,6 +90,9 @@ linux-text-target-test: linux-setup
 
 linux-conversation-test: linux-setup
 	MLUVA_SMOKE=conversation bash linux/tests/run_native_text_target_smoke.sh tmp/conversation-smoke
+
+linux-live-rewrite-test: linux-setup
+	MLUVA_SMOKE=live bash linux/tests/run_native_text_target_smoke.sh tmp/live-workspace
 
 linux-run: linux-setup
 	cd linux && uv run --locked python -m voice_scribe_linux.app
