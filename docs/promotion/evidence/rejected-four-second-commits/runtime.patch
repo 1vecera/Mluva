@@ -1,0 +1,898 @@
+diff --git c/linux/quickshell/mluva.dictation/RecordingOverlay.qml w/linux/quickshell/mluva.dictation/RecordingOverlay.qml
+index 63b6ce2..7d65374 100644
+--- c/linux/quickshell/mluva.dictation/RecordingOverlay.qml
++++ w/linux/quickshell/mluva.dictation/RecordingOverlay.qml
+@@ -176,14 +176,25 @@ PanelWindow {
+             anchors.margins: 10
+             spacing: 6
+             RowLayout {
++                objectName: "recording-header"
+                 width: parent.width
+                 visible: !root.reviewing
+                 spacing: 8
+                 Rectangle {
++                    id: recordingDot
++                    objectName: "recording-dot"
+                     width: 6
+                     height: 6
+                     radius: 3
+                     color: root.emphasis
++                    SequentialAnimation on opacity {
++                        running: root.visible && root.phase === "recording"
++                            && root.smoothScrolling && root.scrollDuration > 0
++                        loops: Animation.Infinite
++                        NumberAnimation { from: 1; to: 0.55; duration: 1100; easing.type: Easing.InOutSine }
++                        NumberAnimation { from: 0.55; to: 1; duration: 1100; easing.type: Easing.InOutSine }
++                        onStopped: recordingDot.opacity = 1
++                    }
+                 }
+                 Text {
+                     Layout.fillWidth: true
+@@ -195,6 +206,7 @@ PanelWindow {
+                     elide: Text.ElideRight
+                 }
+                 Text {
++                    objectName: "recording-timer"
+                     visible: root.phase === "recording"
+                     text: root.timer
+                     color: Color.popups.text
+@@ -214,12 +226,12 @@ PanelWindow {
+                     property real offset: Math.min(0, transcriptViewport.height - transcript.height
+                         - root.discardedHeight - transcript.lookAhead)
+                     Behavior on offset {
+-                        enabled: root.animatePreview && root.visible && root.smoothScrolling
++                        enabled: root.animatePreview && root.visible && root.smoothScrolling && root.scrollDuration > 0
+                         SmoothedAnimation {
+-                            velocity: root.lineHeight * 1.7
++                            velocity: -1
+                             duration: root.scrollDuration
+-                            maximumEasingTime: 160
+-                            reversingMode: SmoothedAnimation.Immediate
++                            maximumEasingTime: -1
++                            reversingMode: SmoothedAnimation.Eased
+                         }
+                     }
+                 }
+diff --git c/linux/tests/fake_app_server.py w/linux/tests/fake_app_server.py
+index 9a31316..8a75e37 100644
+--- c/linux/tests/fake_app_server.py
++++ w/linux/tests/fake_app_server.py
+@@ -112,6 +112,8 @@ def main() -> None:
+                 context = json.loads(message["params"]["input"][0]["text"].split("\n", 1)[1])
+                 if "--live" in sys.argv:
+                     replacement = context["current_draft"] + "\n## Dictated details\n" + context["transcript"]
++                    if "--compact-live" in sys.argv:
++                        replacement = "# Dictated details\n" + context["transcript"] + "\n[Missing: deadline]"
+                 else:
+                     previous = context["completed_rewrites"]
+                     text = previous[-1]["text"] if previous else context["initial_text"]
+diff --git c/linux/tests/live_workspace_smoke.py w/linux/tests/live_workspace_smoke.py
+index 56fc79d..82e7b72 100644
+--- c/linux/tests/live_workspace_smoke.py
++++ w/linux/tests/live_workspace_smoke.py
+@@ -158,18 +158,43 @@ def main() -> int:
+                 assert workspace.live_box.get_orientation().value_nick == "vertical"
+                 app.window.set_default_size(1060, 780)
+                 final_entry = app.history_store.add(transcript, transcript, "dictation", "eng", None, "copied")
++                app.live_schedule.last_started = float("-inf")
++                app._maybe_live_rewrite(transcript + " One update is still running at Stop.")
++                assert app.live_rewrite_client is not None
+                 app.live_final_entry = final_entry.identifier
+                 app.live_final_text = transcript + " Final tail: verify restoration after restart."
+                 app._maybe_live_rewrite(app.live_final_text, final=True)
++                buffer.insert(buffer.get_end_iter(), "\nManual edit during finalization")
+                 settle(lambda: app.live_schedule is None)
+                 saved = app.conversation_store.replies(final_entry.identifier)
+                 assert len(saved) == 1 and "Final tail" in saved[0].text
++                assert "Manual edit during finalization" in saved[0].text
++                assert app.history_store.find(final_entry.identifier).raw_text == transcript
+                 assert copies[-1] == saved[0].text and len(copies) == count + 1
++                app._maybe_live_rewrite(app.live_final_text, final=True)
++                assert len(app.conversation_store.replies(final_entry.identifier)) == 1
+                 app.pending_session_identifier = "cancelled-live-session"
+                 app._start_live_rewrite()
+                 app._maybe_live_rewrite(transcript)
++                cancelled_client = app.live_rewrite_client
++                cancelled_session = app.live_session_identifier
+                 app._cancel_live_rewrite()
+-                settle(lambda: app.live_rewrite_client is None)
++                app._live_rewrite_finished(
++                    cancelled_session, cancelled_client, app.live_revision, "Late result", "fake"
++                )
++                assert not workspace.live_draft_box.get_visible()
++                assert len(copies) == count + 1
++                app.pending_session_identifier = "failed-live-session"
++                app._start_live_rewrite()
++                with patch.object(app, "_new_rewrite_client", side_effect=RuntimeError("Controlled provider failure")):
++                    app._maybe_live_rewrite(transcript)
++                assert app.live_schedule.failed
++                failed_entry = app.history_store.add(transcript, transcript, "dictation", "eng", None, "copied")
++                app.live_final_entry = failed_entry.identifier
++                app._maybe_live_rewrite(transcript, final=True)
++                failed = app.conversation_store.replies(failed_entry.identifier)
++                assert len(failed) == 1 and "partial draft" in failed[0].instruction
++                assert len(copies) == count + 1
+                 app.config = replace(app.config, incognito_mode=True)
+                 app.pending_incognito = True
+                 app._start_live_rewrite()
+@@ -190,6 +215,9 @@ def main() -> int:
+                         "manual_edit_race_preserved": True,
+                         "live_template_gaps": True,
+                         "one_final_saved_draft": True,
++                        "manual_edit_during_finalization": True,
++                        "failed_final_never_copied": True,
++                        "cancelled_late_result_discarded": True,
+                         "cancel_and_incognito": True,
+                     },
+                     indent=2,
+@@ -200,7 +228,12 @@ def main() -> int:
+         app.quit()
+         return GLib.SOURCE_REMOVE
+ 
+-    app.connect("activate", lambda _app: GLib.timeout_add(500, exercise))
++    def activate_once(_app):
++        """Opening Settings reactivates the app; it must not start a second nested test run."""
++        app.disconnect(activation)
++        GLib.timeout_add(500, exercise)
++
++    activation = app.connect("activate", activate_once)
+     app.run([])
+     if errors:
+         raise RuntimeError("\n".join(errors))
+diff --git c/linux/tests/scroll_lifecycle.py w/linux/tests/scroll_lifecycle.py
+index e23fc6a..de60c2a 100644
+--- c/linux/tests/scroll_lifecycle.py
++++ w/linux/tests/scroll_lifecycle.py
+@@ -2,6 +2,7 @@
+ 
+ import json
+ import time
++from dataclasses import replace
+ from pathlib import Path
+ 
+ import gi
+@@ -15,9 +16,10 @@ from gi.repository import GLib, Gtk  # noqa: E402
+ def exercise_scrolling(application: MluvaApplication, output: Path) -> None:
+     """Prove intermediate positions, manual reading, corrected tails and document changes."""
+     workspace = application.conversation_workspace
++    workspace.set_config(replace(application.config, smooth_scrolling=True, scroll_duration_ms=800))
+     Gtk.Settings.get_default().set_property("gtk-enable-animations", True)
+ 
+-    def frames(adjustment: Gtk.Adjustment, seconds: float = 0.8) -> list[float]:
++    def frames(adjustment: Gtk.Adjustment, seconds: float = 1.05) -> list[float]:
+         """Collect actual adjustment positions while the private GTK frame clock runs."""
+         positions = []
+         deadline = time.monotonic() + seconds
+@@ -43,6 +45,7 @@ def exercise_scrolling(application: MluvaApplication, output: Path) -> None:
+     live_motion = frames(live)
+     assert at_end(live)
+     assert any(before + 1 < value < live.get_value() - 1 for value in live_motion), live_motion
++    assert workspace.live_text.get_bottom_margin() >= workspace.config.scroll_lookahead_lines * 20
+     live.set_value(90)
+     assert not workspace.live_follower.following
+     source += "\nThe reader stays where they scrolled."
+@@ -62,6 +65,47 @@ def exercise_scrolling(application: MluvaApplication, output: Path) -> None:
+     workspace.finish_live()
+     assert buffer.get_char_count() == 0 and not workspace.live_column.get_visible()
+ 
++    workspace.set_live("Recording", source)
++    workspace.show_live_draft(source)
++    draft = workspace.live_draft_scroll.get_vadjustment()
++    workspace.live_draft_follower.follow(snap=True)
++    frames(draft)
++    assert at_end(draft)
++    before = draft.get_value()
++    workspace.show_live_draft(source + "\nThe completed draft grows.\nIts latest words stay visible.")
++
++    def queue_same_destination():
++        """Repeated word updates without another wrap must not restart the whole easing curve."""
++        workspace.live_draft_follower.queue()
++        return GLib.SOURCE_CONTINUE
++
++    repeated = GLib.timeout_add(30, queue_same_destination)
++    draft_motion = frames(draft)
++    GLib.source_remove(repeated)
++    assert at_end(draft) and workspace.live_draft_follower.following
++    assert any(before + 1 < value < draft.get_value() - 1 for value in draft_motion), draft_motion
++    draft.set_value(80)
++    workspace.show_live_draft(source + "\nA complete replacement preserves the reader's position.")
++    frames(draft)
++    assert abs(draft.get_value() - 80) < 1 and not workspace.live_draft_follower.following
++    for mode in ("smooth-off", "duration-zero", "reduced-motion"):
++        workspace.set_config(
++            replace(
++                application.config,
++                smooth_scrolling=mode != "smooth-off",
++                scroll_duration_ms=0 if mode == "duration-zero" else 800,
++            )
++        )
++        Gtk.Settings.get_default().set_property("gtk-enable-animations", mode != "reduced-motion")
++        workspace.live_draft_follower.follow(snap=True)
++        frames(draft, 0.1)
++        workspace.show_live_draft(source + "\nNew text appears without animation.\n" + mode)
++        positions = frames(draft, 0.15)
++        assert at_end(draft), (mode, positions)
++    workspace.finish_live()
++    workspace.set_config(application.config)
++    Gtk.Settings.get_default().set_property("gtk-enable-animations", True)
++
+     entry = application.history_store.add(source, source, "dictation", "eng", None, "copied")
+     workspace.show_conversation(entry, [])
+     conversation = workspace.scroll.get_vadjustment()
+@@ -91,6 +135,12 @@ def exercise_scrolling(application: MluvaApplication, output: Path) -> None:
+     Gtk.Settings.get_default().set_property("gtk-enable-animations", False)
+     (output / "scroll-lifecycle.json").write_text(
+         json.dumps(
+-            {"dictation_positions": live_motion, "rewrite_positions": rewrite_motion, "manual_reading_preserved": True}
++            {
++                "dictation_positions": live_motion,
++                "rewrite_positions": rewrite_motion,
++                "draft_positions": draft_motion,
++                "manual_reading_preserved": True,
++                "reduced_motion_and_smooth_settings": True,
++            }
+         )
+     )
+diff --git c/linux/tests/shell_overlay_fixture.qml w/linux/tests/shell_overlay_fixture.qml
+index 136731c..f349bf5 100644
+--- c/linux/tests/shell_overlay_fixture.qml
++++ w/linux/tests/shell_overlay_fixture.qml
+@@ -88,11 +88,16 @@ ShellRoot {
+             const viewport = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-viewport");
+             const copy = root.descendants(overlay.contentItem).find(item => item.objectName === "copy-button");
+             const surface = root.descendants(overlay.contentItem).find(item => item.objectName === "overlay-surface");
++            const dot = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-dot");
++            const header = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-header");
++            const timer = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-timer");
+             return JSON.stringify({phase: widget.phase, preview: widget.preview, elapsed: widget.elapsed,
+                 identifier: widget.identifier, options: widget.options, menuOpen: overlay.menuOpen,
+                 copyEnabled: copy.enabled, copyVisible: copy.visible, renderedText: text.text,
+                 reviewDuration: overlay.reviewDuration, smoothScrolling: overlay.smoothScrolling,
+                 scrollDuration: overlay.scrollDuration, scrollLookahead: overlay.scrollLookahead,
++                dotOpacity: dot.opacity, headerVisible: header.visible, timerVisible: timer.visible, timerText: timer.text,
++                headerBottom: header.y + header.height, viewportTop: viewport.y,
+                 textHeight: text.height, textY: text.y, viewportHeight: viewport.height, lineHeight: overlay.lineHeight,
+                 lineCount: text.lineCount, lookAhead: text.lookAhead,
+                 lastLineFill: text.lastLineFill, previewStart: widget.previewStart,
+diff --git c/linux/tests/shell_overlay_smoke.py w/linux/tests/shell_overlay_smoke.py
+index 6d07f99..12ce324 100644
+--- c/linux/tests/shell_overlay_smoke.py
++++ w/linux/tests/shell_overlay_smoke.py
+@@ -160,14 +160,15 @@ def main() -> None:
+                 observed_lines = len(lines)
+                 if payloads:
+                     state = json.loads(payloads[-1])
++                    stable = {key: value for key, value in state.items() if key != "dotOpacity"}
+                     if (
+                         state["phase"] == phase
+-                        and state == previous
++                        and stable == previous
+                         and (preview is None or state["preview"] == preview)
+                     ):
+                         receipts.append(state)
+                         return state
+-                    previous = state
++                    previous = stable
+                 time.sleep(0.05)
+             raise AssertionError(f"Widget did not settle in {phase}: {previous}")
+ 
+@@ -194,10 +195,10 @@ def main() -> None:
+             )
+             return json.loads(result.stdout)
+ 
+-        def motion_frames(preview: str) -> list[dict[str, object]]:
++        def motion_frames(preview: str, **preferences) -> list[dict[str, object]]:
+             """Observe intermediate production animation frames as real D-Bus text updates arrive."""
+             start = len(log_lines())
+-            publisher.publish(RecordingOverlayState(phase="recording", preview=preview))
++            publisher.publish(RecordingOverlayState(phase="recording", preview=preview, **preferences))
+             deadline = time.monotonic() + 1.4
+             while time.monotonic() < deadline:
+                 while GLib.MainContext.default().pending():
+@@ -227,6 +228,8 @@ def main() -> None:
+                 assert state["height"] + state["bottom"] <= state["screenHeight"]
+                 assert state["preview"] == preview[-4096:]
+                 if phase == "recording":
++                    assert state["headerVisible"] and state["timerVisible"] and state["timerText"] == "01:13"
++                    assert state["headerBottom"] < state["viewportTop"]
+                     assert state["viewportHeight"] == state["lineHeight"] * 5
+                     assert state["textY"] < 0
+                     assert abs(state["textY"] - state["targetY"]) < 0.1
+@@ -262,6 +265,18 @@ def main() -> None:
+                 json.dumps({"before": short, "near_edge": near, "wrap": wrapped}, indent=2)
+             )
+             subprocess.run(["import", "-window", "root", str(output / "five-lines.png")], check=True)
++            pulse = motion_frames(samples["wrapped"])
++            opacity = [frame["dotOpacity"] for frame in pulse]
++            assert len({round(value, 3) for value in opacity}) >= 10, opacity
++            assert min(opacity) >= 0.54 and max(opacity) <= 1 and max(opacity) - min(opacity) > 0.25
++            assert all(abs(a - b) < 0.15 for a, b in zip(opacity, opacity[1:], strict=False)), opacity
++            for preferences in ({"smooth_scrolling": False}, {"scroll_duration_ms": 0}):
++                still = motion_frames(samples["wrapped"] + " Motion is disabled.", **preferences)
++                assert all(frame["dotOpacity"] == 1 for frame in still), still
++                assert all(abs(frame["textY"] - frame["targetY"]) < 0.1 for frame in still), still
++            (output / "recording-pulse.json").write_text(
++                json.dumps({"opacity_frames": opacity, "disabled_is_static": True, "header_retained": True}, indent=2)
++            )
+             full_text = " ".join(f"{'🙂' if index < 12 else 'w'}{index:04d}" for index in range(670))
+             assert len(full_text) < 4096
+             publisher.publish(RecordingOverlayState(phase="recording", preview=full_text))
+diff --git c/linux/tests/test_app_capture.py w/linux/tests/test_app_capture.py
+index 30ebb29..efc3d05 100644
+--- c/linux/tests/test_app_capture.py
++++ w/linux/tests/test_app_capture.py
+@@ -1,6 +1,7 @@
+ """Headless readiness coverage for the GTK application's capture handoff."""
+ 
+ import time
++from dataclasses import replace
+ from pathlib import Path
+ from types import SimpleNamespace
+ 
+@@ -14,7 +15,7 @@ from voice_scribe_linux.codex_client import CodexAppServerClient
+ from voice_scribe_linux.config import FUNCTION_KEY_OPTIONS, AppConfig, load_config
+ from voice_scribe_linux.delivery import DeliveryReceipt
+ from voice_scribe_linux.history import HistoryStore
+-from voice_scribe_linux.realtime import RealtimeCommittedSegment
++from voice_scribe_linux.realtime import ElevenLabsRealtimeClient, RealtimeCommittedSegment
+ from voice_scribe_linux.segment_cleanup import SegmentCleanupSession, SegmentCleanupState
+ from voice_scribe_linux.workflow import TranscriptPreparationSnapshot
+ 
+@@ -70,7 +71,7 @@ class CapturingRealtimeClient:
+         self.on_committed_segment = None
+         self.session = SimpleNamespace(cancel=lambda: None)
+ 
+-    def start(self, language_code: str, on_committed_segment: object = None) -> object:
++    def start(self, language_code: str, on_committed_segment: object = None, on_preview: object = None) -> object:
+         """Record provider readiness and retain the callback for a synthetic commit."""
+         self.events.append("realtime-ready")
+         assert language_code == "eng"
+@@ -288,6 +289,50 @@ def test_prepare_capture_model_failure_never_opens_realtime_route(
+     assert args[2] == "unavailable model"
+ 
+ 
++@pytest.mark.parametrize(
++    ("enabled", "mode", "live_session", "expected_interval"),
++    [
++        (True, "dictation", "capture", 4),
++        (False, "dictation", None, 25),
++        (True, "dictation", None, 25),
++        (True, "command", None, 25),
++    ],
++)
++def test_prepare_capture_uses_short_commit_cadence_only_for_active_live_dictation(
++    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, enabled, mode, live_session, expected_interval
++) -> None:
++    """Clone the live transport while ordinary, Incognito and command capture keep the default."""
++    starts = []
++    prepared = []
++    preview_callback = object()
++    realtime = ElevenLabsRealtimeClient(api_key="write-only-test-key")
++    application = SimpleNamespace(
++        shutting_down=False,
++        pending_session_identifier="capture",
++        live_session_identifier=live_session,
++        config=replace(AppConfig(), live_rewrite_enabled=enabled),
++        realtime_client=realtime,
++        _live_preview_callback=lambda _session: preview_callback,
++        _capture_prepared=object(),
++    )
++
++    def start(client, language_code, **callbacks):
++        starts.append((client, language_code, callbacks))
++        return object()
++
++    monkeypatch.setattr(ElevenLabsRealtimeClient, "start", start)
++    monkeypatch.setattr(app_module.GLib, "idle_add", lambda *args: prepared.append(args))
++    MluvaApplication._prepare_capture(
++        application, "capture", tmp_path / "capture.wav", "eng", False, None, mode, False, _preparation()
++    )
++    assert len(starts) == len(prepared) == 1
++    client, language, callbacks = starts[0]
++    assert client.manual_commit_interval_seconds == expected_interval
++    assert realtime.manual_commit_interval_seconds == 25
++    assert language == "eng"
++    assert callbacks["on_preview"] is (preview_callback if expected_interval == 4 else None)
++
++
+ def test_capture_summary_yields_to_live_and_pending_review_states() -> None:
+     """Keep the active state and required decision above the fold on a small window."""
+     title = LabelSpy()
+diff --git c/linux/tests/test_provider_workspace.py w/linux/tests/test_provider_workspace.py
+index bff9caf..d991b9c 100644
+--- c/linux/tests/test_provider_workspace.py
++++ w/linux/tests/test_provider_workspace.py
+@@ -167,8 +167,8 @@ def test_saved_source_and_reply_edits_survive_restart_and_deletion(tmp_path):
+ def test_live_schedule_coalesces_and_marks_missing_information():
+     """Test thresholds, in-flight coalescing, final tails and explicit template gaps."""
+     schedule = LiveRewriteSchedule(40, 4)
+-    assert schedule.take("x" * 39, 0) is None
+-    assert schedule.take("x" * 40, 0) == "x" * 40
++    assert schedule.take("x", 0) == "x"
++    assert schedule.take("x" * 40, 0) is None
+     assert schedule.take("x" * 90, 5) is None
+     schedule.finish(True)
+     assert schedule.take("x" * 90, 2) is None
+diff --git c/linux/tests/test_realtime.py w/linux/tests/test_realtime.py
+index 1436adb..3faef0f 100644
+--- c/linux/tests/test_realtime.py
++++ w/linux/tests/test_realtime.py
+@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, urlsplit
+ import pytest
+ from websockets.sync.server import Server, ServerConnection, serve
+ 
++from voice_scribe_linux.audio import SAMPLE_RATE, SAMPLE_WIDTH_BYTES
+ from voice_scribe_linux.realtime import (
+     ElevenLabsRealtimeClient,
+     RealtimeCommittedSegment,
+@@ -345,6 +346,85 @@ def test_long_capture_commits_every_twenty_five_seconds_before_final_commit() ->
+     assert result.transcription.audio_duration_seconds == pytest.approx(25.1)
+ 
+ 
++@pytest.mark.parametrize(
++    ("chunks", "commit_offsets"),
++    [([0.1] * 81, [4, 8, 8.1]), ([0.1] * 80, [4, 8]), ([7], [7]), ([7, 0.1], [7, 7.1])],
++)
++def test_live_cadence_commits_stable_segments_and_flushes_only_unsent_tail(chunks, commit_offsets) -> None:
++    """Stop awaits all committed segments without an empty extra commit or an overshoot burst."""
++    connection = CommitTrackingConnection()
++    segments = []
++    session = RealtimeTranscriptionSession(
++        connection=connection,
++        configured_language_code="eng",
++        session_identifier="live-session",
++        on_committed_segment=segments.append,
++        maximum_queued_chunks=128,
++        finalization_timeout_seconds=2,
++        manual_commit_interval_seconds=4,
++    )
++    for seconds in chunks:
++        assert session.submit_audio(bytes(round(seconds * SAMPLE_RATE) * SAMPLE_WIDTH_BYTES))
++    result = session.finish()
++
++    bytes_sent = 0
++    actual_offsets = []
++    for event in connection.events:
++        bytes_sent += len(base64.b64decode(event["audio_base_64"]))
++        if event.get("commit") is True:
++            actual_offsets.append(bytes_sent / (SAMPLE_RATE * SAMPLE_WIDTH_BYTES))
++    assert actual_offsets == pytest.approx(commit_offsets)
++    assert result.transcription.audio_duration_seconds == pytest.approx(sum(chunks))
++    assert result.transcription.text == " ".join(f"segment {index + 1}" for index in range(len(commit_offsets)))
++    assert [segment.sequence for segment in segments] == list(range(len(commit_offsets)))
++    assert result.transcription.text == " ".join(segment.text for segment in segments)
++
++
++def test_live_cadence_cancel_keeps_early_commit_out_of_final_delivery() -> None:
++    """An early stable preview does not make Cancel deliver a final transcript or flush its tail."""
++    committed = threading.Event()
++    connection = CommitTrackingConnection()
++    session = RealtimeTranscriptionSession(
++        connection=connection,
++        configured_language_code="eng",
++        session_identifier="cancel-live-session",
++        on_committed_segment=lambda _segment: committed.set(),
++        manual_commit_interval_seconds=4,
++    )
++    assert session.submit_audio(bytes(4 * SAMPLE_RATE * SAMPLE_WIDTH_BYTES))
++    assert committed.wait(timeout=2)
++    session._handle_event({"message_type": "partial_transcript", "text": "uncommitted tail"})
++    session.cancel()
++    assert session._sender_done.wait(timeout=2)
++    assert sum(event.get("commit") is True for event in connection.events) == 1
++    assert session.snapshot().volatile_text == ""
++    with pytest.raises(RealtimeTranscriptionError, match="cancelled"):
++        session.finish()
++
++
++def test_cancel_while_audio_send_is_blocked_cannot_trigger_an_early_commit() -> None:
++    """Cancellation wins when the boundary audio send returns after the socket has closed."""
++    connection = BlockingConnection()
++    session = RealtimeTranscriptionSession(
++        connection=connection,
++        configured_language_code="eng",
++        session_identifier="cancel-blocked-live-session",
++        manual_commit_interval_seconds=4,
++    )
++    assert session.submit_audio(bytes(4 * SAMPLE_RATE * SAMPLE_WIDTH_BYTES))
++    assert connection.send_started.wait(timeout=2)
++    session.cancel()
++    assert session._sender_done.wait(timeout=2)
++    assert session._commits_sent == 0
++
++
++@pytest.mark.parametrize("interval", [0, 1, 26, float("nan")])
++def test_manual_commit_cadence_rejects_unusable_intervals(interval) -> None:
++    """Reject intervals shorter than initial processing or longer than the established safety gate."""
++    with pytest.raises(ValueError, match="between 2 and 25"):
++        ElevenLabsRealtimeClient(api_key="write-only-test-key", manual_commit_interval_seconds=interval)
++
++
+ def test_provider_close_after_final_commit_is_not_a_route_failure(
+     monkeypatch: pytest.MonkeyPatch,
+ ) -> None:
+diff --git c/linux/voice_scribe_linux/app.py w/linux/voice_scribe_linux/app.py
+index b6f74e2..18d8963 100644
+--- c/linux/voice_scribe_linux/app.py
++++ w/linux/voice_scribe_linux/app.py
+@@ -177,6 +177,16 @@ def _elapsed_seconds(elapsed: str) -> int:
+     return min((minutes * 60) + seconds, 86_400)
+ 
+ 
++def _smooth_motion_enabled(config: AppConfig) -> bool:
++    """Carry the desktop's reduced-motion preference across the GTK-to-QML boundary."""
++    settings = Gtk.Settings.get_default()
++    return (
++        config.smooth_scrolling
++        and config.scroll_duration_ms > 0
++        and (settings is None or settings.get_property("gtk-enable-animations"))
++    )
++
++
+ def _overlay_detail_and_route(detail: str) -> tuple[str, str]:
+     """Separate a concise phase from provider/device detail for the Shell layout."""
+     phase, separator, route = detail.partition(" · ")
+@@ -325,6 +335,7 @@ class MluvaApplication(Adw.Application):
+         self.live_revision = 0
+         self.live_updating = False
+         self.live_mode_switch = None
++        self.live_template_buttons = {}
+         self.rewrite_client: CodexAppServerClient | LiteLLMClient | None = None
+         self.model_catalog_client: CodexAppServerClient | None = None
+         self.rewrite_settings: RewriteSettings | None = None
+@@ -664,6 +675,46 @@ class MluvaApplication(Adw.Application):
+             button.set_active(self.config.live_rewrite_enabled)
+             self._show_toast("Finish active work before changing Live rewrite.")
+ 
++    def _live_template_changed(self, button, template: str) -> None:
++        """Persist a menu choice through the same settings path as the Workspace page."""
++        if not button.get_active() or template == self.config.live_rewrite_template:
++            return
++        if not self._apply_workspace_settings({"live_rewrite_template": template}):
++            self._sync_live_mode()
++            self._show_toast("Finish active work before changing the Live rewrite template.")
++        self.live_mode_menu.popdown()
++
++    def _sync_live_mode(self) -> None:
++        """Reflect saved settings in the single Live rewrite control and its selected menu item."""
++        if self.live_mode_switch is None:
++            return
++        self.live_mode_switch.set_active(self.config.live_rewrite_enabled)
++        template = self.config.live_rewrite_template
++        self.live_template_buttons[template].set_active(True)
++        label = dict(TEMPLATE_CHOICES)[template]
++        self.live_mode_switch.set_tooltip_text(f"Build a {label.lower()} draft while speaking")
++        self.live_mode_menu.set_tooltip_text(f"Live rewrite template: {label}")
++
++    def _live_preview_callback(self, session: str):
++        """Wake GTK only for new committed speech, never for volatile recognition updates."""
++        previous = ""
++
++        def preview_changed(preview):
++            """Keep the provider thread off GTK and discard callbacks from cancelled captures."""
++            nonlocal previous
++            text = preview.committed_text
++            if text and text != previous and session == self.live_session_identifier:
++                previous = text
++                GLib.idle_add(self._live_preview_arrived, session, text)
++
++        return preview_changed
++
++    def _live_preview_arrived(self, session: str, text: str) -> bool:
++        """Start an eligible draft without waiting for the recording header's refresh timer."""
++        if session == self.live_session_identifier and not self.capture_processing and self.live_final_entry is None:
++            self._maybe_live_rewrite(text)
++        return GLib.SOURCE_REMOVE
++
+     def _start_live_rewrite(self) -> None:
+         """Freeze the template and thresholds before recording starts."""
+         self._cancel_live_rewrite()
+@@ -833,7 +884,7 @@ class MluvaApplication(Adw.Application):
+         """Persist UI choices to the shared dotfile and replace idle provider transports."""
+         if self.capture_preparing or self.capture_processing or (self.recorder and self.recorder.process):
+             return False
+-        if self.rewrite_client is not None or self.live_rewrite_client is not None:
++        if self.rewrite_client is not None or self.live_schedule is not None:
+             return False
+         config = replace(self.config, **changes)
+         try:
+@@ -874,8 +925,7 @@ class MluvaApplication(Adw.Application):
+         if self.rewrite_settings is not None:
+             self.rewrite_settings.models = []
+             self.rewrite_settings.set_config(config)
+-        if self.live_mode_switch is not None:
+-            self.live_mode_switch.set_active(config.live_rewrite_enabled)
++        self._sync_live_mode()
+         self._reset_record_button()
+         if self.workflow is None:
+             self.record_button.set_sensitive(False)
+@@ -1043,7 +1093,7 @@ class MluvaApplication(Adw.Application):
+                     message=message,
+                     review_timeout_seconds=self.config.review_timeout_seconds,
+                     show_copy_action=self.config.show_copy_action,
+-                    smooth_scrolling=self.config.smooth_scrolling,
++                    smooth_scrolling=_smooth_motion_enabled(self.config),
+                     scroll_duration_ms=self.config.scroll_duration_ms,
+                     scroll_lookahead_lines=self.config.scroll_lookahead_lines,
+                 )
+@@ -1178,7 +1228,7 @@ class MluvaApplication(Adw.Application):
+                     review_identifier=identifier,
+                     review_timeout_seconds=self.config.review_timeout_seconds,
+                     show_copy_action=self.config.show_copy_action,
+-                    smooth_scrolling=self.config.smooth_scrolling,
++                    smooth_scrolling=_smooth_motion_enabled(self.config),
+                     scroll_duration_ms=self.config.scroll_duration_ms,
+                     scroll_lookahead_lines=self.config.scroll_lookahead_lines,
+                 )
+@@ -1428,12 +1478,29 @@ class MluvaApplication(Adw.Application):
+         set_button_content(self.record_button, "audio-input-microphone-symbolic", "Dictate")
+         self.record_button.connect("clicked", self._toggle_recording)
+         dock.append(self.record_button)
++        live_control = Gtk.Box(valign=Gtk.Align.CENTER, css_classes=["linked"])
+         self.live_mode_switch = Gtk.ToggleButton(label="Live rewrite", active=self.config.live_rewrite_enabled)
+-        self.live_mode_switch.set_tooltip_text(
+-            "Build a structured draft while speaking · configure templates in Settings"
+-        )
+         self.live_mode_switch.connect("toggled", self._live_mode_changed)
+-        dock.append(self.live_mode_switch)
++        live_control.append(self.live_mode_switch)
++        self.live_mode_menu = Gtk.MenuButton(icon_name="pan-down-symbolic")
++        popover = Gtk.Popover()
++        choices = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
++        set_margins(choices, 8)
++        group = None
++        for template, label in TEMPLATE_CHOICES:
++            choice = Gtk.CheckButton(label=label)
++            if group is not None:
++                choice.set_group(group)
++            else:
++                group = choice
++            choice.connect("toggled", self._live_template_changed, template)
++            self.live_template_buttons[template] = choice
++            choices.append(choice)
++        popover.set_child(choices)
++        self.live_mode_menu.set_popover(popover)
++        live_control.append(self.live_mode_menu)
++        self._sync_live_mode()
++        dock.append(live_control)
+         return dock
+ 
+     def _build_settings_dialog(self) -> Adw.PreferencesDialog:
+@@ -2596,8 +2663,18 @@ class MluvaApplication(Adw.Application):
+             fallback_reason = RECOGNITION_FALLBACK_UNAVAILABLE
+         else:
+             try:
+-                realtime_session = self.realtime_client.start(
++                live_capture = (
++                    self.config.live_rewrite_enabled
++                    and mode == "dictation"
++                    and self.live_session_identifier == session_identifier
++                )
++                realtime_client = self.realtime_client
++                if live_capture and isinstance(realtime_client, ElevenLabsRealtimeClient):
++                    # Keep stable speech arriving during Live rewrite without changing other capture routes.
++                    realtime_client = replace(realtime_client, manual_commit_interval_seconds=4.0)
++                realtime_session = realtime_client.start(
+                     language_code,
++                    on_preview=self._live_preview_callback(session_identifier) if live_capture else None,
+                     on_committed_segment=(
+                         None
+                         if segment_cleanup_session is None
+@@ -3184,7 +3261,7 @@ class MluvaApplication(Adw.Application):
+                 level=state.level,
+                 preview=state.preview,
+                 delivery=state.delivery,
+-                smooth_scrolling=self.config.smooth_scrolling,
++                smooth_scrolling=_smooth_motion_enabled(self.config),
+                 scroll_duration_ms=self.config.scroll_duration_ms,
+                 scroll_lookahead_lines=self.config.scroll_lookahead_lines,
+             )
+diff --git c/linux/voice_scribe_linux/conversation_view.py w/linux/voice_scribe_linux/conversation_view.py
+index c2a0ff5..09e67f1 100644
+--- c/linux/voice_scribe_linux/conversation_view.py
++++ w/linux/voice_scribe_linux/conversation_view.py
+@@ -27,6 +27,7 @@ class _TailFollower:
+         self.writing = False
+         self.snap_next = True
+         self.animation: Adw.Animation | None = None
++        self.destination = 0.0
+         self.duration_ms = 800
+         self.smooth = True
+         adjustment = scroll.get_vadjustment()
+@@ -69,7 +70,16 @@ class _TailFollower:
+             return GLib.SOURCE_REMOVE
+         adjustment = self.scroll.get_vadjustment()
+         destination = max(0, adjustment.get_upper() - adjustment.get_page_size())
++        if (
++            not self.snap_next
++            and self.smooth
++            and self.animation is not None
++            and self.animation.get_state() == Adw.AnimationState.PLAYING
++            and abs(destination - self.destination) < 1
++        ):
++            return GLib.SOURCE_REMOVE
+         self._pause()
++        self.destination = destination
+         if (
+             self.snap_next
+             or not self.smooth
+@@ -85,7 +95,7 @@ class _TailFollower:
+                 self.duration_ms,
+                 Adw.CallbackAnimationTarget.new(self._write),
+             )
+-            self.animation.set_easing(Adw.Easing.EASE_OUT_CUBIC)
++            self.animation.set_easing(Adw.Easing.EASE_IN_OUT_CUBIC)
+             self.animation.play()
+         self.snap_next = False
+         return GLib.SOURCE_REMOVE
+@@ -383,6 +393,8 @@ class ConversationWorkspace(Gtk.Box):
+             follower.smooth = config.smooth_scrolling
+             follower.duration_ms = config.scroll_duration_ms
+         self.messages.set_margin_bottom(16 + config.scroll_lookahead_lines * 20)
++        for view in (self.live_text, self.live_draft_text):
++            view.set_bottom_margin(4 + config.scroll_lookahead_lines * 20)
+         for button in self.copy_buttons:
+             button.set_visible(config.show_copy_action)
+         for button in self.save_buttons:
+@@ -460,10 +472,18 @@ class ConversationWorkspace(Gtk.Box):
+ 
+     def show_live_draft(self, text: str, status: str = "Live draft") -> None:
+         """Replace a completed snapshot without rendering a partially restructured document."""
++        follower = self.live_draft_follower
++        following = follower.following
++        position = self.live_draft_scroll.get_vadjustment().get_value()
+         self.live_draft_box.set_visible(True)
++        follower.writing = True
+         self.live_draft_text.get_buffer().set_text(text)
++        follower.writing = False
+         self.live_draft_status.set_label(status)
+-        self.live_draft_follower.queue()
++        if following:
++            follower.follow()
++        else:
++            GLib.idle_add(lambda: follower._write(position))
+ 
+     def show_conversation(self, entry: HistoryEntry | None, replies: list[Rewrite]) -> None:
+         """Open the exact selected history item and every saved rewrite, preserving original text."""
+diff --git c/linux/voice_scribe_linux/live_rewrite.py w/linux/voice_scribe_linux/live_rewrite.py
+index 7e5a894..cd773c4 100644
+--- c/linux/voice_scribe_linux/live_rewrite.py
++++ w/linux/voice_scribe_linux/live_rewrite.py
+@@ -83,7 +83,7 @@ def live_prompt(config: AppConfig, transcript: str, draft: str) -> str:
+ 
+ @dataclass(slots=True)
+ class LiveRewriteSchedule:
+-    """Coalesce growing recognition into one request after enough new text and elapsed time."""
++    """Start on the first committed speech, then coalesce growth and flush short paused tails."""
+ 
+     minimum_characters: int
+     interval_seconds: float
+@@ -91,14 +91,27 @@ class LiveRewriteSchedule:
+     last_started: float = float("-inf")
+     in_flight: bool = False
+     failed: bool = False
++    observed_text: str = ""
++    changed_at: float = 0
+ 
+     def take(self, text: str, now: float, *, final: bool = False) -> str | None:
+         """Freeze a fresh snapshot; unfinished, failed and duplicate requests never pile up."""
+         text = text.strip()
++        if text != self.observed_text:
++            self.observed_text = text
++            self.changed_at = now
+         if self.in_flight or self.failed or not text or text == self.last_text:
+             return None
+-        if not final and (
+-            len(text) - len(self.last_text) < self.minimum_characters or now - self.last_started < self.interval_seconds
++        if (
++            not final
++            and self.last_started != float("-inf")
++            and (
++                now - self.last_started < self.interval_seconds
++                or (
++                    len(text) - len(self.last_text) < self.minimum_characters
++                    and now - self.changed_at < self.interval_seconds
++                )
++            )
+         ):
+             return None
+         self.last_text = text
+diff --git c/linux/voice_scribe_linux/realtime.py w/linux/voice_scribe_linux/realtime.py
+index 8e7d31f..15ffc0a 100644
+--- c/linux/voice_scribe_linux/realtime.py
++++ w/linux/voice_scribe_linux/realtime.py
+@@ -24,7 +24,7 @@ DEFAULT_AUDIO_QUEUE_CHUNKS = 64
+ DEFAULT_SESSION_TIMEOUT_SECONDS = 10.0
+ DEFAULT_FINALIZATION_TIMEOUT_SECONDS = 8.0
+ MAX_EVENT_BYTES = 1_048_576
+-MANUAL_COMMIT_INTERVAL_BYTES = 25 * SAMPLE_RATE * SAMPLE_WIDTH_BYTES
++DEFAULT_MANUAL_COMMIT_INTERVAL_SECONDS = 25.0
+ 
+ PreviewCallback = Callable[["RealtimePreview"], None]
+ CommittedSegmentCallback = Callable[["RealtimeCommittedSegment"], None]
+@@ -89,6 +89,7 @@ class ElevenLabsRealtimeClient:
+     session_timeout_seconds: float = DEFAULT_SESSION_TIMEOUT_SECONDS
+     finalization_timeout_seconds: float = DEFAULT_FINALIZATION_TIMEOUT_SECONDS
+     maximum_queued_chunks: int = DEFAULT_AUDIO_QUEUE_CHUNKS
++    manual_commit_interval_seconds: float = DEFAULT_MANUAL_COMMIT_INTERVAL_SECONDS
+ 
+     def __post_init__(self) -> None:
+         """Reject unsafe or unusable transport configuration before a connection starts."""
+@@ -103,6 +104,8 @@ class ElevenLabsRealtimeClient:
+             raise ValueError("Realtime timeouts must be positive.")
+         if self.maximum_queued_chunks <= 0:
+             raise ValueError("The realtime audio queue must contain at least one chunk.")
++        if not 2 <= self.manual_commit_interval_seconds <= DEFAULT_MANUAL_COMMIT_INTERVAL_SECONDS:
++            raise ValueError("The realtime manual commit interval must be between 2 and 25 seconds.")
+ 
+     def start(
+         self,
+@@ -154,6 +157,7 @@ class ElevenLabsRealtimeClient:
+             on_committed_segment=on_committed_segment,
+             maximum_queued_chunks=self.maximum_queued_chunks,
+             finalization_timeout_seconds=self.finalization_timeout_seconds,
++            manual_commit_interval_seconds=self.manual_commit_interval_seconds,
+         )
+ 
+ 
+@@ -169,18 +173,22 @@ class RealtimeTranscriptionSession:
+         on_committed_segment: CommittedSegmentCallback | None = None,
+         maximum_queued_chunks: int = DEFAULT_AUDIO_QUEUE_CHUNKS,
+         finalization_timeout_seconds: float = DEFAULT_FINALIZATION_TIMEOUT_SECONDS,
++        manual_commit_interval_seconds: float = DEFAULT_MANUAL_COMMIT_INTERVAL_SECONDS,
+     ) -> None:
+         """Start isolated sender and receiver workers around one confirmed connection."""
+         if maximum_queued_chunks <= 0:
+             raise ValueError("The realtime audio queue must contain at least one chunk.")
+         if finalization_timeout_seconds <= 0:
+             raise ValueError("The realtime finalization timeout must be positive.")
++        if not 2 <= manual_commit_interval_seconds <= DEFAULT_MANUAL_COMMIT_INTERVAL_SECONDS:
++            raise ValueError("The realtime manual commit interval must be between 2 and 25 seconds.")
+         self._connection = connection
+         self._configured_language_code = configured_language_code
+         self._session_identifier = session_identifier
+         self._on_preview = on_preview
+         self._on_committed_segment = on_committed_segment
+         self._finalization_timeout_seconds = finalization_timeout_seconds
++        self._manual_commit_interval_bytes = int(manual_commit_interval_seconds * SAMPLE_RATE) * SAMPLE_WIDTH_BYTES
+         self._audio_queue: queue.Queue[bytes | None] = queue.Queue(maxsize=maximum_queued_chunks)
+         self._lock = threading.Lock()
+         self._committed_segments: list[str] = []
+@@ -338,10 +346,13 @@ class RealtimeTranscriptionSession:
+                 self._connection.send(_audio_event(chunk))
+                 with self._lock:
+                     self._bytes_sent += len(chunk)
++                    if self._cancelled:
++                        return
+                     self._bytes_since_commit += len(chunk)
+-                    should_commit = self._bytes_since_commit >= MANUAL_COMMIT_INTERVAL_BYTES
++                    should_commit = self._bytes_since_commit >= self._manual_commit_interval_bytes
+                     if should_commit:
+-                        self._bytes_since_commit -= MANUAL_COMMIT_INTERVAL_BYTES
++                        # A commit covers every byte already sent, including a chunk's overshoot.
++                        self._bytes_since_commit = 0
+                         self._commits_sent += 1
+                 if should_commit:
+                     self._connection.send(_audio_event(b"", commit=True))
+diff --git c/linux/voice_scribe_linux/workspace_settings.py w/linux/voice_scribe_linux/workspace_settings.py
+index bd52685..e5fc77f 100644
+--- c/linux/voice_scribe_linux/workspace_settings.py
++++ w/linux/voice_scribe_linux/workspace_settings.py
+@@ -86,11 +86,15 @@ class WorkspaceSettings(Adw.PreferencesPage):
+             self.add(behavior)
+             live = Adw.PreferencesGroup(
+                 title="Live rewrite",
+-                description="See a structured draft while speaking. Extra provider requests may use credits.",
++                description=(
++                    "The first committed speech starts a draft immediately. Later updates are grouped; "
++                    "short tails update after a pause. Batch speech engines update by chunk, not every word. "
++                    "Extra provider requests may use credits."
++                ),
+             )
+             self.switch(live, "live_rewrite_enabled", "Enable live rewrite for the next dictation")
+             self.choice(live, "live_rewrite_template", "Template", TEMPLATE_CHOICES)
+-            self.spin(live, "live_rewrite_min_characters", "New characters before updating", 40, 4000)
++            self.spin(live, "live_rewrite_min_characters", "New characters to group after the first draft", 40, 4000)
+             self.spin(live, "live_rewrite_interval_seconds", "Minimum time between updates (seconds)", 2, 60)
+             custom = Adw.ExpanderRow(title="Custom template instructions")
+             editor = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, accepts_tab=False)

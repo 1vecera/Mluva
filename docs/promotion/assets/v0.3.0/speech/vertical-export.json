@@ -1,0 +1,39 @@
+{
+  "disclosure": "Editorial portrait composition of the real desktop recording widget. No timing cuts or speed change; original AAC stream copied. This is a crop, not a second portrait recognition session.",
+  "source": "workflow.mp4",
+  "source_sha256": "79379deccfcb64e9dc81a0040d9995e9e763d5bcfcab702f72902e8d42e1718f",
+  "background_sha256": "16a7434d17f1164632bcfa6a86e87a46639d5a346a119744d28ef64cb4d1ed45",
+  "filter": "[0:v]crop=500:170:64:750,scale=952:324:flags=lanczos[widget];[1:v][widget]overlay=64:850:shortest=1,drawtext=fontfile=/usr/share/fonts/liberation/LiberationSans-Regular.ttf:text=REAL RECORDING WIDGET:x=64:y=780:fontsize=24:fontcolor=0xD8DEE9,drawtext=fontfile=/usr/share/fonts/liberation/LiberationSans-Regular.ttf:text=Continuous desktop crop \u00b7 original timing and audio:x=64:y=1245:fontsize=21:fontcolor=0xADB5C4[v]",
+  "font_file": "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
+  "font_sha256": "baccc64becc3eb7d104b7c84d99f5314a0a1f896e2b3ea6c2f22fc08d2003bee",
+  "sha256": "c7337f5f535f3dfc667ec1d5e9b0304f59bef5a1c6b1ae2ae12ea5252ce23bf0",
+  "media": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1080,
+        "height": 1920,
+        "pix_fmt": "yuv420p",
+        "r_frame_rate": "30/1",
+        "start_time": "0.000000",
+        "duration": "17.033333"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "sample_rate": "16000",
+        "channels": 1,
+        "r_frame_rate": "0/0",
+        "start_time": "0.277938",
+        "duration": "16.704000"
+      }
+    ],
+    "format": {
+      "duration": "17.033333",
+      "size": "2353370"
+    }
+  }
+}

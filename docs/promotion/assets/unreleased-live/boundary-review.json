@@ -1,0 +1,84 @@
+{
+  "runtime_commit": "cdc00237595f8cfb29e75cd87a980311ea3bcc98",
+  "raw_equals_joined_committed_provider_segments": true,
+  "raw_sha256": "3e099466fcea5352bf535032bc8e6f21f969745ba4ef2aa2e29405157c36c453",
+  "committed_text_events": [
+    {
+      "event": "provider_event",
+      "seconds": 27.2048,
+      "epoch": 1788953896.1225514,
+      "message_type": "committed_transcript",
+      "text": "Okay. Uh, the weekly numbers keep arriving in three different spreadsheets. Can we make one small page for the sales team? It should show revenue, returns, and yesterday's orders. Actually, start with a CSV upload. No direct database access for this first version. Um, keep the amounts in check crowns, and flag rows where the order identifier is missing. I want a preview before anything is s-"
+    },
+    {
+      "event": "provider_event",
+      "seconds": 42.8342,
+      "epoch": 1788953911.7519596,
+      "message_type": "committed_transcript",
+      "text": "saved. Success means the totals match the uploaded file, and bad rows have a useful error. I haven't picked an owner or a deadline yet. I'm not sure what to do with the owner."
+    }
+  ],
+  "gtk_after_paint": [
+    {
+      "pcm_seconds": 11.056663036346436,
+      "video_seconds": 11.40370774269104,
+      "during_recording": true,
+      "text": "# Task\n[Missing: task name]\n\n## Intent\nThe weekly numbers keep arriving in three [unclear: incomplete statement].\n\n## Requirements\n[Missing: what to build or change]\n\n## Constraints\n[Missing: boundaries, technologies and things to preserve]\n\n## Success criteria\n[Missing: observable checks]\n\n## Open questions\n[Missing: unresolved decisions or approvals]"
+    },
+    {
+      "pcm_seconds": 22.729987382888794,
+      "video_seconds": 23.0770320892334,
+      "during_recording": true,
+      "text": "# Task\nSales numbers page\n\n## Intent\nCreate one small page for the sales team to replace numbers arriving in three different spreadsheets.\n\n## Requirements\n- Start with a CSV upload.\n- Show revenue, returns, and yesterday\u2019s orders.\n\n## Constraints\n[Missing: boundaries, technologies and things to preserve]\n\n## Success criteria\n- The page accepts a CSV upload.\n- The page shows revenue, returns, and yesterday\u2019s orders.\n\n## Open questions\n[Missing: unresolved decisions or approvals]"
+    },
+    {
+      "pcm_seconds": 34.603222608566284,
+      "video_seconds": 34.95026731491089,
+      "during_recording": true,
+      "text": "# Task\nSales numbers page\n\n## Intent\nCreate one small page for the sales team to replace numbers arriving in three different spreadsheets.\n\n## Requirements\n- Start with a CSV upload.\n- Show revenue, returns, and yesterday\u2019s orders.\n- Flag rows where the order identifier is missing.\n- Provide a preview before anything is s- [Missing: remainder of the requirement]\n\n## Constraints\n- No direct database access for the first version.\n- Keep amounts in check crowns.\n\n## Success criteria\n- The page accepts a CSV upload.\n- The page shows revenue, returns, and yesterday\u2019s orders.\n- Rows with missing order identifiers are flagged.\n- Amounts are kept in check crowns.\n- [Missing: preview behavior]\n\n## Open questions\n- [Missing: remainder of the truncated preview requirement]"
+    },
+    {
+      "pcm_seconds": 46.661943435668945,
+      "video_seconds": 47.00898814201355,
+      "during_recording": false,
+      "text": "# Task\nSales numbers page\n\n## Intent\nCreate one small page for the sales team to consolidate numbers arriving in three different spreadsheets.\n\n## Requirements\n- Start with a CSV upload.\n- Show revenue, returns, and yesterday\u2019s orders.\n- Flag rows where the order identifier is missing.\n- Provide a preview before anything is saved.\n\n## Constraints\n- No direct database access for the first version.\n- Keep amounts in Czech crowns.\n\n## Success criteria\n- Totals match the uploaded file.\n- Rows with missing order identifiers are flagged with a useful error.\n- A preview is shown before anything is saved.\n\n## Open questions\n- Owner has not been selected.\n- Deadline has not been set."
+    },
+    {
+      "pcm_seconds": 54.910603761672974,
+      "video_seconds": 55.25764846801758,
+      "during_recording": false,
+      "text": "# Task\nSales numbers page\n\n## Intent\nCreate one small page for the sales team to consolidate weekly numbers arriving in three different spreadsheets.\n\n## Requirements\n- Start with a CSV upload.\n- Show revenue, returns, and yesterday\u2019s orders.\n- Flag rows where the order identifier is missing.\n- Provide a preview before anything is saved.\n\n## Constraints\n- No direct database access for the first version.\n- Keep amounts in Czech crowns.\n\n## Success criteria\n- Totals match the uploaded file.\n- Rows with missing order identifiers have a useful error.\n- A preview is shown before anything is saved.\n\n## Open questions\n- Owner has not been selected; the speaker is unsure what to do with the owner.\n- Deadline has not been set."
+    }
+  ],
+  "classification_in_paint_order": [
+    "Incomplete generated Intent fragment; not a substantial task specification.",
+    "First Task/Intent/Requirements while source voice is active.",
+    "Expanded draft after source voice ends, during padded recording silence.",
+    "Completion of the outstanding provisional request after Stop; not the canonical final turn.",
+    "Canonical final reconciliation, exactly the saved reply."
+  ],
+  "source_voice_end_approx_pcm_seconds": 33.7416875,
+  "source_voice_end_method": "Last input sample above -60 dBFS at source +33.6776875 s, plus measured 0.064 s PipeWire lead-in. This is a waveform threshold, not a speech-detector claim.",
+  "retained_requirements": [
+    "CSV upload",
+    "no direct database access",
+    "revenue/returns/yesterday orders",
+    "Czech crowns",
+    "missing order identifier flag",
+    "preview before save",
+    "uploaded totals match",
+    "owner and deadline explicitly unset"
+  ],
+  "recognition_artifacts": [
+    "Czech crowns \u2192 check crowns",
+    "s- saved",
+    "Additional owner sentence during padded silence"
+  ],
+  "final_rewrite_limitations": [
+    "General bad-row errors narrowed to missing-order-ID errors",
+    "Owner/deadline use open questions rather than literal [Missing:] markers"
+  ],
+  "initial_template_echo_count": 0,
+  "not_a_latency_benchmark": true,
+  "source_voice_end_approx_video_seconds": 34.0887322063446
+}
