@@ -6,12 +6,8 @@ from pathlib import Path
 
 from voice_scribe_linux.brand import PRODUCT_VERSION
 from voice_scribe_linux.brand_assets import (
-    HERO_PATH,
-    ICON_PATH,
     SYMBOLIC_PATH,
-    render_hero_svg,
-    render_icon_svg,
-    render_symbolic_svg,
+    generated_assets,
 )
 from voice_scribe_linux.theme import build_shell_stylesheet
 
@@ -31,7 +27,6 @@ def test_release_version_matches_every_platform_manifest() -> None:
 
 def test_committed_icon_matches_the_token_generated_asset() -> None:
     """Prevent a hand-edited icon from drifting away from the product tokens."""
-    assert ICON_PATH.read_text(encoding="utf-8") == render_icon_svg()
-    assert SYMBOLIC_PATH.read_text(encoding="utf-8") == render_symbolic_svg()
-    assert HERO_PATH.read_text(encoding="utf-8") == render_hero_svg()
+    for path, expected in generated_assets().items():
+        assert path.read_text(encoding="utf-8") == expected, path
     assert (SYMBOLIC_PATH.parent / "stylesheet.css").read_text(encoding="utf-8") == build_shell_stylesheet()

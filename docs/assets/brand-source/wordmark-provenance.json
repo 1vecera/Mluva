@@ -1,0 +1,11 @@
+{
+  "text": "Mluva",
+  "font": "Adwaita Sans SemiBold",
+  "package": "adwaita-fonts 50.0-1",
+  "font_sha256": "8381c33b9a44f066f2b99dba3d416a2342891e28c956a35dfd8d16ee2987e6d4",
+  "resolved_instance": "Adwaita Sans Semi-Bold 72 @wght=600,opsz=72",
+  "renderer": "PangoCairo layout_path at 96 px, hint style NONE, hint metrics OFF",
+  "source": "wordmark-outline.svg",
+  "license": "Adwaita-Sans-LICENSE.txt",
+  "production": "Exact software typography converted to paths; no generated lettering; standard regeneration reuses committed outlines."
+}
