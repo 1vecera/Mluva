@@ -64,7 +64,7 @@ omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
 
 The new feature walkthrough uses **“Feature walkthrough · example text”** as its small on-screen label. Its media README and manifest disclose synthetic text and a local provider fixture. Keep it separate from the real-provider source clips below. Use the [transparent production lockup](assets/mluva-lockup.svg) on dark scenes, or the [solid ink lockup](assets/mluva-lockup-on-light.svg) on light scenes; PNG counterparts are beside them. The [brand contract](brand-and-compatibility.md) preserves the selected model source and software-refinement provenance.
 
-Use real frames from the Lenovo/Omarchy capture. The historical-speech demonstration runs tagged v0.3.0; the faster Live demonstration is an explicitly labeled unreleased build. Keep product text and controls readable; identify the H3 Max animation as a designed transition. Its closing reference is an actual saved partial draft, not a completed task or a timing demonstration. Workflow shots show actual output. Source excerpts play at their recorded speed; the edit manifest records cuts and crossfades.
+The final film opens on a clean scenery-only H3 background, then software-composites real native UI with the crisp SVG logo and wordmark. A labeled cut moves forward to the actual saved Live result, while the historical source-build provenance remains preserved in the media manifest. Keep product text and controls readable; source excerpts play at their recorded speed and the manifest records cuts, compositing and crossfades.
 
 | Beat | Picture | Copy |
 | --- | --- | --- |
