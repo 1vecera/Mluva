@@ -1,12 +1,14 @@
 ![Mluva — Speak freely. Write clearly.](docs/assets/mluva-hero.svg)
 
-Turn a spoken thought into text you can use. Press **F9**, say what you mean, and paste the result. Then polish the wording, organize a note, or ask for another draft. Mluva keeps your original and every completed rewrite together.
+**Building the cleanest, smartest dictation app for Omarchy.**
 
-**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy plugin](https://github.com/1vecera/omarchy-mluva)** · **[Watch the demo](docs/promotion/assets/mluva-omarchy-demo.mp4)** · **[Feature status](docs/feature-maturity.md)** · **[Contribute](#development)**
+Talk through a task, a note or an idea. Mluva turns it into text you can use, with an editable original and a clear draft beside it. Enable **Live** to see structure emerge while you speak, including the details you still need to decide. A small native workspace, close to the simplicity of a terminal interface.
 
-![Mluva's compact conversation workspace with searchable history, an original transcript and a structured rewrite](docs/assets/conversation-workspace.png)
+**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy plugin](https://github.com/1vecera/omarchy-mluva)** · **[Watch the intro](docs/promotion/assets/mluva-product-intro.mp4)** · **[Feature status](docs/feature-maturity.md)** · **[Contribute](#development)**
 
-<sub>Production Linux UI with synthetic example text. The app follows your Omarchy palette or system light/dark preference.</sub>
+![Mluva v0.3.0 transcribing JFK's public-domain Rice University speech on Omarchy](docs/promotion/assets/workspace-dark.png)
+
+<sub>Recorded on Omarchy with the Nord palette. The intro labels released dictation and the upcoming Live update separately; see the <a href="docs/promotion/README.md">full recordings and asset provenance</a>.</sub>
 
 ## From a thought to a finished draft
 
@@ -21,7 +23,7 @@ Turn a spoken thought into text you can use. Press **F9**, say what you mean, an
 
 On **Omarchy**, a translucent widget shows five lines while you speak, easing upward as the current line fills. When you finish, rewrite directly from the widget. Its countdown ring closes the review after four idle seconds by default; hovering, keyboard focus, menus and active rewrites pause it. **Shift+F9** reopens the latest conversation when that shortcut is configured.
 
-![Omarchy review widget with Polish, Structure, More, Copy, Open and a countdown ring](docs/assets/omarchy-review.png)
+![Omarchy review widget with rewrite actions, Copy, Open and a countdown ring](docs/promotion/assets/widget-review.png)
 
 After installing and starting Mluva, add the [community plugin](https://github.com/1vecera/omarchy-mluva) on Omarchy Quattro:
 
@@ -29,7 +31,7 @@ After installing and starting Mluva, add the [community plugin](https://github.c
 omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
 ```
 
-The [integration guide](docs/omarchy-integration.md) covers dependencies, existing manual installs and removal. [Videos, screenshots and launch copy](docs/promotion/README.md) are available for sharing; the demos use scripted content and the integration remains Experimental.
+The [integration guide](docs/omarchy-integration.md) covers dependencies, existing manual installs and removal. [Videos, screenshots and launch copy](docs/promotion/README.md) include their source audio and capture provenance. The integration remains Experimental.
 
 Closing the main window keeps Mluva available. Open the shell menu or application menu to quit.
 
@@ -71,7 +73,7 @@ Audio retention, recovery, Command previews and other details are documented in 
 
 Linux uses **Python, GTK 4, Libadwaita and PipeWire**, with a separate QML plugin for Omarchy. macOS uses Swift. No webview is required for the conversation workspace.
 
-The [small Linux dev box](dev/README.md) provides local checks and reproducible screenshots/videos on a private desktop, including when the host is macOS.
+The [capture and development guide](dev/README.md) describes local checks and reproducible screenshots/videos on a private desktop. Promotion captures use the real Omarchy installation and theme.
 
 ```bash
 make linux-test linux-shortcut-test
