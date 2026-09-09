@@ -2,14 +2,14 @@
 
 This file records user-visible Mluva releases. Linux is the first supported distribution target; macOS entries describe a source preview until a signed, notarized, updateable binary is independently verified.
 
-## Unreleased — 0.3.0
+## 0.3.0 — 2026-09-09
 
 - Made original documents and completed rewrites editable, with compact Copy and Save icons, Ctrl+S, and a separate raw recognition record for recovery. Saved edits participate in follow-ups, search and export.
 - Enabled automatic copying after completed dictation and rewriting by default. Copy behavior, action visibility, scrolling and the four-second Omarchy review timeout are configurable in Settings and the JSON dotfile.
 - Added smooth following with advance room for new text and preservation of manual reading position, plus full-height editable documents and responsive live draft columns.
 - Added independent provider choices: native Codex app-server or LiteLLM-compatible rewriting; ElevenLabs Scribe, local Voxtype/Whisper, or LiteLLM-compatible speech recognition. Model and endpoint settings use environment references for secrets.
 - Added opt-in Live rewrite with task-spec, structured-note, polish and custom templates. Drafts show missing information while speaking, preserve concurrent manual edits, and save one final version at Stop. Batch speech providers offer provisional chunks before full-audio finalization.
-- Verified local Voxtype against public sample audio and transports against controlled HTTP providers. New provider choices and live rewrite remain Experimental pending model-quality and live desktop acceptance; cloud accounts were not each exercised. This branch prepares a release without publishing one.
+- Verified local Voxtype against public sample audio and transports against controlled HTTP providers. New provider choices and live rewrite remain Experimental pending model-quality and live desktop acceptance; cloud accounts were not each exercised.
 
 ## 0.2.0 — 2026-09-08
 
