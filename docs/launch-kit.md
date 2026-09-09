@@ -70,6 +70,8 @@ The selected Live capture uses unreleased commit `cdc0023`, ElevenLabs Scribe v2
 
 ## Assets and evidence
 
+- [45-second product intro](promotion/assets/mluva-product-intro.mp4), combining H3 Max transitions and actual screen recordings.
+- [Complete released speech demo](promotion/assets/v0.3.0/speech/workflow.mp4) and [complete unreleased Live demo](promotion/assets/unreleased-live/workflow.mp4), with source audio at recorded speed.
 - [Promotion assets and capture provenance](promotion/README.md).
 - [Mluva v0.3.0](https://github.com/1vecera/Mluva/releases/tag/v0.3.0), with source archive and checksum.
 - [Installable plugin](https://github.com/1vecera/omarchy-mluva) and [marketplace submission](https://github.com/omacom/omarchy-plugin-marketplace/issues/5533). A submission is separate from marketplace approval.

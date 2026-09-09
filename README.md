@@ -4,11 +4,11 @@
 
 Talk through a task, a note or an idea. Mluva turns it into text you can use, with an editable original and a clear draft beside it. Enable **Live** to see structure emerge while you speak, including the details you still need to decide. A small native workspace, close to the simplicity of a terminal interface.
 
-**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy plugin](https://github.com/1vecera/omarchy-mluva)** · **[Watch the demo](docs/promotion/assets/mluva-omarchy-demo.mp4)** · **[Feature status](docs/feature-maturity.md)** · **[Contribute](#development)**
+**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy plugin](https://github.com/1vecera/omarchy-mluva)** · **[Watch the intro](docs/promotion/assets/mluva-product-intro.mp4)** · **[Feature status](docs/feature-maturity.md)** · **[Contribute](#development)**
 
-![Mluva's compact conversation workspace with an original transcript and a structured rewrite](docs/promotion/assets/workspace-dark.png)
+![Mluva v0.3.0 transcribing JFK's public-domain Rice University speech on Omarchy](docs/promotion/assets/workspace-dark.png)
 
-<sub>The app follows your Omarchy palette or system light/dark preference. See the <a href="docs/promotion/README.md">asset provenance</a> for the release, source content and capture method.</sub>
+<sub>Recorded on Omarchy with the Nord palette. The intro labels released dictation and the upcoming Live update separately; see the <a href="docs/promotion/README.md">full recordings and asset provenance</a>.</sub>
 
 ## From a thought to a finished draft
 
