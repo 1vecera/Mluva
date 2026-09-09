@@ -1,0 +1,19 @@
+{
+  "source": "docs/promotion/assets/unreleased-live/capture.json",
+  "source_sha256": "7754ffcff2747f6c260df6cd02b0e67bebcb1e99a080222dc70571696f697230",
+  "description": "Recorded display-only snapshots around the first Scribe commit. Replayed offline at their measured relative spacing; not a new provider run.",
+  "events": [
+    {
+      "seconds": 0.0,
+      "text": "Okay. Uh, the weekly numbers keep arriving in three different spreadsheets. Can we make one small page for the sales team? It should show revenue, returns, and yesterday's orders. Actually, start with a CSV upload. No direct database access for this first version. Um, keep the amounts in check crowns, and flag rows where the order identifier is missing. I want a prev"
+    },
+    {
+      "seconds": 1.098,
+      "text": "Okay. Uh, the weekly numbers keep arriving in three different spreadsheets. Can we make one small page for the sales team? It should show revenue, returns, and yesterday's orders. Actually, start with a CSV upload. No direct database access for this first version. Um, keep the amounts in check crowns, and flag rows where the order identifier is missing. I want a preview before anything is s- Okay. Uh, the weekly numbers keep arriving in three different spreadsheets. Can we make one small page for the sales team? It should show revenue, returns, and yesterday's orders. Actually, start with a CSV upload. No direct database access for this first version. Um, keep the amounts in check crowns, and flag rows where the order identifier is missing. I want a preview before anything"
+    },
+    {
+      "seconds": 2.1166,
+      "text": "Okay. Uh, the weekly numbers keep arriving in three different spreadsheets. Can we make one small page for the sales team? It should show revenue, returns, and yesterday's orders. Actually, start with a CSV upload. No direct database access for this first version. Um, keep the amounts in check crowns, and flag rows where the order identifier is missing. I want a preview before anything is s- saved."
+    }
+  ]
+}

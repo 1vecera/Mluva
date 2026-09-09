@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 
 import gi
+from preview_replay import replay_preview
 
 from voice_scribe_linux.overlay_state import RecordingOverlayPublisher, RecordingOverlayState
 
@@ -116,7 +117,10 @@ def main() -> None:
         .read_text()
         .replace('"../quickshell/mluva.dictation"', '"./mluva.dictation"')
     )
-    shutil.copytree(Path(__file__).resolve().parents[1] / "quickshell/mluva.dictation", output / "mluva.dictation")
+    source = Path(
+        os.environ.get("MLUVA_OVERLAY_SOURCE", Path(__file__).resolve().parents[1] / "quickshell/mluva.dictation")
+    )
+    shutil.copytree(source, output / "mluva.dictation")
     # Use the installed Omarchy controls, redirecting only their desktop reads to
     # the runner's private configuration. Never switch the user's active theme.
     for module in ("Commons", "Ui"):
@@ -218,6 +222,9 @@ def main() -> None:
             idle = observe("idle")
             assert idle["focus"]
             ipc("theme", "false")
+            if os.environ.get("MLUVA_PANEL_REPLAY") == "1":
+                replay_preview(publisher, observe, output)
+                return
             for phase in ("preparing", "recording", "processing", "error"):
                 preview = ("Earlier words " * 100 + "LATEST WORDS: Žluťoučký kůň") if phase == "recording" else ""
                 publisher.publish(RecordingOverlayState(phase=phase, elapsed_seconds=73, level=0.4, preview=preview))
@@ -265,6 +272,30 @@ def main() -> None:
                 json.dumps({"before": short, "near_edge": near, "wrap": wrapped}, indent=2)
             )
             subprocess.run(["import", "-window", "root", str(output / "five-lines.png")], check=True)
+            # A committed segment can replace a much longer provisional preview.
+            # The viewport must never keep the old offset after that text shrinks.
+            long_preview = samples["wrapped"] * 3
+            publisher.publish(RecordingOverlayState(phase="recording", preview=long_preview))
+            before_contraction = observe("recording", long_preview)
+            contraction = motion_frames(samples["wrapped"])
+            (output / "preview-contraction.json").write_text(
+                json.dumps({"before": before_contraction, "frames": contraction}, indent=2)
+            )
+            geometry_keys = ("x", "y", "width", "height", "viewportTop", "viewportHeight")
+            assert contraction and all(frame["visible"] for frame in contraction)
+            assert all(all(frame[key] == before_contraction[key] for key in geometry_keys) for frame in contraction), (
+                contraction
+            )
+            assert all(frame["headerVisible"] and frame["timerVisible"] for frame in contraction)
+            assert all(
+                frame["textY"] + frame["textHeight"] >= frame["viewportHeight"] - frame["lineHeight"] * 1.5
+                for frame in contraction
+            ), "A shortened recognition preview scrolled out of its viewport; inspect preview-contraction.json"
+            publisher.publish(RecordingOverlayState(phase="processing", preview=samples["wrapped"]))
+            processing = observe("processing", samples["wrapped"])
+            assert processing["visible"] and all(processing[key] == short[key] for key in geometry_keys)
+            publisher.publish(RecordingOverlayState(phase="recording", preview=samples["wrapped"]))
+            observe("recording", samples["wrapped"])
             pulse = motion_frames(samples["wrapped"])
             opacity = [frame["dotOpacity"] for frame in pulse]
             assert len({round(value, 3) for value in opacity}) >= 10, opacity
@@ -414,8 +445,8 @@ def main() -> None:
                 RecordingOverlayState(phase="rewriting", preview="Working", review_identifier="timed-note")
             )
             observe("rewriting")
-            time.sleep(0.6)
-            assert countdown()["remaining"] == 4000
+            time.sleep(4.4)
+            assert countdown()["remaining"] == 4000 and countdown()["visible"]
             publisher.publish(
                 RecordingOverlayState(phase="ready", preview="Finished result", review_identifier="timed-note")
             )

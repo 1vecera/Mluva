@@ -226,7 +226,8 @@ def test_local_capture_without_cloud_credentials_or_clipboard(tmp_path):
 
 
 @pytest.mark.parametrize("edited_source", [None, "My correction", "raw original"])
-def test_widget_copy_matches_the_displayed_working_version(tmp_path, edited_source):
+@pytest.mark.parametrize("finalizing", [False, True])
+def test_widget_copy_matches_the_displayed_working_version(tmp_path, edited_source, finalizing):
     """Keep cleaned dictation and deliberate source edits consistent between preview and Copy."""
     from gi.repository import GLib
 
@@ -248,8 +249,12 @@ def test_widget_copy_matches_the_displayed_working_version(tmp_path, edited_sour
         history_store=history,
         conversation_store=conversations,
         rewrite_identifier=None,
+        live_final_entry=entry.identifier if finalizing else None,
         _publish_review=lambda *_args, **_kwargs: None,
     )
     with patch("voice_scribe_linux.app.deliver_text") as copy:
         MluvaApplication._review_action(app, None, GLib.Variant("(sss)", ("copy", entry.identifier, "")))
-    copy.assert_called_once_with(expected, auto_paste=False)
+    if finalizing:
+        copy.assert_not_called()
+    else:
+        copy.assert_called_once_with(expected, auto_paste=False)

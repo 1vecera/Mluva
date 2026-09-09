@@ -252,6 +252,8 @@ def exercise_widget_review(application: MluvaApplication) -> None:
         assert workspace.entry.identifier == elsewhere.identifier
         assert application.conversation_store.replies(elsewhere.identifier) == []
         assert states[-1].preview == replies[-1].text and not clipboard.called
+        assert states[-1].phase == "ready" and states[-1].message == ""
+        assert workspace.notice.get_label().startswith("Rewrite saved")
         assert workspace.rewrite_preview_text == "" and workspace.rewrite_preview_label is None
         action("copy")
         clipboard.assert_called_once_with(replies[-1].text, auto_paste=False)
