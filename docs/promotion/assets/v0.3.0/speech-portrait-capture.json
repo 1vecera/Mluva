@@ -1,0 +1,85 @@
+{
+  "scenario": "saved-speech",
+  "release": "v0.3.0",
+  "release_commit": "4ce8dc49537da98d8f32f25726f63193774d3b91",
+  "runtime_commit": "4ce8dc49537da98d8f32f25726f63193774d3b91",
+  "runtime_root": "/home/vecera/code/mluva/.claude/worktrees/s27-461-real-demos",
+  "live_rewrite_interval_seconds": 4,
+  "live_rewrite_min_characters": 160,
+  "transcription_provider": "elevenlabs",
+  "rewrite_model": "glm-4.7-flash",
+  "rewrite_provider": "litellm",
+  "rewrite_fast_mode": false,
+  "host": "lenovo",
+  "display": ":193",
+  "screen": [
+    1080,
+    1920
+  ],
+  "application": [
+    64,
+    600,
+    952,
+    1030
+  ],
+  "theme": "Nord",
+  "first_pcm_epoch": null,
+  "events": [
+    {
+      "event": "screenshot",
+      "seconds": 1.474,
+      "epoch": 1788953134.4914958,
+      "file": "ready.png",
+      "shell": {
+        "width": 1080,
+        "height": 1920,
+        "phase": "idle",
+        "preview": "",
+        "overlayVisible": false,
+        "foreground": "#d8dee9",
+        "background": "#2e3440",
+        "overlayWidth": 500,
+        "overlayHeight": 36
+      }
+    },
+    {
+      "event": "screenshot",
+      "seconds": 1.7934,
+      "epoch": 1788953134.8109646,
+      "file": "hero.png",
+      "shell": {
+        "width": 1080,
+        "height": 1920,
+        "phase": "idle",
+        "preview": "",
+        "overlayVisible": false,
+        "foreground": "#d8dee9",
+        "background": "#2e3440",
+        "overlayWidth": 500,
+        "overlayHeight": 36
+      }
+    },
+    {
+      "event": "saved_render",
+      "seconds": 1.7937,
+      "epoch": 1788953134.8112159,
+      "source": "/home/vecera/code/mluva/.claude/worktrees/s27-461-real-demos/tmp/campaign/speech-iconic",
+      "raw_sha256": "525d13408b6335fa6c2d5f24af7259d311473caef4773aef53681b9708c22ffd"
+    }
+  ],
+  "services": [
+    {
+      "pid": 240692,
+      "provider_credentials_present": false
+    },
+    {
+      "pid": 240693,
+      "provider_credentials_present": false
+    },
+    {
+      "pid": 240695,
+      "provider_credentials_present": false
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,182 @@
+{
+  "source_capture": "/home/vecera/code/mluva/.claude/worktrees/s27-461-real-demos/tmp/campaign/s27-459-selected-native",
+  "screen_epoch": 1788953870.397334,
+  "first_pcm_epoch": 1788953870.7443788,
+  "audio_offset_seconds": 0.3470447063446045,
+  "timing_edits": "None. Full screen take; original captured PCM delayed to measured first-sample timestamp, AAC encoded and padded with trailing silence to video end.",
+  "synchronization_limit": "PCM callback estimates first-sample wall time from packet duration; capture timestamps are not hardware genlock.",
+  "files": {
+    "capture.json": {
+      "sha256": "7754ffcff2747f6c260df6cd02b0e67bebcb1e99a080222dc70571696f697230",
+      "bytes": 61044
+    },
+    "captured.wav": {
+      "sha256": "88a88c7e761b8cfdcb804456131bf0d4e060b8524e1a26cd8d5be0d1b5fab0c4",
+      "bytes": 1306668,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "duration": "40.832000"
+          }
+        ],
+        "format": {
+          "duration": "40.832000",
+          "size": "1306668"
+        }
+      }
+    },
+    "hero.png": {
+      "sha256": "7a408d4d1ca6c33da5f3a38390d319988f17277a1b1d2f37e97f4fce3c0836a1",
+      "bytes": 2947014,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2947014"
+        }
+      }
+    },
+    "live.png": {
+      "sha256": "85abac1ca03595de933b0b90877a72e50683b235f97c76db630468a7488fa590",
+      "bytes": 2922671,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2922671"
+        }
+      }
+    },
+    "recognition.json": {
+      "sha256": "0a041abc86df63c5af8cfbc80354755965f885f02c7b591c7eb9cac71e397b96",
+      "bytes": 2077
+    },
+    "recording.png": {
+      "sha256": "b3b91eb4cec6ad45bfeb0263233816e0d626b6df2f13d0bbac76dd9dcf8a4f55",
+      "bytes": 2917098,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2917098"
+        }
+      }
+    },
+    "replies.json": {
+      "sha256": "da9ff65d6e2bb7e84bb1ebbc7b82c77f3250ce1738daa5449f94f86e02a5c165",
+      "bytes": 1004
+    },
+    "widget-recording.png": {
+      "sha256": "4729bdedbc54f2f645589c7e8bbaf97a7ebd4c4a90dc11c50a51a96d824617cc",
+      "bytes": 9074,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 127,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "9074"
+        }
+      }
+    },
+    "widget-review.png": {
+      "sha256": "d3d936d8f2257b1a41572cba87a5974bfa714505da21886f630fe2cca4d5266e",
+      "bytes": 27545,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 142,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "27545"
+        }
+      }
+    },
+    "workflow.mp4": {
+      "sha256": "c361f4547137b2db0270ae409ed266e12602bbd8945a44c5e9ef9ffe77ba356b",
+      "bytes": 6763406,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "59.533333"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "start_time": "0.283062",
+            "duration": "59.200000"
+          }
+        ],
+        "format": {
+          "duration": "59.533333",
+          "size": "6763406"
+        }
+      }
+    }
+  }
+}

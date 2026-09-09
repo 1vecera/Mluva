@@ -1,0 +1,459 @@
+{
+  "release": "v0.1.1",
+  "captured_application_commit": "3f0d62c72353d7f5e52ded52f29af03710f8823c",
+  "disclosure": "Production GTK and Quickshell UI with a scripted transcript and local fake rewrite provider. No real audio, speech recognition, provider latency or live Hyprland session is represented.",
+  "capture_style": "Private X11 desktop; configured Inter font; portrait widget raised above the footer.",
+  "cloud_processing": "Real recognition uses ElevenLabs; optional rewrites and generated titles use Codex.",
+  "captures": {
+    "dark": {
+      "format": "landscape",
+      "theme": "tokyo-night",
+      "viewport": [
+        1920,
+        1080
+      ],
+      "app_viewport": [
+        1116,
+        780
+      ],
+      "display": ":99",
+      "source_commit": "3f0d62c72353d7f5e52ded52f29af03710f8823c",
+      "disclosure": "Production GTK and Quickshell UI with a scripted transcript and local fake rewrite provider. No real audio, speech recognition, provider latency or live Hyprland session is represented.",
+      "real_rewrite_action": true,
+      "original_preserved": true,
+      "copy_action": true,
+      "screenshots": [
+        {
+          "image": "recording",
+          "seconds": 14.15,
+          "chapter": "recording",
+          "phase": "recording",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 490
+        },
+        {
+          "image": "review",
+          "seconds": 17.17,
+          "chapter": "review",
+          "phase": "ready",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 531
+        },
+        {
+          "image": "rewriting",
+          "seconds": 22.16,
+          "chapter": "rewriting",
+          "phase": "rewriting",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 179
+        },
+        {
+          "image": "conversation",
+          "seconds": 26.13,
+          "chapter": "saved",
+          "phase": "ready",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 237
+        },
+        {
+          "image": "workspace",
+          "seconds": 26.23,
+          "chapter": "saved",
+          "phase": "ready",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 237
+        },
+        {
+          "image": "hero",
+          "seconds": 30.21,
+          "chapter": "end",
+          "phase": "idle",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": false,
+          "previewLines": 5,
+          "previewLength": 0
+        }
+      ]
+    },
+    "portrait": {
+      "format": "portrait",
+      "theme": "tokyo-night",
+      "viewport": [
+        1080,
+        1920
+      ],
+      "app_viewport": [
+        936,
+        820
+      ],
+      "display": ":99",
+      "source_commit": "3f0d62c72353d7f5e52ded52f29af03710f8823c",
+      "disclosure": "Production GTK and Quickshell UI with a scripted transcript and local fake rewrite provider. No real audio, speech recognition, provider latency or live Hyprland session is represented.",
+      "real_rewrite_action": true,
+      "original_preserved": true,
+      "copy_action": true,
+      "screenshots": [
+        {
+          "image": "recording",
+          "seconds": 14.14,
+          "chapter": "recording",
+          "phase": "recording",
+          "width": 1080,
+          "height": 1920,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 490
+        },
+        {
+          "image": "review",
+          "seconds": 17.13,
+          "chapter": "review",
+          "phase": "ready",
+          "width": 1080,
+          "height": 1920,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 531
+        },
+        {
+          "image": "rewriting",
+          "seconds": 22.16,
+          "chapter": "rewriting",
+          "phase": "rewriting",
+          "width": 1080,
+          "height": 1920,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 179
+        },
+        {
+          "image": "conversation",
+          "seconds": 26.13,
+          "chapter": "saved",
+          "phase": "ready",
+          "width": 1080,
+          "height": 1920,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 237
+        },
+        {
+          "image": "workspace",
+          "seconds": 26.22,
+          "chapter": "saved",
+          "phase": "ready",
+          "width": 1080,
+          "height": 1920,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 237
+        },
+        {
+          "image": "hero",
+          "seconds": 30.17,
+          "chapter": "end",
+          "phase": "idle",
+          "width": 1080,
+          "height": 1920,
+          "overlayVisible": false,
+          "previewLines": 5,
+          "previewLength": 0
+        }
+      ]
+    },
+    "light": {
+      "format": "landscape",
+      "theme": "rose-pine",
+      "viewport": [
+        1920,
+        1080
+      ],
+      "app_viewport": [
+        1116,
+        780
+      ],
+      "display": ":99",
+      "source_commit": "3f0d62c72353d7f5e52ded52f29af03710f8823c",
+      "disclosure": "Production GTK and Quickshell UI with a scripted transcript and local fake rewrite provider. No real audio, speech recognition, provider latency or live Hyprland session is represented.",
+      "real_rewrite_action": true,
+      "original_preserved": true,
+      "copy_action": true,
+      "screenshots": [
+        {
+          "image": "recording",
+          "seconds": 14.16,
+          "chapter": "recording",
+          "phase": "recording",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 495
+        },
+        {
+          "image": "review",
+          "seconds": 17.14,
+          "chapter": "review",
+          "phase": "ready",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 531
+        },
+        {
+          "image": "rewriting",
+          "seconds": 22.13,
+          "chapter": "rewriting",
+          "phase": "rewriting",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 179
+        },
+        {
+          "image": "conversation",
+          "seconds": 26.14,
+          "chapter": "saved",
+          "phase": "ready",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 237
+        },
+        {
+          "image": "workspace",
+          "seconds": 26.23,
+          "chapter": "saved",
+          "phase": "ready",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": true,
+          "previewLines": 5,
+          "previewLength": 237
+        },
+        {
+          "image": "hero",
+          "seconds": 30.16,
+          "chapter": "end",
+          "phase": "idle",
+          "width": 1920,
+          "height": 1080,
+          "overlayVisible": false,
+          "previewLines": 5,
+          "previewLength": 0
+        }
+      ]
+    }
+  },
+  "files": {
+    "hero-dark.png": {
+      "sha256": "45c0455d3ee9e5092eba40355ab50b75876182dba2fa66b9db22ccdb790dc4f1",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "png",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "rgb24",
+          "r_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "size": "184166"
+      }
+    },
+    "hero-light.png": {
+      "sha256": "17683ba98d02a9673adfc6c3fb186094d6762a08570c8c2e17a49faaefb20124",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "png",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "rgb24",
+          "r_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "size": "176839"
+      }
+    },
+    "mluva-omarchy-demo.mp4": {
+      "sha256": "360e84c310cb643221c595a571626f2ad7aaf715071c0004db00575c568b815f",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p",
+          "r_frame_rate": "30/1"
+        }
+      ],
+      "format": {
+        "duration": "32.166667",
+        "size": "790524"
+      }
+    },
+    "mluva-omarchy-vertical.mp4": {
+      "sha256": "e7af746d60e6c8f16204c54c0a34fe914cc9e0bfbde75009a27cbc5b581b7078",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 1080,
+          "height": 1920,
+          "pix_fmt": "yuv420p",
+          "r_frame_rate": "30/1"
+        }
+      ],
+      "format": {
+        "duration": "32.166667",
+        "size": "868118"
+      }
+    },
+    "mluva-widget-closeup.mp4": {
+      "sha256": "110c6c5e51f3deff9ccfd9196b1ed47105e3d78d029d939ef5a1a2d1a5ed361f",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 1000,
+          "height": 440,
+          "pix_fmt": "yuv420p",
+          "r_frame_rate": "30/1"
+        }
+      ],
+      "format": {
+        "duration": "22.967000",
+        "size": "441827"
+      }
+    },
+    "vertical-poster.png": {
+      "sha256": "89e062e72dc257ec70e8c5c6aca2ccb1a5a68e605f08c1f8cd7251af02a603b1",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "png",
+          "width": 1080,
+          "height": 1920,
+          "pix_fmt": "rgb24",
+          "r_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "size": "241366"
+      }
+    },
+    "widget-recording.png": {
+      "sha256": "f01fa969007a3c7ebbdbb36ad33d0ebf02e598808725e812ae77e35f9f9c41c6",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "png",
+          "width": 500,
+          "height": 126,
+          "pix_fmt": "rgba",
+          "r_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "size": "52642"
+      }
+    },
+    "widget-review.png": {
+      "sha256": "01d7a0df21ac9ab54d2ab8b21ffbe325b335cda517f5f0b655d7ef7253b63e38",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "png",
+          "width": 500,
+          "height": 162,
+          "pix_fmt": "rgba",
+          "r_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "size": "37901"
+      }
+    },
+    "workflow-dark.png": {
+      "sha256": "7b7338cf388a7909a0a211d18a402e4183d88248096ca5dab522af367ed19083",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "png",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "rgb24",
+          "r_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "size": "223332"
+      }
+    },
+    "workspace-dark.png": {
+      "sha256": "517feb6b2019ddf86ed52d2f2fe51e285106b280315483bc4ab3eea1c304d036",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "png",
+          "width": 1116,
+          "height": 780,
+          "pix_fmt": "rgb24",
+          "r_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "size": "97459"
+      }
+    },
+    "workspace-light.png": {
+      "sha256": "7ee82927f65d710f60bcc0095031091ef4bb744ba3b67d611688dd6f0fddc8d3",
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "png",
+          "width": 1116,
+          "height": 780,
+          "pix_fmt": "rgb24",
+          "r_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "size": "92004"
+      }
+    }
+  }
+}

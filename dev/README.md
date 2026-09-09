@@ -1,59 +1,66 @@
-# Small Linux development and capture box
+# Real audio capture on Lenovo
 
-Run Mluva's native GTK app and real Omarchy QML on a private virtual desktop. The box uses Fedora 44, a pinned Omarchy source commit and locked Python dependencies, with **2 CPUs, 3 GB RAM and 256 PIDs**. It exposes no network port and mounts only this checkout. Host desktop, audio devices, clipboard, session bus, credentials and Docker socket are not mounted.
+`capture_campaign.py` runs real Mluva audio, recognition and rewrite workflows on reserved Xvfb **:193**. It is intentionally restricted to this Lenovo and fresh output directories below this checkout's `tmp/`. It never installs into or drives the live desktop. [Assets and claim boundaries](../docs/promotion/README.md) distinguish tagged v0.3.0 speech footage, the unreleased Live workflow, generated transitions and legacy fixtures.
 
-## Start and check
+## Prepare
 
-The host needs Docker, Git and Bash. Media export also needs `uv` and FFmpeg with `libx264`. The release assets were built in a local Colima VM; a hosted VM is not required.
+Use a fresh worktree from the remote default branch and retain the v0.3.0 tag. Run `make linux-setup`. The host needs GTK 4, libadwaita, Quickshell, Omarchy shell modules, Xvfb, D-Bus/AT-SPI, PipeWire CLI tools, FFmpeg, ImageMagick, Fontconfig and `uv`. The capture uses Daniel's installed `run-offscreen-linux-verification` helper at `~/.agents/skills/run-offscreen-linux-verification-daniel/scripts/run_isolated_x11.sh`.
 
-```sh
-bash dev/box.sh build
-bash dev/box.sh up
-bash dev/box.sh check
-bash dev/box.sh shell
-```
+The tested compositor binary is xcompmgr 1.1.10, extracted from the official Arch package into `tmp/campaign/tools/usr/bin/xcompmgr`; the helper expects that path. Do not install a compositor or change the live desktop for this capture. Leave :193 free and run capture/UI checks sequentially. The helper copies the actual active Nord theme; no live config is edited.
 
-The container is named `mluva-dev`; set `MLUVA_DEV_NAME` for another checkout. Operations check its ownership label before using or stopping it. Build and dependency setup need network access. The Fedora base digest and Omarchy source commit are pinned; Fedora packages remain repository-resolved at build time.
+Managed provider credentials reach only the application through a one-use same-user broker after private desktop services have started. Child environments remove those keys. Native Codex gets a private configuration directory, existing authenticated access and no inherited MCP/plugin setup; that temporary provider directory is removed after the run. No key is passed in a CLI argument or written to a capture receipt. Do not launch the private desktop directly beneath a secret-loaded environment.
 
-```sh
-bash dev/box.sh stop
-bash dev/box.sh up
-bash dev/box.sh remove
-```
+## Capture and export
 
-Stopping releases CPU/RAM use. Removing deletes this container's disposable home and cache; the checkout and captures remain on the host. A container belonging to another checkout is refused. Remove the image separately with `docker image rm mluva-dev:0.1.1` when finished.
-
-## Capture promotion assets
-
-Use a fresh output directory. Capture takes about two minutes after setup and runs dark, portrait and light scenarios sequentially to avoid Xvfb allocation races.
+The repository includes the exact final audio inputs, so regeneration or a fresh speech-generation call is unnecessary. The Fish source, speech provenance and transforms are documented with the assets.
 
 ```sh
-bash dev/box.sh capture tmp/promotion-new
-uv run --python 3.13 dev/export_promotion.py tmp/promotion-new tmp/promotion-export
+make linux-setup
+uv run --no-project dev/capture_campaign.py layout tmp/campaign/layout
+
+~/.config/daniel-ai-skills/bin/das-agent-launch --only DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL \
+  uv run --project linux --locked python dev/capture_campaign.py speech tmp/campaign/speech \
+  --audio docs/promotion/assets/sources/jfk-iconic-input.wav
+
+uv run --no-project dev/export_campaign.py tmp/campaign/speech tmp/campaign/speech-export
+
+uv run --no-project dev/capture_campaign.py saved-speech tmp/campaign/portrait \
+  --saved-run tmp/campaign/speech --portrait
+uv run --no-project dev/capture_campaign.py layout tmp/campaign/portrait-stage --portrait
+uv run --no-project dev/export_campaign.py tmp/campaign/speech tmp/campaign/speech-export \
+  --vertical-background tmp/campaign/portrait-stage/stage.png
 ```
 
-The first command records WebM videos, native PNGs and capture receipts. The exporter runs on the host and produces eight PNGs, three silent H.264 MP4s and a media/hash manifest. It refuses an existing destination. Review the result before copying it into `docs/promotion/assets/`.
+The landscape MP4 keeps the complete screen recording and measured PCM offset. The portrait MP4 is a disclosed crop of the same recording widget over the captured editorial stage; its AAC stream is copied. `fc-match` resolves the caption font instead of assuming Inter is installed. The portrait PNG reopens the real saved history in the native UI without another provider call.
 
-`promotion-story.json` owns the synthetic transcript and rewrite. `promotion-stage.qml` composes a branded scene around the real GTK window and production `mluva.dictation` widget. `promotion_capture.py` replaces microphone, focus-tracker, clipboard and provider boundaries while retaining production views, SQLite stores, the bridge, D-Bus actions and rewrite lifecycle. The widget's Structure and Copy actions traverse a separate bridge process. A success receipt requires one completed rewrite, an unchanged original and exactly one deliberate Copy action.
-
-The renderer configures Inter privately and raises the portrait widget above the footer. Text, timing and provider output are scripted. No API key is needed. These are UI demonstrations, not recordings of recognition speed, quality or a live Hyprland session. PNGs are preserved; MP4s use H.264/yuv420p and fast-start metadata. The close-up magnifies a crop of the same desktop recording.
-
-`run-isolated.sh`, based on Daniel's offscreen verification helper, creates fresh XDG directories, Xvfb, private D-Bus and private AT-SPI services for each scenario. It cleans up its exact child processes. Evidence stays under `tmp/` and app data is disposable.
-
-## Export the Omarchy distribution
-
-The installable repository is [1vecera/omarchy-mluva](https://github.com/1vecera/omarchy-mluva). Make runtime changes in `linux/quickshell/mluva.dictation` here, then export a tagged release:
+The coordinator's `compose_campaign_intro.py` reproduces the reviewed introduction from the portable plan. Source paths resolve relative to that plan, with original-speed cuts and disclosed crossfades. Reproduction needs no inference:
 
 ```sh
-git fetch origin tag v0.1.1
-uv run --python 3.13 dev/export_plugin.py tmp/plugin-export --release v0.1.1 --preview docs/promotion/assets/workflow-dark.png
-bash dev/box.sh exec bash /usr/share/omarchy/bin/omarchy-plugin-validate /workspace/tmp/plugin-export
+uv run --no-project dev/compose_campaign_intro.py \
+  docs/promotion/assets/mluva-product-intro.plan.json tmp/campaign/intro/mluva-product-intro.mp4
 ```
 
-The exporter copies the manifest, two QML files, Apache license, README, preview and source/hash record. The destination must be new and beneath this repository's `tmp/`. It does not push or publish automatically.
+For the separately authorized unreleased Live workflow, supply the exact tested runtime checkout and commit. Runtime files must match the revision; the explicit `--experimental-dirty` option instead preserves a frozen, authorized uncommitted patch. Neither route is labeled v0.3.0. The application and production QML are imported/copied from that runtime, while capture automation remains in this worktree.
 
-## Verification boundary
+```sh
+uv run --no-project dev/capture_campaign.py catalog tmp/campaign/catalog --rewrite-provider codex
 
-For v0.1.1, 295 Linux tests, Ruff, ShellCheck, private D-Bus shortcut checks, a production GTK render and the Quickshell scrolling/countdown fixtures passed here. Promotion runs also exercised the real review action through a scripted provider, original preservation and deliberate Copy. PNG layouts and encoded video frames were inspected.
+~/.config/daniel-ai-skills/bin/das-agent-launch --only DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL \
+  uv run --project linux --locked python dev/capture_campaign.py task tmp/campaign/live \
+  --runtime /absolute/path/to/tested-runtime \
+  --runtime-revision cdc00237595f8cfb29e75cd87a980311ea3bcc98 \
+  --audio docs/promotion/assets/sources/task-input.wav \
+  --rewrite-provider codex --rewrite-model gpt-5.6-luna --live-interval 4 --min-characters 160
 
-This is a Fedora container with Omarchy's production shell components. Physical microphone capture, real F9, live Hyprland focus and target-application acceptance remain separate. Hosted CI was not run; its workflow is on demand.
+uv run --no-project dev/export_campaign.py tmp/campaign/live tmp/campaign/live-export
+```
+
+Catalog discovery starts no generation turn. Use a model actually advertised by the installed server; see the [official app-server protocol](https://developers.openai.com/codex/app-server). Fast mode remains off. Provider observations preserve actual setup, turn dispatch, completion, GTK after-paint, speech commits and Stop separately. Exact initial-template echoes are excluded from the helper's meaningful-draft gate; human review further distinguishes an incomplete Intent from substantial Task/Intent/Requirements and active voiced audio from trailing silence.
+
+Receipts include immutable recognition/replies, retained recorder WAV, frame/video captures and provider events. Recent captures also retain the exact capture harness, runtime patch, file hashes and post-run verification. Raw values are never replaced by model output. Editorial history titles are separate from recognition. Automatic clipboard delivery, paste, titles, spoken commands and live focus tracking are disabled for this demonstration; the real recording and provider transports remain intact.
+
+## Validation and older tooling
+
+`make linux-test` passed 318 tests plus the feature-maturity check and Ruff on the tagged base. `make linux-text-target-test` passed private AT-SPI focus, Unicode insertion and exact-target checks, with its Xvfb launcher restricted to :193. These checks do not establish live Hyprland or physical-microphone behavior. The new capture/export helpers are also linted and their produced PNG/MP4/WAV files are decoded and visually/audio checked. Swift/macOS build and smoke checks are unavailable on this Linux host; no hosted CI spend is authorized.
+
+The [legacy Fedora container guide](legacy-container.md) and `promotion_capture.py`/`export_promotion.py` preserve the v0.1.1 scripted-fixture workflow. They are not the capture path for this campaign. `plugin-README.md` remains the distribution README template; its review timer and independent speech/rewrite provider descriptions reflect v0.3.0. Distribution publication is owned by the coordinator.

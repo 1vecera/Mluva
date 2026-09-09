@@ -1,0 +1,44 @@
+{
+  "clips": [
+    {
+      "source": "h3-max/h3-max-transition-raw.mp4",
+      "asset": "h3-max/h3-max-transition-raw.mp4",
+      "start": 2.8,
+      "duration": 10,
+      "label": "AI transition · H3 Max",
+      "kind": "Designed AI transition from real empty-workspace and partial-draft references; no runtime or completion claim",
+      "build": "References captured from tagged v0.3.0",
+      "volume": 0.5
+    },
+    {
+      "source": "v0.3.0/speech/workflow.mp4",
+      "asset": "v0.3.0/speech/workflow.mp4",
+      "start": 0,
+      "duration": 16,
+      "label": "Real screen recording · v0.3.0",
+      "kind": "Public-domain JFK speech through actual Scribe v2 Realtime, captured audio aligned to the screen",
+      "build": "4ce8dc49537da98d8f32f25726f63193774d3b91",
+      "volume": 1
+    },
+    {
+      "source": "unreleased-live/workflow.mp4",
+      "asset": "unreleased-live/workflow.mp4",
+      "start": 17,
+      "duration": 13,
+      "label": "Real Live draft · preview build",
+      "kind": "Actual provisional structure appears at source video 23.077 seconds while original Fish speech continues; this excerpt starts during the recording",
+      "build": "cdc00237595f8cfb29e75cd87a980311ea3bcc98 — unreleased",
+      "volume": 1
+    },
+    {
+      "source": "unreleased-live/workflow.mp4",
+      "asset": "unreleased-live/workflow.mp4",
+      "start": 55.4,
+      "duration": 3.8,
+      "label": "After Stop · saved draft · preview build",
+      "kind": "Cut forward to the actual saved canonical reconciliation; intervening recording and provider wait remain in the full continuous video",
+      "build": "cdc00237595f8cfb29e75cd87a980311ea3bcc98 — unreleased",
+      "volume": 1
+    }
+  ]
+}

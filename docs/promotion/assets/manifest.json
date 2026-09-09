@@ -1,459 +1,1593 @@
 {
-  "release": "v0.1.1",
-  "captured_application_commit": "3f0d62c72353d7f5e52ded52f29af03710f8823c",
-  "disclosure": "Production GTK and Quickshell UI with a scripted transcript and local fake rewrite provider. No real audio, speech recognition, provider latency or live Hyprland session is represented.",
-  "capture_style": "Private X11 desktop; configured Inter font; portrait widget raised above the footer.",
-  "cloud_processing": "Real recognition uses ElevenLabs; optional rewrites and generated titles use Codex.",
-  "captures": {
-    "dark": {
-      "format": "landscape",
-      "theme": "tokyo-night",
-      "viewport": [
-        1920,
-        1080
-      ],
-      "app_viewport": [
-        1116,
-        780
-      ],
-      "display": ":99",
-      "source_commit": "3f0d62c72353d7f5e52ded52f29af03710f8823c",
-      "disclosure": "Production GTK and Quickshell UI with a scripted transcript and local fake rewrite provider. No real audio, speech recognition, provider latency or live Hyprland session is represented.",
-      "real_rewrite_action": true,
-      "original_preserved": true,
-      "copy_action": true,
-      "screenshots": [
-        {
-          "image": "recording",
-          "seconds": 14.15,
-          "chapter": "recording",
-          "phase": "recording",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 490
-        },
-        {
-          "image": "review",
-          "seconds": 17.17,
-          "chapter": "review",
-          "phase": "ready",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 531
-        },
-        {
-          "image": "rewriting",
-          "seconds": 22.16,
-          "chapter": "rewriting",
-          "phase": "rewriting",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 179
-        },
-        {
-          "image": "conversation",
-          "seconds": 26.13,
-          "chapter": "saved",
-          "phase": "ready",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 237
-        },
-        {
-          "image": "workspace",
-          "seconds": 26.23,
-          "chapter": "saved",
-          "phase": "ready",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 237
-        },
-        {
-          "image": "hero",
-          "seconds": 30.21,
-          "chapter": "end",
-          "phase": "idle",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": false,
-          "previewLines": 5,
-          "previewLength": 0
-        }
-      ]
+  "schema_version": 2,
+  "created": "2026-09-09",
+  "issue": "S27-461",
+  "file_paths_relative_to": "repository root: files and capture_tool_hashes maps, and the reproduction entry",
+  "disclosure": "Real source audio, production GTK/Quickshell and actual provider output. Automated controls and editorial background. Full workflow videos have no cuts or speed changes. Intro has explicit cuts and AI captions. No volatile recognition is pasted; raw history remains committed provider text.",
+  "release": {
+    "tag": "v0.3.0",
+    "commit": "4ce8dc49537da98d8f32f25726f63193774d3b91",
+    "url": "https://github.com/1vecera/Mluva/releases/tag/v0.3.0"
+  },
+  "unreleased_live": {
+    "commit": "cdc00237595f8cfb29e75cd87a980311ea3bcc98",
+    "runtime_patch": "empty; clean committed source",
+    "runtime_hashes": "unreleased-live/runtime-files.json",
+    "post_capture_verification": "unreleased-live/runtime-verification.json",
+    "capture_harness": "unreleased-live/harness",
+    "raw_and_final_review": "unreleased-live/boundary-review.json",
+    "recognition_model": "scribe_v2_realtime",
+    "rewrite_provider": "native Codex app-server",
+    "rewrite_model": "gpt-5.6-luna",
+    "reasoning_effort": "low",
+    "fast_mode": false,
+    "service_tier": "default",
+    "configuration": {
+      "scribe_commit_seconds": 25,
+      "live_rewrite_enabled": true,
+      "later_min_characters": 160,
+      "live_interval_seconds": 4,
+      "initial_gate": "40 characters or same short utterance unchanged for four seconds",
+      "provisional_text_use": "rewrite input only",
+      "final_reconciliation": "committed text only"
     },
-    "portrait": {
-      "format": "portrait",
-      "theme": "tokyo-night",
-      "viewport": [
-        1080,
-        1920
-      ],
-      "app_viewport": [
-        936,
-        820
-      ],
-      "display": ":99",
-      "source_commit": "3f0d62c72353d7f5e52ded52f29af03710f8823c",
-      "disclosure": "Production GTK and Quickshell UI with a scripted transcript and local fake rewrite provider. No real audio, speech recognition, provider latency or live Hyprland session is represented.",
-      "real_rewrite_action": true,
-      "original_preserved": true,
-      "copy_action": true,
-      "screenshots": [
-        {
-          "image": "recording",
-          "seconds": 14.14,
-          "chapter": "recording",
-          "phase": "recording",
-          "width": 1080,
-          "height": 1920,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 490
-        },
-        {
-          "image": "review",
-          "seconds": 17.13,
-          "chapter": "review",
-          "phase": "ready",
-          "width": 1080,
-          "height": 1920,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 531
-        },
-        {
-          "image": "rewriting",
-          "seconds": 22.16,
-          "chapter": "rewriting",
-          "phase": "rewriting",
-          "width": 1080,
-          "height": 1920,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 179
-        },
-        {
-          "image": "conversation",
-          "seconds": 26.13,
-          "chapter": "saved",
-          "phase": "ready",
-          "width": 1080,
-          "height": 1920,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 237
-        },
-        {
-          "image": "workspace",
-          "seconds": 26.22,
-          "chapter": "saved",
-          "phase": "ready",
-          "width": 1080,
-          "height": 1920,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 237
-        },
-        {
-          "image": "hero",
-          "seconds": 30.17,
-          "chapter": "end",
-          "phase": "idle",
-          "width": 1080,
-          "height": 1920,
-          "overlayVisible": false,
-          "previewLines": 5,
-          "previewLength": 0
-        }
-      ]
+    "canonical_video": "unreleased-live/workflow.mp4",
+    "duration_seconds": 59.533333,
+    "pcm_to_video_seconds": 0.3470447063446045,
+    "pcm_timing": {
+      "first_incomplete_intent": 11.056663,
+      "first_substantial_structure_during_voice": 22.729987,
+      "first_scribe_commit": 25.378173,
+      "last_source_audio_above_minus_60_dbfs": 33.7416875,
+      "expanded_update_after_voice": 34.603223,
+      "stop": 40.741783,
+      "canonical_request": 46.773049,
+      "canonical_final_paint": 54.910604
     },
-    "light": {
-      "format": "landscape",
-      "theme": "rose-pine",
-      "viewport": [
-        1920,
-        1080
-      ],
-      "app_viewport": [
-        1116,
-        780
-      ],
-      "display": ":99",
-      "source_commit": "3f0d62c72353d7f5e52ded52f29af03710f8823c",
-      "disclosure": "Production GTK and Quickshell UI with a scripted transcript and local fake rewrite provider. No real audio, speech recognition, provider latency or live Hyprland session is represented.",
-      "real_rewrite_action": true,
-      "original_preserved": true,
-      "copy_action": true,
-      "screenshots": [
-        {
-          "image": "recording",
-          "seconds": 14.16,
-          "chapter": "recording",
-          "phase": "recording",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 495
-        },
-        {
-          "image": "review",
-          "seconds": 17.14,
-          "chapter": "review",
-          "phase": "ready",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 531
-        },
-        {
-          "image": "rewriting",
-          "seconds": 22.13,
-          "chapter": "rewriting",
-          "phase": "rewriting",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 179
-        },
-        {
-          "image": "conversation",
-          "seconds": 26.14,
-          "chapter": "saved",
-          "phase": "ready",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 237
-        },
-        {
-          "image": "workspace",
-          "seconds": 26.23,
-          "chapter": "saved",
-          "phase": "ready",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": true,
-          "previewLines": 5,
-          "previewLength": 237
-        },
-        {
-          "image": "hero",
-          "seconds": 30.16,
-          "chapter": "end",
-          "phase": "idle",
-          "width": 1920,
-          "height": 1080,
-          "overlayVisible": false,
-          "previewLines": 5,
-          "previewLength": 0
-        }
-      ]
+    "claim_limit": "Single observed take, not a latency benchmark. Final reply narrows general bad-row error handling to missing IDs; owner/deadline remain open questions. Raw recognition includes check crowns, a stutter and an extra owner sentence during padded silence."
+  },
+  "released_speech": {
+    "recognition_provider": "ElevenLabs",
+    "recognition_model": "scribe_v2_realtime",
+    "batch_fallback": false,
+    "rewrite_used": false,
+    "note": "A configured GLM model string in the receipt is unused in the speech scenario.",
+    "source_provenance": "v0.3.0/speech-provenance.json",
+    "canonical_video": "v0.3.0/speech/workflow.mp4",
+    "duration_seconds": 17.033333,
+    "pcm_to_video_seconds": 0.3419358730316162,
+    "runtime_verification": "112 recorded runtime file hashes independently matched to tagged Git objects during final QA; original run did not write a separate post-capture verification receipt."
+  },
+  "source_audio": {
+    "historical_speech": {
+      "speaker": "John F. Kennedy",
+      "title": "Address at Rice University in Houston, Texas on the Nation's Space Effort",
+      "date": "1962-09-12",
+      "primary_catalog": {
+        "institution": "John F. Kennedy Presidential Library and Museum",
+        "url": "https://www.jfklibrary.org/asset-viewer/archives/jfkwha-127-002",
+        "digital_identifier": "JFKWHA-127-002",
+        "collection": "White House Audio Collection",
+        "creator": "Department of Defense. Defense Communications Agency. White House Communications Agency.",
+        "copyright_status": "Public Domain",
+        "retrieved": "2026-09-09",
+        "retrieval_method": "Exa page text extraction; direct curl returned HTTP 403"
+      },
+      "corroborating_primary_catalog": {
+        "url": "https://www.jfklibrary.org/learn/about-jfk/historic-speeches/address-at-rice-university-on-the-nations-space-effort",
+        "digital_identifier": "USG-15-29-2",
+        "description": "NASA coverage of the same address",
+        "copyright_status": "Public Domain"
+      },
+      "download": {
+        "catalog": "https://archive.org/details/jfks19620912",
+        "metadata": "https://archive.org/metadata/jfks19620912",
+        "url": "https://archive.org/download/jfks19620912/jfk_1962_0912_spaceeffort.mp3",
+        "file": "jfk_1962_0912_spaceeffort.mp3",
+        "source_as_cataloged": "John F. Kennedy Presidential Library",
+        "taped_by": "White House",
+        "digital_copy_supplied_by": "Miller Center of Public Affairs",
+        "catalog_md5": "6b016cbe48f3c3df4d58a68eebdc63db",
+        "bytes": 13677056,
+        "duration_seconds": 1062.746667,
+        "retrieved": "2026-09-09",
+        "sha256": "a2dc2209773b1c53839a92e8065cf1d5ccb296944b4085c641264ddb85c7cc3c"
+      },
+      "scope": "Public-domain status applies to this historical government recording. No endorsement by the speaker, Library, NASA, or any provider is implied. Source and clip hashes, extraction offsets, and audio/video alignment are recorded in manifest.json.",
+      "excerpt": {
+        "source_start_seconds": 527.0,
+        "source_duration_seconds": 11.5,
+        "trailing_silence_seconds": 0.5,
+        "wav": "../sources/jfk-iconic-input.wav",
+        "sha256": "3352730d14f57e1019ebfddb297febe082815d6a496ca2e57aef1bec3245b661",
+        "preparation": "ffmpeg -ss 527 -t 11.5 -i jfk_1962_0912_spaceeffort.mp3 -af apad=pad_dur=0.5 -ar 16000 -ac 1 -c:a pcm_s16le jfk-iconic-input.wav"
+      }
+    },
+    "task": {
+      "script": "sources/task-script.txt",
+      "original": "sources/task-fish.mp3",
+      "actual_input": "sources/task-input.wav",
+      "provider": "Fish Audio",
+      "model": "s2.1-pro-free",
+      "voice": "model default; no reference voice ID or voice clone",
+      "generation_calls": 1,
+      "paid_fallback": false,
+      "original_duration_seconds": 28.682,
+      "prepared_duration_seconds": 40.715813,
+      "transform": "ffmpeg -i task-fish.mp3 -af atempo=0.85,apad=pad_dur=7 -ar 16000 -ac 1 -c:a pcm_s16le task-input.wav",
+      "disclosure": "Synthetic messy task narration, reused unchanged for the selected take."
     }
   },
+  "desktop": {
+    "host": "lenovo",
+    "os": "Omarchy on Arch Linux",
+    "kernel": "7.1.9-arch1-2",
+    "architecture": "x86_64",
+    "cpu": "12th Gen Intel Core i7-12700H; 14 cores, 20 logical CPUs",
+    "ram_bytes": 67099017216,
+    "versions": [
+      "omarchy 4.0.2-1",
+      "hyprland 0.56.2-1",
+      "quickshell 0.3.1-1",
+      "gtk4 1:4.22.4-1",
+      "libadwaita 1:1.9.3-1",
+      "pipewire 1:1.6.8-1",
+      "xorg-server-xvfb 21.1.24-1",
+      "ffmpeg 2:9.0.1-1",
+      "imagemagick 7.1.2.30-1",
+      "ttf-liberation 2.1.5-2"
+    ],
+    "display": ":193",
+    "landscape": [
+      1920,
+      1080
+    ],
+    "portrait": [
+      1080,
+      1920
+    ],
+    "landscape_application_xywh": [
+      568,
+      146,
+      1288,
+      772
+    ],
+    "compositor": {
+      "name": "xcompmgr",
+      "version": "1.1.10-2",
+      "package_source": "official Arch extra repository; extracted privately without installation",
+      "binary_sha256": "57b191fea2b4ca3482c3079079f30ab5bcfff3e10cdbac4d62ca7008cdaf57ac",
+      "package_sha256": "d5883018ed796d960d58c6929040d1a8de6cb44ed5360a7667b5563f7f4d975e"
+    },
+    "theme": {
+      "name": "Nord",
+      "colors": "sources/nord/colors.toml",
+      "shell": "sources/nord/shell.toml",
+      "wallpaper": "installed Nord 0-black-moon.jpg",
+      "wallpaper_sha256": "6873fbf7d4cbb9a39604094dd8d804eb6d231e63ecf56e5c297aae90358eff81",
+      "artwork_license": "Theme wallpaper retained as displayed; no separate public-domain or Apache-2.0 claim for the wallpaper."
+    },
+    "fonts": [
+      {
+        "requested": "Inter",
+        "resolved_family": "Liberation Sans",
+        "file": "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
+        "sha256": "baccc64becc3eb7d104b7c84d99f5314a0a1f896e2b3ea6c2f22fc08d2003bee"
+      },
+      {
+        "requested": "sans-serif",
+        "resolved_family": "Liberation Sans",
+        "file": "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
+        "sha256": "baccc64becc3eb7d104b7c84d99f5314a0a1f896e2b3ea6c2f22fc08d2003bee"
+      },
+      {
+        "requested": "monospace",
+        "resolved_family": "JetBrainsMono Nerd Font,JetBrainsMono NF",
+        "file": "/usr/share/fonts/TTF/JetBrainsMonoNerdFont-Regular.ttf",
+        "sha256": "1767e08e6b207eb57c114e833b817e26c6a7625bbcf474e3b4dd0f73c10e5bdc"
+      }
+    ],
+    "font_note": "Inter is requested by the editorial QML but is not installed: Fontconfig resolves Liberation Sans. Production Omarchy widgets use monospace \u2192 JetBrainsMono Nerd Font. No font binaries are distributed.",
+    "isolation": [
+      "Xvfb :193 only; no live Wayland/Hyprland socket",
+      "private XDG and session D-Bus/AT-SPI",
+      "private PipeWire dummy graph, no hardware devices or session manager",
+      "automatic clipboard, paste, titles and spoken commands disabled",
+      "one-use same-user credential broker; credentials removed from helper/service child environments",
+      "Codex receives only isolated config and existing authenticated provider access; provider directory removed afterward"
+    ],
+    "acceptance_boundary": "Real production frames on an isolated X11 desktop, not live Hyprland, physical F9, target-paste or microphone acceptance."
+  },
+  "edits": {
+    "continuous": "v0.3.0/speech/export.json and unreleased-live/export.json preserve actual offsets and full waits.",
+    "portrait": "v0.3.0/speech/vertical-export.json: widget crop; source AAC packets copied; no speed/cut changes.",
+    "portrait_poster": "Native UI reopens the real saved speech history without a provider call.",
+    "intro": "mluva-product-intro.edit.json and portable mluva-product-intro.plan.json; exact coordinator handoff; all source cuts 1x.",
+    "intro_qa_contact_mapping": {
+      "original_handoff_name": "intro-final-contact.png",
+      "retained_repository_file": "docs/promotion/evidence/mluva-product-intro-contact.png"
+    },
+    "ai": "h3-max/generation.json; one coordinator-owned H3 Max request; $1.20 conservative reservation against $5 total; actual charge unverified (billing endpoint 403). No fal calls by the capture task.",
+    "partial_reference": "v0.3.0/task-saved-partial-desktop.png is a real saved partial task whose final update failed; H3 uses it only as an illustrative image reference."
+  },
+  "stable_aliases_relative_to_assets": {
+    "workspace-dark.png": "v0.3.0/speech/hero.png",
+    "widget-review.png": "v0.3.0/speech/widget-review.png",
+    "mluva-omarchy-demo.mp4": "v0.3.0/speech/workflow.mp4",
+    "mluva-omarchy-vertical.mp4": "v0.3.0/speech/vertical.mp4"
+  },
+  "evidence": {
+    "audio": "../evidence/audio-and-boundary-qa.json",
+    "media": "../evidence/media-qa.json",
+    "intro": "mluva-product-intro.qa.json",
+    "prior_initial_echo": "../evidence/initial-echo-take",
+    "rejected_four_second_commits": "../evidence/rejected-four-second-commits",
+    "legacy": "legacy-v0.1.1/manifest.json"
+  },
+  "reproduction": "dev/README.md",
+  "capture_tool_hashes": {
+    "dev/capture_campaign.py": "9e1c86d0fd0da1715d3556568600fff16eb3a5138602fc4c66549f0e08715e61",
+    "dev/campaign_session.py": "056e977adc55b0a73d6f11ac206b326439b391b936d0a9f6556ad938b6b1da35",
+    "dev/campaign-stage.qml": "6804790e19b266c9fd762eb13c0eac237aca0015528695c7773ada1ac3025ad2",
+    "dev/export_campaign.py": "383894970cb8288cf8ff19f294ff340c0b6395369bb860835cacf54a1390df92",
+    "dev/compose_campaign_intro.py": "fc28ef22d1c902aedc564324c471d9d9dfe3327765d368da46ecda88cf4dd2ad"
+  },
   "files": {
-    "hero-dark.png": {
+    "docs/promotion/README.md": {
+      "sha256": "fd62322f42fd3572f00c0727d9a18d64b4f8b00232017379e6dd2a9531ce0a0f",
+      "bytes": 8919
+    },
+    "docs/promotion/assets/h3-max/generation.json": {
+      "sha256": "bc709e97659e251bf4b1edeb05b4c26108e50b47cc255c89ff813a481f317546",
+      "bytes": 4636
+    },
+    "docs/promotion/assets/h3-max/h3-max-transition-raw.mp4": {
+      "sha256": "e856153aa509e096f1cdfe166b2b415abbd944a71aa69fba7f554e203c944b2e",
+      "bytes": 14414156,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1344,
+            "height": 768,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "24/1",
+            "start_time": "0.000000",
+            "duration": "15.083333"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "32000",
+            "channels": 2,
+            "r_frame_rate": "0/0",
+            "start_time": "0.000000",
+            "duration": "15.104000"
+          }
+        ],
+        "format": {
+          "duration": "15.104000",
+          "size": "14414156"
+        }
+      }
+    },
+    "docs/promotion/assets/h3-max/prompt.txt": {
+      "sha256": "a386a3daa366e3bf866a528c386f2a8a195e47981951b73f63e5552699d39607",
+      "bytes": 2101
+    },
+    "docs/promotion/assets/h3-max/reference-empty-workspace.png": {
+      "sha256": "ce999ba16cc2098de014c2a561849e2eeb1edd4b352ce6731588286ff755fa13",
+      "bytes": 2775380,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2775380"
+        }
+      }
+    },
+    "docs/promotion/assets/h3-max/reference-partial-task-draft.png": {
+      "sha256": "58306db040b699500fcf346bba5262338171ef4a835f569ef1754a18856a558e",
+      "bytes": 2940287,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2940287"
+        }
+      }
+    },
+    "docs/promotion/assets/legacy-v0.1.1/hero-dark.png": {
       "sha256": "45c0455d3ee9e5092eba40355ab50b75876182dba2fa66b9db22ccdb790dc4f1",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "png",
-          "width": 1920,
-          "height": 1080,
-          "pix_fmt": "rgb24",
-          "r_frame_rate": "25/1"
+      "bytes": 184166,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "184166"
         }
-      ],
-      "format": {
-        "size": "184166"
       }
     },
-    "hero-light.png": {
+    "docs/promotion/assets/legacy-v0.1.1/hero-light.png": {
       "sha256": "17683ba98d02a9673adfc6c3fb186094d6762a08570c8c2e17a49faaefb20124",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "png",
-          "width": 1920,
-          "height": 1080,
-          "pix_fmt": "rgb24",
-          "r_frame_rate": "25/1"
+      "bytes": 176839,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "176839"
         }
-      ],
-      "format": {
-        "size": "176839"
       }
     },
-    "mluva-omarchy-demo.mp4": {
+    "docs/promotion/assets/legacy-v0.1.1/manifest.json": {
+      "sha256": "5ed4daff33d24a679068ae30481da0bc9fce77c13349245a224b835a6f9f12d6",
+      "bytes": 12199
+    },
+    "docs/promotion/assets/legacy-v0.1.1/mluva-omarchy-demo.mp4": {
       "sha256": "360e84c310cb643221c595a571626f2ad7aaf715071c0004db00575c568b815f",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "h264",
-          "width": 1920,
-          "height": 1080,
-          "pix_fmt": "yuv420p",
-          "r_frame_rate": "30/1"
+      "bytes": 790524,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "32.166667"
+          }
+        ],
+        "format": {
+          "duration": "32.166667",
+          "size": "790524"
         }
-      ],
-      "format": {
-        "duration": "32.166667",
-        "size": "790524"
       }
     },
-    "mluva-omarchy-vertical.mp4": {
+    "docs/promotion/assets/legacy-v0.1.1/mluva-omarchy-vertical.mp4": {
       "sha256": "e7af746d60e6c8f16204c54c0a34fe914cc9e0bfbde75009a27cbc5b581b7078",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "h264",
-          "width": 1080,
-          "height": 1920,
-          "pix_fmt": "yuv420p",
-          "r_frame_rate": "30/1"
+      "bytes": 868118,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1080,
+            "height": 1920,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "32.166667"
+          }
+        ],
+        "format": {
+          "duration": "32.166667",
+          "size": "868118"
         }
-      ],
-      "format": {
-        "duration": "32.166667",
-        "size": "868118"
       }
     },
-    "mluva-widget-closeup.mp4": {
+    "docs/promotion/assets/legacy-v0.1.1/mluva-widget-closeup.mp4": {
       "sha256": "110c6c5e51f3deff9ccfd9196b1ed47105e3d78d029d939ef5a1a2d1a5ed361f",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "h264",
-          "width": 1000,
-          "height": 440,
-          "pix_fmt": "yuv420p",
-          "r_frame_rate": "30/1"
+      "bytes": 441827,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1000,
+            "height": 440,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "22.967000"
+          }
+        ],
+        "format": {
+          "duration": "22.967000",
+          "size": "441827"
         }
-      ],
-      "format": {
-        "duration": "22.967000",
-        "size": "441827"
       }
     },
-    "vertical-poster.png": {
+    "docs/promotion/assets/legacy-v0.1.1/vertical-poster.png": {
       "sha256": "89e062e72dc257ec70e8c5c6aca2ccb1a5a68e605f08c1f8cd7251af02a603b1",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "png",
-          "width": 1080,
-          "height": 1920,
-          "pix_fmt": "rgb24",
-          "r_frame_rate": "25/1"
+      "bytes": 241366,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1080,
+            "height": 1920,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "241366"
         }
-      ],
-      "format": {
-        "size": "241366"
       }
     },
-    "widget-recording.png": {
+    "docs/promotion/assets/legacy-v0.1.1/widget-recording.png": {
       "sha256": "f01fa969007a3c7ebbdbb36ad33d0ebf02e598808725e812ae77e35f9f9c41c6",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "png",
-          "width": 500,
-          "height": 126,
-          "pix_fmt": "rgba",
-          "r_frame_rate": "25/1"
+      "bytes": 52642,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 126,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "52642"
         }
-      ],
-      "format": {
-        "size": "52642"
       }
     },
-    "widget-review.png": {
+    "docs/promotion/assets/legacy-v0.1.1/widget-review.png": {
       "sha256": "01d7a0df21ac9ab54d2ab8b21ffbe325b335cda517f5f0b655d7ef7253b63e38",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "png",
-          "width": 500,
-          "height": 162,
-          "pix_fmt": "rgba",
-          "r_frame_rate": "25/1"
+      "bytes": 37901,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 162,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "37901"
         }
-      ],
-      "format": {
-        "size": "37901"
       }
     },
-    "workflow-dark.png": {
+    "docs/promotion/assets/legacy-v0.1.1/workflow-dark.png": {
       "sha256": "7b7338cf388a7909a0a211d18a402e4183d88248096ca5dab522af367ed19083",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "png",
-          "width": 1920,
-          "height": 1080,
-          "pix_fmt": "rgb24",
-          "r_frame_rate": "25/1"
+      "bytes": 223332,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "223332"
         }
-      ],
-      "format": {
-        "size": "223332"
       }
     },
-    "workspace-dark.png": {
+    "docs/promotion/assets/legacy-v0.1.1/workspace-dark.png": {
       "sha256": "517feb6b2019ddf86ed52d2f2fe51e285106b280315483bc4ab3eea1c304d036",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "png",
-          "width": 1116,
-          "height": 780,
-          "pix_fmt": "rgb24",
-          "r_frame_rate": "25/1"
+      "bytes": 97459,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1116,
+            "height": 780,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "97459"
         }
-      ],
-      "format": {
-        "size": "97459"
       }
     },
-    "workspace-light.png": {
+    "docs/promotion/assets/legacy-v0.1.1/workspace-light.png": {
       "sha256": "7ee82927f65d710f60bcc0095031091ef4bb744ba3b67d611688dd6f0fddc8d3",
-      "programs": [],
-      "stream_groups": [],
-      "streams": [
-        {
-          "codec_name": "png",
-          "width": 1116,
-          "height": 780,
-          "pix_fmt": "rgb24",
-          "r_frame_rate": "25/1"
+      "bytes": 92004,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1116,
+            "height": 780,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "92004"
         }
-      ],
-      "format": {
-        "size": "92004"
       }
+    },
+    "docs/promotion/assets/mluva-omarchy-demo.mp4": {
+      "sha256": "79379deccfcb64e9dc81a0040d9995e9e763d5bcfcab702f72902e8d42e1718f",
+      "bytes": 2121267,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "17.033333"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "start_time": "0.277938",
+            "duration": "16.704000"
+          }
+        ],
+        "format": {
+          "duration": "17.033333",
+          "size": "2121267"
+        }
+      }
+    },
+    "docs/promotion/assets/mluva-omarchy-vertical.mp4": {
+      "sha256": "c7337f5f535f3dfc667ec1d5e9b0304f59bef5a1c6b1ae2ae12ea5252ce23bf0",
+      "bytes": 2353370,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1080,
+            "height": 1920,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "17.033333"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "start_time": "0.277938",
+            "duration": "16.704000"
+          }
+        ],
+        "format": {
+          "duration": "17.033333",
+          "size": "2353370"
+        }
+      }
+    },
+    "docs/promotion/assets/mluva-product-intro.edit.json": {
+      "sha256": "6614523bedaa4698bd1fcfa6392e585b231465b6cbe1aafebe1aa054656a6c4e",
+      "bytes": 4457
+    },
+    "docs/promotion/assets/mluva-product-intro.mp4": {
+      "sha256": "a3733854ad9a74a1c9c8680177ba7cadda1d343ee651593a57ddcda9604de1b0",
+      "bytes": 8786412,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "44.700000"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "48000",
+            "channels": 2,
+            "r_frame_rate": "0/0",
+            "start_time": "0.000000",
+            "duration": "44.700000"
+          }
+        ],
+        "format": {
+          "duration": "44.700000",
+          "size": "8786412"
+        }
+      }
+    },
+    "docs/promotion/assets/mluva-product-intro.plan.json": {
+      "sha256": "bd1ef6a6cb09a2dd2cfa7ed26e2cfe26429deae258f5436f51141ca35935ba63",
+      "bytes": 1721
+    },
+    "docs/promotion/assets/mluva-product-intro.qa.json": {
+      "sha256": "4cb2c30ffa94787fb4f38189468a131017d28842dc79bbfce1dd9fa5bd47fb6a",
+      "bytes": 970
+    },
+    "docs/promotion/assets/sources/jfk-iconic-input.wav": {
+      "sha256": "3352730d14f57e1019ebfddb297febe082815d6a496ca2e57aef1bec3245b661",
+      "bytes": 384126,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "duration": "12.000000"
+          }
+        ],
+        "format": {
+          "duration": "12.000000",
+          "size": "384126"
+        }
+      }
+    },
+    "docs/promotion/assets/sources/nord/colors.toml": {
+      "sha256": "62d1739a488db2a66b88f2f054579bdfd08c4ec771d2acf5659b9f9d976c57e2",
+      "bytes": 593
+    },
+    "docs/promotion/assets/sources/nord/shell.toml": {
+      "sha256": "e7292d4a99d4eae683902095198d32aca7038ff4d7f8f33a41cc9bd4935e9d8d",
+      "bytes": 8859
+    },
+    "docs/promotion/assets/sources/task-fish.mp3": {
+      "sha256": "90af9e92c1d6640e07d9f37c609d4764ae028a9bb902e6d2a375229a1aaba022",
+      "bytes": 458918,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "mp3",
+            "codec_type": "audio",
+            "sample_rate": "44100",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "start_time": "0.000000",
+            "duration": "28.682375"
+          }
+        ],
+        "format": {
+          "duration": "28.682375",
+          "size": "458918"
+        }
+      }
+    },
+    "docs/promotion/assets/sources/task-input.wav": {
+      "sha256": "692bb0f7f640aba670606ad035cb6f750f17ec7fe97442af27f003a779691f96",
+      "bytes": 1302984,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "duration": "40.715812"
+          }
+        ],
+        "format": {
+          "duration": "40.715813",
+          "size": "1302984"
+        }
+      }
+    },
+    "docs/promotion/assets/sources/task-script.txt": {
+      "sha256": "79b9717cac9e06a48986dbd069fbd9bf1ef7a8f74356fd6117252f5a0721492c",
+      "bytes": 528
+    },
+    "docs/promotion/assets/unreleased-live/boundary-review.json": {
+      "sha256": "f371fccb8aec28bcdd32592397209e761dea82b82c4ce2e8eafc2b782db8ef06",
+      "bytes": 6472
+    },
+    "docs/promotion/assets/unreleased-live/capture.json": {
+      "sha256": "7754ffcff2747f6c260df6cd02b0e67bebcb1e99a080222dc70571696f697230",
+      "bytes": 61044
+    },
+    "docs/promotion/assets/unreleased-live/captured.wav": {
+      "sha256": "88a88c7e761b8cfdcb804456131bf0d4e060b8524e1a26cd8d5be0d1b5fab0c4",
+      "bytes": 1306668,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "duration": "40.832000"
+          }
+        ],
+        "format": {
+          "duration": "40.832000",
+          "size": "1306668"
+        }
+      }
+    },
+    "docs/promotion/assets/unreleased-live/export.json": {
+      "sha256": "317332820bcc6feed77935e6f352550b02ea8f049ff235767a3a29e4dd0acf5f",
+      "bytes": 5037
+    },
+    "docs/promotion/assets/unreleased-live/harness/campaign-stage.qml": {
+      "sha256": "7fc528cd3c00d8b4f6ff052e5dac6a8b817ad26effcfcb0951eb7d5757b17493",
+      "bytes": 5147
+    },
+    "docs/promotion/assets/unreleased-live/harness/campaign_session.py": {
+      "sha256": "d74a4be3a8f2616d376b26eebbe1216e309797dc83241dda37914fa0907b1782",
+      "bytes": 32833
+    },
+    "docs/promotion/assets/unreleased-live/harness/capture_campaign.py": {
+      "sha256": "72949e467bf32cf1a8f308c80de5166422f2328a6c1a900ea258dace2ebeae51",
+      "bytes": 9588
+    },
+    "docs/promotion/assets/unreleased-live/hero.png": {
+      "sha256": "7a408d4d1ca6c33da5f3a38390d319988f17277a1b1d2f37e97f4fce3c0836a1",
+      "bytes": 2947014,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2947014"
+        }
+      }
+    },
+    "docs/promotion/assets/unreleased-live/live-structured.png": {
+      "sha256": "b43cd4ef90f389ea6ac60241b337c026fdd12327d1db29c6a8bc13abd3e220eb",
+      "bytes": 2059892,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2059892"
+        }
+      }
+    },
+    "docs/promotion/assets/unreleased-live/live.png": {
+      "sha256": "85abac1ca03595de933b0b90877a72e50683b235f97c76db630468a7488fa590",
+      "bytes": 2922671,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2922671"
+        }
+      }
+    },
+    "docs/promotion/assets/unreleased-live/recognition.json": {
+      "sha256": "0a041abc86df63c5af8cfbc80354755965f885f02c7b591c7eb9cac71e397b96",
+      "bytes": 2077
+    },
+    "docs/promotion/assets/unreleased-live/recording.png": {
+      "sha256": "b3b91eb4cec6ad45bfeb0263233816e0d626b6df2f13d0bbac76dd9dcf8a4f55",
+      "bytes": 2917098,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2917098"
+        }
+      }
+    },
+    "docs/promotion/assets/unreleased-live/replies.json": {
+      "sha256": "da9ff65d6e2bb7e84bb1ebbc7b82c77f3250ce1738daa5449f94f86e02a5c165",
+      "bytes": 1004
+    },
+    "docs/promotion/assets/unreleased-live/runtime-files.json": {
+      "sha256": "8b4c09c86acf40a658339919bd6e518c8ab692907785b580d2b23a0f85dbb45a",
+      "bytes": 13170
+    },
+    "docs/promotion/assets/unreleased-live/runtime-verification.json": {
+      "sha256": "f8b62649844dfeee831835714d65de83467ccf83e5a4076f95ea934a3cde0f11",
+      "bytes": 330
+    },
+    "docs/promotion/assets/unreleased-live/runtime.patch": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "docs/promotion/assets/unreleased-live/widget-recording.png": {
+      "sha256": "4729bdedbc54f2f645589c7e8bbaf97a7ebd4c4a90dc11c50a51a96d824617cc",
+      "bytes": 9074,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 127,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "9074"
+        }
+      }
+    },
+    "docs/promotion/assets/unreleased-live/widget-review.png": {
+      "sha256": "d3d936d8f2257b1a41572cba87a5974bfa714505da21886f630fe2cca4d5266e",
+      "bytes": 27545,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 142,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "27545"
+        }
+      }
+    },
+    "docs/promotion/assets/unreleased-live/workflow.mp4": {
+      "sha256": "c361f4547137b2db0270ae409ed266e12602bbd8945a44c5e9ef9ffe77ba356b",
+      "bytes": 6763406,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "59.533333"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "start_time": "0.283062",
+            "duration": "59.200000"
+          }
+        ],
+        "format": {
+          "duration": "59.533333",
+          "size": "6763406"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/hero-desktop-empty.png": {
+      "sha256": "ce999ba16cc2098de014c2a561849e2eeb1edd4b352ce6731588286ff755fa13",
+      "bytes": 2775380,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2775380"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/portrait-stage.png": {
+      "sha256": "16a7434d17f1164632bcfa6a86e87a46639d5a346a119744d28ef64cb4d1ed45",
+      "bytes": 3135214,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1080,
+            "height": 1920,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "3135214"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/speech/capture.json": {
+      "sha256": "9e1a3e63e3e6ddd90a3b3b619b4ce0fd0c18e3c4df1fcb7dd617d8568b8c4fca",
+      "bytes": 8634
+    },
+    "docs/promotion/assets/v0.3.0/speech/captured.wav": {
+      "sha256": "f1168a81c73fb310b5b820c7f2c634acc86ee24d407653fedd0fc75712f61018",
+      "bytes": 387116,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "duration": "12.096000"
+          }
+        ],
+        "format": {
+          "duration": "12.096000",
+          "size": "387116"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/speech/export.json": {
+      "sha256": "f5e94ef5958ca800ff73e3cfddd21d6be038415c37cabc695fdc8da660f19d7d",
+      "bytes": 4505
+    },
+    "docs/promotion/assets/v0.3.0/speech/hero.png": {
+      "sha256": "1f15b9868badb335f0a22cbc2810aec35895c9a31bdddf00979db3f764581678",
+      "bytes": 2885858,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2885858"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/speech/recognition.json": {
+      "sha256": "c8ac100612650d9ca9798ba82def2bc504eb3467a1419d3893c02e764c3c54fe",
+      "bytes": 1175
+    },
+    "docs/promotion/assets/v0.3.0/speech/recording.png": {
+      "sha256": "a6261cec78cc24a8140babd69961b7c42003997c055e4eea9c87c31524300bc2",
+      "bytes": 2866735,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2866735"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/speech/replies.json": {
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "bytes": 3
+    },
+    "docs/promotion/assets/v0.3.0/speech/runtime-files.json": {
+      "sha256": "f4d08d0c371929025c0198b268edf8d037d78667eb1ced79190f9677b184fae3",
+      "bytes": 12393
+    },
+    "docs/promotion/assets/v0.3.0/speech/runtime.patch": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "docs/promotion/assets/v0.3.0/speech/vertical-export.json": {
+      "sha256": "3660601c6488530cb672fb2965d6337f960507dbdf12790d43aa1d1430d4f2ab",
+      "bytes": 1737
+    },
+    "docs/promotion/assets/v0.3.0/speech/vertical.mp4": {
+      "sha256": "c7337f5f535f3dfc667ec1d5e9b0304f59bef5a1c6b1ae2ae12ea5252ce23bf0",
+      "bytes": 2353370,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1080,
+            "height": 1920,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "17.033333"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "start_time": "0.277938",
+            "duration": "16.704000"
+          }
+        ],
+        "format": {
+          "duration": "17.033333",
+          "size": "2353370"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/speech/widget-recording.png": {
+      "sha256": "3963f74c7cb2d0bef7b79e341df2103376935c50624a8bae4a2ddccf89a23dbc",
+      "bytes": 6718,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 127,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "6718"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/speech/widget-review.png": {
+      "sha256": "4a3dc8152861c1e294ef92c1120b17a6663699b24ed373c52dfdeb1932c42c1a",
+      "bytes": 12810,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 142,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "12810"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/speech/workflow.mp4": {
+      "sha256": "79379deccfcb64e9dc81a0040d9995e9e763d5bcfcab702f72902e8d42e1718f",
+      "bytes": 2121267,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "17.033333"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "start_time": "0.277938",
+            "duration": "16.704000"
+          }
+        ],
+        "format": {
+          "duration": "17.033333",
+          "size": "2121267"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/speech-portrait-capture.json": {
+      "sha256": "9d86196aae604b3837ad43469983ca830582f4f147f62df7ab6028fb67c4ab96",
+      "bytes": 2061
+    },
+    "docs/promotion/assets/v0.3.0/speech-portrait.png": {
+      "sha256": "d484f65c3f53b14d647c67ecc02c78b69561628004994b0d61c1ce64f6258a43",
+      "bytes": 2682437,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1080,
+            "height": 1920,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2682437"
+        }
+      }
+    },
+    "docs/promotion/assets/v0.3.0/speech-provenance.json": {
+      "sha256": "d708866d35703df06e2f55270cc9f84888d229a543502c38ff419461a426b09e",
+      "bytes": 2317
+    },
+    "docs/promotion/assets/v0.3.0/task-saved-partial-desktop.png": {
+      "sha256": "58306db040b699500fcf346bba5262338171ef4a835f569ef1754a18856a558e",
+      "bytes": 2940287,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2940287"
+        }
+      }
+    },
+    "docs/promotion/assets/widget-review.png": {
+      "sha256": "4a3dc8152861c1e294ef92c1120b17a6663699b24ed373c52dfdeb1932c42c1a",
+      "bytes": 12810,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 142,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "12810"
+        }
+      }
+    },
+    "docs/promotion/assets/workspace-dark.png": {
+      "sha256": "1f15b9868badb335f0a22cbc2810aec35895c9a31bdddf00979db3f764581678",
+      "bytes": 2885858,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2885858"
+        }
+      }
+    },
+    "docs/promotion/evidence/audio-and-boundary-qa.json": {
+      "sha256": "37a8ee0b9b6c1c940af488641380913a471fa85998b843b2100c29e158da3d0b",
+      "bytes": 1849
+    },
+    "docs/promotion/evidence/harness-smoke-runtime.json": {
+      "sha256": "6898feb2ea833121da84901412cb9155bc456daa2f0d5b5c2dbc2f83e846405d",
+      "bytes": 330
+    },
+    "docs/promotion/evidence/harness-smoke.json": {
+      "sha256": "6682e249958bfec847339ae69773f85250298bd78bb338a3addb37e77b95caff",
+      "bytes": 1384
+    },
+    "docs/promotion/evidence/initial-echo-take/capture.json": {
+      "sha256": "5fd3fd72dc79195f7f60da204309dcfa5af841950230247936d263b7352667f7",
+      "bytes": 65113
+    },
+    "docs/promotion/evidence/initial-echo-take/captured.wav": {
+      "sha256": "88a88c7e761b8cfdcb804456131bf0d4e060b8524e1a26cd8d5be0d1b5fab0c4",
+      "bytes": 1306668,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "duration": "40.832000"
+          }
+        ],
+        "format": {
+          "duration": "40.832000",
+          "size": "1306668"
+        }
+      }
+    },
+    "docs/promotion/evidence/initial-echo-take/export.json": {
+      "sha256": "9166f69efc16e0f84c82a0473c5163ec41e7303698266f15623a71c685efbd8f",
+      "bytes": 5034
+    },
+    "docs/promotion/evidence/initial-echo-take/hero.png": {
+      "sha256": "311608dbafdfc237f08b3499fcc1667ce3a4c3f713b8199ee93a473a1b057334",
+      "bytes": 2949913,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2949913"
+        }
+      }
+    },
+    "docs/promotion/evidence/initial-echo-take/live-structured.png": {
+      "sha256": "5893ceb883f790e15bbb53cfecc2c5a1bfa38a5c163ab0f677328686de503859",
+      "bytes": 2143820,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2143820"
+        }
+      }
+    },
+    "docs/promotion/evidence/initial-echo-take/live.png": {
+      "sha256": "613dad01058ce91d13d99d7419cfce4a5d99076f4d87f346458deec6ac5de15c",
+      "bytes": 2915919,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2915919"
+        }
+      }
+    },
+    "docs/promotion/evidence/initial-echo-take/recognition.json": {
+      "sha256": "c46dcbbefb473e90e7fa5471919bb28dacc9bf79e03c38a60b95a8a204dd4e5d",
+      "bytes": 2087
+    },
+    "docs/promotion/evidence/initial-echo-take/recording.png": {
+      "sha256": "c4fb6ae399ec6c43966851c988dbd5228014c1cafe70262f7657ed7c7bdad9cb",
+      "bytes": 2915508,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "2915508"
+        }
+      }
+    },
+    "docs/promotion/evidence/initial-echo-take/replies.json": {
+      "sha256": "749e92d2ba8bb51737668dec23db81ddbb7c96aea26919058dfdad6a679b1f06",
+      "bytes": 1160
+    },
+    "docs/promotion/evidence/initial-echo-take/runtime-files.json": {
+      "sha256": "54f5d93451e3254f4a0ec31677df7a894c07bf8118479f11ffdf2c03824f0ccf",
+      "bytes": 12711
+    },
+    "docs/promotion/evidence/initial-echo-take/runtime-verification.json": {
+      "sha256": "351a53fc1c774afc182c64f3ccc67084ba162c3ff00cf30a84e6f0bec7a5ee82",
+      "bytes": 330
+    },
+    "docs/promotion/evidence/initial-echo-take/runtime.patch": {
+      "sha256": "2e4403c70a7cb23320a7b088890ffdc83ec78d22d346927ef5c1f1b68b17d38c",
+      "bytes": 53760
+    },
+    "docs/promotion/evidence/initial-echo-take/widget-recording.png": {
+      "sha256": "538180a549480498a022e5c51bc4be3a988cce4523b61eede1e1a9ffd9cad528",
+      "bytes": 9096,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 127,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "9096"
+        }
+      }
+    },
+    "docs/promotion/evidence/initial-echo-take/widget-review.png": {
+      "sha256": "4a74e4d447f27df5729c85d2c0d9e1718e85825a686da96590f785d5774b5fcf",
+      "bytes": 29019,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 142,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "29019"
+        }
+      }
+    },
+    "docs/promotion/evidence/initial-echo-take/workflow.mp4": {
+      "sha256": "ef8ee6f5d825b1453abdb75cc807824eb65ce0541802a3d0220a3bb3af4cc209",
+      "bytes": 6590727,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000",
+            "duration": "58.533333"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "start_time": "0.321125",
+            "duration": "58.176000"
+          }
+        ],
+        "format": {
+          "duration": "58.533333",
+          "size": "6590727"
+        }
+      }
+    },
+    "docs/promotion/evidence/media-qa.json": {
+      "sha256": "ce55fa826f82b268e5ad4ce3c593887cfa3c89b8eee110ae205dbd597a23f967",
+      "bytes": 2071
+    },
+    "docs/promotion/evidence/mluva-product-intro-contact.png": {
+      "sha256": "d752ccd819b2da743282a31645b40c191a3ae7ec52e8299a651bb7a328e9c380",
+      "bytes": 1659706,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1296,
+            "height": 1840,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "1659706"
+        }
+      }
+    },
+    "docs/promotion/evidence/rejected-four-second-commits/boundary-review.json": {
+      "sha256": "0b522638d42d16591cec444a6e1ff3f28956dc1e7a0f69bc2e12dc4ba7d32f5a",
+      "bytes": 9180
+    },
+    "docs/promotion/evidence/rejected-four-second-commits/capture.json": {
+      "sha256": "9320d93ed0dd33ae59fd688603e99b203ceaa4ab89454aa4a36fc764beb50d95",
+      "bytes": 39072
+    },
+    "docs/promotion/evidence/rejected-four-second-commits/recognition.json": {
+      "sha256": "e3f308260c269cecb36ecaa46c60a88cc1d28b6dbdc9739e5a9fae0562888ee0",
+      "bytes": 1920
+    },
+    "docs/promotion/evidence/rejected-four-second-commits/replies.json": {
+      "sha256": "5f95491291feae792dc2a212839de8ad35f19405ab128db77ea7c67ed1ba8b81",
+      "bytes": 617
+    },
+    "docs/promotion/evidence/rejected-four-second-commits/runtime-files.json": {
+      "sha256": "d048cc8e2121e791e66cebbe84103c8578179b2f8ba7ce3a34b623c60a777ec1",
+      "bytes": 12711
+    },
+    "docs/promotion/evidence/rejected-four-second-commits/runtime.patch": {
+      "sha256": "fc95c2801625ae4d79d012e25dbbd0ed5a93383b94851b79687c555fa09fc3a8",
+      "bytes": 47777
+    },
+    "docs/promotion/marketplace-submission.md": {
+      "sha256": "5d96e7b9724f862004c9bf082d7c987797d04caeb7e765dbcd4e3a8b987767a6",
+      "bytes": 2399
     }
-  }
+  },
+  "asset_references_relative_to": "docs/promotion/assets; individual copied receipts and source-provenance excerpts preserve their original path context",
+  "embedded_source_provenance_paths_relative_to": "docs/promotion/assets/v0.3.0, matching speech-provenance.json"
 }

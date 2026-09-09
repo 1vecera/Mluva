@@ -1,0 +1,53 @@
+{
+  "model": "minimax/h3-max/image-to-video",
+  "provider": "fal.ai",
+  "request_id": "01a085d8-6328-7103-9369-acb3be74c5ee",
+  "date": "2026-09-09",
+  "inference_submissions": 1,
+  "parameters": {
+    "duration": 15,
+    "resolution": "768P",
+    "prompt_expansion_mode": "quality",
+    "seed": 270309,
+    "enable_safety_checker": true
+  },
+  "output": {
+    "width": 1344,
+    "height": 768,
+    "frames_per_second": 24,
+    "duration_seconds": 15.104,
+    "inference_seconds": 17.126093660015613
+  },
+  "source_release": "Mluva v0.3.0",
+  "source_commit": "4ce8dc49537da98d8f32f25726f63193774d3b91",
+  "source_qualification": "Actual captured product compositions. The closing reference is a saved partial task draft whose final update failed; it is not a completed or during-recording task result.",
+  "presentation": "AI-generated designed transition. Intermediate interface text is generated. Actual functionality and timing are demonstrated only by separate continuous screen recordings.",
+  "budget": {
+    "authorized_total_usd": 5.0,
+    "conservative_reservation_usd": 1.2,
+    "actual_charge_usd": null,
+    "actual_charge_status": "Unverified: supplied API key returned HTTP 403 for billing events, which require Admin scope. Reservation retained; no further generation."
+  },
+  "pricing_source": "https://fal.ai/models/minimax/h3-max/image-to-video/llms.txt",
+  "billing_scope_source": "https://fal.ai/docs/platform-apis/v1/models/billing-events",
+  "audio": "Native generated AAC stereo soundtrack requested as original quiet ambient audio without speech; technical peak -0.8 dBFS.",
+  "expanded_prompt": "How the reference pictures align with the target video \u2014 Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot 1) aligns with the 15.08-second mark of the target video.\n\nintegrated_multimodal_description: [Shot 1] This is a 2D digital animation of a software interface. The scene opens on a dark slate-blue desktop environment featuring a translucent central interface panel and a dark mountain landscape wallpaper. On the left, large white typography reads \"Great words. A fresh page.\" The camera immediately begins a subtle push-in. The dark mountain background shifts slightly in a layered parallax motion, while the interface panels and typography hold perfectly still in the foreground. At 00:03.000 within the same shot, accompanied by a subtle, breath-like synthesized texture, a thin, soft mint-colored sound trace materializes in the lower negative space. It sweeps smoothly across the interface, undulating with a gentle, breathing rhythm as an abstract visual metaphor for speaking. At 00:07.000 within the same shot, as a smooth, airy digital sweep is heard, the central translucent panel glides a few pixels upward. Simultaneously, a single soft sweep of light passes over the interface, triggering a graceful crossfade. The large text on the left seamlessly transitions to read \"Think aloud. Make it clear.\", and the central panel populates with a structured text draft beginning with \"A clearer brief for the sales team\". At 00:11.000 within the same shot, the crossfade completes. The camera's cinematic push-in gradually decelerates, settling exactly into the new populated composition. At 00:14.000 within the same shot, the interface remains locked in this final state, holding completely still to resolve cleanly for an edit.\n\noverall_soundscape: The soundscape consists of precise, abstract interface textures. A subtle, breath-like synthesized texture swells gently in the foreground as the mint sound trace appears, which transitions into a smooth, airy digital sweep that accompanies the interface crossfade. Toward the end, these textures smoothly decay, leaving a clean, silent tail.\n\nnon_diegetic_music: A tranquil, minimalist electronic ambient underscore featuring warm, sustained synth pads and delicate, rounded tones, maintaining a calm and precise atmosphere without any recognizable melody or sharp impacts.",
+  "files": {
+    "h3-max-transition-raw.mp4": {
+      "sha256": "e856153aa509e096f1cdfe166b2b415abbd944a71aa69fba7f554e203c944b2e",
+      "bytes": 14414156
+    },
+    "reference-empty-workspace.png": {
+      "sha256": "ce999ba16cc2098de014c2a561849e2eeb1edd4b352ce6731588286ff755fa13",
+      "bytes": 2775380
+    },
+    "reference-partial-task-draft.png": {
+      "sha256": "58306db040b699500fcf346bba5262338171ef4a835f569ef1754a18856a558e",
+      "bytes": 2940287
+    },
+    "prompt.txt": {
+      "sha256": "a386a3daa366e3bf866a528c386f2a8a195e47981951b73f63e5552699d39607",
+      "bytes": 2101
+    }
+  }
+}

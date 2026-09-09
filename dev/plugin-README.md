@@ -26,7 +26,7 @@ Plugin installation handles the shell integration. Install and start Mluva separ
 - Watch five lines while speaking. The recording surface passes pointer and keyboard input through.
 - After dictation, choose **Polish**, **Structure**, or a saved prompt through **More**. Rewrites keep the original.
 - Choose **Copy** to use the displayed version, or **Open** to continue in the full app. Partial rewrites cannot be copied.
-- The review closes after eight idle seconds. Hover, keyboard focus and menus pause it; rewriting pauses it too.
+- The review closes after four idle seconds by default. Configure the duration in Mluva's workspace settings. Hover, keyboard focus and menus pause it; rewriting pauses it too.
 
 ## Update or remove
 
@@ -42,7 +42,7 @@ Removal affects the shell plugin. Mluva's application, settings and saved conver
 
 The QML runs inside your existing shell and invokes `mluva-shell`, which communicates with the local Mluva application over the session bus. The widget receives a bounded volatile text preview, status, elapsed time and conversation/style identifiers. It does not persist or log that stream. It does not make its own network requests or hold provider credentials.
 
-Mluva recognition sends microphone audio to ElevenLabs Scribe and requires your own `ELEVENLABS_API_KEY`, supplied through your secret manager. Optional rewriting and generated titles use an authenticated local Codex app-server and may send text to its configured provider. Provider usage or account costs are separate from this open-source plugin. Linux dictation is not offline.
+Choose speech recognition independently from rewriting in Mluva's provider settings. Speech can use ElevenLabs Scribe, an OpenAI-compatible transcription endpoint, or local Voxtype/Whisper. Rewriting can use an authenticated Codex app-server or an OpenAI-compatible text endpoint; generated titles use the selected rewrite route. Cloud routes send audio or text to their configured provider and require that provider's credentials, supplied through your secret manager. Provider usage or account costs are separate from this open-source plugin. Voxtype/Whisper can transcribe offline after its local model is installed; cloud rewriting remains optional.
 
 Automated evidence covers the real QML, application bridge, five-line geometry, scrolling, countdown and review actions in an isolated X11 session. That does not establish physical F9 capture, microphone quality, or live Hyprland focus behavior. Use clipboard delivery; automatic insertion is disabled by default and remains Experimental. The preview uses scripted content, not a recorded recognition benchmark.
 
