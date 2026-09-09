@@ -1,0 +1,126 @@
+{
+  "film_sha256": "7968caaeee2f69f82c9be761d9b119573f319897427d06f07639c899cb4677bb",
+  "review_date": "2026-09-09",
+  "method": "Visual inspection of retained sampled frames and full-size feature screenshots, with separate complete decode and waveform QA",
+  "opening": {
+    "contact": "opening-contact.jpg",
+    "sample_seconds": [
+      0.5,
+      1.8,
+      2,
+      2.2,
+      2.3,
+      2.35,
+      2.5,
+      2.75,
+      3.1,
+      3.4,
+      5.7,
+      6.5
+    ],
+    "result": "Pass: centered identity has two seconds of reading room; hero hook absent at 2.3 s before small header appears; no differently sized hook overlap; settled large app by 3.1 s; JFK source label has no build/provider plumbing"
+  },
+  "film": {
+    "contact": "film-contact.jpg",
+    "sample_seconds": [
+      3.4,
+      6.5,
+      10.5,
+      11,
+      18.5,
+      20.9,
+      24,
+      27.5,
+      28.5,
+      29.5,
+      37,
+      41.5,
+      42.5,
+      45.2,
+      46.3,
+      48.8,
+      52,
+      57.8,
+      64,
+      68.8,
+      72,
+      74.4,
+      78.5,
+      81.5
+    ],
+    "result": "Pass: readable software titles, frame-filling native app, compact disclosures, visible feature actions, explicit saved-result cut; no persistent editorial left/right split"
+  },
+  "scenery": {
+    "contact": "scenery-contact.jpg",
+    "sample_seconds": [
+      0.0,
+      0.5,
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0,
+      3.5,
+      4.0,
+      4.5,
+      5.0,
+      5.5,
+      6.0,
+      6.5,
+      7.0,
+      7.5,
+      8.0,
+      8.5,
+      9.0,
+      9.5,
+      10.0,
+      10.5,
+      11.0,
+      11.5,
+      12.0,
+      12.5,
+      13.0,
+      13.5,
+      14.0,
+      14.5,
+      15.0
+    ],
+    "source_sha256": "c2b44688636a6073f512886aea68eafc87dd4126fc6708608e5febebfbf1094d",
+    "result": "Clean sky, moon, stars and mountains throughout sampled source; no generated text, logo or interface. Generated audio muted."
+  },
+  "source_integrity": {
+    "jfk": "Source 0\u201314.8 s; source card visually covers [0,4.666667) only. Opening words and 0.277938 s stream delay retained. Original continuous source remains unchanged.",
+    "live": "Source 17\u201330 s and 55.4\u201359.2 s, original capture runtime cdc00237595f8cfb29e75cd87a980311ea3bcc98. Main workspace crop excludes original floating panel; saved result explicitly cuts forward past finalization. Raw and model text unchanged.",
+    "original_defects": "Live preview blank [26.800,27.067); Stop shrinks panel at 41.133; panel unmaps [41.533,41.567); GTK Live editors hidden [41.600,55.267); ready shell expires [45.567,55.267). Retained old source, no runtime-fix claim.",
+    "separate_runtime_fix": {
+      "pr": "https://github.com/1vecera/Mluva/pull/18",
+      "commit": "c38e6552b63b528421c5246995f0e5e9ad729df4",
+      "report": "https://github.com/1vecera/Mluva/blob/c38e6552b63b528421c5246995f0e5e9ad729df4/docs/verification/s27-464-panels.md",
+      "boundary": "Offline 60 fps controlled replay: 15 blank frames before, zero after; Live editors remain mapped through held reconciliation. Not used as a real-provider product capture."
+    }
+  },
+  "audio_checks": [
+    {
+      "clip": "dictation",
+      "correlation_at_zero_shift": 0.9999945483820022,
+      "best_shift_ms": 0,
+      "window_seconds": 10,
+      "source_start": 0.5,
+      "film_start": 6.5
+    },
+    {
+      "clip": "live-rewrite",
+      "correlation_at_zero_shift": 0.9999205084169994,
+      "best_shift_ms": 0,
+      "window_seconds": 10,
+      "source_start": 17.5,
+      "film_start": 29.5
+    }
+  ],
+  "limitations": [
+    "Source sampling is visual QA, not a frame-by-frame human playback audit.",
+    "Offline feature text/rewrite delays are synthetic; no provider quality or latency claim.",
+    "Private X11 rendering does not establish physical microphone, F9, live Hyprland or arbitrary target-app acceptance.",
+    "Runtime fixes and release integration remain in coordinator-owned PRs."
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Mluva",
+  "wordmark": "mluva-lockup.svg",
+  "font_family": "Liberation Sans",
+  "hook": "Smart dictation. Built for Omarchy.",
+  "link": "github.com/1vecera/Mluva",
+  "provenance": "source/provenance.json",
+  "derivation": "Flat optical SVG redraw by S27-466; outlined Adwaita Sans SemiBold wordmark; source image retained separately."
+}

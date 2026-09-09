@@ -1,0 +1,37 @@
+{
+  "source_file": "workflow.mkv in the retained capture directory",
+  "source": {
+    "sha256": "b9d73e73f7065f3ee77d52afeeac28acd14139ece28cf9d5c2947a824408cf21",
+    "bytes": 239851
+  },
+  "output_file": "workflow.mp4",
+  "output": {
+    "sha256": "2177e0849a7078a6ec8460d26bbfe2fd1f4850d09877252dbb99b0c45faea0b8",
+    "bytes": 240751
+  },
+  "duration_seconds": 8.566,
+  "transform": "Complete H.264 stream copied into MP4; no cuts, retiming or audio",
+  "capture_event_clocks": {
+    "before.png": "Setup-process monotonic clock, before the recorder is launched",
+    "action_and_after.png": "Monotonic clock reset after FFmpeg launch; not an exact frame clock",
+    "limit": "Reading holds and local fixture delays are not provider-latency measurements"
+  },
+  "capture_harness": {
+    "capture_features.py": {
+      "sha256": "0125ac9f3ab36706508fb891a5d06ccf0f1d6e3b99bc791dab445abb6d8fe1d3",
+      "bytes": 4761
+    },
+    "feature-stage.qml": {
+      "sha256": "c09504da36769588a1da6c3425a81a5de0c79ae2a41b2498ff6465da3c91a242",
+      "bytes": 1744
+    },
+    "feature_session.py": {
+      "sha256": "f1f1e2c90e8cce9e5ba0bf2a2923e3077471799cc585af159e6cc70264c6422a",
+      "bytes": 17051
+    }
+  },
+  "exporter": {
+    "sha256": "a10b4ac2d6dc37d61111e6bf707afb1d4776394ea3098c6b5df6ccf0b9f40fb4",
+    "bytes": 3272
+  }
+}

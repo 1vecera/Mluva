@@ -1,0 +1,21 @@
+cd linux && uv sync --locked
+Resolved 10 packages in 2ms
+Checked 8 packages in 0.28ms
+cd linux && uv run --locked python ../scripts/render_feature_maturity.py --check
+cd linux && uv run --locked pytest -q
+........................................................................ [ 20%]
+........................................................................ [ 40%]
+........................................................................ [ 60%]
+........................................................................ [ 80%]
+......................................................................   [100%]
+=============================== warnings summary ===============================
+../../../../../../../../usr/lib/python3.14/site-packages/gi/overrides/__init__.py:159
+  /usr/lib/python3.14/site-packages/gi/overrides/__init__.py:159: PyGIDeprecationWarning: GLib.unix_signal_add_full is deprecated; use GLibUnix.signal_add_full instead
+    value = getattr(proxy, attr)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+358 passed, 1 warning in 29.67s
+cd linux && uv run --locked ruff check .
+All checks passed!
+cd linux && uv run --locked ruff format --check .
+94 files already formatted

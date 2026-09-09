@@ -1,0 +1,43 @@
+{
+  "scenario": "history",
+  "runtime_commit": "18004cc98cd73f1b038883e59db6274ee9f0be4b",
+  "runtime_files": "runtime-files.json",
+  "harness": "harness/",
+  "display": ":195",
+  "screen": [
+    1920,
+    1080
+  ],
+  "application": [
+    1840,
+    920
+  ],
+  "font": "Inter 15",
+  "resolved_font": "Liberation Sans",
+  "export_directory": "Isolated session/Exports for the export fixture",
+  "disclosure": "Production UI; scripted input and local rewrite fixture; no recognition, inference or provider timing.",
+  "isolation": "Private display, D-Bus, AT-SPI, XDG and clipboard; audio/provider/portal/input services disabled",
+  "events": [
+    {
+      "event": "screenshot",
+      "seconds": 2.692,
+      "file": "before.png"
+    },
+    {
+      "event": "action",
+      "seconds": 1.305,
+      "scenario": "history"
+    },
+    {
+      "event": "screenshot",
+      "seconds": 4.966,
+      "file": "after.png"
+    }
+  ],
+  "checks": [
+    "Search history filtered to one matching note and opened it",
+    "Raw input unchanged; no automatic paste or inference"
+  ],
+  "errors": [],
+  "provider_calls": 0
+}

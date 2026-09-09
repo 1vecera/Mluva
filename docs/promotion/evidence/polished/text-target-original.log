@@ -1,0 +1,16 @@
+cd linux && uv sync --locked
+Resolved 10 packages in 0.94ms
+Checked 8 packages in 0.09ms
+bash linux/tests/run_native_text_target_smoke.sh
+dbus-daemon[867486]: [session uid=1000 pid=867486 pidfd=5] Activating service name='ca.desrt.dconf' requested by ':1.0' (uid=1000 pid=867493 comm="gsettings set org.gnome.desktop.interface toolkit-")
+dbus-daemon[867486]: [session uid=1000 pid=867486 pidfd=5] Successfully activated service 'ca.desrt.dconf'
+dbus-daemon[867486]: [session uid=1000 pid=867486 pidfd=5] Activating service name='org.freedesktop.systemd1' requested by ':1.4' (uid=1000 pid=867515 comm="/usr/bin/dbus-broker-launch --config-file=/usr/sha")
+dbus-daemon[867486]: [session uid=1000 pid=867486 pidfd=5] Activated service 'org.freedesktop.systemd1' failed: Process org.freedesktop.systemd1 exited with status 1
+MESA-EGL: warning: DRI3 error: Could not get DRI3 device
+MESA-EGL: warning: Ensure your X server supports DRI3 to get accelerated rendering
+
+(process:867545): dbind-WARNING **: 18:10:20.387: AT-SPI: Error in GetItems, sender=:1.4, error=Object does not exist at path “/org/a11y/atspi/cache”
+native_atspi_focus_capture=passed
+native_atspi_unicode_insertion=passed
+native_atspi_exact_target_confirmation=passed
+Native text-target smoke passed; evidence: /home/vecera/code/mluva/.claude/worktrees/s27-465-product-film/tmp/native-text-target-smoke/run.MFXvzG
