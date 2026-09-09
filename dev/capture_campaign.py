@@ -13,6 +13,8 @@ import threading
 import wave
 from pathlib import Path
 
+from capture_delight import installed_snapshot, verify_installation_receipt
+
 
 def main() -> None:
     """Broker only the authorized providers after starting a secret-free private session."""
@@ -47,6 +49,11 @@ def main() -> None:
     parser.add_argument("--live-interval", type=int, default=4)
     parser.add_argument("--rewrite-provider", choices=("litellm", "codex"), default="litellm")
     parser.add_argument("--rewrite-model")
+    parser.add_argument("--installed-payload", type=Path, help="Verified installed app directory for launch footage")
+    parser.add_argument("--installation-receipt", type=Path)
+    parser.add_argument("--launch-film", action="store_true", help="Uncaptioned 1080p60 Omarchy launch framing on :203")
+    parser.add_argument("--compositor", type=Path)
+    parser.add_argument("--pixel-ratio", type=int, choices=(1, 2), default=1)
     parser.add_argument(
         "--experimental-dirty",
         action="store_true",
@@ -61,8 +68,36 @@ def main() -> None:
     output.chmod(0o700)
     if socket.gethostname() != "lenovo":
         raise RuntimeError("This campaign is authorized only on lenovo")
-    if Path("/tmp/.X193-lock").exists() or Path("/tmp/.X11-unix/X193").exists():
-        raise RuntimeError("Reserved display :193 is already occupied")
+    display_number = 203 if args.launch_film else 193
+    if Path(f"/tmp/.X{display_number}-lock").exists() or Path(f"/tmp/.X11-unix/X{display_number}").exists():
+        raise RuntimeError(f"Reserved display :{display_number} is already occupied")
+    if args.launch_film and (not args.installed_payload or not args.installation_receipt or args.portrait):
+        parser.error("Launch footage requires installed payload, installation receipt and landscape framing")
+    if args.installed_payload and not args.installation_receipt:
+        parser.error("An installed payload requires its installation receipt")
+    if args.pixel_ratio != 1 and not args.launch_film:
+        parser.error("Pixel scaling is supported only by launch-film framing")
+    payload = args.installed_payload.resolve(strict=True) if args.installed_payload else runtime / "linux"
+    installed_hashes = {}
+    installed_revision = None
+    if args.installed_payload:
+        receipt_path = args.installation_receipt.resolve(strict=True)
+        installed_hashes, icon_hash = installed_snapshot(runtime, payload)
+        installed_revision = verify_installation_receipt(runtime, payload, receipt_path)
+        (output / "installation.json").write_text(
+            json.dumps(
+                {
+                    "receipt_file": str(receipt_path),
+                    "receipt_sha256": hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
+                    "installed_payload": str(payload),
+                    "installed_files_verified": len(installed_hashes),
+                    "installed_icon_sha256": icon_hash,
+                },
+                indent=2,
+            )
+            + "\n"
+        )
+        (output / "installed-files.json").write_text(json.dumps(installed_hashes, indent=2) + "\n")
     commit = subprocess.check_output(["git", "rev-parse", "v0.3.0^{commit}"], cwd=root, text=True).strip()
     if commit != "4ce8dc49537da98d8f32f25726f63193774d3b91":
         raise RuntimeError("Unexpected release commit")
@@ -71,6 +106,8 @@ def main() -> None:
         cwd=runtime,
         text=True,
     ).strip()
+    if installed_revision is not None and installed_revision != runtime_commit:
+        raise RuntimeError("Select the installation receipt's exact source revision for the real capture")
     runtime_diff = subprocess.check_output(["git", "diff", runtime_commit, "--", "linux"], cwd=runtime)
     untracked = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard", "linux"], cwd=runtime)
     if untracked:
@@ -87,7 +124,13 @@ def main() -> None:
     (output / "runtime-files.json").write_text(json.dumps(runtime_hashes, indent=2) + "\n")
     harness = output / "harness"
     harness.mkdir()
-    for name in ("capture_campaign.py", "campaign_session.py", "campaign-stage.qml"):
+    for name in (
+        "capture_campaign.py",
+        "campaign_session.py",
+        "campaign-stage.qml",
+        "capture_delight.py",
+        "delight-stage.qml",
+    ):
         shutil.copy2(root / "dev" / name, harness / name)
     if args.scenario in {"speech", "task"}:
         if args.audio is None:
@@ -137,10 +180,14 @@ def main() -> None:
         "PATH": "/usr/bin:/bin",
         "LANG": "C.UTF-8",
         "HOME": str(Path.home()),
-        "OFFSCREEN_DISPLAY_NUMBER": "193",
-        "OFFSCREEN_SCREEN_SPEC": "1080x1920x24" if args.portrait else "1920x1080x24",
+        "OFFSCREEN_DISPLAY_NUMBER": str(display_number),
+        "OFFSCREEN_SCREEN_SPEC": "1080x1920x24"
+        if args.portrait
+        else f"{1920 * args.pixel_ratio}x{1080 * args.pixel_ratio}x24",
+        "GDK_SCALE": str(args.pixel_ratio),
+        "QT_SCALE_FACTOR": str(args.pixel_ratio),
         "OFFSCREEN_ENABLE_ATSPI": "1",
-        "PYTHONPATH": str(runtime / "linux"),
+        "PYTHONPATH": str(payload),
         "VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT": "1",
         "ADW_DISABLE_PORTAL": "1",
         "GSK_RENDERER": "cairo",
@@ -150,6 +197,11 @@ def main() -> None:
         "CAMPAIGN_BROKER": address,
         "CAMPAIGN_RELEASE_COMMIT": commit,
         "CAMPAIGN_RUNTIME_ROOT": str(runtime),
+        "CAMPAIGN_PAYLOAD_ROOT": str(payload),
+        "CAMPAIGN_DISPLAY": ":" + str(display_number),
+        "CAMPAIGN_LAUNCH_FILM": "1" if args.launch_film else "0",
+        "CAMPAIGN_PIXEL_RATIO": str(args.pixel_ratio),
+        "CAMPAIGN_COMPOSITOR": str(args.compositor.resolve(strict=True)) if args.compositor else "",
         "CAMPAIGN_RUNTIME_COMMIT": runtime_commit,
         "CAMPAIGN_BUILD_LABEL": "v0.3.0"
         if runtime_commit == commit and not runtime_diff
@@ -166,17 +218,17 @@ def main() -> None:
         "CAMPAIGN_CODEX_BINARY": shutil.which("codex") or "",
     }
     helper = Path.home() / ".agents/skills/run-offscreen-linux-verification-daniel/scripts/run_isolated_x11.sh"
+    python_command = (
+        [str(payload / ".venv/bin/python")]
+        if args.installed_payload
+        else ["uv", "run", "--project", str(payload), "--locked", "python"]
+    )
     command = [
         "bash",
         str(helper),
         str(output),
         "--",
-        "uv",
-        "run",
-        "--project",
-        str(root / "linux"),
-        "--locked",
-        "python",
+        *python_command,
         str(root / "dev/campaign_session.py"),
     ]
     try:
@@ -202,6 +254,8 @@ def main() -> None:
     finally:
         server.close()
     worker.join(timeout=2)
+    if args.installed_payload and installed_snapshot(runtime, payload) != (installed_hashes, icon_hash):
+        raise RuntimeError("Installed payload changed during real capture")
     if any(
         hashlib.sha256((runtime / name).read_bytes()).hexdigest() != digest for name, digest in runtime_hashes.items()
     ):

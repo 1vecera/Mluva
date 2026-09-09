@@ -1,0 +1,242 @@
+{
+  "language_code": "eng",
+  "language_probability": 1.0,
+  "text": "Meet Mluva, the most delightful dictation app for Omaki. And when Omaki changes its theme, Mluva follows.",
+  "words": [
+    {
+      "text": "Meet",
+      "start": 0.159,
+      "end": 0.359,
+      "type": "word",
+      "logprob": -0.00017248096992261708
+    },
+    {
+      "text": " ",
+      "start": 0.359,
+      "end": 0.419,
+      "type": "spacing",
+      "logprob": -0.17919811606407166
+    },
+    {
+      "text": "Mluva,",
+      "start": 0.419,
+      "end": 0.899,
+      "type": "word",
+      "logprob": -0.03661846501442293
+    },
+    {
+      "text": " ",
+      "start": 0.899,
+      "end": 1.339,
+      "type": "spacing",
+      "logprob": -5.07818695041351e-05
+    },
+    {
+      "text": "the",
+      "start": 1.339,
+      "end": 1.419,
+      "type": "word",
+      "logprob": -5.07818695041351e-05
+    },
+    {
+      "text": " ",
+      "start": 1.419,
+      "end": 1.479,
+      "type": "spacing",
+      "logprob": -4.768370445162873e-07
+    },
+    {
+      "text": "most",
+      "start": 1.48,
+      "end": 1.819,
+      "type": "word",
+      "logprob": -4.768370445162873e-07
+    },
+    {
+      "text": " ",
+      "start": 1.819,
+      "end": 1.879,
+      "type": "spacing",
+      "logprob": -2.0265558760002023e-06
+    },
+    {
+      "text": "delightful",
+      "start": 1.879,
+      "end": 2.379,
+      "type": "word",
+      "logprob": -2.0265558760002023e-06
+    },
+    {
+      "text": " ",
+      "start": 2.379,
+      "end": 2.459,
+      "type": "spacing",
+      "logprob": -0.00018106251081917435
+    },
+    {
+      "text": "dictation",
+      "start": 2.46,
+      "end": 2.98,
+      "type": "word",
+      "logprob": -8.106827316270128e-05
+    },
+    {
+      "text": " ",
+      "start": 2.98,
+      "end": 3.039,
+      "type": "spacing",
+      "logprob": -4.768370445162873e-07
+    },
+    {
+      "text": "app",
+      "start": 3.039,
+      "end": 3.199,
+      "type": "word",
+      "logprob": -4.768370445162873e-07
+    },
+    {
+      "text": " ",
+      "start": 3.199,
+      "end": 3.299,
+      "type": "spacing",
+      "logprob": -1.1920922133867862e-06
+    },
+    {
+      "text": "for",
+      "start": 3.299,
+      "end": 3.379,
+      "type": "word",
+      "logprob": -1.1920922133867862e-06
+    },
+    {
+      "text": " ",
+      "start": 3.379,
+      "end": 3.459,
+      "type": "spacing",
+      "logprob": -1.0790728330612183
+    },
+    {
+      "text": "Omaki.",
+      "start": 3.46,
+      "end": 4.079,
+      "type": "word",
+      "logprob": -0.366825585719198
+    },
+    {
+      "text": " ",
+      "start": 4.079,
+      "end": 4.339,
+      "type": "spacing",
+      "logprob": -1.0967194612021558e-05
+    },
+    {
+      "text": "And",
+      "start": 4.339,
+      "end": 4.44,
+      "type": "word",
+      "logprob": -1.0967194612021558e-05
+    },
+    {
+      "text": " ",
+      "start": 4.44,
+      "end": 4.5,
+      "type": "spacing",
+      "logprob": -8.940656698541716e-06
+    },
+    {
+      "text": "when",
+      "start": 4.5,
+      "end": 4.619,
+      "type": "word",
+      "logprob": -8.940656698541716e-06
+    },
+    {
+      "text": " ",
+      "start": 4.619,
+      "end": 4.719,
+      "type": "spacing",
+      "logprob": -0.0001559135998832062
+    },
+    {
+      "text": "Omaki",
+      "start": 4.719,
+      "end": 5.259,
+      "type": "word",
+      "logprob": -6.873118218209129e-05
+    },
+    {
+      "text": " ",
+      "start": 5.259,
+      "end": 5.339,
+      "type": "spacing",
+      "logprob": -4.410734163684538e-06
+    },
+    {
+      "text": "changes",
+      "start": 5.339,
+      "end": 5.679,
+      "type": "word",
+      "logprob": -4.410734163684538e-06
+    },
+    {
+      "text": " ",
+      "start": 5.679,
+      "end": 5.719,
+      "type": "spacing",
+      "logprob": -3.576278118089249e-07
+    },
+    {
+      "text": "its",
+      "start": 5.719,
+      "end": 5.879,
+      "type": "word",
+      "logprob": -3.576278118089249e-07
+    },
+    {
+      "text": " ",
+      "start": 5.879,
+      "end": 5.96,
+      "type": "spacing",
+      "logprob": -5.364403477869928e-06
+    },
+    {
+      "text": "theme,",
+      "start": 5.96,
+      "end": 6.259,
+      "type": "word",
+      "logprob": -1.5755100321257487e-05
+    },
+    {
+      "text": " ",
+      "start": 6.259,
+      "end": 6.5,
+      "type": "spacing",
+      "logprob": -7.664863369427621e-05
+    },
+    {
+      "text": "Mluva",
+      "start": 6.5,
+      "end": 6.92,
+      "type": "word",
+      "logprob": -1.9049047841690482e-05
+    },
+    {
+      "text": " ",
+      "start": 6.92,
+      "end": 6.98,
+      "type": "spacing",
+      "logprob": -1.7881377516459906e-06
+    },
+    {
+      "text": "follows.",
+      "start": 6.98,
+      "end": 7.439,
+      "type": "word",
+      "logprob": -0.03150059282640427
+    }
+  ],
+  "transcription_id": "bHqvRte0odhhmtfxqlIN",
+  "audio_duration_secs": 7.68,
+  "purpose": "Word timing for the already generated synthetic launch narration; no microphone recording.",
+  "source_sha256": "943977db09500aca7d701e4e18c6913d0718b3e443bc5f8a3ea4a7a1d5cf914f"
+}

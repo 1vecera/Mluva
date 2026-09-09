@@ -1,0 +1,38 @@
+{
+  "status": "opening-preview-only",
+  "description": "Previously rendered and visually reviewed silent opening, packaged from the portable 4:2:0 technical smoke. No installed app footage or completed 55-second product film.",
+  "duration_seconds": 5.5,
+  "frames": 330,
+  "source_clip": {
+    "source": "../polished/motion/h3-max-clean-background.mp4",
+    "source_start": 0,
+    "duration": 5.5
+  },
+  "render_composer": {
+    "sha256": "79c96b0fb0b6eef6de760c00259175f70baaf0599fccf74bb2d69ed54d0a3be4",
+    "bytes": 12566
+  },
+  "font": {
+    "file": "AdwaitaSans-Regular.ttf",
+    "sha256": "8381c33b9a44f066f2b99dba3d416a2342891e28c956a35dfd8d16ee2987e6d4",
+    "bytes": 879796
+  },
+  "sources": {
+    "../polished/motion/h3-max-clean-background.mp4": {
+      "sha256": "c2b44688636a6073f512886aea68eafc87dd4126fc6708608e5febebfbf1094d",
+      "bytes": 26659686
+    },
+    "../polished/brand/mluva-lockup.svg": {
+      "sha256": "381a4fb8b2296b308e33c4af5c74be0826a14865d7e443bd283df182b357dc29",
+      "bytes": 4869
+    }
+  },
+  "output": {
+    "sha256": "3953c2991cbdb37095623b0fdab6e2a4badb2e75bd576d4ae3ba396e253e3a16",
+    "bytes": 6298227
+  },
+  "reviewed_still": {
+    "sha256": "31cb882bbeb302e667dad09195bf48209bbd3e7cf8b39c153c17f3a628f26196",
+    "bytes": 1409645
+  }
+}
