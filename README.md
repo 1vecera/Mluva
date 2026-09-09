@@ -1,27 +1,31 @@
-![Mluva — Speak freely. Write clearly.](docs/assets/mluva-hero.svg)
+![Mluva — Speak a rough idea. Shape it into useful text.](docs/assets/mluva-hero.svg)
 
-**Building the cleanest, smartest dictation app for Omarchy.**
+**Building the best STT experience for Omarchy.**
 
-Talk through a task, a note or an idea. Mluva turns it into text you can use, with an editable original and a clear draft beside it. Enable **Live** to see structure emerge while you speak, including the details you still need to decide. A small native workspace, close to the simplicity of a terminal interface.
+Speak a rough idea. Shape it into useful text. Keep the original. Mluva brings dictation, rewriting and searchable history into a native workspace that follows your Omarchy theme. Paste existing text to polish it, or enable **Live rewrite** to build a task spec or structured note while you speak.
 
-**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy plugin](https://github.com/1vecera/omarchy-mluva)** · **[Watch the intro](docs/promotion/assets/mluva-product-intro.mp4)** · **[Feature status](docs/feature-maturity.md)** · **[Contribute](#development)**
+**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy plugin](https://github.com/1vecera/omarchy-mluva)** · **[Watch the intro](docs/promotion/assets/mluva-product-intro.mp4)** · **[Features and limits](docs/feature-story.md)** · **[Contribute](#development)**
 
 ![Mluva v0.3.0 transcribing JFK's public-domain Rice University speech on Omarchy](docs/promotion/assets/workspace-dark.png)
 
-<sub>Recorded on Omarchy with the Nord palette. The intro labels released dictation and the upcoming Live update separately; see the <a href="docs/promotion/README.md">full recordings and asset provenance</a>.</sub>
+<sub>Recorded on Omarchy with the Nord palette. Capture versions, provider recordings and the example-text feature walkthrough are distinguished in the <a href="docs/promotion/README.md">media kit and provenance</a>.</sub>
 
 ## From a thought to a finished draft
 
 | You want to… | Mluva gives you… |
 | --- | --- |
-| Get an idea down quickly | Background dictation, live words and a completed result on the clipboard. |
-| Clean up the wording | **Polish** removes filler and repairs phrasing; your source stays available. |
+| Get an idea down quickly | F9 dictation and a completed result on the clipboard; Scribe streams words as you speak. |
+| Polish text you already have | Paste it into a new conversation, then use **Polish**, **Structure** or your own instruction. |
 | Make sense of a long note | **Structure** creates a summary and organized points. |
 | Keep your own voice | Editable originals and rewrites, custom instructions, follow-ups and saved prompts. |
 | See what is missing while speaking | **Live rewrite** fills a task spec, structured note or custom template with editable drafts. |
 | Find it later | Automatic conversation titles and search across originals, rewrites and instructions. |
+| Take the result elsewhere | Copy the text, or export a saved conversation from History as Markdown or JSON. |
+| Choose where processing happens | Select speech and rewrite providers independently, including local Whisper and compatible API deployments. |
 
-On **Omarchy**, a translucent widget shows five lines while you speak, easing upward as the current line fills. When you finish, rewrite directly from the widget. Its countdown ring closes the review after four idle seconds by default; hovering, keyboard focus, menus and active rewrites pause it. **Shift+F9** reopens the latest conversation when that shortcut is configured.
+Live rewrite is opt-in and Experimental. Stop reconciles the provisional draft with the committed transcript before a successful final rewrite can copy automatically. “Best” is our product ambition; see the [source-backed feature guide](docs/feature-story.md) for behavior and acceptance limits.
+
+On **Omarchy**, a translucent widget shows five lines while you speak, easing upward as the current line fills. When you finish, rewrite directly from the widget. Hovering, keyboard focus, menus and active rewrites pause its four-second default dismissal. **Open** expands the note into the editable workspace; **Shift+F9** reopens the latest conversation when configured.
 
 ![Omarchy review widget with rewrite actions, Copy, Open and a countdown ring](docs/promotion/assets/widget-review.png)
 
@@ -37,7 +41,7 @@ Closing the main window keeps Mluva available. Open the shell menu or applicatio
 
 ## Try it on Linux
 
-Install the [Linux dependencies](linux/README.md#supported-desktop-contract), choose a [speech and rewrite provider](docs/providers-and-live-rewrite.md), and provide any required credentials through your secret manager. The defaults are ElevenLabs Scribe and an authenticated Codex app-server; local Voxtype/Whisper and LiteLLM-compatible services are also available. Then:
+Install the [Linux dependencies](linux/README.md#supported-desktop-contract), choose a [speech and rewrite provider](docs/provider-selection.md), and provide any required credentials through your secret manager. The defaults are ElevenLabs Scribe and an authenticated Codex app-server. Local Voxtype/Whisper needs an installed model; compatible APIs need separately configured transcription and chat deployments. Then:
 
 ```bash
 git clone https://github.com/1vecera/Mluva.git mluva

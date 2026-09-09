@@ -4,6 +4,8 @@ Mluva itself is available under the Apache License 2.0 in `LICENSE`. Mluva does 
 
 ## Linux runtime packages
 
+The [Mluva wordmark](docs/assets/brand-source/wordmark-outline.svg) was typeset in Adwaita Sans SemiBold (`adwaita-fonts 50.0-1`) and converted to vector outlines. The font is licensed under the SIL Open Font License 1.1; its [copyright and license notice](docs/assets/brand-source/Adwaita-Sans-LICENSE.txt) and [font provenance](docs/assets/brand-source/wordmark-provenance.json) are retained. The font binary is not bundled, and displaying the outlined artwork does not require it.
+
 | Package | Locked version | Upstream license | Project |
 | --- | --- | --- | --- |
 | dbus-next | 0.2.3 | MIT | [altdesktop/python-dbus-next](https://github.com/altdesktop/python-dbus-next) |

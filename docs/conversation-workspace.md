@@ -50,7 +50,7 @@ Install the shell integration with `make linux-recording-overlay-install`, or `m
 
 ## Visual direction
 
-The workspace uses smaller proportional type, compact action chips, a wider reading area and lightly translucent surfaces. Omarchy supplies the active light/dark palette; other desktops use a neutral green palette. The voice-signal mark, app tile and repository banner share token-generated SVG geometry. The symbolic variant is used on the panel; the app tile starts at 24 pixels. See the [UI design notes](ui-design.md) for research, typography, spacing and transparency choices.
+The workspace uses smaller proportional type, compact action chips, a wider reading area and lightly translucent surfaces. Omarchy supplies the active light/dark palette; other desktops use a neutral green palette. The flowing-m mark, app tile and repository banner share flat SVG geometry, with an outlined software wordmark for larger surfaces. The symbolic variant follows the panel's foreground color; the app tile starts at 24 pixels. See the [brand contract](brand-and-compatibility.md) for assets and provenance, and the [UI design notes](ui-design.md) for layout choices.
 
 ## Verification
 

@@ -12,3 +12,8 @@ BRAND_ACTION: Final = "#287E6B"
 BRAND_SURFACE: Final = "#F1F6F3"
 BRAND_HIGHLIGHT: Final = "#FFFFFF"
 BRAND_SIGNAL: Final = "#91E6C8"
+
+# Static artwork uses the selected frost/slate identity; application colors remain theme-driven.
+LOGO_INK: Final = "#2E3440"
+LOGO_ACCENT: Final = "#88C0D0"
+LOGO_FOREGROUND: Final = "#ECEFF4"

@@ -2,5 +2,5 @@
   role="img" aria-labelledby="title description">
   <title id="title">Mluva</title>
   <desc id="description">A continuous voice wave forming a lowercase m, with open, even spacing.</desc>
-  <path fill="currentColor" d="M8 90V44a28 28 0 0 1 56 0v28a8 8 0 0 0 16 0V44a28 28 0 0 1 56 0v46a10 10 0 0 1-20 0V44a8 8 0 0 0-16 0v28a28 28 0 0 1-56 0V44a8 8 0 0 0-16 0v46a10 10 0 0 1-20 0Z"/>
+  <path fill="#88C0D0" d="M8 90V44a28 28 0 0 1 56 0v28a8 8 0 0 0 16 0V44a28 28 0 0 1 56 0v46a10 10 0 0 1-20 0V44a8 8 0 0 0-16 0v28a28 28 0 0 1-56 0V44a8 8 0 0 0-16 0v46a10 10 0 0 1-20 0Z"/>
 </svg>
