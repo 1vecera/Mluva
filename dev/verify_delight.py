@@ -58,7 +58,7 @@ def captions(plan: dict, root: Path) -> tuple[str, list[dict]]:
         if end <= start:
             raise RuntimeError("Caption timing overlaps or has no positive duration")
         result += f"{index + 1}\n{clock(start)} --> {clock(end)}\n{text}\n\n"
-    return result, checks
+    return result.rstrip() + "\n", checks
 
 
 def main() -> None:

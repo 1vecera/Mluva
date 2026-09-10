@@ -1,0 +1,491 @@
+{
+  "schema_version": 1,
+  "media": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "Baseline",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.42c02a",
+        "width": 1920,
+        "height": 1080,
+        "coded_width": 1920,
+        "coded_height": 1080,
+        "has_b_frames": 0,
+        "sample_aspect_ratio": "1:1",
+        "display_aspect_ratio": "16:9",
+        "pix_fmt": "yuv420p",
+        "level": 42,
+        "field_order": "progressive",
+        "id": "0x1",
+        "r_frame_rate": "60/1",
+        "avg_frame_rate": "60/1",
+        "time_base": "1/15360",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 844800,
+        "duration": "55.000000",
+        "bit_rate": "9411190",
+        "nb_frames": "3300",
+        "extradata_size": 31,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc62.28.102 libopenh264"
+        }
+      },
+      {
+        "index": 1,
+        "codec_name": "aac",
+        "codec_long_name": "AAC (Advanced Audio Coding)",
+        "profile": "LC",
+        "codec_type": "audio",
+        "codec_tag_string": "mp4a",
+        "codec_tag": "0x6134706d",
+        "mime_codec_string": "mp4a.40.2",
+        "sample_fmt": "fltp",
+        "sample_rate": "48000",
+        "channels": 2,
+        "channel_layout": "stereo",
+        "bits_per_sample": 0,
+        "initial_padding": 0,
+        "id": "0x2",
+        "r_frame_rate": "0/0",
+        "avg_frame_rate": "0/0",
+        "time_base": "1/48000",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 2640000,
+        "duration": "55.000000",
+        "bit_rate": "161059",
+        "nb_frames": "2580",
+        "extradata_size": 5,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "SoundHandler"
+        }
+      }
+    ],
+    "format": {
+      "filename": "/Users/openclaw/code/mluva/.claude/worktrees/linear-s27-470-290aa32081d4/docs/promotion/assets/delight/mluva-delight-launch.mp4",
+      "nb_streams": 2,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "55.000000",
+      "size": "65872565",
+      "bit_rate": "9581464",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "encoder": "Lavf62.12.102"
+      }
+    }
+  },
+  "film": {
+    "sha256": "231c59ef437ce8694eb5eef4c2f1c71180bf495672fadbed2d22030d0964740f",
+    "bytes": 65872565
+  },
+  "plan": {
+    "sha256": "fb11331e426bb090bf46484082521c3b40d18b8a151f3c84f634f7babfbfbfdf",
+    "bytes": 7920
+  },
+  "edit_receipt": {
+    "sha256": "3761de5f21365d37cf00e2a6f2078ea7fc6e98dda4ec1d333a4aaa63628700bf",
+    "bytes": 11579
+  },
+  "sources_unchanged": true,
+  "full_decode_passed": true,
+  "frames": 3300,
+  "audio_loudness": {
+    "integrated_lufs": -16.12,
+    "true_peak_dbtp": -4.91,
+    "range_lu": 6.7
+  },
+  "word_timing_checks": [
+    {
+      "at": 0.45,
+      "source": "source/pronunciation.mp3",
+      "whole_words": true,
+      "text": "Meet Mluva. The most delightful dictation app for Omarchy."
+    },
+    {
+      "at": 5.6,
+      "source": "source/narration.mp3",
+      "whole_words": true,
+      "text": "A tiny presence on your desktop. Speak, and your words stay right with you."
+    },
+    {
+      "at": 10.7,
+      "source": "source/narration.mp3",
+      "whole_words": true,
+      "text": "Open the workspace. Keep the thought going."
+    },
+    {
+      "at": 15.25,
+      "source": "source/narration.mp3",
+      "whole_words": true,
+      "text": "Live rewrite turns a rough idea into a clear draft, as you speak. Both sides stay steady. Your original stays yours."
+    },
+    {
+      "at": 24.25,
+      "source": "source/narration.mp3",
+      "whole_words": true,
+      "text": "Copy it."
+    },
+    {
+      "at": 27.25,
+      "source": "source/narration.mp3",
+      "whole_words": true,
+      "text": "Polish it."
+    },
+    {
+      "at": 29.75,
+      "source": "source/narration.mp3",
+      "whole_words": true,
+      "text": "Rewrite it."
+    },
+    {
+      "at": 32.25,
+      "source": "source/narration.mp3",
+      "whole_words": true,
+      "text": "Make the final edit, and save. Your notes are ready when you return."
+    },
+    {
+      "at": 37.25,
+      "source": "source/narration.mp3",
+      "whole_words": true,
+      "text": "Control P puts the next action under your fingers."
+    },
+    {
+      "at": 42.25,
+      "source": "source/pronunciation.mp3",
+      "whole_words": true,
+      "text": "And when Omarchy changes its theme, Mluva follows."
+    },
+    {
+      "at": 50.25,
+      "source": "source/narration.mp3",
+      "whole_words": true,
+      "text": "Quiet design. Clear words. A little more delight, every day."
+    }
+  ],
+  "subtitles": {
+    "sha256": "e528b41563ad7e870eb601f58d0a47fb5b2fa707b24f34c34fa4a068fc863472",
+    "bytes": 1298
+  },
+  "source_ranges": [
+    {
+      "clip": "reveal",
+      "timeline": [
+        0.0,
+        5.5
+      ],
+      "source": "../polished/motion/h3-max-clean-background.mp4",
+      "source_seconds": [
+        0,
+        5.5
+      ],
+      "speed": 1
+    },
+    {
+      "clip": "outside",
+      "timeline": [
+        5.5,
+        10.5
+      ],
+      "source": "capture/real/workflow.mp4",
+      "source_seconds": [
+        0.6,
+        5.6
+      ],
+      "speed": 1
+    },
+    {
+      "clip": "open",
+      "timeline": [
+        10.5,
+        15.0
+      ],
+      "source": "capture/real/workflow.mp4",
+      "source_seconds": [
+        5.55,
+        10.05
+      ],
+      "speed": 1
+    },
+    {
+      "clip": "live",
+      "timeline": [
+        15.0,
+        24.0
+      ],
+      "source": "capture/real/workflow.mp4",
+      "source_seconds": [
+        23.3,
+        32.3
+      ],
+      "speed": 1
+    },
+    {
+      "clip": "copy",
+      "timeline": [
+        24.0,
+        27.0
+      ],
+      "source": "capture/features/workflow.mp4",
+      "source_seconds": [
+        18.52,
+        21.52
+      ],
+      "speed": 1
+    },
+    {
+      "clip": "polish",
+      "timeline": [
+        27.0,
+        29.5
+      ],
+      "source": "capture/features/workflow.mp4",
+      "source_seconds": [
+        21.78,
+        25.130000000000003
+      ],
+      "speed": 1.34
+    },
+    {
+      "clip": "rewrite",
+      "timeline": [
+        29.5,
+        32.0
+      ],
+      "source": "capture/features/workflow.mp4",
+      "source_seconds": [
+        25.15,
+        28.875
+      ],
+      "speed": 1.49
+    },
+    {
+      "clip": "edit",
+      "timeline": [
+        32.0,
+        37.0
+      ],
+      "source": "capture/features/workflow.mp4",
+      "source_seconds": [
+        28.89,
+        33.54
+      ],
+      "speed": 0.93
+    },
+    {
+      "clip": "commands",
+      "timeline": [
+        37.0,
+        42.0
+      ],
+      "source": "capture/features/workflow.mp4",
+      "source_seconds": [
+        33.59,
+        38.14
+      ],
+      "speed": 0.91
+    },
+    {
+      "clip": "themes",
+      "timeline": [
+        42.0,
+        50.0
+      ],
+      "source": "capture/features/workflow.mp4",
+      "source_seconds": [
+        38.18,
+        47.019999999999996
+      ],
+      "speed": 1.105
+    },
+    {
+      "clip": "return",
+      "timeline": [
+        50.0,
+        55.0
+      ],
+      "source": "../polished/motion/h3-max-clean-background.mp4",
+      "source_seconds": [
+        0.35,
+        5.35
+      ],
+      "speed": 1
+    }
+  ],
+  "review_frames": [
+    {
+      "file": "opening.png",
+      "film_seconds": 2.5,
+      "sha256": "4348bed8ae66aece91bb85975853599c5ed2a6a07be3e7b400f17efa4e6dc60c",
+      "bytes": 1283185
+    },
+    {
+      "file": "poster.png",
+      "film_seconds": 21,
+      "sha256": "f3076fe57ea5fd898048f15adc66859c1cdf6fd4232a97ca18b23dbe1cae2204",
+      "bytes": 1368043
+    },
+    {
+      "file": "review-00.png",
+      "film_seconds": 0.4,
+      "sha256": "0c9b6528c641ddc7aefb78c4ff7101f319607623a945313024f7bfc370b63d8b",
+      "bytes": 1134363
+    },
+    {
+      "file": "review-01.png",
+      "film_seconds": 2.5,
+      "sha256": "4348bed8ae66aece91bb85975853599c5ed2a6a07be3e7b400f17efa4e6dc60c",
+      "bytes": 1283185
+    },
+    {
+      "file": "review-02.png",
+      "film_seconds": 6.8,
+      "sha256": "8f6ccb95bcfd19fc31bb881f1bed806279a5dd6ac516061d74ab2a330b297f60",
+      "bytes": 2487419
+    },
+    {
+      "file": "review-03.png",
+      "film_seconds": 11.7,
+      "sha256": "2d6a620ddbf3a69361fa33275898d6f435ae6e3becf757aa9b75c18d8cf7a4b8",
+      "bytes": 1289616
+    },
+    {
+      "file": "review-04.png",
+      "film_seconds": 16.4,
+      "sha256": "4b44cda0c781bb4a93165958978c0f9aecc67fd9ae80214a91d5881735773367",
+      "bytes": 1511440
+    },
+    {
+      "file": "review-05.png",
+      "film_seconds": 21,
+      "sha256": "f3076fe57ea5fd898048f15adc66859c1cdf6fd4232a97ca18b23dbe1cae2204",
+      "bytes": 1368043
+    },
+    {
+      "file": "review-06.png",
+      "film_seconds": 25.2,
+      "sha256": "3e69915958d3a7b010c15e465dd925298b94cdafe1d03f999cf1f1f471718229",
+      "bytes": 1350340
+    },
+    {
+      "file": "review-07.png",
+      "film_seconds": 28.7,
+      "sha256": "567c7f57fd8f33fced82b6bbefdacda86ac4268ec7b750cbc9e5f852dcda0f13",
+      "bytes": 1140921
+    },
+    {
+      "file": "review-08.png",
+      "film_seconds": 30.6,
+      "sha256": "1c45343f0a557da5611d4708d9b51b15afb437ab1b25a3d4c0d852daf554c723",
+      "bytes": 1154317
+    },
+    {
+      "file": "review-09.png",
+      "film_seconds": 34.5,
+      "sha256": "44df6b6c0c2dd6c7ad057cd27675e9d27ca003b0738a026d01f52c96c2e98322",
+      "bytes": 1207953
+    },
+    {
+      "file": "review-10.png",
+      "film_seconds": 39,
+      "sha256": "3bbf68e64981bf41bee30de7f44a282906091fb0dfbab5bb3bcfb20f8256f5fb",
+      "bytes": 516127
+    },
+    {
+      "file": "review-11.png",
+      "film_seconds": 43.5,
+      "sha256": "e2d1e9260d65706baedd9cb5bc7dbadfbfebf88b93bdb51c0cb9e386ce99c2ef",
+      "bytes": 1659267
+    },
+    {
+      "file": "review-12.png",
+      "film_seconds": 46.5,
+      "sha256": "b12e92c6447d3116a6e9fed0bf438a891ec606d71e8efa92b8a0fa29555247e5",
+      "bytes": 766711
+    },
+    {
+      "file": "review-13.png",
+      "film_seconds": 48.5,
+      "sha256": "fc61ac0e97251cb93d4aa574084c1f0602d5aa867f5c707f8209a7ced87ed9b1",
+      "bytes": 520704
+    },
+    {
+      "file": "review-14.png",
+      "film_seconds": 51,
+      "sha256": "0da8b9fb836d61c4a7e975fce17dd83768ef186011adb8519346c9ec67d8aeb3",
+      "bytes": 1290962
+    },
+    {
+      "file": "review-15.png",
+      "film_seconds": 53.5,
+      "sha256": "1f04e69d5d03fda47f6d70f45bf66c756a039f4eb58cc351956b71b0e813022b",
+      "bytes": 1235881
+    }
+  ],
+  "contact_sheet": {
+    "sha256": "e375643a5dbb36ef966e0baa48c18c3fc025a510e0ab78073d8495605cc84ff0",
+    "bytes": 9359187
+  },
+  "verifier": {
+    "sha256": "875490aaca655c7a20234fba7cf313dbe715f536153d36f27c0ba66dba4e98b2",
+    "bytes": 8487
+  },
+  "review_boundary": "Frame exports require visual inspection; automatic checks do not establish an auditory listening review or provider quality"
+}

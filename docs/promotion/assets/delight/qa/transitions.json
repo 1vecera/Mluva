@@ -1,0 +1,329 @@
+{
+  "sample_pngs": "Full-resolution exports retained locally under tmp/delight-film/transitions; all samples are represented in the committed contact sheets.",
+  "samples": [
+    {
+      "transition": "outside",
+      "seconds": 5.45,
+      "file": "00-outside-before.png",
+      "sha256": "77e2dd4213c97425f219af0266c3149bc8d3927df44a751837fb3faa7a48a402",
+      "retained_in": "transitions-0.jpg",
+      "row": 1,
+      "column": 1
+    },
+    {
+      "transition": "outside",
+      "seconds": 5.55,
+      "file": "00-outside-edge.png",
+      "sha256": "b77be55094f31734c464ce7a708a49da6d8761329b96c42e0bb3abd4c9330429",
+      "retained_in": "transitions-0.jpg",
+      "row": 1,
+      "column": 2
+    },
+    {
+      "transition": "outside",
+      "seconds": 5.75,
+      "file": "00-outside-after.png",
+      "sha256": "7b1550dec0a63b7d6b5d80204a7e9e98dcb381586257435c4a2f2b9fa981e81d",
+      "retained_in": "transitions-0.jpg",
+      "row": 1,
+      "column": 3
+    },
+    {
+      "transition": "open",
+      "seconds": 10.45,
+      "file": "01-open-before.png",
+      "sha256": "ce2e19820b560536f017592a591e02464fc80f03d31d37b0afe1c0604bd8e46d",
+      "retained_in": "transitions-0.jpg",
+      "row": 2,
+      "column": 1
+    },
+    {
+      "transition": "open",
+      "seconds": 10.55,
+      "file": "01-open-edge.png",
+      "sha256": "11f49f8b06fc31aa835c7972c0dad5cbd010fdd46cd1e8a3b5734d378c876439",
+      "retained_in": "transitions-0.jpg",
+      "row": 2,
+      "column": 2
+    },
+    {
+      "transition": "open",
+      "seconds": 10.75,
+      "file": "01-open-after.png",
+      "sha256": "a204fc816e8b37245abc5fe34450ac2868f4b9fc6a1dcb9c6dabc8e4528e6205",
+      "retained_in": "transitions-0.jpg",
+      "row": 2,
+      "column": 3
+    },
+    {
+      "transition": "live",
+      "seconds": 14.95,
+      "file": "02-live-before.png",
+      "sha256": "e1eac04d0452c2e9e0a4e32ca72a29d20e5b7004b2cebec0e2cb37992e5c68c6",
+      "retained_in": "transitions-0.jpg",
+      "row": 3,
+      "column": 1
+    },
+    {
+      "transition": "live",
+      "seconds": 15.05,
+      "file": "02-live-edge.png",
+      "sha256": "db5f72242608905a921732fe987ee72c53b0560e326ac0467ea542fd73fdad56",
+      "retained_in": "transitions-0.jpg",
+      "row": 3,
+      "column": 2
+    },
+    {
+      "transition": "live",
+      "seconds": 15.25,
+      "file": "02-live-after.png",
+      "sha256": "404824a44455cf756197125234d8116911a4574421a1fc652f2433583f514abf",
+      "retained_in": "transitions-0.jpg",
+      "row": 3,
+      "column": 3
+    },
+    {
+      "transition": "copy",
+      "seconds": 23.95,
+      "file": "03-copy-before.png",
+      "sha256": "54d158a97fe20c9e59982129ccd4fbe5474f9e3fc00307c060331282a891af4d",
+      "retained_in": "transitions-0.jpg",
+      "row": 4,
+      "column": 1
+    },
+    {
+      "transition": "copy",
+      "seconds": 24.05,
+      "file": "03-copy-edge.png",
+      "sha256": "5a551a0eb5c3e3c26741c8df3a02d4c1248c477c8f7a0464aa5c34026a8ffd02",
+      "retained_in": "transitions-0.jpg",
+      "row": 4,
+      "column": 2
+    },
+    {
+      "transition": "copy",
+      "seconds": 24.25,
+      "file": "03-copy-after.png",
+      "sha256": "f030a15e08e4db4dc62ec05f3410cbe451204d36c3f047765067e7b81d3e43d7",
+      "retained_in": "transitions-0.jpg",
+      "row": 4,
+      "column": 3
+    },
+    {
+      "transition": "polish",
+      "seconds": 26.95,
+      "file": "04-polish-before.png",
+      "sha256": "a35693840caa21414f9d201c4270cda56b0c816776b2484a2ce5639360375400",
+      "retained_in": "transitions-1.jpg",
+      "row": 1,
+      "column": 1
+    },
+    {
+      "transition": "polish",
+      "seconds": 27.05,
+      "file": "04-polish-edge.png",
+      "sha256": "dbb09eb904760eb2b00b7ea70af320083722f7378b83b8a135966cfc9ee09c52",
+      "retained_in": "transitions-1.jpg",
+      "row": 1,
+      "column": 2
+    },
+    {
+      "transition": "polish",
+      "seconds": 27.25,
+      "file": "04-polish-after.png",
+      "sha256": "ed684b145c4a92a143975d4749101000668d809061eca12fc5009a077757bca3",
+      "retained_in": "transitions-1.jpg",
+      "row": 1,
+      "column": 3
+    },
+    {
+      "transition": "rewrite",
+      "seconds": 29.45,
+      "file": "05-rewrite-before.png",
+      "sha256": "5851df1d5dfbc54af2e8f9bd7773c14f436a7d5b98312526d8c5d409b7bdfbbc",
+      "retained_in": "transitions-1.jpg",
+      "row": 2,
+      "column": 1
+    },
+    {
+      "transition": "rewrite",
+      "seconds": 29.55,
+      "file": "05-rewrite-edge.png",
+      "sha256": "046985ced20ad41602b79dbcf1d1ea80637f361ace10799c0f8032148dc07903",
+      "retained_in": "transitions-1.jpg",
+      "row": 2,
+      "column": 2
+    },
+    {
+      "transition": "rewrite",
+      "seconds": 29.75,
+      "file": "05-rewrite-after.png",
+      "sha256": "b3dc3b4206dd22720b03edbf14e245cbd20aec800976a8b1205e3f0d432d2709",
+      "retained_in": "transitions-1.jpg",
+      "row": 2,
+      "column": 3
+    },
+    {
+      "transition": "edit",
+      "seconds": 31.95,
+      "file": "06-edit-before.png",
+      "sha256": "27a1860fcca13328e2e857009dcf500107b004fe99dc13d1e7ce229e7a1c6be9",
+      "retained_in": "transitions-1.jpg",
+      "row": 3,
+      "column": 1
+    },
+    {
+      "transition": "edit",
+      "seconds": 32.05,
+      "file": "06-edit-edge.png",
+      "sha256": "531c200ff68d0d0544f86320154b40c4536834e2e382e6db099f69c92f057610",
+      "retained_in": "transitions-1.jpg",
+      "row": 3,
+      "column": 2
+    },
+    {
+      "transition": "edit",
+      "seconds": 32.25,
+      "file": "06-edit-after.png",
+      "sha256": "4ab25c936e2fee942591e8f35d1e4ad4612a3e247741bc24702006975dc1de7c",
+      "retained_in": "transitions-1.jpg",
+      "row": 3,
+      "column": 3
+    },
+    {
+      "transition": "commands",
+      "seconds": 36.95,
+      "file": "07-commands-before.png",
+      "sha256": "4918cdfd7218dc6aa20fe3f75c6e15dd6c6b15631a2679ffed9e041c398ab899",
+      "retained_in": "transitions-1.jpg",
+      "row": 4,
+      "column": 1
+    },
+    {
+      "transition": "commands",
+      "seconds": 37.05,
+      "file": "07-commands-edge.png",
+      "sha256": "7ebc95cf1efd03de0b32ae3c98a98161beccdffc668e514e45c98906961e84be",
+      "retained_in": "transitions-1.jpg",
+      "row": 4,
+      "column": 2
+    },
+    {
+      "transition": "commands",
+      "seconds": 37.25,
+      "file": "07-commands-after.png",
+      "sha256": "c14cc2d4bee09b9a09491d7ae0a1e7b718fe43d1912854ff853dda858bbfee8f",
+      "retained_in": "transitions-1.jpg",
+      "row": 4,
+      "column": 3
+    },
+    {
+      "transition": "themes",
+      "seconds": 41.95,
+      "file": "08-themes-before.png",
+      "sha256": "8994e344ca30b6c62dee4fe8412012779f0639e7bd9952cf9bdc35af7a449cd4",
+      "retained_in": "transitions-2.jpg",
+      "row": 1,
+      "column": 1
+    },
+    {
+      "transition": "themes",
+      "seconds": 42.05,
+      "file": "08-themes-edge.png",
+      "sha256": "769199cb681451f24123edfce523733b02817ac02b68f6249b2d4a2e7bcdff3b",
+      "retained_in": "transitions-2.jpg",
+      "row": 1,
+      "column": 2
+    },
+    {
+      "transition": "themes",
+      "seconds": 42.25,
+      "file": "08-themes-after.png",
+      "sha256": "cd836421076fa5ea81bb4c25cb06d852ee8c465322cd333f65cc9197c7efe4e5",
+      "retained_in": "transitions-2.jpg",
+      "row": 1,
+      "column": 3
+    },
+    {
+      "transition": "tokyo-night",
+      "seconds": 44.1035,
+      "file": "09-tokyo-night-before.png",
+      "sha256": "358a49aa7d3dbe41cf47809d37c6c61a60fa4adf14c6c68e3ac294126558bd6e",
+      "retained_in": "transitions-2.jpg",
+      "row": 2,
+      "column": 1
+    },
+    {
+      "transition": "tokyo-night",
+      "seconds": 45.1535,
+      "file": "09-tokyo-night-edge.png",
+      "sha256": "6c4a824ad8f26e43d5550d3df4db14e73ce78b3e26df1d9c070a46ff8b785367",
+      "retained_in": "transitions-2.jpg",
+      "row": 2,
+      "column": 2
+    },
+    {
+      "transition": "tokyo-night",
+      "seconds": 45.3535,
+      "file": "09-tokyo-night-after.png",
+      "sha256": "4e94d41f64fc26af5868da209314aef55a7b5cd5d4f846488977765607abf5cf",
+      "retained_in": "transitions-2.jpg",
+      "row": 2,
+      "column": 3
+    },
+    {
+      "transition": "rose-pine",
+      "seconds": 46.8207,
+      "file": "10-rose-pine-before.png",
+      "sha256": "210d1b3188d11b9577a9cfbaf930e5249c6758dc0923ba766b7e71413203fd99",
+      "retained_in": "transitions-2.jpg",
+      "row": 3,
+      "column": 1
+    },
+    {
+      "transition": "rose-pine",
+      "seconds": 47.8707,
+      "file": "10-rose-pine-edge.png",
+      "sha256": "3e9719978dec47a0c5db0c10cbbb3d9c505d085e752e36830fad3839e66ad32d",
+      "retained_in": "transitions-2.jpg",
+      "row": 3,
+      "column": 2
+    },
+    {
+      "transition": "rose-pine",
+      "seconds": 48.0707,
+      "file": "10-rose-pine-after.png",
+      "sha256": "b77c5611404f9fa9b86aa48b4e156d4067ab6d08999ee1144bad28619bad8246",
+      "retained_in": "transitions-2.jpg",
+      "row": 3,
+      "column": 3
+    },
+    {
+      "transition": "return",
+      "seconds": 49.95,
+      "file": "11-return-before.png",
+      "sha256": "733b7d853884c2c7fce3b3d99886ba44a2dd730131dcd47dc8650c4a651d17a6",
+      "retained_in": "transitions-2.jpg",
+      "row": 4,
+      "column": 1
+    },
+    {
+      "transition": "return",
+      "seconds": 50.05,
+      "file": "11-return-edge.png",
+      "sha256": "4f2531ca5b59feb99047bab9e11a02ea6cb3fd9e75cf580c3febd2f451b6c318",
+      "retained_in": "transitions-2.jpg",
+      "row": 4,
+      "column": 2
+    },
+    {
+      "transition": "return",
+      "seconds": 50.25,
+      "file": "11-return-after.png",
+      "sha256": "bf04532a1bbcb19dd2a6a24f8d1311ec54e729cb3034290299d6a6bc8e088ff6",
+      "retained_in": "transitions-2.jpg",
+      "row": 4,
+      "column": 3
+    }
+  ]
+}

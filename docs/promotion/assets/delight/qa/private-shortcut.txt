@@ -1,0 +1,3 @@
+private_dbus_portal_registration=passed
+private_dbus_portal_binding=passed
+private_dbus_shortcut_lifecycle=passed

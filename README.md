@@ -4,7 +4,7 @@
 
 Speak a rough idea. Shape it into useful text. Keep the original. Mluva brings dictation, rewriting and searchable history into a native workspace that follows your Omarchy theme. Paste existing text to polish it, or enable **Live rewrite** to build a task spec or structured note while you speak.
 
-**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy plugin](https://github.com/1vecera/omarchy-mluva)** · **[Watch the intro](docs/promotion/assets/mluva-product-intro.mp4)** · **[Features and limits](docs/feature-story.md)** · **[Contribute](#development)**
+**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy plugin](https://github.com/1vecera/omarchy-mluva)** · **[Watch the 55-second film](docs/promotion/assets/delight/mluva-delight-launch.mp4)** · **[Features and limits](docs/feature-story.md)** · **[Contribute](#development)**
 
 ![Mluva v0.3.0 transcribing JFK's public-domain Rice University speech on Omarchy](docs/promotion/assets/workspace-dark.png)
 
