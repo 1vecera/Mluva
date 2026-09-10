@@ -8,9 +8,9 @@ from unittest.mock import patch
 
 from gi.repository import GLib
 
-from voice_scribe_linux.app import MluvaApplication
-from voice_scribe_linux.codex_client import CodexAppServerClient
-from voice_scribe_linux.conversation_titles import fallback_title
+from mluva_linux.app import MluvaApplication
+from mluva_linux.codex_client import CodexAppServerClient
+from mluva_linux.conversation_titles import fallback_title
 
 
 def exercise_titles(application: MluvaApplication) -> None:
@@ -35,7 +35,7 @@ def exercise_titles(application: MluvaApplication) -> None:
             time.sleep(0.01)
         assert application.title_client is None and not application.title_queue
 
-    with patch("voice_scribe_linux.app.CodexAppServerClient", side_effect=factory) as calls:
+    with patch("mluva_linux.app.CodexAppServerClient", side_effect=factory) as calls:
         import_text("Připravit páteční vydání. Zkontrolovat nový vzhled a poznámky.")
         first = workspace.entry
         assert first.title == fallback_title(first.raw_text)
@@ -104,7 +104,7 @@ def exercise_titles(application: MluvaApplication) -> None:
 
     application.config = replace(application.config, automatic_titles=True)
     with patch(
-        "voice_scribe_linux.app.CodexAppServerClient",
+        "mluva_linux.app.CodexAppServerClient",
         return_value=CodexAppServerClient(command=("/nonexistent-mluva-provider",)),
     ):
         import_text("Provider failure keeps this local title")

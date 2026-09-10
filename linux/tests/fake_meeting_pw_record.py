@@ -32,9 +32,9 @@ def main() -> None:
     signal.signal(signal.SIGINT, finalize)
     output_path = Path(sys.argv[-1])
     captures_system_audio = any(SYSTEM_CAPTURE_PROPERTY in argument for argument in sys.argv[1:-1])
-    if captures_system_audio and os.environ.get("VOICE_SCRIBE_FAKE_SYSTEM_FAILURE") == "1":
+    if captures_system_audio and os.environ.get("MLUVA_FAKE_SYSTEM_FAILURE") == "1":
         raise SystemExit(2)
-    if not captures_system_audio and os.environ.get("VOICE_SCRIBE_FAKE_MICROPHONE_FAILURE") == "1":
+    if not captures_system_audio and os.environ.get("MLUVA_FAKE_MICROPHONE_FAILURE") == "1":
         raise SystemExit(2)
     write_fixture(
         output_path,

@@ -1,7 +1,7 @@
 import Foundation
 import Security
 import Testing
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Google service-account access token")
 struct GoogleServiceAccountAccessTokenProviderTests {

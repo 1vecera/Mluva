@@ -31,7 +31,6 @@ def test_agent_fallback_requests_only_elevenlabs_and_preserves_arguments(tmp_pat
         "--",
         "env",
         "MLUVA_SECRET_PROFILE=1",
-        "VOICE_SCRIBE_SECRET_PROFILE=1",
         str(launcher),
         "argument with spaces",
     ]

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from voice_scribe_linux.theme import DarkTokens, read_omarchy_palette
+from mluva_linux.theme import DarkTokens, read_omarchy_palette
 
 
 def test_theme_maps_light_and_dark_palettes_without_foreign_brand_colors(tmp_path: Path) -> None:

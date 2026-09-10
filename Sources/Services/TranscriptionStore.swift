@@ -42,7 +42,7 @@ final class TranscriptionStore: ObservableObject {
             let appSupport = FileManager.default.urls(
                 for: .applicationSupportDirectory, in: .userDomainMask
             ).first!
-            let dir = appSupport.appendingPathComponent("VoiceScribe", isDirectory: true)
+            let dir = appSupport.appendingPathComponent("Mluva", isDirectory: true)
             self.fileURL = dir.appendingPathComponent("transcriptions.json")
             hardensContainingDirectory = true
         }

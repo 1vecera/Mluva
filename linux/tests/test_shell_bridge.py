@@ -3,8 +3,8 @@
 import pytest
 from gi.repository import Gio, GLib
 
-from voice_scribe_linux.overlay_state import OVERLAY_SIGNAL_SIGNATURE, SHELL_SIGNAL_SIGNATURE, RecordingOverlayState
-from voice_scribe_linux.shell_bridge import StatusWatch, activate, project_state
+from mluva_linux.overlay_state import OVERLAY_SIGNAL_SIGNATURE, SHELL_SIGNAL_SIGNATURE, RecordingOverlayState
+from mluva_linux.shell_bridge import StatusWatch, activate, project_state
 
 
 @pytest.mark.parametrize("phase", ["preparing", "recording", "processing", "copied", "error"])
@@ -77,7 +77,7 @@ def test_owner_loss_clears_state_and_ignores_queued_old_signals() -> None:
     connection = FakeConnection()
     states = []
     watch = StatusWatch(connection, states.append)
-    watch._appeared(connection, "com.voicescribe.Linux", ":1.5")
+    watch._appeared(connection, "com.mluva.Linux", ":1.5")
     assert connection.calls[0][0] == ":1.5"
     assert connection.calls[1][4].unpack()[0] == "status"
     recording = GLib.Variant(OVERLAY_SIGNAL_SIGNATURE, RecordingOverlayState(phase="recording").as_signal_values())
@@ -85,11 +85,11 @@ def test_owner_loss_clears_state_and_ignores_queued_old_signals() -> None:
     assert states[-1]["phase"] == "unavailable"
     watch._changed(connection, ":1.5", "", "", "", recording)
     assert states[-1]["phase"] == "recording"
-    watch._vanished(connection, "com.voicescribe.Linux")
+    watch._vanished(connection, "com.mluva.Linux")
     watch._changed(connection, ":1.5", "", "", "", recording)
     assert states[-1] == {"phase": "stopped", "elapsed": 0}
     assert connection.unsubscribed == [7]
-    watch._appeared(connection, "com.voicescribe.Linux", ":1.6")
+    watch._appeared(connection, "com.mluva.Linux", ":1.6")
     assert states[-1]["phase"] == "unavailable"
     assert connection.calls[-1][0] == ":1.6"
     watch.close()

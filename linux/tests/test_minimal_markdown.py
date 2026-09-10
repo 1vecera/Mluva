@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.minimal_markdown import markdown_spans, needs_character_wrapping, visible_markdown
+from mluva_linux.minimal_markdown import markdown_spans, needs_character_wrapping, visible_markdown
 
 
 @pytest.mark.parametrize(
@@ -73,7 +73,7 @@ def test_character_wrapping_only_changes_unbreakable_runs() -> None:
 def test_adversarial_delimiters_finish_within_a_bounded_process() -> None:
     """Guard the 120k editable path against hangs without hanging the whole test runner."""
     probe = """
-from voice_scribe_linux.minimal_markdown import markdown_spans, visible_markdown
+from mluva_linux.minimal_markdown import markdown_spans, visible_markdown
 
 size = 120_000
 sources = (

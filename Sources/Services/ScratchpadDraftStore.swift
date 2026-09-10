@@ -19,7 +19,7 @@ final class ScratchpadDraftStore: ObservableObject {
                 in: .userDomainMask
             ).first!
             let directory = appSupport.appendingPathComponent(
-                "VoiceScribe",
+                "Mluva",
                 isDirectory: true
             )
             self.fileURL = directory.appendingPathComponent("scratchpad-draft.json")

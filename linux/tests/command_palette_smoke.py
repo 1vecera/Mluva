@@ -11,7 +11,7 @@ from conversation_ui_smoke import IsolatedApplication
 from gi.repository import GLib, Gtk
 from live_workspace_smoke import paint, settle
 
-from voice_scribe_linux.pipewire import PipeWireDeviceCatalog
+from mluva_linux.pipewire import PipeWireDeviceCatalog
 
 
 def main() -> int:
@@ -224,7 +224,7 @@ def main() -> int:
 
     activation = app.connect("activate", activated)
     with (
-        patch("voice_scribe_linux.app.FocusedTextTargetTracker", return_value=None),
+        patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
         patch.object(PipeWireDeviceCatalog, "from_system", return_value=PipeWireDeviceCatalog()),
     ):
         app.run([])

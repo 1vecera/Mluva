@@ -10,7 +10,7 @@ test:
 
 # Run debug binary
 run: build
-	.build/debug/VoiceScribeMac
+	.build/debug/MluvaMac
 
 # Verify or guide creation of the stable, local-only signing identity
 setup-signing:
@@ -34,22 +34,7 @@ open: release
 
 # Install to /Applications
 install: release
-	@pkill -x VoiceScribeMac 2>/dev/null || true
-	@staging="/Applications/.Mluva.installing.$$$$.app"; \
-	backup="$$HOME/.Trash/Mluva previous $$(date '+%Y-%m-%d %H.%M.%S').app"; \
-	legacy_backup="$$HOME/.Trash/Voice Scribe previous $$(date '+%Y-%m-%d %H.%M.%S').app"; \
-	ditto "build/Mluva.app" "$$staging"; \
-	codesign --verify --deep --strict "$$staging"; \
-	if [ -e "/Applications/Mluva.app" ]; then \
-		mv "/Applications/Mluva.app" "$$backup"; \
-		echo "Previous app moved to $$backup"; \
-	fi; \
-	if [ -e "/Applications/Voice Scribe.app" ]; then \
-		mv "/Applications/Voice Scribe.app" "$$legacy_backup"; \
-		echo "Legacy app moved to $$legacy_backup"; \
-	fi; \
-	mv "$$staging" "/Applications/Mluva.app"
-	@echo "Installed to /Applications/Mluva.app"
+	bash scripts/install-macos.sh
 
 # Full smoke test: unit tests + build + launch + verify + shutdown
 smoke:
@@ -115,7 +100,7 @@ linux-provider-settings-test: linux-setup
 	done
 
 linux-run: linux-setup
-	cd linux && uv run --locked python -m voice_scribe_linux.app
+	cd linux && uv run --locked python -m mluva_linux.app
 
 linux-install:
 	bash linux/install.sh

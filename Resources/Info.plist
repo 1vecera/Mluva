@@ -5,9 +5,9 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>VoiceScribeMac</string>
+    <string>MluvaMac</string>
     <key>CFBundleIdentifier</key>
-    <string>com.voicescribe.mac</string>
+    <string>com.mluva.mac</string>
     <key>CFBundleName</key>
     <string>Mluva</string>
     <key>CFBundleDisplayName</key>

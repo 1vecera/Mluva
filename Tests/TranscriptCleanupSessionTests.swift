@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Provider-neutral transcript cleanup")
 struct TranscriptCleanupSessionTests {
@@ -139,7 +139,7 @@ struct TranscriptCleanupSessionTests {
         #expect(request.context.selectedText == "s")
         #expect(request.context.windowTitle == nil)
         #expect(request.context.nearbyText == nil)
-        #expect(request.protectedVocabulary == ["Voi"])
+        #expect(request.protectedVocabulary == ["Mlu"])
         #expect(request.maximumResponseCharacters == 12)
 
         session.cancel()

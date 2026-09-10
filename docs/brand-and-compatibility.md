@@ -14,8 +14,8 @@ The exact **Mluva** wordmark is Adwaita Sans SemiBold converted to paths with Pa
 
 | Surface | Canonical asset | Use |
 | --- | --- | --- |
-| Linux application launcher | [`com.voicescribe.Linux.svg`](../linux/resources/com.voicescribe.Linux.svg) | Frost mark in a slate tile; installed through the existing desktop identity. |
-| GTK chrome and GNOME panel | [`mluva-symbolic.svg`](../linux/gnome-extension/recording-status@voicescribe.local/mluva-symbolic.svg) | Transparent `currentColor` silhouette for native theme recoloring. |
+| Linux application launcher | [`com.mluva.Linux.svg`](../linux/resources/com.mluva.Linux.svg) | Frost mark in a slate tile; installed through the existing desktop identity. |
+| GTK chrome and GNOME panel | [`mluva-symbolic.svg`](../linux/gnome-extension/recording-status@mluva.local/mluva-symbolic.svg) | Transparent `currentColor` silhouette for native theme recoloring. |
 | Standalone mark | [`mluva-mark.svg`](assets/mluva-mark.svg) / [PNG](assets/mluva-mark.png) | Frost on a dark surface; [solid ink variant](assets/mluva-mark-on-light.svg) on light. |
 | Exact wordmark | [`mluva-wordmark.svg`](assets/mluva-wordmark.svg) / [PNG](assets/mluva-wordmark.png) | Light lettering on dark; [ink variant](assets/mluva-wordmark-on-light.svg) on light. |
 | Horizontal lockup | [`mluva-lockup.svg`](assets/mluva-lockup.svg) / [PNG](assets/mluva-lockup.png) | Mark plus wordmark on dark; [ink variant](assets/mluva-lockup-on-light.svg) on light. Transparent variants are replaceable media inputs. |
@@ -27,7 +27,7 @@ Preserve aspect ratio and the built-in clear space. Use the solid ink variant on
 ```sh
 make linux-setup
 cd linux
-uv run --locked python -m voice_scribe_linux.brand_assets --png
+uv run --locked python -m mluva_linux.brand_assets --png
 ```
 
 `--png` requires `rsvg-convert` from librsvg. The generated-asset drift check runs with `make linux-test`.
@@ -42,13 +42,9 @@ The [selected source PNG](assets/brand-source/mluva-mark-sunburst.png), [exact p
 
 ## Upgrade continuity
 
-The first Mluva release intentionally retains several Voice Scribe-era technical identifiers. Changing them during a visual rename would reset desktop approvals, split local history, or disconnect an already reviewed secret reference. They are compatibility contracts, not alternate public names.
+Mluva now owns the package, import, executable, bundle, desktop, D-Bus, extension, service, credential-reference and storage identities on both platforms. The [identity migration guide](identity-migration.md) records the before/after identifiers, private backups, upgrade behavior and historical exceptions.
 
-- macOS keeps the `VoiceScribeMac` Swift target and executable, the `com.voicescribe.mac` bundle identifier, the `VoiceScribe` Application Support directory, and the existing local signing and notarization profile names. The bundle and installed application are displayed as `Mluva.app`.
-- Linux keeps the `voice_scribe_linux` Python module, `com.voicescribe.Linux` application and D-Bus identity, `voice-scribe` XDG storage roots, `recording-status@voicescribe.local` GNOME extension UUID, `voice-scribe-input@.service` systemd unit, and the owner-only `voice-scribe` managed-secret profile.
-- Linux installs `mluva`, `mluva-input-helper`, and `mluva-overlay` as the canonical commands. The previous `voice-scribe`, `voice-scribe-input-helper`, and `voice-scribe-overlay` commands remain compatibility aliases so existing shortcuts and instructions do not fail abruptly.
-
-Any later identifier migration must copy or adopt existing data atomically, preserve permissions, remove stale launch entries, and verify upgraded installations before the legacy identifiers are retired.
+Linux installation performs an explicit migration before publishing the current package. macOS migrates settings and saved state before constructing its stores. Retired launch artifacts are removed; existing state is preserved. Desktop permissions may need approval again under the new identities.
 
 ## Naming boundaries
 

@@ -1,7 +1,7 @@
 import Testing
 import CoreGraphics
 import Foundation
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Global Hotkey Manager")
 struct GlobalHotkeyManagerTests {

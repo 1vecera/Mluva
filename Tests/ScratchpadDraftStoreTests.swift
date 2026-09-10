@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Scratchpad draft store")
 struct ScratchpadDraftStoreTests {

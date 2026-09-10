@@ -1,6 +1,6 @@
 """Deterministic coverage for spoken structure and correction commands."""
 
-from voice_scribe_linux.transcript import normalize_spoken_structure
+from mluva_linux.transcript import normalize_spoken_structure
 
 
 def test_spoken_punctuation_lines_and_paragraphs() -> None:

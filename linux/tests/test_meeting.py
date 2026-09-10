@@ -7,10 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.audio import MeetingCaptureResult
-from voice_scribe_linux.config import AppConfig
-from voice_scribe_linux.elevenlabs import SpeakerSegment, TranscriptionResult
-from voice_scribe_linux.meeting import (
+from mluva_linux.audio import MeetingCaptureResult
+from mluva_linux.config import AppConfig
+from mluva_linux.elevenlabs import SpeakerSegment, TranscriptionResult
+from mluva_linux.meeting import (
     MeetingAudioSource,
     MeetingFailure,
     MeetingRecognitionStatus,

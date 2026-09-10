@@ -15,7 +15,7 @@ final class MeetingAudioCaptureCoordinator: MeetingAudioCapturing, @unchecked Se
     private let microphone: any MeetingAudioSourceCapturing
     private let system: any MeetingAudioSourceCapturing
     private let processingQueue = DispatchQueue(
-        label: "com.voicescribe.meeting-audio-mix",
+        label: "com.mluva.meeting-audio-mix",
         qos: .userInteractive
     )
     private let lock = NSLock()

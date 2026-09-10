@@ -52,7 +52,7 @@ final class SystemMeetingAudioCapture: NSObject, MeetingAudioSourceCapturing, @u
     var onError: ((Error) -> Void)?
 
     private let outputQueue = DispatchQueue(
-        label: "com.voicescribe.meeting-system-audio",
+        label: "com.mluva.meeting-system-audio",
         qos: .userInteractive
     )
     private let lock = NSLock()

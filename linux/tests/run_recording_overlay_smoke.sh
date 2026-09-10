@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 linux_root=$(cd -- "${script_dir}/.." && pwd)
 project_root=$(cd -- "${linux_root}/.." && pwd)
-extension_root="${linux_root}/gnome-extension/recording-status@voicescribe.local"
+extension_root="${linux_root}/gnome-extension/recording-status@mluva.local"
 output_dir=${1:-"${project_root}/tmp/overlay-smoke"}
 
 for executable in dbus-run-session gnome-extensions gnome-shell-test-tool; do
@@ -22,7 +22,7 @@ gnome-extensions pack \
     --extra-source recordingOverlay.js \
     --out-dir "${output_dir}" \
     "${extension_root}"
-extension_archive="${output_dir}/recording-status@voicescribe.local.shell-extension.zip"
+extension_archive="${output_dir}/recording-status@mluva.local.shell-extension.zip"
 
 for scenario in preparing recording quiet processing copied error; do
     runtime_dir=$(mktemp -d /tmp/mluva-shell.XXXXXX)
@@ -37,8 +37,8 @@ for scenario in preparing recording quiet processing copied error; do
         LIBGL_ALWAYS_SOFTWARE=1 \
         GALLIUM_DRIVER=llvmpipe \
         XDG_RUNTIME_DIR="${runtime_dir}" \
-        VOICE_SCRIBE_OVERLAY_SCENARIO="${scenario}" \
-        VOICE_SCRIBE_OVERLAY_SCREENSHOT="${screenshot_path}" \
+        MLUVA_OVERLAY_SCENARIO="${scenario}" \
+        MLUVA_OVERLAY_SCREENSHOT="${screenshot_path}" \
         gnome-shell-test-tool \
             --headless \
             --disable-animations \
@@ -53,7 +53,7 @@ for scenario in preparing recording quiet processing copied error; do
         echo "GNOME recording overlay smoke failed for ${scenario}; see ${log_path}" >&2
         exit "${smoke_status}"
     fi
-    if rg -n 'recordingOverlay\.js|recording-status@voicescribe\.local.*(ERROR|CRITICAL|Exception)' "${log_path}"; then
+    if rg -n 'recordingOverlay\.js|recording-status@mluva\.local.*(ERROR|CRITICAL|Exception)' "${log_path}"; then
         echo "GNOME recording overlay emitted an extension-specific error for ${scenario}" >&2
         exit 1
     fi

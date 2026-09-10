@@ -7,17 +7,17 @@ from types import SimpleNamespace
 
 import pytest
 
-import voice_scribe_linux.app as app_module
-from voice_scribe_linux.app import (
+import mluva_linux.app as app_module
+from mluva_linux.app import (
     MluvaApplication,
 )
-from voice_scribe_linux.codex_client import CodexAppServerClient
-from voice_scribe_linux.config import FUNCTION_KEY_OPTIONS, AppConfig, load_config
-from voice_scribe_linux.delivery import DeliveryReceipt
-from voice_scribe_linux.history import HistoryStore
-from voice_scribe_linux.realtime import ElevenLabsRealtimeClient, RealtimeCommittedSegment
-from voice_scribe_linux.segment_cleanup import SegmentCleanupSession, SegmentCleanupState
-from voice_scribe_linux.workflow import TranscriptPreparationSnapshot
+from mluva_linux.codex_client import CodexAppServerClient
+from mluva_linux.config import FUNCTION_KEY_OPTIONS, AppConfig, load_config
+from mluva_linux.delivery import DeliveryReceipt
+from mluva_linux.history import HistoryStore
+from mluva_linux.realtime import ElevenLabsRealtimeClient, RealtimeCommittedSegment
+from mluva_linux.segment_cleanup import SegmentCleanupSession, SegmentCleanupState
+from mluva_linux.workflow import TranscriptPreparationSnapshot
 
 
 class ImmediateTransformer:

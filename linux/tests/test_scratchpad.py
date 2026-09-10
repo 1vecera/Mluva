@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.scratchpad import ScratchpadDraft, ScratchpadDraftStore
+from mluva_linux.scratchpad import ScratchpadDraft, ScratchpadDraftStore
 
 
 def test_scratchpad_round_trip_and_explicit_cleanup(tmp_path: Path) -> None:

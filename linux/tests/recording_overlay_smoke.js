@@ -7,9 +7,9 @@ import * as Scripting from 'resource:///org/gnome/shell/ui/scripting.js';
 
 Gio._promisify(Shell.Screenshot.prototype, 'screenshot');
 
-const BUS_NAME = 'com.voicescribe.Linux';
-const OBJECT_PATH = '/com/voicescribe/Linux/RecordingStatus';
-const INTERFACE_NAME = 'com.voicescribe.Linux.RecordingStatus';
+const BUS_NAME = 'com.mluva.Linux';
+const OBJECT_PATH = '/com/mluva/Linux/RecordingStatus';
+const INTERFACE_NAME = 'com.mluva.Linux.RecordingStatus';
 const SIGNAL_NAME = 'StateChanged';
 
 function expect(condition, message) {
@@ -20,7 +20,7 @@ function expect(condition, message) {
 function overlayActor() {
     return Main.layoutManager.uiGroup
         .get_children()
-        .find(actor => actor.name === 'voiceScribeRecordingOverlay');
+        .find(actor => actor.name === 'mluvaRecordingOverlay');
 }
 
 async function waitFor(predicate, message) {
@@ -56,7 +56,7 @@ async function saveStage(path) {
 }
 
 function visibleState() {
-    const scenario = GLib.getenv('VOICE_SCRIBE_OVERLAY_SCENARIO') ?? 'recording';
+    const scenario = GLib.getenv('MLUVA_OVERLAY_SCENARIO') ?? 'recording';
     if (['processing', 'copied', 'error'].includes(scenario)) {
         const detail = {processing: 'Finishing transcription…', copied: 'Copied. Ready to paste.', error: 'Microphone could not start. Open Mluva.'}[scenario];
         return [true, scenario, detail, 0, '', '', 0, '', ''];
@@ -124,7 +124,7 @@ export async function run() {
     statusAction.connect('activate', () => connection.emit_signal(
         null, OBJECT_PATH, INTERFACE_NAME, SIGNAL_NAME, new GLib.Variant('(bssussdss)', currentState)));
     actions.add_action(statusAction);
-    const exportId = connection.export_action_group('/com/voicescribe/Linux', actions);
+    const exportId = connection.export_action_group('/com/mluva/Linux', actions);
     try {
         const indicator = Main.panel.statusArea.mluva;
         expect(indicator !== undefined, 'Mluva has no top-panel menu');
@@ -145,7 +145,7 @@ export async function run() {
         await waitFor(() => overlay.visible, 'The recording signal did not reveal the overlay');
         await Scripting.waitLeisure();
         if (currentState[1] === 'processing') {
-            const extension = Main.extensionManager.lookup('recording-status@voicescribe.local').stateObj;
+            const extension = Main.extensionManager.lookup('recording-status@mluva.local').stateObj;
             extension.disable();
             extension.enable();
             overlay = overlayActor();
@@ -156,15 +156,15 @@ export async function run() {
         }
 
         console.log(
-            `VOICE_SCRIBE_OVERLAY_GEOMETRY bar=${overlay.width}x${overlay.height} ` +
+            `MLUVA_OVERLAY_GEOMETRY bar=${overlay.width}x${overlay.height} ` +
             `position=${overlay.x},${overlay.y}`);
         expect(global.stage.get_key_focus() === focusBefore, 'The display-only overlay changed keyboard focus');
         expect(overlay.x > 0 && overlay.y > 0, 'The overlay was not positioned inside the virtual monitor');
         expect(overlay.x + overlay.width < 1280, 'The overlay crossed the virtual monitor right edge');
         expect(overlay.y + overlay.height < 720, 'The overlay crossed the virtual monitor bottom edge');
 
-        const screenshotPath = GLib.getenv('VOICE_SCRIBE_OVERLAY_SCREENSHOT');
-        expect(Boolean(screenshotPath), 'VOICE_SCRIBE_OVERLAY_SCREENSHOT is required');
+        const screenshotPath = GLib.getenv('MLUVA_OVERLAY_SCREENSHOT');
+        expect(Boolean(screenshotPath), 'MLUVA_OVERLAY_SCREENSHOT is required');
         await saveStage(screenshotPath);
 
         connection.emit_signal(

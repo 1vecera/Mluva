@@ -22,20 +22,23 @@ for resolved_root in "${data_home}" "${config_home}"; do
         exit 1
     fi
 done
-application_dir="${data_home}/voice-scribe/app"
+if [[ "${MLUVA_MIGRATION_ACTIVE:-}" != 1 ]]; then
+    exec /usr/bin/python3 "${source_dir}/migrate_legacy.py" \
+        "${source_dir}" "${install_home}" "${config_home}" "${data_home}" "${staged_install}"
+fi
+
+application_dir="${data_home}/mluva/app"
 application_parent="$(dirname -- "${application_dir}")"
 application_backup="${application_parent}/.app.previous.$$"
 bin_dir="${install_home}/.local/bin"
 applications_dir="${data_home}/applications"
 icons_dir="${data_home}/icons/hicolor/scalable/apps"
-legacy_extension_uuid="right-alt@voicescribe.local"
-legacy_extension_install_dir="${data_home}/gnome-shell/extensions/${legacy_extension_uuid}"
 
 launcher_is_owned() {
     local launcher_path=$1
     [[ -f "${launcher_path}" && ! -L "${launcher_path}" ]] \
         && grep -Fxq "application_dir=\"${application_dir}\"" "${launcher_path}" \
-        && grep -Fq -- "-m voice_scribe_linux.app" "${launcher_path}"
+        && grep -Fq -- "-m mluva_linux.app" "${launcher_path}"
 }
 
 require_managed_link() {
@@ -61,31 +64,13 @@ require_managed_link() {
 }
 
 canonical_launcher="${bin_dir}/mluva"
-legacy_launcher="${bin_dir}/voice-scribe"
 if [[ -L "${canonical_launcher}" ]] \
     || { [[ -e "${canonical_launcher}" ]] && ! launcher_is_owned "${canonical_launcher}"; }; then
     echo "Refusing to replace an unrelated command: ${canonical_launcher}" >&2
     exit 1
 fi
-if [[ -L "${legacy_launcher}" ]]; then
-    if [[ "$(readlink -- "${legacy_launcher}")" != "mluva" ]]; then
-        echo "Refusing to replace an unrelated command: ${legacy_launcher}" >&2
-        exit 1
-    fi
-elif [[ -e "${legacy_launcher}" ]] && ! launcher_is_owned "${legacy_launcher}"; then
-    echo "Refusing to replace an unrelated command: ${legacy_launcher}" >&2
-    exit 1
-fi
 require_managed_link "${bin_dir}/mluva-input-helper" "${application_dir}/configure-input-helper.sh"
-require_managed_link \
-    "${bin_dir}/voice-scribe-input-helper" \
-    "${application_dir}/configure-input-helper.sh" \
-    "mluva-input-helper"
 require_managed_link "${bin_dir}/mluva-overlay" "${application_dir}/configure-recording-overlay.sh"
-require_managed_link \
-    "${bin_dir}/voice-scribe-overlay" \
-    "${application_dir}/configure-recording-overlay.sh" \
-    "mluva-overlay"
 require_managed_link "${bin_dir}/mluva-uninstall" "${application_dir}/uninstall.sh"
 require_managed_link "${bin_dir}/mluva-shell" "${application_dir}/mluva-shell"
 
@@ -95,7 +80,7 @@ if [[ -L "${application_dir}" || ( -e "${application_dir}" && ! -d "${applicatio
 fi
 if [[ -d "${application_dir}" ]] \
     && { [[ ! -f "${application_dir}/pyproject.toml" ]] \
-        || ! grep -Fxq -e 'name = "mluva-linux"' -e 'name = "voice-scribe-linux"' \
+        || ! grep -Fxq 'name = "mluva-linux"' \
             "${application_dir}/pyproject.toml"; }; then
     echo "Refusing to replace an unrecognized application directory: ${application_dir}" >&2
     exit 1
@@ -117,31 +102,9 @@ test -x /usr/bin/python3 || {
     echo "Mluva requires the distribution Python at /usr/bin/python3." >&2
     exit 1
 }
-if pgrep -f -- "${application_dir}/.venv/bin/python -m voice_scribe_linux.app" >/dev/null 2>&1; then
+if pgrep -f -- "${application_dir}/.venv/bin/python -m mluva_linux.app" >/dev/null 2>&1; then
     echo "Mluva is running from ${application_dir}. Close it before installation so its environment is not replaced in place." >&2
     exit 1
-fi
-
-if [[ "${staged_install}" == "false" ]] \
-    && command -v gnome-extensions >/dev/null 2>&1 \
-    && gnome-extensions info "${legacy_extension_uuid}" >/dev/null 2>&1; then
-    gnome-extensions disable "${legacy_extension_uuid}" >/dev/null 2>&1 || true
-    gnome-extensions uninstall "${legacy_extension_uuid}" >/dev/null 2>&1 || true
-fi
-if test -d "${legacy_extension_install_dir}"; then
-    legacy_extension_backup="${data_home}/voice-scribe/retired-right-alt-extension.$(date +%s).$$"
-    install -d -m 0700 "${data_home}/voice-scribe"
-    mv -- "${legacy_extension_install_dir}" "${legacy_extension_backup}"
-    echo "Retired Right Alt helper moved to ${legacy_extension_backup}; AltGr is no longer reserved."
-fi
-
-if [[ "${staged_install}" == "true" ]]; then
-    secret_config_dir="${config_home}/daniel-ai-skills"
-else
-    secret_config_dir="${DAS_CONF_DIR:-${config_home}/daniel-ai-skills}"
-fi
-if test -x "${secret_config_dir}/bin/das-mcp-launch" && test -f "${secret_config_dir}/env/agent.env"; then
-    DAS_CONF_DIR="${secret_config_dir}" bash "${source_dir}/configure-secret-profile.sh"
 fi
 
 install -d -m 0755 "${application_parent}"
@@ -176,31 +139,23 @@ trap 'exit 143' TERM
 
 install -d -m 0755 \
     "${application_dir}" \
-    "${application_dir}/gnome-extension/recording-status@voicescribe.local" \
+    "${application_dir}/gnome-extension/recording-status@mluva.local" \
     "${application_dir}/resources" \
     "${bin_dir}" \
     "${applications_dir}" \
     "${icons_dir}"
-install -d -m 0755 "${application_dir}/voice_scribe_linux"
-rm -f -- \
-    "${application_dir}/enable-right-alt.sh" \
-    "${application_dir}/disable-right-alt.sh" \
-    "${application_dir}/set-right-alt-enabled.js" \
-    "${application_dir}/voice_scribe_linux/hotkey_gestures.py"
-if test -d "${application_dir}/voice_scribe_linux/__pycache__"; then
-    rm -rf -- "${application_dir}/voice_scribe_linux/__pycache__"
-fi
+install -d -m 0755 "${application_dir}/mluva_linux"
 install -m 0644 "${source_dir}/pyproject.toml" "${source_dir}/uv.lock" "${application_dir}/"
-install -m 0644 "${source_dir}/voice_scribe_linux/"*.py "${application_dir}/voice_scribe_linux/"
+install -m 0644 "${source_dir}/mluva_linux/"*.py "${application_dir}/mluva_linux/"
 install -m 0644 \
-    "${source_dir}/gnome-extension/recording-status@voicescribe.local/"*.js \
-    "${source_dir}/gnome-extension/recording-status@voicescribe.local/"*.json \
-    "${source_dir}/gnome-extension/recording-status@voicescribe.local/"*.css \
-    "${source_dir}/gnome-extension/recording-status@voicescribe.local/"*.svg \
-    "${application_dir}/gnome-extension/recording-status@voicescribe.local/"
+    "${source_dir}/gnome-extension/recording-status@mluva.local/"*.js \
+    "${source_dir}/gnome-extension/recording-status@mluva.local/"*.json \
+    "${source_dir}/gnome-extension/recording-status@mluva.local/"*.css \
+    "${source_dir}/gnome-extension/recording-status@mluva.local/"*.svg \
+    "${application_dir}/gnome-extension/recording-status@mluva.local/"
 install -m 0644 \
-    "${source_dir}/resources/voice-scribe-input@.service" \
-    "${application_dir}/resources/voice-scribe-input@.service"
+    "${source_dir}/resources/mluva-input@.service" \
+    "${application_dir}/resources/mluva-input@.service"
 install -m 0755 "${source_dir}/configure-input-helper.sh" "${application_dir}/configure-input-helper.sh"
 install -m 0755 "${source_dir}/configure-recording-overlay.sh" "${application_dir}/configure-recording-overlay.sh"
 install -m 0755 "${source_dir}/uninstall.sh" "${application_dir}/uninstall.sh"
@@ -213,19 +168,24 @@ uv sync --project "${application_dir}" --no-dev --frozen
 
 sed "s|@APPLICATION_DIR@|${application_dir}|g" "${source_dir}/resources/mluva.in" > "${bin_dir}/mluva"
 chmod 0755 "${bin_dir}/mluva"
-rm -f -- "${bin_dir}/voice-scribe"
-ln -sfn "mluva" "${bin_dir}/voice-scribe"
 ln -sfn "${application_dir}/configure-input-helper.sh" "${bin_dir}/mluva-input-helper"
-ln -sfn "mluva-input-helper" "${bin_dir}/voice-scribe-input-helper"
 ln -sfn "${application_dir}/configure-recording-overlay.sh" "${bin_dir}/mluva-overlay"
-ln -sfn "mluva-overlay" "${bin_dir}/voice-scribe-overlay"
 ln -sfn "${application_dir}/uninstall.sh" "${bin_dir}/mluva-uninstall"
 ln -sfn "${application_dir}/mluva-shell" "${bin_dir}/mluva-shell"
-sed "s|@EXECUTABLE@|${bin_dir}/mluva|g" "${source_dir}/resources/com.voicescribe.Linux.desktop.in" \
-    > "${applications_dir}/com.voicescribe.Linux.desktop"
-chmod 0644 "${applications_dir}/com.voicescribe.Linux.desktop"
-install -m 0644 "${source_dir}/resources/com.voicescribe.Linux.svg" "${icons_dir}/com.voicescribe.Linux.svg"
+sed "s|@EXECUTABLE@|${bin_dir}/mluva|g" "${source_dir}/resources/com.mluva.Linux.desktop.in" \
+    > "${applications_dir}/com.mluva.Linux.desktop"
+chmod 0644 "${applications_dir}/com.mluva.Linux.desktop"
+install -m 0644 "${source_dir}/resources/com.mluva.Linux.svg" "${icons_dir}/com.mluva.Linux.svg"
 command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "${applications_dir}"
+
+if [[ "${staged_install}" == "false" ]]; then
+    secret_config_dir="${DAS_CONF_DIR:-${config_home}/daniel-ai-skills}"
+    if [[ ! -s "${secret_config_dir}/env/mluva.env" ]] \
+        && test -x "${secret_config_dir}/bin/das-mcp-launch" \
+        && test -f "${secret_config_dir}/env/agent.env"; then
+        DAS_CONF_DIR="${secret_config_dir}" bash "${source_dir}/configure-secret-profile.sh"
+    fi
+fi
 
 installation_complete=true
 trap - EXIT HUP INT TERM
@@ -240,7 +200,7 @@ if [[ "${staged_install}" == "true" ]]; then
     echo "Staged verification skipped live GNOME extension, systemd helper, accessibility, and secret-profile inspection."
 else
     if ! command -v gnome-extensions >/dev/null 2>&1 \
-        || ! gnome-extensions info "recording-status@voicescribe.local" >/dev/null 2>&1; then
+        || ! gnome-extensions info "recording-status@mluva.local" >/dev/null 2>&1; then
         echo "For a bottom recording bar that remains visible over other applications, install the optional display-only extension:"
         echo "  mluva-overlay install"
         echo "A newly installed GNOME Shell extension may require one logout and login before it can be enabled."
@@ -256,7 +216,7 @@ else
         echo "Enable it before launching Mluva with: gsettings set org.gnome.desktop.interface toolkit-accessibility true"
         echo "Applications already open when it is enabled may need to be restarted before they expose text targets."
     fi
-    if test -x "${secret_config_dir}/bin/das-mcp-launch" && test -s "${secret_config_dir}/env/voice-scribe.env"; then
+    if test -x "${secret_config_dir}/bin/das-mcp-launch" && test -s "${secret_config_dir}/env/mluva.env"; then
         echo "The launcher will resolve only the reviewed ElevenLabs credential reference at runtime."
     elif test -x "${secret_config_dir}/bin/das-agent-launch" && test -s "${secret_config_dir}/env/agent.env"; then
         echo "The launcher will use das-agent-launch --only for the selected ElevenLabs credential at runtime."

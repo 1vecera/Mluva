@@ -37,7 +37,7 @@ final class AudioRetentionStore {
                 in: .userDomainMask
             ).first!
             self.directoryURL = appSupport
-                .appendingPathComponent("VoiceScribe", isDirectory: true)
+                .appendingPathComponent("Mluva", isDirectory: true)
                 .appendingPathComponent("RetainedAudio", isDirectory: true)
         }
     }

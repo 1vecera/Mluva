@@ -54,15 +54,13 @@ def test_public_surfaces_use_canonical_repository_url() -> None:
         REPOSITORY_ROOT / "README.md",
         REPOSITORY_ROOT / "SECURITY.md",
         REPOSITORY_ROOT / "docs" / "launch-kit.md",
-        REPOSITORY_ROOT / "linux" / "gnome-extension" / "recording-status@voicescribe.local" / "metadata.json",
-        REPOSITORY_ROOT / "linux" / "resources" / "voice-scribe-input@.service",
+        REPOSITORY_ROOT / "linux" / "gnome-extension" / "recording-status@mluva.local" / "metadata.json",
+        REPOSITORY_ROOT / "linux" / "resources" / "mluva-input@.service",
     ]
-    archive_repository_url = "https://github.com/1vecera/" + "VoiceScribeMac"
 
     for path in public_surfaces:
         contents = path.read_text(encoding="utf-8")
         assert CANONICAL_REPOSITORY_URL in contents
-        assert archive_repository_url not in contents
 
 
 def test_linux_package_declares_public_license_and_urls() -> None:

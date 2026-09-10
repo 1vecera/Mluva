@@ -1,7 +1,7 @@
 import Testing
 import Foundation
 import CoreGraphics
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("App Settings")
 struct AppSettingsTests {
@@ -160,7 +160,7 @@ struct AppSettingsTests {
     func languagePersistence() {
         settings.language = "cs"
         #expect(settings.language == "cs")
-        #expect(defaults.string(forKey: "voiceScribe.language") == "cs")
+        #expect(defaults.string(forKey: "mluva.language") == "cs")
     }
 
     @Test("Noise reduction can be enabled")
@@ -230,7 +230,7 @@ struct AppSettingsTests {
     func hotkeyKeyCodePersistence() {
         settings.hotkeyKeyCode = 15 // R
         #expect(settings.hotkeyKeyCode == 15)
-        #expect(defaults.integer(forKey: "voiceScribe.hotkeyKeyCode") == 15)
+        #expect(defaults.integer(forKey: "mluva.hotkeyKeyCode") == 15)
     }
 
     @Test("Hotkey modifiers persist")

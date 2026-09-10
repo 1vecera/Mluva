@@ -11,8 +11,8 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 from websockets.sync.server import Server, ServerConnection, serve
 
-from voice_scribe_linux.audio import SAMPLE_RATE, SAMPLE_WIDTH_BYTES
-from voice_scribe_linux.realtime import (
+from mluva_linux.audio import SAMPLE_RATE, SAMPLE_WIDTH_BYTES
+from mluva_linux.realtime import (
     ElevenLabsRealtimeClient,
     RealtimeCommittedSegment,
     RealtimePreview,

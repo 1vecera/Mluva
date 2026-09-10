@@ -32,7 +32,7 @@ def test_recording_overlay_install_packs_installs_and_enables_with_fake_shell(tm
     fake_gnome_extensions.write_text(
         """#!/usr/bin/env bash
 set -euo pipefail
-printf '%s\\n' "$*" >> "${VOICE_SCRIBE_OVERLAY_COMMAND_LOG}"
+printf '%s\\n' "$*" >> "${MLUVA_OVERLAY_COMMAND_LOG}"
 if [[ "$1" == "pack" ]]; then
     shift
     output_dir=""
@@ -43,14 +43,14 @@ if [[ "$1" == "pack" ]]; then
         fi
         shift
     done
-    touch "${output_dir}/recording-status@voicescribe.local.shell-extension.zip"
+    touch "${output_dir}/recording-status@mluva.local.shell-extension.zip"
 fi
 """
     )
     fake_gnome_extensions.chmod(0o755)
     environment = os.environ | {
         "PATH": f"{fake_bin}:{os.environ['PATH']}",
-        "VOICE_SCRIBE_OVERLAY_COMMAND_LOG": str(command_log),
+        "MLUVA_OVERLAY_COMMAND_LOG": str(command_log),
     }
 
     public_command = tmp_path / "mluva-overlay"
@@ -67,7 +67,7 @@ fi
     assert commands[0].startswith(
         "pack --force --extra-source mluva-symbolic.svg --extra-source recordingOverlay.js --out-dir "
     )
-    assert commands[0].endswith(str(LINUX_ROOT / "gnome-extension" / "recording-status@voicescribe.local"))
+    assert commands[0].endswith(str(LINUX_ROOT / "gnome-extension" / "recording-status@mluva.local"))
     assert commands[1].startswith("install --force /tmp/mluva-overlay.")
-    assert commands[2] == "info recording-status@voicescribe.local"
-    assert commands[3] == "enable recording-status@voicescribe.local"
+    assert commands[2] == "info recording-status@mluva.local"
+    assert commands[3] == "enable recording-status@mluva.local"

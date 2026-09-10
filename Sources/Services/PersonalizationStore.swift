@@ -425,7 +425,7 @@ final class PersonalizationStore: ObservableObject {
             in: .userDomainMask
         ).first!
         return appSupport
-            .appendingPathComponent("VoiceScribe", isDirectory: true)
+            .appendingPathComponent("Mluva", isDirectory: true)
             .appendingPathComponent("personalization.json")
     }
 }

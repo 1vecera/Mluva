@@ -9,10 +9,10 @@ from unittest.mock import patch
 
 import gi
 
-from voice_scribe_linux.app import MluvaApplication
-from voice_scribe_linux.codex_client import CodexAppServerClient
-from voice_scribe_linux.conversation import QUICK_POLISH
-from voice_scribe_linux.delivery import DeliveryReceipt
+from mluva_linux.app import MluvaApplication
+from mluva_linux.codex_client import CodexAppServerClient
+from mluva_linux.conversation import QUICK_POLISH
+from mluva_linux.delivery import DeliveryReceipt
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import GLib, Gtk  # noqa: E402
@@ -37,7 +37,7 @@ def exercise(application: MluvaApplication) -> None:
             time.sleep(0.01)
         assert application.rewrite_client is None, "Synthetic rewrite timed out"
 
-    with patch("voice_scribe_linux.app.CodexAppServerClient", side_effect=client_factory):
+    with patch("mluva_linux.app.CodexAppServerClient", side_effect=client_factory):
         workspace.prompt.get_buffer().set_text("A follow-up typed before Quick Polish")
         application._request_rewrite(QUICK_POLISH)
         settle()
@@ -138,9 +138,9 @@ def exercise(application: MluvaApplication) -> None:
     assert states[-1].phase == "error" and "Microphone" in states[-1].detail
 
     workspace.show_conversation(source, replies)
-    with patch("voice_scribe_linux.app.CodexAppServerClient", side_effect=client_factory):
+    with patch("mluva_linux.app.CodexAppServerClient", side_effect=client_factory):
         application._request_rewrite("Must not persist after privacy changes")
-        with patch("voice_scribe_linux.app.save_config", side_effect=OSError("Fixture read-only settings")):
+        with patch("mluva_linux.app.save_config", side_effect=OSError("Fixture read-only settings")):
             application.incognito_switch.set_active(True)
         settle()
     assert application.config.incognito_mode
@@ -221,8 +221,8 @@ def exercise_widget_review(application: MluvaApplication) -> None:
         )
 
     with (
-        patch("voice_scribe_linux.app.CodexAppServerClient", side_effect=client_factory) as factory,
-        patch("voice_scribe_linux.app.deliver_text") as clipboard,
+        patch("mluva_linux.app.CodexAppServerClient", side_effect=client_factory) as factory,
+        patch("mluva_linux.app.deliver_text") as clipboard,
     ):
         action("rewrite", "polish", elsewhere.identifier)
         action("rewrite", "unknown-option")

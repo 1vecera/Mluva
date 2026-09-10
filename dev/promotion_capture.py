@@ -15,10 +15,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 import gi
-from voice_scribe_linux.app import MluvaApplication
-from voice_scribe_linux.overlay_state import RecordingOverlayState
-from voice_scribe_linux.pipewire import PipeWireDeviceCatalog
-from voice_scribe_linux.ui import set_button_content
+from mluva_linux.app import MluvaApplication
+from mluva_linux.overlay_state import RecordingOverlayState
+from mluva_linux.pipewire import PipeWireDeviceCatalog
+from mluva_linux.ui import set_button_content
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("GdkX11", "4.0")
@@ -98,7 +98,7 @@ def main() -> int:
             )
     shutil.copytree(root / "linux/quickshell/mluva.dictation", output / "mluva.dictation")
     shutil.copy2(root / "dev/promotion-stage.qml", output / "shell.qml")
-    shutil.copy2(root / "linux/resources/com.voicescribe.Linux.svg", output / "mark.svg")
+    shutil.copy2(root / "linux/resources/com.mluva.Linux.svg", output / "mark.svg")
     binaries = output / "bin"
     binaries.mkdir()
     stub = binaries / "hyprctl"
@@ -354,12 +354,12 @@ def main() -> int:
         launch(["picom", "--backend", "xrender", "--config", "/dev/null"], "compositor.log")
         shell = launch(["quickshell", "--no-color", "-p", str(output / "shell.qml")], "quickshell.log", env=environment)
         with (
-            patch("voice_scribe_linux.app.FocusedTextTargetTracker", return_value=None),
+            patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
             patch.object(PipeWireDeviceCatalog, "from_system", return_value=PipeWireDeviceCatalog()),
             patch(
-                "voice_scribe_linux.app.CodexAppServerClient", side_effect=lambda: DemoRewriteClient(story["rewrite"])
+                "mluva_linux.app.CodexAppServerClient", side_effect=lambda: DemoRewriteClient(story["rewrite"])
             ),
-            patch("voice_scribe_linux.app.deliver_text", side_effect=lambda text, **_kwargs: copies.append(text)),
+            patch("mluva_linux.app.deliver_text", side_effect=lambda text, **_kwargs: copies.append(text)),
         ):
             GLib.timeout_add(800, prepare)
             application.run(None)

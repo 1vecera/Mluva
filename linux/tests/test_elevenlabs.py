@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 from http_fixture import local_http_server
 
-import voice_scribe_linux.elevenlabs as elevenlabs_module
-from voice_scribe_linux.elevenlabs import ElevenLabsClient, TranscriptionError
+import mluva_linux.elevenlabs as elevenlabs_module
+from mluva_linux.elevenlabs import ElevenLabsClient, TranscriptionError
 
 
 class ScribeHandler(BaseHTTPRequestHandler):

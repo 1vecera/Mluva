@@ -27,7 +27,7 @@ protocol KeyboardEventPosting: AnyObject {
 }
 
 final class KeyboardSimulator {
-    private let queue = DispatchQueue(label: "com.voicescribe.keyboard", qos: .userInteractive)
+    private let queue = DispatchQueue(label: "com.mluva.keyboard", qos: .userInteractive)
     private let clipboard: ClipboardTransactionController
     private let eventPoster: any KeyboardEventPosting
     private let pasteConfirmationAttempts: Int

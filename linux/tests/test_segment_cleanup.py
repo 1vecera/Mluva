@@ -5,7 +5,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-from voice_scribe_linux.segment_cleanup import (
+from mluva_linux.segment_cleanup import (
     SegmentCleanupAttempt,
     SegmentCleanupConfiguration,
     SegmentCleanupFailure,

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.audio import (
+from mluva_linux.audio import (
     PIPEWIRE_SYSTEM_CAPTURE_PROPERTIES,
     AudioCaptureError,
     PipeWireMeetingRecorder,
@@ -148,7 +148,7 @@ def test_meeting_capture_reports_partial_source_without_overstating_it(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Preserve valid microphone audio when the fake sink-monitor stream fails."""
-    monkeypatch.setenv("VOICE_SCRIBE_FAKE_SYSTEM_FAILURE", "1")
+    monkeypatch.setenv("MLUVA_FAKE_SYSTEM_FAILURE", "1")
     output_path = tmp_path / "partial-meeting.wav"
     fake_recorder = Path(__file__).with_name("fake_meeting_pw_record.py")
     recorder = PipeWireMeetingRecorder(executable=str(fake_recorder))
@@ -196,8 +196,8 @@ def test_meeting_capture_fails_closed_when_both_sources_are_invalid(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Reject an empty Meeting and erase all paths before any provider can receive it."""
-    monkeypatch.setenv("VOICE_SCRIBE_FAKE_MICROPHONE_FAILURE", "1")
-    monkeypatch.setenv("VOICE_SCRIBE_FAKE_SYSTEM_FAILURE", "1")
+    monkeypatch.setenv("MLUVA_FAKE_MICROPHONE_FAILURE", "1")
+    monkeypatch.setenv("MLUVA_FAKE_SYSTEM_FAILURE", "1")
     output_path = tmp_path / "invalid-meeting.wav"
     fake_recorder = Path(__file__).with_name("fake_meeting_pw_record.py")
     recorder = PipeWireMeetingRecorder(executable=str(fake_recorder))

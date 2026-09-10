@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.conversation_titles import clean_title, fallback_title, save_generated_title, title_prompt
-from voice_scribe_linux.history import HistoryStore
+from mluva_linux.conversation_titles import clean_title, fallback_title, save_generated_title, title_prompt
+from mluva_linux.history import HistoryStore
 
 
 def test_title_races_preserve_manual_names_clearing_and_deletion(tmp_path: Path) -> None:

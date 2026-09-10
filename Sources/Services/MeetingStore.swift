@@ -20,7 +20,7 @@ final class MeetingStore: ObservableObject {
                 in: .userDomainMask
             ).first!
             self.fileURL = applicationSupport
-                .appendingPathComponent("VoiceScribe", isDirectory: true)
+                .appendingPathComponent("Mluva", isDirectory: true)
                 .appendingPathComponent("Meetings", isDirectory: true)
                 .appendingPathComponent("meetings.json")
         }

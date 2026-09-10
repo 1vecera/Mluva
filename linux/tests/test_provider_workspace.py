@@ -11,14 +11,14 @@ from unittest.mock import patch
 import pytest
 from http_fixture import local_http_server
 
-from voice_scribe_linux.batch_preview import BatchPreviewClient
-from voice_scribe_linux.config import AppConfig, load_config, save_config
-from voice_scribe_linux.conversation import ConversationStore, rewrite_prompt
-from voice_scribe_linux.elevenlabs import TranscriptionResult
-from voice_scribe_linux.history import HistoryStore
-from voice_scribe_linux.live_rewrite import LiveRewriteSchedule, initial_draft, live_prompt
-from voice_scribe_linux.providers import LiteLLMClient, ProviderError, VoxtypeClient
-from voice_scribe_linux.workflow import DictationWorkflow
+from mluva_linux.batch_preview import BatchPreviewClient
+from mluva_linux.config import AppConfig, load_config, save_config
+from mluva_linux.conversation import ConversationStore, rewrite_prompt
+from mluva_linux.elevenlabs import TranscriptionResult
+from mluva_linux.history import HistoryStore
+from mluva_linux.live_rewrite import LiveRewriteSchedule, initial_draft, live_prompt
+from mluva_linux.providers import LiteLLMClient, ProviderError, VoxtypeClient
+from mluva_linux.workflow import DictationWorkflow
 
 
 @pytest.fixture
@@ -115,7 +115,7 @@ def test_provider_urls_reject_credentials_and_cleartext_remote_hosts(url):
 
 def test_local_voxtype_file_mode_ignores_cli_diagnostics(tmp_path):
     """Use the local engine, preserve Unicode and never invoke output or recording controls."""
-    with patch("voice_scribe_linux.providers.subprocess.Popen") as run:
+    with patch("mluva_linux.providers.subprocess.Popen") as run:
         output = 'Loading audio file: "fixture"\nAudio format: 16000 Hz\nProcessing samples...\n\nČistý text.\n'
         run.return_value.communicate.return_value = (output, None)
         run.return_value.returncode = 0
@@ -211,7 +211,7 @@ def test_local_capture_without_cloud_credentials_or_clipboard(tmp_path):
     workflow = DictationWorkflow(config, speech, SimpleNamespace(), history, tmp_path)
     audio = tmp_path / "audio.wav"
     audio.write_bytes(b"fixture")
-    with patch("voice_scribe_linux.workflow.deliver_text") as copy:
+    with patch("mluva_linux.workflow.deliver_text") as copy:
         result = workflow.complete(audio, "dictation", False, False)
     assert not copy.called and not result.delivery.copied
     assert result.history_entry.recognition_route == "voxtype-local"
@@ -227,7 +227,7 @@ def test_widget_copy_matches_the_displayed_working_version(tmp_path, edited_sour
     """Keep cleaned dictation and deliberate source edits consistent between preview and Copy."""
     from gi.repository import GLib
 
-    from voice_scribe_linux.app import MluvaApplication
+    from mluva_linux.app import MluvaApplication
 
     history = HistoryStore(tmp_path / "history.sqlite3")
     history.initialize()
@@ -248,7 +248,7 @@ def test_widget_copy_matches_the_displayed_working_version(tmp_path, edited_sour
         live_final_entry=entry.identifier if finalizing else None,
         _publish_review=lambda *_args, **_kwargs: None,
     )
-    with patch("voice_scribe_linux.app.deliver_text") as copy:
+    with patch("mluva_linux.app.deliver_text") as copy:
         MluvaApplication._review_action(app, None, GLib.Variant("(sss)", ("copy", entry.identifier, "")))
     if finalizing:
         copy.assert_not_called()
