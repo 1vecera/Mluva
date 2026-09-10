@@ -10,6 +10,7 @@ from mluva_linux.conversation import QUICK_POLISH, STRUCTURED_NOTE, Conversation
 from mluva_linux.conversation_titles import fallback_title
 from mluva_linux.history import HistoryEntry
 from mluva_linux.markdown_view import MarkdownTextView
+from mluva_linux.recording_control import RecordingLight
 from mluva_linux.ui import SPACE_2, SPACE_4, brand_mark, document_scroll, set_margins
 
 gi.require_version("Gtk", "4.0")
@@ -261,10 +262,12 @@ class ConversationWorkspace(Gtk.Box):
         self.conversation_title = Gtk.Label(xalign=0, hexpand=True, ellipsize=Pango.EllipsizeMode.END)
         self.conversation_title.add_css_class("ml-conversation-title")
         self.heading.append(self.conversation_title)
-        self.live_title = Gtk.Label(xalign=0, hexpand=True)
+        self.live_header = Gtk.Box(spacing=SPACE_2, valign=Gtk.Align.CENTER, visible=False)
+        self.live_light = RecordingLight()
+        self.live_header.append(self.live_light)
+        self.live_title = Gtk.Label(ellipsize=Pango.EllipsizeMode.END)
         self.live_title.add_css_class("ml-conversation-title")
-        self.live_title.set_visible(False)
-        self.heading.append(self.live_title)
+        self.live_header.append(self.live_title)
         self.live_cancel = Gtk.Button(label="Cancel", has_frame=False, valign=Gtk.Align.CENTER)
         self.live_cancel.set_tooltip_text("Cancel the final rewrite; keep the original dictation")
         self.live_cancel.connect("clicked", lambda _button: self.cancel_rewrite())
@@ -274,8 +277,9 @@ class ConversationWorkspace(Gtk.Box):
         self.live_cancel_slot.add_named(Gtk.Box(), "idle")
         self.live_cancel_slot.add_named(self.live_cancel, "cancel")
         self.live_cancel_slot.set_visible(False)
-        self.heading.append(self.live_cancel_slot)
-        content.append(self._reading_column(self.heading))
+        self.live_header.append(self.live_cancel_slot)
+        self.heading_column = self._reading_column(self.heading)
+        content.append(self.heading_column)
         self.messages = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
         set_margins(self.messages, SPACE_4)
         self.messages.set_margin_top(0)
@@ -287,7 +291,6 @@ class ConversationWorkspace(Gtk.Box):
         self.live_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24, homogeneous=True, vexpand=True)
         self.live_box.add_css_class("ml-live")
         set_margins(self.live_box, SPACE_4)
-        self.live_box.set_margin_top(0)
         self.live_source_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2, hexpand=True)
         self.live_source_box.append(Gtk.Label(label="Dictation", xalign=0, css_classes=["heading"]))
         self.live_text = self._text_view("")
@@ -774,7 +777,7 @@ class ConversationWorkspace(Gtk.Box):
             self.clear_rewrite_preview()
         self._update_actions()
 
-    def set_live(self, phase: str, text: str) -> None:
+    def set_live(self, phase: str, text: str, *, recording: bool = True) -> None:
         """Show every live word separately from committed, copyable messages."""
         starting = not self.live_box.get_visible()
         self.live_box.set_visible(True)
@@ -782,15 +785,21 @@ class ConversationWorkspace(Gtk.Box):
         self.scroll.set_visible(False)
         self.composer.set_visible(False)
         self.composer_column.set_visible(False)
-        self.conversation_title.set_visible(False)
-        self.live_title.set_visible(True)
+        self.heading_column.set_visible(False)
+        self.live_header.set_visible(True)
+        self.set_live_status(phase, recording=recording)
         self.live_cancel_slot.set_visible(True)
-        self.live_title.set_label(phase)
         self.live_text.replace_text(text)
         if starting:
             self.live_follower.follow(snap=True)
         else:
             self.live_follower.queue()
+
+    def set_live_status(self, phase: str, *, recording: bool = False) -> None:
+        """Keep the title bar's light, text and accessible status in the same capture phase."""
+        self.live_light.set_recording(recording)
+        self.live_title.set_label(phase)
+        self.live_title.update_property([Gtk.AccessibleProperty.LABEL], [f"Recording {phase}" if recording else phase])
 
     def finish_live(self) -> None:
         """Erase volatile text when finalization completes or capture is cancelled."""
@@ -800,9 +809,10 @@ class ConversationWorkspace(Gtk.Box):
         self.live_text.get_buffer().set_text("")
         self.live_box.set_visible(False)
         self.live_column.set_visible(False)
-        self.live_title.set_visible(False)
+        self.live_light.set_recording(False)
+        self.live_header.set_visible(False)
         self.live_cancel_slot.set_visible(False)
-        self.conversation_title.set_visible(True)
+        self.heading_column.set_visible(True)
         self.scroll.set_visible(True)
         self.composer.set_visible(True)
         self.composer_column.set_visible(True)

@@ -110,9 +110,9 @@ ShellRoot {
                 targetY: Math.min(0, viewport.height - text.height - text.lookAhead),
                 surfaceOpacity: surface.color.a,
                 background: Color.popups.background.toString(), ink: Color.popups.text.toString(),
-                visible: overlay.visible, focusable: overlay.focusable, mask: overlay.mask !== null,
+                visible: overlay.visible, mask: overlay.mask !== null,
                 x: origin.x, y: origin.y, width: overlay.width, height: overlay.height, screenWidth: overlay.screen.width,
-                screenHeight: overlay.screen.height, bottom: overlay.margins.bottom, focus: input.activeFocus});
+                screenHeight: overlay.screen.height, focus: input.activeFocus});
     }
     Timer {
         interval: 80

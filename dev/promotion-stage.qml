@@ -143,7 +143,9 @@ ShellRoot {
         function chapter(value: string): void { root.chapter = value; }
         function theme(colors: string): void {
             Color.loadColors(colors);
-            root.overlay.margins.bottom = root.portrait ? 200 : 24;
+            const window = root.overlay.contentItem.Window.window;
+            window.x = Qt.binding(() => (root.overlay.screen.width - root.overlay.width) / 2);
+            window.y = Qt.binding(() => root.overlay.screen.height - root.overlay.height - (root.portrait ? 200 : 24));
         }
         function state(): string {
             return JSON.stringify({chapter: root.chapter, phase: widget.phase,

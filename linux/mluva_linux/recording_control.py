@@ -81,14 +81,3 @@ class RecordingLight(Gtk.DrawingArea):
         context.set_source_rgba(color.red, color.green, color.blue, 0.92 + 0.08 * self._breath)
         context.arc(width / 2, height / 2, 3 * (1 + 0.18 * self._breath), 0, math.tau)
         context.fill()
-
-
-def set_recording_button_content(button: Gtk.Button) -> RecordingLight:
-    """Keep the stop action explicit beside the calm live recording light."""
-    content = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6, halign=Gtk.Align.CENTER)
-    light = RecordingLight()
-    light.set_recording(True)
-    content.append(light)
-    content.append(Gtk.Label(label="Stop"))
-    button.set_child(content)
-    return light

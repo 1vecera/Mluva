@@ -1,0 +1,68 @@
+{
+  "viewport": [
+    1060,
+    780
+  ],
+  "settled": true,
+  "panes": [
+    [
+      248,
+      58,
+      381,
+      634
+    ],
+    [
+      653,
+      58,
+      381,
+      634
+    ]
+  ],
+  "gutters": {
+    "history": {
+      "content": [
+        0,
+        0,
+        167,
+        526
+      ],
+      "scrollbar": [
+        173,
+        0,
+        26,
+        526
+      ]
+    },
+    "dictation": {
+      "content": [
+        0,
+        0,
+        349,
+        609
+      ],
+      "scrollbar": [
+        355,
+        0,
+        26,
+        609
+      ]
+    },
+    "rewrite": {
+      "content": [
+        0,
+        0,
+        349,
+        609
+      ],
+      "scrollbar": [
+        355,
+        0,
+        26,
+        609
+      ]
+    }
+  },
+  "lookahead_pixels": 46,
+  "manual_reading_preserved": true,
+  "markdown_copy_save_and_selection_lossless": true
+}

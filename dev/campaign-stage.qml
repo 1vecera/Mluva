@@ -84,9 +84,9 @@ ShellRoot {
     IpcHandler {
         target: "campaign"
         function layout(): void {
-            root.overlay.anchors.left = true;
-            root.overlay.margins.left = root.portrait ? 290 : 64;
-            root.overlay.margins.bottom = root.portrait ? 224 : 160;
+            const window = root.overlay.contentItem.Window.window;
+            window.x = root.portrait ? 290 : 64;
+            window.y = Qt.binding(() => root.overlay.screen.height - root.overlay.height - (root.portrait ? 224 : 160));
         }
         function state(): string {
             return JSON.stringify({width: stage.width, height: stage.height, phase: widget.phase,

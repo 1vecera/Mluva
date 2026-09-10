@@ -110,6 +110,7 @@ def main() -> None:
     review_action.connect("activate", lambda _action, parameters: commands.append(parameters.unpack()))
     actions.add_action(review_action)
     environment = {**os.environ, "MLUVA_SHELL_COMMAND": str(Path(__file__).resolve().parents[1] / "mluva-shell")}
+    environment.pop("HYPRLAND_INSTANCE_SIGNATURE", None)
     fixture = output / "shell.qml"
     fixture.write_text(
         Path(__file__)
@@ -229,10 +230,10 @@ def main() -> None:
                 preview = ("Earlier words " * 100 + "LATEST WORDS: Žluťoučký kůň") if phase == "recording" else ""
                 publisher.publish(RecordingOverlayState(phase=phase, elapsed_seconds=73, level=0.4, preview=preview))
                 state = observe(phase)
-                assert state["visible"] and not state["focusable"] and state["mask"]
+                assert state["visible"] and not state["mask"]
                 assert state["focus"] == idle["focus"]
                 assert state["width"] <= state["screenWidth"] - 32
-                assert state["height"] + state["bottom"] <= state["screenHeight"]
+                assert state["height"] <= state["screenHeight"]
                 assert state["preview"] == preview[-4096:]
                 if phase == "recording":
                     assert state["headerVisible"] and state["timerVisible"] and state["timerText"] == "01:13"
@@ -268,7 +269,7 @@ def main() -> None:
                     for before, after in zip([initial, *frames], frames, strict=False)
                 ), frames
             position = countdown()
-            assert abs(position["x"] - (short["screenWidth"] - short["width"]) / 2) <= 1
+            assert position["x"] == short["x"] and position["y"] == short["y"]
             (output / "scroll-motion.json").write_text(
                 json.dumps({"before": short, "near_edge": near, "wrap": wrapped}, indent=2)
             )
@@ -376,7 +377,7 @@ def main() -> None:
                     )
                 )
                 state = observe("ready")
-                assert state["focusable"] and state["identifier"] == "synthetic-note"
+                assert not state["mask"] and state["identifier"] == "synthetic-note"
                 assert state["background"] == ("#faf4ed" if light else "#1a1b26")
                 assert commands == []
                 subprocess.run(
@@ -439,7 +440,7 @@ def main() -> None:
             assert hovered["paused"], hovered
             time.sleep(0.6)
             assert countdown()["remaining"] == hovered["remaining"]
-            move_pointer(5, 150)
+            move_pointer(short["screenWidth"] - 5, short["screenHeight"] - 5)
             ipc("click", "more")
             observe("ready")
             paused = countdown()

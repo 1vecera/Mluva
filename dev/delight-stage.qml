@@ -53,9 +53,9 @@ ShellRoot {
                 stageSaved: root.stageSaved});
         }
         function layout(): void {
-            root.overlay.anchors.left = true;
-            root.overlay.margins.left = 710;
-            root.overlay.margins.bottom = 90;
+            const window = root.overlay.contentItem.Window.window;
+            window.x = 710;
+            window.y = Qt.binding(() => root.overlay.screen.height - root.overlay.height - 90);
         }
         function copy(): void { root.overlay.act("copy", ""); }
         function open(): void { root.overlay.act("open", ""); }

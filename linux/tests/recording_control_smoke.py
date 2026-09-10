@@ -8,7 +8,7 @@ from pathlib import Path
 
 import gi
 
-from mluva_linux.recording_control import set_recording_button_content
+from mluva_linux.recording_control import RecordingLight
 from mluva_linux.theme import DarkTokens, LightTokens, build_stylesheet
 from mluva_linux.ui import RecordingBarState, RecordingStatusBar
 
@@ -37,9 +37,12 @@ def main() -> None:
     content.append(Gtk.Label(label="Mluva", xalign=0, css_classes=["ml-wordmark"]))
     strip = RecordingStatusBar()
     content.append(strip)
-    button = Gtk.Button(halign=Gtk.Align.END, css_classes=["ml-record-toggle", "destructive-action"])
-    light = set_recording_button_content(button)
-    content.append(button)
+    header = Gtk.Box(spacing=6, halign=Gtk.Align.CENTER)
+    light = RecordingLight()
+    light.set_recording(True)
+    header.append(light)
+    header.append(Gtk.Label(label="01:13"))
+    content.append(header)
     window.set_content(content)
     state = RecordingBarState(
         kind="recording",
@@ -79,7 +82,7 @@ def main() -> None:
     deadline = time.monotonic() + 3
     while time.monotonic() < deadline:
         pump(0.02)
-        allocations.append((light.get_width(), light.get_height(), button.get_width(), strip.get_height()))
+        allocations.append((light.get_width(), light.get_height(), header.get_width(), strip.get_height()))
         breaths.append(light._breath)
         for name, reached in (("expanded", light._breath > 0.98), ("contracted", light._breath < -0.98)):
             if reached and name not in captured:

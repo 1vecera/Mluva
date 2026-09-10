@@ -104,7 +104,6 @@ Item {
     }
     RecordingOverlay {
         screen: root.QsWindow.window ? root.QsWindow.window.screen : null
-        bar: root.bar
         reviewDuration: root.reviewTimeout * 1000
         showCopy: root.showCopy
         smoothScrolling: root.smoothScrolling
