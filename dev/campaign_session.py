@@ -17,14 +17,14 @@ from unittest.mock import patch
 
 import gi
 from gi.repository import GLib
-from voice_scribe_linux import realtime
-from voice_scribe_linux.app import MluvaApplication
-from voice_scribe_linux.audio import PipeWireRecorder
-from voice_scribe_linux.codex_client import CodexAppServerClient, CodexAppServerError
-from voice_scribe_linux.config import AudioRetentionPolicy
-from voice_scribe_linux.live_rewrite import initial_draft
-from voice_scribe_linux.providers import LiteLLMClient, ProviderError
-from voice_scribe_linux.realtime import RealtimeTranscriptionSession
+from mluva_linux import realtime
+from mluva_linux.app import MluvaApplication
+from mluva_linux.audio import PipeWireRecorder
+from mluva_linux.codex_client import CodexAppServerClient, CodexAppServerError
+from mluva_linux.config import AudioRetentionPolicy
+from mluva_linux.live_rewrite import initial_draft
+from mluva_linux.providers import LiteLLMClient, ProviderError
+from mluva_linux.realtime import RealtimeTranscriptionSession
 
 gi.require_version("GdkX11", "4.0")
 
@@ -95,9 +95,9 @@ def main():
     if scenario.startswith("saved"):
         assert saved_run
         saved_run.resolve().relative_to(root / "tmp")
-        databases = list(saved_run.glob("session.*/data/voice-scribe/history.sqlite3"))
+        databases = list(saved_run.glob("session.*/data/mluva/history.sqlite3"))
         assert len(databases) == 1
-        destination = Path(os.environ["XDG_DATA_HOME"]) / "voice-scribe/history.sqlite3"
+        destination = Path(os.environ["XDG_DATA_HOME"]) / "mluva/history.sqlite3"
         destination.parent.mkdir(parents=True, exist_ok=True)
         with (
             sqlite3.connect(f"file:{databases[0]}?mode=ro", uri=True) as source_db,
@@ -188,7 +188,7 @@ def main():
             )
     shutil.copytree(payload / "quickshell/mluva.dictation", output / "mluva.dictation")
     shutil.copy2(root / "dev" / ("delight-stage.qml" if launch_film else "campaign-stage.qml"), output / "shell.qml")
-    shutil.copy2(root / "linux/resources/com.voicescribe.Linux.svg", output / "mark.svg")
+    shutil.copy2(root / "linux/resources/com.mluva.Linux.svg", output / "mark.svg")
     shutil.copy2(
         Path.home() / ".local/state/omarchy/current/background",
         output / "wallpaper.jpg",
@@ -698,7 +698,7 @@ def main():
             "quickshell.log",
         )
         with (
-            patch("voice_scribe_linux.app.FocusedTextTargetTracker", return_value=None),
+            patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
             patch.object(PipeWireRecorder, "_write_and_publish_audio", publish),
             patch.object(RealtimeTranscriptionSession, "_handle_event", handle_provider_event),
             patch.object(realtime, "websocket_connect", observed_connect),

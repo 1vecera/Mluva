@@ -9,9 +9,9 @@ from types import SimpleNamespace
 
 import pytest
 
-import voice_scribe_linux.diagnostics as diagnostics_module
-from voice_scribe_linux.config import AppConfig, AudioRetentionPolicy
-from voice_scribe_linux.diagnostics import (
+import mluva_linux.diagnostics as diagnostics_module
+from mluva_linux.config import AppConfig, AudioRetentionPolicy
+from mluva_linux.diagnostics import (
     DiagnosticOutcome,
     DiagnosticProvider,
     DiagnosticsStore,

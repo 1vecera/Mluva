@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.conversation import QUICK_POLISH, STRUCTURED_NOTE, ConversationStore, rewrite_prompt
-from voice_scribe_linux.history import HistoryStore
+from mluva_linux.conversation import QUICK_POLISH, STRUCTURED_NOTE, ConversationStore, rewrite_prompt
+from mluva_linux.history import HistoryStore
 
 
 def test_existing_history_becomes_a_restart_safe_conversation(tmp_path: Path) -> None:

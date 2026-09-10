@@ -8,19 +8,19 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.codex_client import CodexAppServerClient
-from voice_scribe_linux.config import AppConfig, AudioRetentionPolicy
-from voice_scribe_linux.delivery import DeliveryReceipt
-from voice_scribe_linux.diagnostics import DiagnosticsStore
-from voice_scribe_linux.elevenlabs import ElevenLabsClient, TranscriptionResult
-from voice_scribe_linux.history import HistoryStore
-from voice_scribe_linux.personalization import PersonalizationStore
-from voice_scribe_linux.segment_cleanup import (
+from mluva_linux.codex_client import CodexAppServerClient
+from mluva_linux.config import AppConfig, AudioRetentionPolicy
+from mluva_linux.delivery import DeliveryReceipt
+from mluva_linux.diagnostics import DiagnosticsStore
+from mluva_linux.elevenlabs import ElevenLabsClient, TranscriptionResult
+from mluva_linux.history import HistoryStore
+from mluva_linux.personalization import PersonalizationStore
+from mluva_linux.segment_cleanup import (
     SegmentCleanupFailure,
     SegmentCleanupTerminalSegment,
     SegmentCleanupTerminalSnapshot,
 )
-from voice_scribe_linux.workflow import DictationWorkflow, WorkflowFailure, reprocess_history_entry
+from mluva_linux.workflow import DictationWorkflow, WorkflowFailure, reprocess_history_entry
 
 
 class WorkflowScribeHandler(BaseHTTPRequestHandler):
@@ -233,7 +233,7 @@ def test_personalization_runs_before_delivery_and_preserves_raw_history(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     raw_text = "Use post grass period snippet email signoff"
     personalization = PersonalizationStore(tmp_path / "personalization.json")
     personalization.save_dictionary_replacement(
@@ -292,7 +292,7 @@ def test_frozen_transcript_preparation_ignores_mid_capture_rule_edits(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     personalization = PersonalizationStore(tmp_path / "personalization.json")
     personalization.save_dictionary_replacement("post grass", "PostgreSQL")
     history = HistoryStore(tmp_path / "history.sqlite3")
@@ -334,7 +334,7 @@ def test_saved_style_uses_only_instructions_and_personalized_text(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     personalization = PersonalizationStore(tmp_path / "personalization.json")
     personalization.save_dictionary_replacement("post grass", "PostgreSQL")
     technical = next(style for style in personalization.styles if style.name == "Technical notes")
@@ -399,7 +399,7 @@ def test_realtime_segment_cleanup_uses_ordered_candidates_and_raw_fallback(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     history = HistoryStore(tmp_path / "history.sqlite3")
     history.initialize()
     codex = CapturingCodexClient("whole cleanup must not run")
@@ -477,7 +477,7 @@ def test_unsafe_saved_style_keeps_deterministic_text_and_records_fallback(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     personalization = PersonalizationStore(tmp_path / "personalization.json")
     personalization.save_dictionary_replacement("post grass", "PostgreSQL")
     prose = next(style for style in personalization.styles if style.name == "Prose")
@@ -528,7 +528,7 @@ def test_command_uses_only_instruction_and_selection_then_waits_for_acceptance(
         """Prove processing stops before the explicit Command acceptance boundary."""
         raise AssertionError("Command preview must not deliver")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", forbidden_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", forbidden_delivery)
     audio_path = tmp_path / "recordings" / "command.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-command")
@@ -655,7 +655,7 @@ def test_always_policy_retains_successful_dictation_audio(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     audio_path = tmp_path / "recordings" / "always.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-always")
@@ -685,7 +685,7 @@ def test_incognito_dictation_delivers_without_history_or_recovery_audio(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     audio_path = tmp_path / "recordings" / "private-dictation.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-private-dictation")
@@ -725,7 +725,7 @@ def test_history_failure_after_delivery_does_not_invite_duplicate_retry(
         """Fail only the local persistence stage after delivery completed."""
         raise OSError("history disk unavailable")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     monkeypatch.setattr(HistoryStore, "add", fail_history_add)
     audio_path = tmp_path / "recordings" / "history-failure.wav"
     audio_path.parent.mkdir()
@@ -854,7 +854,7 @@ def test_failed_recognition_retries_to_preview_without_delivery(
         """Prove that recognition retry stops before the independent delivery boundary."""
         raise AssertionError("retry_recognition must not deliver")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", forbidden_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", forbidden_delivery)
     audio_path = tmp_path / "recordings" / "retry.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-retry")
@@ -923,7 +923,7 @@ def test_delivery_failure_preserves_recognized_text_for_independent_retry(
         assert not auto_paste
         raise OSError("clipboard unavailable")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fail_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fail_delivery)
     audio_path = tmp_path / "recordings" / "delivery-failure.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-delivery-failure")
@@ -957,7 +957,7 @@ def test_incognito_delivery_failure_keeps_text_only_in_memory(
         assert not auto_paste
         raise OSError("clipboard unavailable")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fail_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fail_delivery)
     audio_path = tmp_path / "recordings" / "private-delivery-failure.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-private-delivery-failure")
@@ -991,7 +991,7 @@ def test_cleanup_failure_falls_back_to_raw_before_delivery(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     audio_path = tmp_path / "recordings" / "cleanup-failure.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-cleanup-failure")
@@ -1033,7 +1033,7 @@ def test_committed_realtime_result_skips_batch_upload_and_remains_raw_history(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     audio_path = tmp_path / "recordings" / "realtime.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-realtime")
@@ -1090,7 +1090,7 @@ def test_realtime_failure_runs_one_explicit_batch_fallback(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     audio_path = tmp_path / "recordings" / "batch-fallback.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-batch-fallback")
@@ -1157,7 +1157,7 @@ def test_dictation_restores_and_confirms_captured_target_immediately_before_past
             paste_confirmed=True,
         )
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     audio_path = tmp_path / "recordings" / "restored-target.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-restored-target")
@@ -1200,7 +1200,7 @@ def test_missing_or_stale_target_degrades_to_copy_without_paste_attempt(
         assert not auto_paste
         return DeliveryReceipt(copied=True, pasted=False, guidance="Copied in test.")
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     audio_path = tmp_path / "recordings" / "stale-target.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-stale-target")
@@ -1260,7 +1260,7 @@ def test_unconfirmed_target_records_safe_fallback_without_retrying_paste(
             paste_confirmed=False,
         )
 
-    monkeypatch.setattr("voice_scribe_linux.workflow.deliver_text", fake_delivery)
+    monkeypatch.setattr("mluva_linux.workflow.deliver_text", fake_delivery)
     audio_path = tmp_path / "recordings" / "unconfirmed-target.wav"
     audio_path.parent.mkdir()
     audio_path.write_bytes(b"RIFF-unconfirmed-target")

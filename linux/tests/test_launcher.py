@@ -72,14 +72,14 @@ def test_launcher_uses_scoped_managed_profile_when_credential_is_missing(tmp_pat
     launcher_path, application_dir = _render_launcher(tmp_path)
     environ, home = _launcher_environment(tmp_path)
     config_dir = home / ".config" / "daniel-ai-skills"
-    profile = config_dir / "env" / "voice-scribe.env"
+    profile = config_dir / "env" / "mluva.env"
     profile.parent.mkdir(parents=True)
     profile.write_text("ELEVENLABS_API_KEY=op://test/item/credential\n", encoding="utf-8")
     managed_launcher = config_dir / "bin" / "das-mcp-launch"
     _write_executable(
         managed_launcher,
         "#!/bin/sh\n"
-        'test "$1" = voice-scribe\n'
+        'test "$1" = mluva\n'
         'test "$2" = --\n'
         "printf 'managed-profile:%s\\n' \"$1\"\n"
         "shift 2\n"
@@ -97,12 +97,12 @@ def test_launcher_uses_scoped_managed_profile_when_credential_is_missing(tmp_pat
 
     assert result.returncode == 0, result.stderr
     assert result.stdout.splitlines() == [
-        "managed-profile:voice-scribe",
-        f"python:{application_dir}:-m voice_scribe_linux.app recording.wav",
+        "managed-profile:mluva",
+        f"python:{application_dir}:-m mluva_linux.app recording.wav",
     ]
 
 
-@pytest.mark.parametrize("profile_marker", ["MLUVA_SECRET_PROFILE", "VOICE_SCRIBE_SECRET_PROFILE"])
+@pytest.mark.parametrize("profile_marker", ["MLUVA_SECRET_PROFILE", "MLUVA_SECRET_PROFILE"])
 def test_launcher_does_not_reenter_an_active_managed_profile(tmp_path: Path, profile_marker: str) -> None:
     """Prevent a missing resolved field from causing an infinite launcher loop."""
     launcher_path, application_dir = _render_launcher(tmp_path)
@@ -122,19 +122,19 @@ def test_launcher_does_not_reenter_an_active_managed_profile(tmp_path: Path, pro
     )
 
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == f"python:{application_dir}:-m voice_scribe_linux.app"
+    assert result.stdout.strip() == f"python:{application_dir}:-m mluva_linux.app"
 
 
 def test_uninstaller_removes_only_staged_application_files(tmp_path: Path) -> None:
     """Remove a staged install while preserving configuration, history, and unrelated executables."""
     install_home = tmp_path / "staged-home"
     data_home = install_home / ".local" / "share"
-    application_dir = data_home / "voice-scribe" / "app"
+    application_dir = data_home / "mluva" / "app"
     bin_dir = install_home / ".local" / "bin"
-    desktop_entry = data_home / "applications" / "com.voicescribe.Linux.desktop"
-    icon_path = data_home / "icons" / "hicolor" / "scalable" / "apps" / "com.voicescribe.Linux.svg"
-    config_marker = install_home / ".config" / "voice-scribe" / "settings.json"
-    history_marker = data_home / "voice-scribe" / "history.sqlite3"
+    desktop_entry = data_home / "applications" / "com.mluva.Linux.desktop"
+    icon_path = data_home / "icons" / "hicolor" / "scalable" / "apps" / "com.mluva.Linux.svg"
+    config_marker = install_home / ".config" / "mluva" / "settings.json"
+    history_marker = data_home / "mluva" / "history.sqlite3"
     application_dir.mkdir(parents=True)
     bin_dir.mkdir(parents=True)
     desktop_entry.parent.mkdir(parents=True)
@@ -146,15 +146,12 @@ def test_uninstaller_removes_only_staged_application_files(tmp_path: Path) -> No
     script = Path(__file__).parents[1] / "uninstall.sh"
     _write_executable(application_dir / "uninstall.sh", script.read_text(encoding="utf-8"))
     (bin_dir / "mluva").write_text(
-        f'#!/bin/sh\napplication_dir="{application_dir}"\nexec python -m voice_scribe_linux.app\n',
+        f'#!/bin/sh\napplication_dir="{application_dir}"\nexec python -m mluva_linux.app\n',
         encoding="utf-8",
     )
     (bin_dir / "unrelated-command").write_text("preserve\n", encoding="utf-8")
-    (bin_dir / "voice-scribe").symlink_to("mluva")
     (bin_dir / "mluva-input-helper").symlink_to(application_dir / "configure-input-helper.sh")
-    (bin_dir / "voice-scribe-input-helper").symlink_to("mluva-input-helper")
     (bin_dir / "mluva-overlay").symlink_to(application_dir / "configure-recording-overlay.sh")
-    (bin_dir / "voice-scribe-overlay").symlink_to("mluva-overlay")
     (bin_dir / "mluva-uninstall").symlink_to(application_dir / "uninstall.sh")
     (bin_dir / "mluva-shell").symlink_to(application_dir / "mluva-shell")
     desktop_entry.write_text(f"[Desktop Entry]\nName=Mluva\nExec={bin_dir}/mluva\n", encoding="utf-8")
@@ -180,11 +177,8 @@ def test_uninstaller_removes_only_staged_application_files(tmp_path: Path) -> No
     assert not desktop_entry.exists()
     assert not icon_path.exists()
     assert not (bin_dir / "mluva").exists()
-    assert not (bin_dir / "voice-scribe").exists()
     assert not (bin_dir / "mluva-input-helper").exists()
-    assert not (bin_dir / "voice-scribe-input-helper").exists()
     assert not (bin_dir / "mluva-overlay").exists()
-    assert not (bin_dir / "voice-scribe-overlay").exists()
     assert not (bin_dir / "mluva-uninstall").exists()
     assert not (bin_dir / "mluva-shell").is_symlink()
     assert (bin_dir / "unrelated-command").read_text(encoding="utf-8") == "preserve\n"
@@ -195,7 +189,7 @@ def test_uninstaller_removes_only_staged_application_files(tmp_path: Path) -> No
 def test_uninstaller_refuses_an_unrecognized_application_directory(tmp_path: Path) -> None:
     """Fail before deleting anything when the install path does not carry Mluva's package identity."""
     install_home = tmp_path / "staged-home"
-    application_dir = install_home / ".local" / "share" / "voice-scribe" / "app"
+    application_dir = install_home / ".local" / "share" / "mluva" / "app"
     sentinel = application_dir / "do-not-delete"
     application_dir.mkdir(parents=True)
     sentinel.write_text("preserve\n", encoding="utf-8")
@@ -221,7 +215,7 @@ def test_uninstaller_refuses_an_unrecognized_application_directory(tmp_path: Pat
 def test_installer_rejects_an_unrecognized_application_directory(tmp_path: Path) -> None:
     """Fail before overwriting a staged path that does not carry a recognized package identity."""
     install_home = tmp_path / "staged-home"
-    application_dir = install_home / ".local" / "share" / "voice-scribe" / "app"
+    application_dir = install_home / ".local" / "share" / "mluva" / "app"
     sentinel = application_dir / "do-not-overwrite"
     application_dir.mkdir(parents=True)
     sentinel.write_text("preserve\n", encoding="utf-8")
@@ -316,10 +310,10 @@ def test_installer_preserves_an_unrelated_helper_link(tmp_path: Path) -> None:
 def test_installer_rolls_back_a_failed_environment_sync(tmp_path: Path) -> None:
     """Restore the complete previous application when production dependency setup fails."""
     install_home = tmp_path / "staged-home"
-    application_dir = install_home / ".local" / "share" / "voice-scribe" / "app"
+    application_dir = install_home / ".local" / "share" / "mluva" / "app"
     previous_marker = application_dir / "previous-version"
     application_dir.mkdir(parents=True)
-    (application_dir / "pyproject.toml").write_text('name = "voice-scribe-linux"\n', encoding="utf-8")
+    (application_dir / "pyproject.toml").write_text('name = "mluva-linux"\n', encoding="utf-8")
     previous_marker.write_text("working\n", encoding="utf-8")
 
     fake_bin = tmp_path / "fake-bin"
@@ -340,22 +334,22 @@ def test_installer_rolls_back_a_failed_environment_sync(tmp_path: Path) -> None:
 
     assert result.returncode == 73
     assert previous_marker.read_text(encoding="utf-8") == "working\n"
-    assert not (application_dir / "voice_scribe_linux").exists()
+    assert not (application_dir / "mluva_linux").exists()
     assert list(application_dir.parent.glob(".app.previous.*")) == []
 
 
-def test_installer_commits_a_complete_legacy_upgrade(tmp_path: Path) -> None:
-    """Replace a recognized legacy app only after its new production environment succeeds."""
+def test_installer_replaces_a_complete_current_install(tmp_path: Path) -> None:
+    """Replace a recognized app only after its new production environment succeeds."""
     install_home = tmp_path / "staged-home"
-    application_dir = install_home / ".local" / "share" / "voice-scribe" / "app"
+    application_dir = install_home / ".local" / "share" / "mluva" / "app"
     previous_marker = application_dir / "previous-version"
     application_dir.mkdir(parents=True)
-    (application_dir / "pyproject.toml").write_text('name = "voice-scribe-linux"\n', encoding="utf-8")
+    (application_dir / "pyproject.toml").write_text('name = "mluva-linux"\n', encoding="utf-8")
     previous_marker.write_text("legacy\n", encoding="utf-8")
-    legacy_launcher = install_home / ".local" / "bin" / "voice-scribe"
+    previous_launcher = install_home / ".local" / "bin" / "mluva"
     _write_executable(
-        legacy_launcher,
-        f'#!/bin/sh\napplication_dir="{application_dir}"\nexec python -m voice_scribe_linux.app "$@"\n',
+        previous_launcher,
+        f'#!/bin/sh\napplication_dir="{application_dir}"\nexec python -m mluva_linux.app "$@"\n',
     )
 
     fake_bin = tmp_path / "fake-bin"
@@ -381,18 +375,15 @@ def test_installer_commits_a_complete_legacy_upgrade(tmp_path: Path) -> None:
     assert (application_dir / ".venv" / "bin" / "python").is_file()
     assert list(application_dir.parent.glob(".app.previous.*")) == []
     assert (install_home / ".local" / "bin" / "mluva").is_file()
-    assert legacy_launcher.is_symlink()
-    assert os.readlink(legacy_launcher) == "mluva"
+    assert not previous_launcher.is_symlink()
     bin_dir = install_home / ".local" / "bin"
     for name, target in {
         "mluva-input-helper": application_dir / "configure-input-helper.sh",
-        "voice-scribe-input-helper": application_dir / "configure-input-helper.sh",
         "mluva-overlay": application_dir / "configure-recording-overlay.sh",
-        "voice-scribe-overlay": application_dir / "configure-recording-overlay.sh",
         "mluva-uninstall": application_dir / "uninstall.sh",
     }.items():
         assert (bin_dir / name).resolve() == target
-    desktop = install_home / ".local/share/applications/com.voicescribe.Linux.desktop"
+    desktop = install_home / ".local/share/applications/com.mluva.Linux.desktop"
     assert f"Exec={bin_dir}/mluva" in desktop.read_text(encoding="utf-8")
     shell_launcher = install_home / ".local" / "bin" / "mluva-shell"
     assert shell_launcher.resolve() == application_dir / "mluva-shell"
@@ -400,7 +391,7 @@ def test_installer_commits_a_complete_legacy_upgrade(tmp_path: Path) -> None:
         assert (application_dir / "quickshell/mluva.dictation" / filename).read_bytes() == (
             script.parent / "quickshell/mluva.dictation" / filename
         ).read_bytes()
-    extension = application_dir / "gnome-extension" / "recording-status@voicescribe.local"
+    extension = application_dir / "gnome-extension" / "recording-status@mluva.local"
     for filename in ("extension.js", "recordingOverlay.js", "metadata.json", "stylesheet.css", "mluva-symbolic.svg"):
         assert (extension / filename).read_bytes() == (
             script.parent / "gnome-extension" / extension.name / filename
@@ -437,7 +428,7 @@ def test_launcher_runs_without_managed_launcher_when_direct_key_exists(tmp_path:
     )
 
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == f"python:{application_dir}:-m voice_scribe_linux.app"
+    assert result.stdout.strip() == f"python:{application_dir}:-m mluva_linux.app"
 
 
 @pytest.mark.parametrize("provider", ["voxtype", "litellm"])
@@ -446,16 +437,16 @@ def test_launcher_skips_scribe_secret_resolution_for_other_providers(tmp_path: P
     launcher, application_dir = _render_launcher(tmp_path)
     environ, home = _launcher_environment(tmp_path)
     config_root = home / ".config"
-    config = config_root / "voice-scribe" / "config.json"
+    config = config_root / "mluva" / "config.json"
     config.parent.mkdir(parents=True)
     config.write_text(json.dumps({"transcription_provider": provider}), encoding="utf-8")
-    profile = config_root / "daniel-ai-skills" / "env" / "voice-scribe.env"
+    profile = config_root / "daniel-ai-skills" / "env" / "mluva.env"
     profile.parent.mkdir(parents=True)
     profile.write_text("ELEVENLABS_API_KEY=op://test/item/credential\n", encoding="utf-8")
     _write_executable(config_root / "daniel-ai-skills" / "bin" / "das-mcp-launch", "#!/bin/sh\nexit 91\n")
     result = subprocess.run([str(launcher)], env=environ, capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == f"python:{application_dir}:-m voice_scribe_linux.app"
+    assert result.stdout.strip() == f"python:{application_dir}:-m mluva_linux.app"
 
 
 def test_secret_profile_keeps_only_the_reviewed_credential_reference(tmp_path: Path) -> None:
@@ -479,7 +470,7 @@ def test_secret_profile_keeps_only_the_reviewed_credential_reference(tmp_path: P
         check=False,
     )
 
-    profile = environment_dir / "voice-scribe.env"
+    profile = environment_dir / "mluva.env"
     assert result.returncode == 0, result.stderr
     assert "op://" not in result.stdout
     assert profile.read_text(encoding="utf-8") == "ELEVENLABS_API_KEY=op://test/elevenlabs/credential\n"
@@ -506,4 +497,4 @@ def test_secret_profile_rejects_a_missing_reviewed_reference(tmp_path: Path) -> 
     )
 
     assert result.returncode != 0
-    assert not (environment_dir / "voice-scribe.env").exists()
+    assert not (environment_dir / "mluva.env").exists()

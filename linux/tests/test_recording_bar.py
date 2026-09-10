@@ -2,10 +2,10 @@
 
 from types import SimpleNamespace
 
-from voice_scribe_linux.app import MluvaApplication, _elapsed_seconds, _overlay_detail_and_route
-from voice_scribe_linux.config import AppConfig
-from voice_scribe_linux.overlay_state import RecordingOverlayPublisher, RecordingOverlayState
-from voice_scribe_linux.ui import (
+from mluva_linux.app import MluvaApplication, _elapsed_seconds, _overlay_detail_and_route
+from mluva_linux.config import AppConfig
+from mluva_linux.overlay_state import RecordingOverlayPublisher, RecordingOverlayState
+from mluva_linux.ui import (
     RECORDING_KIND_PREPARING,
     RECORDING_KIND_RECORDING,
     RecordingBarState,

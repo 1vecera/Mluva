@@ -14,7 +14,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import GLib, Gtk  # noqa: E402
 
-from voice_scribe_linux.text_target import (  # noqa: E402
+from mluva_linux.text_target import (  # noqa: E402
     FocusedTextTargetTracker,
     system_accessibility_enabled,
 )

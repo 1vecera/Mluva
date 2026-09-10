@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.personalization import (
+from mluva_linux.personalization import (
     BUILT_IN_STYLES,
     DictionaryCaseBehavior,
     PersonalizationStore,
@@ -186,12 +186,12 @@ def test_mode_profiles_are_opt_in_and_local_to_concrete_applications(tmp_path: P
 
 def test_integrity_validator_protects_meaning_critical_tokens() -> None:
     """Reject a fluent candidate that drops exact technical facts and negation."""
-    source = "Do not deploy PostgreSQL 17 to https://example.com/api at /srv/voice_scribe with --dry-run and requestID."
+    source = "Do not deploy PostgreSQL 17 to https://example.com/api at /srv/mluva with --dry-run and requestID."
     candidate = "Deploy PostgreSQL to https://example.org at /srv with dry run and requestId."
 
     assert integrity_violations(source, candidate, ("PostgreSQL",)) == (
         "--dry-run",
-        "/srv/voice_scribe",
+        "/srv/mluva",
         "17",
         "Do not",
         "https://example.com/api",
@@ -200,7 +200,7 @@ def test_integrity_validator_protects_meaning_critical_tokens() -> None:
     assert (
         integrity_violations(
             source,
-            "Do not deploy PostgreSQL 17 to https://example.com/api at /srv/voice_scribe with --dry-run and requestID.",
+            "Do not deploy PostgreSQL 17 to https://example.com/api at /srv/mluva with --dry-run and requestID.",
             ("PostgreSQL",),
         )
         == ()

@@ -14,11 +14,11 @@ from unittest.mock import patch
 from conversation_ui_smoke import IsolatedApplication
 from gi.repository import Gdk, GLib, Graphene, Gtk
 
-from voice_scribe_linux.codex_client import CodexAppServerClient
-from voice_scribe_linux.delivery import DeliveryReceipt
-from voice_scribe_linux.elevenlabs import TranscriptionResult
-from voice_scribe_linux.realtime import RealtimePreview
-from voice_scribe_linux.workflow import WorkflowResult
+from mluva_linux.codex_client import CodexAppServerClient
+from mluva_linux.delivery import DeliveryReceipt
+from mluva_linux.elevenlabs import TranscriptionResult
+from mluva_linux.realtime import RealtimePreview
+from mluva_linux.workflow import WorkflowResult
 
 
 def settle(predicate, timeout: float = 6) -> None:
@@ -145,7 +145,7 @@ def exercise_finalization_panel(app, output: Path) -> None:
     with (
         patch.object(app, "_new_rewrite_client", side_effect=client),
         patch.object(app, "recording_overlay_publisher", publisher),
-        patch("voice_scribe_linux.app.deliver_text", side_effect=lambda text, **_kw: copies.append(text)),
+        patch("mluva_linux.app.deliver_text", side_effect=lambda text, **_kw: copies.append(text)),
     ):
         try:
             entry = start("final-panel")
@@ -182,9 +182,7 @@ def exercise_finalization_panel(app, output: Path) -> None:
                 target = (
                     patch.object(type(app.conversation_store), "append", side_effect=OSError("Controlled save failure"))
                     if failure == "save"
-                    else patch(
-                        "voice_scribe_linux.app.deliver_text", side_effect=RuntimeError("Controlled copy failure")
-                    )
+                    else patch("mluva_linux.app.deliver_text", side_effect=RuntimeError("Controlled copy failure"))
                 )
                 with target:
                     gate.set()
@@ -250,7 +248,7 @@ def main() -> int:
             assert app.history_store.find(entry.identifier).raw_text == "Original speech"
             with (
                 patch.object(app, "_new_rewrite_client", side_effect=client),
-                patch("voice_scribe_linux.app.deliver_text", side_effect=copy),
+                patch("mluva_linux.app.deliver_text", side_effect=copy),
             ):
                 app._request_rewrite("Polish")
                 assert copies == []
@@ -301,7 +299,7 @@ def main() -> int:
             count = len(copies)
             with (
                 patch.object(app, "_new_rewrite_client", side_effect=live_client),
-                patch("voice_scribe_linux.app.deliver_text", side_effect=copy),
+                patch("mluva_linux.app.deliver_text", side_effect=copy),
             ):
                 callback = app._live_preview_callback(app.live_session_identifier)
                 callback(RealtimePreview("", transcript + " PROVISIONAL_ONLY"))

@@ -9,9 +9,9 @@ from unittest.mock import patch
 
 from gi.repository import GLib
 
-from voice_scribe_linux.app import MluvaApplication
-from voice_scribe_linux.codex_client import CodexAppServerClient
-from voice_scribe_linux.config import load_config
+from mluva_linux.app import MluvaApplication
+from mluva_linux.codex_client import CodexAppServerClient
+from mluva_linux.config import load_config
 
 
 def exercise_rewrite_settings(application: MluvaApplication) -> None:
@@ -36,7 +36,7 @@ def exercise_rewrite_settings(application: MluvaApplication) -> None:
             time.sleep(0.01)
         assert application.model_catalog_client is None and application.rewrite_client is None
 
-    with patch("voice_scribe_linux.app.CodexAppServerClient", side_effect=factory):
+    with patch("mluva_linux.app.CodexAppServerClient", side_effect=factory):
         application._load_rewrite_models()
         settle()
         assert settings.model_row.get_sensitive()
@@ -57,7 +57,7 @@ def exercise_rewrite_settings(application: MluvaApplication) -> None:
         assert application.conversation_store.replies(source.identifier)[-1].model == "gpt-5.4-mini"
         assert application.config.codex_model is None, "Rewrite choices must not change capture or title models"
 
-        with patch("voice_scribe_linux.app.save_config", side_effect=OSError("Synthetic write failure")):
+        with patch("mluva_linux.app.save_config", side_effect=OSError("Synthetic write failure")):
             settings.model_row.set_selected(0)
         assert application.config.rewrite_model == "gpt-5.4-mini"
         assert settings.choices[settings.model_row.get_selected()] == "gpt-5.4-mini"
@@ -74,14 +74,14 @@ def exercise_rewrite_settings(application: MluvaApplication) -> None:
         assert not application.config.rewrite_fast_mode and not settings.fast_row.get_sensitive()
 
     with patch(
-        "voice_scribe_linux.app.CodexAppServerClient",
+        "mluva_linux.app.CodexAppServerClient",
         return_value=CodexAppServerClient(command=("mluva-synthetic-missing-codex",)),
     ):
         application._load_rewrite_models()
         settle()
     assert "Could not load models" in settings.status.get_label()
     assert application.config.rewrite_model == "gpt-5.4-mini"
-    with patch("voice_scribe_linux.app.CodexAppServerClient", side_effect=factory):
+    with patch("mluva_linux.app.CodexAppServerClient", side_effect=factory):
         application._load_rewrite_models()
         settle()
     assert "Could not load" not in settings.status.get_label()

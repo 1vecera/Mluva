@@ -22,11 +22,11 @@ The repository contains one root manifest, the released QML, an Apache license a
 
 If a manually copied `mluva.dictation` directory already exists, back it up or remove it with `omarchy plugin remove mluva.dictation` before adding the Git-managed copy. Omarchy refuses duplicate plugin IDs. The application and saved conversations are separate from plugin removal.
 
-For development or a manual install, the application still packages the same plugin under `~/.local/share/voice-scribe/app/quickshell/mluva.dictation`:
+For development or a manual install, the application still packages the same plugin under `~/.local/share/mluva/app/quickshell/mluva.dictation`:
 
 ```sh
 mkdir -p ~/.config/omarchy/plugins/mluva.dictation
-cp ~/.local/share/voice-scribe/app/quickshell/mluva.dictation/* ~/.config/omarchy/plugins/mluva.dictation/
+cp ~/.local/share/mluva/app/quickshell/mluva.dictation/* ~/.config/omarchy/plugins/mluva.dictation/
 omarchy-shell shell rescanPlugins
 omarchy plugin enable mluva.dictation
 ```

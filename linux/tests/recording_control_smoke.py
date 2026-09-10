@@ -8,9 +8,9 @@ from pathlib import Path
 
 import gi
 
-from voice_scribe_linux.recording_control import set_recording_button_content
-from voice_scribe_linux.theme import DarkTokens, LightTokens, build_stylesheet
-from voice_scribe_linux.ui import RecordingBarState, RecordingStatusBar
+from mluva_linux.recording_control import set_recording_button_content
+from mluva_linux.theme import DarkTokens, LightTokens, build_stylesheet
+from mluva_linux.ui import RecordingBarState, RecordingStatusBar
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")

@@ -188,7 +188,7 @@ def main() -> None:
         "QT_SCALE_FACTOR": str(args.pixel_ratio),
         "OFFSCREEN_ENABLE_ATSPI": "1",
         "PYTHONPATH": str(payload),
-        "VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT": "1",
+        "MLUVA_DISABLE_GLOBAL_SHORTCUT": "1",
         "ADW_DISABLE_PORTAL": "1",
         "GSK_RENDERER": "cairo",
         "QT_QPA_PLATFORM": "xcb",

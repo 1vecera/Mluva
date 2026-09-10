@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Chunk Buffer")
 struct ChunkBufferTests {

@@ -18,10 +18,10 @@ from rewrite_settings_lifecycle import exercise_rewrite_settings, seed_rewrite_m
 from scroll_lifecycle import exercise_scrolling
 from title_lifecycle import exercise_titles
 
-from voice_scribe_linux.app import MluvaApplication
-from voice_scribe_linux.conversation import STRUCTURED_NOTE
-from voice_scribe_linux.pipewire import PipeWireDeviceCatalog
-from voice_scribe_linux.ui import set_button_content
+from mluva_linux.app import MluvaApplication
+from mluva_linux.conversation import STRUCTURED_NOTE
+from mluva_linux.pipewire import PipeWireDeviceCatalog
+from mluva_linux.ui import set_button_content
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -374,7 +374,7 @@ def main() -> int:
         return GLib.SOURCE_REMOVE
 
     with (
-        patch("voice_scribe_linux.app.FocusedTextTargetTracker", return_value=None),
+        patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
         patch.object(
             PipeWireDeviceCatalog,
             "from_system",

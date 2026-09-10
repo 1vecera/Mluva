@@ -1,14 +1,14 @@
 import Foundation
 import Testing
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Live Google Cloud verification")
 struct LiveGoogleCloudTests {
     @Test("Real ADC Gemini Flash rewrites through Vertex AI")
     func rewritesWithGeminiFlash() async throws {
         let environment = ProcessInfo.processInfo.environment
-        guard environment["VOICE_SCRIBE_LIVE_GEMINI"] == "1",
-              let projectID = environment["VOICE_SCRIBE_LIVE_GCP_PROJECT"]
+        guard environment["MLUVA_LIVE_GEMINI"] == "1",
+              let projectID = environment["MLUVA_LIVE_GCP_PROJECT"]
         else {
             return
         }
@@ -30,8 +30,8 @@ struct LiveGoogleCloudTests {
     @Test("Real ADC Gemini Flash executes a command through Vertex AI")
     func executesCommandWithGeminiFlash() async throws {
         let environment = ProcessInfo.processInfo.environment
-        guard environment["VOICE_SCRIBE_LIVE_GEMINI"] == "1",
-              let projectID = environment["VOICE_SCRIBE_LIVE_GCP_PROJECT"]
+        guard environment["MLUVA_LIVE_GEMINI"] == "1",
+              let projectID = environment["MLUVA_LIVE_GCP_PROJECT"]
         else {
             return
         }
@@ -53,8 +53,8 @@ struct LiveGoogleCloudTests {
     func streamsPCMFixture() async throws {
         guard #available(macOS 15.0, *) else { return }
         let environment = ProcessInfo.processInfo.environment
-        guard let projectID = environment["VOICE_SCRIBE_LIVE_GCP_PROJECT"],
-              let fixturePath = environment["VOICE_SCRIBE_LIVE_GCP_PCM"]
+        guard let projectID = environment["MLUVA_LIVE_GCP_PROJECT"],
+              let fixturePath = environment["MLUVA_LIVE_GCP_PCM"]
         else {
             return
         }
@@ -63,8 +63,8 @@ struct LiveGoogleCloudTests {
         let provider = GoogleCloudTranscriptionProvider(
             configuration: GoogleCloudSpeechConfiguration(
                 projectID: projectID,
-                location: environment["VOICE_SCRIBE_LIVE_GCP_LOCATION"] ?? "eu",
-                model: environment["VOICE_SCRIBE_LIVE_GCP_MODEL"] ?? "chirp_3",
+                location: environment["MLUVA_LIVE_GCP_LOCATION"] ?? "eu",
+                model: environment["MLUVA_LIVE_GCP_MODEL"] ?? "chirp_3",
                 languageCodes: ["en-US"]
             ),
             streamingTransport: SystemGoogleStreamingRecognitionTransport()

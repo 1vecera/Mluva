@@ -8,7 +8,7 @@ from pathlib import Path
 
 from gi.repository import GLib
 
-from voice_scribe_linux.overlay_state import RecordingOverlayState
+from mluva_linux.overlay_state import RecordingOverlayState
 
 
 def replay_preview(publisher, observe, output: Path) -> None:

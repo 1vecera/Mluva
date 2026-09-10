@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 import Testing
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Scratchpad editor view")
 struct ScratchpadEditorViewTests {
@@ -54,7 +54,7 @@ struct ScratchpadEditorViewTests {
         #expect(bitmap.pixelsHigh >= 250)
 
         if let previewPath = ProcessInfo.processInfo.environment[
-            "VOICE_SCRIBE_SCRATCHPAD_PREVIEW"
+            "MLUVA_SCRATCHPAD_PREVIEW"
         ] {
             let png = try #require(bitmap.representation(using: .png, properties: [:]))
             try png.write(to: URL(fileURLWithPath: previewPath), options: .atomic)

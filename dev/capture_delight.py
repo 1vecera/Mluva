@@ -30,15 +30,15 @@ def installed_snapshot(root: Path, runtime: Path) -> tuple[dict[str, str], str]:
     for name in files:
         relative = Path(name).relative_to("linux")
         is_payload = (
-            (relative.parts[0] == "voice_scribe_linux" and relative.suffix == ".py")
+            (relative.parts[0] == "mluva_linux" and relative.suffix == ".py")
             or relative.parts[0] == "quickshell"
             or (
-                relative.parts[:2] == ("gnome-extension", "recording-status@voicescribe.local")
+                relative.parts[:2] == ("gnome-extension", "recording-status@mluva.local")
                 and relative.suffix in {".js", ".json", ".css", ".svg"}
             )
             or str(relative)
             in {
-                "resources/voice-scribe-input@.service",
+                "resources/mluva-input@.service",
                 "mluva-shell",
                 "pyproject.toml",
                 "uv.lock",
@@ -54,8 +54,8 @@ def installed_snapshot(root: Path, runtime: Path) -> tuple[dict[str, str], str]:
         hashes[str(relative)] = digest(runtime / relative)
     if not hashes:
         raise RuntimeError("No installed runtime was verified")
-    installed_icon = runtime.parents[1] / "icons/hicolor/scalable/apps/com.voicescribe.Linux.svg"
-    if digest(installed_icon) != digest(root / "linux/resources/com.voicescribe.Linux.svg"):
+    installed_icon = runtime.parents[1] / "icons/hicolor/scalable/apps/com.mluva.Linux.svg"
+    if digest(installed_icon) != digest(root / "linux/resources/com.mluva.Linux.svg"):
         raise RuntimeError("Installed desktop icon differs from the new logo")
     return hashes, digest(installed_icon)
 
@@ -141,7 +141,7 @@ def main() -> None:
         "QT_SCALE_FACTOR": str(args.pixel_ratio),
         "OFFSCREEN_ENABLE_ATSPI": "1",
         "PYTHONPATH": str(runtime),
-        "VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT": "1",
+        "MLUVA_DISABLE_GLOBAL_SHORTCUT": "1",
         "ADW_DISABLE_PORTAL": "1",
         "GSK_RENDERER": "cairo",
         "QT_QPA_PLATFORM": "xcb",

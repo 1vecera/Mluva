@@ -11,7 +11,7 @@ from pathlib import Path
 import gi
 from preview_replay import replay_preview
 
-from voice_scribe_linux.overlay_state import RecordingOverlayPublisher, RecordingOverlayState
+from mluva_linux.overlay_state import RecordingOverlayPublisher, RecordingOverlayState
 
 gi.require_version("Gio", "2.0")
 from gi.repository import Gio, GLib  # noqa: E402
@@ -102,8 +102,8 @@ def main() -> None:
     action = Gio.SimpleAction.new("status", None)
     action.connect("activate", lambda *_args: publisher.replay())
     actions.add_action(action)
-    exported = connection.export_action_group("/com/voicescribe/Linux", actions)
-    owner = Gio.bus_own_name_on_connection(connection, "com.voicescribe.Linux", Gio.BusNameOwnerFlags.NONE, None, None)
+    exported = connection.export_action_group("/com/mluva/Linux", actions)
+    owner = Gio.bus_own_name_on_connection(connection, "com.mluva.Linux", Gio.BusNameOwnerFlags.NONE, None, None)
     receipts = []
     commands = []
     review_action = Gio.SimpleAction.new("review", GLib.VariantType.new("(sss)"))

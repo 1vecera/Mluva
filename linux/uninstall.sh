@@ -25,14 +25,18 @@ for resolved_root in "${data_home}" "${config_home}"; do
     fi
 done
 
-application_dir="${data_home}/voice-scribe/app"
+application_dir="${data_home}/mluva/app"
 bin_dir="${install_home}/.local/bin"
-desktop_entry="${data_home}/applications/com.voicescribe.Linux.desktop"
-icon_path="${data_home}/icons/hicolor/scalable/apps/com.voicescribe.Linux.svg"
-input_unit="/etc/systemd/system/voice-scribe-input@.service"
+desktop_entry="${data_home}/applications/com.mluva.Linux.desktop"
+icon_path="${data_home}/icons/hicolor/scalable/apps/com.mluva.Linux.svg"
+input_unit="/etc/systemd/system/mluva-input@.service"
 
-if pgrep -f -- "${application_dir}/.venv/bin/python -m voice_scribe_linux.app" >/dev/null 2>&1; then
+if pgrep -f -- "${application_dir}/.venv/bin/python -m mluva_linux.app" >/dev/null 2>&1; then
     echo "Mluva is running from ${application_dir}. Close it before uninstalling." >&2
+    exit 1
+fi
+if [[ -L "${application_dir}" || -L "${data_home}/mluva" ]]; then
+    echo "Refusing to remove a symlinked application directory." >&2
     exit 1
 fi
 if [[ -d "${application_dir}" ]] \
@@ -63,38 +67,61 @@ if [[ "${staged_uninstall}" == "false" ]]; then
         fi
     fi
     if command -v gnome-extensions >/dev/null 2>&1 \
-        && gnome-extensions info "recording-status@voicescribe.local" >/dev/null 2>&1; then
+        && gnome-extensions info "recording-status@mluva.local" >/dev/null 2>&1; then
         if ! "${source_dir}/configure-recording-overlay.sh" remove; then
             echo "Warning: the optional Mluva recording overlay could not be removed automatically." >&2
-            echo "Remove it later with: gnome-extensions uninstall recording-status@voicescribe.local" >&2
+            echo "Remove it later with: gnome-extensions uninstall recording-status@mluva.local" >&2
         fi
     fi
 else
     echo "Staged verification skipped live GNOME extension and systemd helper inspection."
 fi
 
+# Remove a migrated display-only extension even when the current Shell has not
+# discovered its new UUID yet. Preserve modified or unrelated extension files.
+extension_dir="${data_home}/gnome-shell/extensions/recording-status@mluva.local"
+packaged_extension="${source_dir}/gnome-extension/recording-status@mluva.local"
+if [[ -d "${extension_dir}" && ! -L "${extension_dir}" && -d "${packaged_extension}" ]]; then
+    if /usr/bin/python3 - "${packaged_extension}" "${extension_dir}" <<'PYOWNERSHIP'
+import sys
+from pathlib import Path
+packaged, installed = map(Path, sys.argv[1:])
+names = {path.name for path in packaged.iterdir()}
+owned = names == {path.name for path in installed.iterdir()} and all(
+    (installed / name).is_file() and not (installed / name).is_symlink()
+    and (installed / name).read_bytes() == (packaged / name).read_bytes()
+    for name in names
+)
+sys.exit(0 if owned else 1)
+PYOWNERSHIP
+    then
+        rm -r -- "${extension_dir}"
+    else
+        echo "Preserved a modified recording extension at ${extension_dir}." >&2
+    fi
+fi
+
 launcher_path="${bin_dir}/mluva"
 if [[ -f "${launcher_path}" && ! -L "${launcher_path}" ]]; then
     if grep -Fxq "application_dir=\"${application_dir}\"" "${launcher_path}" \
-        && grep -Fq -- "-m voice_scribe_linux.app" "${launcher_path}"; then
+        && grep -Fq -- "-m mluva_linux.app" "${launcher_path}"; then
         rm -f -- "${launcher_path}"
     else
         echo "Preserved unexpected executable at ${launcher_path}." >&2
     fi
 fi
-remove_exact_symlink "${bin_dir}/voice-scribe" "mluva"
 remove_exact_symlink "${bin_dir}/mluva-input-helper" "${application_dir}/configure-input-helper.sh"
-remove_exact_symlink "${bin_dir}/voice-scribe-input-helper" "mluva-input-helper"
 remove_exact_symlink "${bin_dir}/mluva-overlay" "${application_dir}/configure-recording-overlay.sh"
-remove_exact_symlink "${bin_dir}/voice-scribe-overlay" "mluva-overlay"
 remove_exact_symlink "${bin_dir}/mluva-uninstall" "${application_dir}/uninstall.sh"
 remove_exact_symlink "${bin_dir}/mluva-shell" "${application_dir}/mluva-shell"
 
-if [[ -f "${desktop_entry}" ]] \
-    && grep -Fxq "Name=Mluva" "${desktop_entry}" \
-    && grep -Fxq "Exec=${bin_dir}/mluva" "${desktop_entry}"; then
-    rm -f -- "${desktop_entry}"
-fi
+for entry in "${desktop_entry}" "${config_home}/autostart/com.mluva.Linux.desktop"; do
+    if [[ -f "${entry}" && ! -L "${entry}" ]] \
+        && grep -Fxq "Name=Mluva" "${entry}" \
+        && grep -Fxq -e "Exec=${bin_dir}/mluva" -e "Exec=mluva" "${entry}"; then
+        rm -f -- "${entry}"
+    fi
+done
 if [[ -f "${icon_path}" ]] && grep -Fq '<title id="title">Mluva</title>' "${icon_path}"; then
     rm -f -- "${icon_path}"
 fi
@@ -108,4 +135,4 @@ command -v update-desktop-database >/dev/null 2>&1 \
     && update-desktop-database "${data_home}/applications"
 
 echo "Mluva application files and registered desktop integrations were removed."
-echo "Settings and user-created history remain under ${config_home}/voice-scribe and ${data_home}/voice-scribe."
+echo "Settings and user-created history remain under ${config_home}/mluva and ${data_home}/mluva."

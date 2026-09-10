@@ -3,7 +3,7 @@ set -euo pipefail
 
 script_path=$(readlink -f -- "${BASH_SOURCE[0]}")
 source_dir=$(cd -- "$(dirname -- "${script_path}")" && pwd)
-extension_uuid="recording-status@voicescribe.local"
+extension_uuid="recording-status@mluva.local"
 extension_source="${source_dir}/gnome-extension/${extension_uuid}"
 recording_overlay_package_dir=""
 

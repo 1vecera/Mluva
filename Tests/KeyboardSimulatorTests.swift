@@ -2,7 +2,7 @@ import Testing
 import CoreGraphics
 import AppKit
 import Foundation
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Keyboard Simulator")
 struct KeyboardSimulatorTests {

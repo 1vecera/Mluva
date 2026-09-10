@@ -97,19 +97,19 @@ run_private_session() {
             OFFSCREEN_SESSION_ROOT="${artifact_dir}/session" OFFSCREEN_ARTIFACT_DIR="${scenario_dir}" \
                 XDG_CONFIG_HOME="${scenario_dir}/config" XDG_DATA_HOME="${scenario_dir}/data" \
                 PYTHONPATH=. GTK_A11Y=atspi ADW_DISABLE_PORTAL=1 GSK_RENDERER=cairo \
-                VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT=1 MLUVA_UI_SCENARIO="${scenario}" \
+                MLUVA_DISABLE_GLOBAL_SHORTCUT=1 MLUVA_UI_SCENARIO="${scenario}" \
                 MLUVA_UI_WIDTH="${width}" MLUVA_UI_HEIGHT="${height}" \
                 uv run --locked python tests/conversation_ui_smoke.py
         done
     elif [[ "${MLUVA_SMOKE:-}" == providers ]]; then
         OFFSCREEN_SESSION_ROOT="${artifact_dir}/session" OFFSCREEN_ARTIFACT_DIR="${artifact_dir}" \
             PYTHONPATH=.:tests GTK_A11Y=atspi ADW_DISABLE_PORTAL=1 GSK_RENDERER=cairo \
-            VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT=1 \
+            MLUVA_DISABLE_GLOBAL_SHORTCUT=1 \
             uv run --locked python tests/provider_settings_smoke.py
     elif [[ "${MLUVA_SMOKE:-}" == live ]]; then
         OFFSCREEN_SESSION_ROOT="${artifact_dir}/session" OFFSCREEN_ARTIFACT_DIR="${artifact_dir}" \
             PYTHONPATH=.:tests GTK_A11Y=atspi ADW_DISABLE_PORTAL=1 GSK_RENDERER=cairo \
-            VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT=1 \
+            MLUVA_DISABLE_GLOBAL_SHORTCUT=1 \
             uv run --locked python tests/live_workspace_smoke.py
     else
         OFFSCREEN_ARTIFACT_DIR="${artifact_dir}" PYTHONPATH=. GTK_A11Y=atspi \

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Personalization store")
 struct PersonalizationStoreTests {

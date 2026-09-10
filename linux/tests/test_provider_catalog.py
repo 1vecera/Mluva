@@ -8,9 +8,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from voice_scribe_linux.config import AppConfig, load_config, save_config
-from voice_scribe_linux.provider_catalog import CatalogRequest, VoxtypeCatalog, catalog_message, connection_hint
-from voice_scribe_linux.providers import MAX_HTTP_BYTES, LiteLLMClient, ProviderError
+from mluva_linux.config import AppConfig, load_config, save_config
+from mluva_linux.provider_catalog import CatalogRequest, VoxtypeCatalog, catalog_message, connection_hint
+from mluva_linux.providers import MAX_HTTP_BYTES, LiteLLMClient, ProviderError
 
 
 @pytest.fixture

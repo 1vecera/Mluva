@@ -1,5 +1,5 @@
 import Testing
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Transcript context")
 struct TranscriptContextTests {

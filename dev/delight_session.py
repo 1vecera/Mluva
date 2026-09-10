@@ -15,13 +15,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 import gi
-from voice_scribe_linux.app import MluvaApplication
-from voice_scribe_linux.codex_client import CodexModel
-from voice_scribe_linux.delivery import DeliveryReceipt
-from voice_scribe_linux.elevenlabs import TranscriptionResult
-from voice_scribe_linux.pipewire import PipeWireDeviceCatalog
-from voice_scribe_linux.recording_control import set_recording_button_content
-from voice_scribe_linux.workflow import WorkflowResult
+from mluva_linux.app import MluvaApplication
+from mluva_linux.codex_client import CodexModel
+from mluva_linux.delivery import DeliveryReceipt
+from mluva_linux.elevenlabs import TranscriptionResult
+from mluva_linux.pipewire import PipeWireDeviceCatalog
+from mluva_linux.recording_control import set_recording_button_content
+from mluva_linux.workflow import WorkflowResult
 
 gi.require_version("GdkX11", "4.0")
 Gdk = importlib.import_module("gi.repository.Gdk")
@@ -513,9 +513,9 @@ def main() -> int:
     activation = app.connect("activate", activated)
     try:
         with (
-            patch("voice_scribe_linux.app.FocusedTextTargetTracker", return_value=None),
-            patch("voice_scribe_linux.app.PipeWireDeviceCatalog.from_system", return_value=PipeWireDeviceCatalog()),
-            patch("voice_scribe_linux.app.deliver_text", side_effect=copy_text),
+            patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
+            patch("mluva_linux.app.PipeWireDeviceCatalog.from_system", return_value=PipeWireDeviceCatalog()),
+            patch("mluva_linux.app.deliver_text", side_effect=copy_text),
         ):
             app.run([])
     finally:

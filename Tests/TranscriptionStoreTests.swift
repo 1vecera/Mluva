@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Transcription Store")
 struct TranscriptionStoreTests {
@@ -9,7 +9,7 @@ struct TranscriptionStoreTests {
 
     init() {
         tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("voicescribe-test-\(UUID().uuidString)")
+            .appendingPathComponent("mluva-test-\(UUID().uuidString)")
         try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
         fileURL = tempDir.appendingPathComponent("test-transcriptions.json")
     }

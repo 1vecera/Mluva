@@ -7,7 +7,7 @@ output="${1:-tmp/promotion-$(date -u +%Y%m%dT%H%M%SZ)}"
 [[ ! -e "$output" ]] || { echo "Use a new evidence directory: $output" >&2; exit 1; }
 make linux-setup
 export OFFSCREEN_ENABLE_ATSPI=1 PYTHONPATH="$root/linux"
-export VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT=1 ADW_DISABLE_PORTAL=1
+export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 ADW_DISABLE_PORTAL=1
 
 for scenario in dark portrait light; do
     format=landscape
