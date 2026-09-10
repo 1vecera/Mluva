@@ -307,8 +307,13 @@ def main() -> int:
             Gtk.Settings.get_default().set_property("gtk-enable-animations", True)
             app.window.set_size_request(1536, 844)
             app.window.set_default_size(1536, 844)
-            settle(lambda: app.window.get_width() >= 1536)
+            settle(lambda: app.window.get_width() > 1436 and app.window.get_height() > 744)
             hold(0.2)
+            event(
+                "initial-window-allocation",
+                content=[app.window.get_width(), app.window.get_height()],
+                scale=app.window.get_scale_factor(),
+            )
             app.window.set_default_size(3072 - app.window.get_width(), 1688 - app.window.get_height())
             settle(lambda: app.window.get_width() == 1536 and app.window.get_height() == 844)
             position()
@@ -479,7 +484,7 @@ def main() -> int:
                     ),
                     4,
                 )
-                event("theme-applied", name=name, canvas=expected)
+                event("theme-applied", theme=name, canvas=expected)
                 photo("theme-" + name)
                 hold(1.5)
             checks.append(

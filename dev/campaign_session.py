@@ -428,6 +428,13 @@ def main():
                 app.window.set_size_request(app_width, app_height)
             app.window.set_default_size(app_width, app_height)
             try:
+                if launch_film:
+                    settle(
+                        lambda: app.window.get_width() > app_width - 100 and app.window.get_height() > app_height - 100
+                    )
+                    app.window.set_default_size(
+                        2 * app_width - app.window.get_width(), 2 * app_height - app.window.get_height()
+                    )
                 settle(lambda: app.window.get_width() == app_width and app.window.get_height() == app_height)
             except TimeoutError:
                 event(
