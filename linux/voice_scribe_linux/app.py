@@ -19,7 +19,7 @@ from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 from voice_scribe_linux.audio import PipeWireMeetingRecorder, PipeWireRecorder
 from voice_scribe_linux.batch_preview import BatchPreviewClient
 from voice_scribe_linux.codex_client import CodexAppServerClient, CodexModel, select_model
-from voice_scribe_linux.command_palette import Command, CommandPalette
+from voice_scribe_linux.command_palette import CommandPalette, application_commands
 from voice_scribe_linux.config import (
     FUNCTION_KEY_OPTIONS,
     TRANSCRIPTION_LANGUAGE_OPTIONS,
@@ -1846,95 +1846,7 @@ class MluvaApplication(Adw.Application):
             return
         if self.window.get_visible_dialog() is not None:
             return
-        workspace = self.conversation_workspace
-        recording = self.recorder is not None and self.recorder.process is not None
-        capture_preparing = self.capture_preparing
-        live_enabled = self.config.live_rewrite_enabled
-        identifier = workspace.entry.identifier if workspace.entry is not None else None
-        editor = workspace.result_widgets[-1] if workspace.result_widgets else None
-
-        def current_document() -> bool:
-            """Bind document commands to the visible conversation chosen when the panel opened."""
-            selected = workspace.entry.identifier if workspace.entry is not None else None
-            latest = workspace.result_widgets[-1] if workspace.result_widgets else None
-            return (
-                editor is not None
-                and self.page_stack.get_visible_child_name() == "capture"
-                and selected == identifier
-                and latest is editor
-            )
-
-        record_title = (
-            "Cancel preparation" if self.capture_preparing else "Stop dictation" if recording else "Start dictation"
-        )
-        commands = (
-            Command(
-                record_title,
-                "media-playback-stop-symbolic" if recording else "audio-input-microphone-symbolic",
-                lambda: self._toggle_recording(self.record_button),
-                lambda: (
-                    self.record_button.is_sensitive()
-                    and self.capture_preparing == capture_preparing
-                    and (self.recorder is not None and self.recorder.process is not None) == recording
-                ),
-                "record microphone capture F9",
-            ),
-            Command(
-                "Turn off Live rewrite" if self.config.live_rewrite_enabled else "Turn on Live rewrite",
-                "document-edit-symbolic",
-                lambda: self.live_mode_switch.set_active(not self.live_mode_switch.get_active()),
-                lambda: self.live_mode_switch.is_sensitive() and self.config.live_rewrite_enabled == live_enabled,
-                "automatic structured draft",
-            ),
-            Command(
-                "Polish text",
-                "applications-utilities-symbolic",
-                lambda: workspace.request_rewrite(QUICK_POLISH),
-                lambda: (
-                    current_document()
-                    and workspace.quick_polish.is_sensitive()
-                    and not workspace.live_box.get_visible()
-                ),
-                "clean filler grammar rewrite",
-            ),
-            Command(
-                "Rewrite with an instruction",
-                "document-edit-symbolic",
-                self._focus_rewrite_prompt,
-                lambda: current_document() and workspace.send.is_sensitive() and not workspace.live_box.get_visible(),
-                "custom prompt edit",
-            ),
-            Command(
-                "Copy current text",
-                "edit-copy-symbolic",
-                workspace.copy_current_output,
-                lambda: current_document() and workspace.can_copy_current_output(),
-                "clipboard output result",
-            ),
-            Command(
-                "Save edits",
-                "document-save-symbolic",
-                workspace.save_edits,
-                lambda: (
-                    current_document()
-                    and not workspace.busy
-                    and not workspace.private
-                    and not workspace.live_box.get_visible()
-                    and workspace.entry is not None
-                    and any(key[0] == workspace.entry.identifier for key in workspace.edit_drafts)
-                ),
-                "keep document note",
-            ),
-            Command("History", "document-open-recent-symbolic", self._open_history, lambda: True, "archive search"),
-            Command(
-                "Settings",
-                "preferences-system-symbolic",
-                lambda: self._show_settings(self.settings_button),
-                lambda: True,
-                "providers models appearance scrolling preferences",
-            ),
-        )
-        self.command_palette = CommandPalette(commands)
+        self.command_palette = CommandPalette(application_commands(self))
         self.command_palette.connect("closed", self._commands_closed)
         self.command_palette.present(self.window)
 
