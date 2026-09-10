@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "mluva.dictation",
   "name": "Mluva dictation",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "Mluva contributors",
   "description": "Theme-aware dictation preview and direct conversation rewrites",
   "kinds": ["bar-widget"],

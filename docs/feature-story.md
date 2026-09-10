@@ -10,7 +10,7 @@ Speak a rough idea, shape it into useful text and keep the original. Omarchy is 
 | Rewriting | Polish, Structure, saved prompts and custom follow-ups transform the working text while keeping the original. |
 | Existing text | Paste into a new conversation, then edit or rewrite without recording. |
 | Live rewrite | Opt in to provisional task specs, structured notes, polish or custom drafts during speech. Stop reconciles the draft with final recognition. Experimental. |
-| Omarchy widget | Starts with five live preview lines. Drag its status row, resize it or focus it and press Super+T to tile. Opening preserves typing focus; clicking allows interaction. Polish, Structure, More, Copy and Open follow dictation. Hover, focus and rewriting pause the four-second dismissal. |
+| Omarchy widget | Starts with five live preview lines. Its light and timer sit above the text box. Drag the text box or status badge, resize it or focus it and press Super+T to tile. Opening preserves typing focus; clicking allows interaction. Polish, Structure, More, Copy and Open follow dictation. Hover, focus and rewriting pause the four-second dismissal. |
 | Editing | Edit originals or completed replies. Ctrl+S saves; Ctrl+Enter sends a rewrite. Raw recognition remains recoverable. |
 | Commands | Ctrl+P searches the app's recording, rewriting, Copy, Save, History and Settings actions. |
 | History and export | Search titles, saved text and instructions; reopen, rename, delete or export conversations as Markdown or JSON. |
