@@ -2,12 +2,12 @@
 
 import io
 import json
-import threading
 import urllib.error
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
 import pytest
+from http_fixture import local_http_server
 
 import voice_scribe_linux.elevenlabs as elevenlabs_module
 from voice_scribe_linux.elevenlabs import ElevenLabsClient, TranscriptionError
@@ -149,18 +149,11 @@ def test_transcribe_posts_scribe_v2_multipart(tmp_path: Path) -> None:
     """Prove model, language, audio, and credential placement on the HTTP wire."""
     audio_path = tmp_path / "capture.wav"
     audio_path.write_bytes(b"RIFF-test-audio")
-    server = ThreadingHTTPServer(("127.0.0.1", 0), ScribeHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
+    with local_http_server(ScribeHandler) as server:
         endpoint = f"http://127.0.0.1:{server.server_port}/v1/speech-to-text"
         client = ElevenLabsClient(api_key="write-only-test-key", endpoint=endpoint)
         assert "write-only-test-key" not in repr(client)
         result = client.transcribe(audio_path, "eng")
-    finally:
-        server.shutdown()
-        server.server_close()
-        thread.join()
     assert result.text == "Hello Linux."
     assert result.transcription_id == "scribe-test"
     assert ScribeHandler.request_api_key == "write-only-test-key"
@@ -175,19 +168,12 @@ def test_transcribe_meeting_requests_and_groups_diarized_words(tmp_path: Path) -
     """Request Scribe diarization only for Meeting and preserve speaker timing."""
     audio_path = tmp_path / "meeting.wav"
     audio_path.write_bytes(b"RIFF-test-meeting-audio")
-    server = ThreadingHTTPServer(("127.0.0.1", 0), MeetingScribeHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
+    with local_http_server(MeetingScribeHandler) as server:
         endpoint = f"http://127.0.0.1:{server.server_port}/v1/speech-to-text"
         result = ElevenLabsClient(api_key="write-only-test-key", endpoint=endpoint).transcribe_meeting(
             audio_path,
             "eng",
         )
-    finally:
-        server.shutdown()
-        server.server_close()
-        thread.join()
 
     assert result.text == "First point. I will send it."
     assert result.audio_duration_seconds == 3.25
@@ -208,19 +194,12 @@ def test_transcribe_omits_language_for_documented_auto_detection(tmp_path: Path)
     """Leave the optional language field absent when the user selects Auto-detect."""
     audio_path = tmp_path / "automatic.wav"
     audio_path.write_bytes(b"RIFF-test-audio")
-    server = ThreadingHTTPServer(("127.0.0.1", 0), ScribeHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
+    with local_http_server(ScribeHandler) as server:
         endpoint = f"http://127.0.0.1:{server.server_port}/v1/speech-to-text"
         result = ElevenLabsClient(api_key="write-only-test-key", endpoint=endpoint).transcribe(
             audio_path,
             "auto",
         )
-    finally:
-        server.shutdown()
-        server.server_close()
-        thread.join()
 
     assert result.language_code == "eng"
     assert b'name="language_code"' not in ScribeHandler.request_body
@@ -230,17 +209,10 @@ def test_transcribe_does_not_expose_provider_error_body(tmp_path: Path) -> None:
     """Keep provider diagnostics behind the application's write-only secret boundary."""
     audio_path = tmp_path / "capture.wav"
     audio_path.write_bytes(b"RIFF-test-audio")
-    server = ThreadingHTTPServer(("127.0.0.1", 0), FailedScribeHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
+    with local_http_server(FailedScribeHandler) as server:
         endpoint = f"http://127.0.0.1:{server.server_port}/v1/speech-to-text"
         with pytest.raises(TranscriptionError, match="HTTP 401") as error_info:
             ElevenLabsClient(api_key="write-only-test-key", endpoint=endpoint).transcribe(audio_path, "eng")
-    finally:
-        server.shutdown()
-        server.server_close()
-        thread.join()
     assert "sensitive provider diagnostic" not in str(error_info.value)
 
 
@@ -274,15 +246,8 @@ def test_transcribe_sanitizes_malformed_success_response(tmp_path: Path) -> None
     """Convert invalid success content without disclosing its provider body."""
     audio_path = tmp_path / "capture.wav"
     audio_path.write_bytes(b"RIFF-test-audio")
-    server = ThreadingHTTPServer(("127.0.0.1", 0), InvalidScribeHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
+    with local_http_server(InvalidScribeHandler) as server:
         endpoint = f"http://127.0.0.1:{server.server_port}/v1/speech-to-text"
         with pytest.raises(TranscriptionError, match="invalid transcription response") as error_info:
             ElevenLabsClient(api_key="write-only-test-key", endpoint=endpoint).transcribe(audio_path, "eng")
-    finally:
-        server.shutdown()
-        server.server_close()
-        thread.join()
     assert "sensitive malformed provider response" not in str(error_info.value)

@@ -4,11 +4,12 @@ import json
 import sqlite3
 import threading
 from dataclasses import replace
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
 from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+from http_fixture import local_http_server
 
 from voice_scribe_linux.batch_preview import BatchPreviewClient
 from voice_scribe_linux.config import AppConfig, load_config, save_config
@@ -53,13 +54,8 @@ def service():
                 self.wfile.write(("data: " + json.dumps(event) + "\r\n\r\n").encode())
             self.wfile.write(b"data: [DONE]\n\n")
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    yield f"http://127.0.0.1:{server.server_port}/v1", requests, options
-    server.shutdown()
-    server.server_close()
-    thread.join(timeout=2)
+    with local_http_server(Handler) as server:
+        yield f"http://127.0.0.1:{server.server_port}/v1", requests, options
 
 
 def test_remote_catalog_stream_and_audio(service, tmp_path, monkeypatch):

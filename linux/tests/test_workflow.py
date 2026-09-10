@@ -1,12 +1,12 @@
 """End-to-end workflow coverage around external-service boundaries."""
 
 import json
-import threading
 from collections.abc import Callable, Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import pytest
+from http_fixture import local_http_server
 
 from voice_scribe_linux.codex_client import CodexAppServerClient
 from voice_scribe_linux.config import AppConfig, AudioRetentionPolicy
@@ -168,13 +168,8 @@ class CapturingCodexClient:
 @pytest.fixture
 def scribe_server() -> Iterator[ThreadingHTTPServer]:
     """Serve deterministic Scribe responses without contacting ElevenLabs."""
-    server = ThreadingHTTPServer(("127.0.0.1", 0), WorkflowScribeHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    yield server
-    server.shutdown()
-    server.server_close()
-    thread.join()
+    with local_http_server(WorkflowScribeHandler) as server:
+        yield server
 
 
 def make_workflow(tmp_path: Path, server: ThreadingHTTPServer) -> DictationWorkflow:

@@ -2,8 +2,14 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import gi
+
+from voice_scribe_linux.conversation import QUICK_POLISH
+
+if TYPE_CHECKING:
+    from voice_scribe_linux.app import MluvaApplication
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -19,6 +25,96 @@ class Command:
     run: Callable[[], object]
     enabled: Callable[[], bool]
     keywords: str = ""
+
+
+def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
+    """Snapshot action identities at panel open and recheck availability before dispatch."""
+    workspace = app.conversation_workspace
+    recording = app.recorder is not None and app.recorder.process is not None
+    capture_preparing = app.capture_preparing
+    live_enabled = app.config.live_rewrite_enabled
+    identifier = workspace.entry.identifier if workspace.entry is not None else None
+    editor = workspace.result_widgets[-1] if workspace.result_widgets else None
+
+    def current_document() -> bool:
+        """Bind document commands to the visible conversation chosen when the panel opened."""
+        selected = workspace.entry.identifier if workspace.entry is not None else None
+        latest = workspace.result_widgets[-1] if workspace.result_widgets else None
+        return (
+            editor is not None
+            and app.page_stack.get_visible_child_name() == "capture"
+            and selected == identifier
+            and latest is editor
+        )
+
+    record_title = (
+        "Cancel preparation" if app.capture_preparing else "Stop dictation" if recording else "Start dictation"
+    )
+    return (
+        Command(
+            record_title,
+            "media-playback-stop-symbolic" if recording else "audio-input-microphone-symbolic",
+            lambda: app._toggle_recording(app.record_button),
+            lambda: (
+                app.record_button.is_sensitive()
+                and app.capture_preparing == capture_preparing
+                and (app.recorder is not None and app.recorder.process is not None) == recording
+            ),
+            "record microphone capture F9",
+        ),
+        Command(
+            "Turn off Live rewrite" if app.config.live_rewrite_enabled else "Turn on Live rewrite",
+            "document-edit-symbolic",
+            lambda: app.live_mode_switch.set_active(not app.live_mode_switch.get_active()),
+            lambda: app.live_mode_switch.is_sensitive() and app.config.live_rewrite_enabled == live_enabled,
+            "automatic structured draft",
+        ),
+        Command(
+            "Polish text",
+            "applications-utilities-symbolic",
+            lambda: workspace.request_rewrite(QUICK_POLISH),
+            lambda: (
+                current_document() and workspace.quick_polish.is_sensitive() and not workspace.live_box.get_visible()
+            ),
+            "clean filler grammar rewrite",
+        ),
+        Command(
+            "Rewrite with an instruction",
+            "document-edit-symbolic",
+            app._focus_rewrite_prompt,
+            lambda: current_document() and workspace.send.is_sensitive() and not workspace.live_box.get_visible(),
+            "custom prompt edit",
+        ),
+        Command(
+            "Copy current text",
+            "edit-copy-symbolic",
+            workspace.copy_current_output,
+            lambda: current_document() and workspace.can_copy_current_output(),
+            "clipboard output result",
+        ),
+        Command(
+            "Save edits",
+            "document-save-symbolic",
+            workspace.save_edits,
+            lambda: (
+                current_document()
+                and not workspace.busy
+                and not workspace.private
+                and not workspace.live_box.get_visible()
+                and workspace.entry is not None
+                and any(key[0] == workspace.entry.identifier for key in workspace.edit_drafts)
+            ),
+            "keep document note",
+        ),
+        Command("History", "document-open-recent-symbolic", app._open_history, lambda: True, "archive search"),
+        Command(
+            "Settings",
+            "preferences-system-symbolic",
+            lambda: app._show_settings(app.settings_button),
+            lambda: True,
+            "providers models appearance scrolling preferences",
+        ),
+    )
 
 
 class CommandPalette(Adw.Dialog):

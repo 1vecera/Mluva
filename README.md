@@ -78,6 +78,8 @@ Audio retention, recovery, Command previews and other details are documented in 
 
 Linux uses **Python, GTK 4, Libadwaita and PipeWire**, with a separate QML plugin for Omarchy. macOS uses Swift. No webview is required for the conversation workspace.
 
+Start with the [code map and focused checks](CONTRIBUTING.md#code-map) to find the owner of a feature. `make linux-test-fast` gives quick text/editing feedback; use the complete gates below at handoff.
+
 The [capture and development guide](dev/README.md) describes local checks and reproducible screenshots/videos on a private desktop. Promotion captures use the real Omarchy installation and theme.
 
 ```bash

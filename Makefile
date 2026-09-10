@@ -73,6 +73,17 @@ linux-test: linux-setup
 	cd linux && uv run --locked ruff check .
 	cd linux && uv run --locked ruff format --check .
 
+# Quick text/editing feedback; linux-test remains the complete handoff gate.
+.PHONY: linux-test-fast linux-command-test
+linux-test-fast: linux-setup
+	cd linux && uv run --locked pytest -q tests/test_transcript.py tests/test_conversation.py \
+		tests/test_history.py tests/test_scratchpad.py tests/test_live_rewrite.py tests/test_minimal_markdown.py
+
+linux-command-test: linux-setup
+	bash dev/run-isolated.sh tmp/command-palette -- env PYTHONPATH=linux:linux/tests \
+		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
+		uv run --project linux --locked python linux/tests/command_palette_smoke.py
+
 linux-feature-maturity: linux-setup
 	cd linux && uv run --locked python ../scripts/render_feature_maturity.py --write
 
