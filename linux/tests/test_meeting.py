@@ -83,7 +83,7 @@ def capture_result(path: Path) -> MeetingCaptureResult:
 
 
 def test_insights_extract_only_literal_decisions_actions_and_summary() -> None:
-    """Match the macOS deterministic insight contract without generating facts."""
+    """Extract deterministic meeting insights without generating facts."""
     insights = extract_meeting_insights(transcription_result().text)
 
     assert insights.summary == (
@@ -134,7 +134,7 @@ def test_store_round_trips_mac_compatible_fields_and_private_permissions(tmp_pat
 
 
 def test_store_loads_mac_record_without_linux_retry_fields(tmp_path: Path) -> None:
-    """Decode the existing macOS Meeting schema when Linux-only metadata is absent."""
+    """Decode a portable Meeting record when optional retry metadata is absent."""
     path = tmp_path / "meetings.json"
     path.write_text(
         json.dumps(

@@ -1770,8 +1770,8 @@ class MluvaApplication(Adw.Application):
         for maturity, title, description in (
             (
                 FeatureMaturity.VERIFIED,
-                "Verified on Linux",
-                "Worked in the current Fedora GNOME acceptance pass.",
+                FeatureMaturity.VERIFIED.label,
+                "Part of the daily, end-to-end tested Omarchy workflow. Fedora has not been verified recently.",
             ),
             (
                 FeatureMaturity.EXPERIMENTAL,

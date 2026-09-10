@@ -1,49 +1,37 @@
-# Fedora GNOME platform profile
+# Linux desktop support
 
-## Outcome
+**Omarchy is Mluva's primary platform.** The native app, dictation, rewriting and Quickshell widget are tested end to end and used daily by the maintainer. Fedora GNOME compatibility remains available, but has not been tested for several releases; its last accepted desktop was Fedora 44 with GNOME 50.
 
-Mluva's supported Linux target is Fedora 44 on GNOME Wayland. The native GTK application provides the complete safe application-level workflow: a portal-approved configurable function-key recording toggle with F9 as the default, a portal-approved cancel shortcut, gated PipeWire capture, ElevenLabs Scribe v2 Realtime with explicit batch fallback, volatile recognition, Codex app-server cleanup and Command previews, exact-once target delivery, Scratchpad, Meeting, History, personalization, retention, Incognito, and privacy-safe diagnostics.
+## Runtime interfaces
 
-This profile is authoritative when the common product contract assumes a macOS capability that a normal GNOME Wayland application does not have. “Full Linux port” means the complete supported workflow under these boundaries; it does not mean bypassing compositor security, granting broad input access, or claiming behavior that has not been exercised. Global recording and cancellation remain desktop-mediated actions, while Right Alt/AltGr retains its ordinary keyboard-layout behavior.
+Both desktops use GTK 4, Libadwaita, distribution Python/PyGObject, PipeWire and the XDG Global Shortcuts portal. The [setup guide](../linux/README.md#supported-desktop-contract) lists packages. The [combined installer](../README.md#install) also installs the Omarchy widget when the plugin manager is available.
 
-## Verified target and interfaces
-
-The development target checked on 2026-08-18 runs GNOME Shell 50.4, Mutter 50.4, XDG Desktop Portal 1.22.1, and the GNOME portal backend 50.0. The repository does not depend on those patch versions, but the boundary below was checked against their installed metadata and current official interfaces.
-
-The [Global Shortcuts portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.GlobalShortcuts.html) lets an application bind reviewed shortcuts and receive activation and deactivation signals regardless of window focus. The [XDG shortcut specification](https://specifications.freedesktop.org/shortcuts-spec/latest/) represents a trigger as optional modifiers plus an xkbcommon key identifier, so `F9` and the other F1–F24 identifiers are valid unmodified proposals. `BindShortcuts` is permitted only once per session, and the desktop may preserve or replace a preferred trigger. Mluva therefore binds recording and cancellation in one session, treats only activation as a toggle, displays the desktop's returned trigger, and uses a key-specific recording action ID when the selected function key changes so a persisted old action is actually removed from the replacement set.
-
-The earlier `right-alt@mluva.local` experiment is retired. The installer disables and uninstalls it when present, moves any residual extension directory outside GNOME's active extension path for recovery, and removes its installed client scripts. No broad key listener participates in input capture, and no logout is required for function-key registration. The optional extension provides an explicit top-panel action menu and a display-only bottom status bar.
-
-The [Input Capture portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.InputCapture.html) can offer keyboard capability, but current capture activation is compositor-controlled, the only defined triggers are pointer barriers, there is no immediate activation request, and active events are diverted to the capturing application rather than continuing as ordinary local input. It is therefore a remote-control/input-handoff interface, not a passive text-expansion boundary. The [Remote Desktop portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.RemoteDesktop.html) is likewise an explicitly approved remote-control session, not a source of focused application text commits.
-
-The official [Mutter 50.4 Wayland source tree](https://gitlab.gnome.org/GNOME/mutter/-/tree/50.4/src/wayland) has no `wlr-layer-shell` implementation. A normal GTK top-level therefore cannot obtain the compositor-owned nonactivating overlay role used on layer-shell compositors. GNOME's documented extension architecture says an enabled extension becomes part of GNOME Shell and can use Mutter plus Clutter/St to create shell UI; that is the viable GNOME-specific route, but it is also a materially more privileged, separately reviewable component. See [GNOME Shell extension architecture](https://gjs.guide/extensions/overview/architecture.html) and [St widgets](https://gjs.guide/extensions/topics/st-widgets.html).
-
-## Supported behavior
-
-| Capability | Fedora GNOME behavior | Enforcement |
+| Capability | Omarchy | Fedora GNOME compatibility |
 | --- | --- | --- |
-| Global dictation trigger | Portal-approved F9 activation by default; Settings can propose any F1–F24 key; press once to start and again to stop | Only the three registered action IDs reach the process; desktop approval and the returned actual trigger remain authoritative; a key-specific action ID replaces changed bindings |
-| Cancellation | Approved cancel shortcut globally; Escape only while Mluva is focused | No claim of intercepting an unapproved bare Escape elsewhere |
-| Live projection | Display-only waveform and volatile transcript inside the application window; optional explicitly installed GNOME Shell bottom bar | The main workspace shows complete volatile text; only the shell preview is bounded. Volatile text stays separate from saved output. Processing and terminal copy/error feedback remain visible until completion or expiry; application-owner loss clears the shell projection |
-| Ordinary Dictation target | Latest global AT-SPI focus event plus caret and selection offsets captured without reading target text | Password roles are excluded; ambiguous, inaccessible, stale, or unrestorable targets become copy-only |
-| Command target | Explicit selected text is bounded and disclosed to Codex only after Command mode is chosen | Application identity, window title, and nearby text are excluded from the request |
-| Automatic delivery | Clipboard installation followed by native editable-text insertion, or at most one keyboard paste only when native editing is unsupported | Native insertion uses libatspi's explicit success result and then advances the caret; a content-free caret check confirms only the keyboard fallback; uncertainty never retries or falls through to a second delivery path |
-| Explicit History paste | Reuse one bounded session-only AT-SPI focus/offset target when it remains restorable; otherwise copy for manual pasting | Selected text is stripped before caching, stale objects are discarded, and no target is reconstructed or guessed after restart |
-| Snippets | Spoken snippets and deterministic variables work; exact typed triggers can be stored for portability | No desktop-wide typed-trigger listener runs on Linux |
-| Recognition fallback | Realtime, batch, and batch-retry routes are visible in History | Fallback metadata is limited to unavailable, startup failure, or stream/finalization failure |
+| Native workspace | Themed GTK app follows the active Omarchy palette | GTK app follows the system scheme |
+| Recording display | Movable Quickshell window starts with five preview lines, tiles with Super+T and offers completed-note actions | In-window display; optional GNOME extension adds a display-only bottom bar |
+| Recording shortcuts | Portal-approved F9 by default, cancellation and latest-conversation actions | Same portal client; actual keys depend on desktop approval |
+| Clipboard | Completed dictation and rewrites copy by default | Same; recent desktop behavior unverified |
+| Automatic insertion | Experimental and disabled by default | Experimental; historically unreliable in the acceptance setup |
 
-## Typed-trigger security decision
+Feature status is tracked separately in the [capability matrix](feature-maturity.md). A working platform does not establish every provider, model or target application's behavior.
 
-Mluva will not implement desktop-wide typed snippets by opening `/dev/input`, creating a virtual keyboard, registering a broad AT-SPI key listener, or keeping a Remote Desktop/Input Capture session alive. Each option either receives substantially more input than the promised current-token buffer, needs elevated device access, diverts normal input, or lacks a reliable secure-field exclusion contract. Filtering after receipt is not equivalent to never receiving password keystrokes, and focus-role checks can race with focus changes.
+## Shortcuts and focus
 
-The three portal shortcut actions do not change this decision: action activation reveals no typed token and cannot implement snippets. Typed expansion can be enabled in a future Linux component only when its reviewed input boundary provides text-commit events rather than raw device events, identifies password/secure input before disclosing content, excludes Mluva and active dictation sessions, limits memory to one bounded token, injects one replacement transaction, and has explicit user enablement plus a visible off switch. A compositor/input-method integration may satisfy that contract; the current portals do not.
+The [Global Shortcuts portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.GlobalShortcuts.html) owns approval and assignment. Mluva binds recording, cancellation and opening the latest conversation in one session, displays the returned keys, and replaces that session when preferences change. It receives action activations, not arbitrary keystrokes. Escape cancels when Mluva has focus; the approved global cancellation shortcut works elsewhere.
 
-## Display-only bottom-bar decision
+Omarchy's recorder opens without taking typing focus. Clicking it allows interaction; drag its status row or focus it and press Super+T to tile. Floating mode stays above other windows and across workspaces. This requires Quickshell 0.3+ and Hyprland 0.55+. The optional GNOME bottom bar remains display-only and is installed separately.
 
-Mluva will not create an always-on-top GTK window and call it a nonactivating overlay. On the supported GNOME compositor that window can participate in ordinary focus and stacking, so it could redirect the exact target that release-to-insert is supposed to preserve.
+## Text delivery
 
-The optional `recording-status@mluva.local` GNOME Shell extension is packaged separately from the GTK application and installed only through the explicit `mluva-overlay install` command. It receives bounded phase, elapsed time, level, route, delivery readiness, and volatile transcript state over the application's owned session-bus name; creates a nonreactive, nonfocusable St actor; uses the existing GApplication action group for explicit menu commands, with no new command service; persists nothing; keeps processing and copied/error feedback until their completion or expiry, and clears when the application owner disappears; and leaves recognition, shortcuts, cancellation, History, and delivery in the GTK process. The portal shortcut session carries only action activation metadata and has no overlay state. The in-window projection remains the always-available supported surface when the optional extension is absent.
+Clipboard delivery is the standard workflow. Optional insertion captures an exact AT-SPI target and caret/selection state; password fields, ambiguous targets and stale objects are excluded. A failed restoration falls back to Copy. Native editable-text insertion is preferred; keyboard paste is attempted only when native editing is unsupported. Uncertain delivery never triggers a second insertion attempt.
 
-## Acceptance boundary
+Target compatibility depends on applications publishing a usable accessibility interface. Browser, terminal and rich-text behavior should be checked in the actual target application before relying on insertion.
 
-Headless tests prove the application-owned state machines with fake PipeWire processes, local HTTP/WebSocket providers, an independent fake Codex app-server, fake AT-SPI objects, and fake clipboard/input subprocesses. Portal tests verify the exact F9 and cancellation binding set, F1–F24 validation, key-specific replacement actions, activation-only toggle semantics, and actual-trigger reporting without contacting the live session bus, opening an approval dialog, or intercepting desktop input. Live synthetic GTK acceptance additionally proves event-tracked capture, UTF-8 native insertion, and exact resulting content without touching user content; the live tree exposes `Gtk.PasswordEntry` as a password-text role, while the exclusion itself is covered headlessly. Compatibility still depends on each target publishing a correct AT-SPI text object: browsers and Electron applications that suppress renderer accessibility remain intentionally copy-only, and terminal or rich-text fallbacks remain `paste-unconfirmed` unless their caret can be checked. A real function-key gesture, desktop approval, and the broader target matrix remain explicit manual acceptance evidence rather than being inferred from headless tests.
+Mluva supports explicitly spoken snippets. It stores portable typed-trigger definitions but runs no desktop-wide typed-trigger listener and does not read raw keyboard devices for text expansion.
+
+## Verification
+
+Automated checks run on private displays and buses with synthetic audio, model and input boundaries. They test GTK/QML rendering, portal messages, persistence, cancellation and target restoration without changing the active desktop. [Contributor checks](../CONTRIBUTING.md#verification) describe the commands.
+
+The maintainer's daily Omarchy use supplies the current end-to-end desktop acceptance. Isolated X11 tests complement that use; they do not establish physical microphone quality, real Wayland permissions or compatibility in every application. Fedora requires renewed desktop verification before it can regain the same support claim.

@@ -3,7 +3,7 @@
 from typing import Final
 
 PRODUCT_NAME: Final = "Mluva"
-PRODUCT_DESCRIPTOR: Final = "Open-source AI dictation for Linux, with a source preview for macOS."
+PRODUCT_DESCRIPTOR: Final = "Open-source dictation and rewriting for Omarchy."
 PRODUCT_VERSION: Final = "1.0.0"
 LINUX_USER_AGENT: Final = f"MluvaLinux/{PRODUCT_VERSION}"
 

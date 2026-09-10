@@ -1,9 +1,0 @@
-{
-  "take": "/Users/openclaw/code/mluva/.claude/worktrees/linear-s27-470-290aa32081d4/tmp/delight-film/real-take-v2",
-  "files": {
-    "recognition.json": "a4c395f306cda3588444f34631514afa4981bb4cd4544439c2e9450ac0ef29c7",
-    "replies.json": "3866238f2e4140836a83bc280e6c694841d097436b9939eefd399d16fe8cf439",
-    "capture.json": "ee5bcd3d7b83a92b2381deb97550ae62674fb238324e9af6986a7f310713c85a"
-  },
-  "use": "Exact original and final reply seed a separate deterministic native feature capture."
-}

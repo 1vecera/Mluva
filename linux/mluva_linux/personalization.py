@@ -566,7 +566,7 @@ class PersonalizationStore:
         )
 
     def _load(self) -> None:
-        """Decode one compatible macOS/Linux document while preserving malformed input."""
+        """Decode a portable personalization document while preserving malformed input."""
         if not self.path.exists():
             return
         try:

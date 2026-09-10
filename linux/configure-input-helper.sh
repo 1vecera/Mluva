@@ -46,7 +46,7 @@ case "${action}" in
             exit 1
         }
         [[ -x /usr/bin/ydotoold ]] || {
-            echo "Install the Fedora ydotool package first: sudo dnf install ydotool" >&2
+            echo "Install your distribution's ydotool package first." >&2
             exit 1
         }
         [[ -e /dev/uinput ]] || {

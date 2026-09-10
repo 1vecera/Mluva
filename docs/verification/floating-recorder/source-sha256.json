@@ -1,8 +1,0 @@
-{
-  "linux/quickshell/mluva.dictation/RecordingOverlay.qml": "f354969dcf4c41f695e265a29d6a750ed8ef16e67c1af184b02117f26c965647",
-  "linux/quickshell/mluva.dictation/Widget.qml": "2d8450436463d4be1de8a5d96feee7ed74aa2919a416793e2806588400aa6500",
-  "linux/mluva_linux/app.py": "4a0c62c209642ed7cad090341226de543540cdc67f0593a29be67c79c901d1e1",
-  "linux/mluva_linux/conversation_view.py": "3d911efac21c6ace8ab6ba6a21b6a4497ade5af438c8b018a7f74b49d2b54974",
-  "linux/tests/live_layout_smoke.py": "4f73381087067515571c9a201edec4aeea4eb5f8cc481d9a6f778ab6f4fce82a",
-  "linux/tests/shell_overlay_smoke.py": "d5ed7c2f0897c3fd3fb05790a6890282d933951c6777887b0e0f7a0ce702473b"
-}

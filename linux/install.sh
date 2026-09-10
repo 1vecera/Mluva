@@ -199,28 +199,31 @@ echo "No logout is required for the application or shortcut changes. Change the 
 if [[ "${staged_install}" == "true" ]]; then
     echo "Staged verification skipped live GNOME extension, systemd helper, accessibility, and secret-profile inspection."
 else
-    if ! command -v gnome-extensions >/dev/null 2>&1 \
-        || ! gnome-extensions info "recording-status@mluva.local" >/dev/null 2>&1; then
-        echo "For a bottom recording bar that remains visible over other applications, install the optional display-only extension:"
-        echo "  mluva-overlay install"
-        echo "A newly installed GNOME Shell extension may require one logout and login before it can be enabled."
-    fi
-    if ! "${bin_dir}/mluva-input-helper" status >/dev/null 2>&1; then
-        echo "For automatic paste in apps without native accessibility editing, install the optional keyboard-only helper:"
-        echo "  mluva-input-helper install"
-        echo "This requires sudo once and grants same-user processes synthetic-keyboard access through an owner-only socket."
-    fi
-    if command -v gsettings >/dev/null 2>&1 \
-        && test "$(gsettings get org.gnome.desktop.interface toolkit-accessibility 2>/dev/null || true)" != "true"; then
-        echo "Automatic insertion is unavailable while GNOME toolkit accessibility is off."
-        echo "Enable it before launching Mluva with: gsettings set org.gnome.desktop.interface toolkit-accessibility true"
-        echo "Applications already open when it is enabled may need to be restarted before they expose text targets."
+    desktop_name="${XDG_CURRENT_DESKTOP:-}"
+    if [[ "${desktop_name,,}" == *gnome* ]]; then
+        if ! command -v gnome-extensions >/dev/null 2>&1 \
+            || ! gnome-extensions info "recording-status@mluva.local" >/dev/null 2>&1; then
+            echo "For a bottom recording bar that remains visible over other applications, install the optional display-only extension:"
+            echo "  mluva-overlay install"
+            echo "A newly installed GNOME Shell extension may require one logout and login before it can be enabled."
+        fi
+        if ! "${bin_dir}/mluva-input-helper" status >/dev/null 2>&1; then
+            echo "For automatic paste in apps without native accessibility editing, install the optional keyboard-only helper:"
+            echo "  mluva-input-helper install"
+            echo "This requires sudo once and grants same-user processes synthetic-keyboard access through an owner-only socket."
+        fi
+        if command -v gsettings >/dev/null 2>&1 \
+            && test "$(gsettings get org.gnome.desktop.interface toolkit-accessibility 2>/dev/null || true)" != "true"; then
+            echo "Automatic insertion is unavailable while GNOME toolkit accessibility is off."
+            echo "Enable it before launching Mluva with: gsettings set org.gnome.desktop.interface toolkit-accessibility true"
+            echo "Applications already open when it is enabled may need to be restarted before they expose text targets."
+        fi
     fi
     if test -x "${secret_config_dir}/bin/das-mcp-launch" && test -s "${secret_config_dir}/env/mluva.env"; then
         echo "The launcher will resolve only the reviewed ElevenLabs credential reference at runtime."
     elif test -x "${secret_config_dir}/bin/das-agent-launch" && test -s "${secret_config_dir}/env/agent.env"; then
         echo "The launcher will use das-agent-launch --only for the selected ElevenLabs credential at runtime."
     else
-        echo "No managed secret launcher was found; set ELEVENLABS_API_KEY in the application process environment."
+        echo "Choose your speech and rewrite providers in Settings and supply their credentials through the application environment."
     fi
 fi

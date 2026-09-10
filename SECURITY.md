@@ -4,8 +4,8 @@
 
 | Surface | Security support |
 | --- | --- |
-| Current Fedora Linux release and `main` | Supported |
-| macOS source preview | Reports accepted; no supported public binary is claimed |
+| Current Mluva release and `main` on Omarchy | Supported |
+| Fedora GNOME compatibility | Reports accepted; recent releases have not been verified on this desktop |
 | Older commits and local forks | Best effort only |
 
 ## Report a vulnerability

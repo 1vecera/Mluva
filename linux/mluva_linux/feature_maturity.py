@@ -15,7 +15,7 @@ class FeatureMaturity(StrEnum):
     def label(self) -> str:
         """Return the concise label shown in the application and public matrix."""
         if self is FeatureMaturity.VERIFIED:
-            return "Verified on Linux"
+            return "Verified on Omarchy"
         return "Experimental"
 
 
@@ -58,16 +58,16 @@ FEATURE_CAPABILITIES: Final[tuple[FeatureCapability, ...]] = (
         "conversations",
         "Rewrite conversations",
         (
-            "Full transcripts, automatic titles, Quick Polish, Structured Note, follow-ups and conversation export "
-            "have isolated tests; live acceptance is pending."
+            "Originals, Quick Polish, Structured Note, follow-ups and conversation export "
+            "form the daily Omarchy workspace."
         ),
-        FeatureMaturity.EXPERIMENTAL,
+        FeatureMaturity.VERIFIED,
     ),
     FeatureCapability(
         "editable_documents",
         "Editable documents and automatic copy",
-        "Editable originals and rewrites, icon actions and configurable automatic copy still need acceptance.",
-        FeatureMaturity.EXPERIMENTAL,
+        "Originals and rewrites can be edited, saved and copied automatically in the Omarchy workflow.",
+        FeatureMaturity.VERIFIED,
     ),
     FeatureCapability(
         "provider_choice",
@@ -85,8 +85,8 @@ FEATURE_CAPABILITIES: Final[tuple[FeatureCapability, ...]] = (
         "automatic_paste",
         "Automatic paste",
         (
-            "Known limitation: insertion is disabled by default and is not reliable in the current Fedora "
-            "acceptance setup; completed text remains on the clipboard."
+            "Known limitation: insertion is disabled by default and depends on the target application and "
+            "desktop; clipboard delivery is the standard workflow."
         ),
         FeatureMaturity.EXPERIMENTAL,
     ),
@@ -160,10 +160,10 @@ FEATURE_CAPABILITIES: Final[tuple[FeatureCapability, ...]] = (
         FeatureMaturity.EXPERIMENTAL,
     ),
     FeatureCapability(
-        "macos_preview",
-        "macOS source preview",
-        "The source and deterministic tests are available, but the platform has no current accepted release binary.",
-        FeatureMaturity.EXPERIMENTAL,
+        "omarchy_widget",
+        "Omarchy recording widget",
+        "The themed widget, completed-note rewrites and opening the workspace are used daily on Omarchy.",
+        FeatureMaturity.VERIFIED,
     ),
 )
 
@@ -212,21 +212,21 @@ def render_feature_maturity_markdown() -> str:
         "# Feature maturity",
         "",
         (
-            "This matrix records the current manual acceptance on Fedora GNOME. **Verified on Linux** means "
-            "the capability worked in that acceptance pass. **Experimental** means it is available for testing but "
-            "has not yet earned that claim; automated tests and off-screen evidence do not promote a feature by "
-            "themselves."
+            "Omarchy is the primary platform: the core dictation, rewrite and widget workflow is tested end to end "
+            "and used daily by the maintainer. **Verified on Omarchy** identifies that working set. "
+            "**Experimental** features remain available with the limits below. Fedora GNOME compatibility "
+            "is retained, but has not been tested for several releases."
         ),
         "",
         (
-            "Automatic paste is an explicit known limitation: it is not reliable in the current Fedora acceptance "
-            "setup and is disabled by default. Mluva keeps completed text recoverable on the clipboard instead of "
-            "claiming delivery succeeded."
+            "Automatic paste is an explicit known limitation: it depends on the desktop and target application "
+            "and is disabled by default. Clipboard delivery is the standard workflow. Automated tests use "
+            "isolated sessions; platform acceptance comes from use on the actual desktop."
         ),
         "",
     ]
     for maturity, heading in (
-        (FeatureMaturity.VERIFIED, "Verified on Linux"),
+        (FeatureMaturity.VERIFIED, "Verified on Omarchy"),
         (FeatureMaturity.EXPERIMENTAL, "Experimental"),
     ):
         lines.extend((f"## {heading}", "", "| Feature | Current boundary |", "| --- | --- |"))

@@ -1,1 +1,0 @@
-For Friday's shop demo, show the upload preview before saving. Flag missing order IDs, and check totals against the original file. Keep the source rows so corrections can be audited. Maya will prepare sample data by Thursday. I'll review the flow on Friday morning. Turn this into a short checklist, with owners and deadlines.
