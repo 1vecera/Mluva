@@ -49,7 +49,7 @@ After installing and starting Mluva, add the [community plugin](https://github.c
 omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
 ```
 
-The floating widget shows five lines while you speak. When you finish, rewrite, copy or open the note in the workspace. Hover, keyboard focus and active rewrites pause its configurable four-second dismissal. **Shift+F9** reopens the latest conversation when configured.
+The floating widget shows five lines while you speak. Drag its status row to move it, or focus it and press **Super+T** on Omarchy to tile it. Floating mode keeps it above your other windows. The main app puts the recording light and timer in its title bar, leaving more space for your text. When you finish, rewrite, copy or open the note in the workspace. Hover, keyboard focus and active rewrites pause its configurable four-second dismissal. **Shift+F9** reopens the latest conversation when configured.
 
 ![The compact Omarchy widget with rewrite actions, Copy, Open and a countdown ring](docs/promotion/assets/widget-review.png)
 

@@ -15,6 +15,7 @@ from conversation_ui_smoke import IsolatedApplication
 
 from mluva_linux.conversation import STRUCTURED_NOTE
 from mluva_linux.pipewire import PipeWireDeviceCatalog
+from mluva_linux.ui import set_button_content
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("GdkX11", "4.0")
@@ -76,12 +77,17 @@ def main() -> int:
             application.conversation_store.append(entry.identifier, STRUCTURED_NOTE, markdown, "fixture")
             workspace.refresh_history()
             workspace.show_conversation(entry, application.conversation_store.replies(entry.identifier))
-            workspace.set_live("Listening", "Words arrive naturally.")
+            workspace.set_live("01:13", "Words arrive naturally.")
             workspace.show_live_draft(markdown, "Live draft")
             workspace.live_draft_follower.follow(snap=True)
             frames()
             panes = (workspace.live_source_box, workspace.live_draft_box)
             initial = [bounds(pane, window) for pane in panes]
+            assert application.header_bar.get_title_widget() is workspace.live_header
+            assert workspace.live_header.get_mapped() and not workspace.heading_column.get_mapped()
+            assert workspace.live_light._tick_id
+            header = bounds(workspace.live_header, window)
+            assert header[1] + header[3] <= min(pane[1] for pane in initial)
             assert abs(initial[0][2] - initial[1][2]) <= 1, initial
             if workspace.live_box.get_orientation() == Gtk.Orientation.HORIZONTAL:
                 assert initial[1][0] - initial[0][0] - initial[0][2] == 24, initial
@@ -89,6 +95,10 @@ def main() -> int:
             else:
                 assert abs(initial[0][3] - initial[1][3]) <= 1, initial
                 assert initial[1][1] - initial[0][1] - initial[0][3] == 24, initial
+            application._publish_completion_status("processing", "Finishing your dictation.")
+            frames()
+            assert workspace.live_title.get_label() == "Processing…" and not workspace.live_light._tick_id
+            assert [bounds(pane, window) for pane in panes] == initial
             source = "\n".join(f"A steady dictated thought {index}." for index in range(48))
             workspace.set_live("Listening", source)
             workspace.show_live_draft(markdown * 12, "Live draft · provisional until Stop · waiting for speech")
@@ -175,12 +185,14 @@ def main() -> int:
             workspace.show_live_draft(markdown)
             buffer.place_cursor(buffer.get_start_iter())
             workspace.set_live(
-                "Listening",
+                "01:13",
                 "I want a small, peaceful dictation app.\n\nEvery word stays visible. "
                 "The interface adapts to Omarchy, and the draft takes shape beside my voice.",
             )
             workspace.live_follower.follow(snap=True)
             workspace.live_draft_follower.follow(snap=True)
+            application.status_label.set_label("Listening. Press F9 when you're done.")
+            set_button_content(application.record_button, "media-playback-stop-symbolic", "Stop")
             frames()
             assert window.get_surface().get_width() == width and window.get_surface().get_height() == height
             subprocess.run(
@@ -192,6 +204,8 @@ def main() -> int:
                 height * scale,
             )
             workspace.finish_live()
+            assert not workspace.live_light._tick_id and not workspace.live_header.get_visible()
+            assert application.header_bar.get_title_widget() is not workspace.live_header
             workspace.show_conversation(entry, application.conversation_store.replies(entry.identifier))
             result = workspace.result_widgets[-1]
             assert result.get_text() == markdown

@@ -197,7 +197,7 @@ export XDG_CACHE_HOME="${session_root}/cache"
 export TMPDIR="${session_root}/tmp"
 export GDK_BACKEND=x11
 export GIO_USE_VFS=local
-unset DISPLAY WAYLAND_DISPLAY AT_SPI_BUS_ADDRESS DBUS_SESSION_BUS_ADDRESS XAUTHORITY
+unset DISPLAY WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE AT_SPI_BUS_ADDRESS DBUS_SESSION_BUS_ADDRESS XAUTHORITY
 
 runtime_alias_root="$(mktemp -d "/tmp/offscreen-xdg.XXXXXX")"
 runtime_alias_path="${runtime_alias_root}/runtime"

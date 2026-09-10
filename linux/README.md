@@ -28,7 +28,7 @@ Edit the original or any completed rewrite directly, then Save or press Ctrl+S. 
 
 Live rewrite is off by default. Enable it beside Dictate to fill a task spec, structured note, polish draft or custom template while speaking. The app marks missing information, accepts manual draft edits and saves one final version after Stop. Batch speech providers generate provisional preview chunks and recognize the full recording again at Stop.
 
-Wide Live layouts keep two equal columns with a small gap; compact windows stack them. Text follows smoothly before the final line wraps, while deliberate manual scrolling keeps your reading position. Separate scrollbar gutters keep the tracks clear of text. Recording uses a centered red pulse and timer, with an accessible Stop control and support for reduced motion.
+Wide Live layouts keep two equal columns with a small gap; compact windows stack them. Text follows smoothly before the final line wraps, while deliberate manual scrolling keeps your reading position. Separate scrollbar gutters keep the tracks clear of text. The red recording light and timer use the existing title bar, leaving more height for both text columns. The Stop control stays below the text, and the light respects reduced motion.
 
 Formatted drafts and replies render basic Markdown with subtle headings, bold, italics and code. Focusing a document reveals its source for editing. Copy and Save preserve Markdown, Unicode and whitespace exactly; raw recognition stays separate and literal. Unsupported markup remains text.
 

@@ -163,12 +163,12 @@ def main() -> int:
             if scenario == "empty":
                 workspace.show_conversation(None, [])
             elif scenario in {"recording", "long-live"}:
-                workspace.set_live("Recording  01:13", source if scenario == "long-live" else source * 3)
+                workspace.set_live("01:13", source if scenario == "long-live" else source * 3)
                 application.capture_status_title.set_label("Recording")
                 application.status_label.set_label("Listening. Press F9 when you're done.")
                 set_button_content(application.record_button, "media-playback-stop-symbolic", "Stop")
             elif scenario == "processing":
-                workspace.set_live("Processing…", source)
+                workspace.set_live("Processing…", source, recording=False)
                 application.capture_status_title.set_label("Processing…")
                 application.status_label.set_label("Finishing your dictation.")
                 application.record_button.set_sensitive(False)
@@ -304,6 +304,7 @@ def main() -> int:
             aligned = {}
             for name, widget in (
                 ("heading", workspace.heading),
+                ("live", workspace.live_box),
                 ("messages", workspace.messages),
                 ("composer", workspace.composer),
                 ("recording", application.capture_action_bar),
@@ -312,9 +313,15 @@ def main() -> int:
                     success, bounds = widget.compute_bounds(window)
                     assert success
                     aligned[name] = bounds.get_x()
-            assert "heading" in aligned, "The capture workspace must be mapped for layout checks"
+            assert "heading" in aligned or "live" in aligned, "The capture workspace must be mapped for layout checks"
             assert max(aligned.values()) - min(aligned.values()) <= 1, aligned
-            if not workspace.split.get_collapsed():
+            if workspace.live_header.get_visible():
+                assert application.header_bar.get_title_widget() is workspace.live_header
+                assert workspace.live_header.get_mapped() and not workspace.heading.get_mapped()
+                _, header_bounds = workspace.live_header.compute_bounds(window)
+                _, live_bounds = workspace.live_box.compute_bounds(window)
+                assert header_bounds.get_y() + header_bounds.get_height() <= live_bounds.get_y()
+            elif not workspace.split.get_collapsed():
                 _, sidebar_bounds = workspace.sidebar_heading.compute_bounds(window)
                 _, heading_bounds = workspace.heading.compute_bounds(window)
                 assert abs(sidebar_bounds.get_y() - heading_bounds.get_y()) <= 1

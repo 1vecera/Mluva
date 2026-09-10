@@ -85,7 +85,6 @@ from mluva_linux.realtime import (
     ElevenLabsRealtimeClient,
     RealtimeTranscriptionSession,
 )
-from mluva_linux.recording_control import set_recording_button_content
 from mluva_linux.rewrite_settings import RewriteSettings
 from mluva_linux.scratchpad import ScratchpadDraft, ScratchpadDraftStore
 from mluva_linux.segment_cleanup import (
@@ -408,6 +407,7 @@ class MluvaApplication(Adw.Application):
             "Conversations",
             "audio-input-microphone-symbolic",
         )
+        self.conversation_workspace.live_header.connect("notify::visible", self._sync_header_title)
         self.meeting_page = MeetingPage(
             store=self.meeting_store,
             export_directory=self.data_directory / "exports" / "meetings",
@@ -1808,8 +1808,7 @@ class MluvaApplication(Adw.Application):
             self.conversation_workspace.split.set_show_sidebar(False)
         if self.navigation_rail is not None:
             self.navigation_rail.set_visible(False)
-        if self.header_bar is not None:
-            self.header_bar.set_title_widget(None)
+        self._sync_header_title()
         if self.navigation_bar is not None:
             self.navigation_bar.set_reveal(True)
         if self.recording_bar is not None:
@@ -1823,12 +1822,21 @@ class MluvaApplication(Adw.Application):
             self.conversation_workspace.split.set_show_sidebar(True)
         if self.navigation_rail is not None:
             self.navigation_rail.set_visible(True)
-        if self.header_bar is not None and self.page_title_label is not None:
-            self.header_bar.set_title_widget(self.page_title_label)
+        self._sync_header_title()
         if self.navigation_bar is not None:
             self.navigation_bar.set_reveal(False)
         if self.recording_bar is not None:
             self.recording_bar.set_compact(False)
+
+    def _sync_header_title(self, *_args: object) -> None:
+        """Use the existing title bar for live status without taking space from either text column."""
+        if self.header_bar is None or self.window is None:
+            return
+        workspace = self.conversation_workspace
+        title = None if self.window.get_width() <= COMPACT_LAYOUT_MAX_WIDTH else self.page_title_label
+        if workspace is not None and workspace.live_header.get_visible():
+            title = workspace.live_header
+        self.header_bar.set_title_widget(title)
 
     def _show_settings(self, _button: Gtk.Button) -> None:
         """Present all infrequent configuration in one searchable native dialog."""
@@ -2913,7 +2921,7 @@ class MluvaApplication(Adw.Application):
             time.monotonic() - pipewire_ready_started_at,
             provider=DiagnosticProvider.PIPEWIRE,
         )
-        set_recording_button_content(self.record_button)
+        set_button_content(self.record_button, "media-playback-stop-symbolic", "Stop")
         self.record_button.set_sensitive(True)
         self.record_button.remove_css_class("suggested-action")
         self.record_button.add_css_class("destructive-action")
@@ -3150,7 +3158,7 @@ class MluvaApplication(Adw.Application):
         workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None and result.mode == "dictation":
             if finishing_live:
-                workspace.set_live("Finishing live draft…", result.transcription.text)
+                workspace.set_live("Finishing live draft…", result.transcription.text, recording=False)
             else:
                 workspace.finish_live()
             if result.history_entry is not None:
@@ -3318,10 +3326,10 @@ class MluvaApplication(Adw.Application):
         self.overlay_review_identifier = None
         workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None:
-            workspace.set_live("Preparing…" if state.kind == "preparing" else state.elapsed, state.preview)
-            workspace.live_title.update_property(
-                [Gtk.AccessibleProperty.LABEL],
-                ["Preparing microphone" if state.kind == "preparing" else f"Recording {state.elapsed}"],
+            workspace.set_live(
+                "Preparing…" if state.kind == "preparing" else state.elapsed,
+                state.preview,
+                recording=state.kind == RECORDING_KIND_RECORDING,
             )
         revealed = state.kind in {RECORDING_KIND_PREPARING, RECORDING_KIND_RECORDING}
         if self.recording_bar is not None:
@@ -3386,7 +3394,7 @@ class MluvaApplication(Adw.Application):
                     self,
                 )
         if workspace is not None and phase == "processing":
-            workspace.live_title.set_label("Processing…")
+            workspace.set_live_status("Processing…")
 
     def _expire_completion_status(self) -> bool:
         """Dismiss a terminal indicator without touching microphone or clipboard state."""

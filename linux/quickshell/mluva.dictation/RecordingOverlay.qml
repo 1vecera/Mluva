@@ -1,12 +1,12 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Wayland
+import Quickshell.Io
 import Quickshell.Hyprland
 import qs.Commons
 import qs.Ui
 
-PanelWindow {
+FloatingWindow {
     id: root
     objectName: "mluva-recording-overlay"
     required property string phase
@@ -17,7 +17,8 @@ PanelWindow {
     property string identifier: ""
     property var options: []
     property string message: ""
-    property var bar
+    readonly property bool hyprlandSession: Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") !== ""
+    property bool windowRulesReady: !hyprlandSession
     property bool menuOpen: false
     property int reviewDuration: 4000
     property bool showCopy: true
@@ -118,22 +119,50 @@ PanelWindow {
     onIdentifierChanged: { menuOpen = false; resetCountdown(); resetPreviewMotion(); Qt.callLater(syncPreview); }
     onMessageChanged: resetCountdown()
     onCountdownPausedChanged: lastTick = Date.now()
-    visible: active && !dismissed
-    anchors.bottom: true
-    margins.bottom: 24 + (bar && bar.position === "bottom" ? bar.barSize : 0)
+    title: "Mluva recording"
+    visible: active && !dismissed && windowRulesReady
     implicitWidth: Math.min(500, screen ? screen.width - 32 : 500)
-    implicitHeight: body.implicitHeight + 20
+    implicitHeight: recordingHeader.implicitHeight + 20
+        + (transcriptViewport.visible ? lineHeight * previewLines + 6 : 0)
+        + (reviewMessage.visible ? reviewMessage.implicitHeight + 6 : 0)
+        + (reviewActions.visible ? reviewActions.implicitHeight + 6 : 0)
+    minimumSize: Qt.size(Math.min(320, implicitWidth), implicitHeight)
     color: "transparent"
-    exclusionMode: ExclusionMode.Ignore
-    focusable: reviewing
-    mask: Region { item: root.reviewing ? surface : null }
+    // Keep native window controls (including Super+T) and let the compositor
+    // own position and size after mapping. Opening must not steal dictation focus.
+    onWindowConnected: contentItem.Window.window.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    onClosed: { dismissed = true; menuOpen = false; }
     Component.onCompleted: {
         previewReady = true;
         syncPreview();
-        if (root.WlrLayershell != null) {
-            root.WlrLayershell.namespace = "mluva-recording-overlay";
-            root.WlrLayershell.layer = WlrLayer.Overlay;
-            root.WlrLayershell.keyboardFocus = Qt.binding(() => root.reviewing ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None);
+    }
+    Process {
+        id: windowRules
+        running: root.hyprlandSession
+        // Replace the active named rule when the plugin reloads.
+        // Float and pin are initial rules; they never override the user's tiling.
+        command: ["hyprctl", "eval",
+            "if mluva_recording_rule then mluva_recording_rule:set_enabled(false) end; "
+            + "mluva_recording_rule = hl.window_rule({match = {class = 'org.quickshell', title = 'Mluva recording'}, "
+            + "float = true, pin = true, no_initial_focus = true, no_follow_mouse = true, decorate = false, "
+            + "move = {'(monitor_w-window_w)/2', '(monitor_h-window_h)-48'}})"]
+        onExited: exitCode => {
+            root.windowRulesReady = exitCode === 0;
+            if (exitCode !== 0) console.warn("Mluva recording window rules could not be installed");
+        }
+    }
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) {
+            if (event.name === "configreloaded" && root.hyprlandSession) windowRules.running = true;
+            if (event.name !== "changefloatingmode") return;
+            const [address, floating] = event.parse(2);
+            if (floating !== "1") return;
+            const window = Hyprland.toplevels.values.find(item => item.address === address
+                && item.title === root.title && item.wayland?.appId === "org.quickshell");
+            // Tiling clears Hyprland's pin. Restore it only when this recorder
+            // returns to floating; setting (rather than toggling) is idempotent.
+            if (window) Hyprland.dispatch("hl.dsp.window.pin({action = 'set', window = 'address:0x" + window.address + "'})");
         }
     }
 
@@ -176,9 +205,9 @@ PanelWindow {
             anchors.margins: 10
             spacing: 6
             RowLayout {
+                id: recordingHeader
                 objectName: "recording-header"
                 width: parent.width
-                visible: !root.reviewing
                 spacing: 8
                 RecordingLight {
                     id: recordingDot
@@ -191,7 +220,7 @@ PanelWindow {
                 Text {
                     objectName: "recording-status"
                     Layout.fillWidth: true
-                    text: root.phase === "recording" ? "" : root.status
+                    text: root.reviewing ? "Review" : root.phase === "recording" ? "" : root.status
                     color: Color.popups.text
                     font.family: Style.font.family
                     font.pixelSize: Style.font.body
@@ -211,7 +240,7 @@ PanelWindow {
                 id: transcriptViewport
                 objectName: "transcript-viewport"
                 width: parent.width
-                height: root.lineHeight * root.previewLines
+                height: root.lineHeight * root.previewLines + Math.max(0, root.height - root.implicitHeight)
                 visible: root.preview.length > 0 || root.phase === "recording"
                 clip: true
                 Item {
@@ -262,6 +291,7 @@ PanelWindow {
                 }
             }
             Text {
+                id: reviewMessage
                 width: parent.width
                 visible: root.reviewing && root.message.length > 0
                 text: root.message
@@ -272,6 +302,7 @@ PanelWindow {
                 wrapMode: Text.Wrap
             }
             RowLayout {
+                id: reviewActions
                 width: parent.width
                 visible: root.reviewing
                 spacing: 2
@@ -359,6 +390,14 @@ PanelWindow {
                     }
                 }
             }
+        }
+        MouseArea {
+            x: body.x
+            y: body.y
+            width: recordingHeader.width
+            height: recordingHeader.height
+            cursorShape: Qt.SizeAllCursor
+            onPressed: root.startSystemMove()
         }
         Rectangle {
             anchors.left: parent.left
