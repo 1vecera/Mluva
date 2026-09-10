@@ -10,8 +10,8 @@ from conversation_ui_smoke import IsolatedApplication, render_widget
 from gi.repository import GLib
 from live_workspace_smoke import paint
 
-from voice_scribe_linux.config import load_config
-from voice_scribe_linux.live_rewrite import TEMPLATE_CHOICES
+from mluva_linux.config import load_config
+from mluva_linux.live_rewrite import TEMPLATE_CHOICES
 
 
 def main():
@@ -30,7 +30,7 @@ def main():
             app.window.set_default_size(width, height)
             app.window.set_size_request(width, height)
             with (
-                patch("voice_scribe_linux.app.transcription_client", return_value=None),
+                patch("mluva_linux.app.transcription_client", return_value=None),
                 patch.object(app, "_show_toast"),
             ):
                 app.live_mode_switch.set_active(True)
@@ -54,7 +54,7 @@ def main():
                 assert app.live_template_buttons["structured-note"].get_active()
                 assert app.live_mode_switch.get_active()
                 app.capture_preparing = False
-                with patch("voice_scribe_linux.app.save_config", side_effect=OSError("Synthetic write failure")):
+                with patch("mluva_linux.app.save_config", side_effect=OSError("Synthetic write failure")):
                     app.live_template_buttons["polish"].set_active(True)
                     assert app.live_template_buttons["structured-note"].get_active()
                 assert load_config(app.config_path).live_rewrite_template == "structured-note"

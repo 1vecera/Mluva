@@ -51,7 +51,7 @@ def main() -> None:
             "OFFSCREEN_SCREEN_SPEC": "1920x1080x24",
             "OFFSCREEN_ENABLE_ATSPI": "1",
             "PYTHONPATH": str(root / "linux"),
-            "VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT": "1",
+            "MLUVA_DISABLE_GLOBAL_SHORTCUT": "1",
             "ADW_DISABLE_PORTAL": "1",
             "GSK_RENDERER": "cairo",
             "QT_QPA_PLATFORM": "xcb",

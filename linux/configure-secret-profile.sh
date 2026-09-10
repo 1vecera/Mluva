@@ -4,7 +4,7 @@ set -euo pipefail
 secret_config_dir="${DAS_CONF_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/daniel-ai-skills}"
 environment_dir="${secret_config_dir}/env"
 agent_references="${environment_dir}/agent.env"
-profile_references="${environment_dir}/voice-scribe.env"
+profile_references="${environment_dir}/mluva.env"
 managed_launcher="${secret_config_dir}/bin/das-mcp-launch"
 target_prefix="DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL="
 

@@ -7,8 +7,8 @@ from typing import Self
 import pytest
 from dbus_next import Message, MessageType, Variant
 
-import voice_scribe_linux.global_shortcuts as shortcut_module
-from voice_scribe_linux.global_shortcuts import (
+import mluva_linux.global_shortcuts as shortcut_module
+from mluva_linux.global_shortcuts import (
     CANCEL_SHORTCUT_ID,
     REWRITE_SHORTCUT_ID,
     BoundShortcut,
@@ -137,7 +137,7 @@ def test_running_service_serializes_function_key_replacement(monkeypatch: pytest
     finally:
         service.close()
 
-    assert app_ids == ["com.voicescribe.Linux"] * 2
+    assert app_ids == ["com.mluva.Linux"] * 2
     assert bindings == [
         [("toggle-recording-f9", "F9"), (CANCEL_SHORTCUT_ID, "CTRL+ALT+ESCAPE"), (REWRITE_SHORTCUT_ID, "SHIFT+F9")],
         [("toggle-recording-f24", "F24"), (CANCEL_SHORTCUT_ID, "CTRL+ALT+ESCAPE"), (REWRITE_SHORTCUT_ID, "SHIFT+F9")],
@@ -261,7 +261,7 @@ def test_official_portal_client_registers_binds_and_filters_signals(monkeypatch:
         on_binding_changed=bindings.append,
         on_error=errors.append,
     )
-    session = _PortalGlobalShortcutsSession("com.voicescribe.Linux", callback)
+    session = _PortalGlobalShortcutsSession("com.mluva.Linux", callback)
 
     async def exercise_session() -> list[BoundShortcut]:
         """Bind, receive active-session events, and close the private bus."""
@@ -349,7 +349,7 @@ def test_official_portal_client_closes_after_user_rejects_binding(monkeypatch: p
         on_binding_changed=lambda _trigger: None,
         on_error=lambda _message: None,
     )
-    session = _PortalGlobalShortcutsSession("com.voicescribe.Linux", callback)
+    session = _PortalGlobalShortcutsSession("com.mluva.Linux", callback)
 
     with pytest.raises(PortalProtocolError, match="approval was cancelled"):
         asyncio.run(session.connect([Shortcut("toggle-recording-f9", "Start or stop Mluva recording with F9", "F9")]))

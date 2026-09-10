@@ -31,7 +31,7 @@ final class MeetingWAVRecordingWriter: MeetingRecordingWriting {
                 in: .userDomainMask
             ).first!
             self.directoryURL = applicationSupport
-                .appendingPathComponent("VoiceScribe", isDirectory: true)
+                .appendingPathComponent("Mluva", isDirectory: true)
                 .appendingPathComponent("Meetings", isDirectory: true)
                 .appendingPathComponent("recordings", isDirectory: true)
         }

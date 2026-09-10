@@ -18,7 +18,7 @@ swift build -c release 2>&1 | grep "Build complete"
 echo ""
 
 echo "Launching binary..."
-.build/release/VoiceScribeMac &
+.build/release/MluvaMac &
 PID=$!
 sleep 2
 
@@ -27,7 +27,7 @@ if kill -0 "$PID" 2>/dev/null; then
 
     # Check it's a background-only app (no dock icon)
     BG_CHECK=$(osascript -e 'tell application "System Events" to get name of every process whose background only is true' 2>/dev/null || echo "")
-    if echo "$BG_CHECK" | grep -q "VoiceScribeMac"; then
+    if echo "$BG_CHECK" | grep -q "MluvaMac"; then
         echo "  Running as background menu bar process"
     else
         echo "  WARNING: Not detected as background process"

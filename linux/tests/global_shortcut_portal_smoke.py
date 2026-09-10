@@ -8,7 +8,7 @@ from typing import Final
 from dbus_next import Message, MessageType, RequestNameReply, Variant
 from dbus_next.aio import MessageBus
 
-from voice_scribe_linux.global_shortcuts import (
+from mluva_linux.global_shortcuts import (
     CANCEL_SHORTCUT_ID,
     BoundShortcut,
     Shortcut,
@@ -186,7 +186,7 @@ async def exercise_private_portal() -> None:
         on_error=errors.append,
         on_open_rewrite=lambda: activations.append("rewrite"),
     )
-    session = _PortalGlobalShortcutsSession("com.voicescribe.Linux", callback)
+    session = _PortalGlobalShortcutsSession("com.mluva.Linux", callback)
     try:
         bound = await session.connect(
             [
@@ -214,7 +214,7 @@ async def exercise_private_portal() -> None:
         ]
         if bound != expected_bound:
             raise RuntimeError(f"Unexpected approved shortcuts: {bound!r}")
-        if portal.registered_app_ids != ["com.voicescribe.Linux"]:
+        if portal.registered_app_ids != ["com.mluva.Linux"]:
             raise RuntimeError(f"Unexpected registered app ids: {portal.registered_app_ids!r}")
         bound_identifiers = [shortcut_id for shortcut_id, _properties in portal.bound_shortcuts]
         if bound_identifiers != ["toggle-recording-f9", CANCEL_SHORTCUT_ID, "open-rewrite"]:

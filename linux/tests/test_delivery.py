@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.delivery import DeliveryError, _paste_command, _ydotool_socket_ready, deliver_text
+from mluva_linux.delivery import DeliveryError, _paste_command, _ydotool_socket_ready, deliver_text
 
 
 def install_fake_desktop(
@@ -16,9 +16,9 @@ def install_fake_desktop(
 ) -> list[tuple[list[str], str | None]]:
     """Replace executable resolution, process dispatch, and delay without touching the desktop."""
     calls: list[tuple[list[str], str | None]] = []
-    monkeypatch.setattr("voice_scribe_linux.delivery.shutil.which", executables.get)
+    monkeypatch.setattr("mluva_linux.delivery.shutil.which", executables.get)
     monkeypatch.setattr(
-        "voice_scribe_linux.delivery._ydotool_socket_ready",
+        "mluva_linux.delivery._ydotool_socket_ready",
         lambda _environment: executables.get("ydotool") is not None,
     )
 
@@ -32,8 +32,8 @@ def install_fake_desktop(
         calls.append((command, input))
         return subprocess.CompletedProcess(command, 0, "", "")
 
-    monkeypatch.setattr("voice_scribe_linux.delivery.subprocess.run", fake_run)
-    monkeypatch.setattr("voice_scribe_linux.delivery.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("mluva_linux.delivery.subprocess.run", fake_run)
+    monkeypatch.setattr("mluva_linux.delivery.time.sleep", lambda _seconds: None)
     return calls
 
 
@@ -255,7 +255,7 @@ def test_input_injector_failure_is_an_uncertain_single_dispatch_not_a_lost_copy(
             raise subprocess.CalledProcessError(1, command)
         return subprocess.CompletedProcess(command, 0, "", "")
 
-    monkeypatch.setattr("voice_scribe_linux.delivery.subprocess.run", fail_after_dispatch)
+    monkeypatch.setattr("mluva_linux.delivery.subprocess.run", fail_after_dispatch)
 
     receipt = deliver_text("Still recoverable", auto_paste=True, confirm_paste=lambda: True)
 
@@ -301,7 +301,7 @@ def test_installed_ydotool_without_a_live_daemon_stays_copy_only(monkeypatch: py
             "ydotool": "/usr/bin/ydotool",
         },
     )
-    monkeypatch.setattr("voice_scribe_linux.delivery._ydotool_socket_ready", lambda _environment: False)
+    monkeypatch.setattr("mluva_linux.delivery._ydotool_socket_ready", lambda _environment: False)
 
     receipt = deliver_text("Manual recovery", auto_paste=True)
 
@@ -330,7 +330,7 @@ def test_ydotool_requires_a_live_owner_only_socket(tmp_path: Path) -> None:
 def test_xdotool_is_selected_only_for_an_x11_session(monkeypatch: pytest.MonkeyPatch) -> None:
     """Do not mistake an XWayland DISPLAY for a working Wayland-wide paste backend."""
     monkeypatch.setattr(
-        "voice_scribe_linux.delivery.shutil.which",
+        "mluva_linux.delivery.shutil.which",
         {"xdotool": "/usr/bin/xdotool"}.get,
     )
 

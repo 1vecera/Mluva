@@ -14,8 +14,8 @@ from conversation_ui_smoke import IsolatedApplication
 from gi.repository import GLib
 from live_workspace_smoke import paint, settle
 
-from voice_scribe_linux.codex_client import CodexAppServerClient
-from voice_scribe_linux.realtime import RealtimePreview
+from mluva_linux.codex_client import CodexAppServerClient
+from mluva_linux.realtime import RealtimePreview
 
 
 class SpeechFixture:
@@ -167,7 +167,7 @@ def main():
                 "nature": "Controlled speech and Codex JSONL subprocess; real app scheduler, transport and GTK paint",
                 "provider": "fake_app_server.py --live --compact-live (500 ms reply; model identifier is a fixture)",
                 "display": os.environ["DISPLAY"],
-                "application_source": sys.modules["voice_scribe_linux.app"].__file__,
+                "application_source": sys.modules["mluva_linux.app"].__file__,
                 "viewport": [app.window.get_width(), app.window.get_height()],
                 "minimum_characters": app.config.live_rewrite_min_characters,
                 "interval_seconds": app.config.live_rewrite_interval_seconds,

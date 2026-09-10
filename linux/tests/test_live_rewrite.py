@@ -5,10 +5,10 @@ from dataclasses import replace
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from voice_scribe_linux.app import MluvaApplication, _smooth_motion_enabled
-from voice_scribe_linux.config import AppConfig
-from voice_scribe_linux.live_rewrite import LiveRewriteSchedule, live_prompt
-from voice_scribe_linux.realtime import RealtimePreview
+from mluva_linux.app import MluvaApplication, _smooth_motion_enabled
+from mluva_linux.config import AppConfig
+from mluva_linux.live_rewrite import LiveRewriteSchedule, live_prompt
+from mluva_linux.realtime import RealtimePreview
 
 
 def test_first_phrase_starts_once_without_waiting_for_the_later_character_threshold():
@@ -88,7 +88,7 @@ def test_preview_callback_queues_changed_provisional_text_only_for_the_active_se
         _maybe_live_rewrite=requested.append,
     )
     callback = MluvaApplication._live_preview_callback(app, "capture")
-    with patch("voice_scribe_linux.app.GLib.idle_add", side_effect=lambda *args: queued.append(args)):
+    with patch("mluva_linux.app.GLib.idle_add", side_effect=lambda *args: queued.append(args)):
         callback(RealtimePreview("", "Early provisional words"))
         callback(RealtimePreview("Committed words", "Volatile words"))
         callback(RealtimePreview("Committed words", "Changed volatile words"))
@@ -142,10 +142,10 @@ def test_desktop_reduced_motion_and_app_preferences_disable_shell_motion():
     """The QML bridge receives the same effective animation preference as the GTK app."""
     config = AppConfig()
     settings = SimpleNamespace(get_property=lambda _name: False)
-    with patch("voice_scribe_linux.app.Gtk.Settings.get_default", return_value=settings):
+    with patch("mluva_linux.app.Gtk.Settings.get_default", return_value=settings):
         assert not _smooth_motion_enabled(config)
     settings.get_property = lambda _name: True
-    with patch("voice_scribe_linux.app.Gtk.Settings.get_default", return_value=settings):
+    with patch("mluva_linux.app.Gtk.Settings.get_default", return_value=settings):
         assert _smooth_motion_enabled(config)
         assert not _smooth_motion_enabled(replace(config, smooth_scrolling=False))
         assert not _smooth_motion_enabled(replace(config, scroll_duration_ms=0))

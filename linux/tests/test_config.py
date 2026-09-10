@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.config import (
+from mluva_linux.config import (
     DEFAULT_GLOBAL_RECORDING_KEY,
     FUNCTION_KEY_OPTIONS,
     AppConfig,
@@ -22,10 +22,10 @@ from voice_scribe_linux.config import (
 def test_xdg_paths_prefer_explicit_roots() -> None:
     """Keep application files out of hard-coded home subdirectories."""
     environ = {"HOME": "/home/test", "XDG_CONFIG_HOME": "/config", "XDG_DATA_HOME": "/data"}
-    assert default_config_dir(environ) == Path("/config/voice-scribe")
-    assert default_data_dir(environ) == Path("/data/voice-scribe")
-    assert default_runtime_dir({**environ, "XDG_RUNTIME_DIR": "/run/user/1000"}) == Path("/run/user/1000/voice-scribe")
-    assert default_runtime_dir(environ) == Path("/data/voice-scribe/runtime")
+    assert default_config_dir(environ) == Path("/config/mluva")
+    assert default_data_dir(environ) == Path("/data/mluva")
+    assert default_runtime_dir({**environ, "XDG_RUNTIME_DIR": "/run/user/1000"}) == Path("/run/user/1000/mluva")
+    assert default_runtime_dir(environ) == Path("/data/mluva/runtime")
 
 
 def test_config_round_trip_does_not_include_api_key(tmp_path: Path) -> None:

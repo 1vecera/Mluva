@@ -1,0 +1,11 @@
+{
+  "theme": "Nord",
+  "background": "0-black-moon.jpg",
+  "captured_from": "Daniel current Lenovo Omarchy theme, 2026-09-10",
+  "files": {
+    "assets/black-moon.jpg": "6873fbf7d4cbb9a39604094dd8d804eb6d231e63ecf56e5c297aae90358eff81",
+    "assets/nord/colors.toml": "62d1739a488db2a66b88f2f054579bdfd08c4ec771d2acf5659b9f9d976c57e2",
+    "assets/nord/shell.toml": "e7292d4a99d4eae683902095198d32aca7038ff4d7f8f33a41cc9bd4935e9d8d",
+    "assets/nord/hyprland.lua": "3d6cf24ae635adb45b848b41556551d15338f15fd647e4b7e343a67e8b072763"
+  }
+}

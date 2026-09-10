@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from voice_scribe_linux.history import HistoryEntry, HistoryStore
-from voice_scribe_linux.personalization import PersonalizationStore
-from voice_scribe_linux.vocabulary import VocabularySuggestionEngine
+from mluva_linux.history import HistoryEntry, HistoryStore
+from mluva_linux.personalization import PersonalizationStore
+from mluva_linux.vocabulary import VocabularySuggestionEngine
 
 
 def _add_correction(

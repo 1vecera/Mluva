@@ -12,9 +12,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 import gi
-from voice_scribe_linux.app import MluvaApplication
-from voice_scribe_linux.codex_client import CodexModel
-from voice_scribe_linux.pipewire import PipeWireDeviceCatalog
+from mluva_linux.app import MluvaApplication
+from mluva_linux.codex_client import CodexModel
+from mluva_linux.pipewire import PipeWireDeviceCatalog
 
 gi.require_version("GdkX11", "4.0")
 from gi.repository import Gdk, GLib, Gtk  # noqa: E402
@@ -340,9 +340,9 @@ def main() -> int:
 
     GLib.timeout_add(700, exercise)
     with (
-        patch("voice_scribe_linux.app.FocusedTextTargetTracker", return_value=None),
-        patch("voice_scribe_linux.app.PipeWireDeviceCatalog.from_system", return_value=PipeWireDeviceCatalog()),
-        patch("voice_scribe_linux.app.deliver_text", side_effect=copy_text),
+        patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
+        patch("mluva_linux.app.PipeWireDeviceCatalog.from_system", return_value=PipeWireDeviceCatalog()),
+        patch("mluva_linux.app.deliver_text", side_effect=copy_text),
     ):
         app.run([])
     for child in reversed(children):

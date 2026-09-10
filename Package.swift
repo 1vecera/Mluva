@@ -14,7 +14,7 @@ let commandLineTestingLinkerSettings: [LinkerSetting] = FileManager.default.file
 ] : []
 
 let package = Package(
-    name: "VoiceScribeMac",
+    name: "MluvaMac",
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(
@@ -28,7 +28,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "VoiceScribeMac",
+            name: "MluvaMac",
             dependencies: [
                 .product(name: "GRPCCore", package: "grpc-swift-2"),
                 .product(
@@ -52,9 +52,9 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "VoiceScribeMacTests",
+            name: "MluvaMacTests",
             dependencies: [
-                "VoiceScribeMac",
+                "MluvaMac",
                 .product(name: "Testing", package: "swift-testing"),
             ],
             path: "Tests",

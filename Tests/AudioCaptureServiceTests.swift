@@ -1,6 +1,6 @@
 import Testing
 import AVFoundation
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Audio Capture Service")
 struct AudioCaptureServiceTests {

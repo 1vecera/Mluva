@@ -4,12 +4,12 @@ import plistlib
 import tomllib
 from pathlib import Path
 
-from voice_scribe_linux.brand import PRODUCT_VERSION
-from voice_scribe_linux.brand_assets import (
+from mluva_linux.brand import PRODUCT_VERSION
+from mluva_linux.brand_assets import (
     SYMBOLIC_PATH,
     generated_assets,
 )
-from voice_scribe_linux.theme import build_shell_stylesheet
+from mluva_linux.theme import build_shell_stylesheet
 
 REPOSITORY_ROOT = Path(__file__).parents[2]
 

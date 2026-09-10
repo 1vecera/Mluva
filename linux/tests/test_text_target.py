@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from voice_scribe_linux.text_target import (
+from mluva_linux.text_target import (
     FocusedTextTargetTracker,
     TextSelectionTooLargeError,
     capture_focused_application_identifier,
@@ -245,7 +245,7 @@ def test_system_accessibility_reads_the_live_atspi_status(monkeypatch: pytest.Mo
             calls.append(arguments)
             return Response()
 
-    monkeypatch.setattr("voice_scribe_linux.text_target.Gio.bus_get_sync", lambda *_args: Connection())
+    monkeypatch.setattr("mluva_linux.text_target.Gio.bus_get_sync", lambda *_args: Connection())
 
     assert system_accessibility_enabled()
     assert calls[0][0:4] == (
@@ -258,7 +258,7 @@ def test_system_accessibility_reads_the_live_atspi_status(monkeypatch: pytest.Mo
 
 def test_focus_tracker_rejects_a_disabled_system_accessibility_bus(monkeypatch: pytest.MonkeyPatch) -> None:
     """Keep the application copy-only when GNOME has not enabled AT-SPI clients."""
-    monkeypatch.setattr("voice_scribe_linux.text_target.system_accessibility_enabled", lambda: False)
+    monkeypatch.setattr("mluva_linux.text_target.system_accessibility_enabled", lambda: False)
 
     with pytest.raises(RuntimeError, match="accessibility is disabled"):
         FocusedTextTargetTracker()

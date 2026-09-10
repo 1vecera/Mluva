@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Preproduction plan: 55-second storyboard and narration are ready; only the opening has a bound source clip. Native footage requires a verified live installation.",
+  "description": "55-second launch film from the installed frozen Linux runtime on claw-mini. Real Scribe/Codex footage, then native controls seeded from its exact recognized original and final reply; later rewrite replies are local examples.",
   "logo": "../polished/brand/mluva-lockup.svg",
   "narration": "source/narration.mp3",
   "clips": [
@@ -10,6 +10,171 @@
       "source": "../polished/motion/h3-max-clean-background.mp4",
       "source_start": 0,
       "duration": 5.5
+    },
+    {
+      "id": "outside",
+      "kind": "native",
+      "source": "capture/real/workflow.mp4",
+      "source_start": 0.6,
+      "duration": 5,
+      "zoom": [
+        1,
+        2.35
+      ],
+      "focus": [
+        960,
+        925
+      ],
+      "caption": "A tiny presence.",
+      "fade_in": 0.1
+    },
+    {
+      "id": "open",
+      "kind": "native",
+      "source": "capture/real/workflow.mp4",
+      "source_start": 5.55,
+      "duration": 4.5,
+      "zoom": [
+        1.03,
+        1.17
+      ],
+      "focus": [
+        1040,
+        500
+      ],
+      "caption": "Open. Keep speaking.",
+      "fade_in": 0
+    },
+    {
+      "id": "live",
+      "kind": "native",
+      "source": "capture/real/workflow.mp4",
+      "source_start": 23.3,
+      "duration": 9,
+      "zoom": [
+        1.36,
+        1.52
+      ],
+      "focus": [
+        1070,
+        460
+      ],
+      "caption": "Live rewrite.",
+      "fade_in": 0
+    },
+    {
+      "id": "copy",
+      "kind": "native",
+      "source": "capture/features/workflow.mp4",
+      "source_start": 18.52,
+      "duration": 3,
+      "zoom": [
+        1.18,
+        1.37
+      ],
+      "focus": [
+        1160,
+        490
+      ],
+      "caption": "Copy it.",
+      "fade_in": 0
+    },
+    {
+      "id": "polish",
+      "kind": "native",
+      "source": "capture/features/workflow.mp4",
+      "source_start": 21.78,
+      "duration": 2.5,
+      "speed": 1.34,
+      "zoom": [
+        1.24,
+        1.38
+      ],
+      "focus": [
+        1100,
+        450
+      ],
+      "caption": "Polish it.",
+      "fade_in": 0
+    },
+    {
+      "id": "rewrite",
+      "kind": "native",
+      "source": "capture/features/workflow.mp4",
+      "source_start": 25.15,
+      "duration": 2.5,
+      "speed": 1.49,
+      "zoom": [
+        1.3,
+        1.43
+      ],
+      "focus": [
+        1110,
+        470
+      ],
+      "caption": "Rewrite.",
+      "fade_in": 0
+    },
+    {
+      "id": "edit",
+      "kind": "native",
+      "source": "capture/features/workflow.mp4",
+      "source_start": 28.89,
+      "duration": 5,
+      "speed": 0.93,
+      "zoom": [
+        1.43,
+        1.55
+      ],
+      "focus": [
+        1080,
+        485
+      ],
+      "caption": "Edit. Save.",
+      "fade_in": 0
+    },
+    {
+      "id": "commands",
+      "kind": "native",
+      "source": "capture/features/workflow.mp4",
+      "source_start": 33.59,
+      "duration": 5,
+      "speed": 0.91,
+      "zoom": [
+        1.3,
+        1.65
+      ],
+      "focus": [
+        965,
+        525
+      ],
+      "caption": "Ctrl-P.",
+      "fade_in": 0
+    },
+    {
+      "id": "themes",
+      "kind": "native",
+      "source": "capture/features/workflow.mp4",
+      "source_start": 38.18,
+      "duration": 8,
+      "speed": 1.105,
+      "zoom": [
+        1,
+        1
+      ],
+      "focus": [
+        960,
+        540
+      ],
+      "fade_in": 0
+    },
+    {
+      "id": "return",
+      "kind": "outro",
+      "source": "../polished/motion/h3-max-clean-background.mp4",
+      "source_start": 0.35,
+      "duration": 5,
+      "fade_in": 0.15
     }
   ],
   "voice_cuts": [
@@ -83,7 +248,7 @@
     }
   ],
   "sound_bed": "source/sound-bed.flac",
-  "status": "awaiting-installed-capture",
+  "status": "ready",
   "target_duration_seconds": 55,
   "storyboard": [
     {
@@ -96,55 +261,55 @@
       "start": 5.5,
       "end": 10.5,
       "beat": "Record outside the app",
-      "source_type": "pending installed real-provider capture"
+      "source_type": "installed real-provider capture"
     },
     {
       "start": 10.5,
       "end": 15,
       "beat": "Open the workspace while speaking",
-      "source_type": "pending installed real-provider capture"
+      "source_type": "installed real-provider capture"
     },
     {
       "start": 15,
       "end": 24,
       "beat": "Useful Live draft with stable original and rewritten panes",
-      "source_type": "pending installed real-provider capture"
+      "source_type": "installed real-provider capture"
     },
     {
       "start": 24,
       "end": 27,
       "beat": "Copy the finished note",
-      "source_type": "pending native capture seeded from real take"
+      "source_type": "native capture seeded from real take"
     },
     {
       "start": 27,
       "end": 29.5,
       "beat": "Polish text",
-      "source_type": "pending native capture with local rewrite example"
+      "source_type": "native capture with local rewrite example"
     },
     {
       "start": 29.5,
       "end": 32,
       "beat": "Give a custom rewrite instruction",
-      "source_type": "pending native capture with local rewrite example"
+      "source_type": "native capture with local rewrite example"
     },
     {
       "start": 32,
       "end": 37,
       "beat": "Edit and save",
-      "source_type": "pending native capture"
+      "source_type": "native capture"
     },
     {
       "start": 37,
       "end": 42,
       "beat": "Ctrl+P, search and choose Copy",
-      "source_type": "pending native capture with private keyboard events"
+      "source_type": "native capture with private keyboard events"
     },
     {
       "start": 42,
       "end": 50,
-      "beat": "Nord, Tokyo Night and Ros\u00e9 Pine theme changes",
-      "source_type": "pending native capture"
+      "beat": "Nord, Tokyo Night and Rosé Pine theme changes",
+      "source_type": "native capture"
     },
     {
       "start": 50,
@@ -152,5 +317,8 @@
       "beat": "Mluva closing identity and repository URL",
       "source_type": "existing scenery and software logo/type"
     }
-  ]
+  ],
+  "runtime_revision": "6022b05e4258768e7aa70305febf7dad0835b060",
+  "capture_environment": "Fedora 44 ARM64 guest on claw-mini with production Omarchy 4.0.2 assets, exact Daniel Nord settings and black-moon wallpaper; private Xvfb, D-Bus, AT-SPI and PipeWire.",
+  "editorial_disclosure": "The complete continuous real and fixture takes are retained. The real recording stays open for a disclosed 12-second reading hold after the supplied synthetic audio finishes. Cuts skip waits; listed speed factors help show native controls. Later Polish and Rewrite replies are local examples. No accuracy, provider latency, bare-metal Omarchy, physical microphone or global-keyboard claim."
 }

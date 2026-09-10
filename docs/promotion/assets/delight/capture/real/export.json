@@ -1,0 +1,203 @@
+{
+  "source_capture": "/Users/openclaw/code/mluva/.claude/worktrees/linear-s27-470-290aa32081d4/tmp/delight-film/real-take-v2",
+  "screen_epoch": 1789038074.961203,
+  "first_pcm_epoch": 1789038075.2826147,
+  "audio_offset_seconds": 0.3214116096496582,
+  "timing_edits": "None. Full screen take; original captured PCM delayed to measured first-sample timestamp, AAC encoded and padded with trailing silence to video end.",
+  "synchronization_limit": "PCM callback estimates first-sample wall time from packet duration; capture timestamps are not hardware genlock.",
+  "files": {
+    "capture.json": {
+      "sha256": "ee5bcd3d7b83a92b2381deb97550ae62674fb238324e9af6986a7f310713c85a",
+      "bytes": 39428
+    },
+    "captured.wav": {
+      "sha256": "2f8f69901fdf9d8ef7ab68f850c376337b68dfede13c6ea20f466283e3745e9f",
+      "bytes": 755756,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "duration": "23.616000"
+          }
+        ],
+        "format": {
+          "duration": "23.616000",
+          "size": "755756"
+        }
+      }
+    },
+    "hero.png": {
+      "sha256": "9af79668749f1c2627f382e24b2c1b8d246cc95326325ebf5042618d8f350d2f",
+      "bytes": 3424899,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "3424899"
+        }
+      }
+    },
+    "live.png": {
+      "sha256": "6c9aa982939154bba2f3e6c3c1baa6beb0976e70aa2156b628d5905bd2715575",
+      "bytes": 3427670,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "3427670"
+        }
+      }
+    },
+    "outside-recording.png": {
+      "sha256": "f41dfc2be740982dd9c5c1a8e108f9d406633577c0dc26980d2b27b743d73a58",
+      "bytes": 4200885,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "4200885"
+        }
+      }
+    },
+    "recognition.json": {
+      "sha256": "a4c395f306cda3588444f34631514afa4981bb4cd4544439c2e9450ac0ef29c7",
+      "bytes": 1576
+    },
+    "recording.png": {
+      "sha256": "6a9217026b506a088823cc0af0654219c5978c3f8adcc315014073b4a6a83007",
+      "bytes": 3401028,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "3401028"
+        }
+      }
+    },
+    "replies.json": {
+      "sha256": "3866238f2e4140836a83bc280e6c694841d097436b9939eefd399d16fe8cf439",
+      "bytes": 1076
+    },
+    "widget-recording.png": {
+      "sha256": "8b885ccb38818271d7be1571887e4fb6c8ce36b28c98ccaa5cd0bdfa80fa0e63",
+      "bytes": 8061,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 127,
+            "pix_fmt": "rgb24",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "8061"
+        }
+      }
+    },
+    "widget-review.png": {
+      "sha256": "17efc95587773ee1571f46a19695919d5fa6ea7efdd84fc1995d10358c1a91f8",
+      "bytes": 27359,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 500,
+            "height": 141,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "size": "27359"
+        }
+      }
+    },
+    "workflow.mp4": {
+      "sha256": "06bc543fc20d9669d193699a99d879f0d2eb742935463e3757a90efd5da6279e",
+      "bytes": 9314384,
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "pix_fmt": "yuv420p",
+            "r_frame_rate": "60/1",
+            "start_time": "0.000000",
+            "duration": "50.666667"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "16000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "start_time": "0.257000",
+            "duration": "50.368000"
+          }
+        ],
+        "format": {
+          "duration": "50.666667",
+          "size": "9314384"
+        }
+      }
+    }
+  }
+}

@@ -8,8 +8,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import voice_scribe_linux.history as history_module
-from voice_scribe_linux.history import HistoryStore
+import mluva_linux.history as history_module
+from mluva_linux.history import HistoryStore
 
 
 class TrackingHistoryConnection(sqlite3.Connection):

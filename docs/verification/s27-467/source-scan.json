@@ -1,0 +1,53 @@
+{
+  "source": {
+    "violations": [],
+    "migration_boundary": [
+      "Sources/Services/LegacyMigration.swift",
+      "Tests/LegacyMigrationTests.swift",
+      "docs/identity-migration.md",
+      "linux/migrate_legacy.py",
+      "linux/tests/test_legacy_migration.py",
+      "scripts/check_product_identity.py",
+      "scripts/install-macos.sh"
+    ],
+    "archival_evidence": [
+      "docs/promotion/assets/polished/features/expanded/harness/capture_features.py",
+      "docs/promotion/assets/polished/features/expanded/harness/feature_session.py",
+      "docs/promotion/assets/polished/features/expanded/runtime-files.json",
+      "docs/promotion/assets/polished/features/export/harness/capture_features.py",
+      "docs/promotion/assets/polished/features/export/harness/feature_session.py",
+      "docs/promotion/assets/polished/features/export/runtime-files.json",
+      "docs/promotion/assets/polished/features/floating/harness/capture_features.py",
+      "docs/promotion/assets/polished/features/floating/harness/feature_session.py",
+      "docs/promotion/assets/polished/features/floating/runtime-files.json",
+      "docs/promotion/assets/polished/features/history/harness/capture_features.py",
+      "docs/promotion/assets/polished/features/history/harness/feature_session.py",
+      "docs/promotion/assets/polished/features/history/runtime-files.json",
+      "docs/promotion/assets/polished/features/polish/harness/capture_features.py",
+      "docs/promotion/assets/polished/features/polish/harness/feature_session.py",
+      "docs/promotion/assets/polished/features/polish/runtime-files.json",
+      "docs/promotion/assets/polished/features/providers/harness/capture_features.py",
+      "docs/promotion/assets/polished/features/providers/harness/feature_session.py",
+      "docs/promotion/assets/polished/features/providers/runtime-files.json",
+      "docs/promotion/assets/unreleased-live/harness/campaign_session.py",
+      "docs/promotion/assets/unreleased-live/harness/capture_campaign.py",
+      "docs/promotion/assets/unreleased-live/recognition.json",
+      "docs/promotion/assets/unreleased-live/runtime-files.json",
+      "docs/promotion/assets/v0.3.0/speech/recognition.json",
+      "docs/promotion/assets/v0.3.0/speech/runtime-files.json",
+      "docs/promotion/evidence/initial-echo-take/recognition.json",
+      "docs/promotion/evidence/initial-echo-take/runtime-files.json",
+      "docs/promotion/evidence/initial-echo-take/runtime.patch",
+      "docs/promotion/evidence/rejected-four-second-commits/recognition.json",
+      "docs/promotion/evidence/rejected-four-second-commits/runtime-files.json",
+      "docs/promotion/evidence/rejected-four-second-commits/runtime.patch",
+      "docs/reviews/s27-459/after-controlled.json",
+      "docs/reviews/s27-459/baseline-controlled.json",
+      "docs/reviews/s27-459/real-native-before-initial-gate.json",
+      "docs/reviews/s27-459/real-native.json",
+      "docs/verification/delight-launch/live-entrypoint.json",
+      "docs/verification/delight-launch/live-installation.json",
+      "docs/verification/delight-launch/staged-entrypoint.json"
+    ]
+  }
+}

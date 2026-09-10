@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.feature_maturity import (
+from mluva_linux.feature_maturity import (
     FEATURE_CAPABILITIES,
     FeatureMaturity,
     capabilities_with_maturity,

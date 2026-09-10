@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from voice_scribe_linux.codex_client import CodexAppServerClient, select_model
+from mluva_linux.codex_client import CodexAppServerClient, select_model
 
 PROMPT = (
     "Rewrite the following sentence clearly, preserving its meaning: "

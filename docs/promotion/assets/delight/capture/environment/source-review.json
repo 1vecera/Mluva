@@ -1,0 +1,71 @@
+{
+  "runtime_revision": "6022b05e4258768e7aa70305febf7dad0835b060",
+  "recognized_original_sha256": "46986ed018fd316194a3a169786313e0faf39a4dc114bf2baec37ccb8583a1a8",
+  "final_reply_sha256": "e0e387954d9f3d80ea92f5e2fcba9d6b5dc1970f03f28f72aff434abd5e123aa",
+  "recognition": "Source word sequence and owners/deadlines retained; punctuation and sentence boundaries differ. One synthetic example, no accuracy percentage.",
+  "final_reply": "Preserves upload before saving, missing IDs, totals against the original, source rows for audit, Maya/Thursday and speaker/Friday morning. Unknown owners and calendar dates remain explicitly missing. The structured-note template surrounds the requested checklist with sections.",
+  "live_review": "The early incomplete provisional draft is excluded from the useful Live shot. The later actual draft accurately summarizes the demo requirements and Maya deadline. The selected Live shot remains in the recording phase throughout, after the voiced input has ended. The unchanged input includes trailing silence, followed by a 12-second reading hold with recording still open.",
+  "readability_hold_seconds": 12,
+  "paint_events": [
+    {
+      "source_seconds": 13.1896,
+      "during_recording": true,
+      "sha256": "43bdd1e897e51354c7ee55c3d905851c4a51133fd5abda2323ccd00a4fa8190b"
+    },
+    {
+      "source_seconds": 23.2473,
+      "during_recording": true,
+      "sha256": "b6f6b82edf411a98b8519aa4511f6eeef0a4bbeea0adbf67cb6a627aef2e72a5"
+    },
+    {
+      "source_seconds": 36.4308,
+      "during_recording": false,
+      "sha256": "e0e387954d9f3d80ea92f5e2fcba9d6b5dc1970f03f28f72aff434abd5e123aa"
+    },
+    {
+      "source_seconds": 47.0612,
+      "during_recording": false,
+      "sha256": "e0e387954d9f3d80ea92f5e2fcba9d6b5dc1970f03f28f72aff434abd5e123aa"
+    }
+  ],
+  "feature_seed": "Exact recognized original and final real reply; two subsequent Polish and custom Rewrite replies are disclosed deterministic local fixtures.",
+  "feature_checks": [
+    "Production Live finalization persisted local fixture draft with original unchanged",
+    "Visible Copy action wrote expected text into private X11 clipboard",
+    "Both visible Polish and custom Rewrite actions persisted separate local example replies",
+    "Native lossless editor and Save edits persisted final Markdown",
+    "Private XTest Ctrl-P, typed search and Enter dispatched Copy current text",
+    "Existing GTK window followed real Nord, Tokyo Night and Ros\u00e9 Pine palettes via theme watcher",
+    "Raw original remained byte-for-byte unchanged through all actions"
+  ],
+  "actual_theme_hashes": {
+    "real-take-v2": {
+      "colors.toml": "62d1739a488db2a66b88f2f054579bdfd08c4ec771d2acf5659b9f9d976c57e2",
+      "shell.toml": "e7292d4a99d4eae683902095198d32aca7038ff4d7f8f33a41cc9bd4935e9d8d",
+      "black-moon.jpg": "6873fbf7d4cbb9a39604094dd8d804eb6d231e63ecf56e5c297aae90358eff81"
+    },
+    "feature-take-v4": {
+      "colors.toml": "62d1739a488db2a66b88f2f054579bdfd08c4ec771d2acf5659b9f9d976c57e2",
+      "shell.toml": "e7292d4a99d4eae683902095198d32aca7038ff4d7f8f33a41cc9bd4935e9d8d",
+      "black-moon.jpg": "6873fbf7d4cbb9a39604094dd8d804eb6d231e63ecf56e5c297aae90358eff81"
+    }
+  },
+  "provider_processes": "Scribe v2 realtime and Codex 0.154.0; catalog-selected gpt-6-astra. No Scribe credential in helper service environments. Codex auth was passed through stdin/broker into anonymous RAM, and its private provider directory was removed.",
+  "service_environment_audit": [
+    {
+      "pid": 3135,
+      "provider_credentials_present": false
+    },
+    {
+      "pid": 3136,
+      "provider_credentials_present": false
+    },
+    {
+      "pid": 3138,
+      "provider_credentials_present": false
+    }
+  ],
+  "private_provider_directory_removed": true,
+  "capture_boundary": "Fedora ARM64 guest, actual installed Mluva and production Omarchy QML/theme assets. Xvfb :203, private D-Bus/AT-SPI/XDG/PipeWire. No hardware microphone, bare-metal Omarchy, Hyprland portal or physical global-keyboard integration claim.",
+  "audio_review": "Continuous real source retains the actual PCM with measured software alignment. Final film mutes source PCM and uses the prepared synthetic narration and oscillator bed. Auditory listening was not supported by this runner; decode, word alignment and loudness checks are separate."
+}

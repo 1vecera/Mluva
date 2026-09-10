@@ -2,15 +2,15 @@
 
 import json
 import sys
-import threading
 from dataclasses import replace
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
 
 import pytest
+from http_fixture import local_http_server
 
-from voice_scribe_linux.config import AppConfig, load_config, save_config
-from voice_scribe_linux.provider_catalog import CatalogRequest, VoxtypeCatalog, catalog_message, connection_hint
-from voice_scribe_linux.providers import MAX_HTTP_BYTES, LiteLLMClient, ProviderError
+from mluva_linux.config import AppConfig, load_config, save_config
+from mluva_linux.provider_catalog import CatalogRequest, VoxtypeCatalog, catalog_message, connection_hint
+from mluva_linux.providers import MAX_HTTP_BYTES, LiteLLMClient, ProviderError
 
 
 @pytest.fixture
@@ -34,13 +34,8 @@ def catalog_server():
             except (BrokenPipeError, ConnectionResetError):
                 pass  # Bounded clients close deliberately oversized catalog responses early.
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    yield f"http://127.0.0.1:{server.server_port}/v1", state
-    server.shutdown()
-    server.server_close()
-    thread.join(timeout=2)
+    with local_http_server(Handler) as server:
+        yield f"http://127.0.0.1:{server.server_port}/v1", state
 
 
 def test_models_are_content_free_deduplicated_and_capability_scoped(catalog_server, monkeypatch):

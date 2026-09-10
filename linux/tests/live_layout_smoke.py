@@ -13,8 +13,8 @@ from unittest.mock import patch
 import gi
 from conversation_ui_smoke import IsolatedApplication
 
-from voice_scribe_linux.conversation import STRUCTURED_NOTE
-from voice_scribe_linux.pipewire import PipeWireDeviceCatalog
+from mluva_linux.conversation import STRUCTURED_NOTE
+from mluva_linux.pipewire import PipeWireDeviceCatalog
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("GdkX11", "4.0")
@@ -232,7 +232,7 @@ def main() -> int:
         return GLib.SOURCE_REMOVE
 
     with (
-        patch("voice_scribe_linux.app.FocusedTextTargetTracker", return_value=None),
+        patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
         patch.object(PipeWireDeviceCatalog, "from_system", return_value=PipeWireDeviceCatalog()),
     ):
         GLib.idle_add(exercise)

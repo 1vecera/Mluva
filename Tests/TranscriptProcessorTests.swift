@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import VoiceScribeMac
+@testable import MluvaMac
 
 @Suite("Faithful transcript processing")
 struct TranscriptProcessorTests {
@@ -138,12 +138,12 @@ struct TranscriptProcessorTests {
     @Test("Integrity validation protects URLs paths identifiers and negation")
     func protectsMeaningCriticalTokens() {
         let violations = TranscriptIntegrityValidator().violations(
-            source: "Do not POST https://example.com/api to /srv/voice_scribe with requestID.",
+            source: "Do not POST https://example.com/api to /srv/mluva with requestID.",
             candidate: "POST https://example.org to /srv with requestId."
         )
 
         #expect(violations.map(\.token) == [
-            "/srv/voice_scribe",
+            "/srv/mluva",
             "Do not",
             "https://example.com/api",
             "requestID",

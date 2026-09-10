@@ -20,7 +20,7 @@ make release
 make install
 ```
 
-`make setup-signing` verifies the existing self-signed `Voice Scribe Local Signing` identity in the login keychain. Mluva retains that identity so privacy grants survive the visual rename and rebuilds. If it is missing, the helper opens Keychain Access and prints the Certificate Assistant settings needed to create it. Set `SIGNING_IDENTITY` to another installed local identity when needed.
+`make setup-signing` verifies the existing self-signed `Mluva Local Signing` identity in the login keychain. Use a stable signing identity for subsequent rebuilds. The identity migration changes the bundle identifier, so macOS permissions must be approved again. If it is missing, the helper opens Keychain Access and prints the Certificate Assistant settings needed to create it. Set `SIGNING_IDENTITY` to another installed local identity when needed.
 
 For Google recognition, configure Application Default Credentials:
 
@@ -32,6 +32,6 @@ Select Google in Settings, allow cloud recognition and enter the project ID. The
 
 ## Distribution packaging
 
-`make distribution` requires an Apple Developer Program `Developer ID Application` identity. It enables the hardened runtime and microphone entitlement, timestamps the signature, submits to Apple's notary service, staples and validates the ticket, and assesses the result with Gatekeeper. The default `notarytool` profile is `voice-scribe`; override it with `NOTARY_PROFILE`.
+`make distribution` requires an Apple Developer Program `Developer ID Application` identity. It enables the hardened runtime and microphone entitlement, timestamps the signature, submits to Apple's notary service, staples and validates the ticket, and assesses the result with Gatekeeper. The default `notarytool` profile is `mluva`; override it with `NOTARY_PROFILE`.
 
-CI uses `make ci-package` to validate the bundle shape with an ad-hoc signature. This mode requires `CI=true` and is separate from the local release targets. See the [brand and compatibility contract](brand-and-compatibility.md) for retained technical identifiers.
+CI uses `make ci-package` to validate the bundle shape with an ad-hoc signature. This mode requires `CI=true` and is separate from the local release targets. See the [brand and compatibility contract](brand-and-compatibility.md) and [migration guide](identity-migration.md) for the current identifiers and upgrade backups.

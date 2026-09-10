@@ -4,13 +4,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 APP_NAME="Mluva"
-BUNDLE_NAME="VoiceScribeMac"
+BUNDLE_NAME="MluvaMac"
 BUILD_DIR="$PROJECT_DIR/build"
 APP_DIR="$BUILD_DIR/$APP_NAME.app"
 ARCHIVE_PATH="$BUILD_DIR/$APP_NAME.zip"
-ENTITLEMENTS_PATH="$PROJECT_DIR/Resources/VoiceScribeMac.entitlements"
+ENTITLEMENTS_PATH="$PROJECT_DIR/Resources/MluvaMac.entitlements"
 SIGNING_MODE="${SIGNING_MODE:-local}"
-LOCAL_SIGNING_IDENTITY="${LOCAL_SIGNING_IDENTITY:-Voice Scribe Local Signing}"
+LOCAL_SIGNING_IDENTITY="${LOCAL_SIGNING_IDENTITY:-Mluva Local Signing}"
 
 find_signing_identity_with_prefix() {
     local identity_prefix="$1"
@@ -61,7 +61,7 @@ case "$SIGNING_MODE" in
         ;;
     distribution)
         SIGNING_IDENTITY="$(require_apple_signing_identity "Developer ID Application: ")"
-        NOTARY_PROFILE="${NOTARY_PROFILE:-voice-scribe}"
+        NOTARY_PROFILE="${NOTARY_PROFILE:-mluva}"
         ;;
     ci)
         if [[ "${CI:-}" != "true" ]]; then

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.codex_client import CodexAppServerClient, CodexAppServerError, CodexModel, select_model
+from mluva_linux.codex_client import CodexAppServerClient, CodexAppServerError, CodexModel, select_model
 
 
 def test_transform_uses_current_app_server_protocol() -> None:

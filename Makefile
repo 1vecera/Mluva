@@ -10,7 +10,7 @@ test:
 
 # Run debug binary
 run: build
-	.build/debug/VoiceScribeMac
+	.build/debug/MluvaMac
 
 # Verify or guide creation of the stable, local-only signing identity
 setup-signing:
@@ -34,22 +34,7 @@ open: release
 
 # Install to /Applications
 install: release
-	@pkill -x VoiceScribeMac 2>/dev/null || true
-	@staging="/Applications/.Mluva.installing.$$$$.app"; \
-	backup="$$HOME/.Trash/Mluva previous $$(date '+%Y-%m-%d %H.%M.%S').app"; \
-	legacy_backup="$$HOME/.Trash/Voice Scribe previous $$(date '+%Y-%m-%d %H.%M.%S').app"; \
-	ditto "build/Mluva.app" "$$staging"; \
-	codesign --verify --deep --strict "$$staging"; \
-	if [ -e "/Applications/Mluva.app" ]; then \
-		mv "/Applications/Mluva.app" "$$backup"; \
-		echo "Previous app moved to $$backup"; \
-	fi; \
-	if [ -e "/Applications/Voice Scribe.app" ]; then \
-		mv "/Applications/Voice Scribe.app" "$$legacy_backup"; \
-		echo "Legacy app moved to $$legacy_backup"; \
-	fi; \
-	mv "$$staging" "/Applications/Mluva.app"
-	@echo "Installed to /Applications/Mluva.app"
+	bash scripts/install-macos.sh
 
 # Full smoke test: unit tests + build + launch + verify + shutdown
 smoke:
@@ -72,6 +57,17 @@ linux-test: linux-setup
 	cd linux && uv run --locked pytest -q
 	cd linux && uv run --locked ruff check .
 	cd linux && uv run --locked ruff format --check .
+
+# Quick text/editing feedback; linux-test remains the complete handoff gate.
+.PHONY: linux-test-fast linux-command-test
+linux-test-fast: linux-setup
+	cd linux && uv run --locked pytest -q tests/test_transcript.py tests/test_conversation.py \
+		tests/test_history.py tests/test_scratchpad.py tests/test_live_rewrite.py tests/test_minimal_markdown.py
+
+linux-command-test: linux-setup
+	bash dev/run-isolated.sh tmp/command-palette -- env PYTHONPATH=linux:linux/tests \
+		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
+		uv run --project linux --locked python linux/tests/command_palette_smoke.py
 
 linux-feature-maturity: linux-setup
 	cd linux && uv run --locked python ../scripts/render_feature_maturity.py --write
@@ -104,7 +100,7 @@ linux-provider-settings-test: linux-setup
 	done
 
 linux-run: linux-setup
-	cd linux && uv run --locked python -m voice_scribe_linux.app
+	cd linux && uv run --locked python -m mluva_linux.app
 
 linux-install:
 	bash linux/install.sh

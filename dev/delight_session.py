@@ -15,13 +15,14 @@ from pathlib import Path
 from unittest.mock import patch
 
 import gi
-from voice_scribe_linux.app import MluvaApplication
-from voice_scribe_linux.codex_client import CodexModel
-from voice_scribe_linux.delivery import DeliveryReceipt
-from voice_scribe_linux.elevenlabs import TranscriptionResult
-from voice_scribe_linux.pipewire import PipeWireDeviceCatalog
-from voice_scribe_linux.recording_control import set_recording_button_content
-from voice_scribe_linux.workflow import WorkflowResult
+from capture_profile import encoder_arguments
+from mluva_linux.app import MluvaApplication
+from mluva_linux.codex_client import CodexModel
+from mluva_linux.delivery import DeliveryReceipt
+from mluva_linux.elevenlabs import TranscriptionResult
+from mluva_linux.pipewire import PipeWireDeviceCatalog
+from mluva_linux.recording_control import set_recording_button_content
+from mluva_linux.workflow import WorkflowResult
 
 gi.require_version("GdkX11", "4.0")
 Gdk = importlib.import_module("gi.repository.Gdk")
@@ -189,10 +190,18 @@ def main() -> int:
         destination = theme_root / "themes" / name
         destination.mkdir(parents=True)
         source = Path("/usr/share/omarchy/themes") / name
+        if name == "nord":
+            # The active palette includes Daniel's generated shell.toml, absent from the stock theme tree.
+            source = Path.home() / ".local/state/omarchy/current/theme"
         shutil.copy2(source / "colors.toml", destination / "colors.toml")
         if (source / "shell.toml").exists():
             shutil.copy2(source / "shell.toml", destination / "shell.toml")
-        shutil.copy2(source / "backgrounds" / wallpaper, output / f"wallpaper-{name}.jpg")
+        background = (
+            Path.home() / ".local/state/omarchy/current/background"
+            if name == "nord"
+            else source / "backgrounds" / wallpaper
+        )
+        shutil.copy2(background, output / f"wallpaper-{name}.jpg")
     theme_link = theme_root / "current/theme"
     theme_link.symlink_to(theme_root / "themes/nord")
     for module in ("Commons", "Ui"):
@@ -241,7 +250,18 @@ def main() -> int:
     def photo(name):
         hold(0.12)
         subprocess.run(
-            ["magick", "import", "-silent", "-window", "root", str(output / f"{name}.png")], check=True, timeout=10
+            [
+                "magick",
+                "import",
+                "-silent",
+                "-window",
+                "root",
+                "-define",
+                "png:compression-level=1",
+                str(output / f"{name}.png"),
+            ],
+            check=True,
+            timeout=10,
         )
         event("screenshot", file=name + ".png")
 
@@ -261,11 +281,27 @@ def main() -> int:
     xlib.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
     xlib.XKeysymToKeycode.restype = ctypes.c_uint
     xlib.XSync.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    xlib.XWarpPointer.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_ulong,
+        ctypes.c_ulong,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_uint,
+        ctypes.c_uint,
+        ctypes.c_int,
+        ctypes.c_int,
+    ]
+    xlib.XDefaultRootWindow.argtypes = [ctypes.c_void_p]
+    xlib.XDefaultRootWindow.restype = ctypes.c_ulong
     xlib.XCloseDisplay.argtypes = [ctypes.c_void_p]
     xtest = ctypes.CDLL("libXtst.so.6")
     xtest.XTestFakeKeyEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
     display = xlib.XOpenDisplay(b":203")
     assert display
+    # The hidden Xvfb cursor otherwise rests over the document and leaves a tooltip in the footage.
+    xlib.XWarpPointer(display, 0, xlib.XDefaultRootWindow(display), 0, 0, 0, 0, 1890 * pixel_ratio, 1040 * pixel_ratio)
+    xlib.XFlush(display)
 
     def position():
         xid = app.window.get_surface().get_xid()
@@ -347,16 +383,7 @@ def main() -> int:
                     f"{1920 * pixel_ratio}x{1080 * pixel_ratio}",
                     "-i",
                     ":203",
-                    "-c:v",
-                    "libx264",
-                    "-preset",
-                    "ultrafast",
-                    "-crf",
-                    "16",
-                    "-threads",
-                    "3",
-                    "-pix_fmt",
-                    "yuv420p",
+                    *encoder_arguments(os.environ["CAPTURE_ENCODER"]),
                     str(output / "workflow.mkv"),
                 ],
                 "recording.log",
@@ -418,63 +445,81 @@ def main() -> int:
             checks.append("Production Live finalization persisted local fixture draft with original unchanged")
             photo("markdown")
             hold(0.8)
+            ipc("dismiss")
+            hold(0.3)
             event("copy")
+            workspace.copy_buttons[-1].grab_focus()
+            hold(0.25)
             workspace.copy_buttons[-1].emit("clicked")
             assert copies[-1] == draft
             checks.append("Visible Copy action wrote expected text into private X11 clipboard")
-            hold(2)
+            hold(3)
             event("polish")
             app.next_reply = polished
+            workspace.quick_polish.grab_focus()
+            hold(0.25)
             workspace.quick_polish.emit("clicked")
             settle(lambda: app.rewrite_client is None)
             assert app.conversation_store.replies(entry.identifier)[-1].text == polished
+            hold(0.2)
+            ipc("dismiss")
             photo("polish")
-            hold(0.45)
+            hold(1.3)
             event("rewrite")
             app.next_reply = rewritten
             workspace.prompt.get_buffer().set_text("Make this three concise steps.")
+            workspace.prompt.grab_focus()
+            hold(1.1)
             workspace.send.emit("clicked")
             settle(lambda: app.rewrite_client is None)
             assert app.conversation_store.replies(entry.identifier)[-1].text == rewritten
+            hold(0.2)
+            ipc("dismiss")
             checks.append("Both visible Polish and custom Rewrite actions persisted separate local example replies")
             photo("rewrite")
             hold(1)
             event("edit-save")
             editor = workspace.result_widgets[-1]
             editor.grab_focus()
-            hold(0.6)
+            hold(0.4)
             buffer = editor.get_buffer()
-            buffer.insert(buffer.get_end_iter(), "\n\nReady when you are.")
+            buffer.insert(buffer.get_end_iter(), "\n\n")
+            for letter in "Ready when you are.":
+                buffer.insert(buffer.get_end_iter(), letter)
+                hold(0.055)
             hold(0.8)
             workspace.save_buttons[-1].emit("clicked")
             assert "Ready when you are." in app.conversation_store.replies(entry.identifier)[-1].text
             workspace.prompt.grab_focus()
+            hold(0.2)
+            ipc("dismiss")
             checks.append("Native lossless editor and Save edits persisted final Markdown")
             photo("saved")
-            hold(1)
+            hold(1.8)
             event("commands")
             key("Control_L", "p")
             settle(lambda: app.command_palette is not None and app.command_palette.get_mapped())
-            hold(0.8)
+            hold(1.2)
             palette = app.command_palette
             for letter in "copy":
                 key(letter)
                 hold(0.2)
             photo("commands")
-            hold(0.6)
+            hold(1.2)
             assert palette.search.get_text() == "copy"
             key("Return")
             settle(lambda: app.command_palette is None)
             assert copies[-1] == app.conversation_store.replies(entry.identifier)[-1].text
             checks.append("Private XTest Ctrl-P, typed search and Enter dispatched Copy current text")
-            hold(0.6)
+            hold(1)
             event("themes")
             for name in ("nord", "tokyo-night", "rose-pine"):
                 if name != "nord":
                     theme_link.unlink()
                     theme_link.symlink_to(theme_root / "themes" / name)
                 colors = (theme_link / "colors.toml").read_text()
-                ipc("theme", name, colors)
+                shell_config = theme_link / "shell.toml"
+                ipc("theme", name, colors, shell_config.read_text() if shell_config.exists() else "")
                 expected = {"nord": "#2e3440", "tokyo-night": "#1a1b26", "rose-pine": "#faf4ed"}[name]
                 rgba = Gdk.RGBA()
                 rgba.parse(expected)
@@ -486,7 +531,7 @@ def main() -> int:
                 )
                 event("theme-applied", theme=name, canvas=expected)
                 photo("theme-" + name)
-                hold(1.5)
+                hold(2.3)
             checks.append(
                 "Existing GTK window followed real Nord, Tokyo Night and Rosé Pine palettes via theme watcher"
             )
@@ -513,9 +558,9 @@ def main() -> int:
     activation = app.connect("activate", activated)
     try:
         with (
-            patch("voice_scribe_linux.app.FocusedTextTargetTracker", return_value=None),
-            patch("voice_scribe_linux.app.PipeWireDeviceCatalog.from_system", return_value=PipeWireDeviceCatalog()),
-            patch("voice_scribe_linux.app.deliver_text", side_effect=copy_text),
+            patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
+            patch("mluva_linux.app.PipeWireDeviceCatalog.from_system", return_value=PipeWireDeviceCatalog()),
+            patch("mluva_linux.app.deliver_text", side_effect=copy_text),
         ):
             app.run([])
     finally:
@@ -535,6 +580,7 @@ def main() -> int:
                 "fps_requested": 60,
                 "screen": [1920 * pixel_ratio, 1080 * pixel_ratio],
                 "pixel_ratio": pixel_ratio,
+                "encoder": os.environ["CAPTURE_ENCODER"],
                 "application": [1536, 844],
                 "application_position": [192, 134],
                 "runtime": str(runtime),

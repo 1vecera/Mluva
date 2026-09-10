@@ -7,8 +7,8 @@ from pathlib import Path
 
 import gi
 
-from voice_scribe_linux.conversation_view import DocumentEditor
-from voice_scribe_linux.theme import ThemeController
+from mluva_linux.conversation_view import DocumentEditor
+from mluva_linux.theme import ThemeController
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")

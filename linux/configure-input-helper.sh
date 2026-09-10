@@ -3,13 +3,13 @@ set -euo pipefail
 
 script_path="$(readlink -f -- "${BASH_SOURCE[0]}")"
 source_dir="$(cd -- "$(dirname -- "${script_path}")" && pwd)"
-unit_source="${source_dir}/resources/voice-scribe-input@.service"
-unit_destination="/etc/systemd/system/voice-scribe-input@.service"
+unit_source="${source_dir}/resources/mluva-input@.service"
+unit_destination="/etc/systemd/system/mluva-input@.service"
 action="${1:-status}"
 user_id="$(id -u)"
 runtime_dir="/run/user/${user_id}"
 socket_path="${runtime_dir}/.ydotool_socket"
-unit_name="voice-scribe-input@${user_id}.service"
+unit_name="mluva-input@${user_id}.service"
 
 if [[ "${user_id}" == "0" ]]; then
     echo "Run this command as the desktop user, not as root; it invokes sudo only for the system service." >&2
@@ -21,8 +21,22 @@ fi
     exit 1
 }
 
+unit_is_owned() {
+    /usr/bin/python3 - "${unit_source}" "${unit_destination}" <<'PYOWNERSHIP'
+import sys
+from pathlib import Path
+source, destination = map(Path, sys.argv[1:])
+sys.exit(0 if source.read_bytes() == destination.read_bytes() else 1)
+PYOWNERSHIP
+}
+
 case "${action}" in
     install)
+        if [[ -L "${unit_destination}" ]] \
+            || { [[ -e "${unit_destination}" ]] && ! unit_is_owned; }; then
+            echo "Refusing to overwrite a modified or unrelated system input service." >&2
+            exit 1
+        fi
         command -v sudo >/dev/null 2>&1 || {
             echo "sudo is required to install the narrowly scoped input service." >&2
             exit 1
@@ -65,6 +79,11 @@ case "${action}" in
         echo "The service exposes keyboard-only synthetic input to processes owned by this user; remove it when that tradeoff is unwanted."
         ;;
     remove)
+        if [[ -L "${unit_destination}" ]] \
+            || { [[ -e "${unit_destination}" ]] && ! unit_is_owned; }; then
+            echo "Refusing to remove a modified or unrelated system input service." >&2
+            exit 1
+        fi
         command -v sudo >/dev/null 2>&1 || {
             echo "sudo is required to remove the input service." >&2
             exit 1

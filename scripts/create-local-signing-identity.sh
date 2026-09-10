@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-IDENTITY_NAME="Voice Scribe Local Signing"
+IDENTITY_NAME="Mluva Local Signing"
 
 has_signing_identity() {
     security find-identity -v -p codesigning \

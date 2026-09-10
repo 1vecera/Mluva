@@ -10,7 +10,7 @@ LINUX_ROOT = Path(__file__).resolve().parents[1]
 
 def test_input_helper_service_is_owner_only_keyboard_only_and_session_scoped() -> None:
     """Keep the privileged daemon narrower than the distribution's general default service."""
-    service = (LINUX_ROOT / "resources" / "voice-scribe-input@.service").read_text()
+    service = (LINUX_ROOT / "resources" / "mluva-input@.service").read_text()
 
     assert "--socket-path=/run/user/%i/.ydotool_socket" in service
     assert "--socket-perm=0600" in service
@@ -47,7 +47,7 @@ def test_installed_input_helper_symlink_resolves_its_packaged_unit(tmp_path: Pat
     resources_dir.mkdir(parents=True)
     helper = application_dir / "configure-input-helper.sh"
     shutil.copy2(LINUX_ROOT / "configure-input-helper.sh", helper)
-    shutil.copy2(LINUX_ROOT / "resources" / "voice-scribe-input@.service", resources_dir)
+    shutil.copy2(LINUX_ROOT / "resources" / "mluva-input@.service", resources_dir)
     public_command = tmp_path / "bin" / "mluva-input-helper"
     public_command.parent.mkdir()
     public_command.symlink_to(helper)

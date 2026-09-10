@@ -13,10 +13,10 @@ from conversation_ui_smoke import IsolatedApplication
 from gi.repository import GLib, Gtk
 from live_workspace_smoke import paint, settle
 
-from voice_scribe_linux.codex_client import CodexAppServerClient
-from voice_scribe_linux.config import load_config
-from voice_scribe_linux.pipewire import PipeWireDeviceCatalog
-from voice_scribe_linux.provider_catalog import VoxtypeCatalog
+from mluva_linux.codex_client import CodexAppServerClient
+from mluva_linux.config import load_config
+from mluva_linux.pipewire import PipeWireDeviceCatalog
+from mluva_linux.provider_catalog import VoxtypeCatalog
 
 
 def descendants(widget):
@@ -272,11 +272,11 @@ def main() -> int:
 
     try:
         with (
-            patch("voice_scribe_linux.app.FocusedTextTargetTracker", return_value=None),
+            patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
             patch.object(PipeWireDeviceCatalog, "from_system", return_value=PipeWireDeviceCatalog()),
-            patch("voice_scribe_linux.provider_catalog.CodexAppServerClient", side_effect=native_client),
+            patch("mluva_linux.provider_catalog.CodexAppServerClient", side_effect=native_client),
             patch(
-                "voice_scribe_linux.provider_catalog.VoxtypeCatalog",
+                "mluva_linux.provider_catalog.VoxtypeCatalog",
                 side_effect=lambda: VoxtypeCatalog(
                     (sys.executable, str(voxtype_fixture)),
                 ),

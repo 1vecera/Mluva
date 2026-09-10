@@ -5,7 +5,7 @@ from pathlib import Path
 
 from gi.repository import GLib
 
-from voice_scribe_linux.overlay_state import (
+from mluva_linux.overlay_state import (
     OVERLAY_INTERFACE,
     OVERLAY_OBJECT_PATH,
     OVERLAY_SIGNAL,
@@ -15,7 +15,7 @@ from voice_scribe_linux.overlay_state import (
 )
 
 LINUX_ROOT = Path(__file__).resolve().parents[1]
-EXTENSION_ROOT = LINUX_ROOT / "gnome-extension" / "recording-status@voicescribe.local"
+EXTENSION_ROOT = LINUX_ROOT / "gnome-extension" / "recording-status@mluva.local"
 
 
 class FakeConnection:

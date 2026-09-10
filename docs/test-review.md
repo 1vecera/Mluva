@@ -1,5 +1,7 @@
 # Test review
 
+This is a historical review. Its counts and host limitations describe the earlier change, not the current suite. See the [focused development review](development-review.md) for the S27-468 measurements and current check results.
+
 The suite does not support a dramatic count reduction without losing distinct failure checks. This review removes 20 Linux cases and four Swift tests, reducing Linux from 302 to 282 collected cases and Swift from 296 to 292 declared tests. The test files lose 344 net lines. Parameterized input cases remain separate; regrouping them into loops would only disguise their count.
 
 ## Changes

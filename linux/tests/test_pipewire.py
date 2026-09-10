@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from voice_scribe_linux.pipewire import (
+from mluva_linux.pipewire import (
     PipeWireCatalogError,
     PipeWireDeviceCatalog,
     PipeWireDeviceKind,

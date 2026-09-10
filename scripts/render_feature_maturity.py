@@ -10,7 +10,7 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPOSITORY_ROOT / "linux"))
 
-from voice_scribe_linux.feature_maturity import render_feature_maturity_markdown  # noqa: E402
+from mluva_linux.feature_maturity import render_feature_maturity_markdown  # noqa: E402
 
 OUTPUT_PATH = REPOSITORY_ROOT / "docs" / "feature-maturity.md"
 

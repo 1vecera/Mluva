@@ -4,7 +4,7 @@ Settings → **Workspace** controls editing actions, automatic copying, scrollin
 
 The [provider selection guide](provider-selection.md) covers provider → model choices, optional discovery, connection guidance and advanced endpoint/key-variable settings.
 
-The same settings live in `$XDG_CONFIG_HOME/voice-scribe/config.json`, normally `~/.config/voice-scribe/config.json`. Edit this JSON while Mluva is closed, then restart; it is not watched for external changes. Existing installations keep their previous settings, and omitted new keys receive the defaults below. The file is owner-only. It contains environment variable **names**, never API key values.
+The same settings live in `$XDG_CONFIG_HOME/mluva/config.json`, normally `~/.config/mluva/config.json`. Edit this JSON while Mluva is closed, then restart; it is not watched for external changes. Existing installations keep their previous settings, and omitted new keys receive the defaults below. The file is owner-only. It contains environment variable **names**, never API key values.
 
 ## Editable documents and clipboard behavior
 
