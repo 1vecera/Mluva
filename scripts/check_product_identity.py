@@ -8,18 +8,9 @@ from pathlib import Path
 
 RETIRED = re.compile(rb"voice[-_ ]?scribe", re.IGNORECASE)
 ROOT = Path(__file__).resolve().parents[1]
-ARCHIVES = (
-    "docs/promotion/assets/",
-    "docs/promotion/evidence/",
-    "docs/reviews/s27-459/",
-    "docs/verification/delight-launch/",
-)
 BOUNDARIES = {
     "linux/migrate_legacy.py",
     "linux/tests/test_legacy_migration.py",
-    "Sources/Services/LegacyMigration.swift",
-    "Tests/LegacyMigrationTests.swift",
-    "scripts/install-macos.sh",
     "scripts/check_product_identity.py",
     "docs/identity-migration.md",
 }
@@ -27,7 +18,7 @@ BOUNDARIES = {
 
 def scan(paths: list[Path], root: Path, source: bool) -> dict[str, list[str]]:
     """Classify paths without logging state, credential contents or captured transcripts."""
-    result: dict[str, list[str]] = {"violations": [], "migration_boundary": [], "archival_evidence": []}
+    result: dict[str, list[str]] = {"violations": [], "migration_boundary": []}
     for path in sorted(paths):
         relative = path.relative_to(root).as_posix()
         if path.is_symlink():
@@ -39,18 +30,8 @@ def scan(paths: list[Path], root: Path, source: bool) -> dict[str, list[str]]:
         if not RETIRED.search(relative.encode()) and not RETIRED.search(content):
             continue
         category = "violations"
-        if source and relative.startswith(ARCHIVES):
-            category = "archival_evidence"
-        elif source and relative in BOUNDARIES:
+        if source and relative in BOUNDARIES:
             category = "migration_boundary"
-        elif not source and relative.endswith("Mluva.app/Contents/MacOS/MluvaMac"):
-            # The sole shipped legacy reader is native first-launch migration.
-            # Permit its three exact storage literals, never an old target symbol.
-            residue = content
-            for literal in (b"com.voicescribe.mac", b"VoiceScribeMac", b"voiceScribe.", b"VoiceScribe"):
-                residue = residue.replace(literal + b"\x00", b"\x00")
-            if not RETIRED.search(residue):
-                category = "migration_boundary"
         result[category].append(relative)
     return result
 

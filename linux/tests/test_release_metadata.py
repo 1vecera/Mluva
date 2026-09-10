@@ -1,7 +1,6 @@
-"""Drift protection for cross-platform release and dependency metadata."""
+"""Drift protection for release and dependency metadata."""
 
 import hashlib
-import json
 import tomllib
 from pathlib import Path
 
@@ -11,22 +10,13 @@ APACHE_2_LICENSE_SHA256 = "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003
 
 
 def test_third_party_inventory_tracks_every_resolved_dependency() -> None:
-    """Keep public notices aligned with both reproducible dependency resolutions."""
+    """Keep public notices aligned with the reproducible runtime dependency resolution."""
     notices = (REPOSITORY_ROOT / "THIRD_PARTY_NOTICES.md").read_text(encoding="utf-8")
     with (REPOSITORY_ROOT / "linux" / "pyproject.toml").open("rb") as file:
         linux_manifest = tomllib.load(file)
-    swift_resolution = json.loads((REPOSITORY_ROOT / "Package.resolved").read_text(encoding="utf-8"))
-
     for requirement in linux_manifest["project"]["dependencies"]:
         name, version = requirement.split("==", maxsplit=1)
         assert f"| {name} | {version} |" in notices
-
-    for pin in swift_resolution["pins"]:
-        identity = pin["identity"]
-        state = pin["state"]
-        version = state.get("version") or state.get("branch") or state["revision"]
-        assert identity in notices
-        assert version in notices
 
 
 def test_release_tree_has_no_removed_shortcut_wrapper_dependency() -> None:
@@ -53,7 +43,7 @@ def test_public_surfaces_use_canonical_repository_url() -> None:
     public_surfaces = [
         REPOSITORY_ROOT / "README.md",
         REPOSITORY_ROOT / "SECURITY.md",
-        REPOSITORY_ROOT / "docs" / "launch-kit.md",
+        REPOSITORY_ROOT / "dev" / "plugin-README.md",
         REPOSITORY_ROOT / "linux" / "gnome-extension" / "recording-status@mluva.local" / "metadata.json",
         REPOSITORY_ROOT / "linux" / "resources" / "mluva-input@.service",
     ]

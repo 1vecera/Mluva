@@ -21,10 +21,18 @@ def test_manual_acceptance_baseline_is_explicit_and_conservative() -> None:
     """Keep only the stated working set above the experimental boundary."""
     verified = {capability.identifier for capability in capabilities_with_maturity(FeatureMaturity.VERIFIED)}
 
-    assert verified == {"dictation", "recording_controls", "history", "saved_styles"}
+    assert verified == {
+        "dictation",
+        "recording_controls",
+        "history",
+        "saved_styles",
+        "conversations",
+        "editable_documents",
+        "omarchy_widget",
+    }
     assert feature_capability("automatic_paste").maturity is FeatureMaturity.EXPERIMENTAL
-    assert "not reliable" in feature_capability("automatic_paste").summary
-    assert all(capability.maturity is FeatureMaturity.EXPERIMENTAL for capability in FEATURE_CAPABILITIES[4:])
+    assert "disabled by default" in feature_capability("automatic_paste").summary
+    assert FeatureMaturity.VERIFIED.label == "Verified on Omarchy"
 
 
 def test_capability_registry_is_unique_and_fails_closed() -> None:

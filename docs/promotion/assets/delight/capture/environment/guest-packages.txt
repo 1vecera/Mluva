@@ -1,8 +1,0 @@
-quickshell-0.2.1^git20260209.dacfa9d-5.fc44.aarch64
-gtk4-4.22.4-2.fc44.aarch64
-libadwaita-1.9.3-1.fc44.aarch64
-xcompmgr-1.1.10-4.fc44.aarch64
-xwininfo-1.1.6-4.fc44.aarch64
-adwaita-sans-fonts-50.0-1.fc44.noarch
-librsvg2-tools-2.62.3-1.fc44.aarch64
-ffmpeg-free-8.1.2-4.fc44.aarch64

@@ -39,7 +39,7 @@ class _Word:
 
 
 class VocabularySuggestionEngine:
-    """Match the macOS correction heuristic without learning automatically."""
+    """Suggest corrections for explicit review without learning automatically."""
 
     def suggestions(
         self,
@@ -150,7 +150,7 @@ def _phrase(text: str, words: tuple[_Word, ...]) -> str:
 
 
 def _suggestion_identifier(spoken: str, written: str, application_identifier: str | None) -> str:
-    """Build the same cross-platform review identity used by the macOS app."""
+    """Build a stable identity for a vocabulary suggestion."""
     return "\x1f".join(
         (
             application_identifier or "",

@@ -2,11 +2,11 @@
 
 # Feature maturity
 
-This matrix records the current manual acceptance on Fedora GNOME. **Verified on Linux** means the capability worked in that acceptance pass. **Experimental** means it is available for testing but has not yet earned that claim; automated tests and off-screen evidence do not promote a feature by themselves.
+Omarchy is the primary platform: the core dictation, rewrite and widget workflow is tested end to end and used daily by the maintainer. **Verified on Omarchy** identifies that working set. **Experimental** features remain available with the limits below. Fedora GNOME compatibility is retained, but has not been tested for several releases.
 
-Automatic paste is an explicit known limitation: it is not reliable in the current Fedora acceptance setup and is disabled by default. Mluva keeps completed text recoverable on the clipboard instead of claiming delivery succeeded.
+Automatic paste is an explicit known limitation: it depends on the desktop and target application and is disabled by default. Clipboard delivery is the standard workflow. Automated tests use isolated sessions; platform acceptance comes from use on the actual desktop.
 
-## Verified on Linux
+## Verified on Omarchy
 
 | Feature | Current boundary |
 | --- | --- |
@@ -14,16 +14,17 @@ Automatic paste is an explicit known limitation: it is not reliable in the curre
 | Recording setup controls | Language, microphone, function key, and recording behavior can be adjusted before capture. |
 | History | Completed captures remain visible and recoverable in the local History surface. |
 | Custom saved styles | A user-created writing style can be selected and applied to dictated text. |
+| Rewrite conversations | Originals, Quick Polish, Structured Note, follow-ups and conversation export form the daily Omarchy workspace. |
+| Editable documents and automatic copy | Originals and rewrites can be edited, saved and copied automatically in the Omarchy workflow. |
+| Omarchy recording widget | The themed widget, completed-note rewrites and opening the workspace are used daily on Omarchy. |
 
 ## Experimental
 
 | Feature | Current boundary |
 | --- | --- |
-| Rewrite conversations | Full transcripts, automatic titles, Quick Polish, Structured Note, follow-ups and conversation export have isolated tests; live acceptance is pending. |
-| Editable documents and automatic copy | Editable originals and rewrites, icon actions and configurable automatic copy still need acceptance. |
 | Independent rewrite and speech providers | LiteLLM transports and local Voxtype have controlled checks; cloud account compatibility needs acceptance. |
 | Live structured rewriting | Opt-in task, note, polish and custom drafts expose missing information; model quality needs acceptance. |
-| Automatic paste | Known limitation: insertion is disabled by default and is not reliable in the current Fedora acceptance setup; completed text remains on the clipboard. |
+| Automatic paste | Known limitation: insertion is disabled by default and depends on the target application and desktop; clipboard delivery is the standard workflow. |
 | Faithful cleanup | Optional Codex cleanup preserves the raw transcript and falls back safely, but still needs manual acceptance. |
 | Spoken structure | Punctuation, paragraph, and scratch-that commands still need manual acceptance. |
 | Command mode | Spoken editing instructions are previewed before delivery and still need manual acceptance. |
@@ -35,4 +36,3 @@ Automatic paste is an explicit known limitation: it is not reliable in the curre
 | Per-application memory and context | Remembered modes, styles, rules, and bounded context controls still need manual acceptance. |
 | Advanced recovery, retention, and Incognito | Retries, reprocessing, exports, retention policies, and Incognito still need manual acceptance. |
 | Diagnostics export | Privacy-safe timing diagnostics still need manual acceptance. |
-| macOS source preview | The source and deterministic tests are available, but the platform has no current accepted release binary. |

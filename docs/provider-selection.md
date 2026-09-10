@@ -26,19 +26,8 @@ A failed, empty or malformed listing leaves the current choice usable and explai
 
 The compact rewrite picker continues to select models for the current rewrite provider. Switching endpoints clears its old catalog and loading state. Compatible servers have no synthetic “Default” selection that could erase a required deployment alias.
 
-## Hermes research and adaptation
+## Troubleshooting
 
-Primary sources were inspected on 2026-09-09; source links pin Hermes commit `bf53ff00a7360826ec2c9e2949533160068a8fc8`.
+If discovery fails, keep the saved choice or enter the model ID manually. Confirm that the selected endpoint serves the right task and that its key variable is present in Mluva's process. Restart the app after changing credentials in the launch environment.
 
-- [Configuring models](https://hermes-agent.nousresearch.com/docs/user-guide/configuring-models) describes provider-first selection and progressive connection/auxiliary details. Mluva applies that organization to its two supported tasks.
-- [The model picker](https://github.com/NousResearch/hermes-agent/blob/bf53ff00a7360826ec2c9e2949533160068a8fc8/hermes_cli/auth_model_picker.py#L150) keeps the current choice prominent, deduplicates searchable choices and offers custom entry. Mluva keeps these behaviors without adding a large static cloud catalog.
-- [Custom provider setup](https://github.com/NousResearch/hermes-agent/blob/bf53ff00a7360826ec2c9e2949533160068a8fc8/hermes_cli/model_setup_flows_custom.py#L314) retains a saved model or accepts manual input when discovery fails. Mluva also treats a saved selection separately from discovery evidence.
-- [Endpoint model probing](https://github.com/NousResearch/hermes-agent/blob/bf53ff00a7360826ec2c9e2949533160068a8fc8/hermes_cli/models.py#L2120) bounds discovery and scopes credentialed requests. Mluva keeps its exact configured URL and refuses redirects, rather than probing or saving alternate endpoints.
-
-## Verification
-
-Run `make linux-test` and `OFFSCREEN_DISPLAY_NUMBER=191 make linux-provider-settings-test` from a prepared Linux checkout. Choose an unused explicit display for other concurrent runs. The provider target creates a fresh private X11, D-Bus, HOME and XDG session for each of six scenarios: the full settings flow, minimum 420×520, narrow 480×640, wide 1060×780, expanded connection details and discovery failure. It retains screenshots and JSON receipts under `tmp/provider-settings-smoke/`. The real preferences scroller must expose the rewrite controls and Apply at every viewport. The existing `OFFSCREEN_DISPLAY_NUMBER=191 make linux-text-target-test` separately covers cross-process AT-SPI insertion; run display-sharing targets sequentially.
-
-Deterministic checks cover config persistence, provider/model switching, independent HTTP catalogs, advertised capabilities, missing/manual models, malformed and oversized catalogs, redirects, credential-safe errors, native Fast selection, stale discovery, blocked saves, and dialog reopening. The GTK fixture uses the production application, a separate JSONL Codex fixture, loopback HTTP and a local inventory subprocess. It does not use a microphone or clipboard.
-
-These checks do not authenticate or run inference against real Codex, ElevenLabs or hosted compatible accounts. The local Voxtype inventory command was inspected on lenovo; the GTK test uses an isolated inventory fixture and does not establish Whisper quality. Xvfb does not establish live Wayland portals, global shortcuts or physical paste behavior. The macOS provider UI is unchanged.
+Provider transport and UI checks are documented in [Contributing](../CONTRIBUTING.md#verification). Compatible API and local Whisper routes remain Experimental; a successful catalog request does not establish recognition quality or account access.

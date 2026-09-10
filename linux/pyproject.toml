@@ -44,5 +44,6 @@ convention = "google"
 "mluva_linux/ui.py" = ["E402"]
 
 [tool.uv]
+environments = ["sys_platform == 'linux'"]
 exclude-newer = false
 exclude-newer-package = { ruff = "2026-08-08T00:00:00Z" }

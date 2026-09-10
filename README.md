@@ -1,14 +1,14 @@
 ![Mluva — Speak a rough idea. Shape it into useful text.](docs/assets/mluva-hero.svg)
 
-**Native dictation and rewriting for Linux. At home on Omarchy.**
+**Native dictation and rewriting for Omarchy.**
 
 Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install 1.0](#install)** · **[Watch the 55-second film ↗](https://1vecera.github.io/Mluva/#film)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.0.0)**
+**[Install](#install)** · **[Watch the 55-second film ↗](https://1vecera.github.io/Mluva/#film)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.0.0)**
 
 [![Watch Mluva in action — a 55-second introduction to dictation, live drafts and a workspace that follows your Omarchy theme](docs/promotion/assets/delight/opening-preview.png)](https://1vecera.github.io/Mluva/#film)
 
-<sub>Click the image to open the film with playback controls and captions. Native app footage, synthetic narration and edited timing; see the <a href="docs/promotion/README.md">media guide</a> for sources and capture details.</sub>
+<sub>Click the image to open the film with playback controls and captions. Native app footage, synthetic narration and edited timing; see the <a href="docs/promotion/README.md">media guide</a> for credits and demo disclosures.</sub>
 
 ## From a thought to a finished draft
 
@@ -28,28 +28,38 @@ Live rewrite is opt-in and Experimental. It marks missing information, preserves
 
 ## Install
 
-Mluva 1.0 is a **Linux source release with a per-user installer**. Install the [desktop dependencies](linux/README.md#supported-desktop-contract), then:
+Run the setup from a source checkout. On **Omarchy Quattro**, it installs the desktop dependencies, native application and shell plugin together. It shows the installation plan first; system packages may request your sudo password.
 
 ```sh
-git clone --branch v1.0.0 --depth 1 https://github.com/1vecera/Mluva.git mluva
+git clone --depth 1 https://github.com/1vecera/Mluva.git mluva
 cd mluva
-make linux-install
-mluva
+bash install.sh
 ```
 
-Prefer an archive? The [1.0 release](https://github.com/1vecera/Mluva/releases/tag/v1.0.0) includes a compact source package and SHA-256 checksum. Choose your [speech and rewrite providers](docs/provider-selection.md) and supply any required credentials through your secret manager. Local Whisper needs an installed model; cloud services need their own account or deployment.
+Launch **Mluva** from the application menu, then choose your [speech and rewrite providers](docs/provider-selection.md). Cloud providers need an account and credentials; local Whisper needs Voxtype and a downloaded model. Provider setup is separate from installing the app.
 
-**Upgrading from 0.x:** quit Mluva before installing. The installer migrates the old product identities and retains a private backup of settings, conversations, drafts and audio. Desktop permissions may need approval again. Read the [migration guide](docs/identity-migration.md) before upgrading a customized installation.
+### Install with an agent
 
-### On Omarchy
+Copy this prompt into your coding agent:
 
-After installing and starting Mluva, add the [community plugin](https://github.com/1vecera/omarchy-mluva) on Omarchy Quattro:
-
-```sh
-omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
+```text
+Install Mluva from https://github.com/1vecera/Mluva on this computer.
+Use the repository's install.sh to install desktop dependencies and the native
+app, including the mluva.dictation plugin on Omarchy Quattro. Inspect the setup
+script, then run it with --yes. Preserve existing settings, conversations and
+plugin customizations. If Mluva is running, ask me to quit it before upgrading.
+Help me configure speech and rewriting with my chosen providers, installing
+any required provider client and using existing credentials without revealing
+them. Tell me how to launch Mluva and approve its recording shortcuts.
 ```
 
-The floating widget shows five lines while you speak. Drag its status row to move it, or focus it and press **Super+T** on Omarchy to tile it. Floating mode keeps it above your other windows. The main app puts the recording light and timer in its title bar, leaving more space for your text. When you finish, rewrite, copy or open the note in the workspace. Hover, keyboard focus and active rewrites pause its configurable four-second dismissal. **Shift+F9** reopens the latest conversation when configured.
+**Other install paths:** `bash install.sh --app-only` installs the native app without changing plugins. Fedora GNOME uses the same setup command, with the compatibility limits below. For a staged install or preinstalled dependencies, see the [Linux guide](linux/README.md#install-for-the-current-user).
+
+**Upgrading:** quit Mluva, update the checkout with `git pull --ff-only`, and rerun `bash install.sh`. Existing plugin customizations are preserved; setup checks for conflicting changes before installing. If a later plugin operation fails, the native app remains installed and setup reports how to retry. Upgrades from 0.x migrate the old product identities and retain a private backup of settings, conversations, drafts and audio. See the [migration guide](docs/identity-migration.md) for customized installations.
+
+### The Omarchy widget
+
+The floating widget starts with five preview lines while you speak. Drag its status row to move it, or focus it and press **Super+T** on Omarchy to tile it. Floating mode keeps it above other windows; resizing gives the preview more room. The main app keeps the recording light and timer in its title bar. When you finish, rewrite, copy or open the note in the workspace. Hover, keyboard focus and active rewrites pause its configurable four-second dismissal. **Shift+F9** reopens the latest conversation when configured.
 
 ![The compact Omarchy widget with rewrite actions, Copy, Open and a countdown ring](docs/promotion/assets/widget-review.png)
 
@@ -57,13 +67,12 @@ Closing the main window keeps Mluva available; quit from the shell or applicatio
 
 ## Platform support
 
-| Platform | Release boundary |
+| Platform | Status |
 | --- | --- |
-| Fedora 44 · GNOME 50 · Wayland | Recording, transcription, recording setup, History and custom saved styles have been manually accepted. |
-| Omarchy · Hyprland · Quickshell | Theme integration, the widget and workspace are tested in isolation. Full live desktop acceptance remains pending. |
-| macOS 14+ | Swift source preview with Apple Speech and Google Cloud recognition. No signed, notarized public binary. |
+| **Omarchy · Hyprland · Quickshell** | **Primary, maintained platform.** The dictation, rewrite and widget workflow is tested end to end and used daily by the maintainer. |
+| Fedora · GNOME · Wayland | Compatibility is retained, but has not been tested for several releases. The last desktop acceptance used Fedora 44 and GNOME 50. |
 
-Version 1.0 establishes the Mluva identity and Linux source distribution. Conversation rewriting, generated titles, Meeting mode, Omarchy integration and advanced providers remain **Experimental** where indicated. Automatic insertion is off by default and is not reliable in the Fedora acceptance setup; the clipboard is the dependable delivery path. See the [capability matrix](docs/feature-maturity.md).
+Individual advanced features, including Live rewrite, Meeting mode and alternative provider routes, remain Experimental where indicated. Automatic insertion is off by default; clipboard delivery is the standard workflow. See the [feature status](docs/feature-maturity.md) and [desktop requirements](docs/linux-platform-profile.md).
 
 ## Your text and the cloud
 
@@ -75,13 +84,13 @@ See the [product contract](docs/product-contract.md) for retention, recovery and
 
 ## Development
 
-Linux uses **Python, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. macOS uses Swift. Start with the [code map and focused checks](CONTRIBUTING.md#code-map), [Linux guide](linux/README.md) or [macOS source guide](docs/macos-development.md).
+Mluva uses **Python, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. Start with the [code map and focused checks](CONTRIBUTING.md#code-map) or [Linux guide](linux/README.md).
 
 ```sh
 make linux-test linux-shortcut-test
-shellcheck linux/*.sh linux/tests/*.sh scripts/*.sh linux/mluva-shell
+shellcheck install.sh linux/*.sh linux/tests/*.sh dev/*.sh linux/mluva-shell
 ```
 
-Use the [isolated development runners](dev/README.md) for UI verification and reproducible media. Bug reports should include the platform, reproduction steps and expected behavior. Keep private recordings, transcripts and credentials out of public issues.
+Use the [isolated development runner](dev/README.md) for UI verification. Bug reports should include the platform, reproduction steps and expected behavior. Keep private recordings, transcripts and credentials out of public issues.
 
 Mluva means *speech* or *manner of speaking* in Czech, pronounced roughly “MLOO-vah.” **[Apache License 2.0](LICENSE)** · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Changelog](CHANGELOG.md)

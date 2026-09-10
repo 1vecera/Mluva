@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Start one X11 application below a virtual display and private session bus.
-# Based on Daniel's run-offscreen-linux-verification helper; traps own their exact child PIDs.
+# Isolate display, session bus and state; traps own their exact child PIDs.
 # shellcheck disable=SC2329
 set -euo pipefail
 
@@ -131,7 +131,7 @@ if [[ "${1:-}" == "--offscreen-private-session" ]]; then
 fi
 
 usage() {
-    echo "Usage: run_isolated_x11.sh <[cwd]/tmp/evidence-dir> -- <command> [args...]" >&2
+    echo "Usage: dev/run-isolated.sh <[cwd]/tmp/evidence-dir> -- <command> [args...]" >&2
 }
 
 if (( $# < 3 )) || [[ "$2" != "--" ]]; then

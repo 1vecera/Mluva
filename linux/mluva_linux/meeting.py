@@ -531,7 +531,7 @@ def _sentence_segments(transcript: str) -> list[str]:
 
 
 def _encode_meeting(meeting: MeetingRecord) -> dict[str, object]:
-    """Encode macOS-compatible Meeting fields plus explicit Linux retry metadata."""
+    """Encode portable Meeting fields with explicit retry metadata."""
     return {
         "id": meeting.identifier,
         "title": meeting.title,

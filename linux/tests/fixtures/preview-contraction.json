@@ -1,5 +1,5 @@
 {
-  "source": "docs/promotion/assets/unreleased-live/capture.json",
+  "source": "Regression fixture: a provisional speech revision shortens the visible preview.",
   "source_sha256": "7754ffcff2747f6c260df6cd02b0e67bebcb1e99a080222dc70571696f697230",
   "description": "Recorded display-only snapshots around the first Scribe commit. Replayed offline at their measured relative spacing; not a new provider run.",
   "events": [

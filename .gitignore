@@ -1,17 +1,8 @@
-.build/
-.swiftpm/
-*.xcodeproj/
-*.xcworkspace/
-DerivedData/
-.DS_Store
 build/
-Mluva.app/
 tmp/
 linux/.venv/
 __pycache__/
 *.pyc
 .claude/
-_bmad/
-_bmad-output/
 .agents/skills/
 .ai/

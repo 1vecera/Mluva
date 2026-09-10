@@ -1,49 +1,12 @@
-.PHONY: build test run setup-signing release distribution ci-package open install clean smoke linux-setup linux-test linux-feature-maturity linux-feature-maturity-check linux-shortcut-test linux-overlay-test linux-text-target-test linux-conversation-test linux-live-rewrite-test linux-run linux-install linux-uninstall linux-input-helper-install linux-input-helper-status linux-input-helper-remove linux-recording-overlay-install linux-recording-overlay-status linux-recording-overlay-remove
+.DEFAULT_GOAL := linux-setup
+.PHONY: test run install linux-setup linux-test linux-feature-maturity linux-feature-maturity-check linux-shortcut-test linux-overlay-test linux-text-target-test linux-conversation-test linux-live-rewrite-test linux-run linux-install linux-uninstall linux-input-helper-install linux-input-helper-status linux-input-helper-remove linux-recording-overlay-install linux-recording-overlay-status linux-recording-overlay-remove
 
-# Debug build
-build:
-	swift build
+test: linux-test
 
-# Run all tests
-test:
-	swift test
+run: linux-run
 
-# Run debug binary
-run: build
-	.build/debug/MluvaMac
-
-# Verify or guide creation of the stable, local-only signing identity
-setup-signing:
-	scripts/create-local-signing-identity.sh
-
-# Release build + locally stable .app bundle
-release:
-	SIGNING_MODE=local scripts/build.sh
-
-# Developer ID release, notarized and stapled for distribution
-distribution:
-	SIGNING_MODE=distribution scripts/build.sh
-
-# Ad-hoc bundle used only to validate packaging on CI runners
-ci-package:
-	CI=true SIGNING_MODE=ci scripts/build.sh
-
-# Open the app
-open: release
-	open "build/Mluva.app"
-
-# Install to /Applications
-install: release
-	bash scripts/install-macos.sh
-
-# Full smoke test: unit tests + build + launch + verify + shutdown
-smoke:
-	@bash scripts/smoke-test.sh
-
-# Clean build artifacts
-clean:
-	swift package clean
-	rm -rf build/ .build/
+install:
+	bash install.sh
 
 linux-setup:
 	@cd linux && if ! test -x .venv/bin/python \
@@ -68,6 +31,15 @@ linux-command-test: linux-setup
 	bash dev/run-isolated.sh tmp/command-palette -- env PYTHONPATH=linux:linux/tests \
 		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
 		uv run --project linux --locked python linux/tests/command_palette_smoke.py
+
+.PHONY: linux-omarchy-test
+linux-omarchy-test: linux-setup
+	@mkdir -p tmp/omarchy-widget
+	env -i PATH="$$PATH" HOME="$$HOME" USER="$$USER" LANG=C.UTF-8 \
+		OFFSCREEN_ENABLE_ATSPI=1 OFFSCREEN_DISPLAY_NUMBER="$${OFFSCREEN_DISPLAY_NUMBER:-}" \
+		bash dev/run-isolated.sh "$$(mktemp -d tmp/omarchy-widget/run.XXXXXX)" -- \
+		env PYTHONPATH=linux GTK_A11Y=none GSK_RENDERER=cairo \
+		uv run --project linux --locked python linux/tests/shell_overlay_smoke.py
 
 linux-feature-maturity: linux-setup
 	cd linux && uv run --locked python ../scripts/render_feature_maturity.py --write
