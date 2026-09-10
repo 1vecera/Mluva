@@ -2,6 +2,17 @@
 
 This file records user-visible Mluva releases. Linux is the first supported distribution target; macOS entries describe a source preview until a signed, notarized, updateable binary is independently verified.
 
+## 1.0.0 — 2026-09-10
+
+- Established Mluva as the sole product identity across Linux and macOS source, packages, commands, desktop integrations and storage. Existing installations migrate with ownership checks, private backups and rollback. Desktop permissions may need approval again; see the [upgrade guide](docs/identity-migration.md).
+- Made speech and rewrite selection easier to configure, with provider availability, model discovery, connection guidance and progressive endpoint settings.
+- Made Live rewrite respond to useful committed speech sooner, retained one compact template control, and kept recording motion and the Live panels steady. Actual response time still depends on the provider and model.
+- Added a searchable Ctrl+P command panel and subtle Markdown presentation while preserving editable source, copy, save and follow-up behavior.
+- Published the finished 55-second launch film, browser playback with captions, and a clearer repository homepage and installation path.
+- Simplified command ownership and contributor navigation, shared local HTTP test fixtures, and added focused checks without removing test coverage.
+
+This is a Linux source release with a per-user installer. The 1.0 version does not promote Experimental features or claim full Omarchy/Hyprland acceptance. macOS remains a source preview; there is no notarized public app download.
+
 ## 0.3.0 — 2026-09-09
 
 - Made original documents and completed rewrites editable, with compact Copy and Save icons, Ctrl+S, and a separate raw recognition record for recovery. Saved edits participate in follow-ups, search and export.

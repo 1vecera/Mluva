@@ -13,7 +13,7 @@ def validate_host(expected: str, runtime: Path) -> None:
         profile = tomllib.loads(Path("/capture/mac-capture.toml").read_text())
         if profile["guest_hostname"] != expected or Path.home() != Path("/home/developer"):
             raise RuntimeError("The prepared guest profile or home changed")
-        if runtime != Path.home() / ".local/share/voice-scribe/app":
+        if runtime != Path.home() / ".local/share/mluva/app":
             raise RuntimeError("Capture the guest's own installed payload")
 
 

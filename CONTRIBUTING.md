@@ -12,7 +12,7 @@ Run `make linux-setup` to prepare the locked Python environment with distributio
 
 ## Code map
 
-Bare Python filenames refer to [linux/voice_scribe_linux](linux/voice_scribe_linux); macOS service/model/view paths and app entrypoints are under [Sources](Sources). Tooling paths start at the repository root. Start at the feature's logic, then follow its calls into `app.py` for lifecycle wiring. GTK callbacks stay on the main thread; provider and audio work runs outside it.
+Bare Python filenames refer to [linux/mluva_linux](linux/mluva_linux); macOS service/model/view paths and app entrypoints are under [Sources](Sources). Tooling paths start at the repository root. Start at the feature's logic, then follow its calls into `app.py` for lifecycle wiring. GTK callbacks stay on the main thread; provider and audio work runs outside it.
 
 | Change | Linux owner | macOS owner |
 | --- | --- | --- |

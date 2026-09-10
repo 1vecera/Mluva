@@ -23,7 +23,7 @@ def capture_guest(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path
             {
                 "host": "claw-mini-capture",
                 "source_revision": "6022b05e4258768e7aa70305febf7dad0835b060",
-                "installed_runtime": "/home/developer/.local/share/voice-scribe/app",
+                "installed_runtime": "/home/developer/.local/share/mluva/app",
             }
         )
     )

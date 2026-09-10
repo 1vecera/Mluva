@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Mluva brings dictation, editable rewrites and searchable history into a quiet native Linux workspace. Watch the 55-second launch film.">
+  <meta name="theme-color" content="#171c24">
+  <title>Mluva — Speak freely. Shape it into useful text.</title>
+  <link rel="icon" href="assets/mluva-mark.svg" type="image/svg+xml">
+  <style>
+    :root { color-scheme: dark; --bg: #171c24; --surface: #222a35; --text: #eceff4; --muted: #b0bac9; --accent: #88c0d0; --line: #35404e; }
+    * { box-sizing: border-box; }
+    html { scroll-padding-top: 24px; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); text-underline-offset: 4px; }
+    a:hover { color: white; }
+    a:focus-visible, video:focus-visible { outline: 3px solid var(--accent); outline-offset: 5px; }
+    .skip { position: absolute; top: -70px; left: 16px; padding: 8px 16px; background: var(--surface); z-index: 2; }
+    .skip:focus { top: 12px; }
+    .wrap { width: min(1120px, calc(100% - 48px)); margin-inline: auto; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 32px; border-bottom: 1px solid var(--line); }
+    .brand img { display: block; width: 140px; height: auto; }
+    nav { display: flex; gap: 28px; }
+    nav a { font-size: 14px; text-decoration: none; color: var(--muted); }
+    .intro { max-width: 780px; padding-block: 64px 36px; }
+    .eyebrow { color: var(--accent); font-size: 13px; font-weight: 650; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 18px; }
+    h1 { font-size: clamp(36px, 5.3vw, 64px); line-height: 1.09; font-weight: 650; letter-spacing: -.045em; margin: 0 0 24px; text-wrap: balance; }
+    .lead { max-width: 650px; font-size: 19px; color: var(--muted); margin: 0; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; margin-top: 28px; }
+    .button { padding: 11px 22px; border-radius: 7px; background: var(--accent); color: #17232b; font-size: 15px; font-weight: 650; text-decoration: none; }
+    .button:hover { background: #a3d2de; color: #17232b; }
+    .actions > a:not(.button) { font-size: 15px; }
+    figure { margin: 0; }
+    video { display: block; width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--line); border-radius: 10px; background: #11151b; }
+    figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; column-gap: 24px; row-gap: 8px; padding-top: 14px; color: var(--muted); font-size: 13px; }
+    figcaption a { color: var(--muted); }
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; padding-block: 56px 40px; }
+    h2 { font-size: 20px; letter-spacing: -.02em; margin: 0 0 10px; }
+    .features p, .support { font-size: 15px; color: var(--muted); margin: 0; }
+    .support { max-width: 850px; padding-bottom: 40px; }
+    footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-block: 26px 32px; color: var(--muted); font-size: 13px; }
+    footer a { color: var(--muted); }
+    @media (max-width: 640px) {
+      .wrap { width: calc(100% - 32px); }
+      header { padding-block: 22px; gap: 16px; }
+      .brand img { width: 110px; }
+      nav { gap: 18px; }
+      .intro { padding-block: 40px 30px; }
+      .lead { font-size: 17px; }
+      .features { grid-template-columns: 1fr; gap: 26px; padding-block: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#film">Skip to the film</a>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="https://github.com/1vecera/Mluva" aria-label="Mluva on GitHub"><img src="assets/mluva-lockup.svg" alt="Mluva" width="560" height="180"></a>
+      <nav aria-label="Main navigation"><a href="https://github.com/1vecera/Mluva#install">Install</a><a href="https://github.com/1vecera/Mluva">GitHub ↗</a></nav>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="title">
+        <p class="eyebrow">Mluva 1.0 · Native Linux app</p>
+        <h1 id="title">Speak a rough idea.<br>Shape it into useful text.</h1>
+        <p class="lead">Dictation, editable rewrites and searchable history in a quiet workspace. Built to feel at home on Omarchy.</p>
+        <div class="actions"><a class="button" href="https://github.com/1vecera/Mluva#install">Install Mluva 1.0</a><a href="https://github.com/1vecera/Mluva/blob/main/docs/provider-selection.md">Choose your providers</a></div>
+      </section>
+      <figure id="film" aria-label="Mluva launch film">
+        <video controls playsinline preload="metadata" poster="promotion/assets/delight/opening-preview.png" aria-label="Mluva launch film, 55 seconds">
+          <source src="promotion/assets/delight/mluva-delight-launch-web.mp4" type="video/mp4">
+          <track kind="captions" src="promotion/assets/delight/mluva-delight-launch.vtt" srclang="en" label="English">
+          Your browser does not support embedded video. <a href="promotion/assets/delight/mluva-delight-launch-web.mp4">Open the film directly.</a>
+        </video>
+        <figcaption><span>55 seconds · Sound on · English captions available</span><span><a href="promotion/assets/delight/mluva-delight-launch-web.mp4" download>Download film</a> · <a href="https://github.com/1vecera/Mluva/blob/main/docs/promotion/README.md">Sources &amp; capture notes</a></span></figcaption>
+      </figure>
+      <section class="features" aria-label="What Mluva does">
+        <div><h2>Catch the thought.</h2><p>Dictate with F9 or start with pasted text. Keep the original while you turn the idea into something useful.</p></div>
+        <div><h2>Give it shape.</h2><p>Polish, structure or use your own instruction. Opt into Live rewrite for a draft that takes shape as speech arrives.</p></div>
+        <div><h2>Make it yours.</h2><p>Edit and save. Search your history, export your notes, and choose speech and rewrite providers independently.</p></div>
+      </section>
+      <p class="support">Linux source release with a per-user installer. Advanced features and Omarchy integration remain Experimental; macOS is a source preview. <a href="https://github.com/1vecera/Mluva#platform-support">Platform support</a> · <a href="https://github.com/1vecera/Mluva/blob/main/docs/identity-migration.md">Upgrading from 0.x</a></p>
+    </main>
+    <footer><span>Mluva means <em>speech</em> in Czech.</span><span><a href="https://github.com/1vecera/Mluva/releases/tag/v1.0.0">Release notes</a> · <a href="https://github.com/1vecera/Mluva/blob/main/LICENSE">Apache 2.0</a></span></footer>
+  </div>
+</body>
+</html>

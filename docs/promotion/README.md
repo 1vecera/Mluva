@@ -1,8 +1,8 @@
 # Mluva launch film
 
-[Watch the 55-second film](assets/delight/mluva-delight-launch.mp4) · [Captions](assets/delight/mluva-delight-launch.srt) · [Edit plan](assets/delight/launch.plan.json) · [Media QA](assets/delight/mluva-delight-launch.qa.json) · [Visual review](assets/delight/qa/review.json) · [Capture instructions](../../dev/README.md#short-launch-film)
+[Watch the 55-second film](https://1vecera.github.io/Mluva/#film) · [Captions](assets/delight/mluva-delight-launch.srt) · [Edit plan](assets/delight/launch.plan.json) · [Media QA](assets/delight/mluva-delight-launch.qa.json) · [Visual review](assets/delight/qa/review.json) · [Capture instructions](../../dev/README.md#short-launch-film)
 
-[![Mluva: the most delightful dictation app for Omarchy](assets/delight/opening-preview.png)](assets/delight/mluva-delight-launch.mp4)
+[![Mluva: the most delightful dictation app for Omarchy](assets/delight/opening-preview.png)](https://1vecera.github.io/Mluva/#film)
 
 The completed film is **55 seconds, 1920 × 1080, 60 fps**, with stereo AAC audio and optional word-aligned captions. It uses the selected Mluva lockup, original animated mountain/eclipse scenery and **“The most delightful dictation app for Omarchy.”** The desktop opens in Daniel’s exact Nord palette and black-moon background.
 
@@ -20,6 +20,10 @@ The completed film is **55 seconds, 1920 × 1080, 60 fps**, with stereo AAC audi
 | 50–55 | Return to Mluva | Original scenery, software-rendered logo/type |
 
 The [plan](assets/delight/launch.plan.json) binds every source offset, speed factor, camera move, reveal and narration cut. The [edit receipt](assets/delight/mluva-delight-launch.edit.json) binds the plan, inputs, font, composer and output by SHA-256. Most action boundaries use direct cuts; the opening and closing use short reveals.
+
+## Browser playback
+
+The [playback page](https://1vecera.github.io/Mluva/#film) serves the complete film with native controls and English WebVTT captions. Its web MP4 preserves the 55-second, 1080p60 edit and original AAC audio, with H.264 compression and fast-start metadata for streaming. The [original master](assets/delight/mluva-delight-launch.mp4), edit receipt and QA remain unchanged. GitHub repository file pages do not provide a player for these MP4 files.
 
 ## Installed capture and source boundaries
 

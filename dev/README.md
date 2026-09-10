@@ -4,22 +4,24 @@ The completed [55-second launch film](../docs/promotion/README.md) uses the froz
 
 ## Short launch film
 
-The film runtime is merged main `6022b05e4258768e7aa70305febf7dad0835b060`. Keep its Linux tree unchanged. The Mac route reuses the prepared `mluva-film` ARM64 container on Docker context `colima`, with hostname `claw-mini-capture`, label `dev.mluva.capture-profile=claw-mini-film` and volume `mluva-film-home`. Both repository case spellings are mounted, so resolve the prepared worktree with `pwd -P` and always pass it as the guest working directory. The handoff under `/Users/openclaw/code/Mluva/tmp/mluva-launch-handoff/` owns local configuration and exact asset provenance; it is not a portable full-Omarchy image.
+The delivered film used runtime `6022b05e4258768e7aa70305febf7dad0835b060`; its exact historical harnesses remain with the capture assets. Current tooling follows the Mluva 1.0 identities. For a new take, commit and install the selected runtime and pass that exact revision to the verifier; do not reuse a historical installation receipt after an upgrade. The Mac route reuses the prepared `mluva-film` ARM64 container on Docker context `colima`, with hostname `claw-mini-capture`, label `dev.mluva.capture-profile=claw-mini-film` and volume `mluva-film-home`. Both repository case spellings are mounted, so resolve the prepared worktree with `pwd -P` and always pass it as the guest working directory. The handoff under `/Users/openclaw/code/Mluva/tmp/mluva-launch-handoff/` owns local configuration and exact asset provenance; it is not a portable full-Omarchy image.
 
 The guest has GTK/libadwaita, Omarchy 4.0.2 QML/theme assets, Quickshell 0.2.1, private X11/PipeWire dependencies, xcompmgr 1.1.10, Adwaita Sans, librsvg and FFmpeg with OpenH264/AAC. Codex 0.154.0 is available as the native ARM64 binary. The native preflight and actual encoding passed at 1920 × 1080, 60 fps requested, pixel ratio 1. No full VM or Quickshell upgrade was needed. Other containers and the host app-server remain running.
 
-Install into the guest’s own home only after verifying the frozen Linux tree, then probe the actual installed launcher from outside the source checkout:
+For a separately authorized new capture, install the selected committed runtime into the guest’s own home, then probe its launcher from outside the source checkout:
 
 ```sh
 mluva_worktree="$(pwd -P)"
-git diff --exit-code 6022b05e4258768e7aa70305febf7dad0835b060 -- linux
+mluva_revision="$(git rev-parse HEAD)"
+git diff --exit-code "$mluva_revision" -- linux
 
 docker --context colima exec --workdir "$mluva_worktree" mluva-film \
   git config --global --add safe.directory "$mluva_worktree"
 docker --context colima exec --workdir "$mluva_worktree" mluva-film \
   bash linux/install.sh
 docker --context colima exec --workdir "$mluva_worktree" mluva-film \
-  uv run --no-project dev/verify_capture_install.py tmp/delight-film/installation-next
+  uv run --no-project dev/verify_capture_install.py tmp/delight-film/installation-next \
+  --runtime-revision "$mluva_revision"
 ```
 
 `verify_capture_install.py` validates the guest profile, source tree, launcher template, installed interpreter/module, 60 payload files and icon. It records the actual launcher command, private working directory and startup screenshot in `installation.json`. This credential-free startup has the expected missing-credential setup banner. Both capture routes independently recheck the supplied guest receipt, installed files, dependencies and icon before/after recording; documentation and media commits may differ while the Linux source tree stays identical. They execute the installed interpreter directly without installing or syncing dependencies during a take.

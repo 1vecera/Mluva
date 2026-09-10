@@ -1,34 +1,47 @@
 ![Mluva — Speak a rough idea. Shape it into useful text.](docs/assets/mluva-hero.svg)
 
-**The most delightful dictation app for Omarchy.**
+**Native dictation and rewriting for Linux. At home on Omarchy.**
 
-Speak a rough idea. Shape it into useful text. Keep the original. Mluva brings dictation, rewriting and searchable history into a native workspace that follows your Omarchy theme. Paste existing text to polish it, or enable **Live rewrite** to build a task spec or structured note while you speak.
+Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install on Linux](linux/README.md#supported-desktop-contract)** · **[Omarchy plugin](https://github.com/1vecera/omarchy-mluva)** · **[Watch the 55-second film](docs/promotion/assets/delight/mluva-delight-launch.mp4)** · **[Features and limits](docs/feature-story.md)** · **[Contribute](#development)**
+**[Install 1.0](#install)** · **[Watch the 55-second film ↗](https://1vecera.github.io/Mluva/#film)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.0.0)**
 
-![Mluva v0.3.0 transcribing JFK's public-domain Rice University speech on Omarchy](docs/promotion/assets/workspace-dark.png)
+[![Watch Mluva in action — a 55-second introduction to dictation, live drafts and a workspace that follows your Omarchy theme](docs/promotion/assets/delight/opening-preview.png)](https://1vecera.github.io/Mluva/#film)
 
-<sub>Recorded on Omarchy with the Nord palette. Capture versions, provider recordings and the example-text feature walkthrough are distinguished in the <a href="docs/promotion/README.md">media kit and provenance</a>.</sub>
+<sub>Click the image to open the film with playback controls and captions. Native app footage, synthetic narration and edited timing; see the <a href="docs/promotion/README.md">media guide</a> for sources and capture details.</sub>
 
 ## From a thought to a finished draft
 
-| You want to… | Mluva gives you… |
+| Start with… | Make it useful |
 | --- | --- |
-| Get an idea down quickly | F9 dictation and a completed result on the clipboard; Scribe streams words as you speak. |
-| Polish text you already have | Paste it into a new conversation, then use **Polish**, **Structure** or your own instruction. |
-| Make sense of a long note | **Structure** creates a summary and organized points. |
-| Keep your own voice | Editable originals and rewrites, custom instructions, follow-ups and saved prompts. |
-| Keep the interface out of your way | Stable Live panes, quiet recording motion, restrained Markdown and a searchable **Ctrl+P** command panel. |
-| See what is missing while speaking | **Live rewrite** fills a task spec, structured note or custom template with editable drafts. |
-| Find it later | Automatic conversation titles and search across originals, rewrites and instructions. |
-| Take the result elsewhere | Copy the text, or export a saved conversation from History as Markdown or JSON. |
-| Choose where processing happens | Select speech and rewrite providers independently, including local Whisper and compatible API deployments. |
+| A rough idea | Dictate with F9. Scribe streams words while you speak; completed text copies to the clipboard. |
+| Text you already have | Paste into a conversation, then choose **Polish**, **Structure** or your own instruction. |
+| A note that needs shape | Enable **Live rewrite** to build a task spec, structured note or custom draft as speech arrives. |
+| A draft worth keeping | Edit originals and rewrites, save with **Ctrl+S**, and keep raw recognition available separately. |
+| Work to return to | Find conversations through History, reuse saved prompts, and export Markdown or JSON. |
 
-Live rewrite is opt-in and Experimental. Stop reconciles the provisional draft with the committed transcript before a successful final rewrite can copy automatically. Delight is our design direction; see the [source-backed feature guide](docs/feature-story.md) for behavior and acceptance limits.
+**A calm place to work.** Stable Live panes, restrained recording motion and subtle Markdown keep long notes readable. **Ctrl+P** finds actions; **Ctrl+Enter** sends a rewrite. Copy and scrolling preferences are yours to change.
 
-On **Omarchy**, a translucent widget shows five lines while you speak, easing upward as the current line fills. When you finish, rewrite directly from the widget. Hovering, keyboard focus, menus and active rewrites pause its four-second default dismissal. **Open** expands the note into the editable workspace; **Shift+F9** reopens the latest conversation when configured.
+**Your choice of engines.** Select speech and rewriting independently: ElevenLabs Scribe, local Voxtype/Whisper or a compatible transcription API; native Codex app-server or a LiteLLM/OpenAI-compatible service for rewriting. Availability, credentials and models are configured in Settings.
 
-![Omarchy review widget with rewrite actions, Copy, Open and a countdown ring](docs/promotion/assets/widget-review.png)
+Live rewrite is opt-in and Experimental. It marks missing information, preserves manual edits and reconciles the draft with the final transcript when recording stops. [Explore the features and their limits →](docs/feature-story.md)
+
+## Install
+
+Mluva 1.0 is a **Linux source release with a per-user installer**. Install the [desktop dependencies](linux/README.md#supported-desktop-contract), then:
+
+```sh
+git clone --branch v1.0.0 --depth 1 https://github.com/1vecera/Mluva.git mluva
+cd mluva
+make linux-install
+mluva
+```
+
+Prefer an archive? The [1.0 release](https://github.com/1vecera/Mluva/releases/tag/v1.0.0) includes a compact source package and SHA-256 checksum. Choose your [speech and rewrite providers](docs/provider-selection.md) and supply any required credentials through your secret manager. Local Whisper needs an installed model; cloud services need their own account or deployment.
+
+**Upgrading from 0.x:** quit Mluva before installing. The installer migrates the old product identities and retains a private backup of settings, conversations, drafts and audio. Desktop permissions may need approval again. Read the [migration guide](docs/identity-migration.md) before upgrading a customized installation.
+
+### On Omarchy
 
 After installing and starting Mluva, add the [community plugin](https://github.com/1vecera/omarchy-mluva) on Omarchy Quattro:
 
@@ -36,59 +49,39 @@ After installing and starting Mluva, add the [community plugin](https://github.c
 omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
 ```
 
-The [integration guide](docs/omarchy-integration.md) covers dependencies, existing manual installs and removal. [Videos, screenshots and launch copy](docs/promotion/README.md) include their source audio and capture provenance. The integration remains Experimental.
+The floating widget shows five lines while you speak. When you finish, rewrite, copy or open the note in the workspace. Hover, keyboard focus and active rewrites pause its configurable four-second dismissal. **Shift+F9** reopens the latest conversation when configured.
 
-Closing the main window keeps Mluva available. Open the shell menu or application menu to quit.
+![The compact Omarchy widget with rewrite actions, Copy, Open and a countdown ring](docs/promotion/assets/widget-review.png)
 
-## Try it on Linux
+Closing the main window keeps Mluva available; quit from the shell or application menu. The [Omarchy guide](docs/omarchy-integration.md) covers dependencies, existing manual installs and removal.
 
-Install the [Linux dependencies](linux/README.md#supported-desktop-contract), choose a [speech and rewrite provider](docs/provider-selection.md), and provide any required credentials through your secret manager. The defaults are ElevenLabs Scribe and an authenticated Codex app-server. Local Voxtype/Whisper needs an installed model; compatible APIs need separately configured transcription and chat deployments. Then:
+## Platform support
 
-```bash
-git clone https://github.com/1vecera/Mluva.git mluva
-cd mluva
-make linux-install
-mluva
-```
-
-The installer installs for your user. Dictation copies completed text automatically. **Ctrl+P** opens searchable actions; **Ctrl+Enter** sends a custom rewrite. Completed rewrites copy automatically too. Edit either document directly, then Save or press Ctrl+S. Markdown output uses subtle headings and emphasis; focusing it reveals the source for editing, and Copy/Save retain the formatting. Change copying and icon visibility in Settings → Workspace. See the [Linux guide](linux/README.md) for microphone selection, language, shortcuts, saved styles and recovery.
-
-## Where things stand
-
-Mluva is an early open-source project. The status is specific to each capability:
-
-| Platform | Current boundary |
+| Platform | Release boundary |
 | --- | --- |
 | Fedora 44 · GNOME 50 · Wayland | Recording, transcription, recording setup, History and custom saved styles have been manually accepted. |
-| Omarchy · Hyprland · Quickshell | Theme integration, streaming review controls and the compact workspace are implemented and tested in isolation; live desktop acceptance remains pending. |
-| macOS 14+ | Swift source preview with Apple Speech and Google Cloud recognition. No current signed, notarized public binary. |
+| Omarchy · Hyprland · Quickshell | Theme integration, the widget and workspace are tested in isolation. Full live desktop acceptance remains pending. |
+| macOS 14+ | Swift source preview with Apple Speech and Google Cloud recognition. No signed, notarized public binary. |
 
-Conversation rewriting, generated titles, Meeting mode and other advanced surfaces remain **Experimental**. Automatic insertion is disabled by default and is not yet reliable in the Fedora acceptance setup; the clipboard is the dependable delivery path. The [capability matrix](docs/feature-maturity.md) tracks these boundaries.
+Version 1.0 establishes the Mluva identity and Linux source distribution. Conversation rewriting, generated titles, Meeting mode, Omarchy integration and advanced providers remain **Experimental** where indicated. Automatic insertion is off by default and is not reliable in the Fedora acceptance setup; the clipboard is the dependable delivery path. See the [capability matrix](docs/feature-maturity.md).
 
 ## Your text and the cloud
 
-- **Recognition on Linux:** choose cloud ElevenLabs Scribe, local Voxtype/Whisper, or an audio-transcription deployment through a LiteLLM-compatible endpoint.
-- **Rewriting and titles:** text goes through your authenticated Codex app-server or configured LiteLLM-compatible endpoint; the selected provider determines where inference runs. Automatic titles use up to 6,000 characters from each new conversation; disable them in Settings to keep local text labels. Existing history is not sent in bulk.
-- **Local history:** originals, completed rewrites and titles stay together in a local SQLite database. You can rename, export or delete them. A manual title takes precedence over an automatic one.
-- **Incognito:** Mluva saves neither history nor recovery audio and disables conversation rewriting and generated titles. Recognition still uses your selected speech provider; cancellation cannot recall audio already sent to a cloud service.
+- **Speech and rewriting:** your selected providers determine where processing happens. Local Whisper keeps recognition local; cloud speech sends audio to that provider. Rewriting sends the selected text to your rewrite provider.
+- **Local history:** originals, completed rewrites and titles stay together in a local SQLite database. Rename, export or delete conversations. Automatic titles send up to 6,000 characters from each new conversation to the rewrite provider; disable them in Settings to use local labels.
+- **Incognito:** no saved history or recovery audio, conversation rewriting or generated titles. Recognition still uses your selected speech provider; cancellation cannot recall audio already sent.
 
-Audio retention, recovery, Command previews and other details are documented in the [product contract](docs/product-contract.md) and [Linux guide](linux/README.md).
+See the [product contract](docs/product-contract.md) for retention, recovery and privacy details.
 
 ## Development
 
-Linux uses **Python, GTK 4, Libadwaita and PipeWire**, with a separate QML plugin for Omarchy. macOS uses Swift. No webview is required for the conversation workspace.
+Linux uses **Python, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. macOS uses Swift. Start with the [code map and focused checks](CONTRIBUTING.md#code-map), [Linux guide](linux/README.md) or [macOS source guide](docs/macos-development.md).
 
-Start with the [code map and focused checks](CONTRIBUTING.md#code-map) to find the owner of a feature. `make linux-test-fast` gives quick text/editing feedback; use the complete gates below at handoff.
-
-The [capture and development guide](dev/README.md) describes local checks and reproducible screenshots/videos on a private desktop. Promotion captures use the real Omarchy installation and theme.
-
-```bash
+```sh
 make linux-test linux-shortcut-test
 shellcheck linux/*.sh linux/tests/*.sh scripts/*.sh linux/mluva-shell
 ```
 
-The [workspace contract](docs/conversation-workspace.md) and [Omarchy guide](docs/omarchy-integration.md#verification) describe private-display integration tests, synthetic model subprocesses and the remaining manual checks. See the [UI design notes](docs/ui-design.md) for the decisions behind the layout. For macOS source setup and packaging, see [the macOS guide](docs/macos-development.md).
+Use the [isolated development runners](dev/README.md) for UI verification and reproducible media. Bug reports should include the platform, reproduction steps and expected behavior. Keep private recordings, transcripts and credentials out of public issues.
 
-Bug reports are most useful with the platform, reproduction steps and expected behavior. Keep recordings, transcripts and credentials out of public issues. For larger changes, open an issue first to agree on scope.
-
-Mluva means *speech* or *manner of speaking* in Czech. Pronounced roughly “MLOO-vah.” Released under the **[Apache License 2.0](LICENSE)**; see [third-party notices](THIRD_PARTY_NOTICES.md) and the [changelog](CHANGELOG.md).
+Mluva means *speech* or *manner of speaking* in Czech, pronounced roughly “MLOO-vah.” **[Apache License 2.0](LICENSE)** · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Changelog](CHANGELOG.md)

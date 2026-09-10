@@ -16,15 +16,18 @@ def main() -> None:
     """Record installed-file identity and a credential-free launcher probe outside the checkout."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path, help="Fresh evidence directory below this checkout's tmp/")
+    parser.add_argument("--runtime-revision", required=True, help="Exact committed source installed in the guest")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     output = args.output.resolve()
     output.relative_to(root / "tmp")
-    runtime = Path.home() / ".local/share/voice-scribe/app"
+    runtime = Path.home() / ".local/share/mluva/app"
     validate_host("claw-mini-capture", runtime)
-    revision = "6022b05e4258768e7aa70305febf7dad0835b060"
+    revision = subprocess.check_output(
+        ["git", "rev-parse", "--verify", f"{args.runtime_revision}^{{commit}}"], cwd=root, text=True
+    ).strip()
     if subprocess.check_output(["git", "diff", revision, "--", "linux"], cwd=root):
-        raise RuntimeError("The film requires the frozen Linux source")
+        raise RuntimeError("The capture requires the declared committed Linux source")
     hashes, icon_hash = installed_snapshot(root, runtime)
     entrypoint = Path.home() / ".local/bin/mluva"
     expected = (root / "linux/resources/mluva.in").read_text().replace("@APPLICATION_DIR@", str(runtime))
@@ -58,7 +61,7 @@ exit 1
         "OFFSCREEN_DISPLAY_NUMBER": "203",
         "OFFSCREEN_ENABLE_ATSPI": "1",
         "OFFSCREEN_SCREEN_SPEC": "1920x1080x24",
-        "VOICE_SCRIBE_DISABLE_GLOBAL_SHORTCUT": "1",
+        "MLUVA_DISABLE_GLOBAL_SHORTCUT": "1",
         "ADW_DISABLE_PORTAL": "1",
         "GSK_RENDERER": "cairo",
         "PIPEWIRE_REMOTE": "disabled-install-probe",
@@ -78,7 +81,7 @@ exit 1
     if str(runtime / ".venv/bin/python") not in (output / "command.txt").read_text():
         raise RuntimeError("The installed launcher selected a different interpreter")
     module = subprocess.check_output(
-        [str(runtime / ".venv/bin/python"), "-c", "import voice_scribe_linux; print(voice_scribe_linux.__file__)"],
+        [str(runtime / ".venv/bin/python"), "-c", "import mluva_linux; print(mluva_linux.__file__)"],
         cwd=output,
         env={**environment, "PYTHONPATH": str(runtime)},
         text=True,
