@@ -1,65 +1,79 @@
 # Product film and capture tooling
 
-The [55-second launch plan](../docs/promotion/README.md) is prepared; installed product capture and the final film are pending. Its new workflow reserves Xvfb **:203**. The capture controllers are restricted to this Lenovo and fresh output directories below this checkout's `tmp/`. They execute the installed interpreter directly with isolated app state; they never install, sync its environment or drive the live desktop. The earlier **:193** real-provider and **:195** feature workflows remain documented below for their historical assets.
+The completed [55-second launch film](../docs/promotion/README.md) uses the frozen installed Linux runtime on claw-mini. The launch workflow reserves Xvfb **:203**, explicit guest identity, private D-Bus/AT-SPI/XDG state and fresh output directories under this checkout’s `tmp/`. The historical Lenovo **:193** real-provider and **:195** fixture routes remain below.
 
 ## Short launch film
 
-Complete runtime verification, commit the Linux source and install that exact build before capturing. `tmp/delight-launch/live-installation.json` must identify `source_revision`, `installed_runtime`, `installed_at_utc`, `entrypoint`, `installed_files`, `plugin_files` and `verified: true`. Both capture routes verify the installed Python, QML, dependency locks, helper files and icon against the clean source tree before and after capture. The receipt’s runtime directory must match, and its source revision must contain the same Linux tree as the current checkout; later documentation/media commits are allowed. Select that exact receipt revision for the real take. A staged-install receipt does not authorize final footage.
+The film runtime is merged main `6022b05e4258768e7aa70305febf7dad0835b060`. Keep its Linux tree unchanged. The Mac route reuses the prepared `mluva-film` ARM64 container on Docker context `colima`, with hostname `claw-mini-capture`, label `dev.mluva.capture-profile=claw-mini-film` and volume `mluva-film-home`. Both repository case spellings are mounted, so resolve the prepared worktree with `pwd -P` and always pass it as the guest working directory. The handoff under `/Users/openclaw/code/Mluva/tmp/mluva-launch-handoff/` owns local configuration and exact asset provenance; it is not a portable full-Omarchy image.
 
-Use the system dependencies and private desktop helper described below, with **:203** free. Supply an existing xcompmgr binary; no compositor installation is required. Optional `--pixel-ratio 2` renders the native 1920 × 1080 logical desktop at 3840 × 2160 for sharper camera crops. Verify its layout and recording performance with a credential-free native take before requesting the real providers.
+The guest has GTK/libadwaita, Omarchy 4.0.2 QML/theme assets, Quickshell 0.2.1, private X11/PipeWire dependencies, xcompmgr 1.1.10, Adwaita Sans, librsvg and FFmpeg with OpenH264/AAC. Codex 0.154.0 is available as the native ARM64 binary. The native preflight and actual encoding passed at 1920 × 1080, 60 fps requested, pixel ratio 1. No full VM or Quickshell upgrade was needed. Other containers and the host app-server remain running.
+
+Install into the guest’s own home only after verifying the frozen Linux tree, then probe the actual installed launcher from outside the source checkout:
 
 ```sh
-mluva_runtime="$(uv run --no-project python -c 'import json; print(json.load(open("tmp/delight-launch/live-installation.json"))["installed_runtime"])')"
-mluva_revision="$(uv run --no-project python -c 'import json; print(json.load(open("tmp/delight-launch/live-installation.json"))["source_revision"])')"
-mluva_compositor=/absolute/path/to/xcompmgr
+mluva_worktree="$(pwd -P)"
+git diff --exit-code 6022b05e4258768e7aa70305febf7dad0835b060 -- linux
 
-uv run --no-project dev/capture_delight.py tmp/delight-film/layout-take \
-  --runtime "$mluva_runtime" \
-  --installation-receipt tmp/delight-launch/live-installation.json \
-  --compositor "$mluva_compositor" --pixel-ratio 2
-
-~/.config/daniel-ai-skills/bin/das-agent-snapshot launch \
-  --only DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL -- \
-  uv run --no-project dev/capture_campaign.py task tmp/delight-film/real-take \
-  --runtime . --runtime-revision "$mluva_revision" \
-  --installed-payload "$mluva_runtime" \
-  --installation-receipt tmp/delight-launch/live-installation.json \
-  --compositor "$mluva_compositor" --launch-film --pixel-ratio 2 \
-  --audio docs/promotion/assets/delight/source/dictation-input.wav \
-  --rewrite-provider codex
-
-uv run --no-project dev/capture_delight.py tmp/delight-film/feature-take \
-  --runtime "$mluva_runtime" \
-  --installation-receipt tmp/delight-launch/live-installation.json \
-  --compositor "$mluva_compositor" --pixel-ratio 2 \
-  --source-take tmp/delight-film/real-take
-
-uv run --no-project dev/package_delight.py real \
-  tmp/delight-film/real-take tmp/delight-film/real-export
-uv run --no-project dev/package_delight.py features \
-  tmp/delight-film/feature-take tmp/delight-film/feature-export
+docker --context colima exec --workdir "$mluva_worktree" mluva-film \
+  git config --global --add safe.directory "$mluva_worktree"
+docker --context colima exec --workdir "$mluva_worktree" mluva-film \
+  bash linux/install.sh
+docker --context colima exec --workdir "$mluva_worktree" mluva-film \
+  uv run --no-project dev/verify_capture_install.py tmp/delight-film/installation-next
 ```
 
-The real take feeds the retained synthetic WAV through a private PipeWire graph into production Scribe and Codex clients. It retains the complete recorder audio, provisional recognition, actual replies, provider events and measured audio/video offset. The later feature take seeds its original and first draft from those exact results, then uses local deterministic Polish and custom Rewrite replies. It asserts native Copy, Save edits, private XTest Ctrl+P/search/Enter, theme changes and unchanged raw input. Local timing and fixture replies establish no provider quality or latency result.
+`verify_capture_install.py` validates the guest profile, source tree, launcher template, installed interpreter/module, 60 payload files and icon. It records the actual launcher command, private working directory and startup screenshot in `installation.json`. This credential-free startup has the expected missing-credential setup banner. Both capture routes independently recheck the supplied guest receipt, installed files, dependencies and icon before/after recording; documentation and media commits may differ while the Linux source tree stays identical. They execute the installed interpreter directly without installing or syncing dependencies during a take.
 
-`package_delight.py` publishes only explicit media, text, receipts and exact harness files; private desktop directories and provider state stay outside the package. Its continuous exports preserve elapsed source time without editorial cuts or speed changes. The real export’s `export.json` documents PCM alignment; both packages include hashes, before/after runtime identity and full-decode results.
+The Mac adapter verifies container ownership and supplies an explicit guest path and encoder. Preflight and feature capture receive no credentials. For the real take, the managed Scribe key and existing Codex authentication travel through stdin into a one-use, same-user Linux broker. Only the application/provider process receives the provider input. Docker subprocesses use a clean environment, desktop services start without keys, and child environments remove Scribe credentials. Codex reads an anonymous memory descriptor through its private auth link; its private provider directory is removed after the run. No image, shared container environment, CLI argument or published receipt contains credential values.
 
-The final edit needs no provider access once its native footage exists. Its portable plan resolves sources relative to `docs/promotion/assets/delight`, will bind every native source offset, camera move and speed factor, and places individually timed narration phrases over the original synth bed. `compose_delight.py` renders the vector logo and text in software, checks the exact 3,300-frame 1080p60 4:2:0 result, and records source, font, plan, composer and output hashes. The committed plan currently has `status: awaiting-installed-capture`; it supports only `--preview`. Source speech and scenery already exist and need no regeneration. Populate the native clips from the completed captures and set `status: ready` before running the full edit and verifier below.
+Use fresh output names, run the following sequentially from a managed Mac shell with `DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL` available, and review the real recognition/replies before capturing features:
 
 ```sh
-uv run --no-project dev/compose_delight.py \
-  docs/promotion/assets/delight/launch.plan.json \
-  tmp/delight-film/mluva-delight-launch.mp4
+uv run --no-project dev/mac_capture.py preflight tmp/delight-film/layout-next \
+  --installation-receipt tmp/delight-film/installation-next/installation.json
 
-uv run --no-project dev/verify_delight.py \
+uv run --no-project dev/mac_capture.py real tmp/delight-film/real-next \
+  --installation-receipt tmp/delight-film/installation-next/installation.json
+
+uv run --no-project dev/mac_capture.py features tmp/delight-film/features-next \
+  --installation-receipt tmp/delight-film/installation-next/installation.json \
+  --source-take tmp/delight-film/real-next
+
+uv run --no-project dev/package_delight.py real \
+  tmp/delight-film/real-next tmp/delight-film/real-export-next
+uv run --no-project dev/package_delight.py features \
+  tmp/delight-film/features-next tmp/delight-film/features-export-next
+```
+
+The supplied synthetic WAV enters production Scribe/Codex clients through a private PipeWire graph without hardware devices. The real take retains recorder PCM, provisional recognition, actual replies, provider events and the measured audio/video offset. An explicit 12-second hold after playback leaves recording open for a readable Live shot; it is disclosed editorial timing. The feature take seeds its original and first draft from the exact real result, then uses local deterministic Polish/Rewrite replies. Native assertions cover Copy, Save, private XTest Ctrl+P/search/Enter, theme changes and unchanged raw input. Automatic copy/paste, global shortcuts and live target tracking are disabled.
+
+`package_delight.py` uses the Mac’s FFmpeg with libx264 for continuous H.264 exports, preserving source duration without editorial cuts or speed changes. Its allowlist copies only media, text, receipts and the exact harness; private sessions and provider state stay local. The real export’s `export.json` records PCM alignment. Both packages retain hashes, runtime verification and full-decode results. New takes need semantic review and newly bound offsets; do not reuse final-film offsets against another capture.
+
+The committed plan has `status: ready` and resolves its complete sources relative to `docs/promotion/assets/delight`. Reconstruct the delivered edit without provider access using the guest FFmpeg, which includes the required `drawtext` filter. The current Mac Homebrew FFmpeg lacks that filter; its working libx264 export path does not imply it can compose this film.
+
+```sh
+mluva_worktree="$(pwd -P)"
+docker --context colima exec --workdir "$mluva_worktree" mluva-film \
+  uv run --no-project dev/compose_delight.py \
+  docs/promotion/assets/delight/launch.plan.json \
+  tmp/delight-film/mluva-delight-launch.mp4 --encoder libopenh264
+
+docker --context colima exec --workdir "$mluva_worktree" mluva-film \
+  uv run --no-project dev/verify_delight.py \
   docs/promotion/assets/delight/launch.plan.json \
   tmp/delight-film/mluva-delight-launch.mp4 \
   --images tmp/delight-film/review-frames
 ```
 
-The verifier checks source/plan/output hashes, the encoded media format and complete decoding, narration loudness/headroom and word-aligned phrase cuts. It exports optional SubRip captions with canonical spelling, a poster, an opening frame and a labeled contact sheet. Inspect those frames and the action/source evidence before delivering; automatic media checks are not an auditory listening review.
+The composer supports an explicit `--font` when another machine needs the original font file. The delivered font SHA-256 is `8381c33b9a44f066f2b99dba3d416a2342891e28c956a35dfd8d16ee2987e6d4`, matching the prepared opening. Source speech, logo and scenery need no regeneration. Per-shot `fade_in: 0` gives direct cuts; other durations and eased camera movement are explicit in the plan. Receipts bind the sources, font, plan, composer, FFmpeg version, encoder and output.
 
-The installed app and continuous evidence determine the claims. Read the [current media guide](../docs/promotion/README.md) and [release verification](../docs/verification/delight-launch.md) for source boundaries, native checks and final review. The older commands and measured results below reproduce the [historical 83.6-second film](../docs/promotion/archive-product-film.md).
+The adapter’s credential/ownership boundary can be checked without credentials or provider calls: run `uv run --project linux --locked pytest dev/test_mac_capture.py --basetemp tmp/delight-film/adapter-tests -q` inside the guest. It covers clean inspection/exec environments, stdin-only real provider input, credential-free feature routes and rejection of the wrong home volume. Keep the worktree’s Linux virtual environment in the guest when running locked project tools.
+
+The verifier checks complete decoding, exactly 3,300 frames at 1080p60, 55-second duration, audio loudness/headroom and whole-word narration cuts. It writes optional SubRip captions, a poster and representative frames. Inspect those frames and every transition before delivery; the [final visual review](../docs/promotion/assets/delight/qa/review.json) records the delivered film’s ten cuts and two internal theme changes. Automatic media checks do not establish auditory listening or provider accuracy/latency. The [media guide](../docs/promotion/README.md) and [release verification](../docs/verification/delight-launch.md) preserve the installed-source and environment boundaries.
+
+## Historical Lenovo workflow
+
+The commands and measured results below reproduce the [earlier 83.6-second film](../docs/promotion/archive-product-film.md). Their Lenovo dependency paths and old source offsets do not describe the claw-mini launch capture.
 
 ## Prepare
 

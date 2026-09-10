@@ -9,11 +9,13 @@ import signal
 import socket
 import struct
 import subprocess
+import sys
 import threading
 import wave
 from pathlib import Path
 
 from capture_delight import installed_snapshot, verify_installation_receipt
+from capture_profile import validate_host
 
 
 def main() -> None:
@@ -54,6 +56,11 @@ def main() -> None:
     parser.add_argument("--launch-film", action="store_true", help="Uncaptioned 1080p60 Omarchy launch framing on :203")
     parser.add_argument("--compositor", type=Path)
     parser.add_argument("--pixel-ratio", type=int, choices=(1, 2), default=1)
+    parser.add_argument("--capture-host", choices=("lenovo", "claw-mini-capture"), default="lenovo")
+    parser.add_argument("--encoder", choices=("libx264", "libopenh264"), default="libx264")
+    parser.add_argument(
+        "--credentials-stdin", action="store_true", help="One-use guest broker input from mac_capture.py"
+    )
     parser.add_argument(
         "--experimental-dirty",
         action="store_true",
@@ -66,8 +73,6 @@ def main() -> None:
     output.relative_to(root / "tmp")
     output.mkdir(parents=True, exist_ok=False)
     output.chmod(0o700)
-    if socket.gethostname() != "lenovo":
-        raise RuntimeError("This campaign is authorized only on lenovo")
     display_number = 203 if args.launch_film else 193
     if Path(f"/tmp/.X{display_number}-lock").exists() or Path(f"/tmp/.X11-unix/X{display_number}").exists():
         raise RuntimeError(f"Reserved display :{display_number} is already occupied")
@@ -78,6 +83,7 @@ def main() -> None:
     if args.pixel_ratio != 1 and not args.launch_film:
         parser.error("Pixel scaling is supported only by launch-film framing")
     payload = args.installed_payload.resolve(strict=True) if args.installed_payload else runtime / "linux"
+    validate_host(args.capture_host, payload)
     installed_hashes = {}
     installed_revision = None
     if args.installed_payload:
@@ -130,6 +136,8 @@ def main() -> None:
         "campaign-stage.qml",
         "capture_delight.py",
         "delight-stage.qml",
+        "capture_profile.py",
+        "run-isolated.sh",
     ):
         shutil.copy2(root / "dev" / name, harness / name)
     if args.scenario in {"speech", "task"}:
@@ -145,7 +153,13 @@ def main() -> None:
             if not 1 <= source.getnframes() / source.getframerate() <= 90:
                 parser.error("Input must be between 1 and 90 seconds")
     credentials = {}
-    if args.scenario in {"speech", "task"}:
+    if args.credentials_stdin:
+        if args.capture_host != "claw-mini-capture" or args.scenario != "task" or args.rewrite_provider != "codex":
+            parser.error("The guest broker is scoped to the real Scribe/Codex task take")
+        credentials = json.load(sys.stdin)
+        if set(credentials) != {"ELEVENLABS_API_KEY", "_codex_auth"} or not all(credentials.values()):
+            raise RuntimeError("Incomplete guest provider credentials")
+    elif args.scenario in {"speech", "task"}:
         credentials["ELEVENLABS_API_KEY"] = os.environ["DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL"]
     if args.scenario == "task" and args.rewrite_provider == "litellm":
         credentials["CAMPAIGN_REWRITE_KEY"] = os.environ["DAS_ITEM_ZAI_API_KEY__CREDENTIAL"]
@@ -216,8 +230,9 @@ def main() -> None:
         "CAMPAIGN_REWRITE_PROVIDER": args.rewrite_provider,
         "CAMPAIGN_REWRITE_MODEL": args.rewrite_model or ("glm-4.7-flash" if args.rewrite_provider == "litellm" else ""),
         "CAMPAIGN_CODEX_BINARY": shutil.which("codex") or "",
+        "CAPTURE_ENCODER": args.encoder,
     }
-    helper = Path.home() / ".agents/skills/run-offscreen-linux-verification-daniel/scripts/run_isolated_x11.sh"
+    helper = root / "dev/run-isolated.sh"
     python_command = (
         [str(payload / ".venv/bin/python")]
         if args.installed_payload

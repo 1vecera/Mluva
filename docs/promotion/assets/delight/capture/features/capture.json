@@ -1,0 +1,605 @@
+{
+  "display": ":203",
+  "fps_requested": 60,
+  "screen": [
+    1920,
+    1080
+  ],
+  "pixel_ratio": 1,
+  "encoder": "libopenh264",
+  "application": [
+    1536,
+    844
+  ],
+  "application_position": [
+    192,
+    134
+  ],
+  "runtime": "/home/developer/.local/share/voice-scribe/app",
+  "seed_take": "/Users/openclaw/code/mluva/.claude/worktrees/linear-s27-470-290aa32081d4/tmp/delight-film/real-take-v2",
+  "video_start_epoch": 1789038207.378596,
+  "event_clock": "Monotonic time since FFmpeg launch plus software wall time; video_start_epoch is its first capture timestamp",
+  "disclosure": "Installed native GTK and Quickshell views; scripted transcript and local rewrite fixtures. No microphone, recognition, inference quality, provider timing or physical shortcut claim.",
+  "isolation": "Private X11, D-Bus, AT-SPI, XDG and clipboard; audio, global input and providers disabled.",
+  "desktop": "Stock Omarchy wallpapers and palettes; isolated editorial bar; actual installed Mluva widget.",
+  "events": [
+    {
+      "event": "initial-window-allocation",
+      "seconds": 1.0956,
+      "epoch": 1789038206.8633428,
+      "content": [
+        1526,
+        834
+      ],
+      "scale": 1
+    },
+    {
+      "event": "screenshot",
+      "seconds": 1.5035,
+      "epoch": 1789038207.2712457,
+      "file": "desktop.png"
+    },
+    {
+      "event": "outside-recording",
+      "seconds": 0.0,
+      "epoch": 1789038207.2719276
+    },
+    {
+      "event": "screenshot",
+      "seconds": 4.6125,
+      "epoch": 1789038211.8844202,
+      "file": "outside-recording.png"
+    },
+    {
+      "event": "inside-recording",
+      "seconds": 5.1156,
+      "epoch": 1789038212.3875592
+    },
+    {
+      "event": "screenshot",
+      "seconds": 8.5185,
+      "epoch": 1789038215.790471,
+      "file": "inside-recording.png"
+    },
+    {
+      "event": "live-rewrite",
+      "seconds": 9.1212,
+      "epoch": 1789038216.3931632
+    },
+    {
+      "event": "screenshot",
+      "seconds": 15.4819,
+      "epoch": 1789038222.7538435,
+      "file": "live-rewrite.png"
+    },
+    {
+      "event": "finish-live",
+      "seconds": 16.4848,
+      "epoch": 1789038223.7566974
+    },
+    {
+      "event": "screenshot",
+      "seconds": 17.5095,
+      "epoch": 1789038224.78147,
+      "file": "markdown.png"
+    },
+    {
+      "event": "copy",
+      "seconds": 18.6563,
+      "epoch": 1789038225.9281986
+    },
+    {
+      "event": "polish",
+      "seconds": 21.9149,
+      "epoch": 1789038229.1868746
+    },
+    {
+      "event": "screenshot",
+      "seconds": 23.9791,
+      "epoch": 1789038231.2510467,
+      "file": "polish.png"
+    },
+    {
+      "event": "rewrite",
+      "seconds": 25.2818,
+      "epoch": 1789038232.5537004
+    },
+    {
+      "event": "screenshot",
+      "seconds": 28.0092,
+      "epoch": 1789038235.2811668,
+      "file": "rewrite.png"
+    },
+    {
+      "event": "edit-save",
+      "seconds": 29.0137,
+      "epoch": 1789038236.2856457
+    },
+    {
+      "event": "screenshot",
+      "seconds": 31.9124,
+      "epoch": 1789038239.1843002,
+      "file": "saved.png"
+    },
+    {
+      "event": "commands",
+      "seconds": 33.7149,
+      "epoch": 1789038240.9868207
+    },
+    {
+      "event": "screenshot",
+      "seconds": 36.0566,
+      "epoch": 1789038243.328557,
+      "file": "commands.png"
+    },
+    {
+      "event": "themes",
+      "seconds": 38.2731,
+      "epoch": 1789038245.5450642
+    },
+    {
+      "event": "theme-applied",
+      "seconds": 38.3198,
+      "epoch": 1789038245.5916934,
+      "theme": "nord",
+      "canvas": "#2e3440"
+    },
+    {
+      "event": "screenshot",
+      "seconds": 38.6162,
+      "epoch": 1789038245.8881345,
+      "file": "theme-nord.png"
+    },
+    {
+      "event": "theme-applied",
+      "seconds": 41.7161,
+      "epoch": 1789038248.9880157,
+      "theme": "tokyo-night",
+      "canvas": "#1a1b26"
+    },
+    {
+      "event": "screenshot",
+      "seconds": 42.0104,
+      "epoch": 1789038249.2823107,
+      "file": "theme-tokyo-night.png"
+    },
+    {
+      "event": "theme-applied",
+      "seconds": 44.7185,
+      "epoch": 1789038251.9904552,
+      "theme": "rose-pine",
+      "canvas": "#faf4ed"
+    },
+    {
+      "event": "screenshot",
+      "seconds": 44.9603,
+      "epoch": 1789038252.2321775,
+      "file": "theme-rose-pine.png"
+    },
+    {
+      "event": "finished",
+      "seconds": 47.2628,
+      "epoch": 1789038254.5347264
+    }
+  ],
+  "checks": [
+    "Production Live finalization persisted local fixture draft with original unchanged",
+    "Visible Copy action wrote expected text into private X11 clipboard",
+    "Both visible Polish and custom Rewrite actions persisted separate local example replies",
+    "Native lossless editor and Save edits persisted final Markdown",
+    "Private XTest Ctrl-P, typed search and Enter dispatched Copy current text",
+    "Existing GTK window followed real Nord, Tokyo Night and Ros\u00e9 Pine palettes via theme watcher",
+    "Raw original remained byte-for-byte unchanged through all actions"
+  ],
+  "errors": [],
+  "live_geometry": [
+    {
+      "seconds": 9.1257,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          868.0,
+          635.0
+        ],
+        [
+          450.0,
+          102.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "seconds": 9.3118,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 9.4956,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 9.678,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 9.8611,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 10.0469,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 10.2295,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 10.4151,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 10.5979,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 10.7799,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 10.9623,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 11.1433,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 11.8813,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 12.0655,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 12.2498,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 12.4313,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 12.6162,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 12.8013,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 12.9834,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 13.169,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 13.3528,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 13.534,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 13.719,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    },
+    {
+      "seconds": 13.9019,
+      "panels": [
+        [
+          450.0,
+          131.0,
+          422.0,
+          635.0
+        ],
+        [
+          896.0,
+          102.0,
+          422.0,
+          664.0
+        ]
+      ]
+    }
+  ]
+}

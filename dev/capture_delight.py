@@ -11,6 +11,8 @@ import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
+from capture_profile import validate_host
+
 
 def digest(path: Path) -> str:
     """Bind capture provenance to file contents."""
@@ -75,6 +77,13 @@ def verify_installation_receipt(root: Path, runtime: Path, receipt: Path) -> str
         raise RuntimeError("A verified live installation receipt with complete identity is required")
     if not Path(installation["entrypoint"]).is_file():
         raise RuntimeError("The installed entrypoint from the receipt does not exist")
+    if socket.gethostname() == "claw-mini-capture":
+        if installation.get("host") != socket.gethostname():
+            raise RuntimeError("The capture guest requires its own installation receipt")
+        if digest(Path(installation["entrypoint"])) != installation["entrypoint_sha256"]:
+            raise RuntimeError("The installed entrypoint differs from its guest receipt")
+        if installation["installed_files"] != installed_snapshot(root, runtime)[0]:
+            raise RuntimeError("The installed payload differs from its guest receipt")
     installed_at = datetime.fromisoformat(installation["installed_at_utc"].replace("Z", "+00:00"))
     if installed_at.tzinfo is None or installed_at > datetime.now(UTC):
         raise RuntimeError("The live installation must have completed before capture")
@@ -99,13 +108,14 @@ def main() -> None:
     parser.add_argument("--compositor", required=True, type=Path)
     parser.add_argument("--pixel-ratio", type=int, choices=(1, 2), default=1)
     parser.add_argument("--source-take", type=Path, help="Reuse exact original and final draft from a real capture")
+    parser.add_argument("--capture-host", choices=("lenovo", "claw-mini-capture"), default="lenovo")
+    parser.add_argument("--encoder", choices=("libx264", "libopenh264"), default="libx264")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     output, runtime = args.output.resolve(), args.runtime.resolve(strict=True)
     output.relative_to(root / "tmp")
     receipt = args.installation_receipt.resolve(strict=True)
-    if socket.gethostname() != "lenovo":
-        raise RuntimeError("This capture is scoped to lenovo")
+    validate_host(args.capture_host, runtime)
     if any(Path(path).exists() for path in ("/tmp/.X203-lock", "/tmp/.X11-unix/X203")):
         raise RuntimeError("Reserved private display :203 is occupied")
     hashes, installed_icon_sha256 = installed_snapshot(root, runtime)
@@ -114,7 +124,13 @@ def main() -> None:
     output.chmod(0o700)
     harness = output / "harness"
     harness.mkdir()
-    for name in ("capture_delight.py", "delight_session.py", "delight-stage.qml"):
+    for name in (
+        "capture_delight.py",
+        "capture_profile.py",
+        "delight_session.py",
+        "delight-stage.qml",
+        "run-isolated.sh",
+    ):
         shutil.copy2(root / "dev" / name, harness / name)
     (output / "runtime-files.json").write_text(json.dumps(hashes, indent=2) + "\n")
     installation = {
@@ -150,6 +166,7 @@ def main() -> None:
         "DELIGHT_RUNTIME": str(runtime),
         "DELIGHT_PIXEL_RATIO": str(args.pixel_ratio),
         "DELIGHT_COMPOSITOR": str(args.compositor.resolve(strict=True)),
+        "CAPTURE_ENCODER": args.encoder,
     }
     if args.source_take:
         take = args.source_take.resolve(strict=True)
@@ -172,7 +189,7 @@ def main() -> None:
             )
             + "\n"
         )
-    helper = Path.home() / ".agents/skills/run-offscreen-linux-verification-daniel/scripts/run_isolated_x11.sh"
+    helper = root / "dev/run-isolated.sh"
     command = [
         "bash",
         str(helper),

@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "kind": "features",
+  "source_capture": "/Users/openclaw/code/mluva/.claude/worktrees/linear-s27-470-290aa32081d4/tmp/delight-film/feature-take-v4",
+  "source_video": {
+    "sha256": "519ca4e0dd67129508aca35bb6f56c3f6ccb3b11a38b5fcd1cfe67460b8d1ba8",
+    "bytes": 10213001
+  },
+  "source_video_media": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "Constrained Baseline",
+        "codec_type": "video",
+        "codec_tag_string": "[0][0][0][0]",
+        "codec_tag": "0x0000",
+        "mime_codec_string": "avc1.42c02a",
+        "width": 1920,
+        "height": 1080,
+        "coded_width": 1920,
+        "coded_height": 1080,
+        "has_b_frames": 0,
+        "pix_fmt": "yuv420p",
+        "level": 42,
+        "color_range": "tv",
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "r_frame_rate": "60/1",
+        "avg_frame_rate": "60/1",
+        "time_base": "1/1000",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "bits_per_raw_sample": "8",
+        "extradata_size": 30,
+        "disposition": {
+          "default": 0,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "ENCODER": "Lavc62.28.102 libopenh264",
+          "DURATION": "00:00:47.684000000"
+        }
+      }
+    ],
+    "format": {
+      "filename": "/Users/openclaw/code/mluva/.claude/worktrees/linear-s27-470-290aa32081d4/tmp/delight-film/feature-take-v4/workflow.mkv",
+      "nb_streams": 1,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "matroska,webm",
+      "format_long_name": "Matroska / WebM",
+      "start_time": "0.000000",
+      "duration": "47.684000",
+      "size": "10213001",
+      "bit_rate": "1713447",
+      "probe_score": 100,
+      "tags": {
+        "ENCODER": "Lavf62.12.102"
+      }
+    }
+  },
+  "output_video_media": {
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "High",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.64002a",
+        "width": 1920,
+        "height": 1080,
+        "coded_width": 1920,
+        "coded_height": 1080,
+        "has_b_frames": 2,
+        "pix_fmt": "yuv420p",
+        "level": 42,
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "60/1",
+        "avg_frame_rate": "60/1",
+        "time_base": "1/15360",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 732411,
+        "duration": "47.683008",
+        "bit_rate": "1598146",
+        "bits_per_raw_sample": "8",
+        "nb_frames": "2861",
+        "extradata_size": 47,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc62.28.100 libx264"
+        }
+      }
+    ],
+    "format": {
+      "filename": "/Users/openclaw/code/mluva/.claude/worktrees/linear-s27-470-290aa32081d4/docs/promotion/assets/delight/capture/features/workflow.mp4",
+      "nb_streams": 1,
+      "nb_programs": 0,
+      "nb_stream_groups": 0,
+      "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+      "format_long_name": "QuickTime / MOV",
+      "start_time": "0.000000",
+      "duration": "47.683008",
+      "size": "9560496",
+      "bit_rate": "1604008",
+      "probe_score": 100,
+      "tags": {
+        "major_brand": "isom",
+        "minor_version": "512",
+        "compatible_brands": "isomiso2avc1mp41",
+        "encoder": "Lavf62.12.100"
+      }
+    }
+  },
+  "timing": "Complete source duration; no editorial cuts or speed changes. Constant-frame-rate H.264 encoding.",
+  "audio": "Silent native fixture",
+  "publication_boundary": "Listed media, text, receipts and harnesses only; no private session or provider state",
+  "files": {
+    "capture.json": {
+      "sha256": "565e45a9156d60fcfd9dd45260443a37830541100d5418e8dce55f367a28c24f",
+      "bytes": 10795
+    },
+    "commands.png": {
+      "sha256": "fc5588746f06102c90e683f58af4e900fabfb904dca3f662792b97cd849d4c65",
+      "bytes": 2912509
+    },
+    "desktop.png": {
+      "sha256": "18b1f28e970e8dacc3ff3fb45d746776636bfe7516cb6c91a43874c6a0f9a0d6",
+      "bytes": 4237317
+    },
+    "harness/capture_delight.py": {
+      "sha256": "ce8902023d3471d610ed12dc33e16c17c67ff15e2372a5d5e6cd3b0299a81f32",
+      "bytes": 10816
+    },
+    "harness/capture_profile.py": {
+      "sha256": "94674738c262c82080f2d484abcfc6d08c5739d78f19abcc67d192cce5379054",
+      "bytes": 1286
+    },
+    "harness/compose_delight.py": {
+      "sha256": "abd98899d66f1ec6961e6c44cddae66c1c16c121ec2d37306ea32793966902b5",
+      "bytes": 13578
+    },
+    "harness/delight-stage.qml": {
+      "sha256": "f65a5e5762ac576b983edb68e64c4f21ad083eae8f080a0b409041f458c0ec09",
+      "bytes": 3671
+    },
+    "harness/delight_session.py": {
+      "sha256": "a4eafe107565dbc2f7bc0ff079df488b57dfa5245883245f60999b865036e0a0",
+      "bytes": 27344
+    },
+    "harness/export_campaign.py": {
+      "sha256": "33a08c644d0110d77811e0fe034cf85f119e5833791873242efbb5e7108d52af",
+      "bytes": 7632
+    },
+    "harness/package_delight.py": {
+      "sha256": "657b3da4de0c876a8085949ca54137989bd4774435631d65a8f210873f09604a",
+      "bytes": 4183
+    },
+    "harness/run-isolated.sh": {
+      "sha256": "e0331910405ae0ae81d785ef27666ae8f304130357c0905a30961a9db7741108",
+      "bytes": 8016
+    },
+    "inside-recording.png": {
+      "sha256": "4bbec4dcb0f58c7bd6239ec61b3abeb290e438dee509b4019da3c5c61ac320dd",
+      "bytes": 3360009
+    },
+    "installation.json": {
+      "sha256": "79c24375d9ff0ee90af8b18426f0d632bc6aebde68601dcc20cea4f152c03181",
+      "bytes": 693
+    },
+    "live-rewrite.png": {
+      "sha256": "e519e2c1da7b8b0507257a969889b2090cdfae2b48589c1b835f1dd55698cdb8",
+      "bytes": 3450286
+    },
+    "markdown.png": {
+      "sha256": "1febdbfb39fc73427126a78c72a108aa57f706d1c1b0b0276ec2493298a6704f",
+      "bytes": 3389340
+    },
+    "original.txt": {
+      "sha256": "a2b2412e77141efc0d6e22c87d7e07270a7db28bbeceea9eaa19fad3b72e28b9",
+      "bytes": 326
+    },
+    "outside-recording.png": {
+      "sha256": "ab261ff95efd1eceb33c77505402fe9d2ad66b1ca19b2490999f88017dd27b8b",
+      "bytes": 4215909
+    },
+    "polish.png": {
+      "sha256": "354ccb1de1487359387209ffa82e70137c81b91acf85dd3819dd69b19fcf8493",
+      "bytes": 3396691
+    },
+    "replies.json": {
+      "sha256": "e37797a47fe2668c8172952c8823a6fbade75e2346fd00be77341af920401af4",
+      "bytes": 2375
+    },
+    "rewrite.png": {
+      "sha256": "4dc48e5a8e74b1a10438871b7a207e7fb86422e4816719ee889f4d1441aebbb2",
+      "bytes": 3412748
+    },
+    "runtime-files.json": {
+      "sha256": "94127adcb7919505d6d67f8ed3ffd0e3714b2ee7a82819043ecaaf3edd7f6d7a",
+      "bytes": 6554
+    },
+    "saved.png": {
+      "sha256": "d010ad842fbfae2fbc64ce5c9980dec4b48ea3f850a87fe4cef4160d55a2fbe2",
+      "bytes": 3405295
+    },
+    "seed-take.json": {
+      "sha256": "050fbbb3b79245d02edb949c75b824efde77cc390009ffc201acfe8e445b272e",
+      "bytes": 501
+    },
+    "theme-nord.png": {
+      "sha256": "027d22ca1533f2708af5cbbaa4d82577a0e48ea10418ca85959492168d57d85d",
+      "bytes": 3402401
+    },
+    "theme-rose-pine.png": {
+      "sha256": "d4552ee799c6a12e77d1d5ce2fef89c0a6ab5292967b13485257cae31cd81d6a",
+      "bytes": 397701
+    },
+    "theme-tokyo-night.png": {
+      "sha256": "e9b3f9877cf1a178913bbff05e2742c24c8d7878ed85914ccb131c01bfe3ae9d",
+      "bytes": 1843720
+    },
+    "workflow.mp4": {
+      "sha256": "cf3a0effd2f4e3cb84ecadd91ba338220b8b904844879aa357beac961d773008",
+      "bytes": 9560496
+    }
+  },
+  "packager": {
+    "sha256": "657b3da4de0c876a8085949ca54137989bd4774435631d65a8f210873f09604a",
+    "bytes": 4183
+  },
+  "complete_decode_passed": true
+}

@@ -16,6 +16,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import gi
+from capture_profile import encoder_arguments
 from gi.repository import GLib
 from mluva_linux import realtime
 from mluva_linux.app import MluvaApplication
@@ -67,12 +68,21 @@ def main():
         connection.connect("\0" + os.environ.pop("CAMPAIGN_BROKER"))
         with connection.makefile("rb") as stream:
             credentials = json.load(stream)
+    codex_auth = credentials.pop("_codex_auth", None)
     os.environ.update(credentials)
     original_popen = subprocess.Popen
     codex_home = session / "codex-provider"
+    auth_descriptor = None
     if os.environ["CAMPAIGN_REWRITE_PROVIDER"] == "codex":
         codex_home.mkdir(mode=0o700)
-        (codex_home / "auth.json").symlink_to(Path.home() / ".codex/auth.json")
+        if codex_auth is not None:
+            # Anonymous RAM-backed file: no auth content reaches the guest volume or image.
+            auth_descriptor = os.memfd_create("mluva-provider-auth", os.MFD_CLOEXEC)
+            os.write(auth_descriptor, json.dumps(codex_auth).encode())
+            (codex_home / "auth.json").symlink_to(f"/proc/{os.getpid()}/fd/{auth_descriptor}")
+            del codex_auth
+        else:
+            (codex_home / "auth.json").symlink_to(Path.home() / ".codex/auth.json")
         (codex_home / "config.toml").write_text(
             'approval_policy = "never"\nsandbox_mode = "read-only"\n[features]\napps = false\nplugins = false\n'
         )
@@ -509,16 +519,7 @@ def main():
                     f"{width * pixel_ratio}x{height * pixel_ratio}",
                     "-i",
                     display_name,
-                    "-c:v",
-                    "libx264",
-                    "-preset",
-                    "ultrafast",
-                    "-crf",
-                    "18",
-                    "-threads",
-                    "3",
-                    "-pix_fmt",
-                    "yuv420p",
+                    *encoder_arguments(os.environ["CAPTURE_ENCODER"]),
                     "-an",
                     str(output / "screen.mkv"),
                 ],
@@ -629,6 +630,13 @@ def main():
                 time.sleep(0.04)
             event("audio_complete")
             assert playback.returncode == 0
+            if launch_film:
+                # Keep the real recording open for a readable Live shot after the synthetic input ends.
+                # This is an editorial capture hold, never a claim about recognition or rewrite latency.
+                event("readability_hold_started", duration_seconds=12)
+                hold_until = time.monotonic() + 12
+                settle(lambda: time.monotonic() >= hold_until, timeout=13)
+                event("readability_hold_complete")
             event("stop_control", committed=app.realtime_session.snapshot().committed_text)
             app.record_button.emit("clicked")
             settle(
@@ -752,6 +760,8 @@ def main():
             log.close()
         if codex_home.exists():
             shutil.rmtree(codex_home)
+        if auth_descriptor is not None:
+            os.close(auth_descriptor)
         receipt = {
             "scenario": scenario,
             "release": os.environ["CAMPAIGN_BUILD_LABEL"],
@@ -771,6 +781,7 @@ def main():
             "display": os.environ["DISPLAY"],
             "screen": [width * pixel_ratio, height * pixel_ratio],
             "pixel_ratio": pixel_ratio,
+            "encoder": os.environ["CAPTURE_ENCODER"],
             "application": [app_x, app_y, app_width, app_height],
             "theme": "Nord",
             "first_pcm_epoch": audio_first_epoch[0] if audio_first_epoch else None,

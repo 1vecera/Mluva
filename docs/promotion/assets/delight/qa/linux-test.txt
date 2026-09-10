@@ -1,0 +1,38 @@
+Using CPython 3.14.7 interpreter at: /usr/bin/python3
+Creating virtual environment at: .venv
+Activate with: source .venv/bin/activate
+cd linux && uv sync --locked
+Resolved 10 packages in 2ms
+Downloading pygments (1.2MiB)
+Downloading ruff (10.5MiB)
+ Downloaded pygments
+ Downloaded ruff
+Prepared 6 packages in 5.69s
+Installed 8 packages in 742ms
+ + dbus-next==0.2.3
+ + iniconfig==2.3.0
+ + packaging==26.3
+ + pluggy==1.6.0
+ + pygments==2.20.0
+ + pytest==9.1.1
+ + ruff==0.16.2
+ + websockets==17.0.1
+cd linux && uv run --locked python ../scripts/render_feature_maturity.py --check
+cd linux && uv run --locked pytest -q
+........................................................................ [ 18%]
+........................................................................ [ 37%]
+........................................................................ [ 56%]
+........................................................................ [ 75%]
+........................................................................ [ 94%]
+.....................                                                    [100%]
+=============================== warnings summary ===============================
+../../../../../../../../usr/lib64/python3.14/site-packages/gi/overrides/__init__.py:159
+  /usr/lib64/python3.14/site-packages/gi/overrides/__init__.py:159: PyGIDeprecationWarning: GLib.unix_signal_add_full is deprecated; use GLibUnix.signal_add_full instead
+    value = getattr(proxy, attr)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+381 passed, 1 warning in 27.04s
+cd linux && uv run --locked ruff check .
+All checks passed!
+cd linux && uv run --locked ruff format --check .
+105 files already formatted
