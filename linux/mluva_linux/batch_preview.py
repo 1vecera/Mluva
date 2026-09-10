@@ -18,15 +18,25 @@ MAX_PREVIEW_BYTES = 30 * 60 * BYTES_PER_SECOND
 class BatchPreviewClient:
     """Reuse one file transcription contract for local and cloud preview chunks."""
 
-    def __init__(self, factory: Callable[[], TranscriptionClient], directory: Path, chunk_seconds: int) -> None:
+    def __init__(
+        self,
+        factory: Callable[[], TranscriptionClient],
+        directory: Path,
+        chunk_seconds: int,
+        *,
+        preview_enabled: bool = True,
+    ) -> None:
         """Keep temporary audio in the app's private runtime directory."""
         self.factory = factory
         self.directory = directory
         self.chunk_seconds = chunk_seconds
+        self.preview_enabled = preview_enabled
 
     def start(self, language_code: str, on_preview=None, on_committed_segment=None):
         """Start a bounded preview worker without opening a device or network connection."""
-        return BatchPreviewSession(self.factory, self.directory, language_code, self.chunk_seconds)
+        return BatchPreviewSession(
+            self.factory, self.directory, language_code, self.chunk_seconds, preview_enabled=self.preview_enabled
+        )
 
 
 class BatchPreviewSession:
@@ -38,6 +48,8 @@ class BatchPreviewSession:
         directory: Path,
         language: str,
         chunk_seconds: int,
+        *,
+        preview_enabled: bool = True,
     ) -> None:
         """Own all preview state for one capture and isolate each provider request."""
         self.factory = factory
@@ -52,6 +64,7 @@ class BatchPreviewSession:
         self.text = ""
         self.healthy = True
         self.finishing = False
+        self.preview_enabled = preview_enabled
         self.active_clients = []
         self.worker = threading.Thread(target=self._run, name="speech-preview", daemon=True)
         self.worker.start()
@@ -82,7 +95,14 @@ class BatchPreviewSession:
                 self.ready.set()
                 return
             self.audio.extend(frames)
-            if len(self.audio) - self.offset >= self.chunk_bytes:
+            if self.preview_enabled and len(self.audio) - self.offset >= self.chunk_bytes:
+                self.ready.set()
+
+    def set_preview_enabled(self, enabled: bool) -> None:
+        """Toggle inference without losing earlier audio or restarting the microphone."""
+        with self.lock:
+            self.preview_enabled = enabled
+            if enabled and len(self.audio) - self.offset >= self.chunk_bytes:
                 self.ready.set()
 
     def _transcribe(self, frames: bytes) -> TranscriptionResult:
@@ -115,9 +135,10 @@ class BatchPreviewSession:
             with self.lock:
                 if not self.is_healthy or self.finishing:
                     return
-                if len(self.audio) - self.offset < self.chunk_bytes:
+                if not self.preview_enabled or len(self.audio) - self.offset < self.chunk_bytes:
                     continue
-                frames = bytes(self.audio[self.offset : self.offset + self.chunk_bytes])
+                # Coalesce audio accumulated while Live was paused into one request.
+                frames = bytes(self.audio[self.offset :])
                 self.offset += len(frames)
             try:
                 result = self._transcribe(frames)
@@ -129,7 +150,7 @@ class BatchPreviewSession:
                 if self.cancelled.is_set() or self.finishing:
                     return
                 self.text = (self.text + " " + result.text).strip()
-                if len(self.audio) - self.offset >= self.chunk_bytes:
+                if self.preview_enabled and len(self.audio) - self.offset >= self.chunk_bytes:
                     self.ready.set()
 
     def finish(self) -> RealtimeSessionResult:

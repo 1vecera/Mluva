@@ -6,14 +6,16 @@ from typing import TYPE_CHECKING
 
 import gi
 
+from mluva_linux.config import TIME_FORMATS, WIDGET_POSITIONS
 from mluva_linux.conversation import QUICK_POLISH
+from mluva_linux.live_rewrite import TEMPLATE_CHOICES
 
 if TYPE_CHECKING:
     from mluva_linux.app import MluvaApplication
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gdk, Gtk  # noqa: E402
+from gi.repository import Adw, Gdk, GLib, Gtk  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -50,7 +52,7 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
     record_title = (
         "Cancel preparation" if app.capture_preparing else "Stop dictation" if recording else "Start dictation"
     )
-    return (
+    commands = (
         Command(
             record_title,
             "media-playback-stop-symbolic" if recording else "audio-input-microphone-symbolic",
@@ -108,6 +110,20 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
         ),
         Command("History", "document-open-recent-symbolic", app._open_history, lambda: True, "archive search"),
         Command(
+            "Live conversation",
+            "audio-input-microphone-symbolic",
+            lambda: (app._navigate_to_page("capture"), workspace.show_live()),
+            lambda: workspace.live_active,
+            "current recording return",
+        ),
+        Command(
+            "Toggle history sidebar",
+            "sidebar-show-symbolic",
+            lambda: app._toggle_history_sidebar(None),
+            lambda: True,
+            "navigation show hide",
+        ),
+        Command(
             "Settings",
             "preferences-system-symbolic",
             lambda: app._show_settings(app.settings_button),
@@ -115,6 +131,87 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
             "providers models appearance scrolling preferences",
         ),
     )
+    for name, choices, title in (
+        ("widget_position", WIDGET_POSITIONS, "Widget position"),
+        ("time_format", TIME_FORMATS, "Time format"),
+        ("live_rewrite_template", TEMPLATE_CHOICES, "Live rewrite template"),
+    ):
+        for value, label in choices:
+            commands += (
+                Command(
+                    f"{title}: {label}",
+                    "preferences-system-symbolic",
+                    lambda name=name, value=value: app._apply_workspace_settings({name: value}),
+                    lambda name=name: (
+                        name != "live_rewrite_template"
+                        or (
+                            not app.capture_preparing
+                            and not app.capture_processing
+                            and app.live_final_entry is None
+                            and app.rewrite_client is None
+                            and not app.config.incognito_mode
+                            and not (
+                                app.recorder is not None
+                                and app.recorder.process is not None
+                                and (app.pending_incognito or app.pending_mode != "dictation")
+                            )
+                        )
+                    ),
+                    "settings preferences",
+                ),
+            )
+    return commands + settings_commands(app)
+
+
+def settings_commands(app: "MluvaApplication") -> tuple[Command, ...]:
+    """Index the real settings rows, so new preferences remain reachable without a second schema."""
+    commands = []
+
+    def visit(widget, page, group: str = ""):
+        if isinstance(widget, Adw.PreferencesGroup):
+            group = widget.get_title() or group
+        if isinstance(widget, Adw.PreferencesRow) and widget.get_title():
+            row = widget
+            title = " · ".join(part for part in ("Settings", page.get_title(), group, row.get_title()) if part)
+            commands.append(
+                Command(
+                    title,
+                    "preferences-system-symbolic",
+                    lambda row=row, page=page: open_setting(app, page, row),
+                    lambda: True,
+                    "preferences configure " + (row.get_subtitle() or "")
+                    if isinstance(row, Adw.ActionRow)
+                    else "preferences configure",
+                )
+            )
+        child = widget.get_first_child()
+        while child is not None:
+            visit(child, page, group)
+            child = child.get_next_sibling()
+
+    for page in app.settings_pages:
+        visit(page, page)
+    return tuple(commands)
+
+
+def open_setting(app: "MluvaApplication", page: Adw.PreferencesPage, row: Adw.PreferencesRow) -> None:
+    """Open the containing page, expand advanced controls and scroll the requested setting into view."""
+    app._show_settings(app.settings_button)
+    app.settings_dialog.set_visible_page(page)
+    parent = row.get_parent()
+    while parent is not None and parent is not page:
+        if isinstance(parent, Adw.ExpanderRow):
+            parent.set_expanded(True)
+        parent = parent.get_parent()
+    if isinstance(row, Adw.ExpanderRow):
+        row.set_expanded(True)
+
+    def focus():
+        row.set_focusable(True)
+        row.grab_focus()
+        return GLib.SOURCE_REMOVE
+
+    GLib.idle_add(focus)
 
 
 class CommandPalette(Adw.Dialog):

@@ -14,10 +14,10 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
+from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 
 from mluva_linux.audio import PipeWireMeetingRecorder, PipeWireRecorder
-from mluva_linux.batch_preview import BatchPreviewClient
+from mluva_linux.batch_preview import BatchPreviewClient, BatchPreviewSession
 from mluva_linux.codex_client import CodexAppServerClient, CodexModel, select_model
 from mluva_linux.command_palette import CommandPalette, application_commands
 from mluva_linux.config import (
@@ -416,6 +416,7 @@ class MluvaApplication(Adw.Application):
             retry_recognition=self._retry_meeting_recognition,
             delete_meeting=self._delete_meeting,
             show_message=self._set_meeting_status,
+            time_format=self.config.time_format,
         )
         self.meeting_page.set_privacy(self.config.incognito_mode)
         self._update_meeting_audio_routes()
@@ -432,6 +433,7 @@ class MluvaApplication(Adw.Application):
             delete_entry=self._delete_history_entry,
             history_changed=self._history_changed,
             show_message=self._show_toast,
+            time_format=self.config.time_format,
         )
         stack.add_titled_with_icon(self.history_page, "history", "History", "document-open-recent-symbolic")
         self.personalization_page = PersonalizationPage(
@@ -542,7 +544,10 @@ class MluvaApplication(Adw.Application):
         """Make history available even when the window uses the compact layout."""
         self._navigate_to_page("capture")
         if self.conversation_workspace is not None:
-            self.conversation_workspace.split.set_show_sidebar(not self.conversation_workspace.split.get_show_sidebar())
+            split = self.conversation_workspace.split
+            visible = not split.get_show_sidebar()
+            if self._apply_workspace_settings({"history_sidebar_visible": visible}):
+                split.set_show_sidebar(visible)
 
     def _start_pasted_conversation(self, text: str) -> None:
         """Import explicitly supplied text without replacing the clipboard."""
@@ -678,12 +683,14 @@ class MluvaApplication(Adw.Application):
             self._cancel_titles()
 
     def _live_mode_changed(self, button) -> None:
-        """Persist the explicit next-capture mode and roll back an unavailable change."""
+        """Start or pause Live during dictation without replacing the speech transport."""
         if button.get_active() == self.config.live_rewrite_enabled:
             return
         if not self._apply_workspace_settings({"live_rewrite_enabled": button.get_active()}):
             button.set_active(self.config.live_rewrite_enabled)
-            self._show_toast("Finish active work before changing Live rewrite.")
+            self._show_toast(
+                "Live rewrite is available during dictation; wait for preparation or finalization to finish."
+            )
 
     def _live_template_changed(self, button, template: str) -> None:
         """Persist a menu choice through the same settings path as the Workspace page."""
@@ -727,10 +734,15 @@ class MluvaApplication(Adw.Application):
             self._maybe_live_rewrite(text)
         return GLib.SOURCE_REMOVE
 
-    def _start_live_rewrite(self) -> None:
-        """Freeze the template and thresholds before recording starts."""
+    def _start_live_rewrite(self, *, preserve_draft: bool = False) -> None:
+        """Start a fresh scheduler, preserving deliberate edits when toggled during capture."""
+        draft = self.conversation_workspace.live_draft() if preserve_draft else initial_draft(self.config)
         self._cancel_live_rewrite()
+        self.live_updating = True
+        self.conversation_workspace.show_live_draft(draft, "Waiting for speech…")
+        self.live_updating = False
         if not self.config.live_rewrite_enabled or self.pending_incognito or self.pending_mode != "dictation":
+            self.conversation_workspace.live_draft_box.set_visible(False)
             return
         self.live_config = self.config
         self.live_session_identifier = self.pending_session_identifier
@@ -741,11 +753,6 @@ class MluvaApplication(Adw.Application):
         self.live_final_text = ""
         self.live_revision = 0
         self.live_last_model = ""
-        self.live_updating = True
-        self.conversation_workspace.show_live_draft(
-            initial_draft(self.config), "Live draft · provisional until Stop · waiting for speech"
-        )
-        self.live_updating = False
         self.conversation_workspace.live_draft_follower.follow(snap=True)
 
     def _live_draft_edited(self, _buffer) -> None:
@@ -757,6 +764,10 @@ class MluvaApplication(Adw.Application):
         """Coalesce speech snapshots, keeping at most one bounded rewrite in flight."""
         schedule = self.live_schedule
         if schedule is None or self.config.incognito_mode or self.shutting_down:
+            return
+        if schedule.paused:
+            if final:
+                self._save_live_draft(stale=True)
             return
         if (
             final
@@ -853,23 +864,31 @@ class MluvaApplication(Adw.Application):
         workspace = self.conversation_workspace
         text = workspace.live_draft()
         config = self.live_config
+        paused = self.live_schedule is not None and self.live_schedule.paused
         if identifier is None:
             return
         review_phase = "ready"
-        review_message = "Partial draft · final update failed." if stale else ""
+        review_message = (
+            "Paused draft · not reconciled." if paused else "Partial draft · final update failed." if stale else ""
+        )
         try:
             entry = self.history_store.find(identifier)
             instruction = "Live rewrite · " + dict(TEMPLATE_CHOICES)[config.live_rewrite_template]
-            if stale:
+            if paused:
+                instruction += " (paused; final transcript not reconciled)"
+            elif stale:
                 instruction += " (partial draft; final update failed)"
             if text.strip():
                 self.conversation_store.append(identifier, instruction, text, self.live_last_model or "live-draft")
+            viewing_live = workspace.viewing_live
             workspace.finish_live()
-            if workspace.entry is not None and workspace.entry.identifier == identifier:
+            if viewing_live or (workspace.entry is not None and workspace.entry.identifier == identifier):
                 workspace.show_conversation(entry, self.conversation_store.replies(identifier))
             workspace.set_busy(
                 False,
-                "Live draft saved. Final update failed; review the remaining gaps."
+                "Paused draft saved. Review it against the final transcript."
+                if paused
+                else "Live draft saved. Final update failed; review the remaining gaps."
                 if stale
                 else "Live draft copied."
                 if config.auto_copy_rewrite
@@ -885,7 +904,7 @@ class MluvaApplication(Adw.Application):
                 False, "Could not save the live draft. Your original and draft remain available to copy."
             )
         else:
-            if text.strip() and config.auto_copy_rewrite and not stale:
+            if text.strip() and config.auto_copy_rewrite and not stale and not paused:
                 try:
                     deliver_text(text, auto_paste=False)
                 except Exception:
@@ -909,6 +928,16 @@ class MluvaApplication(Adw.Application):
             self.conversation_workspace.live_draft_box.set_visible(False)
             self.conversation_workspace.set_busy(False, "")
 
+    def _pause_live_rewrite(self) -> None:
+        """Stop model requests while keeping an edited draft available and recoverable at Stop."""
+        client, self.live_rewrite_client = self.live_rewrite_client, None
+        if client is not None:
+            threading.Thread(target=client.cancel, name="pause-live-rewrite", daemon=True).start()
+        if self.live_schedule is not None:
+            self.live_schedule.paused = True
+            self.live_schedule.in_flight = False
+            self.conversation_workspace.live_draft_status.set_label("Live rewrite paused · draft kept")
+
     def _new_rewrite_client(self, config: AppConfig | None = None, **options):
         """Freeze an isolated provider client without requiring another provider's credentials."""
         config = config or self.config
@@ -918,11 +947,71 @@ class MluvaApplication(Adw.Application):
 
     def _apply_workspace_settings(self, changes: dict) -> bool:
         """Persist UI choices to the shared dotfile and replace idle provider transports."""
+        config = replace(self.config, **changes)
+        changed = {name for name in changes if getattr(self.config, name) != getattr(config, name)}
+        if not changed:
+            return True
+        presentation = {
+            "history_sidebar_visible",
+            "time_format",
+            "widget_position",
+            "show_copy_action",
+            "show_save_action",
+            "smooth_scrolling",
+            "scroll_duration_ms",
+            "scroll_lookahead_lines",
+            "review_timeout_seconds",
+        }
+        live = {
+            "live_rewrite_enabled",
+            "live_rewrite_template",
+            "live_rewrite_custom_instructions",
+            "live_rewrite_min_characters",
+            "live_rewrite_interval_seconds",
+        }
+        if changed <= presentation | live:
+            recording = self.recorder is not None and self.recorder.process is not None
+            if changed & live and (
+                self.capture_preparing
+                or self.capture_processing
+                or self.live_final_entry is not None
+                or self.rewrite_client is not None
+                or (recording and (self.pending_incognito or self.pending_mode != "dictation"))
+            ):
+                return False
+            try:
+                save_config(config, self.config_path)
+            except OSError:
+                return False
+            self.config = config
+            self.conversation_workspace.set_config(config)
+            for page in (self.history_page, self.meeting_page):
+                if page is not None:
+                    page.time_format = config.time_format
+                    if "time_format" in changed:
+                        page.refresh()
+            self._sync_live_mode()
+            if recording and changed & live:
+                if isinstance(self.realtime_session, BatchPreviewSession):
+                    self.realtime_session.set_preview_enabled(config.live_rewrite_enabled)
+                if config.live_rewrite_enabled:
+                    self._start_live_rewrite(preserve_draft=True)
+                    if self.realtime_session is not None:
+                        self._maybe_live_rewrite(self.realtime_session.snapshot().display_text)
+                else:
+                    self._pause_live_rewrite()
+                self._configure_realtime_provider()
+            elif not (recording or self.capture_preparing or self.capture_processing):
+                self._synchronize_workflow_config()
+                if changed & live:
+                    self._configure_realtime_provider()
+            if self.overlay_review_identifier is not None and self.rewrite_client is None:
+                self._publish_review(self.overlay_review_identifier)
+            return True
         if self.capture_preparing or self.capture_processing or (self.recorder and self.recorder.process):
             return False
         if self.rewrite_client is not None or self.live_schedule is not None:
             return False
-        config = replace(self.config, **changes)
         try:
             speech = transcription_client(config)
         except RuntimeError:
@@ -976,14 +1065,13 @@ class MluvaApplication(Adw.Application):
                 self.realtime_client = ElevenLabsRealtimeClient(api_key=elevenlabs_api_key())
             except RuntimeError:
                 self.realtime_client = None
-        elif config.live_rewrite_enabled:
+        else:
             self.realtime_client = BatchPreviewClient(
                 lambda: transcription_client(config),
                 self.codex_workspace.parent / "speech-previews",
                 config.transcription_chunk_seconds,
+                preview_enabled=config.live_rewrite_enabled,
             )
-        else:
-            self.realtime_client = None
 
     def _request_rewrite(self, instruction: str) -> None:
         """Freeze the selected conversation before starting one background rewrite."""
@@ -1136,6 +1224,7 @@ class MluvaApplication(Adw.Application):
                     smooth_scrolling=_smooth_motion_enabled(self.config),
                     scroll_duration_ms=self.config.scroll_duration_ms,
                     scroll_lookahead_lines=self.config.scroll_lookahead_lines,
+                    widget_position=self.config.widget_position,
                 )
             )
 
@@ -1274,6 +1363,7 @@ class MluvaApplication(Adw.Application):
                     smooth_scrolling=_smooth_motion_enabled(self.config),
                     scroll_duration_ms=self.config.scroll_duration_ms,
                     scroll_lookahead_lines=self.config.scroll_lookahead_lines,
+                    widget_position=self.config.widget_position,
                 )
             )
         return GLib.SOURCE_REMOVE
@@ -1424,8 +1514,13 @@ class MluvaApplication(Adw.Application):
         # Existing acceptance-gated recovery remains available for older drafts and advanced modes.
         body.append(self._build_output_section())
         page.set_content(body)
-        self.status_label = Gtk.Label(xalign=0, wrap=True, accessible_role=Gtk.AccessibleRole.STATUS)
-        self.status_label.add_css_class("caption")
+        self.status_label = Gtk.Label(
+            xalign=0,
+            ellipsize=Pango.EllipsizeMode.END,
+            valign=Gtk.Align.END,
+            accessible_role=Gtk.AccessibleRole.STATUS,
+        )
+        self.status_label.add_css_class("ml-capture-status")
         self.capture_status_title = Gtk.Label(label="Ready to dictate", xalign=0)
         self.capture_status_title.add_css_class("heading")
         self.capture_action_bar = self._build_capture_action_bar()
@@ -1510,7 +1605,7 @@ class MluvaApplication(Adw.Application):
         dock.add_css_class("ml-recording-dock")
         set_margins(dock, SPACE_4)
         dock.set_margin_top(SPACE_2)
-        status = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_1, hexpand=True)
+        status = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_1, hexpand=True, valign=Gtk.Align.END)
         self.capture_status_title.set_visible(False)
         status.append(self.capture_status_title)
         status.append(self.status_label)
@@ -1757,6 +1852,7 @@ class MluvaApplication(Adw.Application):
         diagnostics.add(diagnostics_row)
         advanced_page.add(diagnostics)
         dialog.add(advanced_page)
+        self.settings_pages = (*self.workspace_settings_pages, capture_page, audio_page, privacy_page, advanced_page)
         return dialog
 
     @staticmethod
@@ -1819,7 +1915,7 @@ class MluvaApplication(Adw.Application):
         if self.conversation_workspace is not None:
             self.conversation_workspace.split.set_collapsed(False)
             self.conversation_workspace.live_box.set_orientation(Gtk.Orientation.HORIZONTAL)
-            self.conversation_workspace.split.set_show_sidebar(True)
+            self.conversation_workspace.split.set_show_sidebar(self.config.history_sidebar_visible)
         if self.navigation_rail is not None:
             self.navigation_rail.set_visible(True)
         self._sync_header_title()
@@ -1829,13 +1925,10 @@ class MluvaApplication(Adw.Application):
             self.recording_bar.set_compact(False)
 
     def _sync_header_title(self, *_args: object) -> None:
-        """Use the existing title bar for live status without taking space from either text column."""
+        """Keep utility page titles out of the dictation workspace's quiet header."""
         if self.header_bar is None or self.window is None:
             return
-        workspace = self.conversation_workspace
         title = None if self.window.get_width() <= COMPACT_LAYOUT_MAX_WIDTH else self.page_title_label
-        if workspace is not None and workspace.live_header.get_visible():
-            title = workspace.live_header
         self.header_bar.set_title_widget(title)
 
     def _show_settings(self, _button: Gtk.Button) -> None:
@@ -2620,8 +2713,6 @@ class MluvaApplication(Adw.Application):
                 self.system_audio_device.set_sensitive(False)
             if self.refresh_audio_button is not None:
                 self.refresh_audio_button.set_sensitive(False)
-            if self.settings_button is not None:
-                self.settings_button.set_sensitive(False)
         data_dir = self.data_directory / "recordings"
         stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%f")
         self.audio_path = data_dir / f"{stamp}.wav"
@@ -2740,14 +2831,9 @@ class MluvaApplication(Adw.Application):
             fallback_reason = RECOGNITION_FALLBACK_UNAVAILABLE
         else:
             try:
-                live_capture = (
-                    self.config.live_rewrite_enabled
-                    and mode == "dictation"
-                    and self.live_session_identifier == session_identifier
-                )
                 realtime_session = self.realtime_client.start(
                     language_code,
-                    on_preview=self._live_preview_callback(session_identifier) if live_capture else None,
+                    on_preview=self._live_preview_callback(session_identifier) if mode == "dictation" else None,
                     on_committed_segment=(
                         None
                         if segment_cleanup_session is None
@@ -2757,6 +2843,10 @@ class MluvaApplication(Adw.Application):
                         )
                     ),
                 )
+                if isinstance(realtime_session, BatchPreviewSession):
+                    realtime_session.set_preview_enabled(
+                        mode == "dictation" and self.live_session_identifier == session_identifier
+                    )
             except Exception:
                 fallback_reason = RECOGNITION_FALLBACK_STARTUP_FAILED
         if self.shutting_down or self.pending_session_identifier != session_identifier:
@@ -3057,6 +3147,8 @@ class MluvaApplication(Adw.Application):
 
     def _workflow_finished(self, result: WorkflowResult) -> bool:
         """Render the final output and restore the ready state on GTK's thread."""
+        workspace = self.conversation_workspace
+        viewing_live = workspace is not None and workspace.viewing_live
         self.capture_processing = False
         self.realtime_session = None
         self.segment_cleanup_session = None
@@ -3162,8 +3254,8 @@ class MluvaApplication(Adw.Application):
             else:
                 workspace.finish_live()
             if result.history_entry is not None:
-                if not workspace.prompt_text() and self.rewrite_client is None:
-                    workspace.show_conversation(result.history_entry, [])
+                if viewing_live and not workspace.prompt_text() and self.rewrite_client is None:
+                    workspace.show_conversation(result.history_entry, [], preserve_live=finishing_live)
             else:
                 workspace.show_transient(result.transcription.text, result.output_text)
         if not result.requires_acceptance:
@@ -3302,6 +3394,7 @@ class MluvaApplication(Adw.Application):
         if self.status_label is not None:
             self.status_label.remove_css_class("error")
             self.status_label.set_label(message)
+            self.status_label.set_tooltip_text(message)
 
     def _show_live_capture(self, phase: str) -> None:
         """Expose the transient recording bar and hide the idle summary."""
@@ -3350,6 +3443,7 @@ class MluvaApplication(Adw.Application):
                 smooth_scrolling=_smooth_motion_enabled(self.config),
                 scroll_duration_ms=self.config.scroll_duration_ms,
                 scroll_lookahead_lines=self.config.scroll_lookahead_lines,
+                widget_position=self.config.widget_position,
             )
             if not self.recording_overlay_publisher.publish(overlay_state):
                 self.recording_overlay_publisher = None
@@ -3386,7 +3480,11 @@ class MluvaApplication(Adw.Application):
             buffer = workspace.live_text.get_buffer()
             preview = buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), False)
         if publisher is not None:
-            publisher.publish(RecordingOverlayState(phase=phase, detail=detail, preview=preview))
+            publisher.publish(
+                RecordingOverlayState(
+                    phase=phase, detail=detail, preview=preview, widget_position=self.config.widget_position
+                )
+            )
             if phase in {"copied", "error"}:
                 self.overlay_timeout_id = GLib.timeout_add_seconds(
                     5 if phase == "copied" else 10,

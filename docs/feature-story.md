@@ -9,11 +9,11 @@ Speak a rough idea, shape it into useful text and keep the original. Omarchy is 
 | Dictation | F9 starts and stops capture. Completed text copies to the clipboard and becomes an editable conversation. |
 | Rewriting | Polish, Structure, saved prompts and custom follow-ups transform the working text while keeping the original. |
 | Existing text | Paste into a new conversation, then edit or rewrite without recording. |
-| Live rewrite | Opt in to provisional task specs, structured notes, polish or custom drafts during speech. Stop reconciles the draft with final recognition. Experimental. |
-| Omarchy widget | Starts with five live preview lines. Its light and timer sit above the text box. Drag the text box or status badge, resize it or focus it and press Super+T to tile. Opening preserves typing focus; clicking allows interaction. Polish, Structure, More, Copy and Open follow dictation. Hover, focus and rewriting pause the four-second dismissal. |
+| Live rewrite | Start or pause during dictation. Grilling pins evolving questions above architecture notes and Mermaid sketches; Task spec, Structured note, Polish and Custom remain available. Active drafts reconcile at Stop; paused drafts retain a review label. Experimental. |
+| Omarchy widget | Starts with five live preview lines, a bare light at top left and timer at top right. Choose lower-left/bottom/lower-right placement, drag the text or status row, resize or use Super+T to tile. Opening preserves typing focus; clicking allows interaction. Polish, Structure, More, Copy and Open follow dictation. Hover, focus and rewriting pause the four-second dismissal. |
 | Editing | Edit originals or completed replies. Ctrl+S saves; Ctrl+Enter sends a rewrite. Raw recognition remains recoverable. |
-| Commands | Ctrl+P searches the app's recording, rewriting, Copy, Save, History and Settings actions. |
-| History and export | Search titles, saved text and instructions; reopen, rename, delete or export conversations as Markdown or JSON. |
+| Commands | Ctrl+P searches actions and every settings control, including direct widget, date, sidebar and Live template choices. |
+| History and export | The sidebar starts hidden and keeps live and saved conversations separately navigable. Search, reopen, rename, delete or export saved conversations as Markdown or JSON; choose a 12/24-hour clock. |
 | Markdown | Read headings, emphasis and code in native text views; focus reveals editable source. Copy and Save preserve it. |
 | Themes and layout | The app and widget follow Omarchy's palette. The recording light and timer sit in the title bar above the text. Wide Live panes sit side by side; narrow windows stack them. |
 

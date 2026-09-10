@@ -22,7 +22,7 @@ linux-test: linux-setup
 	cd linux && uv run --locked ruff format --check .
 
 # Quick text/editing feedback; linux-test remains the complete handoff gate.
-.PHONY: linux-test-fast linux-command-test
+.PHONY: linux-test-fast linux-command-test linux-fluid-workspace-test
 linux-test-fast: linux-setup
 	cd linux && uv run --locked pytest -q tests/test_transcript.py tests/test_conversation.py \
 		tests/test_history.py tests/test_scratchpad.py tests/test_live_rewrite.py tests/test_minimal_markdown.py
@@ -31,6 +31,11 @@ linux-command-test: linux-setup
 	bash dev/run-isolated.sh tmp/command-palette -- env PYTHONPATH=linux:linux/tests \
 		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
 		uv run --project linux --locked python linux/tests/command_palette_smoke.py
+
+linux-fluid-workspace-test: linux-setup
+	OFFSCREEN_ENABLE_ATSPI=1 bash dev/run-isolated.sh tmp/fluid-workspace -- env PYTHONPATH=linux:linux/tests \
+		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
+		uv run --project linux --locked python linux/tests/fluid_workspace_smoke.py
 
 .PHONY: linux-omarchy-test
 linux-omarchy-test: linux-setup

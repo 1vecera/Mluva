@@ -36,6 +36,8 @@ TRANSCRIPTION_LANGUAGE_OPTIONS = (
 MAX_CODEX_MODEL_CHARACTERS = 200
 FUNCTION_KEY_OPTIONS = tuple(f"F{number}" for number in range(1, 25))
 DEFAULT_GLOBAL_RECORDING_KEY = "F9"
+WIDGET_POSITIONS = (("bottom-left", "Lower left"), ("bottom-center", "Bottom"), ("bottom-right", "Lower right"))
+TIME_FORMATS = (("24h", "24-hour · 14:30"), ("12h", "12-hour · 2:30 PM"))
 
 
 class AudioRetentionPolicy(StrEnum):
@@ -81,8 +83,11 @@ class AppConfig:
     smooth_scrolling: bool = True
     scroll_duration_ms: int = 800
     scroll_lookahead_lines: int = 2
+    widget_position: str = "bottom-center"
+    history_sidebar_visible: bool = False
+    time_format: str = "24h"
     live_rewrite_enabled: bool = False
-    live_rewrite_template: str = "task-spec"
+    live_rewrite_template: str = "grilling"
     live_rewrite_custom_instructions: str = ""
     live_rewrite_min_characters: int = 160
     live_rewrite_interval_seconds: int = 4
@@ -127,6 +132,7 @@ class AppConfig:
             "show_save_action",
             "smooth_scrolling",
             "live_rewrite_enabled",
+            "history_sidebar_visible",
         ):
             if not isinstance(getattr(self, name), bool):
                 raise TypeError(f"{name} must be a boolean")
@@ -141,7 +147,11 @@ class AppConfig:
             value = getattr(self, name)
             if type(value) is not int or not minimum <= value <= maximum:
                 raise ValueError(f"{name} must be an integer from {minimum} to {maximum}")
-        if self.live_rewrite_template not in {"task-spec", "structured-note", "polish", "custom"}:
+        if self.widget_position not in dict(WIDGET_POSITIONS):
+            raise ValueError("Unsupported widget position")
+        if self.time_format not in dict(TIME_FORMATS):
+            raise ValueError("Unsupported time format")
+        if self.live_rewrite_template not in {"grilling", "task-spec", "structured-note", "polish", "custom"}:
             raise ValueError("Unsupported live rewrite template")
         if (
             not isinstance(self.live_rewrite_custom_instructions, str)

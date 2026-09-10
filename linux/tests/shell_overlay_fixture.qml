@@ -89,6 +89,7 @@ ShellRoot {
             const viewport = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-viewport");
             const copy = root.descendants(overlay.contentItem).find(item => item.objectName === "copy-button");
             const surface = root.descendants(overlay.contentItem).find(item => item.objectName === "overlay-surface");
+            const drag = root.descendants(overlay.contentItem).find(item => item.objectName === "recorder-drag-area");
             const dot = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-dot");
             const status = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-status");
             const header = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-header");
@@ -108,6 +109,9 @@ ShellRoot {
                 dotBottom: dot.mapToItem(overlay.contentItem, 0, dot.height).y,
                 timerBottom: timer.mapToItem(overlay.contentItem, 0, timer.height).y,
                 viewportWidth: viewport.width, textWidth: text.width,
+                preset: overlay.positionPreset, headerTransparent: header.color === undefined || header.color.a === 0,
+                dragWidth: drag.width, dragHeight: drag.height,
+                timerRight: timer.x + timer.width, headerWidth: header.width,
                 textHeight: text.height, textY: text.y, viewportHeight: viewport.height, lineHeight: overlay.lineHeight,
                 lineCount: text.lineCount, lookAhead: text.lookAhead,
                 lastLineFill: text.lastLineFill, previewStart: widget.previewStart,

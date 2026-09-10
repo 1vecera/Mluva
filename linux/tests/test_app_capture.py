@@ -11,6 +11,7 @@ import mluva_linux.app as app_module
 from mluva_linux.app import (
     MluvaApplication,
 )
+from mluva_linux.batch_preview import BatchPreviewClient, BatchPreviewSession
 from mluva_linux.codex_client import CodexAppServerClient
 from mluva_linux.config import FUNCTION_KEY_OPTIONS, AppConfig, load_config
 from mluva_linux.delivery import DeliveryReceipt
@@ -206,6 +207,7 @@ def test_prepare_capture_resolves_model_before_realtime_and_wires_segment_cleanu
         codex_workspace=tmp_path / "codex-workspace",
         _capture_prepared=prepared_callback,
         _capture_preparation_failed=failed_callback,
+        _live_preview_callback=lambda _session: None,
     )
     application.codex_workspace.mkdir()
 
@@ -293,20 +295,26 @@ def test_prepare_capture_model_failure_never_opens_realtime_route(
     ("enabled", "mode", "live_session", "expected_preview"),
     [
         (True, "dictation", "capture", True),
-        (False, "dictation", None, False),
-        (True, "dictation", None, False),
+        (False, "dictation", None, True),
+        (True, "dictation", None, True),
         (True, "command", None, False),
         (True, "notes", None, False),
     ],
 )
-def test_prepare_capture_offers_provisional_input_only_to_active_live_dictation(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, enabled, mode, live_session, expected_preview
+@pytest.mark.parametrize("batch", [False, True])
+def test_prepare_capture_keeps_provisional_input_ready_for_live_toggle(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, enabled, mode, live_session, expected_preview, batch
 ) -> None:
-    """Keep the same recognition transport; only opted-in Live dictation receives provisional input."""
+    """Keep the same recognition transport; the callback gates model work until Live is explicitly enabled."""
     starts = []
     prepared = []
     preview_callback = object()
-    realtime = ElevenLabsRealtimeClient(api_key="write-only-test-key")
+    realtime = (
+        BatchPreviewClient(lambda: None, tmp_path, 3)
+        if batch
+        else ElevenLabsRealtimeClient(api_key="write-only-test-key")
+    )
+    batch_session = BatchPreviewSession(lambda: None, tmp_path, "eng", 3) if batch else None
     application = SimpleNamespace(
         shutting_down=False,
         pending_session_identifier="capture",
@@ -319,13 +327,16 @@ def test_prepare_capture_offers_provisional_input_only_to_active_live_dictation(
 
     def start(client, language_code, **callbacks):
         starts.append((client, language_code, callbacks))
-        return object()
+        return batch_session if batch else object()
 
-    monkeypatch.setattr(ElevenLabsRealtimeClient, "start", start)
+    monkeypatch.setattr(type(realtime), "start", start)
     monkeypatch.setattr(app_module.GLib, "idle_add", lambda *args: prepared.append(args))
     MluvaApplication._prepare_capture(
         application, "capture", tmp_path / "capture.wav", "eng", False, None, mode, False, _preparation()
     )
+    if batch_session is not None:
+        batch_session.cancel()
+        assert batch_session.preview_enabled == (mode == "dictation" and live_session == "capture")
     assert len(starts) == len(prepared) == 1
     client, language, callbacks = starts[0]
     assert client is realtime

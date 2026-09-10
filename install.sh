@@ -95,10 +95,10 @@ fi
 
 if [[ "${platform}" == omarchy ]]; then
     omarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita \
-        at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard procps-ng
+        at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard procps-ng webkitgtk-6.0
 else
     sudo dnf install -y git uv python3-gobject gtk4 libadwaita at-spi2-core \
-        gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng
+        gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng webkitgtk6.0
 fi
 
 bash "${source_root}/linux/install.sh"

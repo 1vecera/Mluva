@@ -1,7 +1,6 @@
 """GTK history management surface for Linux transcription recovery."""
 
 from collections.abc import Callable
-from datetime import datetime
 from pathlib import Path
 
 import gi
@@ -11,6 +10,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk  # noqa: E402
 
 from mluva_linux.conversation import ConversationStore
+from mluva_linux.display_time import history_timestamp
 from mluva_linux.history import (
     RECOGNITION_FALLBACK_STARTUP_FAILED,
     RECOGNITION_FALLBACK_STREAM_FAILED,
@@ -70,10 +70,12 @@ class HistoryPage(Gtk.Box):
         history_changed: Callable[[], None],
         show_message: Callable[[str], None],
         conversations: ConversationStore | None = None,
+        time_format: str = "24h",
     ) -> None:
         """Build one refreshable archive around injected application actions."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.store = store
+        self.time_format = time_format
         self.conversations = conversations
         self.export_directory = export_directory
         self.copy_text = copy_text
@@ -333,7 +335,7 @@ class HistoryPage(Gtk.Box):
     def _entry_subtitle(self, entry: HistoryEntry) -> str:
         """Summarize the user-relevant state and local creation time."""
         try:
-            created = datetime.fromisoformat(entry.created_at).astimezone().strftime("%Y-%m-%d %H:%M")
+            created = history_timestamp(entry.created_at, self.time_format)
         except ValueError:
             created = entry.created_at
         retained = " · recovery audio" if entry.retained_audio_path is not None else ""

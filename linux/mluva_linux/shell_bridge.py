@@ -7,6 +7,8 @@ from collections.abc import Callable
 
 import gi
 
+from mluva_linux.config import WIDGET_POSITIONS
+
 gi.require_version("Gio", "2.0")
 from gi.repository import Gio, GLib  # noqa: E402
 
@@ -52,6 +54,9 @@ def project_state(parameters: GLib.Variant, overlay: bool = False) -> dict[str, 
             smooth_scrolling=bool(values.get("smooth_scrolling", True)),
             scroll_duration=max(0, min(2000, int(values.get("scroll_duration", 800)))),
             scroll_lookahead=max(0, min(6, int(values.get("scroll_lookahead", 2)))),
+            widget_position=values.get("widget_position", "bottom-center")
+            if values.get("widget_position") in dict(WIDGET_POSITIONS)
+            else "bottom-center",
         )
         if phase in REVIEW_PHASES:
             state.update(

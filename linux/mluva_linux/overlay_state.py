@@ -6,6 +6,8 @@ from typing import Protocol
 
 import gi
 
+from mluva_linux.config import WIDGET_POSITIONS
+
 gi.require_version("Gio", "2.0")
 from gi.repository import GLib  # noqa: E402
 
@@ -56,6 +58,7 @@ class RecordingOverlayState:
     smooth_scrolling: bool = True
     scroll_duration_ms: int = 800
     scroll_lookahead_lines: int = 2
+    widget_position: str = "bottom-center"
 
     @classmethod
     def hidden(cls) -> "RecordingOverlayState":
@@ -99,6 +102,9 @@ class RecordingOverlayState:
             smooth_scrolling=GLib.Variant("b", self.smooth_scrolling),
             scroll_duration=GLib.Variant("u", max(0, min(2000, self.scroll_duration_ms))),
             scroll_lookahead=GLib.Variant("u", max(0, min(6, self.scroll_lookahead_lines))),
+            widget_position=GLib.Variant(
+                "s", self.widget_position if self.widget_position in dict(WIDGET_POSITIONS) else "bottom-center"
+            ),
             elapsed=GLib.Variant("u", max(0, min(int(self.elapsed_seconds), 86_400))),
             level=GLib.Variant("d", max(0.0, min(self.level, 1.0)) if math.isfinite(self.level) else 0.0),
             preview=GLib.Variant("s", preview[preview_start:]),

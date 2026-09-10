@@ -165,7 +165,7 @@ def build_stylesheet(tokens: dict[str, str]) -> str:
         _named_colors(tokens)
         + """
 window.background { background: alpha(@vs_canvas, $WINDOW_OPACITY); color: @vs_ink;
-  font-family: "Inter", "Adwaita Sans", "Noto Sans", sans-serif; font-size: 0.92em; }
+  font-family: monospace; font-size: 0.92em; }
 toolbarview, toolbarview > top-bar, toolbarview > bottom-bar { background: transparent; }
 headerbar { min-height: 38px; padding: 0 8px; background: transparent; color: @vs_ink; border: none; box-shadow: none; }
 headerbar button { min-height: 24px; min-width: 24px; padding: 2px 4px; }
@@ -198,13 +198,16 @@ separator { background: @vs_outline_subtle; }
 overlay-split-view > .sidebar-pane, overlay-split-view > .content-pane { background: transparent; }
 .ml-history-sidebar { background: transparent; }
 .ml-history-sidebar entry.search { min-height: 28px; padding: 2px 8px; background: transparent;
-  border: 1px solid alpha(@vs_ink, 0.10); box-shadow: none; border-radius: $CONTROL_RADIUSpx; }
+  border: none; box-shadow: none; border-radius: 0; }
+.ml-capture-status { font-size: 0.8em; color: @vs_ink_muted; }
+.ml-live-questions { margin-bottom: 8px; }
 .ml-history-sidebar list { background: transparent; }
 .ml-history-sidebar row { border-radius: $CONTROL_RADIUSpx; margin: 2px 0; border-left: 2px solid transparent; }
 .ml-history-sidebar row:selected { background: alpha(@vs_action, 0.08); border-left-color: alpha(@vs_action, 0.7);
   color: @vs_ink; }
 .ml-history-sidebar row:hover { background: alpha(@vs_ink, 0.055); }
 .ml-history-sidebar button { min-height: 28px; }
+.ml-history-sidebar button.ml-live-current { color: @vs_action; font-weight: 600; }
 .ml-wordmark, .ml-conversation-title { font-size: 1.12em; font-weight: 600; letter-spacing: -0.2px; }
 .ml-brand-mark { color: @vs_ink_secondary; opacity: 0.65; }
 .ml-conversation { background: transparent; }

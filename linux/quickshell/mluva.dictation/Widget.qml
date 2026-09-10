@@ -21,6 +21,7 @@ Item {
     property bool smoothScrolling: true
     property int scrollDuration: 800
     property int scrollLookahead: 2
+    property string widgetPosition: "bottom-center"
     property bool controlFailed: false
     readonly property string executable: settings && settings.command ? settings.command : "mluva-shell"
     readonly property var labels: ({
@@ -78,6 +79,8 @@ Item {
                     root.smoothScrolling = state.smooth_scrolling !== false;
                     root.scrollDuration = Number.isInteger(state.scroll_duration) ? state.scroll_duration : 800;
                     root.scrollLookahead = Number.isInteger(state.scroll_lookahead) ? state.scroll_lookahead : 2;
+                    root.widgetPosition = ["bottom-left", "bottom-center", "bottom-right"].includes(state.widget_position)
+                        ? state.widget_position : "bottom-center";
                     root.message = typeof state.message === "string" ? state.message.slice(0, 96) : "";
                 } catch (error) {
                     root.phase = "unavailable";
@@ -109,6 +112,7 @@ Item {
         smoothScrolling: root.smoothScrolling
         scrollDuration: root.scrollDuration
         scrollLookahead: root.scrollLookahead
+        positionPreset: root.widgetPosition
         phase: root.phase
         elapsed: root.elapsed
         level: root.level

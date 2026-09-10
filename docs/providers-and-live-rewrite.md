@@ -2,6 +2,8 @@
 
 Settings → **Workspace** controls editing actions, automatic copying, scrolling and Live rewrite. Settings → **Providers** chooses speech recognition independently from rewriting. Press **Apply** to save a page. Provider changes apply to the next recording or request and are unavailable while work is active.
 
+**Ctrl+P** searches every settings row and opens its page at that control. Widget position, time format, sidebar visibility and Live templates also have direct commands. The history sidebar starts hidden; its toggle reveals saved conversations and a **Live conversation** entry during recording and finalization. Incoming speech does not switch you away from a selected older conversation. Dates use `Mon 7 Sep · 14:30`, with an optional `2:30 PM` clock.
+
 The [provider selection guide](provider-selection.md) covers provider → model choices, optional discovery, connection guidance and advanced endpoint/key-variable settings.
 
 The same settings live in `$XDG_CONFIG_HOME/mluva/config.json`, normally `~/.config/mluva/config.json`. Edit this JSON while Mluva is closed, then restart; it is not watched for external changes. Existing installations keep their previous settings, and omitted new keys receive the defaults below. The file is owner-only. It contains environment variable **names**, never API key values.
@@ -19,6 +21,9 @@ Completed dictation and successful rewrites copy automatically by default. Volat
 | `show_copy_action` | `true` | Show Copy icons in documents and the Omarchy review widget. |
 | `show_save_action` | `true` | Show Save icons in editable documents; Ctrl+S remains available. |
 | `review_timeout_seconds` | `4` | Omarchy review dismissal, 1–60 seconds; hover, focus, menus and rewriting pause it. |
+| `widget_position` | `"bottom-center"` | Omarchy widget preset: `bottom-left`, `bottom-center` or `bottom-right`; manual dragging remains available. |
+| `history_sidebar_visible` | `false` | Show the history sidebar in the wide layout; compact windows use an overlay. |
+| `time_format` | `"24h"` | History clock: `24h` or `12h` with AM/PM. |
 | `smooth_scrolling` | `true` | Animate following new text. Scrolling away pauses following. |
 | `scroll_duration_ms` | `800` | Scroll animation, 0–2,000 milliseconds. |
 | `scroll_lookahead_lines` | `2` | Advance room below new text, 0–6 lines; the five-line widget scales this down to fit. |
@@ -77,21 +82,29 @@ For example, a partial config for local speech with a local or remote rewrite pr
 
 ## Live rewrite
 
-Turn on **Live rewrite** beside Dictate, then start dictation. Its small downward arrow selects **Task spec**, **Structured note**, **Polish** or **Custom**. The selection persists and stays in sync with Settings → Workspace, where custom instructions can be edited. The original speech appears beside an editable structured draft; narrow windows stack them. Task and note templates initially show `[Missing: …]` markers so the speaker can see which details remain to be supplied. A custom template's instructions can contain the desired structure and required fields.
+Turn on **Live rewrite** beside Dictate before or during dictation. Its small downward arrow selects **Grilling**, **Task spec**, **Structured note**, **Polish** or **Custom**. The selection persists and stays in sync with Settings → Workspace, where custom instructions can be edited. The original speech appears beside an editable structured draft; narrow windows stack them. Grilling is the default template for new settings; existing explicit template choices are preserved. Live rewrite itself remains opt-in.
+
+Grilling keeps up to three unanswered questions pinned above the evolving architecture notes. Each update is instructed to retire answered questions and advance to the next material decisions. Intent, constraints, preferences, technologies and other sections appear only when the speaker supplies content. Small Mermaid sketches describe supplied relationships. This adapts the question progression in [Matt Pocock's grilling skill](https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md) to uninterrupted speech. Task and note templates retain their `[Missing: …]` markers; Custom accepts your own structure.
+
+You can change templates or pause Live while the microphone stays open. Pausing cancels pending rewrites and keeps the current draft, including manual edits. Resuming incorporates current speech without restarting capture. With batch speech providers, audio collected before enabling Live is included in the first available preview; no preview requests start while Live is off. If you stop while paused, the draft is saved as **not reconciled** and never auto-copied. Live controls wait during preparation and finalization; provider changes remain unavailable during capture.
 
 | JSON setting | Default | Meaning |
 | --- | --- | --- |
-| `live_rewrite_enabled` | `false` | Enable for the next Dictation capture. |
-| `live_rewrite_template` | `"task-spec"` | `task-spec`, `structured-note`, `polish` or `custom`. |
+| `live_rewrite_enabled` | `false` | Enable before or during a Dictation capture. |
+| `live_rewrite_template` | `"grilling"` | `grilling`, `task-spec`, `structured-note`, `polish` or `custom`. |
 | `live_rewrite_custom_instructions` | `""` | Instructions required when the custom template is selected. |
 | `live_rewrite_min_characters` | `160` | Group new characters after the first draft, 40–4,000; a paused short tail also updates. |
 | `live_rewrite_interval_seconds` | `4` | Minimum time between later requests and pause before flushing a short tail, 2–60 seconds. |
 
 Live rewrite is off by default. Switching it on allows provisional recognition to be sent to the selected rewrite model before the speech provider commits it. The live editor and model input identify this text as provisional. The first request starts after 40 characters, or after a shorter utterance stays unchanged for the configured interval. This avoids spending the first request on opening filler without making brief dictation wait indefinitely. Later requests follow the configured interval and character grouping; short additions and same-length corrections update after a pause. Batch speech engines still update by chunk, not every word. Model processing remains part of the wait. The displayed rewrite timing measures worker dispatch to the first nonempty text response, including setup and discovery; it is not a provider latency guarantee.
 
-Each update uses a frozen speech/draft snapshot, with at most one request in flight. Whole draft updates keep template structure readable and retain a manual reading position. If you type during a request, that result cannot replace the newer edit; a later request incorporates your current draft. The model is instructed to preserve supplied facts and deliberate edits, mark gaps, and avoid inventing owners, dates or decisions. These are model instructions, so review the result.
+Each update uses a frozen speech/draft snapshot, with at most one request in flight. Whole draft updates keep template structure readable and retain a manual reading position. If you type during a request, that result cannot replace the newer edit; a later request incorporates your current draft. The model is instructed to preserve supplied facts and deliberate edits, surface unresolved questions, and avoid inventing owners, dates or decisions. These are model instructions, so review the result.
 
-Scribe keeps its established 25-second commit cadence. Provisional recognition is model input only: it never replaces raw recognition or automatic dictation delivery. Stop always reconciles against the complete committed transcript, even when its text matches the last preview or is below the usual thresholds, then saves one final reply with the source. Only a successful final rewrite may auto-copy. A failed update pauses automatic requests, retains the available draft and labels an incomplete saved draft; it never auto-copies a failed final update. Cancellation, deletion and Incognito invalidate late results. Live rewrite is unavailable in Incognito and does not run for Command or Notes captures. Closing the window leaves capture running; quitting ends it.
+Scribe keeps its established 25-second commit cadence. Provisional recognition is model input only: it never replaces raw recognition or automatic dictation delivery. When Live is active, Stop reconciles against the complete committed transcript, even when its text matches the last preview or is below the usual thresholds, then saves one final reply with the source. Only a successful final rewrite may auto-copy. A failed update pauses automatic requests, retains the available draft and labels an incomplete saved draft; it never auto-copies a failed final update. Cancellation, deletion and Incognito invalidate late results. Live rewrite is unavailable in Incognito and does not run for Command or Notes captures. Closing the window leaves capture running; quitting ends it.
+
+## Mermaid sketches
+
+Live drafts and saved replies render closed Mermaid fences using a bundled local renderer and WebKitGTK 6.0. Successfully rendered source folds while reading and reappears when the editor receives focus. Copy, Save and exports retain the exact Markdown. Invalid or incomplete diagrams remain visible source, as do sketches when WebKit is unavailable. Rendering is limited to three sketches of 12,000 characters each, with bounded output and a timeout. Strict Mermaid mode, blocked navigation/network content, rejected configuration directives and an ephemeral browser session keep sketches local. Native image decoding rejects external references and embedded browser content.
 
 ## Verification
 

@@ -20,6 +20,7 @@ class RecordingLight(Gtk.DrawingArea):
         self.set_accessible_role(Gtk.AccessibleRole.STATUS)
         self._recording = False
         self._breath = 0.0
+        self._drift = 0.0
         self._started_at = 0
         self._tick_id = 0
         self._settings: Gtk.Settings | None = None
@@ -63,21 +64,35 @@ class RecordingLight(Gtk.DrawingArea):
             self.remove_tick_callback(self._tick_id)
             self._tick_id = 0
         self._breath = 0.0
+        self._drift = 0.0
         self.queue_draw()
 
     def _tick(self, _widget: Gtk.Widget, clock: Gdk.FrameClock) -> bool:
         if not self._started_at:
             self._started_at = clock.get_frame_time()
-        self._breath = math.sin((clock.get_frame_time() - self._started_at) / 2_600_000 * math.tau)
+        phase = (clock.get_frame_time() - self._started_at) / 3_400_000 * math.tau
+        self._breath = math.sin(phase)
+        self._drift = math.sin(phase * 2)
         self.queue_draw()
         return True
 
     def _draw(self, _area: Gtk.DrawingArea, context: cairo.Context, width: int, height: int) -> None:
         color = self.get_color()
         if self._recording:
-            context.set_source_rgba(color.red, color.green, color.blue, 0.12 + 0.04 * self._breath)
-            context.arc(width / 2, height / 2, 7 * (1 + 0.12 * self._breath), 0, math.tau)
-            context.fill()
+            context.save()
+            context.translate(width / 2, height / 2)
+            context.scale(1 + 0.14 * self._breath + 0.035 * self._drift, 1 + 0.14 * self._breath - 0.035 * self._drift)
+            context.set_source_rgba(color.red, color.green, color.blue, 0.10 + 0.04 * self._breath)
+            context.arc(0, 0, 7, 0, math.tau)
+            context.fill_preserve()
+            context.set_source_rgba(color.red, color.green, color.blue, 0.20 + 0.08 * self._breath)
+            context.set_line_width(0.6)
+            context.stroke()
+            context.restore()
+            context.set_source_rgba(color.red, color.green, color.blue, 0.38 + 0.12 * self._breath)
+            context.arc(width / 2, height / 2, 4.5 * (1 + 0.10 * self._breath), 0, math.tau)
+            context.set_line_width(0.7)
+            context.stroke()
         context.set_source_rgba(color.red, color.green, color.blue, 0.92 + 0.08 * self._breath)
         context.arc(width / 2, height / 2, 3 * (1 + 0.18 * self._breath), 0, math.tau)
         context.fill()
