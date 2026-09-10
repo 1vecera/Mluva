@@ -59,7 +59,7 @@ them. Tell me how to launch Mluva and approve its recording shortcuts.
 
 ### The Omarchy widget
 
-The floating widget starts with five preview lines while you speak. Drag its status row to move it, or focus it and press **Super+T** on Omarchy to tile it. Floating mode keeps it above other windows; resizing gives the preview more room. The main app keeps the recording light and timer in its title bar. When you finish, rewrite, copy or open the note in the workspace. Hover, keyboard focus and active rewrites pause its configurable four-second dismissal. **Shift+F9** reopens the latest conversation when configured.
+The floating widget starts with five preview lines while you speak. The recording light and timer sit above the text box. Drag the text box or its status badge to move it, or focus it and press **Super+T** on Omarchy to tile it. Floating mode keeps it above other windows; resizing gives the preview more room. The main app keeps the recording light and timer in its title bar. When you finish, rewrite, copy or open the note in the workspace. Hover, keyboard focus and active rewrites pause its configurable four-second dismissal. **Shift+F9** reopens the latest conversation when configured.
 
 ![The compact Omarchy widget with rewrite actions, Copy, Open and a countdown ring](docs/promotion/assets/widget-review.png)
 

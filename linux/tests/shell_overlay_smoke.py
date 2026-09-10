@@ -236,9 +236,13 @@ def main() -> None:
                 assert state["height"] <= state["screenHeight"]
                 assert state["preview"] == preview[-4096:]
                 if phase == "recording":
+                    assert state["surfaceVisible"]
                     assert state["headerVisible"] and state["timerVisible"] and state["timerText"] == "01:13"
                     assert state["dotLabel"] == "Recording" and state["statusText"] == ""
-                    assert state["headerBottom"] < state["viewportTop"]
+                    assert state["headerBottom"] < state["surfaceTop"] < state["viewportTop"]
+                    assert state["dotBottom"] <= state["headerBottom"]
+                    assert state["timerBottom"] <= state["headerBottom"]
+                    assert state["viewportWidth"] == state["textWidth"] == state["width"] - 20
                     assert state["viewportHeight"] == state["lineHeight"] * 5
                     assert state["textY"] < 0
                     assert abs(state["textY"] - state["targetY"]) < 0.1

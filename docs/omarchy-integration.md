@@ -2,7 +2,7 @@
 
 Mluva’s optional `mluva.dictation` plugin uses Omarchy’s popup colors, border, corner radius, font scale, and button controls. The GTK app follows the active Omarchy `colors.toml` palette, including light/dark mode and theme changes while it is open. Outside Omarchy it follows the system scheme.
 
-During recording, a 500 × 127 logical-pixel window starts near the bottom center of the display and shows five wrapped lines at the default shell font size on an 82% opaque surface. Drag its status row to move it. Click the window and use Omarchy’s **Super+T** to switch between floating and tiling; resizing gives the preview more room without shrinking the text. Floating recordings stay above other windows and across workspaces, including after returning from tiling. Opening the recorder leaves keyboard focus in the current application; clicking it deliberately gives it focus. Scrolling starts gently as the last visible lines fill and follows new lines with eased movement.
+During recording, a 500 × 135 logical-pixel window starts near the bottom center of the display and shows five wrapped lines at the default shell font size on an 82% opaque surface. The blinking light and elapsed time sit together in a small badge above the transcript box. Drag the badge or the text box to move the recorder. Click the window and use Omarchy’s **Super+T** to switch between floating and tiling; resizing gives the preview more room without shrinking the text. Floating recordings stay above other windows and across workspaces, including after returning from tiling. Opening the recorder leaves keyboard focus in the current application; clicking it deliberately gives it focus. Scrolling starts gently as the last visible lines fill and follows new lines with eased movement.
 
 In the main application, the recording light and elapsed time occupy the existing title bar above the text panes. The Stop button remains below the text. Preparation and finalization use the same header without a blinking recording light.
 
@@ -28,6 +28,8 @@ The plugin invokes the native app's `mluva-shell` bridge. If the shell cannot fi
 
 Rerun the combined setup to update both parts after updating your Mluva checkout. It uses Omarchy's plugin manager and refuses to overwrite an unmanaged plugin directory or local plugin edits. Back up customizations before resolving those conflicts. `bash install.sh --app-only` leaves plugins alone. If widget setup fails after native installation, the app remains available; resolve the reported plugin error and rerun setup.
 
+An already loaded plugin can retain its old QML components after copying files and rescanning. For a manual install, moving the plugin directory to a fresh name under `~/.config/omarchy/plugins/` before calling `omarchy-shell shell rescanPlugins` gives it a new source URL; keep the manifest ID `mluva.dictation` unchanged and keep only one copy under that directory. This reloads the plugin without restarting the bar. For a Git-managed install, use `omarchy restart shell` if an update remains cached. The native recorder has loaded when `hyprctl eval "assert(mluva_recording_rule ~= nil)"` succeeds; file hashes alone do not establish which component is running.
+
 For plugin-only maintenance:
 
 ```sh
@@ -49,5 +51,7 @@ Run `make linux-test linux-shortcut-test`, repository shell checks and `make lin
 `linux/tests/conversation_ui_smoke.py` with `MLUVA_UI_SCENARIO=lifecycle` tests the real GTK callbacks and a separate fake model subprocess, including note identity during browsing, deliberate Copy, saved prompts, duplicate clicks, cancellation, Incognito, deletion, late completion after dismissal, automatic title generation, a queued title, manual renames, unsaved title edits and provider failure. `linux/tests/theme_ui_smoke.py` replaces only a private theme symlink and checks that an already open GTK window follows both schemes and recovers from malformed theme data.
 
 The private X11 checks establish production QML rendering and application/bridge behavior. The core dictation, rewrite and widget workflow is also tested end to end through daily Omarchy use. These isolated checks complement that desktop acceptance; automatic insertion and alternative provider/model combinations retain their separate limits.
+
+The [recorder-header verification](verification/recorder-header/README.md) covers the status badge above the transcript, native dragging from either surface, tiling and pinning, and a cached-plugin upgrade inside the installed Omarchy shell.
 
 The implementation follows Quickshell’s documented [FloatingWindow](https://quickshell.org/docs/v0.3.0/types/Quickshell/FloatingWindow/) and [PopupAnchor](https://quickshell.org/docs/v0.3.0/types/Quickshell/PopupAnchor/) contracts and Hyprland’s [window rules](https://wiki.hypr.land/Configuring/Basics/Window-Rules/). Omarchy’s native widget and style interfaces are documented in the installed shell’s `README.md` and `Commons`/`Ui` components.

@@ -1,0 +1,93 @@
+{
+  "initial": {
+    "at": [
+      390,
+      717
+    ],
+    "size": [
+      500,
+      135
+    ],
+    "floating": true,
+    "pinned": true,
+    "visible": true,
+    "acceptsInput": true
+  },
+  "badge_dragged": {
+    "at": [
+      530,
+      617
+    ],
+    "size": [
+      500,
+      135
+    ],
+    "floating": true,
+    "pinned": true,
+    "visible": true,
+    "acceptsInput": true
+  },
+  "body_dragged": {
+    "at": [
+      670,
+      517
+    ],
+    "size": [
+      500,
+      135
+    ],
+    "floating": true,
+    "pinned": true,
+    "visible": true,
+    "acceptsInput": true
+  },
+  "tiled": {
+    "at": [
+      645,
+      20
+    ],
+    "size": [
+      615,
+      860
+    ],
+    "floating": false,
+    "pinned": false,
+    "visible": true,
+    "acceptsInput": true
+  },
+  "floated": {
+    "at": [
+      700,
+      383
+    ],
+    "size": [
+      500,
+      135
+    ],
+    "floating": true,
+    "pinned": true,
+    "visible": true,
+    "acceptsInput": true
+  },
+  "reopened": {
+    "at": [
+      390,
+      680
+    ],
+    "size": [
+      500,
+      172
+    ],
+    "floating": true,
+    "pinned": true,
+    "visible": true,
+    "acceptsInput": true
+  },
+  "reload_preserves_tiling": true,
+  "initial_focus_preserved": true,
+  "reopened_focus_preserved": true,
+  "visible_above_fullscreen": true,
+  "native_copy_click_preserved": true,
+  "tiling_dispatcher": "hl.dsp.window.float({action = 'toggle'})",
+  "physical_shortcut_tested": false
+}
