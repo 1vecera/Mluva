@@ -1,6 +1,65 @@
 # Product film and capture tooling
 
-`capture_campaign.py` runs real Mluva audio, recognition and rewrite workflows on reserved Xvfb **:193**. It is intentionally restricted to this Lenovo and fresh output directories below this checkout's `tmp/`. It never installs into or drives the live desktop. [Assets and claim boundaries](../docs/promotion/README.md) distinguish tagged v0.3.0 speech footage, the unreleased Live workflow, generated transitions and legacy fixtures.
+The [55-second launch plan](../docs/promotion/README.md) is prepared; installed product capture and the final film are pending. Its new workflow reserves Xvfb **:203**. The capture controllers are restricted to this Lenovo and fresh output directories below this checkout's `tmp/`. They execute the installed interpreter directly with isolated app state; they never install, sync its environment or drive the live desktop. The earlier **:193** real-provider and **:195** feature workflows remain documented below for their historical assets.
+
+## Short launch film
+
+Complete runtime verification, commit the Linux source and install that exact build before capturing. `tmp/delight-launch/live-installation.json` must identify `source_revision`, `installed_runtime`, `installed_at_utc`, `entrypoint`, `installed_files`, `plugin_files` and `verified: true`. Both capture routes verify the installed Python, QML, dependency locks, helper files and icon against the clean source tree before and after capture. The receipt’s runtime directory must match, and its source revision must contain the same Linux tree as the current checkout; later documentation/media commits are allowed. Select that exact receipt revision for the real take. A staged-install receipt does not authorize final footage.
+
+Use the system dependencies and private desktop helper described below, with **:203** free. Supply an existing xcompmgr binary; no compositor installation is required. Optional `--pixel-ratio 2` renders the native 1920 × 1080 logical desktop at 3840 × 2160 for sharper camera crops. Verify its layout and recording performance with a credential-free native take before requesting the real providers.
+
+```sh
+mluva_runtime="$(uv run --no-project python -c 'import json; print(json.load(open("tmp/delight-launch/live-installation.json"))["installed_runtime"])')"
+mluva_revision="$(uv run --no-project python -c 'import json; print(json.load(open("tmp/delight-launch/live-installation.json"))["source_revision"])')"
+mluva_compositor=/absolute/path/to/xcompmgr
+
+uv run --no-project dev/capture_delight.py tmp/delight-film/layout-take \
+  --runtime "$mluva_runtime" \
+  --installation-receipt tmp/delight-launch/live-installation.json \
+  --compositor "$mluva_compositor" --pixel-ratio 2
+
+~/.config/daniel-ai-skills/bin/das-agent-snapshot launch \
+  --only DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL -- \
+  uv run --no-project dev/capture_campaign.py task tmp/delight-film/real-take \
+  --runtime . --runtime-revision "$mluva_revision" \
+  --installed-payload "$mluva_runtime" \
+  --installation-receipt tmp/delight-launch/live-installation.json \
+  --compositor "$mluva_compositor" --launch-film --pixel-ratio 2 \
+  --audio docs/promotion/assets/delight/source/dictation-input.wav \
+  --rewrite-provider codex
+
+uv run --no-project dev/capture_delight.py tmp/delight-film/feature-take \
+  --runtime "$mluva_runtime" \
+  --installation-receipt tmp/delight-launch/live-installation.json \
+  --compositor "$mluva_compositor" --pixel-ratio 2 \
+  --source-take tmp/delight-film/real-take
+
+uv run --no-project dev/package_delight.py real \
+  tmp/delight-film/real-take tmp/delight-film/real-export
+uv run --no-project dev/package_delight.py features \
+  tmp/delight-film/feature-take tmp/delight-film/feature-export
+```
+
+The real take feeds the retained synthetic WAV through a private PipeWire graph into production Scribe and Codex clients. It retains the complete recorder audio, provisional recognition, actual replies, provider events and measured audio/video offset. The later feature take seeds its original and first draft from those exact results, then uses local deterministic Polish and custom Rewrite replies. It asserts native Copy, Save edits, private XTest Ctrl+P/search/Enter, theme changes and unchanged raw input. Local timing and fixture replies establish no provider quality or latency result.
+
+`package_delight.py` publishes only explicit media, text, receipts and exact harness files; private desktop directories and provider state stay outside the package. Its continuous exports preserve elapsed source time without editorial cuts or speed changes. The real export’s `export.json` documents PCM alignment; both packages include hashes, before/after runtime identity and full-decode results.
+
+The final edit needs no provider access once its native footage exists. Its portable plan resolves sources relative to `docs/promotion/assets/delight`, will bind every native source offset, camera move and speed factor, and places individually timed narration phrases over the original synth bed. `compose_delight.py` renders the vector logo and text in software, checks the exact 3,300-frame 1080p60 4:2:0 result, and records source, font, plan, composer and output hashes. The committed plan currently has `status: awaiting-installed-capture`; it supports only `--preview`. Source speech and scenery already exist and need no regeneration. Populate the native clips from the completed captures and set `status: ready` before running the full edit and verifier below.
+
+```sh
+uv run --no-project dev/compose_delight.py \
+  docs/promotion/assets/delight/launch.plan.json \
+  tmp/delight-film/mluva-delight-launch.mp4
+
+uv run --no-project dev/verify_delight.py \
+  docs/promotion/assets/delight/launch.plan.json \
+  tmp/delight-film/mluva-delight-launch.mp4 \
+  --images tmp/delight-film/review-frames
+```
+
+The verifier checks source/plan/output hashes, the encoded media format and complete decoding, narration loudness/headroom and word-aligned phrase cuts. It exports optional SubRip captions with canonical spelling, a poster, an opening frame and a labeled contact sheet. Inspect those frames and the action/source evidence before delivering; automatic media checks are not an auditory listening review.
+
+The installed app and continuous evidence determine the claims. Read the [current media guide](../docs/promotion/README.md) and [release verification](../docs/verification/delight-launch.md) for source boundaries, native checks and final review. The older commands and measured results below reproduce the [historical 83.6-second film](../docs/promotion/archive-product-film.md).
 
 ## Prepare
 

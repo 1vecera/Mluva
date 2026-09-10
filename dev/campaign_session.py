@@ -45,9 +45,14 @@ def main():
     """Run the real recorder, recognition and draft lifecycle; automate only private controls."""
     root = Path(__file__).resolve().parents[1]
     runtime = Path(os.environ["CAMPAIGN_RUNTIME_ROOT"])
+    payload = Path(os.environ.get("CAMPAIGN_PAYLOAD_ROOT", str(runtime / "linux")))
+    display_name = os.environ.get("CAMPAIGN_DISPLAY", ":193")
+    launch_film = os.environ.get("CAMPAIGN_LAUNCH_FILM") == "1"
+    pixel_ratio = int(os.environ.get("CAMPAIGN_PIXEL_RATIO", "1"))
+    fps = 60 if launch_film else 30
     output = Path(os.environ["OFFSCREEN_ARTIFACT_DIR"])
     session = Path(os.environ["OFFSCREEN_SESSION_ROOT"])
-    assert os.environ["DISPLAY"] == ":193" and os.environ["GDK_BACKEND"] == "x11"
+    assert os.environ["DISPLAY"] == display_name and os.environ["GDK_BACKEND"] == "x11"
     assert not os.environ.get("WAYLAND_DISPLAY") and not os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
     for name in ("CONFIG", "DATA", "STATE", "CACHE", "RUNTIME"):
         Path(os.environ[f"XDG_{name}_HOME" if name != "RUNTIME" else "XDG_RUNTIME_DIR"]).resolve().relative_to(session)
@@ -102,6 +107,8 @@ def main():
     width, height = (1080, 1920) if portrait else (1920, 1080)
     app_width, app_height = (952, 1030) if portrait else (1288, 772)
     app_x, app_y = (64, 600) if portrait else (568, 146)
+    if launch_film:
+        app_width, app_height, app_x, app_y = 1536, 844, 192, 134
     started = time.monotonic()
     events = []
     children = []
@@ -136,7 +143,7 @@ def main():
                 "--pid",
                 str(shell.pid),
                 "call",
-                "campaign",
+                "delight" if launch_film else "campaign",
                 *arguments,
             ],
             text=True,
@@ -145,9 +152,10 @@ def main():
 
     def screenshot(name):
         frames = []
-        app.window.add_tick_callback(lambda *_args: frames.append(True) is None and len(frames) < 4)
-        app.window.queue_draw()
-        settle(lambda: len(frames) >= 4)
+        if app.window.get_mapped():
+            app.window.add_tick_callback(lambda *_args: frames.append(True) is None and len(frames) < 4)
+            app.window.queue_draw()
+            settle(lambda: len(frames) >= 4)
         subprocess.run(
             [
                 "magick",
@@ -178,13 +186,15 @@ def main():
             path.write_text(
                 path.read_text().replace('Quickshell.env("HOME")', 'Quickshell.env("OFFSCREEN_SESSION_ROOT")')
             )
-    shutil.copytree(runtime / "linux/quickshell/mluva.dictation", output / "mluva.dictation")
-    shutil.copy2(root / "dev/campaign-stage.qml", output / "shell.qml")
+    shutil.copytree(payload / "quickshell/mluva.dictation", output / "mluva.dictation")
+    shutil.copy2(root / "dev" / ("delight-stage.qml" if launch_film else "campaign-stage.qml"), output / "shell.qml")
     shutil.copy2(root / "linux/resources/com.voicescribe.Linux.svg", output / "mark.svg")
     shutil.copy2(
         Path.home() / ".local/state/omarchy/current/background",
         output / "wallpaper.jpg",
     )
+    if launch_film:
+        shutil.copy2(output / "wallpaper.jpg", output / "wallpaper-nord.jpg")
     binaries = output / "bin"
     binaries.mkdir()
     if os.environ["CAMPAIGN_REWRITE_PROVIDER"] == "codex":
@@ -193,7 +203,7 @@ def main():
     (binaries / "hyprctl").chmod(0o700)
     os.environ.update(
         PATH=str(binaries) + os.pathsep + os.environ["PATH"],
-        MLUVA_SHELL_COMMAND=str(runtime / "linux/mluva-shell"),
+        MLUVA_SHELL_COMMAND=str(payload / "mluva-shell"),
     )
     pipewire_config = session / "config/pipewire-campaign.conf"
     pipewire_config.write_text("""context.properties = {
@@ -235,6 +245,7 @@ def main():
                 microphone_target="0",
                 audio_retention_policy=AudioRetentionPolicy.ALWAYS,
                 live_rewrite_enabled="task" in scenario,
+                live_rewrite_template="structured-note" if launch_film else self.config.live_rewrite_template,
                 live_rewrite_min_characters=int(os.environ["CAMPAIGN_MIN_CHARACTERS"]),
                 live_rewrite_interval_seconds=int(os.environ["CAMPAIGN_LIVE_INTERVAL"]),
                 review_timeout_seconds=60,
@@ -392,7 +403,7 @@ def main():
     xlib = ctypes.CDLL("libX11.so.6")
     xlib.XOpenDisplay.restype = ctypes.c_void_p
     xlib.XOpenDisplay.argtypes = [ctypes.c_char_p]
-    display = xlib.XOpenDisplay(b":193")
+    display = xlib.XOpenDisplay(display_name.encode())
     assert display
     xlib.XMoveWindow.argtypes = [
         ctypes.c_void_p,
@@ -412,8 +423,18 @@ def main():
         nonlocal recorder
         try:
             initial_template = initial_draft(app.config)
+            if launch_film:
+                app.window.get_settings().set_property("gtk-font-name", "Adwaita Sans 14")
+                app.window.set_size_request(app_width, app_height)
             app.window.set_default_size(app_width, app_height)
             try:
+                if launch_film:
+                    settle(
+                        lambda: app.window.get_width() > app_width - 100 and app.window.get_height() > app_height - 100
+                    )
+                    app.window.set_default_size(
+                        2 * app_width - app.window.get_width(), 2 * app_height - app.window.get_height()
+                    )
                 settle(lambda: app.window.get_width() == app_width and app.window.get_height() == app_height)
             except TimeoutError:
                 event(
@@ -423,7 +444,7 @@ def main():
                 screenshot("allocation-failed")
                 raise
             xid = app.window.get_surface().get_xid()
-            xlib.XMoveWindow(display, xid, app_x, app_y)
+            xlib.XMoveWindow(display, xid, app_x * pixel_ratio, app_y * pixel_ratio)
             xlib.XRaiseWindow(display, xid)
             xlib.XFlush(display)
             settle(lambda: json.loads(ipc("state"))["width"] == width)
@@ -469,6 +490,8 @@ def main():
                 return GLib.SOURCE_REMOVE
             assert app.recorder and app.workflow and app.realtime_client
             app.cleanup_switch.set_active(False)
+            if launch_film:
+                app.window.set_visible(False)
             recorder = launch(
                 [
                     "ffmpeg",
@@ -481,17 +504,19 @@ def main():
                     "-draw_mouse",
                     "0",
                     "-framerate",
-                    "30",
+                    str(fps),
                     "-video_size",
-                    f"{width}x{height}",
+                    f"{width * pixel_ratio}x{height * pixel_ratio}",
                     "-i",
-                    ":193",
+                    display_name,
                     "-c:v",
                     "libx264",
                     "-preset",
                     "ultrafast",
                     "-crf",
                     "18",
+                    "-threads",
+                    "3",
                     "-pix_fmt",
                     "yuv420p",
                     "-an",
@@ -564,6 +589,7 @@ def main():
             subprocess.run(["pw-link", output_port, input_port], check=True)
             screenshots = set()
             last_preview = ""
+            opened_workspace = not launch_film
             while playback.poll() is None:
                 settle(lambda: True)
                 snapshot = app.realtime_session.snapshot()
@@ -575,6 +601,14 @@ def main():
                         committed=snapshot.committed_text,
                     )
                 elapsed = time.monotonic() - app.capture_started_at
+                if launch_film and not opened_workspace and elapsed > 6 and last_preview:
+                    screenshot("outside-recording")
+                    app.window.present()
+                    xlib.XMoveWindow(display, xid, app_x * pixel_ratio, app_y * pixel_ratio)
+                    xlib.XRaiseWindow(display, xid)
+                    xlib.XFlush(display)
+                    opened_workspace = True
+                    event("workspace_opened", transcript=last_preview)
                 if elapsed > 9 and "recording" not in screenshots:
                     screenshot("recording")
                     ipc("overlayImage", str(output / "widget-recording.png"))
@@ -609,6 +643,8 @@ def main():
             title = (
                 "A clearer brief for the sales team" if scenario == "task" else "A voice from Rice University · 1962"
             )
+            if launch_film:
+                title = "Friday's shop demo"
             app.history_store.update_title(entry.identifier, title)
             entry = app.history_store.find(entry.identifier)
             app.conversation_workspace.show_conversation(entry, replies)
@@ -647,7 +683,12 @@ def main():
 
     try:
         launch(
-            [str(root / "tmp/campaign/tools/usr/bin/xcompmgr"), "-n", "-d", ":193"],
+            [
+                os.environ.get("CAMPAIGN_COMPOSITOR") or str(root / "tmp/campaign/tools/usr/bin/xcompmgr"),
+                "-n",
+                "-d",
+                display_name,
+            ],
             "compositor.log",
         )
         launch(["pipewire", "-c", str(pipewire_config)], "pipewire.log")
@@ -666,7 +707,13 @@ def main():
             patch.object(CodexAppServerClient, "_request", observed_codex_request),
             patch.object(CodexAppServerClient, "transform", observed_codex_transform),
         ):
-            app.connect("activate", lambda _app: GLib.timeout_add(750, exercise))
+
+            def activate_once(_app):
+                """Keep app presentation during recording from replaying the whole scenario."""
+                app.disconnect(activation)
+                GLib.timeout_add(750, exercise)
+
+            activation = app.connect("activate", activate_once)
             app.run([])
     finally:
         if recorder is not None and recorder.poll() is None:
@@ -711,6 +758,9 @@ def main():
             "release_commit": os.environ["CAMPAIGN_RELEASE_COMMIT"],
             "runtime_commit": os.environ["CAMPAIGN_RUNTIME_COMMIT"],
             "runtime_root": str(runtime),
+            "installed_payload": str(payload) if launch_film else None,
+            "fps_requested": fps,
+            "launch_framing": launch_film,
             "live_rewrite_interval_seconds": int(os.environ["CAMPAIGN_LIVE_INTERVAL"]),
             "live_rewrite_min_characters": int(os.environ["CAMPAIGN_MIN_CHARACTERS"]),
             "transcription_provider": os.environ["CAMPAIGN_STT"],
@@ -719,7 +769,8 @@ def main():
             "rewrite_fast_mode": False,
             "host": socket.gethostname(),
             "display": os.environ["DISPLAY"],
-            "screen": [width, height],
+            "screen": [width * pixel_ratio, height * pixel_ratio],
+            "pixel_ratio": pixel_ratio,
             "application": [app_x, app_y, app_width, app_height],
             "theme": "Nord",
             "first_pcm_epoch": audio_first_epoch[0] if audio_first_epoch else None,

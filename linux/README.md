@@ -10,6 +10,8 @@ Omarchy users can enable the optional [Quickshell recording widget](../docs/omar
 
 F9 starts and stops background dictation. Completed text is copied automatically and saved as a conversation. Use Quick Polish for faithful cleanup, Structured Note for a summary and bullets, or enter a custom instruction and press Ctrl+Enter. Follow-ups use the previous completed replies. Originals and completed rewrites are editable and have compact Copy/Save icons. Successful rewrites copy automatically by default; Settings → Workspace can disable this. New conversation accepts pasted or typed text without replacing the clipboard.
 
+**Ctrl+P** opens searchable commands from the main window, including native text editors. Search, use the arrow keys and press Enter; Escape dismisses the panel. The same panel is available in the app menu. Copy, Save and rewriting act on the visible conversation and are disabled while its text is provisional or the action is unavailable.
+
 Use **Codex model** beside the rewrite actions to select an installed model and optionally enable **Fast mode**, which uses more Codex credits. Choices persist for main-window and widget rewrites; capture cleanup and title generation keep their existing settings. Rewrites request low reasoning when supported and report how long the first text took to arrive. Default preserves the existing model choice, and Fast starts off. See [latency measurements and the opt-in benchmark](../docs/rewrite-latency.md) before assuming Fast will improve a particular prompt.
 
 New conversations get short titles automatically; Settings can disable Codex titles and keep local text labels. Renames take precedence, and Incognito cancels title generation. Search history by title, original, rewrite text, or instruction. Manage history contains corrections, export, retention, and deletion; JSON and Markdown exports include the original and saved rewrites. Incognito creates no conversation history and disables Codex rewriting. Closing the window keeps Mluva running; use Quit in the app or shell menu to exit.
@@ -25,6 +27,10 @@ Automatic paste is an experimental known limitation: it is disabled by default a
 Edit the original or any completed rewrite directly, then Save or press Ctrl+S. Completed dictation and rewrites copy automatically by default. Settings → Workspace controls copy behavior, icon actions, scrolling, the four-second Omarchy review delay and Live rewrite. Settings → Providers selects speech recognition independently from rewriting. These controls share the owner-only JSON config file; see [configuration and live templates](../docs/providers-and-live-rewrite.md) for all new keys and setup examples.
 
 Live rewrite is off by default. Enable it beside Dictate to fill a task spec, structured note, polish draft or custom template while speaking. The app marks missing information, accepts manual draft edits and saves one final version after Stop. Batch speech providers generate provisional preview chunks and recognize the full recording again at Stop.
+
+Wide Live layouts keep two equal columns with a small gap; compact windows stack them. Text follows smoothly before the final line wraps, while deliberate manual scrolling keeps your reading position. Separate scrollbar gutters keep the tracks clear of text. Recording uses a centered red pulse and timer, with an accessible Stop control and support for reduced motion.
+
+Formatted drafts and replies render basic Markdown with subtle headings, bold, italics and code. Focusing a document reveals its source for editing. Copy and Save preserve Markdown, Unicode and whitespace exactly; raw recognition stays separate and literal. Unsupported markup remains text.
 
 ## Supported desktop contract
 

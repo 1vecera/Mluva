@@ -130,6 +130,9 @@ def main() -> None:
         raise RuntimeError(f"Unexpected audio offset: {offset}")
     args.destination.mkdir(parents=True, exist_ok=False)
     target = args.destination / "workflow.mp4"
+    video = next(
+        stream for stream in inspect(args.capture / "screen.mkv")["streams"] if stream["codec_type"] == "video"
+    )
     subprocess.run(
         [
             "ffmpeg",
@@ -159,7 +162,7 @@ def main() -> None:
             "-fps_mode",
             "cfr",
             "-r",
-            "30",
+            video["r_frame_rate"],
             "-c:a",
             "aac",
             "-b:a",
@@ -176,6 +179,7 @@ def main() -> None:
     for name in (
         "hero.png",
         "recording.png",
+        "outside-recording.png",
         "live.png",
         "widget-recording.png",
         "widget-review.png",

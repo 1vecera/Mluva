@@ -1,12 +1,12 @@
 # Mluva launch kit
 
-Copy for the Omarchy identity draft, updated on 2026-09-09. Social and community posts remain drafts for Daniel to review. The v0.3.0 release and plugin are public; the asset manifest records the version, audio sources and capture method for each demonstration. Mluva is the coordinator's reversible naming assumption while Daniel's Mluva versus BlueVox decision remains open.
+Copy for the Omarchy launch direction, updated on 2026-09-09. Social and community posts remain drafts for Daniel to review. The v0.3.0 release and plugin are public; the asset manifest records the version, audio sources and capture method for each demonstration. The app name remains Mluva.
 
 ## Positioning
 
-**Direction:** Best STT built for Omarchy.
+**Direction:** The most delightful dictation app for Omarchy.
 
-**Headline:** Building the best STT experience for Omarchy.
+**Headline:** The most delightful dictation app for Omarchy.
 
 **One line:** Speak a rough idea. Shape it into useful text. Keep the original.
 
@@ -14,11 +14,11 @@ Copy for the Omarchy identity draft, updated on 2026-09-09. Social and community
 
 **Product character:** As direct as a terminal interface, with the comforts of a small native GUI. A readable five-line preview, restrained motion, your Omarchy palette, and advanced controls revealed when needed. The ambition is a clean, smart everyday interface for computing; comparative accuracy and speed claims need a reproducible benchmark.
 
-“Best” is a campaign ambition, not a measured ranking. The [source-backed capability matrix](feature-story.md) records actual behavior, unfinished features, acceptance and deployment limits. Provider adapters do not establish universal cloud/account compatibility.
+Delight is the design ambition. The [source-backed capability matrix](feature-story.md) records actual behavior, unfinished features, acceptance and deployment limits. Provider adapters do not establish universal cloud/account compatibility. Bundling with Omarchy and a dedicated default shortcut are future aspirations.
 
 ## LinkedIn draft
 
-I'm building the best STT experience I can for #Omarchy. It's called Mluva, and I'm using it all the time as an interface for computing.
+I'm building the most delightful dictation app I can for #Omarchy. It's called Mluva, and I'm using it all the time as an interface for computing.
 
 Talk through a task, including the bits you haven't figured out. Live rewrite starts putting it into a spec while you're still speaking. In the recorded demo, the owner and deadline stay open because I haven't chosen them yet.
 

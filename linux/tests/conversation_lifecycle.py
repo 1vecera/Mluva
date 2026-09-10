@@ -243,7 +243,9 @@ def exercise_widget_review(application: MluvaApplication) -> None:
         assert application.conversation_store.replies(source.identifier) == [] and not clipboard.called
         assert workspace.rewrite_preview_label is None
         workspace.show_conversation(source, [])
-        assert workspace.rewrite_preview_label.get_label() == streamed
+        assert workspace.rewrite_preview_label.get_text() == streamed
+        assert not workspace.rewrite_preview_label.get_focusable()
+        assert not workspace.rewrite_preview_label.get_can_target()
         assert len(workspace.result_widgets) == 1 and workspace.result_widgets[0].get_text() == source.raw_text
         workspace.show_conversation(elsewhere, [])
         settle()

@@ -225,6 +225,14 @@ overlay-split-view > .sidebar-pane, overlay-split-view > .content-pane { backgro
 .ml-prompt { padding: 8px 10px; border: 1px solid alpha(@vs_ink, 0.16); border-radius: $CONTROL_RADIUSpx; }
 .ml-recording-dock { background: transparent; }
 .ml-recording-dock button, button.ml-primary { min-height: 30px; padding: 3px 12px; }
+button.ml-record-toggle { min-width: 76px; }
+button.ml-record-toggle.destructive-action { border-color: alpha(@vs_danger, 0.22);
+  background: alpha(@vs_danger, 0.07); }
+button.ml-record-toggle.destructive-action:hover { background: alpha(@vs_danger, 0.14); }
+.ml-recording-light { color: @vs_danger; }
+.ml-recording-light.vs-preparing { color: @vs_accent_strong; }
+.ml-scroll-gutter > scrollbar.vertical { margin-left: 6px; }
+.ml-scroll-gutter > scrollbar.vertical:disabled { opacity: 0; }
 .ml-live { background: transparent; border-radius: 0; padding: 0; }
 .ml-live .heading { color: @vs_accent_strong; }
 .ml-empty { margin-top: 24px; }
@@ -245,8 +253,6 @@ popover modelbutton:hover { background: alpha(@vs_ink, 0.065); }
 .vs-recording-bar { background: @vs_surface; border-radius: 14px; padding: 12px 16px;
   border: 1px solid @vs_outline_subtle; }
 .vs-recording-time { font-feature-settings: "tnum"; font-weight: 600; }
-.vs-live-chip { background: @vs_danger_soft; color: @vs_danger; padding: 3px 8px; border-radius: 6px; }
-.vs-live-chip.vs-preparing { color: @vs_accent_strong; background: @vs_accent_soft; }
 .vs-mode-chip, .vs-delivery-chip { font-size: 0.9em; color: @vs_ink_secondary; }
 .vs-recording-phase, .vs-recording-preview.vs-quiet { font-size: 0.9em; color: @vs_ink_secondary; }
 levelbar trough { background: @vs_surface_subtle; border-radius: 4px; }

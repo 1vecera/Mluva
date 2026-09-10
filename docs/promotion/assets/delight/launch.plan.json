@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "description": "Preproduction plan: 55-second storyboard and narration are ready; only the opening has a bound source clip. Native footage requires a verified live installation.",
+  "logo": "../polished/brand/mluva-lockup.svg",
+  "narration": "source/narration.mp3",
+  "clips": [
+    {
+      "id": "reveal",
+      "kind": "intro",
+      "source": "../polished/motion/h3-max-clean-background.mp4",
+      "source_start": 0,
+      "duration": 5.5
+    }
+  ],
+  "voice_cuts": [
+    {
+      "source_start": 0,
+      "source_end": 4.2,
+      "at": 0.45,
+      "text": "Meet Mluva. The most delightful dictation app for Omarchy.",
+      "source": "source/pronunciation.mp3"
+    },
+    {
+      "source_start": 4.14,
+      "source_end": 8.92,
+      "at": 5.6,
+      "text": "A tiny presence on your desktop. Speak, and your words stay right with you."
+    },
+    {
+      "source_start": 8.92,
+      "source_end": 11.48,
+      "at": 10.7,
+      "text": "Open the workspace. Keep the thought going."
+    },
+    {
+      "source_start": 11.48,
+      "source_end": 19.6,
+      "at": 15.25,
+      "text": "Live rewrite turns a rough idea into a clear draft, as you speak. Both sides stay steady. Your original stays yours."
+    },
+    {
+      "source_start": 19.6,
+      "source_end": 20.5,
+      "at": 24.25,
+      "text": "Copy it."
+    },
+    {
+      "source_start": 20.5,
+      "source_end": 21.29,
+      "at": 27.25,
+      "text": "Polish it."
+    },
+    {
+      "source_start": 21.29,
+      "source_end": 22.12,
+      "at": 29.75,
+      "text": "Rewrite it."
+    },
+    {
+      "source_start": 22.12,
+      "source_end": 26.42,
+      "at": 32.25,
+      "text": "Make the final edit, and save. Your notes are ready when you return."
+    },
+    {
+      "source_start": 26.42,
+      "source_end": 29.64,
+      "at": 37.25,
+      "text": "Control P puts the next action under your fingers."
+    },
+    {
+      "source_start": 4.2,
+      "source_end": 7.68,
+      "at": 42.25,
+      "text": "And when Omarchy changes its theme, Mluva follows.",
+      "source": "source/pronunciation.mp3"
+    },
+    {
+      "source_start": 32.68,
+      "source_end": 36.806,
+      "at": 50.25,
+      "text": "Quiet design. Clear words. A little more delight, every day."
+    }
+  ],
+  "sound_bed": "source/sound-bed.flac",
+  "status": "awaiting-installed-capture",
+  "target_duration_seconds": 55,
+  "storyboard": [
+    {
+      "start": 0,
+      "end": 5.5,
+      "beat": "Mluva reveal and exact new positioning",
+      "source_type": "existing scenery and software logo/type"
+    },
+    {
+      "start": 5.5,
+      "end": 10.5,
+      "beat": "Record outside the app",
+      "source_type": "pending installed real-provider capture"
+    },
+    {
+      "start": 10.5,
+      "end": 15,
+      "beat": "Open the workspace while speaking",
+      "source_type": "pending installed real-provider capture"
+    },
+    {
+      "start": 15,
+      "end": 24,
+      "beat": "Useful Live draft with stable original and rewritten panes",
+      "source_type": "pending installed real-provider capture"
+    },
+    {
+      "start": 24,
+      "end": 27,
+      "beat": "Copy the finished note",
+      "source_type": "pending native capture seeded from real take"
+    },
+    {
+      "start": 27,
+      "end": 29.5,
+      "beat": "Polish text",
+      "source_type": "pending native capture with local rewrite example"
+    },
+    {
+      "start": 29.5,
+      "end": 32,
+      "beat": "Give a custom rewrite instruction",
+      "source_type": "pending native capture with local rewrite example"
+    },
+    {
+      "start": 32,
+      "end": 37,
+      "beat": "Edit and save",
+      "source_type": "pending native capture"
+    },
+    {
+      "start": 37,
+      "end": 42,
+      "beat": "Ctrl+P, search and choose Copy",
+      "source_type": "pending native capture with private keyboard events"
+    },
+    {
+      "start": 42,
+      "end": 50,
+      "beat": "Nord, Tokyo Night and Ros\u00e9 Pine theme changes",
+      "source_type": "pending native capture"
+    },
+    {
+      "start": 50,
+      "end": 55,
+      "beat": "Mluva closing identity and repository URL",
+      "source_type": "existing scenery and software logo/type"
+    }
+  ]
+}

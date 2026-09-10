@@ -1,0 +1,6 @@
+{
+  "description": "Create a quiet original synth pulse bed for the launch film; no sampled music.",
+  "duration": 55,
+  "expression": "aevalsrc='0.022*sin(2*PI*65.406*t)*exp(-5*mod(t,0.96))+0.012*(sin(2*PI*130.813*t)+0.3*sin(2*PI*261.626*t))*exp(-8*mod(t,0.48))+0.005*sin(2*PI*392*t)*exp(-15*mod(t+0.24,0.96))+0.003*(sin(2*PI*155.563*t)+sin(2*PI*195.998*t))|0.022*sin(2*PI*65.406*t)*exp(-5*mod(t,0.96))+0.012*(sin(2*PI*130.813*t)+0.3*sin(2*PI*261.626*t))*exp(-8*mod(t,0.48))+0.005*sin(2*PI*392*t)*exp(-15*mod(t+0.24,0.96))+0.003*(sin(2*PI*155.713*t)+sin(2*PI*196.148*t))':s=48000:d=55",
+  "filters": "highpass=f=45,lowpass=f=2200,afade=t=in:d=0.8,afade=t=out:st=53.6:d=1.4"
+}

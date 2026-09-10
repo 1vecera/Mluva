@@ -1,0 +1,12 @@
+{
+  "prefix": "/home/vecera/.claude/worktrees/mluva-delight-launch/tmp/delight-launch/staged-home",
+  "staged_only": true,
+  "forced_dependency_failure_exit": 73,
+  "restored_files_and_modes": 299,
+  "exact_prior_payload_and_environment_restored": true,
+  "rollback_backup_removed": true,
+  "owned_uninstall_complete": true,
+  "settings_and_history_preserved": true,
+  "unrelated_file_and_command_preserved": true,
+  "unowned_command_install_refused_before_changes": true
+}
