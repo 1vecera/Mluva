@@ -4,7 +4,7 @@
 
 Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install](#install)** · **[Watch the 55-second film ↗](https://1vecera.github.io/Mluva/#film)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.0.0)**
+**[Install](#install)** · **[Watch the 55-second film ↗](https://1vecera.github.io/Mluva/#film)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.1.0)**
 
 [![Watch Mluva in action — a 55-second introduction to dictation, live drafts and a workspace that follows your Omarchy theme](docs/promotion/assets/delight/opening-preview.png)](https://1vecera.github.io/Mluva/#film)
 
@@ -16,7 +16,7 @@ Speak freely, turn the result into a useful draft, and keep every original word.
 | --- | --- |
 | A rough idea | Dictate with F9. Scribe streams words while you speak; completed text copies to the clipboard. |
 | Text you already have | Paste into a conversation, then choose **Polish**, **Structure** or your own instruction. |
-| A note that needs shape | Enable **Live rewrite** to build a task spec, structured note or custom draft as speech arrives. |
+| A note that needs shape | Enable **Live rewrite** while speaking. Grilling keeps useful questions above evolving notes; task spec, structured note and custom templates remain available. |
 | A draft worth keeping | Edit originals and rewrites, save with **Ctrl+S**, and keep raw recognition available separately. |
 | Work to return to | Find conversations through History, reuse saved prompts, and export Markdown or JSON. |
 
