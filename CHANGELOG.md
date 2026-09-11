@@ -2,11 +2,18 @@
 
 This file records user-visible Mluva releases.
 
-## Unreleased
+## 1.1.0 — 2026-09-11
 
+- Enable, pause and change Live rewrite templates while dictating. Grilling is the default for new preferences, with unanswered questions pinned above notes that grow from supplied intent, constraints, preferences and technologies. Existing template choices are preserved and Live remains opt-in.
+- Render Mermaid sketches locally in live and saved drafts, retaining exact Markdown for editing, copying and export. Incomplete, invalid or unsupported diagrams remain readable source. The installer now includes WebKitGTK 6.0.
+- Give the floating recorder bottom-left, bottom-center and bottom-right presets, a bare light/timer header and a smoother inner/outer recording pulse. Match the app's monospace font to the widget, hide history by default and reduce visual chrome.
+- Browse Live and saved conversations without incoming speech stealing selection. Add compact weekday/day/month dates, a 12/24-hour preference and Ctrl+P access to every settings row.
+- Preserve manual edits across Live changes, cancel paused requests and save a paused draft as not reconciled without automatic copying. Batch speech previews retain audio captured before Live was enabled and make no preview requests while Live is off.
 - Made Omarchy the primary platform, reflecting daily end-to-end use; Fedora GNOME compatibility remains available but has not been tested in recent releases.
 - Added one setup command for desktop dependencies, the native app and the Omarchy plugin, plus a copyable installation prompt for agents.
 - Focused the maintained source tree on Linux and simplified user and contributor documentation.
+
+The matching Omarchy widget is version 0.4.0. See the [verification report](docs/verification/fluid-workspace.md) for reproducible checks and remaining live-desktop/provider limits.
 
 ## 1.0.0 — 2026-09-10
 
