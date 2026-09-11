@@ -10,7 +10,7 @@ Scribe displays live recognition but only committed text becomes raw history or 
 
 Raw recognition, edited source, completed rewrites and delivered text remain separate. Saving an editor changes its working version, not the raw record. Rewrites use the current saved version and conversation context. Partial replies remain in memory and cannot be copied as completed results. Failure, cancellation, deletion and Incognito invalidate late responses.
 
-Live rewrite is opt-in. It sends provisional recognition to the rewrite provider, preserves manual edits and reconciles against the complete committed transcript at Stop. Templates mark missing information, but model output still needs review. See [Live rewrite](providers-and-live-rewrite.md#live-rewrite).
+Live rewrite is opt-in and can start or pause during Dictation. Active Live rewrites reconcile against the complete committed transcript at Stop; a paused draft is saved with an unreconciled label and never auto-copied. The default Grilling template pins unanswered questions and grows architecture notes only from supplied facts. Other templates may mark missing information. Model output still needs review. Local Mermaid previews preserve the exact editable Markdown. See [Live rewrite](providers-and-live-rewrite.md#live-rewrite).
 
 Command and Notes modes retain an explicit preview/accept step. Meeting mode explicitly records the selected microphone and output sink's monitor; system audio means everything playing through that sink. Partial-source failures are reported. Meeting remains Experimental.
 

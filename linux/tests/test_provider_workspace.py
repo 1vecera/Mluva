@@ -171,7 +171,7 @@ def test_live_schedule_coalesces_and_marks_missing_information():
     assert schedule.take("x" * 90, 5) == "x" * 90
     schedule.finish(True)
     assert schedule.take("x" * 95, 6, final=True) == "x" * 95
-    config = AppConfig()
+    config = AppConfig(live_rewrite_template="task-spec")
     assert "[Missing:" in initial_draft(config)
     assert "Never invent owners" in live_prompt(config, "Create a task", "My edited draft")
     schedule.finish(False)

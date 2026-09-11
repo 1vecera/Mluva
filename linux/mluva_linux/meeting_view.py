@@ -1,7 +1,6 @@
 """GTK review surface for explicit Meeting capture and its separate archive."""
 
 from collections.abc import Callable
-from datetime import datetime
 from pathlib import Path
 
 import gi
@@ -10,6 +9,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk  # noqa: E402
 
+from mluva_linux.display_time import history_timestamp
 from mluva_linux.meeting import MeetingRecognitionStatus, MeetingRecord, MeetingStore
 from mluva_linux.ui import (
     PRIMARY_ACTION_HEIGHT,
@@ -40,10 +40,12 @@ class MeetingPage(Gtk.Box):
         retry_recognition: Callable[[MeetingRecord], None],
         delete_meeting: Callable[[MeetingRecord], bool],
         show_message: Callable[[str], None],
+        time_format: str = "24h",
     ) -> None:
         """Build the Meeting-only control and archive around injected application actions."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.store = store
+        self.time_format = time_format
         self.export_directory = export_directory
         self.toggle_capture = toggle_capture
         self.copy_text = copy_text
@@ -325,7 +327,7 @@ class MeetingPage(Gtk.Box):
     def _meeting_subtitle(self, meeting: MeetingRecord) -> str:
         """Summarize status, duration, recording, and local time."""
         try:
-            captured = datetime.fromisoformat(meeting.timestamp).astimezone().strftime("%Y-%m-%d %H:%M")
+            captured = history_timestamp(meeting.timestamp, self.time_format)
         except ValueError:
             captured = meeting.timestamp
         retained = " · recovery audio" if self.store.recording_path(meeting) is not None else ""

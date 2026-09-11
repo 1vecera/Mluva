@@ -275,7 +275,9 @@ def main() -> int:
             assert end.y + end.height <= editor.get_height(), (end.y, end.height, editor.get_height())
             editor.get_buffer().set_text("Keyboard-saved source")
 
-            app.config = replace(app.config, live_rewrite_enabled=True, live_rewrite_min_characters=40)
+            app.config = replace(
+                app.config, live_rewrite_enabled=True, live_rewrite_min_characters=40, live_rewrite_template="task-spec"
+            )
             app.pending_session_identifier = "synthetic-live-session"
             app.pending_incognito = False
             app.pending_mode = "dictation"

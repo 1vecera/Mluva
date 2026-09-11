@@ -58,11 +58,12 @@ def main() -> int:
         settle(lambda: app.command_palette is not None and app.command_palette.search.get_mapped())
         return app.command_palette
 
-    def choose(query: str) -> None:
+    def choose(title: str) -> None:
         """Filter native rows and dispatch the selected command through its Enter handler."""
         panel = app.command_palette
-        panel.search.set_text(query)
-        settle(lambda: len(panel.rows) == 1)
+        panel.search.set_text(title)
+        settle(lambda: any(command.title == title for command in panel.rows.values()))
+        panel.results.select_row(next(row for row, command in panel.rows.items() if command.title == title))
         key("Return")
         settle(lambda: app.command_palette is None)
 
@@ -104,10 +105,10 @@ def main() -> int:
                 cancel.assert_not_called()
 
             open_panel()
-            choose("copy")
+            choose("Copy current text")
             assert copies == [expected], copies
             open_panel()
-            choose("save edits")
+            choose("Save edits")
             assert app.conversation_store.replies(entry.identifier)[0].text == expected
             assert app.history_store.find(entry.identifier).raw_text == "Original speech"
 
@@ -120,7 +121,7 @@ def main() -> int:
             settle(lambda: app.command_palette is None)
 
             panel = open_panel()
-            panel.search.set_text("polish")
+            panel.search.set_text("Polish text")
             settle(lambda: len(panel.rows) == 1)
             workspace.set_busy(True, "Finishing…")
             with patch.object(workspace, "request_rewrite") as rewrite:
@@ -141,7 +142,7 @@ def main() -> int:
             settle(lambda: app.command_palette is None)
             app._navigate_to_page("capture")
             panel = open_panel()
-            panel.search.set_text("copy")
+            panel.search.set_text("Copy current text")
             settle(lambda: len(panel.rows) == 1)
             other = app.history_store.add("Other note", "Other note", "dictation", "eng", None, "copied")
             workspace.show_conversation(other, [])
@@ -154,7 +155,7 @@ def main() -> int:
             workspace.show_conversation(entry, app.conversation_store.replies(entry.identifier))
 
             open_panel()
-            choose("settings")
+            choose("Settings")
             settle(lambda: app.window.get_visible_dialog() is app.settings_dialog)
             key("Escape")
             settle(lambda: app.window.get_visible_dialog() is None)

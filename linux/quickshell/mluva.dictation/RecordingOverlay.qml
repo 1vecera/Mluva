@@ -17,7 +17,7 @@ FloatingWindow {
     property string identifier: ""
     property var options: []
     property string message: ""
-    readonly property bool hyprlandSession: Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") !== ""
+    readonly property bool hyprlandSession: !!Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE")
     property bool windowRulesReady: !hyprlandSession
     property bool menuOpen: false
     property int reviewDuration: 4000
@@ -25,6 +25,11 @@ FloatingWindow {
     property bool smoothScrolling: true
     property int scrollDuration: 800
     property int scrollLookahead: 2
+    property string positionPreset: "bottom-center"
+    property bool repositionRequested: false
+    property bool userPlaced: false
+    readonly property string horizontalRule: positionPreset === "bottom-left" ? "24"
+        : positionPreset === "bottom-right" ? "(monitor_w-window_w)-24" : "(monitor_w-window_w)/2"
     property real remaining: reviewDuration
     property double lastTick: Date.now()
     property bool dismissed: false
@@ -108,6 +113,33 @@ FloatingWindow {
         Qt.callLater(syncPreview);
     }
     onWidthChanged: resetPreviewLayout()
+    onHeightChanged: if (!userPlaced) Qt.callLater(applyPosition)
+    onActiveChanged: {
+        if (active) { userPlaced = false; Qt.callLater(applyPosition); }
+    }
+    onPositionPresetChanged: {
+        userPlaced = false;
+        if (hyprlandSession) { repositionRequested = true; windowRules.running = true; }
+        else applyPosition();
+    }
+    function applyPosition() {
+        // Explicit presets move only this surface. Ordinary frames never undo a manual drag.
+        if (!screen || !contentItem.Window.window) return;
+        const margin = 24;
+        const x = positionPreset === "bottom-left" ? margin
+            : positionPreset === "bottom-right" ? Math.max(margin, screen.width - width - margin)
+            : Math.max(margin, (screen.width - width) / 2);
+        const y = Math.max(margin, screen.height - height - 48);
+        if (!hyprlandSession) {
+            contentItem.Window.window.x = screen.x + x;
+            contentItem.Window.window.y = screen.y + y;
+            return;
+        }
+        const window = Hyprland.toplevels.values.find(item => item.title === root.title
+            && item.wayland?.appId === "org.quickshell");
+        if (window) Hyprland.dispatch("hl.dsp.window.move({window='address:0x" + window.address
+            + "',x=" + Math.round(screen.x + x) + ",y=" + Math.round(screen.y + y) + ",relative=false})");
+    }
     onTextSizeChanged: resetPreviewLayout()
     onPreviewChanged: Qt.callLater(syncPreview)
     onPreviewStartChanged: Qt.callLater(syncPreview)
@@ -127,7 +159,10 @@ FloatingWindow {
     color: "transparent"
     // Keep native window controls (including Super+T) and let the compositor
     // own position and size after mapping. Opening must not steal dictation focus.
-    onWindowConnected: contentItem.Window.window.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    onWindowConnected: {
+        contentItem.Window.window.flags = Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint;
+        if (!hyprlandSession) Qt.callLater(applyPosition);
+    }
     onClosed: { dismissed = true; menuOpen = false; }
     Component.onCompleted: {
         previewReady = true;
@@ -142,9 +177,13 @@ FloatingWindow {
             "if mluva_recording_rule then mluva_recording_rule:set_enabled(false) end; "
             + "mluva_recording_rule = hl.window_rule({match = {class = 'org.quickshell', title = 'Mluva recording'}, "
             + "float = true, pin = true, no_initial_focus = true, no_follow_mouse = true, decorate = false, "
-            + "move = {'(monitor_w-window_w)/2', '(monitor_h-window_h)-48'}})"]
+            + "move = {'" + root.horizontalRule + "', '(monitor_h-window_h)-48'}})"]
         onExited: exitCode => {
             root.windowRulesReady = exitCode === 0;
+            if (exitCode === 0 && root.repositionRequested) {
+                root.repositionRequested = false;
+                root.applyPosition();
+            }
             if (exitCode !== 0) console.warn("Mluva recording window rules could not be installed");
         }
     }
@@ -154,9 +193,10 @@ FloatingWindow {
             if (event.name === "configreloaded" && root.hyprlandSession) windowRules.running = true;
             if (event.name !== "changefloatingmode") return;
             const [address, floating] = event.parse(2);
-            if (floating !== "1") return;
             const window = Hyprland.toplevels.values.find(item => item.address === address
                 && item.title === root.title && item.wayland?.appId === "org.quickshell");
+            if (window) root.userPlaced = true;
+            if (floating !== "1") return;
             // Tiling clears Hyprland's pin. Restore it only when this recorder
             // returns to floating; setting (rather than toggling) is idempotent.
             if (window) Hyprland.dispatch("hl.dsp.window.pin({action = 'set', window = 'address:0x" + window.address + "'})");
@@ -190,27 +230,26 @@ FloatingWindow {
         anchors.fill: parent
         Keys.onEscapePressed: root.menuOpen ? root.menuOpen = false : root.act("dismiss")
         HoverHandler { id: reviewHover }
-        // The preview and its status badge share one native move target. Buttons
+        // The preview and its bare status row share one native move target. Buttons
         // painted above this area retain their own pointer handling.
         MouseArea {
             objectName: "recorder-drag-area"
             anchors.fill: parent
             cursorShape: Qt.SizeAllCursor
-            onPressed: root.startSystemMove()
+            onPressed: { root.userPlaced = true; root.startSystemMove(); }
         }
-        BorderSurface {
+        Item {
             id: recordingHeader
             objectName: "recording-header"
             anchors.top: parent.top
+            anchors.left: parent.left
             anchors.right: parent.right
-            implicitWidth: statusRow.implicitWidth + 16
-            implicitHeight: statusRow.implicitHeight + 8
-            color: Qt.alpha(Color.popups.background, root.surfaceOpacity)
-            radius: Style.cornerRadius
-            borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, 1)
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            implicitHeight: statusRow.implicitHeight
             RowLayout {
                 id: statusRow
-                anchors.centerIn: parent
+                anchors.fill: parent
                 spacing: 8
                 RecordingLight {
                     id: recordingDot
@@ -222,12 +261,13 @@ FloatingWindow {
                 }
                 Text {
                     objectName: "recording-status"
+                    Layout.fillWidth: true
                     text: root.reviewing ? "Review" : root.phase === "recording" ? "" : root.status
-                    visible: text.length > 0
                     color: Color.popups.text
                     font.family: Style.font.family
                     font.pixelSize: Style.font.body
                     textFormat: Text.PlainText
+                    elide: Text.ElideRight
                 }
                 Text {
                     objectName: "recording-timer"

@@ -200,11 +200,11 @@ def main() -> None:
             )
             return json.loads(result.stdout)
 
-        def motion_frames(preview: str, **preferences) -> list[dict[str, object]]:
+        def motion_frames(preview: str, duration: float = 1.4, **preferences) -> list[dict[str, object]]:
             """Observe intermediate production animation frames as real D-Bus text updates arrive."""
             start = len(log_lines())
             publisher.publish(RecordingOverlayState(phase="recording", preview=preview, **preferences))
-            deadline = time.monotonic() + 1.4
+            deadline = time.monotonic() + duration
             while time.monotonic() < deadline:
                 while GLib.MainContext.default().pending():
                     GLib.MainContext.default().iteration(False)
@@ -234,6 +234,7 @@ def main() -> None:
                 assert state["focus"] == idle["focus"]
                 assert state["width"] <= state["screenWidth"] - 32
                 assert state["height"] <= state["screenHeight"]
+                assert 0 <= state["y"] <= state["screenHeight"] - state["height"]
                 assert state["preview"] == preview[-4096:]
                 if phase == "recording":
                     assert state["surfaceVisible"]
@@ -243,11 +244,28 @@ def main() -> None:
                     assert state["dotBottom"] <= state["headerBottom"]
                     assert state["timerBottom"] <= state["headerBottom"]
                     assert state["viewportWidth"] == state["textWidth"] == state["width"] - 20
+                    assert state["headerTransparent"]
+                    assert state["dragWidth"] == state["width"] and state["dragHeight"] == state["height"]
+                    assert state["dotCenterX"] < 20
+                    assert abs(state["timerRight"] - state["headerWidth"]) < 1
                     assert state["viewportHeight"] == state["lineHeight"] * 5
                     assert state["textY"] < 0
                     assert abs(state["textY"] - state["targetY"]) < 0.1
                     assert 0.75 <= state["surfaceOpacity"] <= 0.85
                 subprocess.run(["import", "-window", "root", str(output / f"{phase}.png")], check=True)
+            for preset in ("bottom-left", "bottom-right", "bottom-center"):
+                publisher.publish(
+                    RecordingOverlayState(phase="recording", preview="Preset check", widget_position=preset)
+                )
+                state = observe("recording", "Preset check")
+                expected_x = {
+                    "bottom-left": 24,
+                    "bottom-right": state["screenWidth"] - state["width"] - 24,
+                    "bottom-center": (state["screenWidth"] - state["width"]) / 2,
+                }[preset]
+                assert state["preset"] == preset and abs(state["x"] - expected_x) <= 1, state
+                assert abs(state["y"] - (state["screenHeight"] - state["height"] - 48)) <= 1, state
+                assert state["focus"] == idle["focus"]
             samples = json.loads(
                 subprocess.check_output(
                     ["quickshell", "ipc", "--pid", str(process.pid), "call", "fixture", "motionSamples"],
@@ -302,7 +320,7 @@ def main() -> None:
             assert processing["visible"] and all(processing[key] == short[key] for key in geometry_keys)
             publisher.publish(RecordingOverlayState(phase="recording", preview=samples["wrapped"]))
             observe("recording", samples["wrapped"])
-            pulse = motion_frames(samples["wrapped"])
+            pulse = motion_frames(samples["wrapped"], duration=3.6)
             opacity = [frame["dotOpacity"] for frame in pulse]
             scale = [frame["dotScale"] for frame in pulse]
             assert len({round(value, 3) for value in scale}) >= 10, scale

@@ -28,6 +28,8 @@ class MarkdownTextView(Gtk.TextView):
         )
         self.markdown = markdown
         self.spans = ()
+        self.diagram_source = ""
+        self.diagram_ranges = ()
         self.formatting_limited = False
         self.add_css_class("ml-transcript")
         self.set_top_margin(4)
@@ -91,6 +93,8 @@ class MarkdownTextView(Gtk.TextView):
         """Bound native tag work; unusually dense formatting remains complete plain Markdown."""
         source = self.get_text()
         spans = markdown_spans(source) if self.markdown else ()
+        if source == self.diagram_source:
+            spans += tuple(MarkdownSpan(start, end, "syntax") for start, end in self.diagram_ranges)
         self.formatting_limited = len(spans) > MAX_FORMATTING_SPANS
         self.spans = () if self.formatting_limited else spans
         self.set_wrap_mode(Gtk.WrapMode.CHAR if needs_character_wrapping(source) else Gtk.WrapMode.WORD_CHAR)
@@ -117,6 +121,12 @@ class MarkdownTextView(Gtk.TextView):
                 else "Click to edit the Markdown source. Copy and Save keep its formatting."
             )
         self.queue_resize()
+
+    def set_diagram_ranges(self, source: str, ranges: list[tuple[int, int]]) -> None:
+        """Hide only successfully rendered sketch source at rest; editing and copying keep it intact."""
+        self.diagram_source = source
+        self.diagram_ranges = tuple(ranges)
+        self._format(self.get_buffer())
 
     def document_height(self, width: int) -> int:
         """Measure paragraphs separately, avoiding Pango's repeated whole-document scans."""

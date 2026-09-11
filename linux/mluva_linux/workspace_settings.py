@@ -5,7 +5,7 @@ from dataclasses import replace
 
 import gi
 
-from mluva_linux.config import AppConfig
+from mluva_linux.config import TIME_FORMATS, WIDGET_POSITIONS, AppConfig
 from mluva_linux.live_rewrite import TEMPLATE_CHOICES
 
 gi.require_version("Gtk", "4.0")
@@ -27,6 +27,11 @@ class WorkspaceSettings(Adw.PreferencesPage):
         self.save = save
         self.fields: dict[str, Callable] = {}
         self.setters: dict[str, Callable] = {}
+        appearance = Adw.PreferencesGroup(title="Appearance")
+        self.switch(appearance, "history_sidebar_visible", "Show history sidebar by default")
+        self.choice(appearance, "widget_position", "Floating widget position", WIDGET_POSITIONS)
+        self.choice(appearance, "time_format", "History time format", TIME_FORMATS)
+        self.add(appearance)
         behavior = Adw.PreferencesGroup(title="Documents")
         for name, title in (
             ("auto_copy_dictation", "Copy completed dictation automatically"),
@@ -49,7 +54,7 @@ class WorkspaceSettings(Adw.PreferencesPage):
                 "Extra provider requests may use credits."
             ),
         )
-        self.switch(live, "live_rewrite_enabled", "Enable live rewrite for the next dictation")
+        self.switch(live, "live_rewrite_enabled", "Enable live rewrite")
         self.choice(live, "live_rewrite_template", "Template", TEMPLATE_CHOICES)
         self.spin(live, "live_rewrite_min_characters", "New characters to group after the first draft", 40, 4000)
         self.spin(live, "live_rewrite_interval_seconds", "Minimum time between updates (seconds)", 2, 60)

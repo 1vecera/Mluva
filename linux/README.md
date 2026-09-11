@@ -6,11 +6,11 @@ For the shortest path, use the [combined installer or agent prompt](../README.md
 
 ## Daily workflow
 
-Press **F9** to start and stop dictation. Completed text copies automatically and becomes a conversation. Use **Polish**, **Structure**, a saved prompt or a custom instruction to rewrite it. Originals and completed replies are editable; **Ctrl+S** saves and **Ctrl+Enter** sends a rewrite. Raw recognition remains available separately in History. The recording light and timer occupy the title bar above the text panes. Drag the Omarchy recorder by its status row; focus it and press **Super+T** to switch between floating and tiling.
+Press **F9** to start and stop dictation. Completed text copies automatically and becomes a conversation. Use **Polish**, **Structure**, a saved prompt or a custom instruction to rewrite it. Originals and completed replies are editable; **Ctrl+S** saves and **Ctrl+Enter** sends a rewrite. Raw recognition remains available separately in History. A bare recording light sits above the text at left, with elapsed time at right. The app and widget use the desktop monospace font. Drag the Omarchy recorder by its status row or choose a lower-left, bottom or lower-right preset in Settings. Focus it and press **Super+T** to switch between floating and tiling.
 
-**Ctrl+P** opens searchable commands. **Shift+F9** requests the latest conversation through the desktop shortcut portal. Closing the window keeps Mluva available; use Quit to exit.
+**Ctrl+P** searches commands and every settings control. The history sidebar starts hidden; reveal it to switch between saved and live conversations without interrupting recording. Dates use short weekday/month names and a configurable 12/24-hour clock. **Shift+F9** requests the latest conversation through the desktop shortcut portal. Closing the window keeps Mluva available; use Quit to exit.
 
-Settings → Workspace controls automatic copy, action icons, scrolling and the Omarchy widget's four-second dismissal. **Live rewrite** is opt-in and Experimental: it builds a task spec, structured note, polish draft or custom template while speaking, then reconciles the result against final recognition. See [workspace settings](../docs/providers-and-live-rewrite.md).
+Settings → Workspace controls automatic copy, action icons, scrolling and the Omarchy widget's four-second dismissal. **Live rewrite** is opt-in and Experimental and can be toggled during dictation. Its default **Grilling** template keeps evolving questions above architecture notes and local Mermaid sketches. Task spec, Structured note, Polish and Custom remain available. Active drafts reconcile at Stop; paused drafts are saved with a review label. See [workspace settings](../docs/providers-and-live-rewrite.md).
 
 ## Supported desktop contract
 
@@ -28,11 +28,11 @@ Settings → Workspace controls automatic copy, action icons, scrolling and the 
 ```sh
 # Omarchy
 omarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita \
-  at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard procps-ng
+  at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard procps-ng webkitgtk-6.0
 
 # Fedora GNOME compatibility
 sudo dnf install git uv python3-gobject gtk4 libadwaita at-spi2-core \
-  gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng
+  gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng webkitgtk6.0
 ```
 
 X11 clipboard delivery needs `xclip`; its optional keyboard fallback needs `xdotool`. The Omarchy widget requires the existing Omarchy shell and plugin manager; setup does not install an operating system or replace desktop configuration.
