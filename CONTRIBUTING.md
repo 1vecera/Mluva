@@ -19,6 +19,7 @@ Bare Python filenames refer to [linux/mluva_linux](linux/mluva_linux). Tooling p
 | Recording and final delivery | `app.py`: `_start_capture`, `_prepare_capture`, `_finish_recording`; `audio.py` captures PCM, `workflow.py` prepares/persists/delivers the final result |
 | Speech/rewrite provider selection | `config.py` stores choices; `provider_catalog.py` describes/discovers routes; `providers.py` creates speech clients; `app.py` wires rewrite clients and streaming; `provider_settings.py` renders choices |
 | Live rewrite and manual edits | `live_rewrite.py` schedules/prompts; `app.py`: `_maybe_live_rewrite`, `_live_rewrite_finished`, `_save_live_draft` guard sessions/revisions; `conversation_view.py` owns editors and `conversation.py` saves working copies |
+| Prompt instructions and templates | `prompt_defaults.py` owns task defaults; `prompts.py` resolves local overrides; `prompt_editor.py` is the shared native editor; `app.py` freezes recording snapshots |
 | Commands | `command_palette.py`: `application_commands` owns Ctrl+P actions and availability. Spoken Command mode uses `workflow.py` and `app.py`: `_accept_command_preview` |
 | History, recovery and privacy | `history.py`, `conversation.py`, `scratchpad.py`, `meeting.py` own persistence; `history_view.py` renders history; `workflow.py` enforces retention/Incognito |
 | Native UI and theme | `conversation_view.py`, `markdown_view.py`, `ui.py`, `theme.py`; settings/page views are siblings; `app.py` composes them |
@@ -35,6 +36,7 @@ For a quick text/editing change, run `make linux-test-fast` from the root. It co
 | --- | --- |
 | Provider route or catalog | `(cd linux && uv run --locked pytest -q tests/test_provider_catalog.py tests/test_provider_workspace.py)` |
 | Recording, cleanup or delivery | `(cd linux && uv run --locked pytest -q tests/test_app_capture.py tests/test_workflow.py tests/test_segment_cleanup.py tests/test_delivery.py)` |
+| Prompt configuration or editor | `make linux-prompt-test` (hover/focus, Ctrl+P deep links, local files, Save/Cancel/reset, restart and recording snapshots) |
 | Ctrl+P action or availability | `make linux-command-test` (real native editor, stale actions, lossless Copy/Save, dismissal and keyboard navigation) |
 | Live editor or finalization | `make linux-live-rewrite-test` (manual edits, late results, final transcript and clipboard gates) |
 | Grilling, live navigation or Mermaid | `make linux-fluid-workspace-test` (mid-recording controls, paused draft recovery, questions, offline diagrams and responsive layouts; requires WebKitGTK 6.0) |

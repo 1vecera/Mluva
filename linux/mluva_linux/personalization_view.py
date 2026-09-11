@@ -16,6 +16,7 @@ from mluva_linux.personalization import (
     SavedStyle,
     Snippet,
 )
+from mluva_linux.prompt_editor import reveal_prompt_button
 from mluva_linux.ui import (
     SPACE_1,
     SPACE_2,
@@ -48,6 +49,7 @@ class PersonalizationPage(Gtk.Box):
         history_store: HistoryStore,
         show_message: Callable[[str], None],
         styles_changed: Callable[[], None],
+        edit_prompt=None,
     ) -> None:
         """Build bounded editors around an injected owner-only store."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
@@ -55,6 +57,7 @@ class PersonalizationPage(Gtk.Box):
         self.history_store = history_store
         self.show_message = show_message
         self.styles_changed = styles_changed
+        self.edit_prompt = edit_prompt
         self.editing_style_identifier: str | None = None
 
         header = page_content(spacing=SPACE_3)
@@ -132,7 +135,7 @@ class PersonalizationPage(Gtk.Box):
             self._subpage(
                 self.style_editor,
                 "Output styles",
-                "Built-ins are immutable; custom instructions are used only when explicitly selected.",
+                "Edit prompt instructions in the shared editor; styles apply only when selected.",
                 self.style_list,
             ),
             "styles",
@@ -377,11 +380,21 @@ class PersonalizationPage(Gtk.Box):
         instructions = Gtk.Label(label=style.instructions, xalign=0, selectable=True, wrap=True)
         set_margins(instructions, SPACE_3)
         row.add_row(instructions)
+        if self.edit_prompt is not None:
+            row.add_css_class("ml-prompt-control")
+            edit = Gtk.Button(icon_name="emblem-system-symbolic", valign=Gtk.Align.CENTER)
+            edit.add_css_class("ml-prompt-settings")
+            edit.set_tooltip_text("Edit prompt · " + style.name)
+            edit.update_property([Gtk.AccessibleProperty.LABEL], ["Edit prompt · " + style.name])
+            edit.connect("clicked", lambda _button: self.edit_prompt("style-" + style.identifier.lower()))
+            row.add_suffix(edit)
+            reveal_prompt_button(row, edit)
         if not style.is_built_in:
             actions = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=SPACE_2)
-            edit = Gtk.Button(label="Edit")
-            edit.connect("clicked", self._begin_style_edit, style)
-            actions.append(edit)
+            if self.edit_prompt is None:
+                edit = Gtk.Button(label="Edit")
+                edit.connect("clicked", self._begin_style_edit, style)
+                actions.append(edit)
             delete = Gtk.Button(label="Delete")
             delete.add_css_class("destructive-action")
             delete.connect("clicked", self._delete_style, style)
@@ -461,6 +474,11 @@ class PersonalizationPage(Gtk.Box):
         """Create or edit one custom style from the full visible instructions."""
         try:
             if self.editing_style_identifier is None:
+                if self.edit_prompt is not None and any(
+                    style.name.casefold() == self.style_name.get_text().strip().casefold()
+                    for style in self.store.styles
+                ):
+                    raise ValueError("Choose a new name, or edit the existing prompt with its settings button.")
                 self.store.save_style(self.style_name.get_text(), self._text_view_value(self.style_instructions))
             else:
                 self.store.update_style(

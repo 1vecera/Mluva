@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Protocol
 
 from mluva_linux.personalization import integrity_violations
+from mluva_linux.prompt_defaults import CLEANUP
 
 DEFAULT_ATTEMPT_TIMEOUT_SECONDS = 8.0
 DEFAULT_CONCURRENCY_LIMIT = 2
@@ -20,11 +21,13 @@ DEFAULT_STOP_DRAIN_TIMEOUT_SECONDS = 2.0
 MAX_SEGMENT_CHARACTERS = 8_000
 MAX_RESPONSE_CHARACTERS = 8_000
 
-DICTATION_CLEANUP_PROMPT = (
-    "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. "
-    "Preserve every fact, number, name, URL, path, identifier, command, and negation. "
-    "Return only the cleaned text.\n\nDICTATION:\n{text}"
-)
+
+def cleanup_prompt(text: str, instructions: str = CLEANUP) -> str:
+    """Keep integrity instructions outside the editable cleanup task."""
+    return (
+        instructions + " Preserve every fact, number, name, URL, path, identifier, command, and negation. "
+        "Return only the cleaned text.\n\nDICTATION:\n" + text
+    )
 
 
 class SegmentCleanupFailure(StrEnum):
@@ -92,11 +95,12 @@ class CodexSegmentCleanupAttempt:
     client: TextTransformer
     cwd: Path
     model_identifier: str
+    instructions: str = CLEANUP
 
     def transform(self, prepared_text: str) -> str:
         """Submit only the bounded prepared segment and faithful cleanup instruction."""
         return self.client.transform(
-            DICTATION_CLEANUP_PROMPT.format(text=prepared_text),
+            cleanup_prompt(prepared_text, self.instructions),
             cwd=self.cwd,
             model=self.model_identifier,
         )

@@ -6,10 +6,14 @@ import json
 import os
 import re
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mluva_linux.prompts import PromptStore
 
 MAX_APPLICATION_IDENTIFIER_CHARACTERS = 2_048
 MAX_CUSTOM_STYLES = 100
@@ -154,6 +158,7 @@ class PersonalizationStore:
     """Persist dictionaries, snippets, styles, and local application selections."""
 
     path: Path
+    prompt_store: PromptStore | None = field(init=False, default=None)
     dictionary: list[DictionaryReplacement] = field(init=False, default_factory=list)
     snippets: list[Snippet] = field(init=False, default_factory=list)
     custom_styles: list[SavedStyle] = field(init=False, default_factory=list)
@@ -171,8 +176,16 @@ class PersonalizationStore:
 
     @property
     def styles(self) -> tuple[SavedStyle, ...]:
-        """Return immutable built-ins followed by durable custom styles."""
-        return BUILT_IN_STYLES + tuple(self.custom_styles)
+        """Resolve local instruction overrides while keeping built-in identities and saved selections stable."""
+        styles = BUILT_IN_STYLES + tuple(self.custom_styles)
+        if self.prompt_store is None:
+            return styles
+        return tuple(
+            replace(style, instructions=self.prompt_store.read("style-" + style.identifier.lower()).text)
+            if "style-" + style.identifier.lower() in self.prompt_store.catalog
+            else style
+            for style in styles
+        )
 
     @property
     def recognition_context(self) -> tuple[str, ...]:

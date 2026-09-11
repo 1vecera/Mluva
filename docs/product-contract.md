@@ -45,3 +45,7 @@ Shortcuts are approved by the desktop portal. The Omarchy widget receives a boun
 Diagnostics exports contain bounded event categories, timings and nonsecret configuration flags. They exclude audio, transcript text, selected text, clipboard contents, device names, application/window identities, credentials and arbitrary provider error messages. Incognito writes no diagnostic events.
 
 Native installation checks ownership before replacing files and preserves the previous app until its installation succeeds. The combined setup checks plugin customizations first; a later widget failure leaves the successfully installed native app available and reports how to retry. Upgrades keep settings and conversations; uninstall retains user-created data. See the [installation guide](../linux/README.md#install-for-the-current-user) and [migration behavior](identity-migration.md).
+
+## Editable task prompts
+
+The Linux client exposes all Live task instructions and initial structures, on-demand rewrites, built-in and saved styles, automatic titles and optional cleanup through one prompt editor and local Markdown overrides. Settings and Ctrl+P open exact prompt identities; hover/focus settings buttons never execute a prompt. Saves preserve active recording snapshots and manual draft revision gates. Fixed source-integrity and response protocols remain in code. Existing custom text remains a lossless baseline, malformed files stay recoverable, and Incognito is read-only. See [prompt configuration and lifecycle](prompt-editor.md).

@@ -16,6 +16,7 @@ from mluva_linux.codex_client import CodexAppServerClient
 from mluva_linux.config import FUNCTION_KEY_OPTIONS, AppConfig, load_config
 from mluva_linux.delivery import DeliveryReceipt
 from mluva_linux.history import HistoryStore
+from mluva_linux.prompt_defaults import CLEANUP
 from mluva_linux.realtime import ElevenLabsRealtimeClient, RealtimeCommittedSegment
 from mluva_linux.segment_cleanup import SegmentCleanupSession, SegmentCleanupState
 from mluva_linux.workflow import TranscriptPreparationSnapshot
@@ -199,7 +200,7 @@ def test_prepare_capture_resolves_model_before_realtime_and_wires_segment_cleanu
     prepared_callback = object()
     failed_callback = object()
     application = SimpleNamespace(
-        workflow=SimpleNamespace(codex=ReadinessCodexClient(events)),
+        workflow=SimpleNamespace(codex=ReadinessCodexClient(events), cleanup_instructions=CLEANUP),
         shutting_down=False,
         pending_session_identifier="capture-session",
         realtime_client=realtime,

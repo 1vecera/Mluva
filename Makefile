@@ -102,3 +102,16 @@ linux-recording-overlay-status:
 
 linux-recording-overlay-remove:
 	bash linux/configure-recording-overlay.sh remove
+
+.PHONY: linux-prompt-test
+linux-prompt-test: linux-setup
+	@mkdir -p tmp/prompt-editor
+	@set -e; for spec in minimum:420:520:dark narrow:480:640:light wide:1060:780:dark bad-config:480:640:dark; do \
+		scenario=$${spec%%:*}; rest=$${spec#*:}; width=$${rest%%:*}; rest=$${rest#*:}; height=$${rest%%:*}; theme=$${rest#*:}; \
+		OFFSCREEN_SCREEN_SPEC=1600x1000x24 OFFSCREEN_ENABLE_ATSPI=1 \
+		bash dev/run-isolated.sh "tmp/prompt-editor/$$scenario" -- env \
+			GDK_SCALE=1 GDK_DPI_SCALE=1 PYTHONPATH=linux:linux/tests ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
+			MLUVA_PROMPT_SCENARIO="$$scenario" MLUVA_UI_WIDTH="$$width" MLUVA_UI_HEIGHT="$$height" MLUVA_UI_THEME="$$theme" \
+			bash -c 'uv run --project linux --locked python linux/tests/prompt_editor_smoke.py && uv run --project linux --locked python linux/tests/prompt_editor_smoke.py --restart-check' \
+			> "tmp/prompt-editor/$$scenario.log" 2>&1; \
+	done

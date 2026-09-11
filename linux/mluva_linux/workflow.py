@@ -39,11 +39,12 @@ from mluva_linux.personalization import (
     personalize_transcript,
     snippet_variables,
 )
+from mluva_linux.prompt_defaults import CLEANUP
 from mluva_linux.segment_cleanup import (
-    DICTATION_CLEANUP_PROMPT,
     MAX_RESPONSE_CHARACTERS,
     MAX_SEGMENT_CHARACTERS,
     SegmentCleanupTerminalSnapshot,
+    cleanup_prompt,
 )
 from mluva_linux.text_target import MAX_SELECTED_TEXT_CHARACTERS
 from mluva_linux.transcript import normalize_spoken_structure
@@ -185,6 +186,7 @@ class DictationWorkflow:
     cwd: Path
     personalization: PersonalizationStore | None = None
     diagnostics: DiagnosticsStore | None = None
+    cleanup_instructions: str = CLEANUP
 
     @property
     def recognition_provider(self) -> DiagnosticProvider:
@@ -775,7 +777,7 @@ class DictationWorkflow:
         if use_codex_cleanup:
             output_text, warning = self._optional_codex_transform(
                 output_text,
-                DICTATION_CLEANUP_PROMPT.format(text=output_text),
+                cleanup_prompt(output_text, self.cleanup_instructions),
                 "Codex cleanup",
                 protected_vocabulary,
                 codex_model_identifier,

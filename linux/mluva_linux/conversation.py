@@ -7,17 +7,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from mluva_linux.history import HistoryEntry, HistoryStore
+from mluva_linux.prompt_defaults import QUICK_POLISH, STRUCTURED_NOTE  # noqa: F401
 
-QUICK_POLISH = (
-    "Polish the text faithfully. Remove filler words, false starts and accidental repetitions; "
-    "fix grammar and punctuation and lightly paraphrase for clarity. Keep the speaker's language, "
-    "voice, meaning, facts, names, numbers and technical terms. Do not summarize or invent details."
-)
-STRUCTURED_NOTE = (
-    "Turn the text into a structured note in the same language. Lead with a concise summary, "
-    "then group the details into clear bullet points, most important first. Preserve facts, names, "
-    "numbers, uncertainty and technical terms. Do not invent decisions, owners or deadlines."
-)
 MAX_CONVERSATION_CHARACTERS = 120_000
 MAX_REWRITE_CHARACTERS = 40_000
 

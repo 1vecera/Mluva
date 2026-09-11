@@ -5,68 +5,22 @@ import re
 from dataclasses import dataclass
 
 from mluva_linux.config import AppConfig
-from mluva_linux.conversation import MAX_CONVERSATION_CHARACTERS, QUICK_POLISH, STRUCTURED_NOTE
-
-TASK_SPEC = """# Task
-[Missing: task name]
-
-## Intent
-[Missing: outcome and why it matters]
-
-## Requirements
-[Missing: what to build or change]
-
-## Constraints
-[Missing: boundaries, technologies and things to preserve]
-
-## Success criteria
-[Missing: observable checks]
-
-## Open questions
-[Missing: unresolved decisions or approvals]"""
-NOTE = """# Note
-[Missing: subject]
-
-## Summary
-[Missing: main point]
-
-## Details
-[Missing: supporting information]
-
-## Decisions and next steps
-[Missing: explicit decisions or next steps]
-
-## Open questions
-[Missing: what still needs clarification]"""
-TEMPLATE_CHOICES = (
-    ("grilling", "Grilling"),
-    ("task-spec", "Task spec"),
-    ("structured-note", "Structured note"),
-    ("polish", "Polish"),
-    ("custom", "Custom"),
-)
-INITIAL_MINIMUM_CHARACTERS = 40
-GRILLING = (
-    "Help the speaker develop and stress-test their idea without interrupting their speech. "
-    "Put ## Questions first and ## Architecture after it. Omit either section until it has content. "
-    "Under Questions keep one to three short, specific unanswered questions, most consequential first. "
-    "Ask only questions whose prerequisites are already answered; do not assume unresolved decisions. "
-    "On every update, remove questions answered anywhere in the transcript, incorporate those answers below, "
-    "and advance to the next unresolved decisions. Do not repeat answered questions or demand an answer "
-    "before making progress. When no material questions remain, omit the Questions section. "
-    "Under Architecture build a concise working design in the speaker's language. Consider intent, "
-    "requirements, constraints, preferences, technologies, components, interfaces, decisions and success criteria. "
-    "Only create a field or heading when speech supplies useful content for it; hide empty fields and templates. "
-    "Do not fill the page with missing-information placeholders. Explicit unknowns belong in Questions. "
-    "Include a small fenced mermaid flowchart or sequenceDiagram when the speaker has described relationships "
-    "that a sketch makes clearer. Use only supplied components and connections, no invented architecture. "
-    "Use plain labels and standard Mermaid syntax, without links, HTML, directives or frontmatter. "
-    "Keep Questions and Architecture as these exact headings; the content follows the speaker's language."
+from mluva_linux.conversation import MAX_CONVERSATION_CHARACTERS
+from mluva_linux.prompt_defaults import (  # noqa: F401
+    GRILLING,
+    INITIAL_MINIMUM_CHARACTERS,
+    NOTE,
+    QUICK_POLISH,
+    STRUCTURED_NOTE,
+    TASK_SPEC,
+    TEMPLATE_CHOICES,
 )
 
 
-def initial_draft(config: AppConfig) -> str:
+def initial_draft(config: AppConfig, prompts: dict[str, str] | None = None) -> str:
     """Show the chosen structure before the speaker starts filling it."""
+    if prompts is not None and config.live_rewrite_template in {"task-spec", "structured-note"}:
+        return prompts["template-" + config.live_rewrite_template]
     return {"grilling": "", "task-spec": TASK_SPEC, "structured-note": NOTE, "polish": "", "custom": ""}[
         config.live_rewrite_template
     ]
@@ -78,7 +32,9 @@ def split_grilling_draft(text: str) -> tuple[str, str]:
     return (text[: match.end()], text[match.end() :]) if match else ("", text)
 
 
-def live_prompt(config: AppConfig, transcript: str, draft: str, *, final: bool = False) -> str:
+def live_prompt(
+    config: AppConfig, transcript: str, draft: str, *, final: bool = False, prompts: dict[str, str] | None = None
+) -> str:
     """Request a complete structured snapshot with explicit gaps and no invented facts."""
     instructions = {
         "grilling": GRILLING,
@@ -87,12 +43,14 @@ def live_prompt(config: AppConfig, transcript: str, draft: str, *, final: bool =
         "polish": QUICK_POLISH,
         "custom": config.live_rewrite_custom_instructions.strip(),
     }[config.live_rewrite_template]
+    if prompts is not None:
+        instructions = prompts["live-" + config.live_rewrite_template]
     if not instructions:
-        raise ValueError("Add custom live rewrite instructions in Settings → Workspace.")
+        raise ValueError("Add custom live rewrite instructions in Settings → Prompts.")
     context = json.dumps(
         {
             "instructions": instructions,
-            "template": initial_draft(config),
+            "template": initial_draft(config, prompts),
             "transcript": transcript,
             "transcript_status": "final committed recognition" if final else "provisional recognition; may change",
             "current_draft": draft,
