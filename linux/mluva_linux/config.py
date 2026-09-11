@@ -222,6 +222,11 @@ def load_config(path: Path) -> AppConfig:
 
 def save_config(config: AppConfig, path: Path) -> None:
     """Persist non-secret settings with owner-only permissions."""
+    if path.exists():
+        try:
+            load_config(path)
+        except (ValueError, TypeError) as error:
+            raise OSError("config.json needs repair; refusing to overwrite it") from error
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     temporary_path = path.with_suffix(".tmp")
     temporary_path.write_text(json.dumps(asdict(config), indent=2) + "\n", encoding="utf-8")

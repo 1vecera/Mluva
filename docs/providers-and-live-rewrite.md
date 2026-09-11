@@ -4,6 +4,8 @@ Settings → **Workspace** controls editing actions, automatic copying, scrollin
 
 **Ctrl+P** searches every settings row and opens its page at that control. Widget position, time format, sidebar visibility and Live templates also have direct commands. The history sidebar starts hidden; its toggle reveals saved conversations and a **Live conversation** entry during recording and finalization. Incoming speech does not switch you away from a selected older conversation. Dates use `Mon 7 Sep · 14:30`, with an optional `2:30 PM` clock.
 
+Editable instructions and template structures live in **Settings → Prompts** and local `.md` overrides. See [prompt editing and reload behavior](prompt-editor.md).
+
 The [provider selection guide](provider-selection.md) covers provider → model choices, optional discovery, connection guidance and advanced endpoint/key-variable settings.
 
 The same settings live in `$XDG_CONFIG_HOME/mluva/config.json`, normally `~/.config/mluva/config.json`. Edit this JSON while Mluva is closed, then restart; it is not watched for external changes. Existing installations keep their previous settings, and omitted new keys receive the defaults below. The file is owner-only. It contains environment variable **names**, never API key values.
@@ -92,7 +94,7 @@ You can change templates or pause Live while the microphone stays open. Pausing 
 | --- | --- | --- |
 | `live_rewrite_enabled` | `false` | Enable before or during a Dictation capture. |
 | `live_rewrite_template` | `"grilling"` | `grilling`, `task-spec`, `structured-note`, `polish` or `custom`. |
-| `live_rewrite_custom_instructions` | `""` | Instructions required when the custom template is selected. |
+| `live_rewrite_custom_instructions` | `""` | Legacy custom baseline; `prompts/live-custom.md` overrides it. Edit through Settings → Prompts. |
 | `live_rewrite_min_characters` | `160` | Group new characters after the first draft, 40–4,000; a paused short tail also updates. |
 | `live_rewrite_interval_seconds` | `4` | Minimum time between later requests and pause before flushing a short tail, 2–60 seconds. |
 

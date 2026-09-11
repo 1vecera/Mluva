@@ -16,7 +16,7 @@ from gi.repository import Adw, Gtk  # noqa: E402
 class WorkspaceSettings(Adw.PreferencesPage):
     """Apply a coherent group of validated settings from the UI to the same dotfile."""
 
-    def __init__(self, config: AppConfig, save: Callable[[dict], bool]) -> None:
+    def __init__(self, config: AppConfig, save: Callable[[dict], bool], edit_prompt=None) -> None:
         """Keep document and Live settings independent from provider connection setup."""
         super().__init__(
             name="workspace",
@@ -58,17 +58,14 @@ class WorkspaceSettings(Adw.PreferencesPage):
         self.choice(live, "live_rewrite_template", "Template", TEMPLATE_CHOICES)
         self.spin(live, "live_rewrite_min_characters", "New characters to group after the first draft", 40, 4000)
         self.spin(live, "live_rewrite_interval_seconds", "Minimum time between updates (seconds)", 2, 60)
-        custom = Adw.ExpanderRow(title="Custom template instructions")
-        editor = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD_CHAR, accepts_tab=False)
-        editor.get_buffer().set_text(config.live_rewrite_custom_instructions)
-        scroll = Gtk.ScrolledWindow(min_content_height=150, max_content_height=250)
-        scroll.set_child(editor)
-        custom.add_row(scroll)
-        live.add(custom)
-        self.fields["live_rewrite_custom_instructions"] = lambda: editor.get_buffer().get_text(
-            editor.get_buffer().get_start_iter(), editor.get_buffer().get_end_iter(), False
-        )
-        self.setters["live_rewrite_custom_instructions"] = editor.get_buffer().set_text
+        if edit_prompt is not None:
+            row = Adw.ActionRow(
+                title="Edit Live prompt",
+                subtitle="All templates and structures are in Settings → Prompts.",
+                activatable=True,
+            )
+            row.connect("activated", lambda _row: edit_prompt("live-" + self.config.live_rewrite_template))
+            live.add(row)
         self.add(live)
         actions = Adw.PreferencesGroup()
         row = Adw.ActionRow(title="Save settings", subtitle="Changes apply to the next request or recording.")

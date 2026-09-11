@@ -225,6 +225,8 @@ overlay-split-view > .sidebar-pane, overlay-split-view > .content-pane { backgro
 .ml-composer flowbox { padding: 0; }
 .ml-prompt, .ml-prompt text { background: transparent; color: @vs_ink; font-size: 1em; }
 .ml-prompt text { background: transparent; }
+.ml-prompt-editor, .ml-prompt-editor text { background: alpha(@vs_ink, 0.035); color: @vs_ink; }
+.ml-prompt-editor { border: 1px solid alpha(@vs_ink, 0.16); border-radius: 8px; }
 .ml-prompt { padding: 8px 10px; border: 1px solid alpha(@vs_ink, 0.16); border-radius: $CONTROL_RADIUSpx; }
 .ml-recording-dock { background: transparent; }
 .ml-recording-dock button, button.ml-primary { min-height: 30px; padding: 3px 12px; }

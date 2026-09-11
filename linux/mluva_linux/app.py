@@ -34,8 +34,6 @@ from mluva_linux.config import (
 )
 from mluva_linux.conversation import (
     MAX_REWRITE_CHARACTERS,
-    QUICK_POLISH,
-    STRUCTURED_NOTE,
     ConversationStore,
     rewrite_prompt,
 )
@@ -76,9 +74,11 @@ from mluva_linux.meeting import (
 )
 from mluva_linux.meeting_view import MeetingPage
 from mluva_linux.overlay_state import RecordingOverlayPublisher, RecordingOverlayState
-from mluva_linux.personalization import PersonalizationStore, SavedStyle
+from mluva_linux.personalization import BUILT_IN_STYLES, PersonalizationStore, SavedStyle
 from mluva_linux.personalization_view import PersonalizationPage
 from mluva_linux.pipewire import PipeWireCatalogError, PipeWireDeviceCatalog, PipeWireDeviceKind
+from mluva_linux.prompt_editor import PromptEditor, PromptsPage, prompt_control
+from mluva_linux.prompts import PromptStore
 from mluva_linux.provider_settings import ProviderSettings
 from mluva_linux.providers import LiteLLMClient, transcription_client
 from mluva_linux.realtime import (
@@ -338,6 +338,10 @@ class MluvaApplication(Adw.Application):
         self.live_updating = False
         self.live_mode_switch = None
         self.live_template_buttons = {}
+        self.prompt_editor = None
+        self.prompts_page = None
+        self.live_prompts = None
+        self.live_prompt_session = None
         self.rewrite_client: CodexAppServerClient | LiteLLMClient | None = None
         self.model_catalog_client: CodexAppServerClient | None = None
         self.rewrite_settings: RewriteSettings | None = None
@@ -441,6 +445,7 @@ class MluvaApplication(Adw.Application):
             history_store=self.history_store,
             show_message=self._show_toast,
             styles_changed=self._refresh_style_controls,
+            edit_prompt=self._open_prompt_editor,
         )
         stack.add_titled_with_icon(
             self.personalization_page,
@@ -503,6 +508,8 @@ class MluvaApplication(Adw.Application):
             )
         self.window.set_focus(self.conversation_workspace.prompt)
         self.window.present()
+        if self.config_load_error:
+            self._show_toast(self.config_load_error)
 
     def _hide_window(self, window: Adw.ApplicationWindow) -> bool:
         """Keep the app and approved shortcuts running when its window is closed."""
@@ -630,7 +637,12 @@ class MluvaApplication(Adw.Application):
         try:
             resolved = client.resolve_model(model)
             title = clean_title(
-                client.transform(title_prompt(entry), self.codex_workspace, resolved, max_output_characters=128)
+                client.transform(
+                    title_prompt(entry, self.prompt_store.read("title").text),
+                    self.codex_workspace,
+                    resolved,
+                    max_output_characters=128,
+                )
             )
         except Exception:
             pass
@@ -736,7 +748,14 @@ class MluvaApplication(Adw.Application):
 
     def _start_live_rewrite(self, *, preserve_draft: bool = False) -> None:
         """Start a fresh scheduler, preserving deliberate edits when toggled during capture."""
-        draft = self.conversation_workspace.live_draft() if preserve_draft else initial_draft(self.config)
+        if self.live_prompt_session != self.pending_session_identifier or self.live_prompts is None:
+            self.live_prompts = self.prompt_store.snapshot()
+            self.live_prompt_session = self.pending_session_identifier
+        draft = (
+            self.conversation_workspace.live_draft()
+            if preserve_draft
+            else initial_draft(self.config, self.live_prompts)
+        )
         self._cancel_live_rewrite()
         self.live_updating = True
         self.conversation_workspace.show_live_draft(draft, "Waiting for speech…")
@@ -780,7 +799,13 @@ class MluvaApplication(Adw.Application):
         if snapshot is None:
             return
         try:
-            prompt = live_prompt(self.live_config, snapshot, self.conversation_workspace.live_draft(), final=final)
+            prompt = live_prompt(
+                self.live_config,
+                snapshot,
+                self.conversation_workspace.live_draft(),
+                final=final,
+                prompts=self.live_prompts,
+            )
             client = self._new_rewrite_client(self.live_config)
         except Exception as error:
             schedule.finish(False)
@@ -1254,7 +1279,10 @@ class MluvaApplication(Adw.Application):
             self._dismiss_review()
             return
         if operation == "rewrite":
-            presets = {"polish": QUICK_POLISH, "structure": STRUCTURED_NOTE}
+            presets = {
+                "polish": self.prompt_store.read("rewrite-polish").text,
+                "structure": self.prompt_store.read("rewrite-structure").text,
+            }
             style = self.personalization_store.style(option)
             instruction = presets.get(option) or (style.instructions if style is not None else None)
             if instruction is not None:
@@ -1638,7 +1666,13 @@ class MluvaApplication(Adw.Application):
                 group = choice
             choice.connect("toggled", self._live_template_changed, template)
             self.live_template_buttons[template] = choice
-            choices.append(choice)
+            choices.append(
+                prompt_control(
+                    choice,
+                    label,
+                    lambda key=template: (self.live_mode_menu.popdown(), self._open_prompt_editor("live-" + key)),
+                )
+            )
         popover.set_child(choices)
         self.live_mode_menu.set_popover(popover)
         live_control.append(self.live_mode_menu)
@@ -1651,7 +1685,7 @@ class MluvaApplication(Adw.Application):
         dialog = Adw.PreferencesDialog(title="Mluva settings")
         dialog.set_search_enabled(True)
         self.workspace_settings_pages = (
-            WorkspaceSettings(self.config, self._apply_workspace_settings),
+            WorkspaceSettings(self.config, self._apply_workspace_settings, self._open_prompt_editor),
             ProviderSettings(self.config, self._apply_workspace_settings),
         )
         for page in self.workspace_settings_pages:
@@ -1852,7 +1886,18 @@ class MluvaApplication(Adw.Application):
         diagnostics.add(diagnostics_row)
         advanced_page.add(diagnostics)
         dialog.add(advanced_page)
-        self.settings_pages = (*self.workspace_settings_pages, capture_page, audio_page, privacy_page, advanced_page)
+        self.prompts_page = PromptsPage(self.prompt_store, self._open_prompt_editor)
+        if self.config_load_error:
+            self.prompts_page.group.set_description(self.config_load_error)
+        dialog.add(self.prompts_page)
+        self.settings_pages = (
+            self.prompts_page,
+            *self.workspace_settings_pages,
+            capture_page,
+            audio_page,
+            privacy_page,
+            advanced_page,
+        )
         return dialog
 
     @staticmethod
@@ -1937,6 +1982,7 @@ class MluvaApplication(Adw.Application):
         if self.settings_dialog is not None and self.window is not None:
             for page in self.workspace_settings_pages:
                 page.refresh_config(self.config)
+            self.prompts_page.refresh()
             self.settings_dialog.present(self.window)
 
     def _show_commands(self) -> None:
@@ -2133,8 +2179,21 @@ class MluvaApplication(Adw.Application):
         except Exception:
             self.focus_tracker = None
         self.config_path = default_config_dir(os.environ) / "config.json"
-        self.config = load_config(self.config_path)
+        self.config_load_error = ""
+        try:
+            self.config = load_config(self.config_path)
+        except (OSError, ValueError, TypeError):
+            self.config = AppConfig()
+            self.config_load_error = (
+                "config.json needs repair; using defaults. The file is preserved. Prompts remain editable."
+            )
         self.personalization_store = PersonalizationStore(default_config_dir(os.environ) / "personalization.json")
+        self.prompt_store = PromptStore(
+            default_config_dir(os.environ) / "prompts",
+            self.config.live_rewrite_custom_instructions,
+            self.personalization_store.styles,
+        )
+        self.personalization_store.prompt_store = self.prompt_store
         self.data_directory = default_data_dir(os.environ)
         self.codex_workspace = default_runtime_dir(os.environ) / "codex-workspace"
         self.codex_workspace.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -2683,6 +2742,7 @@ class MluvaApplication(Adw.Application):
                     self.pending_application_identifier = self.pending_command_target.application_identifier
             elif self.pending_mode != "dictation":
                 self.pending_delivery_target = None
+            self.workflow.cleanup_instructions = self.prompt_store.read("cleanup").text
             self.pending_transcript_preparation = self.workflow.freeze_transcript_preparation(
                 self.pending_mode,
                 self.pending_application_identifier,
@@ -2812,6 +2872,7 @@ class MluvaApplication(Adw.Application):
                 return
             codex_workspace = self.codex_workspace
             model_identifier = codex_model_identifier
+            cleanup_instructions = self.workflow.cleanup_instructions
             segment_cleanup_session = SegmentCleanupSession(
                 session_identifier=session_identifier,
                 provider_identifier=ENHANCEMENT_PROVIDER_CODEX_APP_SERVER,
@@ -2822,6 +2883,7 @@ class MluvaApplication(Adw.Application):
                     client=parent_client.spawn(),
                     cwd=codex_workspace,
                     model_identifier=model_identifier,
+                    instructions=cleanup_instructions,
                 ),
             )
         recognition_started_at = time.monotonic()
@@ -3898,12 +3960,40 @@ class MluvaApplication(Adw.Application):
         self._refresh_style_controls()
         self._set_status("General settings saved for new captures.")
 
+    def _open_prompt_editor(self, identifier: str) -> None:
+        """Deep-link without executing, replacing or silently discarding an existing edit."""
+        if self.prompt_editor is not None:
+            self._show_toast("Finish or cancel the open prompt edit first.")
+            return
+        self.prompt_editor = PromptEditor(
+            self.prompt_store, identifier, self._prompts_changed, lambda: not self.config.incognito_mode
+        )
+        self.prompt_editor.connect("closed", lambda _dialog: setattr(self, "prompt_editor", None))
+        self.prompt_editor.present(
+            self.settings_dialog
+            if self.settings_dialog is not None and self.settings_dialog.get_mapped()
+            else self.window
+        )
+
+    def _prompts_changed(self) -> None:
+        """Refresh discovery without touching active request/session snapshots or manual draft text."""
+        self._refresh_style_controls()
+        if self.prompts_page is not None:
+            self.prompts_page.refresh()
+        if self.personalization_page is not None:
+            self.personalization_page.refresh()
+        self._show_toast("Prompt saved · next request, or next recording for Live")
+
     def _refresh_style_controls(self) -> None:
         """Rebuild capture output modes after load or custom-style mutation."""
+        if hasattr(self, "prompt_store"):
+            self.prompt_store.sync_styles((*BUILT_IN_STYLES, *self.personalization_store.custom_styles))
         workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None:
+            workspace.prompt_store = self.prompt_store
+            workspace.edit_prompt = self._open_prompt_editor
             workspace.set_saved_prompts(
-                [(style.name, style.instructions) for style in self.personalization_store.styles]
+                [(style.name, "style-" + style.identifier.lower()) for style in self.personalization_store.styles]
             )
         identifier = getattr(self, "overlay_review_identifier", None)
         if identifier is not None:

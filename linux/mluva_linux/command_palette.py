@@ -74,7 +74,7 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
         Command(
             "Polish text",
             "applications-utilities-symbolic",
-            lambda: workspace.request_rewrite(QUICK_POLISH),
+            lambda: workspace.request_prompt("rewrite-polish", QUICK_POLISH),
             lambda: (
                 current_document() and workspace.quick_polish.is_sensitive() and not workspace.live_box.get_visible()
             ),
@@ -160,6 +160,17 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
                     "settings preferences",
                 ),
             )
+    if hasattr(app, "prompt_store"):
+        commands += tuple(
+            Command(
+                "Edit prompt · " + prompt.name,
+                "document-edit-symbolic",
+                lambda key=prompt.identifier: app._open_prompt_editor(key),
+                lambda: True,
+                "prompt template instructions configure",
+            )
+            for prompt in app.prompt_store.catalog.values()
+        )
     return commands + settings_commands(app)
 
 

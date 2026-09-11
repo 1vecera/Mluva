@@ -12,6 +12,7 @@ from mluva_linux.history import HistoryEntry
 from mluva_linux.live_rewrite import split_grilling_draft
 from mluva_linux.markdown_view import MarkdownTextView
 from mluva_linux.mermaid_view import MermaidPreview
+from mluva_linux.prompt_editor import prompt_control
 from mluva_linux.recording_control import RecordingLight
 from mluva_linux.ui import SPACE_2, SPACE_4, brand_mark, document_scroll, set_margins
 
@@ -191,6 +192,9 @@ class ConversationWorkspace(Gtk.Box):
         self.paste_text = paste_text
         self.open_archive = open_archive
         self.save_prompt = save_prompt
+        self.prompt_store = None
+        self.saved_prompt_buttons = []
+        self.edit_prompt = lambda _key: None
         self.cancel_rewrite = cancel_rewrite
         self.entry: HistoryEntry | None = None
         self.title_label: Gtk.Label | None = None
@@ -367,12 +371,16 @@ class ConversationWorkspace(Gtk.Box):
         self.actions.set_halign(Gtk.Align.START)
         self.quick_polish = Gtk.Button(label="Polish")
         self.quick_polish.set_tooltip_text("Remove filler words and fix phrasing while keeping your meaning")
-        self.quick_polish.connect("clicked", lambda _button: self.request_rewrite(QUICK_POLISH))
-        self.actions.insert(self.quick_polish, -1)
+        self.quick_polish.connect("clicked", lambda _button: self.request_prompt("rewrite-polish", QUICK_POLISH))
+        self.actions.insert(prompt_control(self.quick_polish, "Polish", lambda: self.edit_prompt("rewrite-polish")), -1)
         self.structured_note = Gtk.Button(label="Structure")
         self.structured_note.set_tooltip_text("A concise summary followed by organized bullet points")
-        self.structured_note.connect("clicked", lambda _button: self.request_rewrite(STRUCTURED_NOTE))
-        self.actions.insert(self.structured_note, -1)
+        self.structured_note.connect(
+            "clicked", lambda _button: self.request_prompt("rewrite-structure", STRUCTURED_NOTE)
+        )
+        self.actions.insert(
+            prompt_control(self.structured_note, "Structure", lambda: self.edit_prompt("rewrite-structure")), -1
+        )
         self.saved_prompts = Gtk.MenuButton(label="More")
         self.actions.insert(self.saved_prompts, -1)
         composer.append(self.actions)
@@ -808,7 +816,8 @@ class ConversationWorkspace(Gtk.Box):
             editor.set_editable(not self.busy)
         self.cancel.set_visible(self.busy)
         self.live_cancel_slot.set_visible_child_name("cancel" if self.busy else "idle")
-        self.actions.set_sensitive(self.entry is not None and not self.busy and not self.private)
+        for button in (self.quick_polish, self.structured_note, *self.saved_prompt_buttons):
+            button.set_sensitive(self.entry is not None and not self.busy and not self.private)
         self.send.set_sensitive(not self.busy and (self.entry is None or not self.private))
         self.save.set_sensitive(self.entry is not None and not self.private and not self.busy)
         if self.private:
@@ -878,10 +887,15 @@ class ConversationWorkspace(Gtk.Box):
         popover = Gtk.Popover()
         choices = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
         set_margins(choices, SPACE_2)
+        self.saved_prompt_buttons = []
         for name, instruction in prompts:
             button = Gtk.Button(label=name, has_frame=False)
+            button.set_sensitive(self.entry is not None and not self.busy and not self.private)
+            self.saved_prompt_buttons.append(button)
             button.connect("clicked", self._saved_prompt_clicked, instruction, popover)
-            choices.append(button)
+            choices.append(
+                prompt_control(button, name, lambda key=instruction: (popover.popdown(), self.edit_prompt(key)))
+            )
         if not prompts:
             choices.append(Gtk.Label(label="Write a prompt below, then save it.", wrap=True))
         popover.set_child(choices)
@@ -890,4 +904,13 @@ class ConversationWorkspace(Gtk.Box):
     def _saved_prompt_clicked(self, _button: Gtk.Button, instruction: str, popover: Gtk.Popover) -> None:
         """Dismiss the menu and run one selected prompt."""
         popover.popdown()
-        self.request_rewrite(instruction)
+        if self.entry is not None and not self.busy and not self.private:
+            self.request_prompt(instruction, instruction)
+
+    def request_prompt(self, identifier: str, fallback: str = "") -> None:
+        """Resolve at execution so direct local edits apply without rebuilding controls."""
+        self.request_rewrite(
+            self.prompt_store.read(identifier).text
+            if self.prompt_store is not None and identifier in self.prompt_store.catalog
+            else fallback
+        )
