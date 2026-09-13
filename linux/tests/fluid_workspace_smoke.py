@@ -97,9 +97,9 @@ def main():
             commands = application_commands(app)
             for text in ("Floating widget position", "History time format", "Microphone", "Keep audio", "Template"):
                 assert any(text in command.title for command in commands), text
-            next(command for command in commands if command.title == "Widget position: Lower right").run()
+            next(command for command in commands if command.title == "Settings · Widget position: Lower right").run()
             assert load_config(app.config_path).widget_position == "bottom-right"
-            next(command for command in commands if command.title == "Time format: 12-hour · 2:30 PM").run()
+            next(command for command in commands if command.title == "Settings · Time format: 12-hour · 2:30 PM").run()
             assert app.config.time_format == "12h"
             assert workspace.history_list.get_selected_row() is None
             Gtk.Settings.get_default().set_property("gtk-enable-animations", False)
@@ -113,11 +113,11 @@ def main():
             style.set_color_scheme(Adw.ColorScheme.DEFAULT)
             command = next(command for command in commands if "Floating widget position" in command.title)
             command.run()
-            settle(lambda: app.settings_dialog.get_visible_page() is app.workspace_settings_pages[0])
+            settle(lambda: app.settings_view.get_visible_page() is app.workspace_settings_pages[0])
             paint(app.window, output / "settings.png")
             Gtk.Settings.get_default().set_property("gtk-enable-animations", False)
-            app.settings_dialog.close()
-            settle(lambda: not app.settings_dialog.get_mapped())
+            app.settings_view.close()
+            settle(lambda: not app.settings_view.get_mapped())
             app.window.set_default_size(480, 640)
             app.window.set_size_request(420, 520)
             workspace.live_draft_follower.stop()
@@ -167,6 +167,7 @@ def main():
 
     activation = app.connect("activate", activated)
     app.run([])
+    sys.excepthook = sys.__excepthook__
     if errors:
         raise RuntimeError("\n".join(errors))
 

@@ -1,0 +1,1277 @@
+{
+  "schema": "mluva-video-kit-assets-v2",
+  "checkedAt": "2026-09-14",
+  "productBaseline": "fbd793e9d70218a43a5f9d21dd324bca67619673",
+  "implementationBranch": "feat/mluva-video-brief",
+  "figma": {
+    "fileKey": "4mdtod74gknaCCm8q1nrDj",
+    "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj",
+    "team": "myTeam",
+    "pages": [
+      {
+        "id": "0:1",
+        "name": "Cover"
+      },
+      {
+        "id": "3:2",
+        "name": "Getting started"
+      },
+      {
+        "id": "3:3",
+        "name": "Foundations"
+      },
+      {
+        "id": "3:4",
+        "name": "Brand"
+      },
+      {
+        "id": "3:5",
+        "name": "Controls"
+      },
+      {
+        "id": "3:6",
+        "name": "Recorder"
+      },
+      {
+        "id": "3:7",
+        "name": "Workspace"
+      },
+      {
+        "id": "3:8",
+        "name": "Settings"
+      },
+      {
+        "id": "3:9",
+        "name": "Desktop"
+      },
+      {
+        "id": "3:10",
+        "name": "Storyboard"
+      },
+      {
+        "id": "3:11",
+        "name": "Motion"
+      },
+      {
+        "id": "3:12",
+        "name": "Delivery"
+      }
+    ],
+    "directory": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=69-558"
+  },
+  "film": {
+    "durationSeconds": 59,
+    "width": 1920,
+    "height": 1080,
+    "targetFps": 60,
+    "status": "Reviewed production kit; assembled film and final sound mix are subsequent production."
+  },
+  "tokens": {
+    "total": 120,
+    "primitiveColors": 42,
+    "semanticColors": 19,
+    "semanticAliases": 57,
+    "collections": 6,
+    "textStyles": 5
+  },
+  "componentCount": 60,
+  "nativeSymbolCount": 10,
+  "componentFamilies": [
+    {
+      "name": "Brand / Mark",
+      "nodeId": "5:11",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=5-11",
+      "variants": [
+        {
+          "id": "5:5",
+          "name": "Tone=Frost"
+        },
+        {
+          "id": "5:8",
+          "name": "Tone=Ink"
+        }
+      ]
+    },
+    {
+      "name": "Brand / Wordmark",
+      "nodeId": "6:24",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=6-24",
+      "variants": [
+        {
+          "id": "6:17",
+          "name": "Treatment=Custom outlined"
+        }
+      ]
+    },
+    {
+      "name": "Control",
+      "nodeId": "10:30",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=10-30",
+      "variants": [
+        {
+          "id": "10:5",
+          "name": "State=Quiet"
+        },
+        {
+          "id": "10:10",
+          "name": "State=Active"
+        },
+        {
+          "id": "10:15",
+          "name": "State=Hover"
+        },
+        {
+          "id": "10:20",
+          "name": "State=Disabled"
+        },
+        {
+          "id": "10:25",
+          "name": "State=Focus"
+        }
+      ]
+    },
+    {
+      "name": "Recording status",
+      "nodeId": "7:19",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=7-19",
+      "variants": [
+        {
+          "id": "7:5",
+          "name": "State=Idle"
+        },
+        {
+          "id": "7:9",
+          "name": "State=Recording"
+        },
+        {
+          "id": "7:15",
+          "name": "State=Finalizing"
+        }
+      ]
+    },
+    {
+      "name": "Recorder",
+      "nodeId": "12:172",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=12-172",
+      "variants": [
+        {
+          "id": "11:15",
+          "name": "State=Empty"
+        },
+        {
+          "id": "11:52",
+          "name": "State=Short"
+        },
+        {
+          "id": "11:89",
+          "name": "State=Filling"
+        },
+        {
+          "id": "11:126",
+          "name": "State=Overflow"
+        },
+        {
+          "id": "11:163",
+          "name": "State=Finalizing"
+        },
+        {
+          "id": "11:198",
+          "name": "State=Review"
+        },
+        {
+          "id": "11:233",
+          "name": "State=Rewriting"
+        },
+        {
+          "id": "11:248",
+          "name": "State=Error"
+        }
+      ]
+    },
+    {
+      "name": "Text pane",
+      "nodeId": "14:23",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=14-23",
+      "variants": [
+        {
+          "id": "14:5",
+          "name": "Kind=Original"
+        },
+        {
+          "id": "14:11",
+          "name": "Kind=Live draft"
+        },
+        {
+          "id": "14:17",
+          "name": "Kind=Completed rewrite"
+        }
+      ]
+    },
+    {
+      "name": "App chrome",
+      "nodeId": "14:145",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=14-145",
+      "variants": [
+        {
+          "id": "14:27",
+          "name": "Surface=Main"
+        },
+        {
+          "id": "14:87",
+          "name": "Surface=Settings"
+        }
+      ]
+    },
+    {
+      "name": "Settings row",
+      "nodeId": "15:39",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=15-39",
+      "variants": [
+        {
+          "id": "15:5",
+          "name": "Kind=Choice"
+        },
+        {
+          "id": "15:14",
+          "name": "Kind=Toggle on"
+        },
+        {
+          "id": "15:22",
+          "name": "Kind=Toggle off"
+        },
+        {
+          "id": "15:30",
+          "name": "Kind=Disclosure"
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "name": "Kit / Page guide",
+      "nodeId": "74:14",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=74-14",
+      "width": 1320,
+      "height": 248,
+      "purpose": "Every page begins with this shared guide. Override Page, Purpose and Usage. Typography, padding and gaps stay bound to the same variables.",
+      "properties": {
+        "Page#74:0": {
+          "type": "TEXT",
+          "defaultValue": "Mluva / Working guide"
+        },
+        "Purpose#74:1": {
+          "type": "TEXT",
+          "defaultValue": "A one-minute film, built from the same components and tokens as the app."
+        },
+        "Usage#74:2": {
+          "type": "TEXT",
+          "defaultValue": "Start with the storyboard. Edit masters in Brand, Controls, Recorder, Workspace and Settings. Motion contains eight playable studies. Canvas positions refresh with reflow-canvas.mjs; timing edits refresh with retime-motion.mjs."
+        }
+      }
+    },
+    {
+      "name": "Kit / Frame note",
+      "nodeId": "74:18",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=74-18",
+      "width": 1120,
+      "height": 56,
+      "purpose": "A purpose and editing note below a frame. Resize its width to match the frame; text and height reflow automatically.",
+      "properties": {
+        "Title#74:3": {
+          "type": "TEXT",
+          "defaultValue": "Frame purpose"
+        },
+        "Detail#74:4": {
+          "type": "TEXT",
+          "defaultValue": "What this frame illustrates, where it appears in the film, and what to edit."
+        }
+      }
+    },
+    {
+      "name": "Background / Water",
+      "nodeId": "85:1893",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=85-1893",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Mixkit: Close-Up of Lagoon Ripples (101181), Free Stock Video License. 10 s seamless crossfade loop. Animated GIF is an editable-file proxy; the full-HD MP4 is the production source. Source and license links are in Delivery.",
+      "properties": {}
+    },
+    {
+      "name": "Tone=Frost",
+      "nodeId": "5:5",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=5-5",
+      "width": 144,
+      "height": 116,
+      "purpose": "Original abstract thought unfolding into speech. One open contour; theme-bound ink; no copied mark from the supplied reference.",
+      "properties": {}
+    },
+    {
+      "name": "Tone=Ink",
+      "nodeId": "5:8",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=5-8",
+      "width": 144,
+      "height": 116,
+      "purpose": "Original abstract thought unfolding into speech. One open contour; theme-bound ink; no copied mark from the supplied reference.",
+      "properties": {}
+    },
+    {
+      "name": "Treatment=Custom outlined",
+      "nodeId": "6:17",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=6-17",
+      "width": 288,
+      "height": 96,
+      "purpose": "Custom JetBrains Mono Medium lettering. Optical spacing and a narrowed l; exact editable paths from dev/sculpt_wordmark.py.",
+      "properties": {}
+    },
+    {
+      "name": "Icon / home",
+      "nodeId": "9:9",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=9-9",
+      "width": 16,
+      "height": 16,
+      "purpose": "GNOME Project, Adwaita icon theme 94f84e1. Exact symbolic SVG. LGPL-3.0 or CC-BY-SA-3.0-US. Theme-bound ink.",
+      "properties": {}
+    },
+    {
+      "name": "Icon / down",
+      "nodeId": "9:14",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=9-14",
+      "width": 16,
+      "height": 16,
+      "purpose": "GNOME Project, Adwaita icon theme 94f84e1. Exact symbolic SVG. LGPL-3.0 or CC-BY-SA-3.0-US. Theme-bound ink.",
+      "properties": {}
+    },
+    {
+      "name": "Icon / maximize",
+      "nodeId": "9:19",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=9-19",
+      "width": 16,
+      "height": 16,
+      "purpose": "GNOME Project, Adwaita icon theme 94f84e1. Exact symbolic SVG. LGPL-3.0 or CC-BY-SA-3.0-US. Theme-bound ink.",
+      "properties": {}
+    },
+    {
+      "name": "Icon / minimize",
+      "nodeId": "9:24",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=9-24",
+      "width": 16,
+      "height": 16,
+      "purpose": "GNOME Project, Adwaita icon theme 94f84e1. Exact symbolic SVG. LGPL-3.0 or CC-BY-SA-3.0-US. Theme-bound ink.",
+      "properties": {}
+    },
+    {
+      "name": "Icon / settings",
+      "nodeId": "9:29",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=9-29",
+      "width": 16,
+      "height": 16,
+      "purpose": "GNOME Project, Adwaita icon theme 94f84e1. Exact symbolic SVG. LGPL-3.0 or CC-BY-SA-3.0-US. Theme-bound ink.",
+      "properties": {}
+    },
+    {
+      "name": "Icon / stop",
+      "nodeId": "9:34",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=9-34",
+      "width": 16,
+      "height": 16,
+      "purpose": "GNOME Project, Adwaita icon theme 94f84e1. Exact symbolic SVG. LGPL-3.0 or CC-BY-SA-3.0-US. Theme-bound ink.",
+      "properties": {}
+    },
+    {
+      "name": "Icon / close",
+      "nodeId": "9:39",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=9-39",
+      "width": 16,
+      "height": 16,
+      "purpose": "GNOME Project, Adwaita icon theme 94f84e1. Exact symbolic SVG. LGPL-3.0 or CC-BY-SA-3.0-US. Theme-bound ink.",
+      "properties": {}
+    },
+    {
+      "name": "Icon / copy",
+      "nodeId": "9:44",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=9-44",
+      "width": 16,
+      "height": 16,
+      "purpose": "GNOME Project, Adwaita icon theme 94f84e1. Exact symbolic SVG. LGPL-3.0 or CC-BY-SA-3.0-US. Theme-bound ink.",
+      "properties": {}
+    },
+    {
+      "name": "Icon / sidebar",
+      "nodeId": "9:49",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=9-49",
+      "width": 16,
+      "height": 16,
+      "purpose": "GNOME Project, Adwaita icon theme 94f84e1. Exact symbolic SVG. LGPL-3.0 or CC-BY-SA-3.0-US. Theme-bound ink.",
+      "properties": {}
+    },
+    {
+      "name": "Icon / menu",
+      "nodeId": "9:56",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=9-56",
+      "width": 16,
+      "height": 16,
+      "purpose": "GNOME Project, Adwaita icon theme 94f84e1. Exact symbolic SVG. LGPL-3.0 or CC-BY-SA-3.0-US. Theme-bound ink.",
+      "properties": {}
+    },
+    {
+      "name": "State=Quiet",
+      "nodeId": "10:5",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=10-5",
+      "width": 77,
+      "height": 32,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "State=Active",
+      "nodeId": "10:10",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=10-10",
+      "width": 77,
+      "height": 32,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "State=Hover",
+      "nodeId": "10:15",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=10-15",
+      "width": 77,
+      "height": 32,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "State=Disabled",
+      "nodeId": "10:20",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=10-20",
+      "width": 77,
+      "height": 32,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "State=Focus",
+      "nodeId": "10:25",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=10-25",
+      "width": 77,
+      "height": 32,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "State=Idle",
+      "nodeId": "7:5",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=7-5",
+      "width": 500,
+      "height": 20,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "State=Recording",
+      "nodeId": "7:9",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=7-9",
+      "width": 500,
+      "height": 20,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "State=Finalizing",
+      "nodeId": "7:15",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=7-15",
+      "width": 500,
+      "height": 20,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "State=Empty",
+      "nodeId": "11:15",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=11-15",
+      "width": 500,
+      "height": 150,
+      "purpose": "Recorder Empty. 20 px header, zero header gap, 10 px pane padding, five wrapped lines at 14/22. Shape and timer align with pane edges.",
+      "properties": {}
+    },
+    {
+      "name": "State=Short",
+      "nodeId": "11:52",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=11-52",
+      "width": 500,
+      "height": 150,
+      "purpose": "Recorder Short. 20 px header, zero header gap, 10 px pane padding, five wrapped lines at 14/22. Shape and timer align with pane edges.",
+      "properties": {}
+    },
+    {
+      "name": "State=Filling",
+      "nodeId": "11:89",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=11-89",
+      "width": 500,
+      "height": 150,
+      "purpose": "Recorder Filling. 20 px header, zero header gap, 10 px pane padding, five wrapped lines at 14/22. Shape and timer align with pane edges.",
+      "properties": {}
+    },
+    {
+      "name": "State=Overflow",
+      "nodeId": "11:126",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=11-126",
+      "width": 500,
+      "height": 150,
+      "purpose": "Recorder Overflow. Continuous prose; predict from recent speech rate and never reverse the following scroll.",
+      "properties": {}
+    },
+    {
+      "name": "State=Finalizing",
+      "nodeId": "11:163",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=11-163",
+      "width": 500,
+      "height": 150,
+      "purpose": "Recorder Finalizing. 20 px header, zero header gap, 10 px pane padding, five wrapped lines at 14/22. Shape and timer align with pane edges.",
+      "properties": {}
+    },
+    {
+      "name": "State=Review",
+      "nodeId": "11:198",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=11-198",
+      "width": 500,
+      "height": 190,
+      "purpose": "Recorder Review. 20 px header, zero header gap, 10 px pane padding, five wrapped lines at 14/22. Shape and timer align with pane edges.",
+      "properties": {}
+    },
+    {
+      "name": "State=Rewriting",
+      "nodeId": "11:233",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=11-233",
+      "width": 500,
+      "height": 190,
+      "purpose": "Recorder Rewriting. 20 px header, zero header gap, 10 px pane padding, five wrapped lines at 14/22. Shape and timer align with pane edges.",
+      "properties": {}
+    },
+    {
+      "name": "State=Error",
+      "nodeId": "11:248",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=11-248",
+      "width": 500,
+      "height": 190,
+      "purpose": "Recorder Error. 20 px header, zero header gap, 10 px pane padding, five wrapped lines at 14/22. Shape and timer align with pane edges.",
+      "properties": {}
+    },
+    {
+      "name": "Kind=Original",
+      "nodeId": "14:5",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=14-5",
+      "width": 456,
+      "height": 360,
+      "purpose": "Editable Original pane. Source recognition is preserved separately in the app. Label, body and status are editable instance properties.",
+      "properties": {}
+    },
+    {
+      "name": "Kind=Live draft",
+      "nodeId": "14:11",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=14-11",
+      "width": 456,
+      "height": 360,
+      "purpose": "Editable Live draft pane. Source recognition is preserved separately in the app. Label, body and status are editable instance properties.",
+      "properties": {}
+    },
+    {
+      "name": "Kind=Completed rewrite",
+      "nodeId": "14:17",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=14-17",
+      "width": 456,
+      "height": 360,
+      "purpose": "Editable Completed rewrite pane. Source recognition is preserved separately in the app. Label, body and status are editable instance properties.",
+      "properties": {}
+    },
+    {
+      "name": "Surface=Main",
+      "nodeId": "14:27",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=14-27",
+      "width": 1120,
+      "height": 38,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "Surface=Settings",
+      "nodeId": "14:87",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=14-87",
+      "width": 1120,
+      "height": 38,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Main / Ready",
+      "nodeId": "92:1243",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1243",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Main / Recording",
+      "nodeId": "92:1244",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1244",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Main / Completed",
+      "nodeId": "92:1245",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1245",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Live / Structured note",
+      "nodeId": "92:1246",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1246",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout. Live source and draft are parallel, with pane controls. Set Show original/Show draft and Show divider for a collapsed composition; leave at least one pane visible.",
+      "properties": {
+        "Show original#105:0": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show draft#105:1": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show divider#105:2": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        }
+      }
+    },
+    {
+      "name": "Screen / Live / Grilling",
+      "nodeId": "92:1247",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1247",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout. Live source and draft are parallel, with pane controls. Set Show original/Show draft and Show divider for a collapsed composition; leave at least one pane visible.",
+      "properties": {
+        "Show original#105:3": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show draft#105:4": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show divider#105:5": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        }
+      }
+    },
+    {
+      "name": "Screen / History / Review search",
+      "nodeId": "92:1248",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1248",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Command palette / Polish",
+      "nodeId": "92:1249",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1249",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
+      "properties": {}
+    },
+    {
+      "name": "Commands / Surface",
+      "nodeId": "134:846",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=134-846",
+      "width": 560,
+      "height": 500,
+      "purpose": "Ctrl+P command surface, shared by the complete screen and S06 magnification. One translucent panel with a plain result list; edit command text here.",
+      "properties": {}
+    },
+    {
+      "name": "Kind=Choice",
+      "nodeId": "15:5",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=15-5",
+      "width": 928,
+      "height": 72,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "Kind=Toggle on",
+      "nodeId": "15:14",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=15-14",
+      "width": 928,
+      "height": 72,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "Kind=Toggle off",
+      "nodeId": "15:22",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=15-22",
+      "width": 928,
+      "height": 72,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "Kind=Disclosure",
+      "nodeId": "15:30",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=15-30",
+      "width": 928,
+      "height": 72,
+      "purpose": "",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Settings / Providers",
+      "nodeId": "92:285",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-285",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Full-window Providers settings. The back button and page selector match the app route; Escape returns to the workspace.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Settings / Workspace",
+      "nodeId": "92:286",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-286",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Full-window Workspace settings. The back button and page selector match the app route; Escape returns to the workspace.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Settings / Prompts",
+      "nodeId": "92:287",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-287",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Full-window Prompts settings. The back button and page selector match the app route; Escape returns to the workspace.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Welcome / Provider and model setup",
+      "nodeId": "92:288",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-288",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Full-window route. Choose providers and models, return with Escape. Reuse this master for film shots; settings never cover a second workspace.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Settings / Capture",
+      "nodeId": "102:582",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=102-582",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Capture → Behavior contains Automatic pasting. Off by default; enable explicitly for the film. Native tests cover Unicode, target confirmation and failed insertion recovery.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Recorder floating",
+      "nodeId": "103:84",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-84",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Real Omarchy ARM VM capture, 2560×1440 source scaled proportionally. Actual Chromium, Ghostty, Herdr and production Mluva UI with synthetic text. Captured pixels are a runtime reference; edit app/recorder components on their own pages.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Recorder tiled",
+      "nodeId": "103:86",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-86",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Real Omarchy ARM VM capture, 2560×1440 source scaled proportionally. Actual Chromium, Ghostty, Herdr and production Mluva UI with synthetic text. Captured pixels are a runtime reference; edit app/recorder components on their own pages.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Browser Ghostty Herdr",
+      "nodeId": "103:88",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-88",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Real Omarchy ARM VM capture, 2560×1440 source scaled proportionally. Actual Chromium, Ghostty, Herdr and production Mluva UI with synthetic text. Captured pixels are a runtime reference; edit app/recorder components on their own pages.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Mluva workspace",
+      "nodeId": "103:90",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-90",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Real Omarchy ARM VM capture, 2560×1440 source scaled proportionally. Actual Chromium, Ghostty, Herdr and production Mluva UI with synthetic text. Captured pixels are a runtime reference; edit app/recorder components on their own pages.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Tokyo Night theme",
+      "nodeId": "103:92",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-92",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Actual Omarchy Tokyo Night palette and compositor borders. Theme names are three examples of arbitrary theme support. Production Color singleton receives the same shell.applyTheme payload in the separate capture fixture.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Rosé Pine theme",
+      "nodeId": "103:94",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-94",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Actual Omarchy Rosé Pine palette and compositor borders. Theme names are three examples of arbitrary theme support. Production Color singleton receives the same shell.applyTheme payload in the separate capture fixture.",
+      "properties": {}
+    }
+  ],
+  "screens": [
+    {
+      "name": "Screen / Main / Ready",
+      "nodeId": "92:1243",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1243",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Main / Recording",
+      "nodeId": "92:1244",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1244",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Main / Completed",
+      "nodeId": "92:1245",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1245",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Live / Structured note",
+      "nodeId": "92:1246",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1246",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout. Live source and draft are parallel, with pane controls. Set Show original/Show draft and Show divider for a collapsed composition; leave at least one pane visible.",
+      "properties": {
+        "Show original#105:0": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show draft#105:1": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show divider#105:2": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        }
+      }
+    },
+    {
+      "name": "Screen / Live / Grilling",
+      "nodeId": "92:1247",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1247",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout. Live source and draft are parallel, with pane controls. Set Show original/Show draft and Show divider for a collapsed composition; leave at least one pane visible.",
+      "properties": {
+        "Show original#105:3": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show draft#105:4": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show divider#105:5": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        }
+      }
+    },
+    {
+      "name": "Screen / History / Review search",
+      "nodeId": "92:1248",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1248",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Command palette / Polish",
+      "nodeId": "92:1249",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-1249",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Settings / Providers",
+      "nodeId": "92:285",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-285",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Full-window Providers settings. The back button and page selector match the app route; Escape returns to the workspace.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Settings / Workspace",
+      "nodeId": "92:286",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-286",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Full-window Workspace settings. The back button and page selector match the app route; Escape returns to the workspace.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Settings / Prompts",
+      "nodeId": "92:287",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-287",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Full-window Prompts settings. The back button and page selector match the app route; Escape returns to the workspace.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Welcome / Provider and model setup",
+      "nodeId": "92:288",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=92-288",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Full-window route. Choose providers and models, return with Escape. Reuse this master for film shots; settings never cover a second workspace.",
+      "properties": {}
+    },
+    {
+      "name": "Screen / Settings / Capture",
+      "nodeId": "102:582",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=102-582",
+      "width": 1120,
+      "height": 800,
+      "purpose": "Capture → Behavior contains Automatic pasting. Off by default; enable explicitly for the film. Native tests cover Unicode, target confirmation and failed insertion recovery.",
+      "properties": {}
+    }
+  ],
+  "runtimeCaptures": [
+    {
+      "name": "Desktop / Recorder floating",
+      "nodeId": "103:84",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-84",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Real Omarchy ARM VM capture, 2560×1440 source scaled proportionally. Actual Chromium, Ghostty, Herdr and production Mluva UI with synthetic text. Captured pixels are a runtime reference; edit app/recorder components on their own pages.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Recorder tiled",
+      "nodeId": "103:86",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-86",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Real Omarchy ARM VM capture, 2560×1440 source scaled proportionally. Actual Chromium, Ghostty, Herdr and production Mluva UI with synthetic text. Captured pixels are a runtime reference; edit app/recorder components on their own pages.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Browser Ghostty Herdr",
+      "nodeId": "103:88",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-88",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Real Omarchy ARM VM capture, 2560×1440 source scaled proportionally. Actual Chromium, Ghostty, Herdr and production Mluva UI with synthetic text. Captured pixels are a runtime reference; edit app/recorder components on their own pages.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Mluva workspace",
+      "nodeId": "103:90",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-90",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Real Omarchy ARM VM capture, 2560×1440 source scaled proportionally. Actual Chromium, Ghostty, Herdr and production Mluva UI with synthetic text. Captured pixels are a runtime reference; edit app/recorder components on their own pages.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Tokyo Night theme",
+      "nodeId": "103:92",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-92",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Actual Omarchy Tokyo Night palette and compositor borders. Theme names are three examples of arbitrary theme support. Production Color singleton receives the same shell.applyTheme payload in the separate capture fixture.",
+      "properties": {}
+    },
+    {
+      "name": "Desktop / Rosé Pine theme",
+      "nodeId": "103:94",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=103-94",
+      "width": 1920,
+      "height": 1080,
+      "purpose": "Actual Omarchy Rosé Pine palette and compositor borders. Theme names are three examples of arbitrary theme support. Production Color singleton receives the same shell.applyTheme payload in the separate capture fixture.",
+      "properties": {}
+    }
+  ],
+  "storyboard": [
+    {
+      "key": "S01",
+      "title": "Keep your flow",
+      "start": 0,
+      "end": 3,
+      "voice": "Dictation should fit the way you work.",
+      "action": "Browser, Ghostty and Herdr share a real Omarchy desktop. The film starts in an actual working environment.",
+      "motion": "Keep the desktop still for one beat, then introduce the recorder. Real VM capture; no invented shell.",
+      "sectionId": "51:159",
+      "frameId": "51:160",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=51-160"
+    },
+    {
+      "key": "S02",
+      "title": "Meet Mluva",
+      "start": 3,
+      "end": 6,
+      "voice": "Meet Mluva, most delightful dictation app for Omarchy.",
+      "action": "Original unfolding-thought mark, custom JetBrains Mono wordmark and one clear promise.",
+      "motion": "Calm lockup reveal over the licensed water loop. Reuse the Brand masters.",
+      "sectionId": "51:258",
+      "frameId": "51:259",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=51-259"
+    },
+    {
+      "key": "S03",
+      "title": "Choose providers",
+      "start": 6,
+      "end": 12,
+      "voice": "Best of local and cloud.",
+      "action": "Welcome presents speech and rewrite provider/model choices. Continue into the app.",
+      "motion": "Show first-run setup, then the Providers route. Settings fills the window.",
+      "sectionId": "52:10",
+      "frameId": "52:11",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=52-11"
+    },
+    {
+      "key": "S04",
+      "title": "F9. Talk. F9. Paste.",
+      "start": 12,
+      "end": 21,
+      "voice": "F9. Talk. And paste.",
+      "action": "Press F9 to start and stop. Text wraps continuously, then arrives in the previously focused editor.",
+      "motion": "Automatic pasting enabled. Show exact source text and the real target; no sentence-by-sentence line breaks.",
+      "sectionId": "52:1324",
+      "frameId": "52:1325",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=52-1325"
+    },
+    {
+      "key": "S05",
+      "title": "Float, tile, open",
+      "start": 21,
+      "end": 27,
+      "voice": "Omarchy moves like water. Tile it, or let it float.",
+      "action": "Move the same Mluva window between floating and tiled states; keep surrounding apps filled.",
+      "motion": "Use real Omarchy window borders and Super+T. Do not substitute an invented desktop.",
+      "sectionId": "52:1393",
+      "frameId": "52:1394",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=52-1394"
+    },
+    {
+      "key": "S06",
+      "title": "Edit and find an action",
+      "start": 27,
+      "end": 33,
+      "voice": "Done talking? Edit it, polish it, rewrite it.",
+      "action": "Open Ctrl+P, choose Polish text, show the changed words, then return to the finished result.",
+      "motion": "Speed up the result animation. Removed text fades in 120 ms, inserted words in 220 ms; stable words stay put.",
+      "sectionId": "52:1439",
+      "frameId": "52:1440",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=52-1440"
+    },
+    {
+      "key": "S07",
+      "title": "Return to a note",
+      "start": 33,
+      "end": 37,
+      "voice": "Find your thoughts again.",
+      "action": "Search history and return to the same note, with its original and revisions retained.",
+      "motion": "Keep the selected note legible. No new feature claim.",
+      "sectionId": "55:1404",
+      "frameId": "55:1405",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=55-1405"
+    },
+    {
+      "key": "S08",
+      "title": "Your desktop, your palette",
+      "start": 37,
+      "end": 42,
+      "voice": "Your desktop, your palette. Any Omarchy theme, automatically.",
+      "action": "The current Omarchy theme supplies the palette. Demonstrate three examples, including actual window border changes.",
+      "motion": "Three shown examples are not a support limit. Use real captures plus shared semantic theme modes.",
+      "sectionId": "55:1520",
+      "frameId": "55:1521",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=55-1521"
+    },
+    {
+      "key": "S09",
+      "title": "Live rewrite",
+      "start": 42,
+      "end": 49,
+      "voice": "Try Live rewrite. Keep speaking as your text takes shape.",
+      "action": "Dictate a structured note. Preserve the source and update only changed words in the Markdown draft.",
+      "motion": "Live rewrite is experimental. No email example. Continuous source wrapping; collapse either pane without data loss.",
+      "sectionId": "55:1677",
+      "frameId": "55:1678",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=55-1678"
+    },
+    {
+      "key": "S10",
+      "title": "Give the task a shape",
+      "start": 49,
+      "end": 55,
+      "voice": "Or build a task spec, with questions for what’s still missing.",
+      "action": "Keep the user's answer visible while the answered question retires and the next useful question appears.",
+      "motion": "Animate question replacement and append the confirmed requirement. Never erase the answer.",
+      "sectionId": "55:1728",
+      "frameId": "55:1729",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=55-1729"
+    },
+    {
+      "key": "S11",
+      "title": "A little more delight",
+      "start": 55,
+      "end": 59,
+      "voice": "A little more delight every day.",
+      "action": "Return to the same Mluva mark and custom JetBrains Mono wordmark. Hold the closing phrase and repository.",
+      "motion": "Use the shared water background. Keep the final lockup readable for the last beat.",
+      "sectionId": "55:1777",
+      "frameId": "55:1778",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=55-1778"
+    }
+  ],
+  "motions": [
+    {
+      "name": "Recorder / Empty to overflow",
+      "nodeId": "30:27",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=30-27",
+      "durationSeconds": 8,
+      "width": 1280,
+      "height": 720,
+      "animatedNodes": 68,
+      "tracks": 70,
+      "boundary": "Authored constant-cadence example. Production app estimates recent speech rate; timing is not a latency claim."
+    },
+    {
+      "name": "Rewrite / Changed words",
+      "nodeId": "32:11",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=32-11",
+      "durationSeconds": 5,
+      "width": 1280,
+      "height": 720,
+      "animatedNodes": 4,
+      "tracks": 4,
+      "boundary": "An explicit spoken Tuesday-to-Wednesday correction. Local previous/current diff; no provider patch protocol."
+    },
+    {
+      "name": "Grilling / Answer and advance",
+      "nodeId": "34:11",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=34-11",
+      "durationSeconds": 6,
+      "width": 1280,
+      "height": 720,
+      "animatedNodes": 4,
+      "tracks": 5,
+      "boundary": "Experimental Grilling example; retained answer and confirmed requirement persist."
+    },
+    {
+      "name": "Desktop / Float to tile",
+      "nodeId": "37:11",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=37-11",
+      "durationSeconds": 5,
+      "width": 1280,
+      "height": 720,
+      "animatedNodes": 1,
+      "tracks": 1,
+      "boundary": "Native Figma crossfade between real captured endpoints. The separate MP4 contains actual compositor movement."
+    },
+    {
+      "name": "Background / Water loop",
+      "nodeId": "37:306",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=37-306",
+      "durationSeconds": 10,
+      "width": 1920,
+      "height": 1080,
+      "animatedNodes": 1,
+      "tracks": 2,
+      "boundary": "Editable camera motion on a full-resolution water poster. Use the supplied licensed MP4 for moving ripples."
+    },
+    {
+      "name": "Brand / Title reveal",
+      "nodeId": "39:139",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=39-139",
+      "durationSeconds": 4,
+      "width": 1920,
+      "height": 1080,
+      "animatedNodes": 3,
+      "tracks": 6,
+      "boundary": "Original abstract thought mark and custom JetBrains Mono outlined wordmark."
+    },
+    {
+      "name": "Theme / Palette change",
+      "nodeId": "39:175",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=39-175",
+      "durationSeconds": 6,
+      "width": 1280,
+      "height": 720,
+      "animatedNodes": 2,
+      "tracks": 4,
+      "boundary": "Editorial wipes between real capture palettes including borders. Three examples do not limit theme support."
+    },
+    {
+      "name": "Breathing light / Blender study",
+      "nodeId": "99:162",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=99-162",
+      "durationSeconds": 6.8,
+      "width": 1280,
+      "height": 720,
+      "animatedNodes": 4,
+      "tracks": 4,
+      "boundary": "Four-pose Figma proxy. The editable Blender scene and transparent 30 fps asset provide continuous motion."
+    }
+  ],
+  "examples": {
+    "dictation": "Could we move the review to Tuesday? I’ll send the draft tomorrow.",
+    "polished": "Could we reschedule the review for Tuesday? I’ll send the draft tomorrow.",
+    "spokenCorrection": "Actually, make that Wednesday.",
+    "corrected": "Could we move the review to Wednesday? I’ll send the draft tomorrow.",
+    "sourceWrapping": "One continuous paragraph, wrapping by available width.",
+    "grillingAnswer": "It’s for me, as a file I can keep.",
+    "nextQuestion": "How should files be named?"
+  },
+  "editing": {
+    "masters": "Change component masters and exposed properties. Motion-local copies remain separate for editable keyframes.",
+    "theme": "Modes recolor semantic vector/text bindings; runtime capture pixels do not recolor.",
+    "opacity": "Figma uses percent values; source tokens also retain application-scale alpha.",
+    "canvas": "reflow-canvas.mjs, one invocation per page; dry-run first.",
+    "motion": "retime-motion.mjs refreshes all 96 native tracks; dry-run first.",
+    "wordmark": "Outlined custom artwork; editable app/film text uses JetBrains Mono."
+  },
+  "media": {
+    "water": "Licensed 10 s 1080p / 24 fps MP4 supplied in private production handoff.",
+    "breath": "3.4 s 384×384 / 30 fps alpha WebM; editable breathing-light.blend and generator.",
+    "desktop": "8 s 2560×1440 / 30 fps actual Omarchy transition supplied in production handoff."
+  }
+}

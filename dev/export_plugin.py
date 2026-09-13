@@ -34,13 +34,17 @@ def main() -> None:
     hashes = {}
     plugin_directory = "linux/quickshell/mluva.dictation"
     files = subprocess.check_output(
-        ["git", "ls-tree", "--name-only", f"{commit}:{plugin_directory}"],
+        ["git", "ls-tree", "-r", "--name-only", f"{commit}:{plugin_directory}"],
         cwd=root,
         text=True,
     ).splitlines()
     for name in (
         "manifest.json",
-        *(name for name in files if name.endswith(".qml")),
+        *(
+            name
+            for name in files
+            if name.endswith((".qml", ".js", ".ttf")) or name == "fonts/OFL.txt"
+        ),
         "LICENSE",
     ):
         source = (
@@ -49,11 +53,14 @@ def main() -> None:
         contents = subprocess.check_output(
             ["git", "show", f"{commit}:{source}"], cwd=root
         )
+        (destination / name).parent.mkdir(parents=True, exist_ok=True)
         (destination / name).write_bytes(contents)
         hashes[name] = hashlib.sha256(contents).hexdigest()
     template = (root / "dev/plugin-README.md").read_text()
     (destination / "README.md").write_text(
-        template.replace("@REVISION@", args.release or commit[:7]).replace("@COMMIT@", commit)
+        template.replace("@REVISION@", args.release or commit[:7]).replace(
+            "@COMMIT@", commit
+        )
     )
     shutil.copyfile(args.preview, destination / "preview.png")
     (destination / "SOURCE.json").write_text(

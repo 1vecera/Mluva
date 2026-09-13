@@ -34,6 +34,7 @@ ShellRoot {
             root.overlay.contentItem.Window.window.requestActivate();
         }
         function closeMenu(): void { root.overlay.menuOpen = false; }
+        function scroll(delta: int): void { root.overlay.scrollPreview(delta); }
         function motionSamples(): string {
             let shortText = "", nearEdge = "", wrapped = "";
             for (let count = 1; count < 200; count++) {
@@ -99,8 +100,9 @@ ShellRoot {
                 copyEnabled: copy.enabled, copyVisible: copy.visible, renderedText: text.text,
                 reviewDuration: overlay.reviewDuration, smoothScrolling: overlay.smoothScrolling,
                 scrollDuration: overlay.scrollDuration, scrollLookahead: overlay.scrollLookahead,
-                dotOpacity: dot.pulseOpacity, dotScale: dot.pulseScale,
-                dotCenterX: dot.x + dot.width / 2, dotCenterY: dot.y + dot.height / 2,
+                dotRadius: 6.4 + 1.6 * dot.breath, dotPhase: dot.pulsePhase,
+                dotCenterX: dot.mapToItem(overlay.contentItem, dot.width / 2, dot.height / 2).x,
+                dotCenterY: dot.mapToItem(overlay.contentItem, dot.width / 2, dot.height / 2).y,
                 dotWidth: dot.width, dotHeight: dot.height, dotLabel: dot.Accessible.name, statusText: status.text,
                 headerVisible: header.visible, timerVisible: timer.visible, timerText: timer.text,
                 headerBottom: header.mapToItem(overlay.contentItem, 0, header.height).y,
@@ -111,12 +113,13 @@ ShellRoot {
                 viewportWidth: viewport.width, textWidth: text.width,
                 preset: overlay.positionPreset, headerTransparent: header.color === undefined || header.color.a === 0,
                 dragWidth: drag.width, dragHeight: drag.height,
-                timerRight: timer.x + timer.width, headerWidth: header.width,
+                timerRight: timer.mapToItem(overlay.contentItem, timer.width, 0).x, headerWidth: header.width,
                 textHeight: text.height, textY: text.y, viewportHeight: viewport.height, lineHeight: overlay.lineHeight,
                 lineCount: text.lineCount, lookAhead: text.lookAhead,
                 lastLineFill: text.lastLineFill, previewStart: widget.previewStart,
                 leadingIndent: overlay.leadingIndent, discardedHeight: overlay.discardedHeight,
-                targetY: Math.min(0, viewport.height - text.height - text.lookAhead),
+                targetY: overlay.scrollTarget + overlay.discardedHeight + overlay.revisionInset,
+                scrollTarget: overlay.scrollTarget, revisionProgress: overlay.revisionProgress,
                 surfaceOpacity: surface.color.a, surfaceVisible: surface.visible,
                 background: Color.popups.background.toString(), ink: Color.popups.text.toString(),
                 visible: overlay.visible, mask: overlay.mask !== null,

@@ -1,36 +1,29 @@
-# A quieter, denser Mluva
+# A quieter Mluva workspace
 
-The aim is to give a desktop writing task more room for text: smaller proportional type, compact controls, fewer borders and lightly translucent surrounding surfaces. These are product choices for Mluva, not a claim that one desktop style is universally preferred.
+Mluva gives speaking and editing more room: JetBrains Mono throughout, compact controls, full-width text panes and lightly translucent surrounding surfaces. The matching [Figma production kit](design/video-kit/README.md) records shared variables, editable masters and reviewed motion studies.
 
-## What the research supports
-
-GNOME users repeatedly raise header height and padding as problems on constrained displays. The [headerbar-height discussion](https://discourse.gnome.org/t/how-to-reduce-height-of-gtk-headerbars/3034) also shows why blanket CSS shrinking is brittle: different apps and widgets have different minimum geometry. This is qualitative feedback, not a representative preference survey.
-
-GNOME's own [typography guidance](https://developer.gnome.org/hig/guidelines/typography.html) recommends a consistent type scale and reserves monospace for appropriate content. Its [styling guidance](https://developer.gnome.org/hig/guidelines/ui-styling.html) recommends existing style classes and semantic color variables. The [accessibility guidance](https://developer.gnome.org/hig/guidelines/accessibility.html) calls for keyboard access, sufficient contrast and support for larger text. These principles are compatible with a compact interface; oversized controls and forced monospace prose are not necessary consequences of using GTK.
-
-Community reactions are mixed: some prefer compact, configurable controls, while others value consistent spacing and discoverable actions. Mluva follows the explicit preference for density and restrained styling while retaining visible keyboard focus, named buttons and system scaling. There is no measured claim that this redesign improves reading speed or task completion.
-
-## Applied choices
-
-| Area | Decision |
+| Area | Applied decision |
 | --- | --- |
-| Typography | Proportional Inter, Adwaita Sans or Noto Sans; a 0.92em application base, 1.04em transcript and 1.12em pane headings. Relative units preserve the system text scale. |
-| Layout | A 200–232 logical-pixel sidebar, aligned fixed pane headings, and one reading-column width for transcripts, live dictation, the composer and recording controls. History extends to the bottom of the window. |
-| Surfaces | An 82% opaque application canvas and floating widget, with transparent content and a slight sidebar tint. The canvas alpha is applied once, so stacked panels do not cancel the translucency. Menus use a 94% opaque surface; dialogs remain opaque. Desktop compositing determines visible translucency; no blur configuration is installed. |
-| Controls | Flat controls with two-pixel corners, quiet icons, a transparent symbolic brand mark and explicit hover, selection and keyboard-focus states. Primary actions use a light semantic tint and border. |
-| Theme | Omarchy's active semantic colors update while the app is open. Elsewhere the app follows system light/dark preference with green accents. Prose stays proportional in both cases. |
-| Review widget | Starts near the bottom center with five lines using the shell body scale and native controls. Drag the status row, resize or use Super+T to tile; floating mode stays above other windows. Opening preserves typing focus while clicking allows interaction. Scrolling eases toward the newest line. |
-| Live workspace | Equal-width text panes with a 24-pixel gap at wide sizes, stacked at the existing compact breakpoint. Width no longer follows content. Separate gutters reserve scrollbar space even when a track is hidden. |
-| Recording | The main app keeps the light and timer in its existing title bar above the text panes, with Stop below them. A red light grows and shrinks around its six-pixel midpoint on a 2.6-second cycle. Preparation and finalization do not blink; reduced motion keeps a static recording light. Accessible names retain recording state. |
-| Markdown | Native text tags provide restrained heading, emphasis and code styling. Focus reveals the unchanged source; Copy and Save use that source. No HTML, fetching or clickable-link execution is introduced. |
-| Commands | Ctrl+P and the app menu open one native searchable list of existing actions. Selection remains visible during keyboard navigation; dismissal preserves the recording state. Unavailable actions remain discoverable. |
-| Countdown | Four idle seconds by default, shown by a shrinking ring on Dismiss. Hover, keyboard focus and menus pause the countdown; rewriting suspends it and completion starts a fresh interval. Settings can change the delay; the full conversation remains accessible from history. |
-| Identity | A flat flowing-m mark refined from the selected generated source, with Mluva set in outlined Adwaita Sans SemiBold. The app tile, symbolic icon and repository banner share geometry; light/dark media variants and provenance are in the [brand contract](brand-and-compatibility.md). |
+| Typography | Bundled JetBrains Mono Regular/Medium/Bold/Italic. GTK uses relative sizing for system text scale; the recorder uses 14-pixel text with 22-pixel leading. Mermaid receives the same bundled font. |
+| Layout | A 224-pixel optional sidebar. Live panes use the available width, stack at the compact breakpoint and can collapse independently with buttons or Ctrl+1/Ctrl+2. At least one pane remains visible. |
+| Surfaces | The application and recorder use an 82% opaque canvas. Menus and Commands use 94% surface opacity with full-opacity text. Live panes share a full-height hairline and 2.5% ink tint on the draft. No desktop blur configuration is installed. |
+| Controls | Flat controls, quiet icons and visible hover, selection and keyboard-focus states. Commands uses a simple result list without nested card boxes. |
+| Theme | Active Omarchy semantic colors update while the app is open. Other desktops use the system light/dark preference. The three palettes shown in Figma are examples; the app reads any installed Omarchy palette. |
+| Recorder | A 500×150 baseline with a 20-pixel status header, zero gap to the pane, 10-pixel pane padding and five visible lines. The elapsed time ends at the right stroke; the peak filled breathing contour touches the left stroke. Review actions extend the window. |
+| Window behavior | Drag the status row or transcript, resize, or use Super+T to tile. Floating mode remains above windows. Opening preserves typing focus; deliberate interaction can take focus. |
+| Recording light | A stable-center harmonic contour expands and contracts on a 3.4-second cycle. Preparation/finalization do not pulse; reduced motion keeps a steady light. Accessible state names remain available. |
+| Markdown | Native text tags preserve exact source text while styling headings, emphasis and code. Mermaid uses a local renderer and embedded font. Copy and Save use the source rather than visual animation remnants. |
+| Commands | Ctrl+P searches actions and Settings-prefixed controls. Ctrl+L toggles Live; Ctrl+Shift+P polishes; Ctrl+R focuses rewrite instructions; Ctrl+Shift+C copies; Ctrl+S saves; Ctrl+H opens History; Ctrl+B toggles the sidebar; Ctrl+, opens Settings. |
+| Welcome and Settings | Full-window routes. Welcome reuses real provider/model controls and persists explicit completion. Settings has a page selector; Escape returns to the workspace. Automatic pasting remains experimental and off by default in Capture → Behavior. |
+| Identity | An original abstract unfolding-thought mark and custom JetBrains Mono Medium outlined wordmark. App tile, panel symbol and repository assets share the same geometry; see the [brand contract](brand-and-compatibility.md). |
+| Countdown | Four idle seconds by default, with a shrinking ring on Dismiss. Hover, keyboard focus and menus pause it; rewriting suspends it and completion starts a fresh interval. |
 
-The countdown is implemented by one clock that drives both the ring and dismissal. Pointer and keyboard pauses follow Qt's [HoverHandler](https://doc.qt.io/qt-6/qml-qtquick-hoverhandler.html) and [Window active state](https://doc.qt.io/qt-6/qml-qtquick-window.html). The four-second interval is a configurable product default, not a research-derived threshold.
+## Text and scrolling
 
-The preview uses Qt's [SmoothedAnimation](https://doc.qt.io/qt-6/qml-qtquick-smoothedanimation.html) to follow changing targets without restarting from a hard step. A bounded text-position counter preserves wrapping when older words leave the preview. The GTK conversation uses the native animation setting, applies recognition updates only to the changed text suffix, and suspends following when the reader scrolls away from the bottom. Its configurable lookahead adds proportional space once the last line is 72% full, moving toward the next line before wrapping occurs. The pulse keeps one stable center and releases animation callbacks when hidden.
+Recognition and Live rewrite compare previous/current text locally. The exact new text is available immediately; changed old runs fade for 120 ms and inserted runs for 220 ms. Unchanged middle text remains stable. Bounded diff work limits pathological replacement cost. Editing, focus changes and unmapping remove visual remnants.
+
+Recent character growth estimates speech rate over four seconds and reserves room for a likely next line. Automatic scrolling moves only forward. Large corrections retain the new tail at the existing reading origin with temporary space above it; manual navigation releases that space and preserves readable content. Bounded recorder previews carry indentation and discarded-line offsets so removing a prefix does not change wrapping. Reduced motion keeps text and geometry while disabling animation.
 
 ## Verification boundary
 
-Production GTK and QML are rendered in private X11 sessions with separate D-Bus, accessibility and XDG state. Checks cover light/dark palettes, minimum-width layout, alignment, full text, intermediate scrolling frames, manual reading positions, bounded Unicode previews, theme changes, countdown expiry and actual pointer/keyboard pauses. GTK render textures verify canvas transparency directly. A synthetic JSONL model verifies title generation without sending a transcript to a real provider. These isolated checks complement daily Omarchy use; they do not establish physical microphone quality or every target application’s behavior.
+Native GTK and QML checks run in private X11 sessions with separate D-Bus, accessibility and XDG state. They cover minimum layout, exact Unicode text, intermediate scroll frames, continuous wrapping, large corrections, manual reading, theme changes, countdown and reduced motion. A disposable Omarchy ARM VM verifies actual compositor window identity, floating/tiling, palettes/borders and the WebKit Markdown/workspace flow. Examples are synthetic and do not establish microphone quality, provider latency or every target editor’s insertion behavior.

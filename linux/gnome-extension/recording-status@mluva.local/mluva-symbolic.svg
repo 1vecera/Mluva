@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="144" height="116" viewBox="0 0 144 116"
   role="img" aria-labelledby="title description">
   <title id="title">Mluva</title>
-  <desc id="description">A continuous voice wave forming a lowercase m, with open, even spacing.</desc>
-  <path fill="currentColor" d="M8 90V44a28 28 0 0 1 56 0v28a8 8 0 0 0 16 0V44a28 28 0 0 1 56 0v46a10 10 0 0 1-20 0V44a8 8 0 0 0-16 0v28a28 28 0 0 1-56 0V44a8 8 0 0 0-16 0v46a10 10 0 0 1-20 0Z"/>
+  <desc id="description">An abstract thought unfolding into speech, drawn as one open fluid contour.</desc>
+  <path fill="currentColor" d="M72 20C52 2 18 8 10 38C1 71 16 103 43 104C68 105 72 80 88 76C103 72 108 85 124 80C144 74 144 47 127 41C109 35 100 46 87 57C76 67 63 71 52 67C40 63 40 48 49 43C58 38 63 46 71 43C82 39 82 29 72 20Z"/>
 </svg>

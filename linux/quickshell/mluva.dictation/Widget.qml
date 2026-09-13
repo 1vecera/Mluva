@@ -5,6 +5,7 @@ import qs.Commons
 
 Item {
     id: root
+    FontLoader { id: mono; source: "fonts/JetBrainsMono-Regular.ttf" }
     property var bar
     property string moduleName: "mluva.dictation"
     property var settings
@@ -154,7 +155,7 @@ Item {
                     + ":" + (root.elapsed % 60).toString().padStart(2, "0") : root.labels[root.phase]
             color: root.phase === "error" || root.controlFailed ? Color.urgent
                 : (root.bar ? root.bar.foreground : Color.foreground)
-            font.family: Style.font.family
+            font.family: mono.name
             font.pixelSize: root.bar && root.bar.vertical ? 10 : 12
             textFormat: Text.PlainText
         }

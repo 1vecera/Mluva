@@ -4,7 +4,7 @@ Mluva itself is available under the Apache License 2.0 in `LICENSE`. The Linux i
 
 ## Linux runtime packages
 
-The [Mluva wordmark](docs/assets/brand-source/wordmark-outline.svg) was typeset in Adwaita Sans SemiBold (`adwaita-fonts 50.0-1`) and converted to vector outlines. The font is licensed under the SIL Open Font License 1.1; its [copyright and license notice](docs/assets/brand-source/Adwaita-Sans-LICENSE.txt) and [font provenance](docs/assets/brand-source/wordmark-provenance.json) are retained. The font binary is not bundled, and displaying the outlined artwork does not require it.
+The [Mluva wordmark](docs/assets/brand-source/wordmark-outline.svg) uses JetBrains Mono Medium outlines with optical spacing and a narrowed “l”. The unchanged Regular, Medium, Bold and Italic font binaries are bundled for app, recorder and diagram text under [SIL OFL 1.1](linux/quickshell/mluva.dictation/fonts/OFL.txt). [Font provenance](docs/assets/brand-source/wordmark-provenance.json) records the upstream revision and checksum. The former Adwaita Sans notice remains for the previously published launch-film assets. Figma symbol and production-media rights are documented in the [video-kit attribution](docs/design/video-kit/ATTRIBUTION.md).
 
 | Package | Locked version | Upstream license | Project |
 | --- | --- | --- | --- |

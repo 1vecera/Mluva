@@ -91,6 +91,7 @@ from mluva_linux.segment_cleanup import (
     CodexSegmentCleanupAttempt,
     SegmentCleanupSession,
 )
+from mluva_linux.settings_view import SettingsView, WelcomeView
 from mluva_linux.text_target import (
     FocusedTextTargetTracker,
     TextSelectionTooLargeError,
@@ -210,7 +211,8 @@ class MluvaApplication(Adw.Application):
         self.page_title_label: Gtk.Label | None = None
         self.navigation_bar: Adw.ViewSwitcherBar | None = None
         self.toast_overlay: Adw.ToastOverlay | None = None
-        self.settings_dialog: Adw.PreferencesDialog | None = None
+        self.settings_view: SettingsView | None = None
+        self.welcome_view: WelcomeView | None = None
         self.settings_button: Gtk.Button | None = None
         self.setup_callout: Gtk.Revealer | None = None
         self.setup_callout_title: Gtk.Label | None = None
@@ -412,6 +414,9 @@ class MluvaApplication(Adw.Application):
             "audio-input-microphone-symbolic",
         )
         self.conversation_workspace.live_header.connect("notify::visible", self._sync_header_title)
+        stack.add_titled(self.settings_view, "settings", "Settings")
+        self.welcome_view = WelcomeView(self.config, self._apply_workspace_settings, self._finish_welcome)
+        stack.add_titled(self.welcome_view, "welcome", "Welcome")
         self.meeting_page = MeetingPage(
             store=self.meeting_store,
             export_directory=self.data_directory / "exports" / "meetings",
@@ -507,6 +512,8 @@ class MluvaApplication(Adw.Application):
                 latest[0], self.conversation_store.replies(latest[0].identifier)
             )
         self.window.set_focus(self.conversation_workspace.prompt)
+        if not self.config.welcome_completed:
+            self._navigate_to_page("welcome")
         self.window.present()
         if self.config_load_error:
             self._show_toast(self.config_load_error)
@@ -977,6 +984,7 @@ class MluvaApplication(Adw.Application):
         if not changed:
             return True
         presentation = {
+            "welcome_completed",
             "history_sidebar_visible",
             "time_format",
             "widget_position",
@@ -1555,7 +1563,7 @@ class MluvaApplication(Adw.Application):
         self.conversation_workspace.live_draft_text.get_buffer().connect("changed", self._live_draft_edited)
         self.conversation_workspace.set_config(self.config)
         self.conversation_workspace.set_capture_controls(self.capture_action_bar)
-        self.settings_dialog = self._build_settings_dialog()
+        self.settings_view = self._build_settings_view()
         self._refresh_style_controls()
         self._update_capture_status_rows()
         return page
@@ -1680,10 +1688,9 @@ class MluvaApplication(Adw.Application):
         dock.append(live_control)
         return dock
 
-    def _build_settings_dialog(self) -> Adw.PreferencesDialog:
-        """Move infrequent capture, audio, privacy, and diagnostic controls off the primary surface."""
-        dialog = Adw.PreferencesDialog(title="Mluva settings")
-        dialog.set_search_enabled(True)
+    def _build_settings_view(self) -> SettingsView:
+        """Use the full application viewport for infrequent configuration."""
+        dialog = SettingsView(lambda: self._navigate_to_page("capture"))
         self.workspace_settings_pages = (
             WorkspaceSettings(self.config, self._apply_workspace_settings, self._open_prompt_editor),
             ProviderSettings(self.config, self._apply_workspace_settings),
@@ -1977,13 +1984,26 @@ class MluvaApplication(Adw.Application):
         self.header_bar.set_title_widget(title)
 
     def _show_settings(self, _button: Gtk.Button) -> None:
-        """Present all infrequent configuration in one searchable native dialog."""
+        """Open full-window settings; Ctrl+P also reaches every individual preference."""
         self.activate()
-        if self.settings_dialog is not None and self.window is not None:
+        if self.settings_view is not None and self.window is not None:
             for page in self.workspace_settings_pages:
                 page.refresh_config(self.config)
             self.prompts_page.refresh()
-            self.settings_dialog.present(self.window)
+            self._navigate_to_page("settings")
+
+    def _finish_welcome(self) -> None:
+        """Retain the explicit onboarding decision before entering the workspace."""
+        if self._apply_workspace_settings({"welcome_completed": True}):
+            self._navigate_to_page("capture")
+        else:
+            self._show_toast("Could not save setup. Try again when the current operation finishes.")
+
+    def _show_welcome(self) -> None:
+        """Make provider onboarding available again without resetting current choices."""
+        self.activate()
+        self.welcome_view.providers.refresh_config(self.config)
+        self._navigate_to_page("welcome")
 
     def _show_commands(self) -> None:
         """Offer the current app actions through one searchable Ctrl-P panel."""
@@ -3969,11 +3989,7 @@ class MluvaApplication(Adw.Application):
             self.prompt_store, identifier, self._prompts_changed, lambda: not self.config.incognito_mode
         )
         self.prompt_editor.connect("closed", lambda _dialog: setattr(self, "prompt_editor", None))
-        self.prompt_editor.present(
-            self.settings_dialog
-            if self.settings_dialog is not None and self.settings_dialog.get_mapped()
-            else self.window
-        )
+        self.prompt_editor.present(self.window)
 
     def _prompts_changed(self) -> None:
         """Refresh discovery without touching active request/session snapshots or manual draft text."""
@@ -4858,13 +4874,24 @@ class MluvaApplication(Adw.Application):
         self.capture_started_at = None
 
     def _command_key_pressed(self, _controller, key: int, _code: int, state: Gdk.ModifierType) -> bool:
-        """Reach command search from native editors without taking over other child shortcuts."""
-        if key not in (Gdk.KEY_p, Gdk.KEY_P) or not state & Gdk.ModifierType.CONTROL_MASK:
+        """Dispatch the shortcuts shown in Commands with the same live availability guards."""
+        modifiers = state & Gtk.accelerator_get_default_mod_mask()
+        if not modifiers & Gdk.ModifierType.CONTROL_MASK:
             return False
         if self.window is not None and self.window.get_visible_dialog() is not None:
             return False
-        self._show_commands()
-        return True
+        if Gdk.keyval_to_lower(key) == Gdk.KEY_p and modifiers == Gdk.ModifierType.CONTROL_MASK:
+            self._show_commands()
+            return True
+        for command in application_commands(self):
+            if not command.shortcut:
+                continue
+            valid, shortcut_key, shortcut_modifiers = Gtk.accelerator_parse(command.shortcut)
+            if valid and Gdk.keyval_to_lower(key) == shortcut_key and modifiers == shortcut_modifiers:
+                if command.enabled():
+                    command.run()
+                    return True
+        return False
 
     def _key_pressed(
         self,
@@ -4878,6 +4905,9 @@ class MluvaApplication(Adw.Application):
             return False
         if key_value != Gdk.KEY_Escape:
             return False
+        if self.page_stack.get_visible_child_name() in ("settings", "welcome"):
+            self._navigate_to_page("capture")
+            return True
         return self._cancel_capture()
 
     def _cancel_capture(self) -> bool:

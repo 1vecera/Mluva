@@ -163,7 +163,11 @@ install -m 0755 "${source_dir}/configure-recording-overlay.sh" "${application_di
 install -m 0755 "${source_dir}/uninstall.sh" "${application_dir}/uninstall.sh"
 install -m 0755 "${source_dir}/mluva-shell" "${application_dir}/mluva-shell"
 install -d -m 0755 "${application_dir}/quickshell/mluva.dictation"
-install -m 0644 "${source_dir}/quickshell/mluva.dictation/"* "${application_dir}/quickshell/mluva.dictation/"
+install -m 0644 "${source_dir}/quickshell/mluva.dictation/"*.qml \
+    "${source_dir}/quickshell/mluva.dictation/"*.js \
+    "${source_dir}/quickshell/mluva.dictation/manifest.json" "${application_dir}/quickshell/mluva.dictation/"
+install -d -m 0755 "${application_dir}/quickshell/mluva.dictation/fonts"
+install -m 0644 "${source_dir}/quickshell/mluva.dictation/fonts/"* "${application_dir}/quickshell/mluva.dictation/fonts/"
 uv venv --clear --system-site-packages --python /usr/bin/python3 "${application_dir}/.venv"
 uv sync --project "${application_dir}" --no-dev --frozen
 "${application_dir}/.venv/bin/python" -c 'import gi; gi.require_version("Gtk", "4.0"); gi.require_version("Adw", "1"); gi.require_version("Atspi", "2.0"); gi.require_version("DBus", "1.0"); gi.require_version("cairo", "1.0"); from gi.repository import Adw, Atspi, DBus, Gtk, cairo'

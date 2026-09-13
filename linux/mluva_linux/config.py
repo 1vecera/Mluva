@@ -85,6 +85,7 @@ class AppConfig:
     scroll_lookahead_lines: int = 2
     widget_position: str = "bottom-center"
     history_sidebar_visible: bool = False
+    welcome_completed: bool = False
     time_format: str = "24h"
     live_rewrite_enabled: bool = False
     live_rewrite_template: str = "grilling"
@@ -133,6 +134,7 @@ class AppConfig:
             "smooth_scrolling",
             "live_rewrite_enabled",
             "history_sidebar_visible",
+            "welcome_completed",
         ):
             if not isinstance(getattr(self, name), bool):
                 raise TypeError(f"{name} must be a boolean")
@@ -212,6 +214,9 @@ def load_config(path: Path) -> AppConfig:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("Mluva config must be a JSON object")
+    # Existing installations already chose their providers. New installs see
+    # onboarding until they deliberately continue into the workspace.
+    payload.setdefault("welcome_completed", True)
     legacy_retention = payload.pop("retain_audio_on_failure", None)
     if "audio_retention_policy" not in payload and legacy_retention is not None:
         payload["audio_retention_policy"] = "failures" if legacy_retention else "never"

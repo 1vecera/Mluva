@@ -312,11 +312,17 @@ class ProviderSection(Adw.PreferencesGroup):
 class ProviderSettings(Adw.PreferencesPage):
     """Save speech and rewrite choices atomically, without depending on successful discovery."""
 
-    def __init__(self, config: AppConfig, save: Callable[[dict], bool]) -> None:
+    def __init__(
+        self, config: AppConfig, save: Callable[[dict], bool], *, introduction: Gtk.Widget | None = None
+    ) -> None:
         """Use the existing config and save gate; no provider form changes the primary workspace."""
         super().__init__(name="providers", title="Providers", icon_name="network-server-symbolic")
         self.config = config
         self.save = save
+        if introduction is not None:
+            group = Adw.PreferencesGroup()
+            group.add(introduction)
+            self.add(group)
         self.speech = ProviderSection(config, "speech")
         self.rewrite = ProviderSection(config, "rewrite")
         self.add(self.speech)

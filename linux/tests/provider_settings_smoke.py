@@ -125,7 +125,7 @@ def main() -> int:
             window.set_default_size(width + width - window.get_width(), height + height - window.get_height())
             settle(lambda: window.get_width() == width and window.get_height() == height)
             app.settings_button.emit("clicked")
-            dialog = app.settings_dialog
+            dialog = app.settings_view
             dialog.set_visible_page_name("providers")
             page = app.workspace_settings_pages[1]
             speech, rewrite = page.speech, page.rewrite

@@ -47,7 +47,7 @@ def main():
                 page.apply(None)
                 assert app.live_template_buttons["structured-note"].get_active()
                 assert app.config.live_rewrite_template == "structured-note"
-                app.settings_dialog.close()
+                app.settings_view.close()
                 app.capture_preparing = True
                 app.live_template_buttons["polish"].set_active(True)
                 app.live_mode_switch.set_active(False)

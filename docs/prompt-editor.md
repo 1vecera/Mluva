@@ -1,6 +1,6 @@
 # Editing prompts
 
-Open **Settings → Prompts**, or press **Ctrl+P** and search `Edit prompt` plus a name, such as `Grilling`. A small settings button also appears when you hover or keyboard-focus a Live template, Polish/Structure action, or saved style. Tab to that button and press Space to edit without running the prompt. The full catalog stays available even without a conversation.
+Open **Settings → Prompts**, or press **Ctrl+P** and search `Settings · Edit prompt` plus a name, such as `Grilling`. A small settings button also appears when you hover or keyboard-focus a Live template, Polish/Structure action, or saved style. Tab to that button and press Space to edit without running the prompt. The full catalog stays available even without a conversation.
 
 The native editor shows the prompt's purpose, exact file path, and whether you are viewing its built-in default, original saved text, or a local override. It preserves multiline Markdown and literal braces. **Save** applies an override; **Cancel** or Escape asks before discarding changed text. **Restore default** (or **Restore original** for a custom prompt) stages the baseline; Save confirms the reset. Validation and disk errors leave your draft in place. If the file changed externally, copy your draft before cancelling and reopening; Mluva will not overwrite that external edit.
 

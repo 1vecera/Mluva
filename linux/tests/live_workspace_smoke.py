@@ -390,11 +390,11 @@ def main() -> int:
                 app.pending_incognito = True
                 app._start_live_rewrite()
                 assert app.live_schedule is None
-            app.settings_dialog.set_visible_page_name("providers")
+            app.settings_view.set_visible_page_name("providers")
             app._show_settings(None)
             assert app.workspace_settings_pages[0].fields["live_rewrite_enabled"]() == app.config.live_rewrite_enabled
             paint(app.window, output / "provider-settings.png")
-            app.settings_dialog.close()
+            app.settings_view.close()
             (output / "live-workspace.json").write_text(
                 json.dumps(
                     {
