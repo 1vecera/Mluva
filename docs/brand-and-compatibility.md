@@ -4,7 +4,7 @@
 
 ![Mluva on dark and light backgrounds](assets/mluva-brand-sheet.png)
 
-The flowing-m mark suggests a voice wave. The frost/slate palette fits dark surfaces, and solid ink variants work on light backgrounds. The wordmark uses outlined Adwaita Sans SemiBold; it needs no installed font. Its [font provenance](assets/brand-source/wordmark-provenance.json) and [SIL Open Font License](assets/brand-source/Adwaita-Sans-LICENSE.txt) are retained.
+The original abstract mark suggests a thought unfolding into speech. Solid ink and frost variants keep its silhouette legible on light and dark surfaces. The custom wordmark uses JetBrains Mono Medium outlines, optical spacing and a narrowed “l”. Its [font provenance](assets/brand-source/wordmark-provenance.json) and [OFL notice](../linux/quickshell/mluva.dictation/fonts/OFL.txt) are retained. Editable app and film text uses the same JetBrains Mono family.
 
 | Surface | Asset |
 | --- | --- |

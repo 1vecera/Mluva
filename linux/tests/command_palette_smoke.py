@@ -156,7 +156,8 @@ def main() -> int:
 
             open_panel()
             choose("Settings")
-            settle(lambda: app.window.get_visible_dialog() is app.settings_dialog)
+            settle(lambda: app.page_stack.get_visible_child_name() == "settings")
+            assert app.window.get_visible_dialog() is None
             key("Escape")
             settle(lambda: app.window.get_visible_dialog() is None)
 

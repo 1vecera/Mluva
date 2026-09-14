@@ -7,49 +7,52 @@ Item {
     property color ink: "#e2554e"
     property real pulsePhase: 0
     readonly property real breath: active && animate ? Math.sin(pulsePhase) : 0
-    readonly property real pulseScale: 1 + 0.18 * breath
-    readonly property real pulseOpacity: 0.92 + 0.08 * breath
-    readonly property real drift: active && animate ? Math.sin(pulsePhase * 2) : 0
     implicitWidth: 20
     implicitHeight: 20
     Accessible.role: Accessible.StaticText
     Accessible.name: active ? "Recording" : "Dictation status"
 
-    // One continuous inhale/exhale, with a slightly yielding outline. All
-    // motion stays inside a fixed slot, including the brightest outer ring.
-    Rectangle {
-        anchors.centerIn: parent
-        width: 14
-        height: 14
-        radius: 7
-        color: Qt.alpha(root.ink, 0.10 + 0.04 * root.breath)
-        border.width: 0.6
-        border.color: Qt.alpha(root.ink, 0.20 + 0.08 * root.breath)
-        transform: Scale {
-            origin.x: 7; origin.y: 7
-            xScale: 1 + 0.14 * root.breath + 0.035 * root.drift
-            yScale: 1 + 0.14 * root.breath - 0.035 * root.drift
+    // One filled, yielding silhouette. No concentric strokes or hard blinking.
+    Canvas {
+        id: fluid
+        anchors.fill: parent
+        onPaint: {
+            const ctx = getContext("2d");
+            ctx.reset();
+            const radius = root.active ? 6.4 + 1.6 * root.breath : 3;
+            const points = [];
+            for (let i = 0; i <= 64; i++) {
+                const angle = i / 64 * Math.PI * 2;
+                const wobble = root.active
+                    ? 0.07 * Math.sin(3 * angle + root.pulsePhase) + 0.035 * Math.sin(5 * angle - 2 * root.pulsePhase) : 0;
+                points.push([(1 + wobble) * Math.cos(angle), (1 + wobble) * Math.sin(angle)]);
+            }
+            const minX = Math.min(...points.map(point => point[0]));
+            const maxX = Math.max(...points.map(point => point[0]));
+            const minY = Math.min(...points.map(point => point[1]));
+            const maxY = Math.max(...points.map(point => point[1]));
+            // Keep the contour's peak bounds exact while its interior shape yields.
+            // The recorder places this 20 px slot at x=-2: its 8 px peak meets x=0.
+            ctx.beginPath();
+            for (let i = 0; i < points.length; i++) {
+                const x = width / 2 + radius * (2 * (points[i][0] - minX) / (maxX - minX) - 1);
+                const y = height / 2 + radius * (2 * (points[i][1] - minY) / (maxY - minY) - 1);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            const gradient = ctx.createRadialGradient(width * 0.42, height * 0.4, 0,
+                width / 2, height / 2, radius * 1.1);
+            gradient.addColorStop(0, Qt.alpha(root.ink, 0.84));
+            gradient.addColorStop(0.64, Qt.alpha(root.ink, 0.66));
+            gradient.addColorStop(1, Qt.alpha(root.ink, 0.12));
+            ctx.fillStyle = gradient;
+            ctx.fill();
         }
-        visible: root.active
     }
-    Rectangle {
-        anchors.centerIn: parent
-        width: 9; height: 9; radius: 4.5
-        color: "transparent"
-        border.width: 0.7
-        border.color: Qt.alpha(root.ink, 0.38 + 0.12 * root.breath)
-        scale: 1 + 0.10 * root.breath
-        visible: root.active
-    }
-    Rectangle {
-        anchors.centerIn: parent
-        width: 6
-        height: 6
-        radius: 3
-        color: root.ink
-        scale: root.pulseScale
-        opacity: root.pulseOpacity
-    }
+    onPulsePhaseChanged: fluid.requestPaint()
+    onActiveChanged: fluid.requestPaint()
+    onInkChanged: fluid.requestPaint()
+    onAnimateChanged: fluid.requestPaint()
     NumberAnimation on pulsePhase {
         running: root.visible && root.active && root.animate
         from: 0

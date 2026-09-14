@@ -1,0 +1,122 @@
+{
+  "capturedAt": "2026-09-13",
+  "environment": {
+    "isolation": "Disposable QEMU ARM VM; host display untouched",
+    "display": [
+      2560,
+      1440
+    ],
+    "kernel": "Arch Linux 7.2.3",
+    "Hyprland": "0.56.2",
+    "Quickshell": "0.3.1",
+    "GTK": "4.22.5",
+    "Libadwaita": "1.9.3",
+    "WebKitGTK": "2.52.6",
+    "Chromium": "152",
+    "Ghostty": "1.3.1 signed release source, built with Zig 0.15.2; version includes dev+0000000 because the tarball has no Git metadata",
+    "Herdr": "0.8.2",
+    "image": "https://github.com/ggalancs/omarchy-arm-utm",
+    "imageZipSha256": "d712b243a6f05bf4f81f40bbe53df83ea46b08e2f92ed5704786e88d9733cd8e"
+  },
+  "source": {
+    "baseline": "fbd793e9d70218a43a5f9d21dd324bca67619673",
+    "branch": "feat/mluva-video-brief",
+    "captureRevision": "Feedback worktree before final optical-bound normalization and manual correction-space release. Captured layout and window behavior are unchanged by the later scroll cleanup; final app tests use the delivered source.",
+    "sha256": {
+      "RecordingOverlay.qml": "323ac45bae7b3797dc021feab3de7f1059504393808bd01d331de8d6fee6b9c0",
+      "RecordingLight.qml": "ab840de30807c5f60ea6b4eb93c46a4642c90b186a0aee0328d1cbadbc90ee61"
+    }
+  },
+  "floatTile": {
+    "sameWindow": true,
+    "sizes": [
+      [
+        500,
+        150
+      ],
+      [
+        625,
+        692
+      ],
+      [
+        500,
+        150
+      ]
+    ],
+    "pinned": [
+      true,
+      false,
+      true
+    ],
+    "textRetained": true
+  },
+  "themes": [
+    {
+      "name": "tokyo-night",
+      "background": "#1a1b26",
+      "accent": "#7aa2f7",
+      "border": "gradient data: ff7aa2f7 0deg"
+    },
+    {
+      "name": "rose-pine",
+      "background": "#faf4ed",
+      "accent": "#56949f",
+      "border": "gradient data: ff56949f 0deg"
+    },
+    {
+      "name": "nord",
+      "background": "#2e3440",
+      "accent": "#81a1c1",
+      "border": "gradient data: ff81a1c1 0deg"
+    }
+  ],
+  "themeFixture": "The separate recorder fixture receives the same Color.loadColors/loadShell and Style.scheduleRefresh payload as official shell.applyTheme after omarchy-theme-set. One noninteractive polkit post-hook warns about /dev/tty; palette and compositor border changes were asserted.",
+  "content": "Production components with synthetic text; actual Browser, Ghostty and Herdr windows. No provider latency or successful agent-run claim.",
+  "media": [
+    {
+      "filename": "nord-context.png",
+      "bytes": 2471386,
+      "sha256": "2bd1fea2e1e4925ab2cf8157c6b27516fc10f69eeacbd3eddc5af1d70f1a5811"
+    },
+    {
+      "filename": "nord-recorder-floating.png",
+      "bytes": 2492433,
+      "sha256": "a47b1bb27979bc2a299352cd9853435b2be876bead5b5e3cd7d16086920d259e"
+    },
+    {
+      "filename": "nord-recorder-tiled.png",
+      "bytes": 3108723,
+      "sha256": "d82318e41c6b0bac42022396269ab4b51e5cffd9a1bcc0f4f3d0bf5f612353e7"
+    },
+    {
+      "filename": "nord-workspace.png",
+      "bytes": 4788802,
+      "sha256": "9722a510885acc461fa504f7ad29043c427e6493072b11530de86a0c60c5d6d9"
+    },
+    {
+      "filename": "tokyo-night-recorder-theme.png",
+      "bytes": 608133,
+      "sha256": "fa32211138ad0b30f33d85e381ba4ee64a945e7bad331f44fa6ec4e8ec226df3"
+    },
+    {
+      "filename": "rose-pine-recorder-theme.png",
+      "bytes": 181330,
+      "sha256": "62fd4d47dc45b6ce1e772e8746803e6a941e3f16d7281ce8006723f5a19fcab0"
+    },
+    {
+      "filename": "omarchy-float-tile.mp4",
+      "bytes": 1558299,
+      "sha256": "171e9ef4d19ffe53a84f4ca4afb60d6dce8012746ff32a545a94da186d4792f7"
+    },
+    {
+      "filename": "water-loop-1080p.mp4",
+      "bytes": 11529448,
+      "sha256": "99063b9d675635b5352ef0c59433044acd68b1ef49d2f9e6294ea5a7d5566232"
+    },
+    {
+      "filename": "breathing-light-alpha.webm",
+      "bytes": 62938,
+      "sha256": "2c709dc09f68a7397ebb722dd9b1f1366069b51c95188d1199db32107a8ee44a"
+    }
+  ]
+}

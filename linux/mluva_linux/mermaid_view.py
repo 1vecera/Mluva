@@ -1,5 +1,6 @@
 """Render bounded Mermaid sketches locally while retaining lossless Markdown editing."""
 
+import base64
 import json
 import re
 import xml.etree.ElementTree as ET
@@ -63,19 +64,22 @@ def mermaid_blocks(source: str) -> tuple[tuple[int, int, str], ...]:
 
 _HTML = """<!doctype html><html><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'nonce-mluva';
-style-src 'unsafe-inline'; img-src 'none'; connect-src 'none'; font-src 'none'; frame-src 'none';
+style-src 'unsafe-inline'; img-src 'none'; connect-src 'none'; font-src data:; frame-src 'none';
 object-src 'none'; base-uri 'none'; form-action 'none'">
-<style>html,body { margin:0; padding:0; background:transparent; font:12px monospace; }
+<style>@font-face { font-family:'JetBrains Mono'; src:url(data:font/ttf;base64,__FONT_DATA__); }
+html,body { margin:0; padding:0; background:transparent; font:12px 'JetBrains Mono'; }
 section { margin:8px 0; } svg { display:block; max-width:100%; height:auto; margin:auto; }
 </style><script src="mermaid.min.js"></script></head><body>
 <script nonce="mluva">
 let latest = 0;
 async function draw(revision, diagrams, dark, ink, accent) {
   latest = revision;
+  await document.fonts.load('12px "JetBrains Mono"');
+  if (latest !== revision) return;
   mermaid.initialize({startOnLoad:false, securityLevel:'strict', suppressErrorRendering:true,
     logLevel:'fatal', maxTextSize:12000, maxEdges:100, theme:'base', look:'classic',
-    fontFamily:'monospace', htmlLabels:false,
-    themeVariables:{darkMode:dark, fontFamily:'monospace', primaryColor:'transparent',
+    fontFamily:'JetBrains Mono', htmlLabels:false,
+    themeVariables:{darkMode:dark, fontFamily:'JetBrains Mono', primaryColor:'transparent',
       primaryTextColor:ink, primaryBorderColor:accent, lineColor:ink, textColor:ink,
       secondaryColor:'transparent', secondaryTextColor:ink, tertiaryColor:'transparent', tertiaryTextColor:ink,
       titleColor:ink, clusterBorder:ink, edgeLabelBackground:'transparent', background:'transparent',
@@ -200,7 +204,9 @@ class MermaidPreview(Gtk.Box):
             self.web.connect("load-changed", self._loaded)
             self.web.connect("web-process-terminated", self._failed)
             self.append(self.web)
-            self.web.load_html(_HTML, directory.as_uri() + "/")
+            font = Path(__file__).parents[1] / "quickshell/mluva.dictation/fonts/JetBrainsMono-Regular.ttf"
+            html = _HTML.replace("__FONT_DATA__", base64.b64encode(font.read_bytes()).decode("ascii"))
+            self.web.load_html(html, directory.as_uri() + "/")
         if self.loaded:
             self.in_flight = True
             self.revision += 1

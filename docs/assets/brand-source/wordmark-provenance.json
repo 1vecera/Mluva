@@ -1,11 +1,11 @@
 {
   "text": "Mluva",
-  "font": "Adwaita Sans SemiBold",
-  "package": "adwaita-fonts 50.0-1",
-  "font_sha256": "8381c33b9a44f066f2b99dba3d416a2342891e28c956a35dfd8d16ee2987e6d4",
-  "resolved_instance": "Adwaita Sans Semi-Bold 72 @wght=600,opsz=72",
-  "renderer": "PangoCairo layout_path at 96 px, hint style NONE, hint metrics OFF",
+  "font": "JetBrains Mono Medium",
+  "font_sha256": "d16e6dc99672734698d629705f617c79f6eb6040f5113efe3a145204dc988109",
+  "upstream_commit": "19371302b95d218af43299bce79ddbddd0bc364d",
   "source": "wordmark-outline.svg",
-  "license": "Adwaita-Sans-LICENSE.txt",
-  "production": "Exact software typography converted to paths; no generated lettering; standard regeneration reuses committed outlines."
+  "generator": "dev/sculpt_wordmark.py",
+  "license": "../../../linux/quickshell/mluva.dictation/fonts/OFL.txt",
+  "refinement": "Optical spacing and an 87% width l; original contours retained in all other letters.",
+  "production": "Editable paths, transparent background; application text uses the unchanged bundled font."
 }

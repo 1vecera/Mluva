@@ -165,7 +165,7 @@ def main() -> None:
                 observed_lines = len(lines)
                 if payloads:
                     state = json.loads(payloads[-1])
-                    stable = {key: value for key, value in state.items() if key not in ("dotOpacity", "dotScale")}
+                    stable = {key: value for key, value in state.items() if key not in ("dotRadius", "dotPhase")}
                     if (
                         state["phase"] == phase
                         and stable == previous
@@ -240,14 +240,14 @@ def main() -> None:
                     assert state["surfaceVisible"]
                     assert state["headerVisible"] and state["timerVisible"] and state["timerText"] == "01:13"
                     assert state["dotLabel"] == "Recording" and state["statusText"] == ""
-                    assert state["headerBottom"] < state["surfaceTop"] < state["viewportTop"]
+                    assert state["headerBottom"] == state["surfaceTop"] < state["viewportTop"]
                     assert state["dotBottom"] <= state["headerBottom"]
                     assert state["timerBottom"] <= state["headerBottom"]
                     assert state["viewportWidth"] == state["textWidth"] == state["width"] - 20
                     assert state["headerTransparent"]
                     assert state["dragWidth"] == state["width"] and state["dragHeight"] == state["height"]
-                    assert state["dotCenterX"] < 20
-                    assert abs(state["timerRight"] - state["headerWidth"]) < 1
+                    assert state["dotCenterX"] == 8, "Peak breathing contour must meet the pane's left stroke"
+                    assert abs(state["timerRight"] - state["width"]) < 1
                     assert state["viewportHeight"] == state["lineHeight"] * 5
                     assert state["textY"] < 0
                     assert abs(state["textY"] - state["targetY"]) < 0.1
@@ -272,6 +272,8 @@ def main() -> None:
                     text=True,
                 )
             )
+            publisher.publish(RecordingOverlayState(phase="idle"))
+            observe("idle")
             assert samples["nearEdge"] and samples["wrapped"].startswith(samples["nearEdge"])
             publisher.publish(RecordingOverlayState(phase="recording", preview=samples["shortText"]))
             short = observe("recording", samples["shortText"])
@@ -297,7 +299,8 @@ def main() -> None:
             )
             subprocess.run(["import", "-window", "root", str(output / "five-lines.png")], check=True)
             # A committed segment can replace a much longer provisional preview.
-            # The viewport must never keep the old offset after that text shrinks.
+            # Keep the global reading origin forward-only and compensate a
+            # shorter revision inside that retained extent so its tail stays visible.
             long_preview = samples["wrapped"] * 3
             publisher.publish(RecordingOverlayState(phase="recording", preview=long_preview))
             before_contraction = observe("recording", long_preview)
@@ -312,32 +315,38 @@ def main() -> None:
             )
             assert all(frame["headerVisible"] and frame["timerVisible"] for frame in contraction)
             assert all(
+                after["scrollTarget"] <= before["scrollTarget"] + 0.1
+                for before, after in zip([before_contraction, *contraction], contraction, strict=False)
+            ), "A provider revision reversed the following scroll target"
+            assert all(
                 frame["textY"] + frame["textHeight"] >= frame["viewportHeight"] - frame["lineHeight"] * 1.5
                 for frame in contraction
             ), "A shortened recognition preview scrolled out of its viewport; inspect preview-contraction.json"
+            ipc("scroll", "5000")
+            manually_scrolled = motion_frames(samples["wrapped"])
+            assert abs(manually_scrolled[-1]["textY"]) < 1, manually_scrolled[-1]
+            assert abs(manually_scrolled[-1]["scrollTarget"]) < 1, manually_scrolled[-1]
+            ipc("scroll", "-5000")
             publisher.publish(RecordingOverlayState(phase="processing", preview=samples["wrapped"]))
             processing = observe("processing", samples["wrapped"])
             assert processing["visible"] and all(processing[key] == short[key] for key in geometry_keys)
             publisher.publish(RecordingOverlayState(phase="recording", preview=samples["wrapped"]))
             observe("recording", samples["wrapped"])
             pulse = motion_frames(samples["wrapped"], duration=3.6)
-            opacity = [frame["dotOpacity"] for frame in pulse]
-            scale = [frame["dotScale"] for frame in pulse]
-            assert len({round(value, 3) for value in scale}) >= 10, scale
-            assert min(scale) >= 0.82 and max(scale) <= 1.18 and max(scale) - min(scale) > 0.16
-            assert min(opacity) >= 0.84 and max(opacity) <= 1
-            assert all(abs(a - b) < 0.06 for a, b in zip(scale, scale[1:], strict=False)), scale
+            radius = [frame["dotRadius"] for frame in pulse]
+            assert len({round(value, 3) for value in radius}) >= 10, radius
+            assert min(radius) >= 4.8 and max(radius) <= 8.0 and max(radius) - min(radius) > 2.5
+            assert all(abs(a - b) < 0.4 for a, b in zip(radius, radius[1:], strict=False)), radius
             fixed_keys = ("dotCenterX", "dotCenterY", "dotWidth", "dotHeight", *geometry_keys)
             assert all(all(frame[key] == pulse[0][key] for key in fixed_keys) for frame in pulse), pulse
             for preferences in ({"smooth_scrolling": False}, {"scroll_duration_ms": 0}):
                 still = motion_frames(samples["wrapped"] + " Motion is disabled.", **preferences)
-                assert all(frame["dotScale"] == 1 and frame["dotOpacity"] == 0.92 for frame in still), still
+                assert all(frame["dotRadius"] == 6.4 and frame["dotPhase"] == 0 for frame in still), still
                 assert all(abs(frame["textY"] - frame["targetY"]) < 0.1 for frame in still), still
             (output / "recording-pulse.json").write_text(
                 json.dumps(
                     {
-                        "scale_frames": scale,
-                        "opacity_frames": opacity,
+                        "radius_frames": radius,
                         "disabled_is_static": True,
                         "fixed_geometry": True,
                     },

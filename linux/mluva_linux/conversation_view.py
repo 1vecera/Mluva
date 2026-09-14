@@ -1,5 +1,6 @@
 """A full-text dictation and rewrite workspace with searchable local history."""
 
+import time
 from collections.abc import Callable
 
 import gi
@@ -14,6 +15,7 @@ from mluva_linux.markdown_view import MarkdownTextView
 from mluva_linux.mermaid_view import MermaidPreview
 from mluva_linux.prompt_editor import prompt_control
 from mluva_linux.recording_control import RecordingLight
+from mluva_linux.scroll_forecast import SpeechScrollForecast
 from mluva_linux.ui import SPACE_2, SPACE_4, brand_mark, document_scroll, set_margins
 
 gi.require_version("Gtk", "4.0")
@@ -37,6 +39,10 @@ class _TailFollower:
         self.duration_ms = 800
         self.smooth = True
         self.lookahead_lines = 2
+        self.forecast = SpeechScrollForecast()
+        self.retained_bottom = 0
+        self.revision_inset = 0
+        self.base_top = view.get_top_margin() if view is not None else 4
         adjustment = scroll.get_vadjustment()
         adjustment.connect("changed", self.queue)
         adjustment.connect("value-changed", self._scrolled)
@@ -46,12 +52,19 @@ class _TailFollower:
         scroll.add_controller(navigation)
         drag = Gtk.GestureClick()
         drag.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
-        drag.connect("pressed", lambda *_args: self.stop())
+        drag.connect("pressed", lambda *_args: self._reader_navigation())
         scroll.get_vscrollbar().add_controller(drag)
 
     def follow(self, *, snap: bool = False) -> None:
         """Resume following, snapping only when opening a different document or capture."""
         self.following = True
+        if snap:
+            self.destination = 0
+            self.retained_bottom = 0
+            self.forecast = SpeechScrollForecast()
+            self.revision_inset = 0
+            if self.view is not None:
+                self.view.set_top_margin(self.base_top)
         self.snap_next = self.snap_next or snap
         self.queue()
 
@@ -66,6 +79,26 @@ class _TailFollower:
         self.writing = True
         self.scroll.get_vadjustment().set_value(value)
         self.writing = False
+
+    def prepare_update(self, text: str, *, reset: bool = False) -> None:
+        """Hold the current content extent through corrections before GTK can clamp its adjustment."""
+        if reset:
+            self.follow(snap=True)
+        view = self.view or self.scroll.get_child()
+        self.forecast.observe(len(text), time.monotonic())
+        if self.following and isinstance(view, Gtk.TextView):
+            adjustment = self.scroll.get_vadjustment()
+            self.retained_bottom = max(self.retained_bottom, adjustment.get_upper()) if not reset else 0
+            # A temporary reserve keeps deletion/layout from clamping the scroll
+            # before its new wrapped extent is known. _anticipate_wrap resolves it.
+            self.writing = True
+            if not reset:
+                view.set_bottom_margin(view.get_bottom_margin() + round(adjustment.get_page_size()))
+
+    def updated(self) -> None:
+        """Resume normal observation after the synchronous buffer transaction."""
+        self.writing = False
+        self.queue()
 
     def _pause(self) -> None:
         """Leave the viewport where it is when a stream is interrupted or the user scrolls."""
@@ -86,6 +119,8 @@ class _TailFollower:
         self._anticipate_wrap()
         adjustment = self.scroll.get_vadjustment()
         destination = max(0, adjustment.get_upper() - adjustment.get_page_size())
+        if not self.snap_next:
+            destination = max(adjustment.get_value(), self.destination, destination)
         if (
             not self.snap_next
             and self.smooth
@@ -117,19 +152,34 @@ class _TailFollower:
         return GLib.SOURCE_REMOVE
 
     def _anticipate_wrap(self) -> None:
-        """Make proportionate room after the last line is 72% full, before its next wrap."""
+        """Reserve the predicted next words, retaining the reading origin through line revisions."""
         view = self.view or self.scroll.get_child()
         if not isinstance(view, Gtk.TextView) or not view.get_mapped():
             return
         ending = view.get_iter_location(view.get_buffer().get_end_iter())
         width = max(1, view.get_width() - view.get_left_margin() - view.get_right_margin())
-        base = 4 + self.lookahead_lines * 20
+        base = 4
         nearing_bottom = ending.y + ending.height + base >= self.scroll.get_vadjustment().get_page_size()
         fill = (ending.x - view.get_left_margin()) / width
-        progress = max(0, min(1, (fill - 0.72) / 0.28)) if nearing_bottom else 0
-        extra = round(ending.height * min(1.5, self.lookahead_lines * 0.325) * progress)
-        if view.get_bottom_margin() != base + extra:
-            view.set_bottom_margin(base + extra)
+        char_width = max(1, view.create_pango_layout("M").get_pixel_size()[0])
+        reserve = self.forecast.reserve(width / char_width, fill, self.duration_ms / 1000 + 0.25, self.lookahead_lines)
+        extra = round(ending.height * reserve) if nearing_bottom else 0
+        # A large ASR correction can remove many wrapped lines. Keep its new
+        # tail at the same reading origin with temporary space ABOVE the text;
+        # bottom padding alone would leave the corrected words offscreen.
+        # GtkTextView iterator locations use buffer coordinates, excluding its
+        # top margin; subtracting the inset here would compound it every layout.
+        natural_end = ending.y + ending.height
+        retained = max(0, self.retained_bottom - base - extra - natural_end)
+        inset = round(retained) if self.destination > 0 else 0
+        self.writing = True
+        if inset != self.revision_inset:
+            self.revision_inset = inset
+            view.set_top_margin(self.base_top + inset)
+        margin = base + extra
+        if view.get_bottom_margin() != margin:
+            view.set_bottom_margin(margin)
+        self.writing = False
 
     def _scrolled(self, adjustment: Gtk.Adjustment) -> None:
         """Suspend following when the reader moves away from the newest text."""
@@ -138,10 +188,24 @@ class _TailFollower:
             if not self.following:
                 self._pause()
 
+    def _reader_navigation(self) -> None:
+        """Release correction padding in the reader's coordinate system before manual navigation."""
+        self.stop()
+        view = self.view or self.scroll.get_child()
+        if self.revision_inset and isinstance(view, Gtk.TextView):
+            position = max(0, self.scroll.get_vadjustment().get_value() - self.revision_inset)
+            self.writing = True
+            view.set_top_margin(self.base_top)
+            self.revision_inset = 0
+            self.retained_bottom = 0
+            self.destination = position
+            self.scroll.get_vadjustment().set_value(position)
+            self.writing = False
+
     def _reader_scrolled(self, _controller, _dx: float, dy: float) -> bool:
         """Honor an upward scroll even while GTK still has a stream update queued."""
         if dy < 0:
-            self.stop()
+            self._reader_navigation()
         return False
 
 
@@ -211,6 +275,9 @@ class ConversationWorkspace(Gtk.Box):
         self.live_active = False
         self.viewing_live = False
         self.live_questions_source = ""
+        self.live_source_visible = True
+        self.live_draft_visible = True
+        self.live_draft_available = False
         self.split = Adw.OverlaySplitView(vexpand=True)
         self.split.set_min_sidebar_width(200)
         self.split.set_max_sidebar_width(232)
@@ -294,37 +361,54 @@ class ConversationWorkspace(Gtk.Box):
         self.live_cancel_slot.set_visible(False)
         self.live_header.append(self.live_cancel_slot)
         self.live_header.append(self.live_title)
-        self.heading_column = self._reading_column(self.heading)
+        self.pane_buttons = {}
+        for side, label, shortcut in (("source", "Original", "Ctrl+1"), ("draft", "Live draft", "Ctrl+2")):
+            button = Gtk.ToggleButton(label=label, active=True, has_frame=False)
+            button.set_tooltip_text(f"Show or hide {label.lower()} · {shortcut}")
+            button.connect("clicked", lambda _button, side=side: self.toggle_live_pane(side))
+            self.pane_buttons[side] = button
+            self.live_header.append(button)
+        self.heading_column = self.heading
         content.append(self.heading_column)
         self.messages = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
         set_margins(self.messages, SPACE_4)
         self.messages.set_margin_top(0)
-        reading_width = self._reading_column(self.messages)
+        reading_width = self.messages
         self.scroll = document_scroll(reading_width)
         self.conversation_follower = _TailFollower(self.scroll)
         content.append(self.scroll)
         set_margins(self.live_header, SPACE_4)
         self.live_header.set_margin_bottom(0)
-        self.live_header_column = self._reading_column(self.live_header)
+        self.live_header_column = self.live_header
         self.live_header_column.set_visible(False)
         content.append(self.live_header_column)
 
-        self.live_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24, homogeneous=True, vexpand=True)
+        self.live_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0, vexpand=True)
         self.live_box.add_css_class("ml-live")
         set_margins(self.live_box, SPACE_4)
         self.live_source_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2, hexpand=True)
+        self.live_source_box.add_css_class("ml-live-original")
         self.live_text = self._text_view("")
         self.live_text.update_property([Gtk.AccessibleProperty.LABEL], ["Dictation"])
         self.live_scroll = document_scroll(self.live_text)
         self.live_follower = _TailFollower(self.live_scroll)
         self.live_source_box.append(self.live_scroll)
         self.live_box.append(self.live_source_box)
+        self.live_divider = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL, visible=False)
+        self.live_divider.add_css_class("ml-pane-divider")
+        self.live_box.append(self.live_divider)
+        self.live_box.connect("notify::orientation", self._pane_orientation_changed)
         self.live_draft_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2, hexpand=True)
+        self.live_draft_box.add_css_class("ml-live-draft")
         self.live_draft_status = Gtk.Label(
             label="Live draft", xalign=0, ellipsize=Pango.EllipsizeMode.END, css_classes=["heading"]
         )
         self.live_draft_status.connect("notify::label", lambda label, _spec: label.set_tooltip_text(label.get_label()))
         self.live_draft_box.append(self.live_draft_status)
+        self.live_draft_status.set_visible(False)
+        self.live_draft_status.connect(
+            "notify::label", lambda label, _spec: self.pane_buttons["draft"].set_tooltip_text(label.get_label())
+        )
         self.live_questions = DocumentEditor(editable=False)
         self.live_questions.add_css_class("ml-live-questions")
         self.live_questions.set_top_margin(0)
@@ -351,7 +435,7 @@ class ConversationWorkspace(Gtk.Box):
         self.live_box.append(self.live_draft_box)
         self.live_draft_box.set_visible(False)
         self.live_box.set_visible(False)
-        self.live_column = self._reading_column(self.live_box)
+        self.live_column = self.live_box
         self.live_column.set_visible(False)
         content.append(self.live_column)
 
@@ -431,18 +515,48 @@ class ConversationWorkspace(Gtk.Box):
         self.send.connect("clicked", self._submit)
         footer.append(self.send)
         composer.append(footer)
-        self.composer_column = self._reading_column(composer)
+        self.composer_column = composer
         content.append(self.composer_column)
         return content
 
-    @staticmethod
-    def _reading_column(child: Gtk.Widget) -> Adw.Clamp:
-        """Keep the heading, text, composer and recording controls on the same horizontal guides."""
-        return Adw.Clamp(maximum_size=900, tightening_threshold=900, child=child)
+    def _pane_orientation_changed(self, *_args: object) -> None:
+        """Keep the divider between panes when the narrow layout stacks them."""
+        self.live_divider.set_orientation(
+            Gtk.Orientation.VERTICAL
+            if self.live_box.get_orientation() == Gtk.Orientation.HORIZONTAL
+            else Gtk.Orientation.HORIZONTAL
+        )
+
+    def toggle_live_pane(self, side: str) -> None:
+        """Hide either live pane, retaining its editor state and at least one readable pane."""
+        if not self.viewing_live or not self.live_draft_available:
+            self._sync_live_panes()
+            return
+        if side == "source":
+            self.live_source_visible = not self.live_source_visible
+            if not self.live_source_visible:
+                self.live_draft_visible = True
+        else:
+            self.live_draft_visible = not self.live_draft_visible
+            if not self.live_draft_visible:
+                self.live_source_visible = True
+        self._sync_live_panes()
+
+    def _sync_live_panes(self) -> None:
+        """Apply visibility to existing editors so collapsing never discards text or focus state."""
+        source = self.live_source_visible or not self.live_draft_available
+        draft = self.live_draft_visible and self.live_draft_available
+        self.live_source_box.set_visible(source)
+        self.live_draft_box.set_visible(draft)
+        self.live_divider.set_visible(source and draft)
+        self.pane_buttons["source"].set_active(source)
+        self.pane_buttons["draft"].set_active(draft)
+        for button in self.pane_buttons.values():
+            button.set_sensitive(self.live_draft_available)
 
     def set_capture_controls(self, controls: Gtk.Widget) -> None:
         """Keep the recording footer inside the conversation while history reaches the window bottom."""
-        self.content.append(self._reading_column(controls))
+        self.content.append(controls)
 
     def set_rewrite_settings(self, settings: Gtk.Widget) -> None:
         """Keep model and speed choices beside the operations they affect."""
@@ -564,14 +678,16 @@ class ConversationWorkspace(Gtk.Box):
         follower = self.live_draft_follower
         following = follower.following
         position = self.live_draft_scroll.get_vadjustment().get_value()
-        self.live_draft_box.set_visible(True)
+        self.live_draft_available = True
+        self._sync_live_panes()
         follower.writing = True
         self.live_questions_source, body = split_grilling_draft(text)
         self.live_questions.replace_text(self.live_questions_source.rstrip())
         self.live_questions.set_visible(bool(self.live_questions_source))
         self.live_questions_scroll.set_visible(bool(self.live_questions_source))
-        self.live_draft_text.replace_text(body)
-        follower.writing = False
+        follower.prepare_update(body)
+        self.live_draft_text.replace_text(body, animate=True)
+        follower.updated()
         self.live_draft_status.set_label(status)
         if following:
             follower.follow()
@@ -837,14 +953,14 @@ class ConversationWorkspace(Gtk.Box):
         self.live_active = True
         self.live_navigation.set_visible(True)
         if starting:
+            self.live_draft_available = False
+            self._sync_live_panes()
             self.show_live()
         self.set_live_status(phase, recording=recording)
         self.live_cancel_slot.set_visible(True)
-        self.live_text.replace_text(text)
-        if starting:
-            self.live_follower.follow(snap=True)
-        else:
-            self.live_follower.queue()
+        self.live_follower.prepare_update(text, reset=starting)
+        self.live_text.replace_text(text, animate=not starting)
+        self.live_follower.updated()
 
     def show_live(self) -> None:
         """Return to the same live editors without losing their text, edits or reading position."""
@@ -876,6 +992,8 @@ class ConversationWorkspace(Gtk.Box):
         self.live_follower.stop()
         self.live_draft_follower.stop()
         self.live_draft_box.set_visible(False)
+        self.live_draft_available = False
+        self.live_divider.set_visible(False)
         self.live_text.get_buffer().set_text("")
         self._set_live_visibility(False)
         self.live_light.set_recording(False)

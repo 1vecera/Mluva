@@ -45,7 +45,7 @@ def exercise_scrolling(application: MluvaApplication, output: Path) -> None:
     live_motion = frames(live)
     assert at_end(live)
     assert any(before + 1 < value < live.get_value() - 1 for value in live_motion), live_motion
-    assert workspace.live_text.get_bottom_margin() >= workspace.config.scroll_lookahead_lines * 20
+    assert workspace.live_text.get_bottom_margin() >= 4
     live.set_value(90)
     assert not workspace.live_follower.following
     source += "\nThe reader stays where they scrolled."

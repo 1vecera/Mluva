@@ -27,6 +27,7 @@ class Command:
     run: Callable[[], object]
     enabled: Callable[[], bool]
     keywords: str = ""
+    shortcut: str = ""
 
 
 def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
@@ -70,6 +71,7 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
             lambda: app.live_mode_switch.set_active(not app.live_mode_switch.get_active()),
             lambda: app.live_mode_switch.is_sensitive() and app.config.live_rewrite_enabled == live_enabled,
             "automatic structured draft",
+            "<Control>l",
         ),
         Command(
             "Polish text",
@@ -79,6 +81,7 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
                 current_document() and workspace.quick_polish.is_sensitive() and not workspace.live_box.get_visible()
             ),
             "clean filler grammar rewrite",
+            "<Control><Shift>p",
         ),
         Command(
             "Rewrite with an instruction",
@@ -86,6 +89,7 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
             app._focus_rewrite_prompt,
             lambda: current_document() and workspace.send.is_sensitive() and not workspace.live_box.get_visible(),
             "custom prompt edit",
+            "<Control>r",
         ),
         Command(
             "Copy current text",
@@ -93,6 +97,7 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
             workspace.copy_current_output,
             lambda: current_document() and workspace.can_copy_current_output(),
             "clipboard output result",
+            "<Control><Shift>c",
         ),
         Command(
             "Save edits",
@@ -107,8 +112,11 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
                 and any(key[0] == workspace.entry.identifier for key in workspace.edit_drafts)
             ),
             "keep document note",
+            "<Control>s",
         ),
-        Command("History", "document-open-recent-symbolic", app._open_history, lambda: True, "archive search"),
+        Command(
+            "History", "document-open-recent-symbolic", app._open_history, lambda: True, "archive search", "<Control>h"
+        ),
         Command(
             "Live conversation",
             "audio-input-microphone-symbolic",
@@ -122,6 +130,23 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
             lambda: app._toggle_history_sidebar(None),
             lambda: True,
             "navigation show hide",
+            "<Control>b",
+        ),
+        Command(
+            "Hide original pane" if workspace.live_source_visible else "Show original pane",
+            "sidebar-show-symbolic",
+            lambda: workspace.toggle_live_pane("source"),
+            lambda: workspace.viewing_live and workspace.live_draft_available,
+            "left source dictation collapse expand",
+            "<Control>1",
+        ),
+        Command(
+            "Hide draft pane" if workspace.live_draft_visible else "Show draft pane",
+            "sidebar-show-symbolic",
+            lambda: workspace.toggle_live_pane("draft"),
+            lambda: workspace.viewing_live and workspace.live_draft_available,
+            "right live rewrite collapse expand",
+            "<Control>2",
         ),
         Command(
             "Settings",
@@ -129,6 +154,14 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
             lambda: app._show_settings(app.settings_button),
             lambda: True,
             "providers models appearance scrolling preferences",
+            "<Control>comma",
+        ),
+        Command(
+            "Settings · Welcome and provider setup",
+            "go-home-symbolic",
+            app._show_welcome,
+            lambda: True,
+            "onboarding speech recognition local cloud model",
         ),
     )
     for name, choices, title in (
@@ -139,7 +172,7 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
         for value, label in choices:
             commands += (
                 Command(
-                    f"{title}: {label}",
+                    f"Settings · {title}: {label}",
                     "preferences-system-symbolic",
                     lambda name=name, value=value: app._apply_workspace_settings({name: value}),
                     lambda name=name: (
@@ -163,7 +196,7 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
     if hasattr(app, "prompt_store"):
         commands += tuple(
             Command(
-                "Edit prompt · " + prompt.name,
+                "Settings · Edit prompt · " + prompt.name,
                 "document-edit-symbolic",
                 lambda key=prompt.identifier: app._open_prompt_editor(key),
                 lambda: True,
@@ -208,7 +241,7 @@ def settings_commands(app: "MluvaApplication") -> tuple[Command, ...]:
 def open_setting(app: "MluvaApplication", page: Adw.PreferencesPage, row: Adw.PreferencesRow) -> None:
     """Open the containing page, expand advanced controls and scroll the requested setting into view."""
     app._show_settings(app.settings_button)
-    app.settings_dialog.set_visible_page(page)
+    app.settings_view.set_visible_page(page)
     parent = row.get_parent()
     while parent is not None and parent is not page:
         if isinstance(parent, Adw.ExpanderRow):
@@ -231,6 +264,7 @@ class CommandPalette(Adw.Dialog):
     def __init__(self, commands: tuple[Command, ...]) -> None:
         """Build a native searchable list with explicit keyboard and dismissal behavior."""
         super().__init__(title="Commands", content_width=460, content_height=500)
+        self.add_css_class("ml-command-palette")
         self.commands = commands
         self.rows: dict[Gtk.ListBoxRow, Command] = {}
         self.pending: Command | None = None
@@ -250,7 +284,7 @@ class CommandPalette(Adw.Dialog):
         self.search.connect("search-changed", self._filter)
         content.append(self.search)
         self.results = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE)
-        self.results.add_css_class("boxed-list")
+        self.results.add_css_class("ml-command-results")
         self.results.connect("row-activated", self._activate)
         self.scroll = Gtk.ScrolledWindow(
             child=self.results,
@@ -286,6 +320,8 @@ class CommandPalette(Adw.Dialog):
                 continue
             row = Adw.ActionRow(title=command.title, activatable=True)
             row.add_prefix(Gtk.Image.new_from_icon_name(command.icon))
+            if command.shortcut:
+                row.add_suffix(Gtk.ShortcutLabel(accelerator=command.shortcut))
             row.set_sensitive(command.enabled())
             self.rows[row] = command
             self.results.append(row)

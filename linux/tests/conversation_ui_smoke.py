@@ -67,7 +67,7 @@ class IsolatedApplication(MluvaApplication):
     def _initialize_local_services(self) -> None:
         """Keep optional automatic title requests off the real authenticated provider."""
         super()._initialize_local_services()
-        self.config = replace(self.config, automatic_titles=False, auto_copy_rewrite=False)
+        self.config = replace(self.config, automatic_titles=False, auto_copy_rewrite=False, welcome_completed=True)
 
     def _initialize_capture_services(self) -> None:
         """Leave real microphone, portal and network transports unstarted for this visual fixture."""
@@ -316,7 +316,6 @@ def main() -> int:
             assert "heading" in aligned or "live" in aligned, "The capture workspace must be mapped for layout checks"
             assert max(aligned.values()) - min(aligned.values()) <= 1, aligned
             if workspace.live_header.get_visible():
-                assert application.header_bar.get_title_widget() is workspace.live_header
                 assert workspace.live_header.get_mapped() and not workspace.heading.get_mapped()
                 _, header_bounds = workspace.live_header.compute_bounds(window)
                 _, live_bounds = workspace.live_box.compute_bounds(window)

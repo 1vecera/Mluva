@@ -225,15 +225,15 @@ def main():
                 app.prompt_editor.force_close()
                 settle(lambda: app.prompt_editor is None)
             app._show_settings(app.settings_button)
-            app.settings_dialog.set_visible_page(app.prompts_page)
+            app.settings_view.set_visible_page(app.prompts_page)
             settle(app.prompts_page.get_mapped)
             row = next(row for row in app.prompts_page.rows if row.get_title() == "Style · Synthetic brief")
             row.emit("activated")
             assert app.prompt_editor.identifier == "style-" + style.identifier.lower()
             app.prompt_editor.force_close()
             settle(lambda: app.prompt_editor is None)
-            app.settings_dialog.close()
-            settle(lambda: not app.settings_dialog.get_mapped())
+            app.settings_view.close()
+            settle(lambda: not app.settings_view.get_mapped())
             # An external edit must not be overwritten by an already-open editor.
             app._open_prompt_editor("live-grilling")
             editor = app.prompt_editor

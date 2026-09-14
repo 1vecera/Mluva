@@ -7,6 +7,7 @@ and dialogs stay coherent, and adds the editorial surface components used by
 the application shell.
 """
 
+import ctypes
 import os
 import re
 import tomllib
@@ -79,6 +80,18 @@ POPOVER_OPACITY: Final = 0.94
 SHADOW_OFFSET: Final = 4
 SHADOW_OFFSET_SMALL: Final = 2
 NAV_RAIL_WIDTH: Final = 224
+
+
+def load_bundled_fonts() -> None:
+    """Register the bundled family in this process without altering the user's installed fonts."""
+    fontconfig = ctypes.CDLL("libfontconfig.so.1")
+    fontconfig.FcConfigAppFontAddFile.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+    fontconfig.FcConfigAppFontAddFile.restype = ctypes.c_int
+    directory = Path(__file__).parents[1] / "quickshell/mluva.dictation/fonts"
+    for face in ("Regular", "Medium", "Bold", "Italic"):
+        path = directory / f"JetBrainsMono-{face}.ttf"
+        if not fontconfig.FcConfigAppFontAddFile(None, os.fsencode(path)):
+            raise RuntimeError(f"Could not load the bundled JetBrains Mono {face} face")
 
 
 def _hex(value: str) -> tuple[int, int, int]:
@@ -165,7 +178,7 @@ def build_stylesheet(tokens: dict[str, str]) -> str:
         _named_colors(tokens)
         + """
 window.background { background: alpha(@vs_canvas, $WINDOW_OPACITY); color: @vs_ink;
-  font-family: monospace; font-size: 0.92em; }
+  font-family: "JetBrains Mono", monospace; font-size: 14px; }
 toolbarview, toolbarview > top-bar, toolbarview > bottom-bar { background: transparent; }
 headerbar { min-height: 38px; padding: 0 8px; background: transparent; color: @vs_ink; border: none; box-shadow: none; }
 headerbar button { min-height: 24px; min-width: 24px; padding: 2px 4px; }
@@ -239,7 +252,16 @@ button.ml-record-toggle.destructive-action:hover { background: alpha(@vs_danger,
 .ml-scroll-gutter > scrollbar.vertical { margin-left: 6px; }
 .ml-scroll-gutter > scrollbar.vertical:disabled { opacity: 0; }
 .ml-live { background: transparent; border-radius: 0; padding: 0; }
-.ml-live .heading { color: @vs_accent_strong; }
+.ml-live .heading { color: @vs_ink_secondary; }
+.ml-live-original, .ml-live-draft { padding: 12px; }
+.ml-live-draft { background: alpha(@vs_ink, 0.025); }
+.ml-pane-divider { background: alpha(@vs_ink, 0.12); min-width: 1px; min-height: 1px; }
+dialog.ml-command-palette > .dialog-sheet { background: alpha(@vs_canvas, $POPOVER_OPACITY); }
+.ml-command-results, .ml-command-results > row { background: transparent; border: none; border-radius: 0; }
+.ml-command-results > row:hover, .ml-command-results > row:selected { background: alpha(@vs_ink, 0.065); }
+.ml-command-results shortcut { margin: 0; padding: 0; }
+.ml-command-results shortcut keycap { min-width: 0; min-height: 0; padding: 2px 4px;
+  background: transparent; box-shadow: none; border: none; }
 .ml-empty { margin-top: 24px; }
 popover > contents { background: alpha(@vs_surface, $POPOVER_OPACITY); border-radius: $CARD_RADIUSpx;
   border: 1px solid alpha(@vs_ink, 0.16); box-shadow: 0 4px 16px alpha(@vs_shadow, 0.12); }
@@ -326,6 +348,8 @@ class ThemeController:
 
     def apply(self) -> None:
         """Load the stylesheet for the active scheme onto the default display."""
+        if not self._installed:
+            load_bundled_fonts()
         style_manager = Adw.StyleManager.get_default()
         self._load()
         display = Gdk.Display.get_default()

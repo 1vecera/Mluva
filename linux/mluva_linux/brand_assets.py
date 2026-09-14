@@ -13,11 +13,12 @@ ICON_PATH = ROOT / "linux/resources/com.mluva.Linux.svg"
 SYMBOLIC_PATH = ROOT / "linux/gnome-extension/recording-status@mluva.local/mluva-symbolic.svg"
 HERO_PATH = ASSETS / "mluva-hero.svg"
 WORDMARK_SOURCE = ASSETS / "brand-source/wordmark-outline.svg"
-# A flat optical redraw of the selected flowing-m silhouette: 20-unit strokes, 16-unit gaps.
+# An open thought unfolds into a second lobe. One contour stays legible at toolbar size.
 MARK_PATH = (
-    "M8 90V44a28 28 0 0 1 56 0v28a8 8 0 0 0 16 0V44a28 28 0 0 1 56 0v46"
-    "a10 10 0 0 1-20 0V44a8 8 0 0 0-16 0v28a28 28 0 0 1-56 0V44"
-    "a8 8 0 0 0-16 0v46a10 10 0 0 1-20 0Z"
+    "M72 20C52 2 18 8 10 38C1 71 16 103 43 104C68 105 72 80 88 76"
+    "C103 72 108 85 124 80C144 74 144 47 127 41C109 35 100 46 87 57"
+    "C76 67 63 71 52 67C40 63 40 48 49 43C58 38 63 46 71 43"
+    "C82 39 82 29 72 20Z"
 )
 
 
@@ -34,7 +35,7 @@ def render_mark_svg(color: str = LOGO_ACCENT) -> str:
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="144" height="116" viewBox="0 0 144 116"
   role="img" aria-labelledby="title description">
   <title id="title">{PRODUCT_NAME}</title>
-  <desc id="description">A continuous voice wave forming a lowercase m, with open, even spacing.</desc>
+  <desc id="description">An abstract thought unfolding into speech, drawn as one open fluid contour.</desc>
   <path fill="{color}" d="{MARK_PATH}"/>
 </svg>
 '''
@@ -45,7 +46,7 @@ def render_icon_svg() -> str:
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"
   role="img" aria-labelledby="title description">
   <title id="title">{PRODUCT_NAME}</title>
-  <desc id="description">A frost-blue voice wave on a slate app tile.</desc>
+  <desc id="description">A frost-blue unfolding thought on a slate app tile.</desc>
   <rect x="4" y="4" width="120" height="120" rx="28" fill="{LOGO_INK}"/>
   <path transform="translate(6.4 17.6) scale(.8)" fill="{LOGO_ACCENT}" d="{MARK_PATH}"/>
 </svg>
@@ -62,8 +63,8 @@ def render_wordmark_svg(color: str = LOGO_FOREGROUND) -> str:
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="288" height="96" viewBox="0 0 288 96"
   role="img" aria-labelledby="title description">
   <title id="title">{PRODUCT_NAME}</title>
-  <desc id="description">Mluva wordmark in outlined Adwaita Sans SemiBold.</desc>
-  <path transform="translate(16 12.578)" fill="{color}" d="{_wordmark_path()}"/>
+  <desc id="description">Custom Mluva lettering sculpted from JetBrains Mono Medium.</desc>
+  <path transform="translate(8 4)" fill="{color}" d="{_wordmark_path()}"/>
 </svg>
 '''
 
@@ -71,7 +72,7 @@ def render_wordmark_svg(color: str = LOGO_FOREGROUND) -> str:
 def _lockup(ink: str, accent: str) -> str:
     """Optically align the wave with the typeset wordmark and retain a clear separation."""
     return f'''<path transform="translate(9 13.25) scale(.875)" fill="{accent}" d="{MARK_PATH}"/>
-  <path transform="translate(152 28.578)" fill="{ink}" d="{_wordmark_path()}"/>'''
+  <path transform="translate(152 16)" fill="{ink}" d="{_wordmark_path()}"/>'''
 
 
 def render_lockup_svg(*, on_light: bool = False) -> str:
@@ -81,7 +82,7 @@ def render_lockup_svg(*, on_light: bool = False) -> str:
     return f"""<svg xmlns="http://www.w3.org/2000/svg" width="424" height="128" viewBox="0 0 424 128"
   role="img" aria-labelledby="title description">
   <title id="title">{PRODUCT_NAME}</title>
-  <desc id="description">Mluva voice-wave mark and software-typeset wordmark.</desc>
+  <desc id="description">Mluva unfolding-thought mark and custom JetBrains Mono wordmark.</desc>
   {_lockup(ink, accent)}
 </svg>
 """
@@ -96,7 +97,7 @@ def render_hero_svg() -> str:
   <rect width="1280" height="400" rx="24" fill="{LOGO_INK}"/>
   <path transform="translate(64 64) scale(1.5)" fill="{LOGO_FOREGROUND}" d="{_wordmark_path()}"/>
   <path transform="translate(886 60) scale(2.25)" fill="{LOGO_ACCENT}" d="{MARK_PATH}"/>
-  <g font-family="Adwaita Sans, Inter, Noto Sans, sans-serif" fill="{LOGO_FOREGROUND}">
+  <g font-family="JetBrains Mono, monospace" fill="{LOGO_FOREGROUND}">
     <text x="64" y="248" font-size="38" font-weight="500">Speak a rough idea.</text>
     <text x="64" y="294" font-size="38" font-weight="500">Shape it into useful text.</text>
     <text x="64" y="353" font-size="22" fill="{LOGO_ACCENT}">Dictation and rewriting, built for Omarchy.</text>
@@ -122,9 +123,9 @@ def render_brand_sheet_svg() -> str:
   <title id="title">Mluva production identity draft</title>
   <desc id="description">Mluva mark and wordmark on light/dark backgrounds, with small-size specimens.</desc>
   <rect width="1000" height="584" fill="#ECEFF4"/>
-  <g font-family="Adwaita Sans, Inter, Noto Sans, sans-serif" fill="{LOGO_INK}">
+  <g font-family="JetBrains Mono, monospace" fill="{LOGO_INK}">
     <text x="40" y="52" font-size="24" font-weight="600">Mluva / production identity</text>
-    <text x="40" y="85" font-size="17">A voice wave, refined into a flat mark. Exact software typography.</text>
+    <text x="40" y="85" font-size="17">A thought unfolds into speech. Custom JetBrains Mono lettering.</text>
     <rect x="24" y="120" width="468" height="230" rx="16" fill="{LOGO_INK}"/>
     <rect x="508" y="120" width="468" height="230" rx="16" fill="#FFFFFF"/>
     <g transform="translate(46 165)">{_lockup(LOGO_FOREGROUND, LOGO_ACCENT)}</g>
