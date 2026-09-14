@@ -1,5 +1,7 @@
 """Editable task defaults; transport and source-integrity rules remain in their callers."""
 
+from dataclasses import dataclass
+
 QUICK_POLISH = (
     "Polish the text faithfully. Remove filler words, false starts and accidental repetitions; "
     "fix grammar and punctuation and lightly paraphrase for clarity. Keep the speaker's language, "
@@ -41,13 +43,6 @@ NOTE = """# Note
 
 ## Open questions
 [Missing: what still needs clarification]"""
-TEMPLATE_CHOICES = (
-    ("grilling", "Grilling"),
-    ("task-spec", "Task spec"),
-    ("structured-note", "Structured note"),
-    ("polish", "Polish"),
-    ("custom", "Custom"),
-)
 INITIAL_MINIMUM_CHARACTERS = 40
 GRILLING = (
     "Help the speaker develop and stress-test their idea without interrupting their speech. "
@@ -70,3 +65,46 @@ GRILLING = (
 TITLE = "Write a specific 3–7 word title in the original language. Name the subject, not the act of dictating."
 
 CLEANUP = "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only."
+
+
+@dataclass(frozen=True, slots=True)
+class DraftTemplate:
+    """Describe an optional editable starting structure for a Live mode."""
+
+    name: str
+    purpose: str
+    text: str
+
+
+@dataclass(frozen=True, slots=True)
+class LiveTemplate:
+    """Define one Live mode for validation, menus, prompt editing and execution."""
+
+    identifier: str
+    name: str
+    purpose: str
+    instructions: str
+    draft: DraftTemplate | None = None
+
+
+LIVE_TEMPLATES = (
+    LiveTemplate("grilling", "Grilling", "Develop an idea and surface the next unanswered questions.", GRILLING),
+    LiveTemplate(
+        "task-spec",
+        "Task spec",
+        "Fill the separately editable task structure.",
+        "Fill the task specification template from the speaker's words.",
+        DraftTemplate("Task spec structure", "Initial Markdown structure for Live Task spec.", TASK_SPEC),
+    ),
+    LiveTemplate(
+        "structured-note",
+        "Structured note",
+        "Organize dictation using the note structure.",
+        STRUCTURED_NOTE + " Keep sections that identify missing information.",
+        DraftTemplate("Note structure", "Initial Markdown structure for Live Structured note.", NOTE),
+    ),
+    LiveTemplate("polish", "Polish", "Polish a growing draft during dictation.", QUICK_POLISH),
+    LiveTemplate("custom", "Custom", "Your own instructions for live dictation.", ""),
+)
+LIVE_TEMPLATE_BY_ID = {template.identifier: template for template in LIVE_TEMPLATES}
+TEMPLATE_CHOICES = tuple((template.identifier, template.name) for template in LIVE_TEMPLATES)

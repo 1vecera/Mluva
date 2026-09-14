@@ -1,7 +1,6 @@
 """GTK 4 desktop application for Mluva on Linux."""
 
 import os
-import sqlite3
 import sys
 import threading
 import time
@@ -18,7 +17,7 @@ from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 
 from mluva_linux.audio import PipeWireMeetingRecorder, PipeWireRecorder
 from mluva_linux.batch_preview import BatchPreviewClient, BatchPreviewSession
-from mluva_linux.codex_client import CodexAppServerClient, CodexModel, select_model
+from mluva_linux.codex_client import CodexAppServerClient, CodexModel
 from mluva_linux.command_palette import CommandPalette, application_commands
 from mluva_linux.config import (
     FUNCTION_KEY_OPTIONS,
@@ -33,11 +32,9 @@ from mluva_linux.config import (
     save_config,
 )
 from mluva_linux.conversation import (
-    MAX_REWRITE_CHARACTERS,
     ConversationStore,
     rewrite_prompt,
 )
-from mluva_linux.conversation_titles import clean_title, fallback_title, save_generated_title, title_prompt
 from mluva_linux.conversation_view import ConversationWorkspace
 from mluva_linux.delivery import deliver_text, keyboard_paste_available
 from mluva_linux.diagnostics import (
@@ -80,12 +77,13 @@ from mluva_linux.pipewire import PipeWireCatalogError, PipeWireDeviceCatalog, Pi
 from mluva_linux.prompt_editor import PromptEditor, PromptsPage, prompt_control
 from mluva_linux.prompts import PromptStore
 from mluva_linux.provider_settings import ProviderSettings
-from mluva_linux.providers import LiteLLMClient, transcription_client
+from mluva_linux.providers import transcription_client
 from mluva_linux.realtime import (
     ElevenLabsRealtimeClient,
     RealtimeTranscriptionSession,
 )
 from mluva_linux.rewrite_settings import RewriteSettings
+from mluva_linux.rewriting import RewriteClient, UnsupportedRewriteSpeed, rewrite_client, rewrite_text
 from mluva_linux.scratchpad import ScratchpadDraft, ScratchpadDraftStore
 from mluva_linux.segment_cleanup import (
     CodexSegmentCleanupAttempt,
@@ -98,6 +96,7 @@ from mluva_linux.text_target import (
     TextTargetSnapshot,
 )
 from mluva_linux.theme import ThemeController
+from mluva_linux.title_jobs import ConversationTitleJobs
 from mluva_linux.ui import (
     COMPACT_LAYOUT_MAX_WIDTH,
     RECORDING_KIND_PREPARING,
@@ -344,11 +343,10 @@ class MluvaApplication(Adw.Application):
         self.prompts_page = None
         self.live_prompts = None
         self.live_prompt_session = None
-        self.rewrite_client: CodexAppServerClient | LiteLLMClient | None = None
-        self.model_catalog_client: CodexAppServerClient | None = None
+        self.rewrite_client: RewriteClient | None = None
+        self.model_catalog_client: RewriteClient | None = None
         self.rewrite_settings: RewriteSettings | None = None
-        self.title_client: CodexAppServerClient | None = None
-        self.title_queue: list[tuple[str, str]] = []
+        self.title_jobs: ConversationTitleJobs | None = None
         self.automatic_titles_switch: Adw.SwitchRow | None = None
         self.rewrite_draft: str | None = None
         self.rewrite_identifier: str | None = None
@@ -589,87 +587,9 @@ class MluvaApplication(Adw.Application):
         self._queue_conversation_title(entry)
 
     def _queue_conversation_title(self, entry: HistoryEntry) -> None:
-        """Label new completions locally, then queue at most one background model at a time."""
-        if self.shutting_down or self.config.incognito_mode or entry.title or not entry.raw_text.strip():
-            return
-        fallback = fallback_title(entry.raw_text)
-        try:
-            saved = save_generated_title(self.history_store, entry.identifier, fallback)
-        except sqlite3.Error:
-            return
-        if not saved:
-            return
-        self._refresh_conversation_title(entry.identifier)
-        if self.config.automatic_titles and len(self.title_queue) < 20:
-            self.title_queue.append((entry.identifier, fallback))
-            self._start_next_title()
-
-    def _start_next_title(self) -> None:
-        """Skip removed notes; never replay old history or retry a failed provider automatically."""
-        if (
-            self.title_client is not None
-            or self.shutting_down
-            or self.config.incognito_mode
-            or not self.config.automatic_titles
-        ):
-            return
-        while self.title_queue:
-            identifier, fallback = self.title_queue.pop(0)
-            try:
-                entry = self.history_store.find(identifier)
-            except KeyError:
-                continue
-            if entry.title != fallback:
-                continue
-            client = self._new_rewrite_client(request_timeout_seconds=10, turn_timeout_seconds=20)
-            self.title_client = client
-            threading.Thread(
-                target=self._title_worker,
-                args=(
-                    client,
-                    entry,
-                    fallback,
-                    self.config.litellm_model if self.config.rewrite_provider == "litellm" else self.config.codex_model,
-                ),
-                name="conversation-title",
-                daemon=True,
-            ).start()
-            break
-
-    def _title_worker(
-        self, client: CodexAppServerClient, entry: HistoryEntry, fallback: str, model: str | None
-    ) -> None:
-        """Use the existing isolated, tool-free transport and keep failures out of the capture path."""
-        title = None
-        try:
-            resolved = client.resolve_model(model)
-            title = clean_title(
-                client.transform(
-                    title_prompt(entry, self.prompt_store.read("title").text),
-                    self.codex_workspace,
-                    resolved,
-                    max_output_characters=128,
-                )
-            )
-        except Exception:
-            pass
-        finally:
-            client.close()
-            GLib.idle_add(self._title_finished, client, entry.identifier, fallback, title)
-
-    def _title_finished(self, client: CodexAppServerClient, identifier: str, fallback: str, title: str | None) -> bool:
-        """Discard cancelled, private, deleted or manually renamed results at the commit boundary."""
-        if client is not self.title_client:
-            return GLib.SOURCE_REMOVE
-        self.title_client = None
-        if not self.shutting_down and not self.config.incognito_mode and self.config.automatic_titles:
-            try:
-                if title and save_generated_title(self.history_store, identifier, title, expected=fallback):
-                    self._refresh_conversation_title(identifier)
-            except sqlite3.Error:
-                pass
-            self._start_next_title()
-        return GLib.SOURCE_REMOVE
+        """Pass new completions to the title feature without changing document selection."""
+        if not self.shutting_down and self.title_jobs is not None:
+            self.title_jobs.enqueue(entry)
 
     def _refresh_conversation_title(self, identifier: str) -> None:
         """Update labels in place so a late title never changes selection, scroll or draft text."""
@@ -680,14 +600,12 @@ class MluvaApplication(Adw.Application):
             self.history_page.refresh_title(identifier)
 
     def _cancel_titles(self, wait: bool = False) -> None:
-        """Invalidate queued callbacks before asking the exact worker to stop."""
-        self.title_queue.clear()
-        client, self.title_client = self.title_client, None
-        if client is not None:
+        """Invalidate title work when privacy, provider settings or application lifetime changes."""
+        if self.title_jobs is not None:
             if wait:
-                client.cancel()
+                self.title_jobs.close()
             else:
-                threading.Thread(target=client.cancel, name="cancel-title", daemon=True).start()
+                self.title_jobs.cancel()
 
     def _automatic_titles_changed(self, row: Adw.SwitchRow, _param: object) -> None:
         """Save the cloud-title preference independently of transcription settings."""
@@ -831,24 +749,8 @@ class MluvaApplication(Adw.Application):
         def run():
             """Compute one whole draft, never streaming half a template into the editor."""
             try:
-                if isinstance(client, LiteLLMClient):
-                    model = client.resolve_model(config.litellm_model)
-                    result = client.transform(
-                        prompt, self.codex_workspace, model, max_output_characters=MAX_REWRITE_CHARACTERS
-                    )
-                else:
-                    selected = select_model(client.list_models(), config.rewrite_model or config.codex_model)
-                    if config.rewrite_fast_mode and selected.fast_tier is None:
-                        raise ValueError("Fast mode unavailable")
-                    model = selected.identifier
-                    result = client.transform(
-                        prompt,
-                        self.codex_workspace,
-                        model,
-                        max_output_characters=MAX_REWRITE_CHARACTERS,
-                        effort=selected.rewrite_effort,
-                        service_tier=selected.fast_tier if config.rewrite_fast_mode else "default",
-                    )
+                outcome = rewrite_text(client, config, prompt, self.codex_workspace)
+                result, model = outcome.text, outcome.model
             except Exception:
                 result, model = "", ""
             finally:
@@ -970,12 +872,19 @@ class MluvaApplication(Adw.Application):
             self.live_schedule.in_flight = False
             self.conversation_workspace.live_draft_status.set_label("Live rewrite paused · draft kept")
 
-    def _new_rewrite_client(self, config: AppConfig | None = None, **options):
+    def _new_rewrite_client(
+        self,
+        config: AppConfig | None = None,
+        *,
+        request_timeout_seconds: float | None = None,
+        turn_timeout_seconds: float | None = None,
+    ) -> RewriteClient:
         """Freeze an isolated provider client without requiring another provider's credentials."""
-        config = config or self.config
-        if config.rewrite_provider == "litellm":
-            return LiteLLMClient(config.litellm_base_url, config.litellm_api_key_env, config.litellm_model)
-        return CodexAppServerClient(**options)
+        return rewrite_client(
+            config or self.config,
+            request_timeout_seconds=request_timeout_seconds,
+            turn_timeout_seconds=turn_timeout_seconds,
+        )
 
     def _apply_workspace_settings(self, changes: dict) -> bool:
         """Persist UI choices to the shared dotfile and replace idle provider transports."""
@@ -1134,7 +1043,7 @@ class MluvaApplication(Adw.Application):
 
         threading.Thread(target=load, name="rewrite-models", daemon=True).start()
 
-    def _rewrite_models_loaded(self, client: CodexAppServerClient, models: list[CodexModel] | None) -> bool:
+    def _rewrite_models_loaded(self, client: RewriteClient, models: list[CodexModel] | None) -> bool:
         """Discard stale discovery after shutdown and let the picker recover from offline Codex."""
         if self.shutting_down or client is not self.model_catalog_client:
             return GLib.SOURCE_REMOVE
@@ -1208,12 +1117,7 @@ class MluvaApplication(Adw.Application):
                 entry.identifier,
                 instruction,
                 prompt,
-                (
-                    self.config.litellm_model
-                    if self.config.rewrite_provider == "litellm"
-                    else self.config.rewrite_model or self.config.codex_model
-                ),
-                self.config.rewrite_fast_mode if self.config.rewrite_provider == "codex" else False,
+                self.config,
                 time.monotonic(),
             ),
             name="conversation-rewrite",
@@ -1322,12 +1226,11 @@ class MluvaApplication(Adw.Application):
 
     def _rewrite_worker(
         self,
-        client: CodexAppServerClient,
+        client: RewriteClient,
         identifier: str,
         instruction: str,
         prompt: str,
-        configured_model: str | None,
-        fast_mode: bool,
+        config: AppConfig,
         started_at: float,
     ) -> None:
         """Resolve and run the model away from GTK, leaving durable writes to the completion gate."""
@@ -1350,33 +1253,19 @@ class MluvaApplication(Adw.Application):
                 GLib.idle_add(self._rewrite_progress, client, identifier, "".join(parts))
 
         try:
-            model = (
-                CodexModel(configured_model, configured_model, configured_model, True)
-                if isinstance(client, LiteLLMClient) and configured_model
-                else select_model(client.list_models(), configured_model)
-            )
-            if fast_mode and model.fast_tier is None:
-                failure_message = "Fast mode is unavailable for this model. Turn it off or choose another model."
-                raise ValueError("Unsupported rewrite service tier")
-            result = client.transform(
-                prompt,
-                self.codex_workspace,
-                model.identifier,
-                max_output_characters=MAX_REWRITE_CHARACTERS,
-                on_delta=progress,
-                effort=model.rewrite_effort,
-                service_tier=model.fast_tier if fast_mode else "default",
-            )
+            result = rewrite_text(client, config, prompt, self.codex_workspace, on_delta=progress)
+        except UnsupportedRewriteSpeed as error:
+            GLib.idle_add(self._rewrite_finished, client, identifier, instruction, "", "", None, str(error))
         except Exception:
             GLib.idle_add(self._rewrite_finished, client, identifier, instruction, "", "", None, failure_message)
         else:
             GLib.idle_add(
-                self._rewrite_finished, client, identifier, instruction, result, model.identifier, first_text_seconds
+                self._rewrite_finished, client, identifier, instruction, result.text, result.model, first_text_seconds
             )
         finally:
             client.close()
 
-    def _rewrite_progress(self, client: CodexAppServerClient, identifier: str, text: str) -> bool:
+    def _rewrite_progress(self, client: RewriteClient, identifier: str, text: str) -> bool:
         """Display only the active stream, discarding queued updates after cancellation or privacy changes."""
         if (
             self.shutting_down
@@ -1406,7 +1295,7 @@ class MluvaApplication(Adw.Application):
 
     def _rewrite_finished(
         self,
-        client: CodexAppServerClient,
+        client: RewriteClient,
         identifier: str,
         instruction: str,
         result: str,
@@ -2228,6 +2117,14 @@ class MluvaApplication(Adw.Application):
         self.history_store.initialize()
         self.conversation_store = ConversationStore(self.history_store)
         self.conversation_store.initialize()
+        self.title_jobs = ConversationTitleJobs(
+            self.history_store,
+            self.codex_workspace,
+            get_config=lambda: self.config,
+            get_instructions=lambda: self.prompt_store.read("title").text,
+            changed=self._refresh_conversation_title,
+            dispatch=GLib.idle_add,
+        )
         self.meeting_store = MeetingStore(self.data_directory / "meetings" / "meetings.json")
         self.scratchpad_store = ScratchpadDraftStore(self.data_directory / "scratchpad-draft.json")
         self.diagnostics_store = DiagnosticsStore(self.data_directory / "diagnostics.sqlite3")

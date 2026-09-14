@@ -25,8 +25,8 @@ def exercise(application: MluvaApplication) -> None:
     workspace.copy_text = copies.append
     source = application.history_store.add("Lifecycle source", "Lifecycle source", "dictation", "eng", None, "copied")
     workspace.show_conversation(source, [])
-    client_factory = lambda: CodexAppServerClient(  # noqa: E731
-        command=(sys.executable, str(Path(__file__).with_name("fake_app_server.py")), "--conversation")
+    client_factory = lambda **options: CodexAppServerClient(  # noqa: E731
+        command=(sys.executable, str(Path(__file__).with_name("fake_app_server.py")), "--conversation"), **options
     )
 
     def settle() -> None:
@@ -37,7 +37,7 @@ def exercise(application: MluvaApplication) -> None:
             time.sleep(0.01)
         assert application.rewrite_client is None, "Synthetic rewrite timed out"
 
-    with patch("mluva_linux.app.CodexAppServerClient", side_effect=client_factory):
+    with patch("mluva_linux.rewriting.CodexAppServerClient", side_effect=client_factory):
         workspace.prompt.get_buffer().set_text("A follow-up typed before Quick Polish")
         application._request_rewrite(QUICK_POLISH)
         settle()
@@ -138,7 +138,7 @@ def exercise(application: MluvaApplication) -> None:
     assert states[-1].phase == "error" and "Microphone" in states[-1].detail
 
     workspace.show_conversation(source, replies)
-    with patch("mluva_linux.app.CodexAppServerClient", side_effect=client_factory):
+    with patch("mluva_linux.rewriting.CodexAppServerClient", side_effect=client_factory):
         application._request_rewrite("Must not persist after privacy changes")
         with patch("mluva_linux.app.save_config", side_effect=OSError("Fixture read-only settings")):
             application.incognito_switch.set_active(True)
@@ -207,7 +207,7 @@ def exercise_widget_review(application: MluvaApplication) -> None:
         )
         return workspace.rewrite_preview_text
 
-    def client_factory() -> CodexAppServerClient:
+    def client_factory(**options) -> CodexAppServerClient:
         """Hold the fake's first delta until the test has observed the streaming state."""
         completion_gate.unlink(missing_ok=True)
         return CodexAppServerClient(
@@ -217,11 +217,12 @@ def exercise_widget_review(application: MluvaApplication) -> None:
                 "--conversation",
                 "--completion-gate",
                 str(completion_gate),
-            )
+            ),
+            **options,
         )
 
     with (
-        patch("mluva_linux.app.CodexAppServerClient", side_effect=client_factory) as factory,
+        patch("mluva_linux.rewriting.CodexAppServerClient", side_effect=client_factory) as factory,
         patch("mluva_linux.app.deliver_text") as clipboard,
     ):
         action("rewrite", "polish", elsewhere.identifier)

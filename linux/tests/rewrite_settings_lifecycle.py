@@ -36,7 +36,7 @@ def exercise_rewrite_settings(application: MluvaApplication) -> None:
             time.sleep(0.01)
         assert application.model_catalog_client is None and application.rewrite_client is None
 
-    with patch("mluva_linux.app.CodexAppServerClient", side_effect=factory):
+    with patch("mluva_linux.rewriting.CodexAppServerClient", side_effect=factory):
         application._load_rewrite_models()
         settle()
         assert settings.model_row.get_sensitive()
@@ -74,14 +74,14 @@ def exercise_rewrite_settings(application: MluvaApplication) -> None:
         assert not application.config.rewrite_fast_mode and not settings.fast_row.get_sensitive()
 
     with patch(
-        "mluva_linux.app.CodexAppServerClient",
+        "mluva_linux.rewriting.CodexAppServerClient",
         return_value=CodexAppServerClient(command=("mluva-synthetic-missing-codex",)),
     ):
         application._load_rewrite_models()
         settle()
     assert "Could not load models" in settings.status.get_label()
     assert application.config.rewrite_model == "gpt-5.4-mini"
-    with patch("mluva_linux.app.CodexAppServerClient", side_effect=factory):
+    with patch("mluva_linux.rewriting.CodexAppServerClient", side_effect=factory):
         application._load_rewrite_models()
         settle()
     assert "Could not load" not in settings.status.get_label()
