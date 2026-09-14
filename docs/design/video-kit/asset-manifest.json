@@ -1,8 +1,8 @@
 {
-  "schema": "mluva-video-kit-assets-v2",
+  "schema": "mluva-video-kit-assets-v3",
   "checkedAt": "2026-09-14",
-  "productBaseline": "fbd793e9d70218a43a5f9d21dd324bca67619673",
-  "implementationBranch": "feat/mluva-video-brief",
+  "productBaseline": "a4cf1a6037c1fd81f9742a14997c3cbf233265a3",
+  "implementationBranch": "feat/mluva-live-stability-logo-study",
   "figma": {
     "fileKey": "4mdtod74gknaCCm8q1nrDj",
     "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj",
@@ -55,6 +55,18 @@
       {
         "id": "3:12",
         "name": "Delivery"
+      },
+      {
+        "id": "150:11",
+        "name": "Logo Study"
+      },
+      {
+        "id": "153:1672",
+        "name": "Breathing Mark"
+      },
+      {
+        "id": "155:11",
+        "name": "Breathing Motion"
       }
     ],
     "directory": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=69-558"
@@ -67,14 +79,14 @@
     "status": "Reviewed production kit; assembled film and final sound mix are subsequent production."
   },
   "tokens": {
-    "total": 120,
-    "primitiveColors": 42,
+    "total": 121,
+    "primitiveColors": 44,
     "semanticColors": 19,
     "semanticAliases": 57,
     "collections": 6,
     "textStyles": 5
   },
-  "componentCount": 60,
+  "componentCount": 81,
   "nativeSymbolCount": 10,
   "componentFamilies": [
     {
@@ -265,7 +277,7 @@
         },
         "Usage#74:2": {
           "type": "TEXT",
-          "defaultValue": "Start with the storyboard. Edit masters in Brand, Controls, Recorder, Workspace and Settings. Motion contains eight playable studies. Canvas positions refresh with reflow-canvas.mjs; timing edits refresh with retime-motion.mjs."
+          "defaultValue": "Start with Storyboard. Edit shared masters in Brand, Controls, Recorder, Workspace and Settings. Compare ten directions in Logo Study; study the living light in Breathing Mark and Breathing Motion. Refresh canvas positions with reflow-canvas.mjs and timing with retime-motion.mjs."
         }
       }
     },
@@ -293,7 +305,7 @@
       "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=85-1893",
       "width": 1920,
       "height": 1080,
-      "purpose": "Mixkit: Close-Up of Lagoon Ripples (101181), Free Stock Video License. 10 s seamless crossfade loop. Animated GIF is an editable-file proxy; the full-HD MP4 is the production source. Source and license links are in Delivery.",
+      "purpose": "Mixkit Close-Up of Lagoon Ripples (101181), Stock Video Free License. This editable master uses the full-resolution poster. The supplied 10-second seamless MP4 is the film source; source and license links are in Delivery.",
       "properties": {}
     },
     {
@@ -692,6 +704,28 @@
       "properties": {}
     },
     {
+      "name": "Screen / Live / Waiting for speech",
+      "nodeId": "168:847",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=168-847",
+      "width": 1120,
+      "height": 800,
+      "purpose": "The Live draft pane appears before the first provider response. Original dictation begins at the top; the filled Live state keeps this geometry.",
+      "properties": {
+        "Show original#105:0": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show draft#105:1": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show divider#105:2": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        }
+      }
+    },
+    {
       "name": "Commands / Surface",
       "nodeId": "134:846",
       "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=134-846",
@@ -834,6 +868,186 @@
       "height": 1080,
       "purpose": "Actual Omarchy Rosé Pine palette and compositor borders. Theme names are three examples of arbitrary theme support. Production Color singleton receives the same shell.applyTheme payload in the separate capture fixture.",
       "properties": {}
+    },
+    {
+      "name": "Study mark / Brimming Tide",
+      "nodeId": "151:18",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-18",
+      "width": 280,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study.",
+      "properties": {}
+    },
+    {
+      "name": "Study wordmark / Brimming Tide",
+      "nodeId": "151:19",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-19",
+      "width": 984,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study. Keep this master&#39;s aspect ratio when resizing.",
+      "properties": {}
+    },
+    {
+      "name": "Study mark / Open Syllable",
+      "nodeId": "151:66",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-66",
+      "width": 280,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study.",
+      "properties": {}
+    },
+    {
+      "name": "Study wordmark / Open Syllable",
+      "nodeId": "151:67",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-67",
+      "width": 984,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study. Keep this master&#39;s aspect ratio when resizing.",
+      "properties": {}
+    },
+    {
+      "name": "Study mark / Soft Turn",
+      "nodeId": "151:1676",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-1676",
+      "width": 280,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study.",
+      "properties": {}
+    },
+    {
+      "name": "Study wordmark / Soft Turn",
+      "nodeId": "151:1677",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-1677",
+      "width": 984,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study. Keep this master&#39;s aspect ratio when resizing.",
+      "properties": {}
+    },
+    {
+      "name": "Study mark / PAIRED RESONANCE",
+      "nodeId": "151:1724",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-1724",
+      "width": 280,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study.",
+      "properties": {}
+    },
+    {
+      "name": "Study wordmark / PAIRED RESONANCE",
+      "nodeId": "151:1725",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-1725",
+      "width": 984,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study. Keep this master&#39;s aspect ratio when resizing.",
+      "properties": {}
+    },
+    {
+      "name": "Study mark / WORD SPRING",
+      "nodeId": "152:18",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=152-18",
+      "width": 280,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study.",
+      "properties": {}
+    },
+    {
+      "name": "Study wordmark / WORD SPRING",
+      "nodeId": "152:19",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=152-19",
+      "width": 984,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study. Keep this master&#39;s aspect ratio when resizing.",
+      "properties": {}
+    },
+    {
+      "name": "Study mark / BREATHING APERTURE",
+      "nodeId": "152:66",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=152-66",
+      "width": 280,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study.",
+      "properties": {}
+    },
+    {
+      "name": "Study wordmark / BREATHING APERTURE",
+      "nodeId": "152:67",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=152-67",
+      "width": 984,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study. Keep this master&#39;s aspect ratio when resizing.",
+      "properties": {}
+    },
+    {
+      "name": "Study mark / SOFT M",
+      "nodeId": "153:18",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-18",
+      "width": 280,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study.",
+      "properties": {}
+    },
+    {
+      "name": "Study wordmark / SOFT M",
+      "nodeId": "153:19",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-19",
+      "width": 984,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study. Keep this master&#39;s aspect ratio when resizing.",
+      "properties": {}
+    },
+    {
+      "name": "Study mark / UNFURLING VOICE",
+      "nodeId": "153:66",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-66",
+      "width": 280,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study.",
+      "properties": {}
+    },
+    {
+      "name": "Study wordmark / UNFURLING VOICE",
+      "nodeId": "153:67",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-67",
+      "width": 984,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study. Keep this master&#39;s aspect ratio when resizing.",
+      "properties": {}
+    },
+    {
+      "name": "Study mark / CURRENT TO CURSOR",
+      "nodeId": "153:1724",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-1724",
+      "width": 280,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study.",
+      "properties": {}
+    },
+    {
+      "name": "Study wordmark / CURRENT TO CURSOR",
+      "nodeId": "153:1725",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-1725",
+      "width": 984,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study. Keep this master&#39;s aspect ratio when resizing.",
+      "properties": {}
+    },
+    {
+      "name": "Study mark / QUIET VESSEL",
+      "nodeId": "153:1772",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-1772",
+      "width": 280,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study.",
+      "properties": {}
+    },
+    {
+      "name": "Study wordmark / QUIET VESSEL",
+      "nodeId": "153:1773",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-1773",
+      "width": 984,
+      "height": 280,
+      "purpose": "Generated transparent raster study; crop normalizes optical size. Original alpha PNG and independently revised concept are in docs/design/logo-study. Keep this master&#39;s aspect ratio when resizing.",
+      "properties": {}
     }
   ],
   "screens": [
@@ -925,6 +1139,28 @@
       "height": 800,
       "purpose": "Production view. Shared pane, control, type and theme variables. Use instances in storyboards; edit this master to propagate the screen layout.",
       "properties": {}
+    },
+    {
+      "name": "Screen / Live / Waiting for speech",
+      "nodeId": "168:847",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=168-847",
+      "width": 1120,
+      "height": 800,
+      "purpose": "The Live draft pane appears before the first provider response. Original dictation begins at the top; the filled Live state keeps this geometry.",
+      "properties": {
+        "Show original#105:0": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show draft#105:1": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        },
+        "Show divider#105:2": {
+          "type": "BOOLEAN",
+          "defaultValue": true
+        }
+      }
     },
     {
       "name": "Screen / Settings / Providers",
@@ -1096,7 +1332,7 @@
       "end": 33,
       "voice": "Done talking? Edit it, polish it, rewrite it.",
       "action": "Open Ctrl+P, choose Polish text, show the changed words, then return to the finished result.",
-      "motion": "Speed up the result animation. Removed text fades in 120 ms, inserted words in 220 ms; stable words stay put.",
+      "motion": "Speed up the result animation. Speech arrives immediately at full opacity; existing-word corrections may settle upward by 3 px in 180 ms. Native GTK replaces them immediately.",
       "sectionId": "52:1439",
       "frameId": "52:1440",
       "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=52-1440"
@@ -1164,37 +1400,26 @@
   ],
   "motions": [
     {
-      "name": "Recorder / Empty to overflow",
-      "nodeId": "30:27",
-      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=30-27",
-      "durationSeconds": 8,
+      "name": "Breathing light / Blender study",
+      "nodeId": "99:162",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=99-162",
+      "durationSeconds": 6.8,
       "width": 1280,
       "height": 720,
-      "animatedNodes": 68,
-      "tracks": 70,
-      "boundary": "Authored constant-cadence example. Production app estimates recent speech rate; timing is not a latency claim."
+      "animatedNodes": 102,
+      "tracks": 102,
+      "boundary": "All 102 alpha poses are shown one at a time. Film uses the continuous 30 fps WebM; the app uses a lightweight harmonic contour."
     },
     {
-      "name": "Rewrite / Changed words",
-      "nodeId": "32:11",
-      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=32-11",
-      "durationSeconds": 5,
+      "boundary": "102 Blender poses reproduce one 3.4-second breath; two cycles in the native Figma timeline.",
+      "name": "Breathing / Circular endpoints",
+      "nodeId": "155:16",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=155-16",
+      "durationSeconds": 6.8,
       "width": 1280,
       "height": 720,
-      "animatedNodes": 4,
-      "tracks": 4,
-      "boundary": "An explicit spoken Tuesday-to-Wednesday correction. Local previous/current diff; no provider patch protocol."
-    },
-    {
-      "name": "Grilling / Answer and advance",
-      "nodeId": "34:11",
-      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=34-11",
-      "durationSeconds": 6,
-      "width": 1280,
-      "height": 720,
-      "animatedNodes": 4,
-      "tracks": 5,
-      "boundary": "Experimental Grilling example; retained answer and confirmed requirement persist."
+      "animatedNodes": 102,
+      "tracks": 102
     },
     {
       "name": "Desktop / Float to tile",
@@ -1219,15 +1444,15 @@
       "boundary": "Editable camera motion on a full-resolution water poster. Use the supplied licensed MP4 for moving ripples."
     },
     {
-      "name": "Brand / Title reveal",
-      "nodeId": "39:139",
-      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=39-139",
-      "durationSeconds": 4,
-      "width": 1920,
-      "height": 1080,
-      "animatedNodes": 3,
-      "tracks": 6,
-      "boundary": "Original abstract thought mark and custom JetBrains Mono outlined wordmark."
+      "name": "Recorder / Empty to overflow",
+      "nodeId": "30:27",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=30-27",
+      "durationSeconds": 8,
+      "width": 1280,
+      "height": 720,
+      "animatedNodes": 169,
+      "tracks": 169,
+      "boundary": "Authored constant-cadence example. Production app estimates recent speech rate; timing is not a latency claim."
     },
     {
       "name": "Theme / Palette change",
@@ -1241,15 +1466,37 @@
       "boundary": "Editorial wipes between real capture palettes including borders. Three examples do not limit theme support."
     },
     {
-      "name": "Breathing light / Blender study",
-      "nodeId": "99:162",
-      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=99-162",
-      "durationSeconds": 6.8,
+      "name": "Brand / Title reveal",
+      "nodeId": "39:139",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=39-139",
+      "durationSeconds": 4,
+      "width": 1920,
+      "height": 1080,
+      "animatedNodes": 3,
+      "tracks": 6,
+      "boundary": "Original abstract thought mark and custom JetBrains Mono outlined wordmark."
+    },
+    {
+      "name": "Grilling / Answer and advance",
+      "nodeId": "34:11",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=34-11",
+      "durationSeconds": 6,
       "width": 1280,
       "height": 720,
       "animatedNodes": 4,
+      "tracks": 5,
+      "boundary": "Experimental Grilling example; retained answer and confirmed requirement persist."
+    },
+    {
+      "name": "Rewrite / Changed words",
+      "nodeId": "32:11",
+      "url": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=32-11",
+      "durationSeconds": 5,
+      "width": 1280,
+      "height": 720,
+      "animatedNodes": 3,
       "tracks": 4,
-      "boundary": "Four-pose Figma proxy. The editable Blender scene and transparent 30 fps asset provide continuous motion."
+      "boundary": "An explicit spoken Tuesday-to-Wednesday correction. Local previous/current diff; no provider patch protocol."
     }
   ],
   "examples": {
@@ -1266,12 +1513,13 @@
     "theme": "Modes recolor semantic vector/text bindings; runtime capture pixels do not recolor.",
     "opacity": "Figma uses percent values; source tokens also retain application-scale alpha.",
     "canvas": "reflow-canvas.mjs, one invocation per page; dry-run first.",
-    "motion": "retime-motion.mjs refreshes all 96 native tracks; dry-run first.",
-    "wordmark": "Outlined custom artwork; editable app/film text uses JetBrains Mono."
+    "motion": "retime-motion.mjs refreshes all 395 native tracks across both motion pages; dry-run first. Dedicated loop durations follow their period; editorial studies retain end holds and only extend.",
+    "wordmark": "Outlined custom artwork; editable app/film text uses JetBrains Mono.",
+    "latestStudy": "Logo Study: ten unselected directions and twenty raster masters. Preserve original PNGs. Keep wordmark aspect ratios when resizing; Figma crops normalize optical size."
   },
   "media": {
     "water": "Licensed 10 s 1080p / 24 fps MP4 supplied in private production handoff.",
-    "breath": "3.4 s 384×384 / 30 fps alpha WebM; editable breathing-light.blend and generator.",
+    "breath": "3.4 s, 384×384, 30 fps alpha WebM; 102 native Figma poses; circular collapsed/expanded endpoints. The source is an art-directed metaball surface.",
     "desktop": "8 s 2560×1440 / 30 fps actual Omarchy transition supplied in production handoff."
   }
 }

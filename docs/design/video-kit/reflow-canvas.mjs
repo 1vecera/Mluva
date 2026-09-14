@@ -105,6 +105,14 @@ export async function reflowMluvaCanvas(figma, { pageId, dryRun = true } = {}) {
   let top = margin;
   for (const guide of guides) { position(guide, margin, top); top += guide.height + gap; }
   const targets = page.children.filter((n) => !guides.includes(n) && !n.name.startsWith("Frame note / "));
-  pack(page, targets, margin, top, gap);
+  if (page.name === "Logo Study") {
+    const studies = [];
+    for (const target of targets) {
+      if (target.name.startsWith("Identity /") || target.name.startsWith("Comparison /")) {
+        position(target, margin, top); top += target.height + gap;
+      } else studies.push(target);
+    }
+    pack(page, studies, margin, top, gap);
+  } else pack(page, targets, margin, top, gap);
   return { pageId: page.id, dryRun, changes, createdNodeIds: [], mutatedNodeIds: dryRun ? [] : [...touched] };
 }

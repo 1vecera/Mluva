@@ -1,5 +1,6 @@
 """Verify every source token and asset against the captured native Figma read-back."""
 
+import hashlib
 import json
 import math
 from itertools import pairwise
@@ -106,7 +107,7 @@ def main():
         "Component drift",
     )
     require(
-        len(manifest["screens"]) == 12 and len(manifest["runtimeCaptures"]) == 6,
+        len(manifest["screens"]) == 13 and len(manifest["runtimeCaptures"]) == 6,
         "Screen inventory drift",
     )
     require(
@@ -125,7 +126,7 @@ def main():
             all(v["id"] in components for v in family["variants"]), "Missing variant"
         )
     require(
-        len(manifest["figma"]["pages"]) == len(snapshot["pages"]) == 12,
+        len(manifest["figma"]["pages"]) == len(snapshot["pages"]) == 15,
         "Page inventory drift",
     )
     require(len(manifest["storyboard"]) == 11, "Shot inventory drift")
@@ -158,7 +159,39 @@ def main():
                     0 <= times[0] <= times[-1] <= motion["duration"] + 1e-5,
                     "Keyframe outside timeline",
                 )
-    require(len(native) == 8 and tracks == 96, "Motion inventory drift")
+    require(len(native) == 9 and tracks == 395, "Motion inventory drift")
+    for root_id, prefix in (
+        ("30:27", "Recorder breath / Frame "),
+        ("99:162", "Blender / Frame "),
+        ("155:16", "Blender / Frame "),
+    ):
+        poses = [
+            n["tracks"]["OPACITY"]
+            for n in native[root_id]["animated"]
+            if n["name"].startswith(prefix)
+        ]
+        require(len(poses) == 102, "Incomplete breathing sequence")
+        times = sorted({t for pose in poses for t in pose["times"]})
+        probes = times + [(a + b) / 2 for a, b in pairwise(times)]
+        for time in probes:
+            values = [
+                next(
+                    v
+                    for t, v in reversed(
+                        list(zip(p["times"], p["values"], strict=True))
+                    )
+                    if t <= time
+                )
+                for p in poses
+            ]
+            require(
+                values.count(1) == 1 and values.count(0) == 101,
+                "Breathing sequence ghosts or disappears",
+            )
+        require(
+            all(set(p["easing"]) == {"HOLD"} for p in poses),
+            "Breathing poses crossfade",
+        )
     scroll = next(
         n
         for n in native["30:27"]["animated"]
@@ -185,6 +218,20 @@ def main():
         "Missing or inconsistent fonts",
     )
     require(not tests["overlaps"], "Canvas/section asset overlap")
+    require(not tests["containerIssues"], "Visible auto-layout content overflows")
+    study = tests["studyLayoutStress"]
+    require(
+        not study["overlaps"]
+        and not study["overruns"]
+        and not study["containerIssues"],
+        "Study layout variables break the page",
+    )
+    for asset in tests["studyProportions"]:
+        close(
+            asset["ratio"],
+            asset["target"]["x"] / asset["target"]["y"],
+            "Study aspect ratio",
+        )
     require(
         all(n["id"] in tests["intentionalOverflow"] for n in tests["textOverruns"]),
         "Unexplained clipping",
@@ -197,16 +244,63 @@ def main():
     require(
         tests["retimingStress"]["changedTracks"]
         == tests["retimingRestored"]["changedTracks"]
-        == 90,
+        == 374,
         "Stress drift",
     )
+    loop_test = tests["loopPeriodRoundTrip"]
+    require(
+        [phase["phase"] for phase in loop_test["phases"]]
+        == ["increase", "decrease", "restore"],
+        "Missing loop period boundary checks",
+    )
+    for phase in loop_test["phases"]:
+        require(
+            sum(p["inspectedTracks"] for p in phase["pages"]) == tracks,
+            "Incomplete loop retime",
+        )
+        for page in phase["pages"]:
+            for loop in page["loops"]:
+                close(loop["staticTail"], 0, "Loop has a frozen end hold")
+                require(
+                    loop["invalid"] == 0, "Loop has missing or overlapping opaque poses"
+                )
+    for page in loop_test["restored"]:
+        require(
+            not page["changedTracks"] and not page["timelineAdjustments"],
+            "Loop restore is not idempotent",
+        )
+        for loop in page["loops"]:
+            close(
+                loop["duration"],
+                native[loop["id"]]["duration"],
+                "Restored loop duration",
+            )
     require(
         all(not p["changes"] for p in tests["canvas"]),
         "Canvas refresh is not idempotent",
     )
     print(
-        f"PASS: {len(variables)} variables / 57 aliases; {len(components)} components; 12 screens + 6 captures; "
-        "11 contiguous shots; 8 timelines / 96 tracks; fonts, layout and native propagation evidence."
+        f"PASS: {len(variables)} variables / 57 aliases; {len(components)} components; 13 screens + 6 captures; "
+        "11 contiguous shots; 9 timelines / 395 tracks; fonts, layout and native propagation evidence."
+    )
+    study_dir = BASE.parent / "logo-study"
+    logos = json.loads((study_dir / "manifest.json").read_text())
+    require(
+        len(logos["assets"]) == 20 and len(logos["conceptAuthors"]) == 10,
+        "Logo study inventory drift",
+    )
+    for asset in logos["assets"]:
+        payload = (study_dir / asset["file"]).read_bytes()
+        require(
+            hashlib.sha256(payload).hexdigest() == asset["sha256"],
+            "Logo source hash drift",
+        )
+        require(
+            payload[25] == 6 and asset["alphaExtrema"][0] == 0,
+            "Logo is not RGBA with transparency",
+        )
+    print(
+        "PASS: 10 independent concepts, 20 unchanged transparent PNGs, complete opaque breathing pose sequences."
     )
     print(
         "This verifies the captured snapshot; it does not fetch the current Figma file."

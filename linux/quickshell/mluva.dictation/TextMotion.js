@@ -47,10 +47,10 @@ function escapeText(text) {
         .replace(/\n/g, "<br>").replace(/ {2,}/g, spaces => " " + "&#160;".repeat(spaces.length - 1));
 }
 
-function styled(text, differences, old, alpha, ink) {
+function styled(text, differences, old, alpha, ink, onlyChanged) {
     const rgb = [ink.r, ink.g, ink.b].map(value => Math.round(value * 255).toString(16).padStart(2, "0")).join("");
     const changed = "#" + Math.round(Math.max(0, Math.min(1, alpha)) * 255).toString(16).padStart(2, "0") + rgb;
-    const stable = old ? "#00" + rgb : "#ff" + rgb;
+    const stable = old || onlyChanged ? "#00" + rgb : "#ff" + rgb;
     let html = "", cursor = 0;
     for (const diff of differences) {
         const start = diff[old ? 0 : 2], end = diff[old ? 1 : 3];

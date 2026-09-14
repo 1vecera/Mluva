@@ -90,18 +90,13 @@ def main() -> None:
             original = "Move it to Tuesday. Keep this middle sentence. Thanks, Alex."
             changed = "Move it to Wednesday. Keep this middle sentence. Cheers, Alex."
             workspace.show_live_draft(original)
-            settle(lambda: workspace.live_draft_text._revision_tick == 0)
             workspace.show_live_draft(changed)
             assert workspace.live_draft_text.get_text() == changed
-            assert workspace.live_draft_text._revision_tick
-            settle(lambda: workspace.live_draft_text._revision_tick == 0)
-            assert not workspace.live_draft_text._removed_runs
             workspace.show_live_draft(original)
             buffer = workspace.live_draft_text.get_buffer()
             buffer.insert(buffer.get_end_iter(), " My edit.")
-            assert workspace.live_draft_text._revision_tick == 0
             assert workspace.live_draft_text.get_text() == original + " My edit."
-            checks.append("Diff animation keeps exact source immediately and cancels on manual edits")
+            checks.append("Revisions keep exact source immediately and preserve subsequent manual edits")
             Gtk.Settings.get_default().set_property("gtk-enable-animations", False)
             workspace.set_live("00:40", source * 8)
             adjustment = workspace.live_scroll.get_vadjustment()

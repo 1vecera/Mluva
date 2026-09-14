@@ -58,10 +58,8 @@ FloatingWindow {
     property bool following: true
     property var speechSamples: []
     property int speechHighWater: 0
-    property string previousPreview: ""
     property var revisionChanges: []
     property real revisionProgress: 1
-    property real previousY: 0
     readonly property string status: ({"preparing": "Preparing microphone…", "recording": "Recording",
         "processing": "Transcribing…", "error": "Dictation failed · open Mluva"})[phase] || ""
     readonly property string timer: Math.floor(elapsed / 60).toString().padStart(2, "0")
@@ -122,9 +120,10 @@ FloatingWindow {
         displayedStart = previewStart;
         displayedIdentifier = identifier;
         revisionAnimation.stop();
-        previousY = transcript.y;
-        previousPreview = displayedPreview;
-        revisionChanges = removed === 0 && continuous ? TextMotion.changes(displayedPreview, preview) : [];
+        // New speech is immediate. Only an existing-word correction may settle
+        // by three pixels, always at full opacity and without delaying the text.
+        revisionChanges = removed === 0 && continuous && !preview.startsWith(displayedPreview)
+            ? TextMotion.changes(displayedPreview, preview) : [];
         displayedPreview = preview;
         revisionProgress = 1;
         if (revisionChanges.length && smoothScrolling && scrollDuration > 0 && root.visible) {
@@ -268,7 +267,8 @@ FloatingWindow {
         property: "revisionProgress"
         from: 0
         to: 1
-        duration: 340
+        duration: 180
+        easing.type: Easing.OutCubic
     }
 
     Timer {
@@ -389,16 +389,22 @@ FloatingWindow {
                         }
                     }
                     Text {
-                        visible: root.revisionProgress < 120 / 340
+                        visible: root.revisionProgress < 1
                         width: parent.width
-                        y: root.previousY
-                        text: TextMotion.styled(root.previousPreview, root.revisionChanges, true,
-                            1 - root.revisionProgress * 340 / 120, Color.popups.text)
+                        y: transcript.y + 3 * (1 - root.revisionProgress)
+                        text: TextMotion.styled(root.displayedPreview, root.revisionChanges, false,
+                            1, Color.popups.text, true)
                         font: transcript.font
                         wrapMode: Text.Wrap
                         lineHeightMode: Text.FixedHeight
                         lineHeight: root.lineHeight
                         textFormat: Text.StyledText
+                        onLineLaidOut: line => {
+                            if (line.number === 0 && root.leadingIndent > 0) {
+                                line.x = effectiveHorizontalAlignment === Text.AlignRight ? 0 : root.leadingIndent;
+                                line.width = width - root.leadingIndent;
+                            }
+                        }
                     }
                     Text {
                         id: transcript
@@ -416,7 +422,7 @@ FloatingWindow {
                         y: previewMotion.offset + root.discardedHeight + root.revisionInset
                         text: root.revisionProgress < 1
                             ? TextMotion.styled(root.displayedPreview, root.revisionChanges, false,
-                                (root.revisionProgress * 340 - 120) / 220, Color.popups.text) : root.displayedPreview
+                                0, Color.popups.text) : root.displayedPreview
                         color: Color.popups.text
                         font.family: mono.name
                         font.pixelSize: root.textSize
