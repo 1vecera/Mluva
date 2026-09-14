@@ -247,6 +247,34 @@ def main():
         == 374,
         "Stress drift",
     )
+    loop_test = tests["loopPeriodRoundTrip"]
+    require(
+        [phase["phase"] for phase in loop_test["phases"]]
+        == ["increase", "decrease", "restore"],
+        "Missing loop period boundary checks",
+    )
+    for phase in loop_test["phases"]:
+        require(
+            sum(p["inspectedTracks"] for p in phase["pages"]) == tracks,
+            "Incomplete loop retime",
+        )
+        for page in phase["pages"]:
+            for loop in page["loops"]:
+                close(loop["staticTail"], 0, "Loop has a frozen end hold")
+                require(
+                    loop["invalid"] == 0, "Loop has missing or overlapping opaque poses"
+                )
+    for page in loop_test["restored"]:
+        require(
+            not page["changedTracks"] and not page["timelineAdjustments"],
+            "Loop restore is not idempotent",
+        )
+        for loop in page["loops"]:
+            close(
+                loop["duration"],
+                native[loop["id"]]["duration"],
+                "Restored loop duration",
+            )
     require(
         all(not p["changes"] for p in tests["canvas"]),
         "Canvas refresh is not idempotent",

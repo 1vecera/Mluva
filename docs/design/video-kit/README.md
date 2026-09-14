@@ -40,7 +40,7 @@ await retimeMluvaMotion(figma, { pageName: "Breathing Motion" });
 
 Recorder overflow reveals 66 words in seven naturally wrapped lines and moves only forward. The app predicts scrolling from recent speech rate; Figma uses an authored cadence. New dictation appears immediately at full opacity. Native GTK replaces changed ranges without an overlay; the widget may move only existing-word corrections upward by 3 px over 180 ms. Unchanged text stays stable. Live starts with both panes visible and fresh dictation at the top. The spoken correction changes Tuesday to Wednesday; Polish preserves Tuesday. Grilling retains the answer while replacing its question.
 
-The retimer handles every native track, preserving keyframe identities, easing and end holds, and extending timelines only when necessary. The latest period, correction duration and word-cadence stress test updated 374 tracks across both motion pages; restoring defaults left a zero-change dry run. Three layout variables also changed together without overlap or overflow. The PR #31 baseline’s eleven fresh-instance checks exercised width, padding, controls, icons, sidebar, content, pane visibility, typography and opacity. All 57 semantic aliases resolved across three modes. A recorder-width stress pass also reflowed all eight variants without overlaps.
+The retimer handles every native track, preserving keyframe identities and easing while enforcing opaque word reveals and 3 px correction motion. The dedicated breathing and water loop durations follow their period when it grows or shrinks; the helper refuses to shorten a loop containing unmanaged keyframes or animation styles. Editorial studies retain their end holds and only extend, so restoring timing variables restores their keyframes but leaves any longer editorial duration for manual trimming. Review `timelineAdjustments` in the dry run before applying. The period, correction duration and word-cadence stress test updated 374 tracks across both motion pages; restoring defaults left a zero-change dry run. Three layout variables also changed together without overlap or overflow. The PR #31 baseline’s eleven fresh-instance checks exercised width, padding, controls, icons, sidebar, content, pane visibility, typography and opacity. All 57 semantic aliases resolved across three modes. A recorder-width stress pass also reflowed all eight variants without overlaps.
 
 The connector cannot import native video, and its GIF renderer did not display the animation. Water therefore uses a full-resolution poster and editable camera motion in Figma. Use the privately supplied licensed 10-second 1080p/24 fps MP4 for actual ripples. The Figma breathing studies use all 102 rendered poses, one fully opaque image at a time; its transparent 384×384/30 fps WebM supplies the continuous loop. The desktop timeline crossfades captured endpoints; the separate 8-second 1440p/30 fps MP4 contains actual Omarchy compositor movement.
 
@@ -59,6 +59,7 @@ Use a fresh background Blender 5.2 process. The generator refuses to replace an 
 ```sh
 uv run --no-project python docs/design/video-kit/verify.py
 node --check docs/design/video-kit/retime-motion.mjs
+node --test docs/design/video-kit/retime-motion.test.mjs
 node --check docs/design/video-kit/reflow-canvas.mjs
 git diff --check
 ```

@@ -17308,6 +17308,278 @@
           "y": 280
         }
       }
-    ]
+    ],
+    "loopPeriodRoundTrip": {
+      "reviewer": {
+        "model": "Muse Spark 1.3 Contributor",
+        "provider": "OpenCode Go",
+        "effort": "xhigh"
+      },
+      "phases": [
+        {
+          "phase": "increase",
+          "pages": [
+            {
+              "page": "Motion",
+              "inspectedTracks": 293,
+              "changedTracks": 206,
+              "timelineAdjustments": [
+                {
+                  "nodeId": "37:306",
+                  "duration": 12,
+                  "previousDuration": 10
+                },
+                {
+                  "nodeId": "99:162",
+                  "duration": 7.6,
+                  "previousDuration": 6.8
+                }
+              ],
+              "loops": [
+                {
+                  "id": "37:306",
+                  "name": "Background / Water loop",
+                  "duration": 12,
+                  "lastKeyframe": 12,
+                  "staticTail": 0,
+                  "poses": 0,
+                  "probes": 0,
+                  "invalid": 0
+                },
+                {
+                  "id": "99:162",
+                  "name": "Breathing light / Blender study",
+                  "duration": 7.6,
+                  "lastKeyframe": 7.6,
+                  "staticTail": 0,
+                  "poses": 102,
+                  "probes": 409,
+                  "invalid": 0
+                }
+              ]
+            },
+            {
+              "page": "Breathing-Motion",
+              "inspectedTracks": 102,
+              "changedTracks": 102,
+              "timelineAdjustments": [
+                {
+                  "nodeId": "155:16",
+                  "duration": 7.6,
+                  "previousDuration": 6.8
+                }
+              ],
+              "loops": [
+                {
+                  "id": "155:16",
+                  "name": "Breathing / Circular endpoints",
+                  "duration": 7.6,
+                  "lastKeyframe": 7.6,
+                  "staticTail": 0,
+                  "poses": 102,
+                  "probes": 409,
+                  "invalid": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "phase": "decrease",
+          "pages": [
+            {
+              "page": "Motion",
+              "inspectedTracks": 293,
+              "changedTracks": 206,
+              "timelineAdjustments": [
+                {
+                  "nodeId": "37:306",
+                  "duration": 6,
+                  "previousDuration": 12
+                },
+                {
+                  "nodeId": "99:162",
+                  "duration": 4,
+                  "previousDuration": 7.6
+                }
+              ],
+              "loops": [
+                {
+                  "id": "37:306",
+                  "name": "Background / Water loop",
+                  "duration": 6,
+                  "lastKeyframe": 6,
+                  "staticTail": 0,
+                  "poses": 0,
+                  "probes": 0,
+                  "invalid": 0
+                },
+                {
+                  "id": "99:162",
+                  "name": "Breathing light / Blender study",
+                  "duration": 4,
+                  "lastKeyframe": 4,
+                  "staticTail": 0,
+                  "poses": 102,
+                  "probes": 409,
+                  "invalid": 0
+                }
+              ]
+            },
+            {
+              "page": "Breathing-Motion",
+              "inspectedTracks": 102,
+              "changedTracks": 102,
+              "timelineAdjustments": [
+                {
+                  "nodeId": "155:16",
+                  "duration": 4,
+                  "previousDuration": 7.6
+                }
+              ],
+              "loops": [
+                {
+                  "id": "155:16",
+                  "name": "Breathing / Circular endpoints",
+                  "duration": 4,
+                  "lastKeyframe": 4,
+                  "staticTail": 0,
+                  "poses": 102,
+                  "probes": 409,
+                  "invalid": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "phase": "restore",
+          "pages": [
+            {
+              "page": "Motion",
+              "inspectedTracks": 293,
+              "changedTracks": 206,
+              "timelineAdjustments": [
+                {
+                  "nodeId": "37:306",
+                  "duration": 10,
+                  "previousDuration": 6
+                },
+                {
+                  "nodeId": "99:162",
+                  "duration": 6.8,
+                  "previousDuration": 4
+                }
+              ],
+              "loops": [
+                {
+                  "id": "37:306",
+                  "name": "Background / Water loop",
+                  "duration": 10,
+                  "lastKeyframe": 10,
+                  "staticTail": 0,
+                  "poses": 0,
+                  "probes": 0,
+                  "invalid": 0
+                },
+                {
+                  "id": "99:162",
+                  "name": "Breathing light / Blender study",
+                  "duration": 6.8,
+                  "lastKeyframe": 6.8,
+                  "staticTail": 0,
+                  "poses": 102,
+                  "probes": 409,
+                  "invalid": 0
+                }
+              ]
+            },
+            {
+              "page": "Breathing-Motion",
+              "inspectedTracks": 102,
+              "changedTracks": 102,
+              "timelineAdjustments": [
+                {
+                  "nodeId": "155:16",
+                  "duration": 6.8,
+                  "previousDuration": 4
+                }
+              ],
+              "loops": [
+                {
+                  "id": "155:16",
+                  "name": "Breathing / Circular endpoints",
+                  "duration": 6.8,
+                  "lastKeyframe": 6.8,
+                  "staticTail": 0,
+                  "poses": 102,
+                  "probes": 409,
+                  "invalid": 0
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "restored": [
+        {
+          "dryRun": true,
+          "inspectedTracks": 293,
+          "changedTracks": 0,
+          "changesTruncated": false,
+          "changes": [],
+          "timelineAdjustments": [],
+          "timelineExtensions": [],
+          "createdNodeIds": [],
+          "mutatedNodeIds": [],
+          "loops": [
+            {
+              "id": "37:306",
+              "name": "Background / Water loop",
+              "duration": 10,
+              "lastKeyframe": 10,
+              "staticTail": 0,
+              "poses": 0,
+              "probes": 0,
+              "invalid": 0
+            },
+            {
+              "id": "99:162",
+              "name": "Breathing light / Blender study",
+              "duration": 6.8,
+              "lastKeyframe": 6.8,
+              "staticTail": 0,
+              "poses": 102,
+              "probes": 409,
+              "invalid": 0
+            }
+          ]
+        },
+        {
+          "dryRun": true,
+          "inspectedTracks": 102,
+          "changedTracks": 0,
+          "changesTruncated": false,
+          "changes": [],
+          "timelineAdjustments": [],
+          "timelineExtensions": [],
+          "createdNodeIds": [],
+          "mutatedNodeIds": [],
+          "loops": [
+            {
+              "id": "155:16",
+              "name": "Breathing / Circular endpoints",
+              "duration": 6.8,
+              "lastKeyframe": 6.8,
+              "staticTail": 0,
+              "poses": 102,
+              "probes": 409,
+              "invalid": 0
+            }
+          ]
+        }
+      ],
+      "verifiedBy": "Codex, 2026-09-14, live Figma Plugin API"
+    }
   }
 }

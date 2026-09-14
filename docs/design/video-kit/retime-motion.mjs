@@ -1,6 +1,8 @@
 /** Apply the Motion collection to the existing native Figma tracks.
  * Load figma-use and figma-use-motion; run the exported function through use_figma.
- * Dry-run by default. Existing keyframe identities, values and easing are retained.
+ * Dry-run by default. Keyframe identities and easing are retained; reveal/settle
+ * values enforce opaque words and a 3 px settle. Dedicated loops match their
+ * selected period; editorial studies retain their end holds and only extend.
  */
 export async function retimeMluvaMotion(figma, { pageName = "Motion", dryRun = true } = {}) {
   if (!["Motion", "Breathing Motion"].includes(pageName)) throw new Error("Choose a motion page");
@@ -24,6 +26,7 @@ export async function retimeMluvaMotion(figma, { pageName = "Motion", dryRun = t
   }
   const plans = [];
   const durations = new Map();
+  const loops = new Set();
   const root = (name) => {
     const matches = page.children.filter((n) => n.name === name);
     if (matches.length !== 1) throw new Error("Expected one study: " + name);
@@ -59,6 +62,7 @@ export async function retimeMluvaMotion(figma, { pageName = "Motion", dryRun = t
   };
   if (pageName === "Breathing Motion") {
     const breath = root("Breathing / Circular endpoints");
+    loops.add(breath);
     for (let frame = 1; frame <= 102; frame++) {
       plan(breath, "Blender / Frame " + frame, "OPACITY",
         poseTimes(frame));
@@ -92,6 +96,7 @@ export async function retimeMluvaMotion(figma, { pageName = "Motion", dryRun = t
     reveal(grill, "New requirement", 2);
     plan(root("Desktop / Float to tile"), "Runtime / Tiled", "OPACITY", [0, 2, 2 + t["window-move"]]);
     const water = root("Background / Water loop");
+    loops.add(water);
     for (const field of ["SCALE_X", "SCALE_Y"]) {
       plan(water, "Background / Water", field, [0, t["background-cycle"] / 2, t["background-cycle"]]);
     }
@@ -107,6 +112,7 @@ export async function retimeMluvaMotion(figma, { pageName = "Motion", dryRun = t
       plan(theme, "Theme reveal / " + name, "OPACITY", [0, start]);
     }
     const breath = root("Breathing light / Blender study");
+    loops.add(breath);
     for (let frame = 1; frame <= 102; frame++) {
       plan(breath, "Blender / Frame " + frame, "OPACITY",
         poseTimes(frame));
@@ -114,15 +120,32 @@ export async function retimeMluvaMotion(figma, { pageName = "Motion", dryRun = t
   }
   // Validate every required track before changing any of them.
   const changed = plans.filter((p) => p.changed);
-  const extended = [...durations].filter(([owner, duration]) => owner.timelines[0].duration < duration - 1e-5);
+  const timelineChanges = [...durations].map(([owner, duration]) => ({
+    owner, previousDuration: owner.timelines[0].duration,
+    duration: loops.has(owner) ? duration : Math.max(owner.timelines[0].duration, duration),
+  })).filter((p) => Math.abs(p.duration - p.previousDuration) > 1e-5);
+  const managed = new Set(plans.map((p) => p.node.id + "/" + p.field));
+  for (const { owner, duration, previousDuration } of timelineChanges) {
+    if (duration >= previousDuration) continue;
+    const unmanaged = [owner, ...owner.findAll(() => true)].filter((n) =>
+      n.animationStyles?.length || Object.keys(n.manualKeyframeTracks || {})
+        .some((field) => !managed.has(n.id + "/" + field)));
+    if (unmanaged.length) throw new Error("Cannot shorten a loop with unmanaged animation: " + owner.name);
+  }
   if (!dryRun) {
+    const fonts = new Map();
+    for (const { node } of changed.filter((p) => p.node.type === "TEXT")) {
+      for (const segment of node.getStyledTextSegments(["fontName"])) fonts.set(JSON.stringify(segment.fontName), segment.fontName);
+    }
+    await Promise.all([...fonts.values()].map((font) => figma.loadFontAsync(font)));
     for (const p of changed) {
       p.node.manualKeyframeTracks = { ...p.node.manualKeyframeTracks, [p.field]: p.track };
     }
-    for (const [owner, duration] of extended) owner.setTimelineDuration(owner.timelines[0].id, duration);
+    for (const { owner, duration } of timelineChanges) owner.setTimelineDuration(owner.timelines[0].id, duration);
   }
   return { dryRun, inspectedTracks: plans.length, changedTracks: changed.length,
     changesTruncated: changed.length > 12, changes: changed.slice(0, 12).map((p) => ({ nodeId: p.node.id, name: p.node.name, field: p.field })),
-    timelineExtensions: extended.map(([owner, duration]) => ({ nodeId: owner.id, duration })),
-    createdNodeIds: [], mutatedNodeIds: dryRun ? [] : [...new Set([...changed.map((p) => p.node.id), ...extended.map(([n]) => n.id)])] };
+    timelineAdjustments: timelineChanges.map(({ owner, duration, previousDuration }) => ({ nodeId: owner.id, duration, previousDuration })),
+    timelineExtensions: timelineChanges.filter((p) => p.duration > p.previousDuration).map(({ owner, duration }) => ({ nodeId: owner.id, duration })),
+    createdNodeIds: [], mutatedNodeIds: dryRun ? [] : [...new Set([...changed.map((p) => p.node.id), ...timelineChanges.map((p) => p.owner.id)])] };
 }

@@ -1513,7 +1513,7 @@
     "theme": "Modes recolor semantic vector/text bindings; runtime capture pixels do not recolor.",
     "opacity": "Figma uses percent values; source tokens also retain application-scale alpha.",
     "canvas": "reflow-canvas.mjs, one invocation per page; dry-run first.",
-    "motion": "retime-motion.mjs refreshes all 96 native tracks; dry-run first.",
+    "motion": "retime-motion.mjs refreshes all 395 native tracks across both motion pages; dry-run first. Dedicated loop durations follow their period; editorial studies retain end holds and only extend.",
     "wordmark": "Outlined custom artwork; editable app/film text uses JetBrains Mono.",
     "latestStudy": "Logo Study: ten unselected directions and twenty raster masters. Preserve original PNGs. Keep wordmark aspect ratios when resizing; Figma crops normalize optical size."
   },

@@ -765,13 +765,15 @@ class MluvaApplication(Adw.Application):
         )
         self._cancel_live_rewrite()
         enabled = self.config.live_rewrite_enabled and not self.pending_incognito and self.pending_mode == "dictation"
+        # Seed every capture, including one that starts with Live disabled, so
+        # enabling Live later preserves this capture rather than a previous one.
+        self.live_updating = True
+        self.conversation_workspace.show_live_draft(draft, "Waiting for speech…")
+        self.live_updating = False
         self.conversation_workspace.live_draft_available = enabled
         self.conversation_workspace._sync_live_panes()
         if not enabled:
             return
-        self.live_updating = True
-        self.conversation_workspace.show_live_draft(draft, "Waiting for speech…")
-        self.live_updating = False
         self.live_config = self.config
         self.live_session_identifier = self.pending_session_identifier
         self.live_schedule = LiveRewriteSchedule(

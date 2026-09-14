@@ -11,6 +11,8 @@ from gi.repository import GLib, Gtk
 from live_layout_smoke import bounds, frames
 from live_workspace_smoke import paint
 
+from mluva_linux.live_rewrite import initial_draft
+
 
 def main() -> None:
     """Exercise real GTK layout under rapid partial updates on a private display."""
@@ -94,6 +96,24 @@ def main() -> None:
             assert adjustment.get_value() == 0
             assert workspace.live_draft_box.get_mapped()
             paint(app.window, output / "live-second-recording.png")
+
+            workspace.show_live_draft("A draft that belongs only to the previous capture.")
+            workspace.finish_live()
+            app.config = replace(app.config, live_rewrite_enabled=False)
+            app.pending_session_identifier = "stability-start-without-live"
+            app._start_live_rewrite()
+            workspace.set_live("00:00", "An unrelated new recording.")
+            frames()
+            assert not workspace.live_draft_available and not workspace.live_draft_box.get_mapped()
+            fresh_draft = initial_draft(app.config, app.live_prompts)
+            app.config = replace(app.config, live_rewrite_enabled=True)
+            app._start_live_rewrite(preserve_draft=True)
+            frames()
+            assert workspace.live_draft_box.get_mapped()
+            assert workspace.live_draft() == fresh_draft
+            workspace.show_live_draft("A deliberate edit in the current capture.")
+            app._start_live_rewrite(preserve_draft=True)
+            assert workspace.live_draft() == "A deliberate edit in the current capture."
             (output / "live-stability.json").write_text(
                 json.dumps(
                     {
@@ -103,6 +123,8 @@ def main() -> None:
                         "unchanged_updates_do_not_grow_extent": True,
                         "draft_revisions_opaque_immediately": True,
                         "pane_geometry_stable": panes,
+                        "late_live_enable_starts_with_current_capture_draft": True,
+                        "same_capture_restart_preserves_edits": True,
                     },
                     indent=2,
                 )
