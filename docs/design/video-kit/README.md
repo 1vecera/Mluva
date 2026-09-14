@@ -1,8 +1,8 @@
 # Mluva video kit
 
-The [editable Figma kit](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj) contains the assets for a 59-second Mluva film, updated alongside the app on `feat/mluva-video-brief` from main `fbd793e`. Start with Getting started, follow each page guide, and use the [Delivery directory](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=69-558) to find an asset.
+The [editable Figma kit](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj) contains the assets for a 59-second Mluva film, updated alongside the app on `feat/mluva-live-stability-logo-study` from main `a4cf1a6`. Start with Getting started, follow each page guide, and use the [Delivery directory](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=69-558) to find an asset.
 
-The final read-back contains 12 pages, 120 variables, 60 components, eight variant families, 12 editable app screens, six real runtime capture masters, 11 annotated shots and eight native motion studies with 96 tracks. Frame notes explain each state’s purpose outside export bounds. The assembled film and sound mix are subsequent production work.
+The final read-back contains 15 pages, 121 variables, 81 components, eight variant families, 13 editable app screens, six real runtime capture masters, 11 annotated shots and nine native motion studies with 395 tracks. Frame notes explain each state’s purpose outside export bounds. The assembled film and sound mix are subsequent production work.
 
 | Source | Purpose |
 | --- | --- |
@@ -10,7 +10,7 @@ The final read-back contains 12 pages, 120 variables, 60 components, eight varia
 | [asset-manifest.json](asset-manifest.json) | Master links, exposed properties, shot timing and exact demonstration text |
 | [figma-snapshot.json](figma-snapshot.json) | Native read-back and variable, font, overlap and timing evidence |
 | [reflow-canvas.mjs](reflow-canvas.mjs) | Apply canvas/stage spacing and pair purpose notes with assets |
-| [retime-motion.mjs](retime-motion.mjs) | Apply Motion variables to all 96 existing native tracks |
+| [retime-motion.mjs](retime-motion.mjs) | Apply Motion variables to all 395 native tracks across Motion and Breathing Motion |
 | [breathing-light.blend](breathing-light.blend) | Editable breathing surface with period/amplitude/deformation controls |
 | [create-breathing-light.py](create-breathing-light.py) | Rebuild or render the transparent Blender loop |
 | [capture-provenance.json](capture-provenance.json) | Environment, source/media hashes and runtime evidence |
@@ -33,15 +33,16 @@ Canvas x/y and native keyframe timestamps do not remain bound to variables. Load
 ```js
 await reflowMluvaCanvas(figma, { pageId: "3:6" });
 await retimeMluvaMotion(figma);
+await retimeMluvaMotion(figma, { pageName: "Breathing Motion" });
 ```
 
 ## Motion and footage
 
-Recorder overflow reveals 66 words in seven naturally wrapped lines and moves only forward. The app predicts scrolling from recent speech rate; Figma uses an authored cadence. Local previous/current diffs fade changed runs and keep unchanged middle text stable. The spoken correction changes Tuesday to Wednesday; Polish preserves Tuesday. Grilling retains the answer while replacing its question.
+Recorder overflow reveals 66 words in seven naturally wrapped lines and moves only forward. The app predicts scrolling from recent speech rate; Figma uses an authored cadence. New dictation appears immediately at full opacity. Native GTK replaces changed ranges without an overlay; the widget may move only existing-word corrections upward by 3 px over 180 ms. Unchanged text stays stable. Live starts with both panes visible and fresh dictation at the top. The spoken correction changes Tuesday to Wednesday; Polish preserves Tuesday. Grilling retains the answer while replacing its question.
 
-The retimer handles every native track, preserving keyframe identities, easing and end holds, and extending timelines only when necessary. Eight timing-variable changes updated 90 tracks; restoring defaults left a zero-change dry run. Eleven fresh-instance checks exercised width, padding, controls, icons, sidebar, content, pane visibility, typography and opacity. All 57 semantic aliases resolved across three modes. A recorder-width stress pass also reflowed all eight variants without overlaps.
+The retimer handles every native track, preserving keyframe identities, easing and end holds, and extending timelines only when necessary. The latest period, correction duration and word-cadence stress test updated 374 tracks across both motion pages; restoring defaults left a zero-change dry run. Three layout variables also changed together without overlap or overflow. The PR #31 baseline’s eleven fresh-instance checks exercised width, padding, controls, icons, sidebar, content, pane visibility, typography and opacity. All 57 semantic aliases resolved across three modes. A recorder-width stress pass also reflowed all eight variants without overlaps.
 
-The connector cannot import native video, and its GIF renderer did not display the animation. Water therefore uses a full-resolution poster and editable camera motion in Figma. Use the privately supplied licensed 10-second 1080p/24 fps MP4 for actual ripples. The Figma breathing study uses four poses; its transparent 384×384/30 fps WebM supplies the continuous loop. The desktop timeline crossfades captured endpoints; the separate 8-second 1440p/30 fps MP4 contains actual Omarchy compositor movement.
+The connector cannot import native video, and its GIF renderer did not display the animation. Water therefore uses a full-resolution poster and editable camera motion in Figma. Use the privately supplied licensed 10-second 1080p/24 fps MP4 for actual ripples. The Figma breathing studies use all 102 rendered poses, one fully opaque image at a time; its transparent 384×384/30 fps WebM supplies the continuous loop. The desktop timeline crossfades captured endpoints; the separate 8-second 1440p/30 fps MP4 contains actual Omarchy compositor movement.
 
 The Blender source is an art-directed metaball surface, not a physical liquid simulation. Select `Controls / Breath` and change period, amplitude or deformation. After changing period in Blender’s UI, set playback end to `round(period_seconds * fps)`. The generator does this automatically:
 
@@ -51,7 +52,7 @@ blender --background --factory-startup --python-exit-code 1 \
   --output tmp/breathing-light.blend --period 3.4 --fps 30 --render-dir tmp/breath-frames
 ```
 
-Use a fresh background Blender 5.2 process. The generator refuses to replace an output unless `--force` is explicit. The saved scene uses a relative frame path. The app uses a lightweight harmonic silhouette with the same 3.4-second cadence and exact peak bounds. Reduced motion uses a steady light and immediate text updates.
+Use a fresh background Blender 5.2 process. The generator refuses to replace an output unless `--force` is explicit. The saved scene uses a relative frame path. The app uses a lightweight harmonic silhouette with the same 3.4-second cadence and fixed circular collapsed/expanded endpoints. Deformation is multiplied by a squared-sine envelope, so it and its velocity vanish at both extremes. Reduced motion uses a steady light and immediate text updates.
 
 ## Verification and handoff
 
@@ -62,8 +63,12 @@ node --check docs/design/video-kit/reflow-canvas.mjs
 git diff --check
 ```
 
-All 12 pages passed canvas/section overlap and font checks. The sole text overrun is an intentional seven-line transcript inside a clipped five-line viewport. Motion exports were sampled across phases; final reviews corrected selected-row contrast, narrow pane-status labels and desktop framing. The audit verifies captured evidence, not subsequent Figma edits.
+All 15 pages passed canvas/section overlap and font checks. The sole text overrun is an intentional seven-line transcript inside a clipped five-line viewport. Motion exports were sampled across phases; final reviews corrected selected-row contrast, narrow pane-status labels and desktop framing. The audit verifies captured evidence, not subsequent Figma edits.
 
-App checks cover 440 unit tests, Ruff, GTK conversation/Live/provider/prompt flows, minimum-size welcome, full-window settings, pane shortcuts, exact Unicode delivery, revision animation, manual scrolling after contractions and reduced motion. A disposable Omarchy ARM VM supplied real Browser/Ghostty/Herdr captures, same-window float/tile checks, palette/border checks and the WebKit Markdown/workspace gate. Host desktop input was not used. Synthetic examples do not establish provider accuracy or latency. Live rewrite and automatic pasting remain Experimental; automatic pasting is off by default in Settings → Capture → Behavior.
+App checks cover 440 unit tests, Ruff, GTK conversation/Live/provider/prompt flows, minimum-size welcome, full-window settings, pane shortcuts, exact Unicode delivery, immediate text replacement, manual scrolling after contractions and reduced motion. A disposable Omarchy ARM VM supplied real Browser/Ghostty/Herdr captures, same-window float/tile checks, palette/border checks and the WebKit Markdown/workspace gate. Host desktop input was not used. Synthetic examples do not establish provider accuracy or latency. Live rewrite and automatic pasting remain Experimental; automatic pasting is off by default in Settings → Capture → Behavior.
 
 Use full-opacity primary ink. Modeled contrast on opaque surfaces is 9.25:1 Nord, 8.10:1 Tokyo Night and 6.66:1 Rosé Pine. Transparent light-theme panes need a suitable wallpaper or opaque reading surface; inspect actual compositions after palette/opacity edits. Final narration timing, the representative Blender pilot, full-film assembly and a listened sound-mix review remain production work.
+
+## September 14 logo and Live stability study
+
+[Logo Study](../logo-study/README.md) contains ten independent directions and twenty unchanged transparent PNGs, with long briefs, critiques, revisions, optical sizing and small-icon proofs. The production logo remains in place pending Daniel’s choice. [Live stability review](../live-stability-review.md) records the app changes and verification. The Notion brief contains the reusable Omarchy VM note and current downloadable study/loop sources.

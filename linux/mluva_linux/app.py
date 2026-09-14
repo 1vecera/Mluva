@@ -764,12 +764,14 @@ class MluvaApplication(Adw.Application):
             else initial_draft(self.config, self.live_prompts)
         )
         self._cancel_live_rewrite()
+        enabled = self.config.live_rewrite_enabled and not self.pending_incognito and self.pending_mode == "dictation"
+        self.conversation_workspace.live_draft_available = enabled
+        self.conversation_workspace._sync_live_panes()
+        if not enabled:
+            return
         self.live_updating = True
         self.conversation_workspace.show_live_draft(draft, "Waiting for speech…")
         self.live_updating = False
-        if not self.config.live_rewrite_enabled or self.pending_incognito or self.pending_mode != "dictation":
-            self.conversation_workspace.live_draft_box.set_visible(False)
-            return
         self.live_config = self.config
         self.live_session_identifier = self.pending_session_identifier
         self.live_schedule = LiveRewriteSchedule(

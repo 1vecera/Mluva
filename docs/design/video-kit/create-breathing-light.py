@@ -52,10 +52,10 @@ scene.world = world
 controls = bpy.data.objects.new("Controls / Breath", None)
 scene.collection.objects.link(controls)
 controls["period_seconds"] = args.period
-controls["amplitude"] = 0.12
+controls["amplitude"] = 0.25
 controls["deformation"] = 0.16
 controls["description"] = (
-    "Procedural fluid silhouette. Change period, amplitude or deformation; all drivers update. Set the playback end to round(period_seconds * fps) after changing the period in the UI."
+    "Fluid transitions between concentric circular endpoints. Change period, amplitude or deformation; all drivers update. Set the playback end to round(period_seconds * fps) after changing the period in the UI."
 )
 for key, low, high in [
     ("period_seconds", 1.5, 8),
@@ -101,14 +101,15 @@ def driver(owner, path, expression, index=-1):
     )
 
 
-driver(blob, "scale", "1+amp*cos(phase)", 0)
-driver(blob, "scale", "1+amp*cos(phase)", 1)
-driver(blob, "scale", "0.72+0.06*cos(phase)", 2)
-driver(left, "co", "-0.48+deform*cos(phase)", 0)
-driver(left, "co", "0.12+deform*sin(phase)", 1)
-driver(right, "co", "0.48+deform*sin(phase)", 0)
-driver(right, "co", "-0.1+deform*cos(phase)", 1)
-driver(right, "radius", "0.82+0.08*sin(phase)")
+driver(blob, "scale", "1-amp*cos(phase)", 0)
+driver(blob, "scale", "1-amp*cos(phase)", 1)
+driver(blob, "scale", "0.72-0.06*cos(phase)", 2)
+# Co-located spherical fields are radially symmetric at both breath extremes.
+# The squared sine also brings deformation velocity to zero at each endpoint.
+driver(left, "co", "(-0.48+deform*cos(phase))*sin(phase)**2", 0)
+driver(left, "co", "(0.12+deform*sin(phase))*sin(phase)**2", 1)
+driver(right, "co", "(0.48+deform*sin(phase))*sin(phase)**2", 0)
+driver(right, "co", "(-0.1+deform*cos(phase))*sin(phase)**2", 1)
 material = bpy.data.materials.new("Signal / Nord red")
 material.use_nodes = True
 shader = material.node_tree.nodes.get("Principled BSDF")
@@ -147,7 +148,7 @@ for name, position, power, size in [
     light.rotation_euler = (-light.location).to_track_quat("-Z", "Y").to_euler()
 
 scene["production_note"] = (
-    "An art-directed metaball surface, not a physical liquid simulation. GTK and Quickshell use a light 2D harmonic silhouette with the same 3.4 s cadence."
+    "Art-directed metaball flow with circular expanded and collapsed endpoints, not a physical liquid simulation. GTK and Quickshell use a light 2D harmonic contour with the same squared-sine deformation envelope and 3.4 s cadence."
 )
 scene.frame_set(1)
 bpy.context.view_layer.update()

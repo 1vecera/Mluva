@@ -6,7 +6,7 @@ Item {
     property bool animate: true
     property color ink: "#e2554e"
     property real pulsePhase: 0
-    readonly property real breath: active && animate ? Math.sin(pulsePhase) : 0
+    readonly property real breath: active && animate ? -Math.cos(pulsePhase) : 0
     implicitWidth: 20
     implicitHeight: 20
     Accessible.role: Accessible.StaticText
@@ -23,8 +23,11 @@ Item {
             const points = [];
             for (let i = 0; i <= 64; i++) {
                 const angle = i / 64 * Math.PI * 2;
-                const wobble = root.active
-                    ? 0.07 * Math.sin(3 * angle + root.pulsePhase) + 0.035 * Math.sin(5 * angle - 2 * root.pulsePhase) : 0;
+                // Deformation and its velocity vanish at both circular endpoints.
+                const wobble = root.active && root.animate
+                    ? Math.pow(Math.sin(root.pulsePhase), 2)
+                        * (0.07 * Math.sin(3 * angle + root.pulsePhase)
+                            + 0.035 * Math.sin(5 * angle - 2 * root.pulsePhase)) : 0;
                 points.push([(1 + wobble) * Math.cos(angle), (1 + wobble) * Math.sin(angle)]);
             }
             const minX = Math.min(...points.map(point => point[0]));
