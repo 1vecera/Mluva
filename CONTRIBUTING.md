@@ -31,6 +31,8 @@ Raw recognition is immutable. Editor drafts, processed text and delivery results
 
 ## Verification
 
+Keep a test when it would catch an observable regression: lost text, an incorrect request, a stale result, unwanted delivery, leaked content or failed recovery. Use controlled external boundaries while running the production logic. Expected results should be independent of the implementation; avoid copying constants, searching source code for particular statements, checking unchanged input fixtures, or duplicating an existing stronger scenario. When a test claims an operation is skipped, make that operation available and observable. Generated-file drift belongs in its existing check command. Keep explicit configuration and packaging checks where they protect a privacy, security or distribution contract.
+
 For a quick text/editing change, run `make linux-test-fast` from the root. It covers transcript preservation, conversation/history persistence, scratchpads, Live scheduling and Markdown round trips. It is a subset, not the complete check set. For other changes, choose the tests that exercise their boundary:
 
 | Change | Focused check after `make linux-setup` |

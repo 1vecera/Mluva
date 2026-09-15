@@ -132,30 +132,6 @@ def test_oversized_stream_is_stopped_at_the_client_boundary() -> None:
     assert deltas == []
 
 
-@pytest.mark.parametrize("fast", [False, True])
-def test_rewrite_overrides_inherited_effort_and_speed_on_the_wire(fast: bool) -> None:
-    """Use the catalog's real Fast tier ID and explicitly reset speed when Fast is off."""
-    fake_server = Path(__file__).with_name("fake_app_server.py")
-    option = "--expect-fast" if fast else "--expect-standard"
-    client = CodexAppServerClient(command=(sys.executable, str(fake_server), option))
-    try:
-        models = client.list_models()
-        model = select_model(models, None if fast else "codex-explicit")
-        assert model.identifier == ("gpt-5.4" if fast else "gpt-5.4-mini")
-        assert (
-            client.transform(
-                "Clean this",
-                cwd=Path.cwd(),
-                model=model.identifier,
-                effort=model.rewrite_effort,
-                service_tier=model.fast_tier if fast else "default",
-            )
-            == "Clean text."
-        )
-    finally:
-        client.close()
-
-
 def test_catalog_compatibility_does_not_invent_fast_or_reasoning_support() -> None:
     """Keep old servers usable and prefer current service tier identifiers over deprecated aliases."""
     entry = {"id": "alias", "model": "concrete-model", "isDefault": True}

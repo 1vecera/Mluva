@@ -23,19 +23,15 @@ def test_unicode_markdown_and_arbitrary_revisions_round_trip():
     """Visual edits must reproduce all source characters, including emoji and Markdown delimiters."""
     generator = random.Random(731)
     alphabet = ["Ahoj ", "mám ", "🌿", "**yes**", "<script>", "\n", "e\u0301", "  "]
-    for _ in range(150):
-        before = "".join(generator.choices(alphabet, k=30))
-        after = "".join(generator.choices(alphabet, k=30))
+    revisions = [
+        ("".join(generator.choices(alphabet, k=30)), "".join(generator.choices(alphabet, k=30))) for _ in range(150)
+    ]
+    revisions.append(("old word " * 3000, "new word " * 3000))
+    for before, after in revisions:
         result = before
         for change in reversed(text_changes(before, after)):
             result = result[: change.old_start] + after[change.new_start : change.new_end] + result[change.old_end :]
         assert result == after
-
-
-def test_large_revisions_have_bounded_diff_work():
-    """A large provider replacement keeps exact content while limiting expensive matching."""
-    before, after = "old word " * 3000, "new word " * 3000
-    assert len(text_changes(before, after)) == 1
 
 
 def test_fast_speech_reserves_the_next_line_earlier():

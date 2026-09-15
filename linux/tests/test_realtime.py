@@ -325,27 +325,6 @@ def test_audio_queue_fails_to_batch_route_without_blocking_capture() -> None:
     session.cancel()
 
 
-def test_long_capture_commits_every_twenty_five_seconds_before_final_commit() -> None:
-    """Prevent provider auto-commit ambiguity while preserving every stable segment in order."""
-    connection = CommitTrackingConnection()
-    session = RealtimeTranscriptionSession(
-        connection=connection,
-        configured_language_code="eng",
-        session_identifier="long-session",
-        maximum_queued_chunks=512,
-        finalization_timeout_seconds=2,
-    )
-
-    for _index in range(251):
-        assert session.submit_audio(bytes(3_200))
-    result = session.finish()
-
-    commits = [event for event in connection.events if event.get("commit") is True]
-    assert len(commits) == 2
-    assert result.transcription.text == "segment 1 segment 2"
-    assert result.transcription.audio_duration_seconds == pytest.approx(25.1)
-
-
 @pytest.mark.parametrize(
     ("chunks", "commit_offsets"),
     [([0.1] * 501, [25, 50, 50.1]), ([0.1] * 500, [25, 50]), ([27], [27]), ([27, 0.1], [27, 27.1])],

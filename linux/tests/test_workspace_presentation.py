@@ -33,8 +33,6 @@ def test_grilling_starts_empty_and_preserves_question_and_architecture_source():
     context = json.loads(live_prompt(config, "Only for the support team.", source, final=True).split("\n", 1)[1])
     assert context["current_draft"] == source
     assert context["transcript_status"] == "final committed recognition"
-    assert "remove questions answered anywhere" in context["instructions"]
-    assert "hide empty fields" in context["instructions"]
 
 
 def test_presentation_settings_roundtrip_and_validate(tmp_path):

@@ -6,8 +6,6 @@ from pathlib import Path
 import pytest
 
 from mluva_linux.config import (
-    DEFAULT_GLOBAL_RECORDING_KEY,
-    FUNCTION_KEY_OPTIONS,
     AppConfig,
     AudioRetentionPolicy,
     default_config_dir,
@@ -36,6 +34,8 @@ def test_config_round_trip_does_not_include_api_key(tmp_path: Path) -> None:
         codex_model="gpt-5.4",
         rewrite_model="gpt-5.4-mini",
         rewrite_fast_mode=True,
+        live_rewrite_enabled=True,
+        global_recording_key="F1",
         microphone_target="alsa_input.usb_microphone",
         system_audio_target="alsa_output.usb_headset",
     )
@@ -51,8 +51,7 @@ def test_privacy_defaults_and_legacy_audio_retention_migration(tmp_path: Path) -
     """Keep failure recovery as the default and migrate the foundation boolean setting."""
     assert AppConfig().audio_retention_policy is AudioRetentionPolicy.FAILURES
     assert AppConfig().default_mode == "dictation"
-    assert AppConfig().global_recording_key == "F9" == DEFAULT_GLOBAL_RECORDING_KEY
-    assert FUNCTION_KEY_OPTIONS == tuple(f"F{number}" for number in range(1, 25))
+    assert AppConfig().global_recording_key == "F9"
     assert not AppConfig().incognito_mode
     assert not AppConfig().auto_paste
     assert AppConfig().spoken_commands_enabled

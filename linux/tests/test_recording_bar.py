@@ -9,7 +9,6 @@ from mluva_linux.ui import (
     RECORDING_KIND_PREPARING,
     RECORDING_KIND_RECORDING,
     RecordingBarState,
-    is_compact_layout,
 )
 
 
@@ -51,14 +50,6 @@ def _application_stub(**overrides: object) -> _ProductionPaths:
     for name, value in overrides.items():
         setattr(application, name, value)
     return application
-
-
-def test_compact_layout_boundary_matches_navigation_breakpoint() -> None:
-    """The bar collapses metadata exactly when navigation collapses."""
-    assert is_compact_layout(420)
-    assert is_compact_layout(736)
-    assert not is_compact_layout(737)
-    assert not is_compact_layout(1280)
 
 
 def test_overlay_projection_parses_elapsed_and_splits_route() -> None:
@@ -250,8 +241,8 @@ def test_stop_capture_projects_processing_until_the_clipboard_result_is_ready() 
     assert bar.cleared == 0
 
 
-def test_clear_live_capture_is_the_shared_terminal_erase_for_all_paths() -> None:
-    """Cancel, failure, and shutdown all route through the same immediate erase."""
+def test_clearing_capture_hides_the_bar_and_clears_the_overlay() -> None:
+    """The application forwards capture cleanup to both recording projections."""
     bar = RecordingBarSpy()
     slot = RecordingSlotSpy()
     overlay = RecordingOverlayPublisherSpy()

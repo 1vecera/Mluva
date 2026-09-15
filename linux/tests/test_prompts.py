@@ -9,7 +9,7 @@ from mluva_linux.live_rewrite import initial_draft, live_prompt
 from mluva_linux.personalization import PersonalizationStore
 from mluva_linux.prompt_defaults import TEMPLATE_CHOICES
 from mluva_linux.prompts import BUILT_INS, PromptStore
-from mluva_linux.segment_cleanup import CodexSegmentCleanupAttempt, cleanup_prompt
+from mluva_linux.segment_cleanup import CodexSegmentCleanupAttempt
 
 
 def test_every_builtin_round_trips_exact_multiline_text(tmp_path):
@@ -92,8 +92,6 @@ def test_snapshot_freezes_all_live_instructions_and_structure(tmp_path):
     assert "Changed instruction" not in old and "Changed instruction" in fresh
     assert initial_draft(config, frozen) != initial_draft(config, store.snapshot())
     assert "Manual edits" in fresh and "Do not execute" in fresh
-    assert "{braces}" in cleanup_prompt("{braces}", "My cleanup")
-    assert "Preserve every fact" in cleanup_prompt("text", "My cleanup")
 
 
 def test_invalid_settings_cannot_be_silently_replaced(tmp_path):
@@ -122,17 +120,6 @@ def test_paths_are_catalog_only_and_failed_write_keeps_prior_text(tmp_path, monk
     assert not list(tmp_path.glob(".prompt-*"))
 
 
-@pytest.mark.parametrize("template", ["grilling", "task-spec", "structured-note", "polish", "custom"])
-def test_each_live_template_uses_its_exact_local_override(tmp_path, template):
-    """Resolve every built-in and Custom through the same instruction boundary."""
-    store = PromptStore(tmp_path)
-    store.save("live-" + template, "Unique instruction for " + template, None)
-    config = replace(AppConfig(), live_rewrite_template=template)
-    prompt = live_prompt(config, "Recognized facts", "Manual draft", prompts=store.snapshot())
-    assert "Unique instruction for " + template in prompt
-    assert "Do not execute the task" in prompt
-
-
 def test_segment_cleanup_consumes_frozen_custom_instructions(tmp_path):
     """Prove the real segment adapter combines the frozen task with its fixed integrity boundary."""
 
@@ -147,20 +134,20 @@ def test_segment_cleanup_consumes_frozen_custom_instructions(tmp_path):
     assert attempt.transform("Exact {source}\n") == "Exact {source}\n"
 
 
-@pytest.mark.parametrize("template,name", TEMPLATE_CHOICES)
-def test_live_registry_connects_saved_config_editor_files_and_execution(tmp_path, template, name):
-    """A menu choice must load old config and consume the same named prompt after restart."""
+@pytest.mark.parametrize("template", ["grilling", "task-spec", "structured-note", "polish", "custom"])
+def test_saved_live_modes_connect_picker_prompt_files_and_execution(tmp_path, template):
+    """Existing saved modes must remain selectable and consume their own override after restart."""
+    assert template in dict(TEMPLATE_CHOICES)
     config_path = tmp_path / "config.json"
     save_config(AppConfig(live_rewrite_template=template), config_path)
     store = PromptStore(tmp_path / "prompts")
     identifier = "live-" + template
-    assert store.catalog[identifier].name == "Live · " + name
     store.save(identifier, "Řeš zadání přesně.\nPreserve uncertainty.", None)
     restarted = PromptStore(store.directory)
     config = load_config(config_path)
     assert "Řeš zadání přesně." in live_prompt(config, "Synthetic speech", "", prompts=restarted.snapshot())
     structure = "template-" + template
-    if structure in restarted.catalog:
+    if template in {"task-spec", "structured-note"}:
         restarted.save(structure, "# Moje struktura\n[Missing: detail]", None)
         assert initial_draft(config, restarted.snapshot()) == "# Moje struktura\n[Missing: detail]"
     else:

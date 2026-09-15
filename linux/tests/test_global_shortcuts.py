@@ -21,12 +21,6 @@ from mluva_linux.global_shortcuts import (
 )
 
 
-@pytest.mark.parametrize("function_key", ["F1", "F9", "F13", "F24"])
-def test_recording_shortcut_identifier_includes_selected_function_key(function_key: str) -> None:
-    """Force the desktop to treat each selected key as a replacement action."""
-    assert recording_shortcut_id(function_key) == f"toggle-recording-{function_key.lower()}"
-
-
 @pytest.mark.parametrize("function_key", ["F0", "F25", "f9", "F9+CTRL", "RightAlt"])
 def test_recording_shortcut_identifier_rejects_unsupported_keys(function_key: str) -> None:
     """Keep the global picker and portal registration inside F1 through F24."""
@@ -118,7 +112,7 @@ def test_running_service_serializes_function_key_replacement(monkeypatch: pytest
     def binding_changed(function_key: str, trigger: str | None) -> None:
         """Keep actual approval evidence and release the waiting test after replacement."""
         triggers.append((function_key, trigger))
-        if function_key == "F24":
+        if function_key in {"F1", "F24"}:
             rebound.set()
 
     monkeypatch.setattr(shortcut_module, "_PortalGlobalShortcutsSession", SessionStub)
@@ -132,18 +126,22 @@ def test_running_service_serializes_function_key_replacement(monkeypatch: pytest
     service.start()
     try:
         assert service._ready.wait(timeout=1)
+        service.set_recording_key("F1")
+        assert rebound.wait(timeout=1)
+        rebound.clear()
         service.set_recording_key("F24")
         assert rebound.wait(timeout=1)
     finally:
         service.close()
 
-    assert app_ids == ["com.mluva.Linux"] * 2
+    assert app_ids == ["com.mluva.Linux"] * 3
     assert bindings == [
         [("toggle-recording-f9", "F9"), (CANCEL_SHORTCUT_ID, "CTRL+ALT+ESCAPE"), (REWRITE_SHORTCUT_ID, "SHIFT+F9")],
+        [("toggle-recording-f1", "F1"), (CANCEL_SHORTCUT_ID, "CTRL+ALT+ESCAPE"), (REWRITE_SHORTCUT_ID, "SHIFT+F9")],
         [("toggle-recording-f24", "F24"), (CANCEL_SHORTCUT_ID, "CTRL+ALT+ESCAPE"), (REWRITE_SHORTCUT_ID, "SHIFT+F9")],
     ]
-    assert triggers == [("F9", "F9"), ("F24", "F24")]
-    assert closed_sessions == [0, 1]
+    assert triggers == [("F9", "F9"), ("F1", "F1"), ("F24", "F24")]
+    assert closed_sessions == [0, 1, 2]
 
 
 class _PortalBusStub:

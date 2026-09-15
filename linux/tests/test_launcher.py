@@ -102,16 +102,22 @@ def test_launcher_uses_scoped_managed_profile_when_credential_is_missing(tmp_pat
     ]
 
 
-@pytest.mark.parametrize("profile_marker", ["MLUVA_SECRET_PROFILE", "MLUVA_SECRET_PROFILE"])
-def test_launcher_does_not_reenter_an_active_managed_profile(tmp_path: Path, profile_marker: str) -> None:
-    """Prevent a missing resolved field from causing an infinite launcher loop."""
+@pytest.mark.parametrize(
+    "environment_overrides",
+    [{"MLUVA_SECRET_PROFILE": "1"}, {"ELEVENLABS_API_KEY": "test-only"}],
+    ids=["active-profile", "direct-key"],
+)
+def test_launcher_skips_available_managed_credentials(tmp_path: Path, environment_overrides: dict[str, str]) -> None:
+    """An active profile or direct key must bypass both available credential resolvers."""
     launcher_path, application_dir = _render_launcher(tmp_path)
     environ, home = _launcher_environment(tmp_path)
-    environ[profile_marker] = "1"
-    _write_executable(
-        home / ".config" / "daniel-ai-skills" / "bin" / "das-mcp-launch",
-        "#!/bin/sh\nexit 91\n",
-    )
+    environ.update(environment_overrides)
+    managed = home / ".config" / "daniel-ai-skills"
+    (managed / "env").mkdir(parents=True)
+    for profile in ("mluva.env", "agent.env"):
+        (managed / "env" / profile).write_text("synthetic credential reference\n")
+    for command in ("das-mcp-launch", "das-agent-launch"):
+        _write_executable(managed / "bin" / command, "#!/bin/sh\nexit 91\n")
 
     result = subprocess.run(
         [str(launcher_path)],
@@ -407,28 +413,6 @@ def test_uv_lock_does_not_inherit_a_contributors_global_release_cutoff() -> None
     assert project["tool"]["uv"]["exclude-newer"] is False
     assert "exclude-newer" not in lock["options"]
     assert "exclude-newer-span" not in lock["options"]
-
-
-def test_launcher_runs_without_managed_launcher_when_direct_key_exists(tmp_path: Path) -> None:
-    """Keep conventional environment injection working on other installations."""
-    launcher_path, application_dir = _render_launcher(tmp_path)
-    environ, home = _launcher_environment(tmp_path)
-    environ["ELEVENLABS_API_KEY"] = "test-only"
-    _write_executable(
-        home / ".config" / "daniel-ai-skills" / "bin" / "das-mcp-launch",
-        "#!/bin/sh\nexit 91\n",
-    )
-
-    result = subprocess.run(
-        [str(launcher_path)],
-        env=environ,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == f"python:{application_dir}:-m mluva_linux.app"
 
 
 @pytest.mark.parametrize("provider", ["voxtype", "litellm"])

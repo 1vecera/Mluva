@@ -26,10 +26,9 @@ def test_scratch_that_preserves_a_structural_boundary() -> None:
     assert normalize_spoken_structure(raw) == "Heading.\n\ncorrected body."
 
 
-def test_normalization_is_stable_and_does_not_mutate_raw_input() -> None:
-    """Return a stable derived value while the caller keeps immutable recognition."""
+def test_normalization_is_idempotent() -> None:
+    """Normalizing already prepared text must not change it again."""
     raw = "Path slash tmp slash file comma do not change"
     normalized = normalize_spoken_structure(raw)
-    assert raw == "Path slash tmp slash file comma do not change"
     assert normalized == "Path slash tmp slash file, do not change"
     assert normalize_spoken_structure(normalized) == normalized
