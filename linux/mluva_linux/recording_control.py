@@ -72,7 +72,7 @@ class RecordingLight(Gtk.DrawingArea):
             self._started_at = clock.get_frame_time()
         phase = (clock.get_frame_time() - self._started_at) / 3_400_000 * math.tau
         self._phase = phase
-        self._breath = math.sin(phase)
+        self._breath = -math.cos(phase)
         self.queue_draw()
         return True
 
@@ -83,7 +83,8 @@ class RecordingLight(Gtk.DrawingArea):
         for index in range(65):
             angle = index / 64 * math.tau
             wobble = (
-                0.07 * math.sin(3 * angle + self._phase) + 0.035 * math.sin(5 * angle - 2 * self._phase)
+                math.sin(self._phase) ** 2
+                * (0.07 * math.sin(3 * angle + self._phase) + 0.035 * math.sin(5 * angle - 2 * self._phase))
                 if self._recording
                 else 0
             )

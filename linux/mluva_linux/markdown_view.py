@@ -8,8 +8,7 @@ from mluva_linux.minimal_markdown import MarkdownSpan, markdown_spans, needs_cha
 from mluva_linux.text_diff import text_changes
 
 gi.require_version("Gtk", "4.0")
-gi.require_version("Graphene", "1.0")
-from gi.repository import Gdk, Graphene, Gtk, Pango  # noqa: E402
+from gi.repository import Gtk, Pango  # noqa: E402
 
 MAX_FORMATTING_SPANS = 2048
 # U+2028 is a soft line break inside one native paragraph. Keeping it in the
@@ -40,11 +39,6 @@ class MarkdownTextView(Gtk.TextView):
         self.set_right_margin(6)
         buffer = self.get_buffer()
         self._replacing = False
-        self._revision_tick = 0
-        self._revision_started = 0
-        self._revision_progress = 1.0
-        self._removed_runs = []
-        self._revision_tag = buffer.create_tag("revision-arrival")
         self.styles = {
             "syntax": buffer.create_tag("markdown-syntax", invisible=True),
             "strong": buffer.create_tag("markdown-strong", weight=Pango.Weight.SEMIBOLD),
@@ -61,7 +55,6 @@ class MarkdownTextView(Gtk.TextView):
         buffer.set_text(text)
         self.connect("notify::editable", self._focus_changed)
         self.connect("notify::has-focus", self._focus_changed)
-        self.connect("unmap", lambda _widget: self._finish_revision())
         if markdown and editable:
             self.set_tooltip_text("Click to edit the Markdown source. Copy and Save keep its formatting.")
 
@@ -75,98 +68,30 @@ class MarkdownTextView(Gtk.TextView):
         buffer = self.get_buffer()
         return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter(), True)
 
-    def replace_text(self, text: str, *, animate: bool = False) -> None:
-        """Commit exact source immediately; animate only the changed words as a visual overlay."""
-        previous = self.get_text()
-        changes = text_changes(previous, text)
+    def replace_text(self, text: str) -> None:
+        """Commit changed ranges in one transaction; every word is immediately visible."""
+        changes = text_changes(self.get_text(), text)
         if not changes:
             return
-        self._finish_revision()
         buffer = self.get_buffer()
-        animate = animate and self.get_mapped() and self.get_settings().get_property("gtk-enable-animations")
-        if animate:
-            visible = self.get_visible_rect()
-            _, first_visible = self.get_iter_at_location(visible.x, visible.y)
-            for change in changes[:32]:
-                cursor = buffer.get_iter_at_offset(max(change.old_start, first_visible.get_offset()))
-                while cursor.get_offset() < change.old_end and len(self._removed_runs) < 64:
-                    end = cursor.copy()
-                    self.forward_display_line_end(end)
-                    stop = min(change.old_end, max(cursor.get_offset() + 1, end.get_offset()))
-                    location = self.get_iter_location(cursor)
-                    x, y = self.buffer_to_window_coords(Gtk.TextWindowType.WIDGET, location.x, location.y)
-                    if y >= self.get_height():
-                        break
-                    if y + location.height >= 0 and y < self.get_height():
-                        layout = self.create_pango_layout(previous[cursor.get_offset() : stop])
-                        self._removed_runs.append((layout, x, y))
-                    cursor = buffer.get_iter_at_offset(stop)
         self._replacing = True
-        for change in reversed(changes):
-            buffer.delete(buffer.get_iter_at_offset(change.old_start), buffer.get_iter_at_offset(change.old_end))
-            buffer.insert(buffer.get_iter_at_offset(change.old_start), text[change.new_start : change.new_end])
-        self._replacing = False
-        if animate:
-            for change in changes:
-                buffer.apply_tag(
-                    self._revision_tag,
-                    buffer.get_iter_at_offset(change.new_start),
-                    buffer.get_iter_at_offset(change.new_end),
-                )
-            self._revision_started = 0
-            self._revision_progress = 0.0
-            self._revision_color(0)
-            self._revision_tick = self.add_tick_callback(self._animate_revision)
-
-    def _revision_color(self, alpha: float) -> None:
-        color = self.get_color()
-        color.alpha = alpha
-        self._revision_tag.set_property("foreground-rgba", color)
-
-    def _animate_revision(self, _widget: Gtk.Widget, clock: Gdk.FrameClock) -> bool:
-        if not self._revision_started:
-            self._revision_started = clock.get_frame_time()
-        self._revision_progress = (clock.get_frame_time() - self._revision_started) / 340_000
-        self._revision_color(min(1, max(0, (self._revision_progress * 340 - 120) / 220)))
-        self.queue_draw()
-        if self._revision_progress >= 1:
-            self._revision_tick = 0
-            self._finish_revision()
-            return False
-        return True
-
-    def _finish_revision(self) -> None:
-        if self._revision_tick:
-            self.remove_tick_callback(self._revision_tick)
-            self._revision_tick = 0
-        self._removed_runs.clear()
-        self._revision_progress = 1.0
-        self.get_buffer().remove_tag(self._revision_tag, *self.get_buffer().get_bounds())
-        self.queue_draw()
-
-    def do_snapshot(self, snapshot: Gtk.Snapshot) -> None:
-        """Fade departing words above the already authoritative, lossless native text buffer."""
-        Gtk.TextView.do_snapshot(self, snapshot)
-        alpha = max(0, 1 - self._revision_progress * 340 / 120)
-        if alpha and self._removed_runs:
-            color = self.get_color()
-            color.alpha = alpha
-            for layout, x, y in self._removed_runs:
-                snapshot.save()
-                snapshot.translate(Graphene.Point().init(x, y))
-                snapshot.append_layout(layout, color)
-                snapshot.restore()
+        try:
+            for change in reversed(changes):
+                buffer.delete(buffer.get_iter_at_offset(change.old_start), buffer.get_iter_at_offset(change.old_end))
+                buffer.insert(buffer.get_iter_at_offset(change.old_start), text[change.new_start : change.new_end])
+        finally:
+            self._replacing = False
+        self._format(buffer)
 
     def _focus_changed(self, *_args: object) -> None:
         """Make source syntax discoverable for edits without changing the document or its revision."""
-        self._finish_revision()
         self.styles["syntax"].set_property("invisible", not (self.get_editable() and self.has_focus()))
         self.queue_resize()
 
     def _format(self, buffer: Gtk.TextBuffer) -> None:
         """Bound native tag work; unusually dense formatting remains complete plain Markdown."""
-        if not self._replacing:
-            self._finish_revision()
+        if self._replacing:
+            return
         source = self.get_text()
         spans = markdown_spans(source) if self.markdown else ()
         if source == self.diagram_source:

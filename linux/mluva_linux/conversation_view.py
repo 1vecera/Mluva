@@ -29,7 +29,8 @@ class _TailFollower:
     def __init__(self, scroll: Gtk.ScrolledWindow, view: Gtk.TextView | None = None) -> None:
         """Track allocation changes independently from animation writes and manual scrolling."""
         self.scroll = scroll
-        self.view = view
+        child = scroll.get_child()
+        self.view = view if view is not None else child if isinstance(child, Gtk.TextView) else None
         self.following = True
         self.pending = False
         self.writing = False
@@ -42,7 +43,7 @@ class _TailFollower:
         self.forecast = SpeechScrollForecast()
         self.retained_bottom = 0
         self.revision_inset = 0
-        self.base_top = view.get_top_margin() if view is not None else 4
+        self.base_top = self.view.get_top_margin() if self.view is not None else 4
         adjustment = scroll.get_vadjustment()
         adjustment.connect("changed", self.queue)
         adjustment.connect("value-changed", self._scrolled)
@@ -59,12 +60,15 @@ class _TailFollower:
         """Resume following, snapping only when opening a different document or capture."""
         self.following = True
         if snap:
+            self._pause()
             self.destination = 0
             self.retained_bottom = 0
             self.forecast = SpeechScrollForecast()
             self.revision_inset = 0
             if self.view is not None:
                 self.view.set_top_margin(self.base_top)
+                self.view.set_bottom_margin(4)
+            self._write(0)
         self.snap_next = self.snap_next or snap
         self.queue()
 
@@ -85,15 +89,21 @@ class _TailFollower:
         if reset:
             self.follow(snap=True)
         view = self.view or self.scroll.get_child()
+        if isinstance(view, Gtk.TextView):
+            buffer = view.get_buffer()
+            if text == buffer.get_text(*buffer.get_bounds(), True):
+                return
         self.forecast.observe(len(text), time.monotonic())
         if self.following and isinstance(view, Gtk.TextView):
             adjustment = self.scroll.get_vadjustment()
-            self.retained_bottom = max(self.retained_bottom, adjustment.get_upper()) if not reset else 0
+            # Preserve the intended reading position, never an allocation that
+            # includes the temporary reserve from an earlier partial update.
+            self.retained_bottom = self.destination + adjustment.get_page_size() if self.destination > 0 else 0
             # A temporary reserve keeps deletion/layout from clamping the scroll
             # before its new wrapped extent is known. _anticipate_wrap resolves it.
             self.writing = True
             if not reset:
-                view.set_bottom_margin(view.get_bottom_margin() + round(adjustment.get_page_size()))
+                view.set_bottom_margin(max(view.get_bottom_margin(), round(adjustment.get_page_size())))
 
     def updated(self) -> None:
         """Resume normal observation after the synchronous buffer transaction."""
@@ -579,8 +589,8 @@ class ConversationWorkspace(Gtk.Box):
             follower.duration_ms = config.scroll_duration_ms
             follower.lookahead_lines = config.scroll_lookahead_lines
         self.messages.set_margin_bottom(16 + config.scroll_lookahead_lines * 20)
-        for view in (self.live_text, self.live_draft_text):
-            view.set_bottom_margin(4 + config.scroll_lookahead_lines * 20)
+        for follower in (self.live_follower, self.live_draft_follower):
+            follower.queue()
         for button in self.copy_buttons:
             button.set_visible(config.show_copy_action)
         for button in self.save_buttons:
@@ -686,7 +696,7 @@ class ConversationWorkspace(Gtk.Box):
         self.live_questions.set_visible(bool(self.live_questions_source))
         self.live_questions_scroll.set_visible(bool(self.live_questions_source))
         follower.prepare_update(body)
-        self.live_draft_text.replace_text(body, animate=True)
+        self.live_draft_text.replace_text(body)
         follower.updated()
         self.live_draft_status.set_label(status)
         if following:
@@ -953,13 +963,12 @@ class ConversationWorkspace(Gtk.Box):
         self.live_active = True
         self.live_navigation.set_visible(True)
         if starting:
-            self.live_draft_available = False
             self._sync_live_panes()
             self.show_live()
         self.set_live_status(phase, recording=recording)
         self.live_cancel_slot.set_visible(True)
         self.live_follower.prepare_update(text, reset=starting)
-        self.live_text.replace_text(text, animate=not starting)
+        self.live_text.replace_text(text)
         self.live_follower.updated()
 
     def show_live(self) -> None:

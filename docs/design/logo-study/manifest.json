@@ -1,0 +1,483 @@
+{
+  "date": "2026-09-14",
+  "status": "Ten options for Daniel to choose from; none replaces the production identity.",
+  "generationTool": "OpenAI image_gen",
+  "conceptAuthors": [
+    "logo_tide",
+    "logo_syllable",
+    "logo_fold",
+    "logo_resonance",
+    "logo_spring",
+    "logo_aperture",
+    "logo_monogram",
+    "logo_unfurl",
+    "logo_cursor",
+    "logo_vessel"
+  ],
+  "figmaOverview": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=154-14",
+  "concepts": [
+    {
+      "conceptId": "01-tide",
+      "title": "Brimming Tide",
+      "boardId": "151:14",
+      "logoId": "151:18",
+      "wordmarkId": "151:19",
+      "smallId": "151:51",
+      "width": 1440,
+      "height": 4140
+    },
+    {
+      "conceptId": "02",
+      "title": "Open Syllable",
+      "boardId": "151:62",
+      "logoId": "151:66",
+      "wordmarkId": "151:67",
+      "smallId": "151:99",
+      "width": 1440,
+      "height": 3700
+    },
+    {
+      "conceptId": "03-fold",
+      "title": "Soft Turn",
+      "boardId": "151:1672",
+      "logoId": "151:1676",
+      "wordmarkId": "151:1677",
+      "smallId": "151:1709",
+      "width": 1440,
+      "height": 3964
+    },
+    {
+      "conceptId": "04-resonance",
+      "title": "PAIRED RESONANCE",
+      "boardId": "151:1720",
+      "logoId": "151:1724",
+      "wordmarkId": "151:1725",
+      "smallId": "151:1757",
+      "width": 1440,
+      "height": 3832
+    },
+    {
+      "conceptId": "05-spring",
+      "title": "WORD SPRING",
+      "boardId": "152:14",
+      "logoId": "152:18",
+      "wordmarkId": "152:19",
+      "smallId": "152:51",
+      "width": 1440,
+      "height": 4338
+    },
+    {
+      "conceptId": "06",
+      "title": "BREATHING APERTURE",
+      "boardId": "152:62",
+      "logoId": "152:66",
+      "wordmarkId": "152:67",
+      "smallId": "152:99",
+      "width": 1440,
+      "height": 3502
+    },
+    {
+      "conceptId": "07",
+      "title": "SOFT M",
+      "boardId": "153:14",
+      "logoId": "153:18",
+      "wordmarkId": "153:19",
+      "smallId": "153:51",
+      "width": 1440,
+      "height": 3744
+    },
+    {
+      "conceptId": "08",
+      "title": "UNFURLING VOICE",
+      "boardId": "153:62",
+      "logoId": "153:66",
+      "wordmarkId": "153:67",
+      "smallId": "153:99",
+      "width": 1440,
+      "height": 3744
+    },
+    {
+      "conceptId": "09-cursor",
+      "title": "CURRENT TO CURSOR",
+      "boardId": "153:1720",
+      "logoId": "153:1724",
+      "wordmarkId": "153:1725",
+      "smallId": "153:1757",
+      "width": 1440,
+      "height": 3876
+    },
+    {
+      "conceptId": "10-vessel",
+      "title": "QUIET VESSEL",
+      "boardId": "153:1768",
+      "logoId": "153:1772",
+      "wordmarkId": "153:1773",
+      "smallId": "153:1805",
+      "width": 1440,
+      "height": 5130
+    }
+  ],
+  "assets": [
+    {
+      "file": "assets/01-logo.png",
+      "sha256": "eadee23abd4456954e10d390285e6f19bc9d8d8a9eb546c47509545263656a3b",
+      "width": 1385,
+      "height": 1136,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        126,
+        317,
+        1259,
+        896
+      ],
+      "figmaNodeId": "151:18",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-18"
+    },
+    {
+      "file": "assets/01-wordmark.png",
+      "sha256": "b0d9df9efd806a34d6e2bbb0e42a4153eb5075c60cdab7e34b15d154c7ef7b41",
+      "width": 1942,
+      "height": 809,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        240,
+        215,
+        1705,
+        602
+      ],
+      "figmaNodeId": "151:19",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-19"
+    },
+    {
+      "file": "assets/02-logo.png",
+      "sha256": "348891e44a1a1c2ae1b23143a086186df03642e69c99d51f9ed22336034eef82",
+      "width": 1254,
+      "height": 1254,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        223,
+        340,
+        1036,
+        957
+      ],
+      "figmaNodeId": "151:66",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-66"
+    },
+    {
+      "file": "assets/02-wordmark.png",
+      "sha256": "9cd3ab6dde71ce8a3db6911e2aa530dd260759a66869ca15122035368feba9c6",
+      "width": 1921,
+      "height": 819,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        133,
+        176,
+        1782,
+        613
+      ],
+      "figmaNodeId": "151:67",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-67"
+    },
+    {
+      "file": "assets/03-logo.png",
+      "sha256": "152bda21eb854bb4db17bde24f6e1f78c9b8bed7a725b9d9e50bea98b59ce851",
+      "width": 1254,
+      "height": 1254,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        279,
+        200,
+        976,
+        1071
+      ],
+      "figmaNodeId": "151:1676",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-1676"
+    },
+    {
+      "file": "assets/03-wordmark.png",
+      "sha256": "c64eb3b97d592fbe9e99a8bd679f326c57b7ae0ea77b54e18631c8348f5ac1ab",
+      "width": 1774,
+      "height": 887,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        302,
+        294,
+        1459,
+        598
+      ],
+      "figmaNodeId": "151:1677",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-1677"
+    },
+    {
+      "file": "assets/04-logo.png",
+      "sha256": "566de342f412f24dbec20f3419e6050f262ba8aec2dc48a4e660865cb8da8640",
+      "width": 1536,
+      "height": 1024,
+      "alphaExtrema": [
+        0,
+        254
+      ],
+      "inkBoundsAt128": [
+        349,
+        67,
+        1186,
+        946
+      ],
+      "figmaNodeId": "151:1724",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-1724"
+    },
+    {
+      "file": "assets/04-wordmark.png",
+      "sha256": "45aa63c7cdbe5ada550ff637d615272a390d2f6462493163cf4516ffa1f46bc3",
+      "width": 1920,
+      "height": 819,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        295,
+        240,
+        1619,
+        592
+      ],
+      "figmaNodeId": "151:1725",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=151-1725"
+    },
+    {
+      "file": "assets/05-logo.png",
+      "sha256": "2940c706e8e2e8d1f0b932dba8b1fa4fe9184a810850fce0c87908809fe77f98",
+      "width": 1254,
+      "height": 1254,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        156,
+        288,
+        1099,
+        989
+      ],
+      "figmaNodeId": "152:18",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=152-18"
+    },
+    {
+      "file": "assets/05-wordmark.png",
+      "sha256": "43303d9a4decb7f30f7a0c2e3ecc6af7d10a257444d337ee26f63064db37da7a",
+      "width": 1774,
+      "height": 887,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        311,
+        304,
+        1491,
+        609
+      ],
+      "figmaNodeId": "152:19",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=152-19"
+    },
+    {
+      "file": "assets/06-logo.png",
+      "sha256": "049efcf81b639e21e32db7cbe63f9d0ac167f4382568bb96fff52c2ccf9285f1",
+      "width": 1254,
+      "height": 1254,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        174,
+        185,
+        1089,
+        1098
+      ],
+      "figmaNodeId": "152:66",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=152-66"
+    },
+    {
+      "file": "assets/06-wordmark.png",
+      "sha256": "a53d6864607915f9a574733079dc89990e334805c24c541b2105443ba2538043",
+      "width": 1983,
+      "height": 793,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        372,
+        226,
+        1622,
+        562
+      ],
+      "figmaNodeId": "152:67",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=152-67"
+    },
+    {
+      "file": "assets/07-logo.png",
+      "sha256": "c0ed8d56d2e28d6682684b1f998f3445c1a2a0f6f0e539329810512a88d0e052",
+      "width": 1292,
+      "height": 1217,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        201,
+        208,
+        1092,
+        1004
+      ],
+      "figmaNodeId": "153:18",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-18"
+    },
+    {
+      "file": "assets/07-wordmark.png",
+      "sha256": "ce37d3ab4dd4afed05f1d93c3eff4270493e69dfa7a355e0a6e2a490140dce20",
+      "width": 2172,
+      "height": 724,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        287,
+        144,
+        1885,
+        564
+      ],
+      "figmaNodeId": "153:19",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-19"
+    },
+    {
+      "file": "assets/08-logo.png",
+      "sha256": "0cdbe4b86b9cb21b341bb4caae4e6e9ec9672adb06af658c1c2ceb2466d5f5f9",
+      "width": 1387,
+      "height": 1134,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        171,
+        176,
+        1269,
+        951
+      ],
+      "figmaNodeId": "153:66",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-66"
+    },
+    {
+      "file": "assets/08-wordmark.png",
+      "sha256": "847108082361ee0ea1b4f0ab721b013c26c04567cd2b26674347b0848ee9422c",
+      "width": 1881,
+      "height": 836,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        214,
+        225,
+        1666,
+        604
+      ],
+      "figmaNodeId": "153:67",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-67"
+    },
+    {
+      "file": "assets/09-logo.png",
+      "sha256": "be45a9239ddf2731b12f6c85c2a9da872b62d6dfabd38a2cf92369a2caa8b7f2",
+      "width": 1536,
+      "height": 1024,
+      "alphaExtrema": [
+        0,
+        254
+      ],
+      "inkBoundsAt128": [
+        236,
+        144,
+        1299,
+        880
+      ],
+      "figmaNodeId": "153:1724",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-1724"
+    },
+    {
+      "file": "assets/09-wordmark.png",
+      "sha256": "40745c3ff5d12a39184bba5f52302ee4b93fff75b195cb81017ea7fce0a8f7f2",
+      "width": 1774,
+      "height": 887,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        227,
+        287,
+        1552,
+        636
+      ],
+      "figmaNodeId": "153:1725",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-1725"
+    },
+    {
+      "file": "assets/10-logo.png",
+      "sha256": "0c35d65be2278cffb4410901d40e38c7a72756463964b0bc08a229a94f34fc72",
+      "width": 1402,
+      "height": 1122,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        90,
+        120,
+        1327,
+        994
+      ],
+      "figmaNodeId": "153:1772",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-1772"
+    },
+    {
+      "file": "assets/10-wordmark.png",
+      "sha256": "19ad4fdf1a0a3b240bfcc58ed8789eaf16d534c3042dd982807b74b446c7e0be",
+      "width": 2172,
+      "height": 724,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "inkBoundsAt128": [
+        124,
+        95,
+        2050,
+        606
+      ],
+      "figmaNodeId": "153:1773",
+      "figmaUrl": "https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=153-1773"
+    }
+  ],
+  "proofing": "Generated originals retain true alpha. Native Figma crops equalize optical scale; PNG pixels are unchanged. The wordmarks are raster explorations informed by JetBrains Mono, not a final editable font or approved vector logo."
+}

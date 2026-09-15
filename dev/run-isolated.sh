@@ -162,7 +162,7 @@ case "${evidence_dir}" in
         ;;
 esac
 
-for command_name in dbus-run-session xvfb-run mktemp ln unlink rmdir; do
+for command_name in dbus-run-session xvfb-run mktemp ln unlink rmdir mv find; do
     command -v "${command_name}" >/dev/null 2>&1 || {
         echo "Missing required off-screen command: ${command_name}" >&2
         exit 3
@@ -199,17 +199,24 @@ export GDK_BACKEND=x11
 export GIO_USE_VFS=local
 unset DISPLAY WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE AT_SPI_BUS_ADDRESS DBUS_SESSION_BUS_ADDRESS XAUTHORITY
 
-runtime_alias_root="$(mktemp -d "/tmp/offscreen-xdg.XXXXXX")"
-runtime_alias_path="${runtime_alias_root}/runtime"
-cleanup_runtime_alias() {
-    if [[ -L "${runtime_alias_path}" ]]; then
-        unlink -- "${runtime_alias_path}"
+runtime_root="$(mktemp -d "/tmp/offscreen-xdg.XXXXXX")"
+runtime_path="${runtime_root}/runtime"
+cleanup_runtime() {
+    if [[ -L "${session_root}/runtime" ]]; then
+        unlink -- "${session_root}/runtime"
+        # Dead sockets are not useful evidence and cannot cross some bind mounts.
+        find "${runtime_path}" -type s -delete
+        mv -- "${runtime_path}" "${session_root}/runtime"
     fi
-    rmdir -- "${runtime_alias_root}" 2>/dev/null || true
+    rmdir -- "${runtime_root}" 2>/dev/null || true
 }
-trap cleanup_runtime_alias EXIT
-ln -s -- "${session_root}/runtime" "${runtime_alias_path}"
-export XDG_RUNTIME_DIR="${runtime_alias_path}"
+trap cleanup_runtime EXIT
+# Unix sockets need a short path. WebKit's sandbox also requires the actual
+# runtime directory, not a symlink whose target is outside its bind mount.
+mkdir -m 0700 -- "${runtime_path}"
+rmdir -- "${session_root}/runtime"
+ln -s -- "${runtime_path}" "${session_root}/runtime"
+export XDG_RUNTIME_DIR="${runtime_path}"
 
 screen_spec="${OFFSCREEN_SCREEN_SPEC:-1280x900x24}"
 runner_path="$(realpath -- "$0")"
@@ -222,7 +229,7 @@ fi
 printf 'offscreen_session=%s\n' "${session_root}"
 printf 'offscreen_evidence=%s\n' "${evidence_dir}"
 printf 'offscreen_display_allocation=%s\n' "${display_allocation}"
-printf 'offscreen_xdg_runtime=short-alias\n'
+printf 'offscreen_xdg_runtime=private-short-directory\n'
 
 set +e
 xvfb-run "${xvfb_arguments[@]}" -s "-screen 0 ${screen_spec}" \
