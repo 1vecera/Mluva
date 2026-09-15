@@ -226,6 +226,21 @@ def main() -> None:
             if os.environ.get("MLUVA_PANEL_REPLAY") == "1":
                 replay_preview(publisher, observe, output)
                 return
+            publisher.publish(RecordingOverlayState(phase="recording", preview="One recorder across monitor bars"))
+            observe("recording")
+            for primary, secondary, expected_bars in (
+                (True, True, 2),
+                (False, True, 1),
+                (True, True, 2),
+                (True, False, 1),
+            ):
+                ipc("bars", str(primary).lower(), str(secondary).lower())
+                state = observe("recording", "One recorder across monitor bars")
+                assert state["barCount"] == expected_bars
+                assert state["overlayCount"] == state["visibleOverlays"] == 1, state
+                assert state["focus"], "Changing monitor bars must preserve editor focus"
+            publisher.clear()
+            observe("idle")
             for phase in ("preparing", "recording", "processing", "error"):
                 preview = ("Earlier words " * 100 + "LATEST WORDS: Žluťoučký kůň") if phase == "recording" else ""
                 publisher.publish(RecordingOverlayState(phase=phase, elapsed_seconds=73, level=0.4, preview=preview))
