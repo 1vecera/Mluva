@@ -9,6 +9,8 @@ from enum import StrEnum
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from mluva_linux.prompt_defaults import LIVE_TEMPLATE_BY_ID
+
 ELEVENLABS_API_KEY_ENVIRONMENT_VARIABLES = (
     "ELEVENLABS_API_KEY",
     "DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL",
@@ -153,7 +155,7 @@ class AppConfig:
             raise ValueError("Unsupported widget position")
         if self.time_format not in dict(TIME_FORMATS):
             raise ValueError("Unsupported time format")
-        if self.live_rewrite_template not in {"grilling", "task-spec", "structured-note", "polish", "custom"}:
+        if self.live_rewrite_template not in LIVE_TEMPLATE_BY_ID:
             raise ValueError("Unsupported live rewrite template")
         if (
             not isinstance(self.live_rewrite_custom_instructions, str)

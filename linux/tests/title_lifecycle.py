@@ -30,12 +30,14 @@ def exercise_titles(application: MluvaApplication) -> None:
 
     def settle() -> None:
         deadline = time.monotonic() + 10
-        while (application.title_client is not None or application.title_queue) and time.monotonic() < deadline:
+        while (
+            application.title_jobs.client is not None or application.title_jobs.pending
+        ) and time.monotonic() < deadline:
             GLib.MainContext.default().iteration(False)
             time.sleep(0.01)
-        assert application.title_client is None and not application.title_queue
+        assert application.title_jobs.client is None and not application.title_jobs.pending
 
-    with patch("mluva_linux.app.CodexAppServerClient", side_effect=factory) as calls:
+    with patch("mluva_linux.rewriting.CodexAppServerClient", side_effect=factory) as calls:
         import_text("Připravit páteční vydání. Zkontrolovat nový vzhled a poznámky.")
         first = workspace.entry
         assert first.title == fallback_title(first.raw_text)
@@ -52,7 +54,7 @@ def exercise_titles(application: MluvaApplication) -> None:
         editing = workspace.entry
         import_text("A second completion waits in the title queue")
         queued = workspace.entry
-        assert len(application.title_queue) == 1
+        assert len(application.title_jobs.pending) == 1
         settle()
         assert application.history_store.find(editing.identifier).title == "Plán pátečního vydání"
         assert application.history_store.find(queued.identifier).title == "Plán pátečního vydání"
@@ -84,10 +86,10 @@ def exercise_titles(application: MluvaApplication) -> None:
 
         import_text("Stop title requests when privacy changes")
         entry = workspace.entry
-        client = application.title_client
+        client = application.title_jobs.client
         application.incognito_switch.set_active(True)
-        assert application.title_client is None and not application.title_queue
-        application._title_finished(client, entry.identifier, entry.title, "Must be discarded")
+        assert application.title_jobs.client is None and not application.title_jobs.pending
+        application.title_jobs._finished(client, entry.identifier, entry.title, "Must be discarded")
         assert application.history_store.find(entry.identifier).title == entry.title
         count = calls.call_count
         import_text("Private text must never be queued")
@@ -96,15 +98,15 @@ def exercise_titles(application: MluvaApplication) -> None:
 
         import_text("Keep the fallback when automatic titles are turned off")
         entry = workspace.entry
-        client = application.title_client
+        client = application.title_jobs.client
         application.automatic_titles_switch.set_active(False)
-        assert application.title_client is None
-        application._title_finished(client, entry.identifier, entry.title, "Must be discarded")
+        assert application.title_jobs.client is None
+        application.title_jobs._finished(client, entry.identifier, entry.title, "Must be discarded")
         assert application.history_store.find(entry.identifier).title == entry.title
 
     application.config = replace(application.config, automatic_titles=True)
     with patch(
-        "mluva_linux.app.CodexAppServerClient",
+        "mluva_linux.rewriting.CodexAppServerClient",
         return_value=CodexAppServerClient(command=("/nonexistent-mluva-provider",)),
     ):
         import_text("Provider failure keeps this local title")

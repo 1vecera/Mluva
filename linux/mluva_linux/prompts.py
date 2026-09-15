@@ -5,7 +5,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from mluva_linux.prompt_defaults import CLEANUP, GRILLING, NOTE, QUICK_POLISH, STRUCTURED_NOTE, TASK_SPEC, TITLE
+from mluva_linux.prompt_defaults import CLEANUP, LIVE_TEMPLATES, QUICK_POLISH, STRUCTURED_NOTE, TITLE
 
 MAX_PROMPT_CHARACTERS = 8000
 
@@ -28,32 +28,19 @@ BUILT_INS = (
         "Optional faithful cleanup; fact and token integrity checks remain fixed.",
         CLEANUP,
     ),
-    Prompt("live-grilling", "Live · Grilling", "Develop an idea and surface the next unanswered questions.", GRILLING),
-    Prompt(
-        "live-task-spec",
-        "Live · Task spec",
-        "Fill the separately editable task structure.",
-        "Fill the task specification template from the speaker's words.",
+    *(
+        Prompt("live-" + template.identifier, "Live · " + template.name, template.purpose, template.instructions)
+        for template in LIVE_TEMPLATES
     ),
-    Prompt(
-        "live-structured-note",
-        "Live · Structured note",
-        "Organize dictation using the note structure.",
-        STRUCTURED_NOTE + " Keep sections that identify missing information.",
-    ),
-    Prompt("live-polish", "Live · Polish", "Polish a growing draft during dictation.", QUICK_POLISH),
-    Prompt("live-custom", "Live · Custom", "Your own instructions for live dictation.", ""),
-    Prompt(
-        "template-task-spec",
-        "Template · Task spec structure",
-        "Initial Markdown structure for Live Task spec.",
-        TASK_SPEC,
-    ),
-    Prompt(
-        "template-structured-note",
-        "Template · Note structure",
-        "Initial Markdown structure for Live Structured note.",
-        NOTE,
+    *(
+        Prompt(
+            "template-" + template.identifier,
+            "Template · " + template.draft.name,
+            template.draft.purpose,
+            template.draft.text,
+        )
+        for template in LIVE_TEMPLATES
+        if template.draft is not None
     ),
     Prompt("rewrite-polish", "Rewrite · Polish", "Polish the current conversation on request.", QUICK_POLISH),
     Prompt(

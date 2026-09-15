@@ -17,9 +17,10 @@ Bare Python filenames refer to [linux/mluva_linux](linux/mluva_linux). Tooling p
 | Change | Linux owner |
 | --- | --- |
 | Recording and final delivery | `app.py`: `_start_capture`, `_prepare_capture`, `_finish_recording`; `audio.py` captures PCM, `workflow.py` prepares/persists/delivers the final result |
-| Speech/rewrite provider selection | `config.py` stores choices; `provider_catalog.py` describes/discovers routes; `providers.py` creates speech clients; `app.py` wires rewrite clients and streaming; `provider_settings.py` renders choices |
+| Speech/rewrite provider selection | `config.py` stores choices; `provider_catalog.py` describes/discovers routes; `providers.py` creates speech clients; `rewriting.py` owns rewrite client construction, model/speed policy and execution; `app.py` owns worker dispatch and UI completion gates; `provider_settings.py` renders choices |
 | Live rewrite and manual edits | `live_rewrite.py` schedules/prompts; `app.py`: `_maybe_live_rewrite`, `_live_rewrite_finished`, `_save_live_draft` guard sessions/revisions; `conversation_view.py` owns editors and `conversation.py` saves working copies |
-| Prompt instructions and templates | `prompt_defaults.py` owns task defaults; `prompts.py` resolves local overrides; `prompt_editor.py` is the shared native editor; `app.py` freezes recording snapshots |
+| Prompt instructions and templates | `prompt_defaults.py`: `LIVE_TEMPLATES` defines each Live mode once for validation, menus, prompts and initial structure; `prompts.py` resolves local overrides; `prompt_editor.py` is the shared native editor; `app.py` freezes recording snapshots |
+| Automatic conversation titles | `title_jobs.py` owns the bounded queue, worker and main-thread commit checks; `conversation_titles.py` owns bounded prompt/title rules and SQL compare-and-set; `app.py` supplies settings and label refresh callbacks |
 | Commands | `command_palette.py`: `application_commands` owns Ctrl+P actions and availability. Spoken Command mode uses `workflow.py` and `app.py`: `_accept_command_preview` |
 | History, recovery and privacy | `history.py`, `conversation.py`, `scratchpad.py`, `meeting.py` own persistence; `history_view.py` renders history; `workflow.py` enforces retention/Incognito |
 | Native UI and theme | `conversation_view.py`, `markdown_view.py`, `ui.py`, `theme.py`; settings/page views are siblings; `app.py` composes them |
@@ -35,6 +36,7 @@ For a quick text/editing change, run `make linux-test-fast` from the root. It co
 | Change | Focused check after `make linux-setup` |
 | --- | --- |
 | Provider route or catalog | `(cd linux && uv run --locked pytest -q tests/test_provider_catalog.py tests/test_provider_workspace.py)` |
+| Rewrite policy or title lifecycle | `(cd linux && uv run --locked pytest -q tests/test_rewriting.py tests/test_title_jobs.py tests/test_conversation_titles.py)`; `make linux-conversation-test` exercises the native completion gates |
 | Recording, cleanup or delivery | `(cd linux && uv run --locked pytest -q tests/test_app_capture.py tests/test_workflow.py tests/test_segment_cleanup.py tests/test_delivery.py)` |
 | Prompt configuration or editor | `make linux-prompt-test` (hover/focus, Ctrl+P deep links, local files, Save/Cancel/reset, restart and recording snapshots) |
 | Ctrl+P action or availability | `make linux-command-test` (real native editor, stale actions, lossless Copy/Save, dismissal and keyboard navigation) |
@@ -42,6 +44,13 @@ For a quick text/editing change, run `make linux-test-fast` from the root. It co
 | Grilling, live navigation or Mermaid | `make linux-fluid-workspace-test` (mid-recording controls, paused draft recovery, questions, offline diagrams and responsive layouts; requires WebKitGTK 6.0) |
 | Omarchy widget | `make linux-omarchy-test` (production QML and bridge on a private display/bus) |
 | Installed launch or shortcut registration | `(cd linux && uv run --locked pytest -q tests/test_launcher.py tests/test_global_shortcuts.py)` followed by `make linux-shortcut-test` |
+
+Rewrite policy and title jobs also run without GTK on a non-Linux development host:
+
+```bash
+uv run --no-project --with pytest==9.1.1 pytest -q \
+  linux/tests/test_rewriting.py linux/tests/test_title_jobs.py linux/tests/test_conversation_titles.py
+```
 
 Run the complete Linux gate before submitting a change; it retains every deterministic case plus lint, formatting and generated-feature consistency:
 
@@ -52,6 +61,8 @@ shellcheck install.sh linux/*.sh linux/tests/*.sh dev/*.sh linux/mluva-shell
 ```
 
 For desktop delivery changes, also run `make linux-text-target-test`. Widget changes use `make linux-omarchy-test` on an Omarchy development machine. GNOME-extension changes use `make linux-overlay-test` in an environment with GNOME Shell’s headless test tools; that compatibility check is not required for unrelated Omarchy work.
+
+The [architecture review](docs/architecture-review.md) records the scope, measured baseline, three implemented improvements and 20 options for faster feature development. The remaining recommendations are proposals; the code map above describes the current implementation.
 
 ## Pull requests
 

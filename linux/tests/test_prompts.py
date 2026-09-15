@@ -7,6 +7,7 @@ import pytest
 from mluva_linux.config import AppConfig, load_config, save_config
 from mluva_linux.live_rewrite import initial_draft, live_prompt
 from mluva_linux.personalization import PersonalizationStore
+from mluva_linux.prompt_defaults import TEMPLATE_CHOICES
 from mluva_linux.prompts import BUILT_INS, PromptStore
 from mluva_linux.segment_cleanup import CodexSegmentCleanupAttempt, cleanup_prompt
 
@@ -144,3 +145,23 @@ def test_segment_cleanup_consumes_frozen_custom_instructions(tmp_path):
 
     attempt = CodexSegmentCleanupAttempt(Client(), tmp_path, "synthetic-model", "Custom task")
     assert attempt.transform("Exact {source}\n") == "Exact {source}\n"
+
+
+@pytest.mark.parametrize("template,name", TEMPLATE_CHOICES)
+def test_live_registry_connects_saved_config_editor_files_and_execution(tmp_path, template, name):
+    """A menu choice must load old config and consume the same named prompt after restart."""
+    config_path = tmp_path / "config.json"
+    save_config(AppConfig(live_rewrite_template=template), config_path)
+    store = PromptStore(tmp_path / "prompts")
+    identifier = "live-" + template
+    assert store.catalog[identifier].name == "Live · " + name
+    store.save(identifier, "Řeš zadání přesně.\nPreserve uncertainty.", None)
+    restarted = PromptStore(store.directory)
+    config = load_config(config_path)
+    assert "Řeš zadání přesně." in live_prompt(config, "Synthetic speech", "", prompts=restarted.snapshot())
+    structure = "template-" + template
+    if structure in restarted.catalog:
+        restarted.save(structure, "# Moje struktura\n[Missing: detail]", None)
+        assert initial_draft(config, restarted.snapshot()) == "# Moje struktura\n[Missing: detail]"
+    else:
+        assert initial_draft(config, restarted.snapshot()) == ""

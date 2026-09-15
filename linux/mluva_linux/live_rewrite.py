@@ -9,6 +9,7 @@ from mluva_linux.conversation import MAX_CONVERSATION_CHARACTERS
 from mluva_linux.prompt_defaults import (  # noqa: F401
     GRILLING,
     INITIAL_MINIMUM_CHARACTERS,
+    LIVE_TEMPLATE_BY_ID,
     NOTE,
     QUICK_POLISH,
     STRUCTURED_NOTE,
@@ -19,11 +20,12 @@ from mluva_linux.prompt_defaults import (  # noqa: F401
 
 def initial_draft(config: AppConfig, prompts: dict[str, str] | None = None) -> str:
     """Show the chosen structure before the speaker starts filling it."""
-    if prompts is not None and config.live_rewrite_template in {"task-spec", "structured-note"}:
+    template = LIVE_TEMPLATE_BY_ID[config.live_rewrite_template]
+    if template.draft is None:
+        return ""
+    if prompts is not None:
         return prompts["template-" + config.live_rewrite_template]
-    return {"grilling": "", "task-spec": TASK_SPEC, "structured-note": NOTE, "polish": "", "custom": ""}[
-        config.live_rewrite_template
-    ]
+    return template.draft.text
 
 
 def split_grilling_draft(text: str) -> tuple[str, str]:
@@ -36,13 +38,9 @@ def live_prompt(
     config: AppConfig, transcript: str, draft: str, *, final: bool = False, prompts: dict[str, str] | None = None
 ) -> str:
     """Request a complete structured snapshot with explicit gaps and no invented facts."""
-    instructions = {
-        "grilling": GRILLING,
-        "task-spec": "Fill the task specification template from the speaker's words.",
-        "structured-note": STRUCTURED_NOTE + " Keep sections that identify missing information.",
-        "polish": QUICK_POLISH,
-        "custom": config.live_rewrite_custom_instructions.strip(),
-    }[config.live_rewrite_template]
+    instructions = LIVE_TEMPLATE_BY_ID[config.live_rewrite_template].instructions
+    if config.live_rewrite_template == "custom":
+        instructions = config.live_rewrite_custom_instructions.strip()
     if prompts is not None:
         instructions = prompts["live-" + config.live_rewrite_template]
     if not instructions:
