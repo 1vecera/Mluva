@@ -62,6 +62,7 @@ class FakeText:
     selection: FakeRange | None = None
     caret_offset: int = 0
     calls: list[tuple[object, ...]] = field(default_factory=list)
+    reads: list[tuple[int, int]] = field(default_factory=list)
 
     def get_n_selections(self) -> int:
         """Expose zero or one fake selection."""
@@ -75,6 +76,7 @@ class FakeText:
 
     def get_text(self, start_offset: int, end_offset: int) -> str:
         """Return the exact selected substring."""
+        self.reads.append((start_offset, end_offset))
         return self.value[start_offset:end_offset]
 
     def get_caret_offset(self) -> int:
@@ -316,15 +318,7 @@ def test_capture_without_selection_restores_original_caret() -> None:
 
 def test_delivery_target_captures_selection_offsets_without_reading_text() -> None:
     """Restore ordinary dictation focus while keeping selected content undisclosed."""
-
-    class NoReadText(FakeText):
-        """Fail if delivery-only target capture attempts to read content."""
-
-        def get_text(self, _start_offset: int, _end_offset: int) -> str:
-            """Reject content disclosure outside Command mode."""
-            raise AssertionError("delivery target must not read selected text")
-
-    target_text = NoReadText("private selection", FakeRange(0, 7), caret_offset=7)
+    target_text = FakeText("private selection", FakeRange(0, 7), caret_offset=7)
     target = FakeNode(20, focused=True, text=target_text, component=FakeComponent())
 
     snapshot = capture_focused_delivery_target(
@@ -337,6 +331,7 @@ def test_delivery_target_captures_selection_offsets_without_reading_text() -> No
     assert snapshot.has_selection
     assert snapshot.restore()
     assert target_text.calls == [("set", 0, 0, 7)]
+    assert target_text.reads == []
 
 
 def test_delivery_confirmation_uses_only_expected_caret_position() -> None:
@@ -353,6 +348,7 @@ def test_delivery_confirmation_uses_only_expected_caret_position() -> None:
 
     assert snapshot.confirm_insertion("inserted") is True
     assert target_text.calls == []
+    assert target_text.reads == []
 
 
 def test_native_insertion_replaces_selection_and_uses_utf8_byte_length() -> None:
@@ -613,6 +609,7 @@ def test_application_identity_does_not_read_focused_text() -> None:
 
     assert identifier == "/usr/bin/process-20"
     assert target_text.calls == []
+    assert target_text.reads == []
 
 
 def test_oversized_selection_fails_closed() -> None:

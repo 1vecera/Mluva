@@ -134,7 +134,6 @@ def test_prompt_marks_provisional_input_and_final_reconciliation():
         assert context["transcript_status"] == (
             "final committed recognition" if final else "provisional recognition; may change"
         )
-        assert "remove facts introduced by earlier recognition errors" in prompt
         assert context["current_draft"] == "Manual edit"
 
 

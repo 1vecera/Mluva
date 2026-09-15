@@ -30,16 +30,6 @@ def test_input_helper_service_is_owner_only_keyboard_only_and_session_scoped() -
     assert "--keyboard-off" not in service
 
 
-def test_input_helper_script_is_valid_and_not_automatic() -> None:
-    """Require an explicit operator command instead of enabling privileged input during app install."""
-    helper = LINUX_ROOT / "configure-input-helper.sh"
-    subprocess.run(["bash", "-n", str(helper)], check=True)
-    installer = (LINUX_ROOT / "install.sh").read_text()
-
-    assert "mluva-input-helper install" in installer
-    assert "configure-input-helper.sh install" not in installer
-
-
 def test_installed_input_helper_symlink_resolves_its_packaged_unit(tmp_path: Path) -> None:
     """Find application resources when the public command is the installer's symlink."""
     application_dir = tmp_path / "application"

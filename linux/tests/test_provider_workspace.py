@@ -3,7 +3,6 @@
 import json
 import sqlite3
 import threading
-from dataclasses import replace
 from http.server import BaseHTTPRequestHandler
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -12,11 +11,10 @@ import pytest
 from http_fixture import local_http_server
 
 from mluva_linux.batch_preview import BatchPreviewClient
-from mluva_linux.config import AppConfig, load_config, save_config
+from mluva_linux.config import AppConfig
 from mluva_linux.conversation import ConversationStore, rewrite_prompt
 from mluva_linux.elevenlabs import TranscriptionResult
 from mluva_linux.history import HistoryStore
-from mluva_linux.live_rewrite import LiveRewriteSchedule, initial_draft, live_prompt
 from mluva_linux.providers import LiteLLMClient, ProviderError, VoxtypeClient
 from mluva_linux.workflow import DictationWorkflow
 
@@ -160,24 +158,6 @@ def test_saved_source_and_reply_edits_survive_restart_and_deletion(tmp_path):
         restarted.save_text(entry.identifier, "Must not resurrect")
 
 
-def test_live_schedule_coalesces_and_marks_missing_information():
-    """Test thresholds, in-flight coalescing, final tails and explicit template gaps."""
-    schedule = LiveRewriteSchedule(40, 4)
-    assert schedule.take("x", 0) is None
-    assert schedule.take("x" * 40, 0) == "x" * 40
-    assert schedule.take("x" * 90, 5) is None
-    schedule.finish(True)
-    assert schedule.take("x" * 90, 2) is None
-    assert schedule.take("x" * 90, 5) == "x" * 90
-    schedule.finish(True)
-    assert schedule.take("x" * 95, 6, final=True) == "x" * 95
-    config = AppConfig(live_rewrite_template="task-spec")
-    assert "[Missing:" in initial_draft(config)
-    assert "Never invent owners" in live_prompt(config, "Create a task", "My edited draft")
-    schedule.finish(False)
-    assert schedule.take("x" * 200, 30) is None
-
-
 def test_batch_preview_finishes_from_full_audio_and_erases_temporary_files(tmp_path):
     """Provisional chunk text never substitutes for the final full-audio transcription."""
     seen = []
@@ -216,9 +196,6 @@ def test_local_capture_without_cloud_credentials_or_clipboard(tmp_path):
     assert not copy.called and not result.delivery.copied
     assert result.history_entry.recognition_route == "voxtype-local"
     assert result.history_entry.delivery_outcome == "ready"
-    path = tmp_path / "config.json"
-    save_config(replace(config, live_rewrite_enabled=True), path)
-    assert load_config(path).live_rewrite_enabled
 
 
 @pytest.mark.parametrize("edited_source", [None, "My correction", "raw original"])

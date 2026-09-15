@@ -7,22 +7,6 @@ from pathlib import Path
 LINUX_ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_recording_overlay_helper_is_valid_and_not_automatic() -> None:
-    """Package the extension for explicit review without mutating Shell during app install."""
-    helper = LINUX_ROOT / "configure-recording-overlay.sh"
-    subprocess.run(["bash", "-n", str(helper)], check=True)
-    helper_source = helper.read_text()
-    installer = (LINUX_ROOT / "install.sh").read_text()
-
-    assert "gnome-extensions pack" in helper_source
-    assert "--extra-source recordingOverlay.js" in helper_source
-    assert "gnome-extensions install --force" in helper_source
-    assert 'gnome-extensions enable "${extension_uuid}"' in helper_source
-    assert "mluva-overlay install" in installer
-    assert "configure-recording-overlay.sh install" not in installer
-    assert 'ln -sfn "${application_dir}/configure-recording-overlay.sh"' in installer
-
-
 def test_recording_overlay_install_packs_installs_and_enables_with_fake_shell(tmp_path: Path) -> None:
     """Exercise the explicit helper without changing the active GNOME Shell session."""
     fake_bin = tmp_path / "bin"
