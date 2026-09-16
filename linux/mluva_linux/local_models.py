@@ -39,7 +39,7 @@ def ready(identifier: str) -> bool:
         return False
 
 
-def download(identifier: str, progress, cancelled: threading.Event) -> None:
+def download(identifier: str, progress, cancelled: threading.Event, *, gpu: bool = False) -> None:
     """Download pinned files atomically, verify weight hashes and bound total storage."""
     model = MODEL_BY_ID[identifier]
     root = model_root()
@@ -49,12 +49,16 @@ def download(identifier: str, progress, cancelled: threading.Event) -> None:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             raise RuntimeError("Another model download is running. Try again when it finishes.") from None
+        from mluva_linux import local_gpu
+
+        if gpu:
+            local_gpu.install(cancelled)
         if ready(identifier):
             progress(1.0)
             return
         path = model_path(identifier)
         total = sum(item["size"] for item in model["files"])
-        used = sum(p.stat().st_size for p in root.rglob("*") if p.is_file())
+        used = local_gpu.disk_usage(root) + local_gpu.disk_usage(local_gpu.runtime_path())
         if used + total > STORAGE_LIMIT or shutil.disk_usage(root).free < total + 100_000_000:
             raise RuntimeError("Not enough model storage. Free disk space before downloading.")
         path.mkdir(mode=0o700, exist_ok=True)

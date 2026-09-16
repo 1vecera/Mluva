@@ -1,14 +1,20 @@
 """Recording appearance controls with a private, embedded ten-line desktop preview."""
 
+import math
+import os
 from collections.abc import Callable
+from pathlib import Path
 
+import cairo
 import gi
 
 from mluva_linux.config import WIDGET_POSITIONS, AppConfig
+from mluva_linux.direct_choices import DirectChoices
+from mluva_linux.theme import DarkTokens, LightTokens, read_omarchy_palette
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gtk  # noqa: E402
+from gi.repository import Adw, Gtk, Pango, PangoCairo  # noqa: E402
 
 SAMPLE_LINES = (
     "A small idea becomes a clear thought.",
@@ -31,9 +37,9 @@ class AppearanceSettings(Adw.PreferencesGroup):
         """Preview synthetic content without capturing or moving the user's desktop."""
         super().__init__(title="Make it yours", description="Preview with ten sample lines. No desktop capture.")
         self.changed = changed
-        self.position = Adw.ComboRow(
-            title="Recorder position", model=Gtk.StringList.new([v for _, v in WIDGET_POSITIONS])
-        )
+        position_row = Adw.ActionRow(title="Recorder position")
+        self.position = DirectChoices(["Left", "Center", "Right"])
+        position_row.add_suffix(self.position)
         self.position.set_selected([k for k, _ in WIDGET_POSITIONS].index(config.widget_position))
         self.lines = Adw.SpinRow(
             title="Visible transcript lines · 5 recommended",
@@ -51,10 +57,10 @@ class AppearanceSettings(Adw.PreferencesGroup):
             subtitle="Off recommended. Copy and paste when you are ready.",
             active=config.auto_paste,
         )
-        for row in (self.position, self.lines, self.opacity, self.paste):
+        for row in (position_row, self.lines, self.opacity, self.paste):
             self.add(row)
         self.preview_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.preview = Gtk.DrawingArea(content_height=210, hexpand=True)
+        self.preview = Gtk.DrawingArea(content_height=190, hexpand=True)
         self.preview.set_draw_func(self._draw)
         self.preview.update_property(
             [Gtk.AccessibleProperty.LABEL],
@@ -98,44 +104,66 @@ class AppearanceSettings(Adw.PreferencesGroup):
         self.changed()
 
     def _draw(self, _area, cr, width: int, height: int) -> None:
-        """Composite the background only, leaving transcript text fully opaque."""
-        cr.set_source_rgb(0.21, 0.32, 0.42)
+        """Mirror the recorder's bare 20px header, 500px surface and 14/22px mono text."""
+        state = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state"))
+        palette = read_omarchy_palette(state / "omarchy/current/theme/colors.toml")
+        tokens = palette[0] if palette else DarkTokens if Adw.StyleManager.get_default().get_dark() else LightTokens
+
+        def color(value, alpha=1):
+            cr.set_source_rgba(*(int(value[i : i + 2], 16) / 255 for i in (1, 3, 5)), alpha)
+
+        def text(value, x, y, size=14):
+            layout = PangoCairo.create_layout(cr)
+            font = Pango.FontDescription("JetBrains Mono")
+            font.set_absolute_size(size * Pango.SCALE)
+            layout.set_font_description(font)
+            layout.set_text(value, -1)
+            cr.move_to(x, y)
+            PangoCairo.show_layout(cr, layout)
+
+        # A clearly synthetic workspace makes transparency readable without a screenshot.
+        color(tokens["canvas"])
         cr.paint()
-        cr.set_source_rgb(0.34, 0.47, 0.45)
-        cr.arc(width * 0.7, height * 0.45, width * 0.45, 0, 6.284)
-        cr.fill()
-        cr.set_source_rgba(1, 1, 1, 0.15)
-        for i in range(7):
-            cr.rectangle(20, 35 + i * 33, width * 0.6, 12)
+        color(tokens["ink"], 0.12)
+        for i in range(12):
+            cr.rectangle(16, 18 + i * 22, width * (0.72 if i % 3 else 0.5), 2)
         cr.fill()
         values = self.values()
-        panel_width = min(390, width - 32)
-        panel_height = 45 + values["widget_lines"] * 22
+        panel_width = 500
+        panel_height = 40 + values["widget_lines"] * 22
+        scale = min(1.0, (width - 56) / panel_width, (height - 32) / panel_height)
+        rendered_width = panel_width * scale
         position = values["widget_position"]
         x = (
-            16
+            12
             if position == "bottom-left"
-            else width - panel_width - 16
+            else width - rendered_width - 12
             if position == "bottom-right"
-            else (width - panel_width) / 2
+            else (width - rendered_width) / 2
         )
-        scale = min(1.0, (height - 32) / panel_height)
-        cr.translate(x, height - panel_height * scale - 16)
-        cr.scale(scale, scale)
-        x, y = 0, 0
-        cr.set_source_rgba(0.05, 0.06, 0.08, values["widget_opacity"] / 100)
-        cr.rectangle(x, y, panel_width, panel_height)
-        cr.fill()
         cr.save()
-        cr.rectangle(x + 12, y + 10, panel_width - 24, panel_height - 20)
+        cr.translate(x, height - panel_height * scale - 12)
+        cr.scale(scale, scale)
+        # RecordingLight.qml at a fixed circular breathing endpoint: same bounds and gradient.
+        ink = tuple(int(tokens["danger"][i : i + 2], 16) / 255 for i in (1, 3, 5))
+        gradient = cairo.RadialGradient(6.4, 8, 0, 8, 10, 8.8)
+        for stop, alpha in ((0, 0.84), (0.64, 0.66), (1, 0.12)):
+            gradient.add_color_stop_rgba(stop, *ink, alpha)
+        cr.set_source(gradient)
+        cr.arc(8, 10, 8, 0, math.tau)
+        cr.fill()
+        color(tokens["ink"])
+        text("00:12", panel_width - 42, 0)
+        # The real header has no background and no redundant Recording label.
+        cr.rectangle(0, 20, panel_width, panel_height - 20)
+        color(tokens["surface"], values["widget_opacity"] / 100)
+        cr.fill_preserve()
+        color(tokens["outline"])
+        cr.set_line_width(1)
+        cr.stroke()
+        cr.rectangle(10, 30, panel_width - 20, values["widget_lines"] * 22)
         cr.clip()
-        cr.select_font_face("monospace")
-        cr.set_font_size(13)
-        cr.set_source_rgb(1, 0.45, 0.5)
-        cr.move_to(x + 12, y + 24)
-        cr.show_text("● Recording                         00:12")
-        cr.set_source_rgb(0.97, 0.97, 0.98)
+        color(tokens["ink"])
         for i, line in enumerate(SAMPLE_LINES[-values["widget_lines"] :]):
-            cr.move_to(x + 12, y + 46 + i * 22)
-            cr.show_text(line)
+            text(line, 10, 30 + i * 22)
         cr.restore()

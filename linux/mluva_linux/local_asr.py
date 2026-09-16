@@ -9,6 +9,7 @@ import threading
 import time
 from pathlib import Path
 
+from mluva_linux import local_gpu
 from mluva_linux.elevenlabs import TranscriptionResult
 from mluva_linux.local_models import model_path, ready
 
@@ -16,9 +17,10 @@ from mluva_linux.local_models import model_path, ready
 class LocalSpeechClient:
     """Own one child process, reusing weights only inside an active capture."""
 
-    def __init__(self, model: str, *, keep_alive: bool = False) -> None:
+    def __init__(self, model: str, *, keep_alive: bool = False, device: str = "cpu") -> None:
         """Defer all weight loading until the first audio request."""
         self.model = model
+        self.device = device
         self.keep_alive = keep_alive
         self.process = None
         self.cancelled = threading.Event()
@@ -57,6 +59,8 @@ class LocalSpeechClient:
             "uk",
         }:
             raise RuntimeError("Parakeet does not support this language. Choose a multilingual Whisper model.")
+        if self.device == "cuda" and not local_gpu.ready():
+            raise RuntimeError("Download GPU support in Settings → Providers first, or choose CPU.")
         if not ready(self.model):
             raise RuntimeError("Download your local model in Settings → Providers first.")
         if self.cancelled.is_set():
@@ -72,7 +76,14 @@ class LocalSpeechClient:
                     OPENBLAS_NUM_THREADS="1",
                 )
                 self.process = subprocess.Popen(
-                    [sys.executable, "-m", "mluva_linux.local_asr_worker", self.model, str(model_path(self.model))],
+                    [
+                        str(local_gpu.runtime_path() / "bin/python") if self.device == "cuda" else sys.executable,
+                        "-m",
+                        "mluva_linux.local_asr_worker",
+                        self.model,
+                        str(model_path(self.model)),
+                        self.device,
+                    ],
                     stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.DEVNULL,
@@ -90,7 +101,19 @@ class LocalSpeechClient:
             with selectors.DefaultSelector() as selector:
                 selector.register(process.stdout, selectors.EVENT_READ)
                 deadline = time.monotonic() + 180
-                while not selector.select(timeout=0.1):
+                while True:
+                    # CUDA reserves large virtual ranges, so bound resident RAM rather than address space.
+                    try:
+                        status = Path(f"/proc/{process.pid}/status").read_text()
+                        rss = next(
+                            int(line.split()[1]) * 1024 for line in status.splitlines() if line.startswith("VmRSS:")
+                        )
+                        if rss > 5_000_000_000:
+                            raise RuntimeError("Local model exceeded 5 GB RAM. Choose a smaller model.")
+                    except (OSError, StopIteration):
+                        pass
+                    if selector.select(timeout=0.1):
+                        break
                     if self.cancelled.is_set():
                         raise RuntimeError("Local transcription cancelled.")
                     if time.monotonic() >= deadline:
@@ -104,7 +127,12 @@ class LocalSpeechClient:
             raise
         except (OSError, ValueError):
             self.close()
-            raise RuntimeError("Local transcription failed. Try a smaller model or download it again.") from None
+            message = (
+                "GPU transcription failed. Try CPU or reinstall GPU support."
+                if self.device == "cuda"
+                else ("Local transcription failed. Try a smaller model or download it again.")
+            )
+            raise RuntimeError(message) from None
         finally:
             if not self.keep_alive:
                 self.close()

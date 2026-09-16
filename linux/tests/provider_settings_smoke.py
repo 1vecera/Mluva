@@ -265,7 +265,6 @@ def main() -> int:
             patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
             patch.object(PipeWireDeviceCatalog, "from_system", return_value=PipeWireDeviceCatalog()),
             patch("mluva_linux.provider_catalog.CodexAppServerClient", side_effect=native_client),
-            patch("mluva_linux.provider_settings.ready", return_value=True),
             patch("mluva_linux.local_model_settings.ready", return_value=True),
             patch.dict(
                 os.environ,

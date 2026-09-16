@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from mluva_linux import local_models
+from mluva_linux import local_gpu, local_models
 from mluva_linux.config import AppConfig
 from mluva_linux.local_asr import LocalSpeechClient
 from mluva_linux.rewriting import rewrite_client
@@ -100,3 +100,79 @@ def test_unsupported_local_language_does_not_start_worker(tmp_path):
         with pytest.raises(RuntimeError, match="does not support this language"):
             LocalSpeechClient("parakeet-v3").transcribe(tmp_path / "audio.wav", "jpn")
     spawn.assert_not_called()
+
+
+def test_gpu_runtime_counts_towards_model_storage(model_fixture, monkeypatch, tmp_path):
+    """A model cannot silently exceed the budget already occupied by CUDA libraries."""
+    monkeypatch.setattr(local_models, "model_root", lambda: tmp_path / "models")
+    gpu = tmp_path / "runtime"
+    gpu.mkdir()
+    (gpu / "library").write_bytes(b"x" * 100)
+    monkeypatch.setattr(local_gpu, "runtime_path", lambda: gpu)
+    monkeypatch.setattr(local_models, "STORAGE_LIMIT", 100)
+    with pytest.raises(RuntimeError, match="storage"):
+        local_models.download("test", lambda value: None, threading.Event())
+    assert not local_models.ready("test")
+
+
+def test_gpu_worker_requires_completed_runtime(tmp_path):
+    """A selected GPU never silently runs on CPU or downloads on first audio."""
+    with patch.object(local_gpu, "ready", return_value=False), patch("subprocess.Popen") as spawn:
+        with pytest.raises(RuntimeError, match="GPU support"):
+            LocalSpeechClient("parakeet-v3", device="cuda").transcribe(tmp_path / "voice.wav", "eng")
+    spawn.assert_not_called()
+
+
+def test_runtime_version_invalidates_readiness(tmp_path, monkeypatch):
+    """A changed dependency lock must be installed before Continue can unlock."""
+    monkeypatch.setattr(local_gpu, "runtime_path", lambda: tmp_path)
+    (tmp_path / "bin").mkdir()
+    (tmp_path / "bin/python").touch()
+    (tmp_path / ".ready").write_text("old dependency lock")
+    assert not local_gpu.ready()
+    (tmp_path / ".ready").write_text(local_gpu.runtime_stamp())
+    assert local_gpu.ready()
+
+
+def test_gpu_install_failure_removes_partial_runtime(tmp_path, monkeypatch):
+    """An installation failure leaves neither readiness nor a large partial download."""
+    root = tmp_path / "gpu-runtime"
+    monkeypatch.setattr(local_gpu, "runtime_path", lambda: root)
+    monkeypatch.setattr(local_gpu, "gpu_name", lambda: "test NVIDIA")
+    monkeypatch.setattr(local_gpu, "ready", lambda: False)
+
+    class FailedProcess:
+        returncode = 1
+
+        def poll(self):
+            staging = root.with_name("gpu-runtime.partial")
+            staging.mkdir(exist_ok=True)
+            (staging / "partial-library").write_text("partial")
+            return self.returncode
+
+    with patch.object(local_gpu.subprocess, "Popen", return_value=FailedProcess()):
+        with pytest.raises(RuntimeError, match="installation failed"):
+            local_gpu.install(threading.Event())
+    assert not root.exists()
+    assert not root.with_name("gpu-runtime.partial").exists()
+
+
+def test_cpu_default_and_monotonic_slider_budgets():
+    """Every slider stop increases both the displayed RAM budget and actual storage."""
+    assert AppConfig().local_device == "cpu"
+    models = local_models.MODELS
+    assert len(models) == 5
+    assert [m["ram_mb"] for m in models] == sorted(m["ram_mb"] for m in models)
+    sizes = [sum(f["size"] for f in m["files"]) for m in models]
+    assert sizes == sorted(sizes)
+
+
+def test_explicit_saved_key_wins_over_inherited_environment(monkeypatch):
+    """Pasting a new account key must not silently keep billing the launcher's account."""
+    from mluva_linux.config import elevenlabs_api_key
+
+    monkeypatch.setenv("ELEVENLABS_API_KEY", "synthetic-old-key")
+    with patch("mluva_linux.credentials.stored_speech_key", return_value="synthetic-new-key"):
+        assert elevenlabs_api_key() == "synthetic-new-key"
+    with patch("mluva_linux.credentials.stored_speech_key", return_value=None):
+        assert elevenlabs_api_key() == "synthetic-old-key"

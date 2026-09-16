@@ -10,7 +10,7 @@ from mluva_linux.appearance_settings import AppearanceSettings
 from mluva_linux.config import AppConfig, elevenlabs_api_key
 from mluva_linux.credentials import store_speech_key
 from mluva_linux.provider_settings import ProviderSection
-from mluva_linux.ui import SPACE_2, SPACE_4, brand_mark, set_margins
+from mluva_linux.ui import SPACE_2, SPACE_4, set_margins
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -82,44 +82,35 @@ class WelcomeView(Gtk.Box):
         self.config, self.save, self.finish = config, save, finish
         self.step = 0
         self.saving_key = False
+        self.advance_after_key = False
         self.steps = Gtk.Stack(vexpand=True, vhomogeneous=False, hhomogeneous=False)
         self.speech = ProviderSection(config, "speech")
         self.rewrite = ProviderSection(config, "rewrite")
+        self.speech.set_title("")
+        self.rewrite.set_title("")
         self.providers = self
         self.appearance = AppearanceSettings(config)
         self.appearance.set_title("")
         self.appearance.set_description("")
-        self.title = Gtk.Label(label="Welcome to Mluva", xalign=0, wrap=True, css_classes=["title-1"])
+        self.title = Gtk.Label(label="Choose speech recognition", xalign=0, wrap=True, css_classes=["title-1"])
         header = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        set_margins(header, 24)
-        mark = brand_mark(40)
-        mark.set_halign(Gtk.Align.START)
-        header.append(mark)
+        set_margins(header, 16)
+        header.append(Gtk.Label(label="Set up Mluva in three steps", xalign=0, css_classes=["dim-label"]))
         header.append(self.title)
+        self.step_label = Gtk.Label(xalign=0)
+        header.append(self.step_label)
+        self.progress = Gtk.ProgressBar()
+        header.append(self.progress)
         self.append(header)
         speech = Adw.PreferencesPage()
         speech.add(self.speech)
-        self.key_group = Adw.PreferencesGroup(title="Your ElevenLabs key")
-        self.key_entry = Adw.PasswordEntryRow(title="API key")
-        self.key_group.add(self.key_entry)
-        key_row = Adw.ActionRow(
-            title="Save in your desktop keyring", subtitle="Your key is never stored in Mluva's settings file."
-        )
-        self.key_save = Gtk.Button(label="Save key", valign=Gtk.Align.CENTER)
-        self.key_save.connect("clicked", self._save_key)
-        key_row.add_suffix(self.key_save)
-        self.key_group.add(key_row)
-        speech.add(self.key_group)
+        self.key_entry = self.speech.api_key_entry
         rewriting = Adw.PreferencesPage()
         rewriting.add(self.rewrite)
-        appearance_page = Adw.PreferencesPage(vexpand=True)
-        appearance_page.add(self.appearance)
-        self.appearance.remove(self.appearance.preview_box)
-        appearance = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        appearance.append(appearance_page)
-        self.appearance.preview_box.set_margin_start(20)
-        self.appearance.preview_box.set_margin_end(20)
-        appearance.append(self.appearance.preview_box)
+        appearance = Gtk.ScrolledWindow(vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER)
+        appearance.set_margin_start(20)
+        appearance.set_margin_end(20)
+        appearance.set_child(self.appearance)
         for name, page in (("speech", speech), ("rewrite", rewriting), ("appearance", appearance)):
             self.steps.add_named(page, name)
         self.append(self.steps)
@@ -162,7 +153,8 @@ class WelcomeView(Gtk.Box):
         self.speech.local.stop()
 
     def _refresh(self):
-        self.key_group.set_visible(self.speech.provider.id == "elevenlabs")
+        self.step_label.set_label(f"Step {self.step + 1} of 3 · " + ("Speech", "Polishing", "Recorder")[self.step])
+        self.progress.set_fraction((self.step + 1) / 3)
         self.back.set_visible(self.step > 0)
         self.next.set_label("Open Mluva" if self.step == 2 else "Continue")
         self.next.set_sensitive(not self.saving_key and (self.step != 0 or self.speech.is_ready()))
@@ -172,24 +164,29 @@ class WelcomeView(Gtk.Box):
         key = self.key_entry.get_text().strip()
         self.key_entry.set_text("")
         self.saving_key = True
-        self.key_save.set_sensitive(False)
         self.status.set_label("Saving key to your desktop keyring…")
         self._refresh()
 
         def work():
+            success = False
             try:
                 store_speech_key(key)
+                success = True
                 message = "Key saved. You can continue."
             except (ValueError, RuntimeError) as error:
                 message = str(error)
-            GLib.idle_add(self._key_saved, message)
+            GLib.idle_add(self._key_saved, message, success)
 
         threading.Thread(target=work, daemon=True, name="save-speech-key").start()
 
-    def _key_saved(self, message):
+    def _key_saved(self, message, success):
         self.saving_key = False
-        self.key_save.set_sensitive(True)
         self.status.set_label(message)
+        if success and self.advance_after_key:
+            self.step = 1
+            self._show_step()
+        self.advance_after_key = False
+        self._refresh()
         return GLib.SOURCE_REMOVE
 
     def _back(self, *_args):
@@ -208,12 +205,14 @@ class WelcomeView(Gtk.Box):
         if self.saving_key or not self.speech.is_ready():
             return
         if self.step == 0 and self.speech.provider.id == "elevenlabs":
+            if self.key_entry.get_text().strip():
+                self.advance_after_key = True
+                self._save_key()
+                return
             try:
                 elevenlabs_api_key()
             except RuntimeError:
-                self.status.set_label(
-                    "Save an ElevenLabs key, configure it in your environment, or choose a local model."
-                )
+                self.status.set_label("Paste your ElevenLabs key above, or choose a local model.")
                 return
         changes = self.speech.values | self.rewrite.values | self.appearance.values()
         if changes["rewrite_provider"] == "none":

@@ -33,10 +33,22 @@ def main():
             view = app.welcome_view
             settle(lambda: view.get_mapped())
             paint(app.window, output / "speech.png")
+            view.key_entry.set_text("synthetic-key")
+            with patch("mluva_linux.settings_view.store_speech_key", side_effect=RuntimeError("Keyring unavailable")):
+                view._next()
+                settle(lambda: not view.saving_key)
+                assert view.step == 0 and "Keyring unavailable" in view.status.get_label()
+            view.key_entry.set_text("synthetic-key")
+            with patch("mluva_linux.settings_view.store_speech_key") as store:
+                view._next()
+                settle(lambda: view.step == 1)
+                store.assert_called_once_with("synthetic-key")
+            assert not view.key_entry.get_text()
+            view._back()
             arrived, release = threading.Event(), threading.Event()
             downloaded = set()
 
-            def download(identifier, progress, cancelled):
+            def download(identifier, progress, cancelled, *, gpu=False):
                 arrived.set()
                 release.wait(5)
                 if not cancelled.is_set():
@@ -45,19 +57,27 @@ def main():
             with (
                 patch("mluva_linux.local_model_settings.download", download),
                 patch("mluva_linux.local_model_settings.ready", lambda value: value in downloaded),
-                patch("mluva_linux.provider_settings.ready", lambda value: value in downloaded),
             ):
                 view.speech.provider_row.set_selected([p.id for p in view.speech.providers].index("local"))
+                assert not arrived.is_set(), "Selecting a model must not start a download"
+                view.speech.local.button.emit("clicked")
                 settle(arrived.is_set)
                 view._refresh()
                 assert not view.next.get_sensitive()
                 view._next()
                 assert view.step == 0
                 paint(app.window, output / "download.png")
+
                 release.set()
                 settle(lambda: view.speech.local.cancelled is None)
                 view._refresh()
                 assert view.next.get_sensitive()
+                with patch("mluva_linux.local_model_settings.local_gpu.ready", return_value=False):
+                    view.speech.local.gpu.set_active(True)
+                    assert not view.speech.is_ready()
+                    view.speech.local.gpu.set_active(False)
+                assert view.speech.is_ready()
+                paint(app.window, output / "local-ready.png")
                 view._next()
                 assert view.step == 1
                 view.rewrite.provider_row.set_selected([p.id for p in view.rewrite.providers].index("none"))

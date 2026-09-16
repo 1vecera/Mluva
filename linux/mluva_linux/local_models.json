@@ -32,7 +32,8 @@
         "size": 30719241,
         "sha256": "25e807a962b6349356d0ea5d0dfe530b7e5bf0e2a484aeca0359d03143faddd3"
       }
-    ]
+    ],
+    "ram_mb": 500
   },
   {
     "id": "whisper-base",
@@ -67,7 +68,8 @@
         "size": 53693315,
         "sha256": "fa3ef9902734ce5ae6f9ef2bdb2ba9a6c4b5785b09f4f420ce036573dc9d090b"
       }
-    ]
+    ],
+    "ram_mb": 750
   },
   {
     "id": "whisper-small",
@@ -102,7 +104,8 @@
         "size": 156750845,
         "sha256": "ec07c3cbb64172c39791e26ee870a65ac22b458c36722bfe2776b3dbf741e0c9"
       }
-    ]
+    ],
+    "ram_mb": 1500
   },
   {
     "id": "parakeet-v3",
@@ -132,7 +135,8 @@
         "size": 18202004,
         "sha256": "eea7483ee3d1a30375daedc8ed83e3960c91b098812127a0d99d1c8977667a70"
       }
-    ]
+    ],
+    "ram_mb": 2000
   },
   {
     "id": "whisper-turbo",
@@ -167,6 +171,7 @@
         "size": 439936716,
         "sha256": "61481bd3be3a445d5a4b9070e8f8b2c6cc4fbbbbdc9f0e7ed048a132b8b84e0d"
       }
-    ]
+    ],
+    "ram_mb": 3000
   }
 ]

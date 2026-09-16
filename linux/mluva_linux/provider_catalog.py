@@ -26,7 +26,7 @@ SPEECH_PROVIDERS = (
         "ElevenLabs · recommended",
         "transcription_model",
         None,
-        "Fast live speech recognition with Scribe v2 Realtime. About $0.39/hour before taxes; "
+        "Recommended · Fast live speech recognition with Scribe v2 Realtime. About $0.39/hour before taxes; "
         "$5 of usage is about 12.8 hours at that rate. Pricing may change. "
         "I’m not affiliated with ElevenLabs in any way—just a happy user.",
     ),

@@ -1027,7 +1027,7 @@ class MluvaApplication(Adw.Application):
             from mluva_linux.local_preview import LocalPreviewClient
 
             self.realtime_client = LocalPreviewClient(
-                config.local_model, self.codex_workspace.parent / "speech-previews"
+                config.local_model, self.codex_workspace.parent / "speech-previews", device=config.local_device
             )
         else:
             self.realtime_client = BatchPreviewClient(

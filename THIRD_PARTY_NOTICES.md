@@ -23,3 +23,8 @@ Mermaid 12.0.0 is bundled for local diagram rendering in `linux/resources/mermai
 ## Optional downloaded speech models
 
 Mluva downloads pinned ONNX conversions into its own model directory. Whisper weights are MIT-licensed, originally from OpenAI, converted by onnx-community. Parakeet v3 weights are CC BY 4.0, originally from NVIDIA, converted by Ilya Stupakov. The catalog records upstream repositories, revisions and file checksums in `linux/mluva_linux/local_models.json`. Preserve upstream license notices when redistributing downloaded models. ONNX Runtime and NumPy are MIT/BSD licensed runtime dependencies; their installed distributions include full license notices.
+
+
+## Optional NVIDIA runtime
+
+The optional Linux GPU environment resolves the exact wheel versions and hashes in `linux/mluva_linux/gpu-requirements.txt`. It includes ONNX Runtime GPU (MIT), NumPy (BSD), ONNX ASR (MIT), and NVIDIA CUDA/cuDNN libraries under their own NVIDIA licenses. These are downloaded only when GPU support is selected; the wheel distributions retain their upstream license files. The system NVIDIA driver is not bundled or installed by Mluva.

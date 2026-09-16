@@ -216,7 +216,7 @@ def transcription_client(config: AppConfig):
     if config.transcription_provider == "local":
         from mluva_linux.local_asr import LocalSpeechClient
 
-        return LocalSpeechClient(config.local_model)
+        return LocalSpeechClient(config.local_model, device=config.local_device)
     if config.transcription_provider == "litellm":
         return LiteLLMClient(
             config.transcription_base_url,

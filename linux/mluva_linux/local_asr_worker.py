@@ -19,20 +19,47 @@ def main() -> None:
     model = MODEL_BY_ID[sys.argv[1]]
     # Bound address space before creating inference sessions. The child never
     # inherits cloud keys; local paths and offline flags prohibit hub fallback.
-    resource.setrlimit(resource.RLIMIT_AS, (5_000_000_000, 5_000_000_000))
+    device = sys.argv[3] if len(sys.argv) > 3 else "cpu"
+    if device == "cpu":
+        resource.setrlimit(resource.RLIMIT_AS, (5_000_000_000, 5_000_000_000))
+    else:
+        ort.preload_dlls(directory="")
+        if "CUDAExecutionProvider" not in ort.get_available_providers():
+            raise RuntimeError("CUDA is unavailable")
     options = ort.SessionOptions()
     options.intra_op_num_threads = min(4, os.cpu_count() or 1)
     options.inter_op_num_threads = 1
     # Avoid arena growth reserving large slabs beyond the small-worker budget.
     options.enable_cpu_mem_arena = False
     options.enable_mem_pattern = False
+    if device == "cuda" and model["engine"] == "whisper":
+        # ORT 1.26's MatMulNBits rewrite breaks these merged quantized decoder graphs.
+        options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_DISABLE_ALL
     engine = onnx_asr.load_model(
         model["engine"],
         Path(sys.argv[2]),
         quantization=model["quantization"],
         sess_options=options,
-        providers=["CPUExecutionProvider"],
+        providers=[
+            (
+                "CUDAExecutionProvider",
+                {
+                    "gpu_mem_limit": 2_500_000_000,
+                    "cudnn_conv_use_max_workspace": "0",
+                    "arena_extend_strategy": "kSameAsRequested",
+                },
+            ),
+            "CPUExecutionProvider",
+        ]
+        if device == "cuda"
+        else ["CPUExecutionProvider"],
     )
+    if device == "cuda":
+        sessions = [value for value in vars(engine.asr).values() if isinstance(value, ort.InferenceSession)]
+        if not sessions or any("CUDAExecutionProvider" not in session.get_providers() for session in sessions):
+            raise RuntimeError("GPU initialization failed. Choose CPU or reinstall GPU support.")
+        for session in sessions:
+            session.disable_fallback()
     for line in sys.stdin:
         request = json.loads(line)
         parts = []

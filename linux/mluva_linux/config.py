@@ -77,6 +77,7 @@ class AppConfig:
     transcription_remote_model: str = "whisper"
     voxtype_model: str | None = None
     local_model: str = "parakeet-v3"
+    local_device: str = "cpu"
     transcription_chunk_seconds: int = 8
     auto_copy_dictation: bool = True
     auto_copy_rewrite: bool = True
@@ -126,6 +127,8 @@ class AppConfig:
             raise ValueError("rewrite_provider must be codex, litellm or none")
         if self.transcription_provider not in {"elevenlabs", "litellm", "local"}:
             raise ValueError("transcription_provider must be elevenlabs, litellm or local")
+        if self.local_device not in {"cpu", "cuda"}:
+            raise ValueError("local_device must be cpu or cuda")
         if self.local_model not in {"whisper-tiny", "whisper-base", "whisper-small", "parakeet-v3", "whisper-turbo"}:
             raise ValueError("Choose a supported local speech model")
         for endpoint in (self.litellm_base_url, self.transcription_base_url):
@@ -256,15 +259,15 @@ def elevenlabs_api_key(
     variable_names: tuple[str, ...] = ELEVENLABS_API_KEY_ENVIRONMENT_VARIABLES,
 ) -> str:
     """Resolve the first supported ElevenLabs credential without persisting it."""
-    for variable_name in variable_names:
-        value = environ[variable_name] if variable_name in environ else ""
-        if value and not value.isspace():
-            return value
     if environ is os.environ:
         from mluva_linux.credentials import stored_speech_key
 
         if key := stored_speech_key():
             return key
+    for variable_name in variable_names:
+        value = environ[variable_name] if variable_name in environ else ""
+        if value and not value.isspace():
+            return value
     raise RuntimeError(
         "ElevenLabs credential unavailable. Set ELEVENLABS_API_KEY in Mluva's process environment "
         "through a secret manager or session service."
