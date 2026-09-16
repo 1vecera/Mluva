@@ -76,6 +76,7 @@ class AppConfig:
     transcription_api_key_env: str = "LITELLM_API_KEY"
     transcription_remote_model: str = "whisper"
     voxtype_model: str | None = None
+    local_model: str = "parakeet-v3"
     transcription_chunk_seconds: int = 8
     auto_copy_dictation: bool = True
     auto_copy_rewrite: bool = True
@@ -86,6 +87,8 @@ class AppConfig:
     scroll_duration_ms: int = 800
     scroll_lookahead_lines: int = 2
     widget_position: str = "bottom-center"
+    widget_lines: int = 5
+    widget_opacity: int = 82
     history_sidebar_visible: bool = False
     welcome_completed: bool = False
     time_format: str = "24h"
@@ -119,10 +122,12 @@ class AppConfig:
         _validate_codex_model(self.litellm_model)
         _validate_codex_model(self.voxtype_model)
         _validate_codex_model(self.transcription_remote_model)
-        if self.rewrite_provider not in {"codex", "litellm"}:
-            raise ValueError("rewrite_provider must be codex or litellm")
-        if self.transcription_provider not in {"elevenlabs", "litellm", "voxtype"}:
-            raise ValueError("transcription_provider must be elevenlabs, litellm or voxtype")
+        if self.rewrite_provider not in {"codex", "litellm", "none"}:
+            raise ValueError("rewrite_provider must be codex, litellm or none")
+        if self.transcription_provider not in {"elevenlabs", "litellm", "local"}:
+            raise ValueError("transcription_provider must be elevenlabs, litellm or local")
+        if self.local_model not in {"whisper-tiny", "whisper-base", "whisper-small", "parakeet-v3", "whisper-turbo"}:
+            raise ValueError("Choose a supported local speech model")
         for endpoint in (self.litellm_base_url, self.transcription_base_url):
             validate_provider_url(endpoint)
         for name in (self.litellm_api_key_env, self.transcription_api_key_env):
@@ -141,6 +146,8 @@ class AppConfig:
             if not isinstance(getattr(self, name), bool):
                 raise TypeError(f"{name} must be a boolean")
         for name, minimum, maximum in (
+            ("widget_lines", 1, 10),
+            ("widget_opacity", 10, 100),
             ("review_timeout_seconds", 1, 60),
             ("scroll_duration_ms", 0, 2000),
             ("scroll_lookahead_lines", 0, 6),
@@ -219,6 +226,9 @@ def load_config(path: Path) -> AppConfig:
     # Existing installations already chose their providers. New installs see
     # onboarding until they deliberately continue into the workspace.
     payload.setdefault("welcome_completed", True)
+    if payload.get("transcription_provider") == "voxtype":
+        payload["transcription_provider"] = "local"
+        payload["welcome_completed"] = False
     legacy_retention = payload.pop("retain_audio_on_failure", None)
     if "audio_retention_policy" not in payload and legacy_retention is not None:
         payload["audio_retention_policy"] = "failures" if legacy_retention else "never"
@@ -250,6 +260,11 @@ def elevenlabs_api_key(
         value = environ[variable_name] if variable_name in environ else ""
         if value and not value.isspace():
             return value
+    if environ is os.environ:
+        from mluva_linux.credentials import stored_speech_key
+
+        if key := stored_speech_key():
+            return key
     raise RuntimeError(
         "ElevenLabs credential unavailable. Set ELEVENLABS_API_KEY in Mluva's process environment "
         "through a secret manager or session service."

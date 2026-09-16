@@ -110,7 +110,8 @@ def test_upgrade_preserves_state_and_retires_active_artifacts(tmp_path: Path) ->
     assert result.returncode == 0, result.stderr
     data = home / ".local/share/mluva"
     config = home / ".config/mluva"
-    assert load_config(config / "config.json").transcription_provider == "voxtype"
+    assert load_config(config / "config.json").transcription_provider == "local"
+    assert not load_config(config / "config.json").welcome_completed
     assert load_config(config / "config.json").language_code == "ces"
     draft = ScratchpadDraftStore(data / "scratchpad-draft.json").draft
     assert draft is not None and draft.text == "Žluťoučký" and draft.raw_text == "VoiceScribe mentioned verbatim"

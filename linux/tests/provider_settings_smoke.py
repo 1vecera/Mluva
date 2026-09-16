@@ -16,7 +16,6 @@ from live_workspace_smoke import paint, settle
 from mluva_linux.codex_client import CodexAppServerClient
 from mluva_linux.config import load_config
 from mluva_linux.pipewire import PipeWireDeviceCatalog
-from mluva_linux.provider_catalog import VoxtypeCatalog
 
 
 def descendants(widget):
@@ -91,13 +90,6 @@ def main() -> int:
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     base = f"http://127.0.0.1:{server.server_port}"
-    voxtype_fixture = output / "voxtype_catalog.py"
-    voxtype_fixture.write_text(
-        "import json, sys\n"
-        "assert sys.argv[1:] == ['info', 'models', '--json', '--engine', 'whisper']\n"
-        "print(json.dumps({'engines': {'whisper': {'models': ["
-        "{'name': 'small', 'installed': True}, {'name': 'medium', 'installed': False}]}}}))\n"
-    )
     native_clients = []
 
     def native_client(**options):
@@ -122,7 +114,11 @@ def main() -> int:
             paint(window, output / "sizing.png")
             # GTK's CSS borders are excluded from get_width/get_height. Request a
             # compensated toplevel so the captured production viewport is exact.
-            window.set_default_size(width + width - window.get_width(), height + height - window.get_height())
+            surface = window.get_surface()
+            window.set_size_request(
+                width + surface.get_width() - window.get_width(),
+                height + surface.get_height() - window.get_height(),
+            )
             settle(lambda: window.get_width() == width and window.get_height() == height)
             app.settings_button.emit("clicked")
             dialog = app.settings_view
@@ -148,17 +144,11 @@ def main() -> int:
                 # The compact picker must also forget a previous provider's catalog
                 # and must never offer a nonexistent compatible-server default.
                 app.rewrite_settings.set_loading()
-                choose_provider(speech, "voxtype")
-                assert speech.values["voxtype_model"] is None
-                speech.refresh_button.emit("clicked")
-                settle(lambda: speech.catalog_client is None)
-                assert [m.identifier for m in speech.models] == ["small"]
-                choose_model(speech, "small")
+                choose_provider(speech, "local")
+                speech.local.scale.set_value(2)
                 page.apply_button.emit("clicked")
-                assert load_config(app.config_path).voxtype_model == "small"
-                checks.append(
-                    "Real Codex JSONL and local inventory subprocess; native model/Fast and local model saved"
-                )
+                assert load_config(app.config_path).local_model == "whisper-small"
+                checks.append("Real Codex JSONL and managed local selection; native model/Fast and local model saved")
             if scenario in {"flow", "details", "error"}:
                 choose_provider(rewrite, "litellm")
                 choose_provider(speech, "litellm")
@@ -188,7 +178,7 @@ def main() -> int:
                     page.apply_button.emit("clicked")
                     saved = load_config(app.config_path)
                     assert saved.litellm_model == "writer-alias" and saved.transcription_remote_model == "speech-alias"
-                    assert saved.rewrite_model == "gpt-5.4" and saved.voxtype_model == "small"
+                    assert saved.rewrite_model == "gpt-5.4" and saved.local_model == "whisper-small"
                     assert saved.litellm_api_key_env == "FIXTURE_REWRITE_KEY"
                     assert app.rewrite_settings.refresh.get_sensitive()
                     assert not app.rewrite_settings.models
@@ -275,12 +265,8 @@ def main() -> int:
             patch("mluva_linux.app.FocusedTextTargetTracker", return_value=None),
             patch.object(PipeWireDeviceCatalog, "from_system", return_value=PipeWireDeviceCatalog()),
             patch("mluva_linux.provider_catalog.CodexAppServerClient", side_effect=native_client),
-            patch(
-                "mluva_linux.provider_catalog.VoxtypeCatalog",
-                side_effect=lambda: VoxtypeCatalog(
-                    (sys.executable, str(voxtype_fixture)),
-                ),
-            ),
+            patch("mluva_linux.provider_settings.ready", return_value=True),
+            patch("mluva_linux.local_model_settings.ready", return_value=True),
             patch.dict(
                 os.environ,
                 {

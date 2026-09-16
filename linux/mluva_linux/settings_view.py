@@ -1,16 +1,20 @@
 """Full-window settings and provider onboarding built from the real preference pages."""
 
+import threading
 from collections.abc import Callable
+from dataclasses import replace
 
 import gi
 
-from mluva_linux.config import AppConfig
-from mluva_linux.provider_settings import ProviderSettings
+from mluva_linux.appearance_settings import AppearanceSettings
+from mluva_linux.config import AppConfig, elevenlabs_api_key
+from mluva_linux.credentials import store_speech_key
+from mluva_linux.provider_settings import ProviderSection
 from mluva_linux.ui import SPACE_2, SPACE_4, brand_mark, set_margins
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gtk  # noqa: E402
+from gi.repository import Adw, GLib, Gtk  # noqa: E402
 
 
 class SettingsView(Gtk.Box):
@@ -70,32 +74,162 @@ class SettingsView(Gtk.Box):
 
 
 class WelcomeView(Gtk.Box):
-    """Explain speech and rewriting, then configure their real provider/model controls."""
+    """Three clear steps: speech, optional rewriting, and a live recorder preview."""
 
     def __init__(self, config: AppConfig, save: Callable[[dict], bool], finish: Callable[[], None]) -> None:
-        """Reuse provider validation and saving instead of maintaining a separate setup form."""
+        """Gate navigation on local model readiness and retain edits on failed saves."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL, vexpand=True)
-        heading = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=SPACE_2)
+        self.config, self.save, self.finish = config, save, finish
+        self.step = 0
+        self.saving_key = False
+        self.steps = Gtk.Stack(vexpand=True, vhomogeneous=False, hhomogeneous=False)
+        self.speech = ProviderSection(config, "speech")
+        self.rewrite = ProviderSection(config, "rewrite")
+        self.providers = self
+        self.appearance = AppearanceSettings(config)
+        self.appearance.set_title("")
+        self.appearance.set_description("")
+        self.title = Gtk.Label(label="Welcome to Mluva", xalign=0, wrap=True, css_classes=["title-1"])
+        header = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        set_margins(header, 24)
         mark = brand_mark(40)
         mark.set_halign(Gtk.Align.START)
-        heading.append(mark)
-        heading.append(Gtk.Label(label="Welcome to Mluva", xalign=0, css_classes=["title-1"]))
-        heading.append(Gtk.Label(label="Best of local and cloud.", xalign=0, css_classes=["heading"]))
-        heading.append(
-            Gtk.Label(
-                label="Choose a speech provider for dictation and a rewriting provider for polishing and Live drafts. "
-                "You can change them in Settings at any time.",
-                xalign=0,
-                wrap=True,
-            )
+        header.append(mark)
+        header.append(self.title)
+        self.append(header)
+        speech = Adw.PreferencesPage()
+        speech.add(self.speech)
+        self.key_group = Adw.PreferencesGroup(title="Your ElevenLabs key")
+        self.key_entry = Adw.PasswordEntryRow(title="API key")
+        self.key_group.add(self.key_entry)
+        key_row = Adw.ActionRow(
+            title="Save in your desktop keyring", subtitle="Your key is never stored in Mluva's settings file."
         )
-        self.providers = ProviderSettings(config, save, introduction=heading)
-        self.providers.set_vexpand(True)
-        self.append(self.providers)
-        footer = Gtk.Box(spacing=SPACE_2)
-        set_margins(footer, SPACE_4)
-        footer.append(Gtk.Label(label="F9 to talk · Ctrl+P for commands", xalign=0, hexpand=True, wrap=True))
-        start = Gtk.Button(label="Open workspace")
-        start.connect("clicked", lambda _button: finish())
-        footer.append(start)
-        self.append(Adw.Clamp(maximum_size=600, tightening_threshold=600, child=footer))
+        self.key_save = Gtk.Button(label="Save key", valign=Gtk.Align.CENTER)
+        self.key_save.connect("clicked", self._save_key)
+        key_row.add_suffix(self.key_save)
+        self.key_group.add(key_row)
+        speech.add(self.key_group)
+        rewriting = Adw.PreferencesPage()
+        rewriting.add(self.rewrite)
+        appearance_page = Adw.PreferencesPage(vexpand=True)
+        appearance_page.add(self.appearance)
+        self.appearance.remove(self.appearance.preview_box)
+        appearance = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        appearance.append(appearance_page)
+        self.appearance.preview_box.set_margin_start(20)
+        self.appearance.preview_box.set_margin_end(20)
+        appearance.append(self.appearance.preview_box)
+        for name, page in (("speech", speech), ("rewrite", rewriting), ("appearance", appearance)):
+            self.steps.add_named(page, name)
+        self.append(self.steps)
+        footer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        set_margins(footer, 20)
+        self.status = Gtk.Label(wrap=True, xalign=0)
+        footer.append(self.status)
+        buttons = Gtk.Box(spacing=12)
+        self.back = Gtk.Button(label="Back")
+        self.back.connect("clicked", self._back)
+        buttons.append(self.back)
+        buttons.append(Gtk.Label(hexpand=True))
+        self.next = Gtk.Button(label="Continue", css_classes=["suggested-action"])
+        self.next.connect("clicked", self._next)
+        buttons.append(self.next)
+        footer.append(buttons)
+        self.append(footer)
+        self.connect("map", self._mapped)
+        self.connect("unmap", self._unmapped)
+        self.timer = 0
+        self._refresh()
+
+    def refresh_config(self, config):
+        """Reopen setup with current choices instead of stale first-launch drafts."""
+        self.config = config
+        self.speech.refresh_config(config)
+        self.rewrite.refresh_config(config)
+        self.appearance.refresh_config(config)
+        self.step = 0
+        self._show_step()
+
+    def _mapped(self, *_args):
+        if not self.timer:
+            self.timer = GLib.timeout_add(200, self._refresh)
+
+    def _unmapped(self, *_args):
+        if self.timer:
+            GLib.source_remove(self.timer)
+            self.timer = 0
+        self.speech.local.stop()
+
+    def _refresh(self):
+        self.key_group.set_visible(self.speech.provider.id == "elevenlabs")
+        self.back.set_visible(self.step > 0)
+        self.next.set_label("Open Mluva" if self.step == 2 else "Continue")
+        self.next.set_sensitive(not self.saving_key and (self.step != 0 or self.speech.is_ready()))
+        return GLib.SOURCE_CONTINUE
+
+    def _save_key(self, *_args):
+        key = self.key_entry.get_text().strip()
+        self.key_entry.set_text("")
+        self.saving_key = True
+        self.key_save.set_sensitive(False)
+        self.status.set_label("Saving key to your desktop keyring…")
+        self._refresh()
+
+        def work():
+            try:
+                store_speech_key(key)
+                message = "Key saved. You can continue."
+            except (ValueError, RuntimeError) as error:
+                message = str(error)
+            GLib.idle_add(self._key_saved, message)
+
+        threading.Thread(target=work, daemon=True, name="save-speech-key").start()
+
+    def _key_saved(self, message):
+        self.saving_key = False
+        self.key_save.set_sensitive(True)
+        self.status.set_label(message)
+        return GLib.SOURCE_REMOVE
+
+    def _back(self, *_args):
+        self.step = max(0, self.step - 1)
+        self._show_step()
+
+    def _show_step(self):
+        self.steps.set_visible_child_name(("speech", "rewrite", "appearance")[self.step])
+        self.title.set_label(
+            ("Choose speech recognition", "Optional: polish your words", "Make Mluva yours")[self.step]
+        )
+        self.status.set_label("")
+        self._refresh()
+
+    def _next(self, *_args):
+        if self.saving_key or not self.speech.is_ready():
+            return
+        if self.step == 0 and self.speech.provider.id == "elevenlabs":
+            try:
+                elevenlabs_api_key()
+            except RuntimeError:
+                self.status.set_label(
+                    "Save an ElevenLabs key, configure it in your environment, or choose a local model."
+                )
+                return
+        changes = self.speech.values | self.rewrite.values | self.appearance.values()
+        if changes["rewrite_provider"] == "none":
+            changes.update(live_rewrite_enabled=False, automatic_titles=False)
+        try:
+            replace(self.config, **changes)
+            section = self.speech if self.step == 0 else self.rewrite
+            if section.provider.id == "litellm" and not section.values[section.provider.model_field]:
+                raise ValueError("Enter the compatible endpoint's model ID before continuing.")
+        except (ValueError, TypeError) as error:
+            self.status.set_label(str(error))
+            return
+        if self.step < 2:
+            self.step += 1
+            self._show_step()
+        elif self.save(changes):
+            self.finish()
+        else:
+            self.status.set_label("Could not save settings. Your choices are kept; please try again.")

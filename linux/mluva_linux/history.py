@@ -24,6 +24,8 @@ SUPPORTED_RECOGNITION_ROUTES = frozenset(
         RECOGNITION_ROUTE_BATCH,
         RECOGNITION_ROUTE_BATCH_RETRY,
         "litellm-batch",
+        "managed-local",
+        "managed-local-retry",
         "voxtype-local",
         "litellm-batch-retry",
         "voxtype-local-retry",

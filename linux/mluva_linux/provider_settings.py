@@ -9,6 +9,8 @@ import gi
 
 from mluva_linux.codex_client import CodexAppServerError, CodexModel, select_model
 from mluva_linux.config import AppConfig
+from mluva_linux.local_model_settings import LocalModelSettings
+from mluva_linux.local_models import ready
 from mluva_linux.provider_catalog import (
     REWRITE_PROVIDERS,
     SPEECH_PROVIDERS,
@@ -45,6 +47,7 @@ class ProviderSection(Adw.PreferencesGroup):
         self.choices = []
         self.provider_row = Adw.ComboRow(
             title="Provider",
+            use_subtitle=True,
             model=Gtk.StringList.new([provider.label for provider in self.providers]),
         )
         self.provider_row.connect("notify::selected", self._provider_changed)
@@ -98,8 +101,19 @@ class ProviderSection(Adw.PreferencesGroup):
         self.status = Gtk.Label(xalign=0, wrap=True, margin_top=8, margin_bottom=8)
         self.status.add_css_class("caption")
         self.add(self.status)
+        self.local = LocalModelSettings(config.local_model, self._local_changed)
+        if self.scope == "speech":
+            self.add(self.local)
         self.connect("unmap", self._stop_lookup)
         self.refresh_config(config)
+
+    def _local_changed(self, identifier):
+        if self.scope == "speech":
+            self.values["local_model"] = identifier
+
+    def is_ready(self):
+        """Require verified files for the selected local model."""
+        return self.provider.id != "local" or ready(self.values["local_model"])
 
     @property
     def provider(self):
@@ -110,6 +124,8 @@ class ProviderSection(Adw.PreferencesGroup):
         """Start a new edit from persisted settings when the dialog is reopened."""
         self._stop_lookup()
         self.config = config
+        self.local.stop()
+        self.local.set_selection(config.local_model)
         names = [self.provider_field, self.base_field, self.key_field, *(p.model_field for p in self.providers)]
         names.append("transcription_chunk_seconds" if self.scope == "speech" else "rewrite_fast_mode")
         self.values = {name: getattr(config, name) for name in names}
@@ -126,6 +142,10 @@ class ProviderSection(Adw.PreferencesGroup):
         if not self.updating:
             self.values[self.provider_field] = self.provider.id
             self._reset_catalog()
+            if self.provider.id == "local":
+                self.local.start()
+            else:
+                self.local.stop()
 
     def _reset_catalog(self) -> None:
         """Invalidate old endpoint results and show local setup evidence without making a request."""
@@ -134,18 +154,21 @@ class ProviderSection(Adw.PreferencesGroup):
         self.catalog_loaded = False
         provider = self.provider
         self.set_description(provider.description)
+        self.local.set_visible(self.scope == "speech" and provider.id == "local")
         self.advanced.set_visible(provider.id == "litellm")
-        self.preview.set_visible(self.scope == "speech" and provider.id != "elevenlabs")
+        self.preview.set_visible(self.scope == "speech" and provider.id == "litellm")
         self.fast_row.set_visible(provider.id == "codex")
-        self.refresh_button.set_visible(provider.id != "elevenlabs")
+        self.refresh_button.set_visible(provider.id not in {"elevenlabs", "none", "local"})
         self.fixed_model_row.set_visible(provider.id == "elevenlabs")
-        self.model_row.set_visible(provider.id != "elevenlabs")
+        self.model_row.set_visible(provider.id not in {"elevenlabs", "none", "local"})
         self.connection.set_subtitle(connection_hint(provider.id, self.values[self.key_field], os.environ))
         self.status.set_label("")
         self.status.set_visible(False)
         if provider.id == "elevenlabs":
             self.models = [CodexModel("scribe_v2", "scribe_v2", "Scribe v2", True)]
         self._show_models()
+        if provider.id in {"none", "local"}:
+            self.model_entry.set_visible(False)
 
     def _show_models(self) -> None:
         """Retain a saved or typed model even when a server omits it from its catalog."""
@@ -346,6 +369,9 @@ class ProviderSettings(Adw.PreferencesPage):
 
     def apply(self, _button) -> None:
         """Keep drafts on validation/write failure and persist no credentials or discovery output."""
+        if not self.speech.is_ready():
+            self.status.set_label("Finish downloading the selected local model before applying.")
+            return
         for section in (self.speech, self.rewrite):
             model = section.values[section.provider.model_field]
             if (model is not None and not valid_model_id(model)) or (section.provider.id == "litellm" and not model):

@@ -1,7 +1,6 @@
 """Provider routing, discovery failures and secret-safe setup evidence."""
 
 import json
-import sys
 from dataclasses import replace
 from http.server import BaseHTTPRequestHandler
 
@@ -9,7 +8,7 @@ import pytest
 from http_fixture import local_http_server
 
 from mluva_linux.config import AppConfig, load_config, save_config
-from mluva_linux.provider_catalog import CatalogRequest, VoxtypeCatalog, catalog_message, connection_hint
+from mluva_linux.provider_catalog import CatalogRequest, catalog_message, connection_hint
 from mluva_linux.providers import MAX_HTTP_BYTES, LiteLLMClient, ProviderError
 
 
@@ -102,25 +101,6 @@ def test_empty_catalog_is_not_a_failure_and_does_not_invent_a_default(catalog_se
     assert "No matching models" in catalog_message(CatalogRequest("speech", "litellm", url), [])
 
 
-def test_local_catalog_lists_only_installed_whisper_and_never_downloads(tmp_path):
-    """Use a real subprocess with a strict command fixture and installed flags."""
-    script = tmp_path / "voxtype.py"
-    script.write_text(
-        "import json, sys\n"
-        "assert sys.argv[1:] == ['info', 'models', '--json', '--engine', 'whisper']\n"
-        "print(json.dumps({'engines': {'whisper': {'models': ["
-        "{'name': 'small', 'installed': True}, {'name': 'medium', 'installed': False}]}}}))\n"
-    )
-    client = VoxtypeCatalog((sys.executable, str(script)))
-    assert [model.identifier for model in client.list_models()] == ["small"]
-    assert client.process.poll() == 0
-    cancelled = VoxtypeCatalog((sys.executable, str(script)))
-    cancelled.cancel()
-    with pytest.raises(ProviderError):
-        cancelled.list_models()
-    assert cancelled.process is None
-
-
 def test_setup_hints_do_not_disclose_keys_or_claim_authentication():
     """Availability hints report only local evidence and useful next steps."""
     present = {"ELEVENLABS_API_KEY": "private-api-key", "CUSTOM_KEY": "private-api-key"}
@@ -130,7 +110,7 @@ def test_setup_hints_do_not_disclose_keys_or_claim_authentication():
     assert "No key found" in connection_hint("litellm", "CUSTOM_KEY", {})
     assert "restart Mluva" in connection_hint("elevenlabs", "", {})
     assert "Sign-in is not checked" in connection_hint("codex", "", {}, lambda _name: "/fixture/codex")
-    assert "Install Voxtype" in connection_hint("voxtype", "", {}, lambda _name: None)
+    assert "managed by Mluva" in connection_hint("local", "", {})
 
 
 def test_provider_switching_persists_independent_models_and_key_references(tmp_path):
@@ -145,7 +125,7 @@ def test_provider_switching_persists_independent_models_and_key_references(tmp_p
         litellm_api_key_env="WRITER_KEY",
         transcription_api_key_env="SPEECH_KEY",
     )
-    for speech, rewrite in (("voxtype", "litellm"), ("litellm", "codex"), ("elevenlabs", "codex")):
+    for speech, rewrite in (("local", "litellm"), ("litellm", "codex"), ("elevenlabs", "codex")):
         config = replace(config, transcription_provider=speech, rewrite_provider=rewrite)
         save_config(config, path)
         assert load_config(path) == config

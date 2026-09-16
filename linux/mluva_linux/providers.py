@@ -1,8 +1,7 @@
-"""Provider-neutral text and speech transports through LiteLLM and local Voxtype."""
+"""Provider-neutral text and speech transports through compatible APIs and managed local models."""
 
 import json
 import os
-import subprocess
 import threading
 import time
 import urllib.error
@@ -212,70 +211,12 @@ class LiteLLMClient:
         self.close()
 
 
-class VoxtypeClient:
-    """Run Omarchy's Whisper engine on a file, with no daemon, clipboard or key injection."""
-
-    def __init__(self, model: str | None = None, command: str = "voxtype", timeout: float = 300) -> None:
-        """Retain an optional local model override and a bounded subprocess timeout."""
-        self.model = model
-        self.command = command
-        self.timeout = timeout
-        self.cancelled = threading.Event()
-        self.process = None
-
-    def transcribe(self, file_path: Path, language_code: str, model_id: str = "") -> TranscriptionResult:
-        """Force offline Whisper and collect only the file command's standard output."""
-        command = [
-            self.command,
-            "--quiet",
-            "--engine",
-            "whisper",
-            "--whisper-mode",
-            "local",
-            "--language",
-            LANGUAGES.get(language_code, language_code),
-        ]
-        if self.model:
-            command.extend(("--model", self.model))
-        command.extend(("transcribe", str(file_path)))
-        if self.cancelled.is_set():
-            raise ProviderError("Local transcription cancelled.")
-        try:
-            self.process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
-            if self.cancelled.is_set():
-                self.process.kill()
-            stdout, _stderr = self.process.communicate(timeout=self.timeout)
-            if self.process.returncode != 0 or self.cancelled.is_set():
-                raise ProviderError("Local transcription failed. Check Voxtype and install a Whisper model.")
-        except subprocess.TimeoutExpired:
-            assert self.process is not None
-            self.process.kill()
-            self.process.communicate()
-            raise ProviderError("Local transcription timed out.") from None
-        except OSError:
-            raise ProviderError("Local transcription failed. Check Voxtype and install a Whisper model.") from None
-        finally:
-            self.process = None
-        text = stdout.partition("\n\n")[2].strip()
-        if not text or len(text) > MAX_HTTP_BYTES:
-            raise ProviderError("Voxtype did not return a usable transcript.")
-        return TranscriptionResult(text, language_code, None, None)
-
-    def cancel(self) -> None:
-        """Stop only this file inference process and reject its late result."""
-        self.cancelled.set()
-        process = self.process
-        if process is not None:
-            try:
-                process.kill()
-            except ProcessLookupError:
-                pass
-
-
-def transcription_client(config: AppConfig) -> ElevenLabsClient | LiteLLMClient | VoxtypeClient:
+def transcription_client(config: AppConfig):
     """Create the selected speech route without requiring unrelated providers' credentials."""
-    if config.transcription_provider == "voxtype":
-        return VoxtypeClient(config.voxtype_model)
+    if config.transcription_provider == "local":
+        from mluva_linux.local_asr import LocalSpeechClient
+
+        return LocalSpeechClient(config.local_model)
     if config.transcription_provider == "litellm":
         return LiteLLMClient(
             config.transcription_base_url,
