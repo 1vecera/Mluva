@@ -109,12 +109,12 @@ def make_material():
     shader = nodes.get("Principled BSDF")
     shader.label = "Red gel with clear wet surface"
     shader.inputs["Base Color"].default_value = (0.94, 0.0006, 0.003, 1)
-    shader.inputs["Roughness"].default_value = 0.16
+    shader.inputs["Roughness"].default_value = 0.136
     shader.inputs["IOR"].default_value = 1.42
-    shader.inputs["Transmission Weight"].default_value = 0.78
-    shader.inputs["Subsurface Weight"].default_value = 0.35
+    shader.inputs["Transmission Weight"].default_value = 0.6864
+    shader.inputs["Subsurface Weight"].default_value = 0.4025
     shader.inputs["Subsurface Radius"].default_value = (1, 0.12, 0.08)
-    shader.inputs["Subsurface Scale"].default_value = 0.35
+    shader.inputs["Subsurface Scale"].default_value = 0.4025
     shader.inputs["Coat Weight"].default_value = 0.5
     shader.inputs["Coat Roughness"].default_value = 0.14
     shader.inputs["Coat IOR"].default_value = 1.46
@@ -125,7 +125,7 @@ def make_material():
     absorption = nodes.new("ShaderNodeVolumeAbsorption")
     absorption.label = "Red absorption through thickness"
     absorption.inputs["Color"].default_value = (0.9, 0.008, 0.012, 1)
-    absorption.inputs["Density"].default_value = 0.06
+    absorption.inputs["Density"].default_value = 0.09
     absorption.location = (380, -420)
     links = material.node_tree.links
     links.new(absorption.outputs[0], output.inputs["Volume"])
@@ -153,7 +153,7 @@ def make_material():
     glow = nodes.new("ShaderNodeMath")
     glow.operation = "MULTIPLY_ADD"
     glow.label = "Thin coral edge glow"
-    glow.inputs[1].default_value = 2.6
+    glow.inputs[1].default_value = 1.6
     glow.inputs[2].default_value = 0.012
     glow.location = (110, 140)
     links.new(power.outputs[0], glow.inputs[0])
@@ -194,7 +194,7 @@ def build(output_path, size, samples):
     camera_data.type = "ORTHO"
     camera_data.ortho_scale = 4.32
     scene.camera = camera
-    backlight = add_light(studio, "Glow / transmitted backlight", (-0.3, -1.1, -2.6), 55, 3.4, 3.4)
+    backlight = add_light(studio, "Glow / transmitted backlight", (-0.3, -1.1, -2.6), 40, 3.4, 3.4)
     backlight.data.shape = "DISK"
     cards = bpy.data.collections.new("Shaped reflection cards")
     scene.collection.children.link(cards)
@@ -214,7 +214,7 @@ def build(output_path, size, samples):
     neutral = nodes.new("ShaderNodeBackground")
     neutral.label = "Neutral lighting and refraction"
     neutral.inputs["Color"].default_value = (1, 1, 1, 1)
-    neutral.inputs["Strength"].default_value = 0.06
+    neutral.inputs["Strength"].default_value = 0.036
     neutral.location = (-200, -40)
     blue = nodes.new("ShaderNodeBackground")
     blue.label = "Electric blue visible backdrop"
@@ -225,7 +225,7 @@ def build(output_path, size, samples):
     warm = nodes.new("ShaderNodeBackground")
     warm.label = "Warm reflection surround"
     warm.inputs["Color"].default_value = (1, 0.024, 0.008, 1)
-    warm.inputs["Strength"].default_value = 0.4
+    warm.inputs["Strength"].default_value = 0.5
     warm.location = (-200, -200)
     reflection = nodes.new("ShaderNodeMixShader")
     reflection.label = "Reflection-only warm surround"

@@ -37,7 +37,7 @@
       1,
       1
     ],
-    "strength": 14,
+    "strength": 12,
     "falloff": "constant",
     "color": [
       1,
@@ -83,7 +83,7 @@
       0.8,
       0.7
     ],
-    "strength": 5.0,
+    "strength": 4.0,
     "falloff": "radial",
     "color": [
       1,
