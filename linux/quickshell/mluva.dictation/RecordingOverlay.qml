@@ -43,8 +43,9 @@ FloatingWindow {
         ? Color.urgent : Color.accent
     readonly property int textSize: 14
     readonly property int lineHeight: 22
-    readonly property int previewLines: 5
-    readonly property real surfaceOpacity: 0.82
+    property bool rewriteEnabled: true
+    property int previewLines: 5
+    property real surfaceOpacity: 0.82
     property bool animatePreview: false
     property bool previewReady: false
     property string displayedPreview: ""
@@ -189,6 +190,13 @@ FloatingWindow {
             + "',x=" + Math.round(screen.x + x) + ",y=" + Math.round(screen.y + y) + ",relative=false})");
     }
     onTextSizeChanged: resetPreviewLayout()
+    onPreviewLinesChanged: {
+        resetPreviewLayout();
+        Qt.callLater(() => {
+            const window = contentItem.Window.window;
+            if (window) window.height = root.implicitHeight;
+        });
+    }
     onPreviewChanged: Qt.callLater(syncPreview)
     onPreviewStartChanged: Qt.callLater(syncPreview)
     onPhaseChanged: {
@@ -365,7 +373,7 @@ FloatingWindow {
                     id: transcriptViewport
                     objectName: "transcript-viewport"
                     width: parent.width
-                    height: root.lineHeight * root.previewLines + Math.max(0, root.height - root.implicitHeight)
+                    height: root.lineHeight * root.previewLines
                     visible: root.preview.length > 0 || root.phase === "recording"
                     clip: true
                     Item {
@@ -461,12 +469,14 @@ FloatingWindow {
                     ActionButton {
                         objectName: "polish-button"
                         text: "Polish"
+                        enabled: root.rewriteEnabled
                         visible: !root.busy
                         onClicked: root.act("rewrite", "polish")
                     }
                     ActionButton {
                         objectName: "structure-button"
                         text: "Structure"
+                        enabled: root.rewriteEnabled
                         visible: !root.busy
                         onClicked: root.act("rewrite", "structure")
                     }
@@ -475,7 +485,7 @@ FloatingWindow {
                         objectName: "more-button"
                         text: "More ▴"
                         visible: !root.busy
-                        enabled: root.options.length > 0
+                        enabled: root.rewriteEnabled && root.options.length > 0
                         selected: root.menuOpen
                         onClicked: root.menuOpen = !root.menuOpen
                     }

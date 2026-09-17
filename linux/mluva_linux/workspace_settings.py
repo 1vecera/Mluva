@@ -5,7 +5,8 @@ from dataclasses import replace
 
 import gi
 
-from mluva_linux.config import TIME_FORMATS, WIDGET_POSITIONS, AppConfig
+from mluva_linux.appearance_settings import AppearanceSettings
+from mluva_linux.config import TIME_FORMATS, AppConfig
 from mluva_linux.live_rewrite import TEMPLATE_CHOICES
 
 gi.require_version("Gtk", "4.0")
@@ -29,7 +30,8 @@ class WorkspaceSettings(Adw.PreferencesPage):
         self.setters: dict[str, Callable] = {}
         appearance = Adw.PreferencesGroup(title="Appearance")
         self.switch(appearance, "history_sidebar_visible", "Show history sidebar by default")
-        self.choice(appearance, "widget_position", "Floating widget position", WIDGET_POSITIONS)
+        self.appearance = AppearanceSettings(config)
+        self.add(self.appearance)
         self.choice(appearance, "time_format", "History time format", TIME_FORMATS)
         self.add(appearance)
         behavior = Adw.PreferencesGroup(title="Documents")
@@ -112,12 +114,13 @@ class WorkspaceSettings(Adw.PreferencesPage):
     def refresh_config(self, config: AppConfig) -> None:
         """Reflect choices changed outside this page when the dialog is opened again."""
         self.config = config
+        self.appearance.refresh_config(config)
         for name, write in self.setters.items():
             write(getattr(config, name))
 
     def apply(self, _button) -> None:
         """Validate and save the form atomically, preserving it on failure."""
-        changes = {name: read() for name, read in self.fields.items()}
+        changes = {**{name: read() for name, read in self.fields.items()}, **self.appearance.values()}
         try:
             replace(self.config, **changes)
             if self.save(changes):

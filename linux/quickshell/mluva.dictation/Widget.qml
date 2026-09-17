@@ -22,6 +22,9 @@ Item {
     property bool smoothScrolling: true
     property int scrollDuration: 800
     property int scrollLookahead: 2
+    property bool rewriteEnabled: true
+    property int widgetLines: 5
+    property real widgetOpacity: 0.82
     property string widgetPosition: "bottom-center"
     property bool controlFailed: false
     readonly property string executable: settings && settings.command ? settings.command : "mluva-shell"
@@ -79,6 +82,9 @@ Item {
                     root.showCopy = state.show_copy !== false;
                     root.smoothScrolling = state.smooth_scrolling !== false;
                     root.scrollDuration = Number.isInteger(state.scroll_duration) ? state.scroll_duration : 800;
+                    root.rewriteEnabled = state.rewrite_enabled !== false;
+                    root.widgetLines = Math.max(1, Math.min(10, state.widget_lines ?? 5));
+                    root.widgetOpacity = Math.max(0.1, Math.min(1, (state.widget_opacity ?? 82) / 100));
                     root.scrollLookahead = Number.isInteger(state.scroll_lookahead) ? state.scroll_lookahead : 2;
                     root.widgetPosition = ["bottom-left", "bottom-center", "bottom-right"].includes(state.widget_position)
                         ? state.widget_position : "bottom-center";
@@ -114,6 +120,9 @@ Item {
         scrollDuration: root.scrollDuration
         scrollLookahead: root.scrollLookahead
         positionPreset: root.widgetPosition
+        rewriteEnabled: root.rewriteEnabled
+        previewLines: root.widgetLines
+        surfaceOpacity: root.widgetOpacity
         phase: root.phase
         elapsed: root.elapsed
         level: root.level

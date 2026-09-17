@@ -52,27 +52,27 @@ For LiteLLM, cleanup, titles, normal rewrites and Live rewrite use the configure
 
 ## Speech providers
 
-**ElevenLabs Scribe** retains its native realtime path and controlled batch fallback. Existing credential names remain supported. **Voxtype · local Whisper** runs the installed Omarchy dictation engine on Mluva's finalized WAV, with local Whisper forced explicitly. It does not start a Voxtype recording daemon or inject text. An empty model setting uses the installed Voxtype configuration; otherwise set an already installed model name/path. See Voxtype's [file transcription implementation](https://github.com/peteonrails/voxtype/blob/main/src/app/transcribe_file.rs). Local speech recognition does not make cloud rewriting or automatic titles local; configure those independently.
+**ElevenLabs Scribe** retains its native realtime path and controlled batch fallback. Existing credential names remain supported. **Local model** uses Mluva-owned verified ONNX weights and an on-demand CPU worker. It never reuses another app or falls back to paid speech. Configure rewriting independently, or choose Skip. See [onboarding](onboarding.md) and [model research](local-speech-models.md).
 
 **LiteLLM / compatible API** uploads WAV audio using multipart `POST /audio/transcriptions`. The server must expose an audio-transcription deployment that accepts `model`, `file`, `response_format=json`, and optional language, returning a JSON `text` field. A chat-only server is insufficient. LiteLLM documents routes including OpenAI, Azure, Vertex/Gemini, Deepgram, Groq, Fireworks and Mistral; actual availability depends on the proxy configuration and account. See [audio transcription support](https://docs.litellm.ai/docs/audio_transcription) and [Vertex transcription](https://docs.litellm.ai/docs/providers/vertex_transcription). Mluva speaks the shared endpoint rather than implementing each cloud SDK.
 
 | JSON setting | Default | Meaning |
 | --- | --- | --- |
-| `transcription_provider` | `"elevenlabs"` | `elevenlabs`, `voxtype` or `litellm`. |
+| `transcription_provider` | `"elevenlabs"` | `elevenlabs`, `local` or `litellm`. |
 | `transcription_base_url` | `"http://localhost:4000/v1"` | Speech API base URL, independent of rewriting. |
 | `transcription_remote_model` | `"whisper"` | Speech deployment alias on the server; replace with your configured alias. |
 | `transcription_api_key_env` | `"LITELLM_API_KEY"` | Environment variable containing the speech API key. |
-| `voxtype_model` | `null` | Optional installed local Whisper model override. |
+| `local_model` | `"parakeet-v3"` | App-managed model identifier; must finish downloading before use. |
 | `transcription_chunk_seconds` | `8` | Preview chunk length for batch providers during Live rewrite, 3–30 seconds. |
 
-Ordinary Voxtype/LiteLLM dictation transcribes at Stop. With Live rewrite enabled, sequential chunks provide provisional words while recording; Stop cancels remaining preview work and recognizes the complete audio to reconcile chunk boundaries. Preview audio is bounded to 30 minutes, and unavailable/overloaded previews fall back to the finalized recording. Temporary preview files are private and erased after each request. Cloud preview mode sends audio more than once and can increase usage; local preview latency depends on the machine and model. Meeting mode continues to use ElevenLabs diarization.
+Local speech previews run independently of rewriting in three-second chunks. Compatible API dictation transcribes at Stop unless Live rewrite previews are enabled; Stop cancels remaining preview work and recognizes the complete audio to reconcile chunk boundaries. Preview audio is bounded to 30 minutes, and unavailable/overloaded previews fall back to the finalized recording. Temporary preview files are private and erased after each request. Cloud preview mode sends audio more than once and can increase usage; local preview latency depends on the machine and model. Meeting diarization requires explicitly selecting ElevenLabs; local/compatible speech selection blocks Meeting start and retry uploads.
 
 For example, a partial config for local speech with a local or remote rewrite proxy is:
 
 ```json
 {
-  "transcription_provider": "voxtype",
-  "voxtype_model": null,
+  "transcription_provider": "local",
+  "local_model": "parakeet-v3",
   "rewrite_provider": "litellm",
   "litellm_base_url": "http://localhost:4000/v1",
   "litellm_model": "my-rewrite-deployment",

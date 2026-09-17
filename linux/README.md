@@ -61,7 +61,7 @@ Run `mluva-uninstall` to remove the native app and owned launch integrations. Se
 
 ## Provider setup
 
-Speech recognition and rewriting are selected independently in **Settings → Providers**. The defaults are ElevenLabs Scribe and an authenticated Codex CLI. Alternatives include local Voxtype/Whisper and compatible speech or rewrite APIs. Install any required provider client or model, and connect the selected account before recording. [Choose providers](../docs/provider-selection.md).
+Speech recognition and rewriting are selected independently in **Settings → Providers**. The defaults are ElevenLabs Scribe and an authenticated Codex CLI. Alternatives include app-managed local models and compatible speech or rewrite APIs. First-run setup downloads local models and can skip rewriting entirely. [Onboarding](../docs/onboarding.md) explains appearance previews and keyring setup. [Choose providers](../docs/provider-selection.md).
 
 Supply credentials to the app process through your secret manager or desktop launch environment. Settings stores key-variable names, never key values. Restart Mluva after changing that environment. A cloud route may send audio or text off the device; local recognition alone does not make rewrites or generated titles local.
 

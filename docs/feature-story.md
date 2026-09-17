@@ -28,7 +28,7 @@ Choose speech and rewriting independently in **Settings → Providers**. A disco
 | Task | Route | Setup and limits |
 | --- | --- | --- |
 | Speech | ElevenLabs Scribe | Native realtime recognition with explicit batch fallback. Requires an account/key. Meeting diarization also uses ElevenLabs. |
-| Speech | Voxtype / local Whisper | Uses an installed local model. Ordinary dictation recognizes at Stop; Live mode can preview chunks. |
+| Speech | App-managed local models | Downloads and verifies its own weights. Chunked previews work independently of optional rewriting. |
 | Speech | Compatible API | Needs an audio-transcription deployment accepting WAV multipart requests and returning text. A chat-only endpoint is insufficient. |
 | Rewriting | Codex app-server | Uses the authenticated local client, model discovery and streaming. Inference location and credits depend on the account/model. |
 | Rewriting | Compatible API | Needs a text deployment serving streaming chat completions. Optional model discovery; explicit deployment aliases are supported. |

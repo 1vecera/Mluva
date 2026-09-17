@@ -50,14 +50,20 @@ class ConversationTitleJobs:
         if not saved:
             return
         self.changed(entry.identifier)
-        if config.automatic_titles and len(self.pending) < MAX_PENDING_TITLES:
+        if config.rewrite_provider != "none" and config.automatic_titles and len(self.pending) < MAX_PENDING_TITLES:
             self.pending.append((entry.identifier, fallback))
             self._start_next()
 
     def _start_next(self) -> None:
         """Skip deleted or renamed notes and freeze provider settings and prompt before dispatch."""
         config = self.get_config()
-        if self.client is not None or self.closed or config.incognito_mode or not config.automatic_titles:
+        if (
+            self.client is not None
+            or self.closed
+            or config.incognito_mode
+            or not config.automatic_titles
+            or config.rewrite_provider == "none"
+        ):
             return
         while self.pending:
             identifier, fallback = self.pending.popleft()
@@ -103,7 +109,7 @@ class ConversationTitleJobs:
             return
         self.client = None
         config = self.get_config()
-        if self.closed or config.incognito_mode or not config.automatic_titles:
+        if self.closed or config.incognito_mode or not config.automatic_titles or config.rewrite_provider == "none":
             return
         try:
             if title and save_generated_title(self.history, identifier, title, expected=fallback):
