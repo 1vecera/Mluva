@@ -11,8 +11,9 @@ from pathlib import Path
 
 from mluva_linux.config import default_data_dir
 
-MODELS = tuple(json.loads(Path(__file__).with_name("local_models.json").read_text()))
-MODEL_BY_ID = {model["id"]: model for model in MODELS}
+_CATALOG = json.loads(Path(__file__).with_name("local_models.json").read_text())
+MODELS = tuple(model for model in _CATALOG if model.get("offered", True))
+MODEL_BY_ID = {model["id"]: model for model in _CATALOG}
 STORAGE_LIMIT = 5_000_000_000
 
 
@@ -49,16 +50,23 @@ def download(identifier: str, progress, cancelled: threading.Event, *, gpu: bool
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             raise RuntimeError("Another model download is running. Try again when it finishes.") from None
-        from mluva_linux import local_gpu
+        from mluva_linux import local_gpu, local_qwen
 
-        if gpu:
+        if model.get("engine") == "qwen3-asr":
+            local_qwen.install("cuda" if gpu else "cpu", cancelled)
+        elif gpu:
             local_gpu.install(cancelled)
         if ready(identifier):
             progress(1.0)
             return
         path = model_path(identifier)
         total = sum(item["size"] for item in model["files"])
-        used = local_gpu.disk_usage(root) + local_gpu.disk_usage(local_gpu.runtime_path())
+        used = (
+            local_gpu.disk_usage(root)
+            + local_gpu.disk_usage(local_gpu.runtime_path())
+            + local_gpu.disk_usage(local_qwen.runtime_root())
+            + local_gpu.disk_usage(root.parent / "qwen-cache")
+        )
         if used + total > STORAGE_LIMIT or shutil.disk_usage(root).free < total + 100_000_000:
             raise RuntimeError("Not enough model storage. Free disk space before downloading.")
         path.mkdir(mode=0o700, exist_ok=True)
@@ -91,3 +99,12 @@ def download(identifier: str, progress, cancelled: threading.Event, *, gpu: bool
         except Exception:
             shutil.rmtree(path)
             raise
+
+
+def runtime_ready(identifier, device):
+    """Gate the actual backend selected by this model, without loading its weights."""
+    from mluva_linux import local_gpu, local_qwen
+
+    if MODEL_BY_ID[identifier]["engine"] == "qwen3-asr":
+        return local_qwen.ready(device)
+    return device == "cpu" or local_gpu.ready()

@@ -47,18 +47,18 @@ SPEECH_PROVIDERS = (
 )
 REWRITE_PROVIDERS = (
     Provider(
-        "none",
-        "Skip · transcription only",
-        "rewrite_model",
-        "No rewriting",
-        "Polish, Live rewrite and generated titles stay off. Enable a provider later in Settings.",
-    ),
-    Provider(
         "codex",
         "Codex",
         "rewrite_model",
         "Use Codex default",
         "Uses your installed Codex app-server, sign-in and provider for inference.",
+    ),
+    Provider(
+        "none",
+        "Skip · transcription only",
+        "rewrite_model",
+        "No rewriting",
+        "Polish, Live rewrite and generated titles stay off. Enable a provider later in Settings.",
     ),
     Provider(
         "litellm",

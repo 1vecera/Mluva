@@ -6,7 +6,9 @@ import threading
 import gi
 
 from mluva_linux import local_gpu
-from mluva_linux.local_models import MODELS, download, ready
+from mluva_linux.language_picker import LanguagePicker
+from mluva_linux.local_models import MODELS, download, ready, runtime_ready
+from mluva_linux.speech_languages import supports_language
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -16,7 +18,7 @@ from gi.repository import GLib, Gtk  # noqa: E402
 class LocalModelSettings(Gtk.Box):
     """Keep Continue disabled until the exact selected model is ready."""
 
-    def __init__(self, selected, changed, device="cpu"):
+    def __init__(self, selected, changed, device="cpu", language="eng", language_changed=lambda code: None):
         """Display catalog metadata without loading any model into memory."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=8, margin_top=12, margin_bottom=12)
         self.updating = False
@@ -43,6 +45,9 @@ class LocalModelSettings(Gtk.Box):
         self.gpu.set_tooltip_text(local_gpu.gpu_name() or "NVIDIA GPU unavailable on this computer")
         self.gpu.connect("toggled", self._selected)
         self.append(self.gpu)
+        self.language_changed = language_changed
+        self.languages = LanguagePicker(language, selected, self._language_changed)
+        self.append(self.languages)
         self.requirements = Gtk.Label(xalign=0, wrap=True, css_classes=["caption"])
         self.append(self.requirements)
         self.progress = Gtk.ProgressBar(show_text=True)
@@ -56,7 +61,7 @@ class LocalModelSettings(Gtk.Box):
         self.append(
             Gtk.Label(
                 label=f"This computer: {ram:.0f} GiB RAM · no GPU required\n"
-                "Local previews arrive in short chunks, not word-by-word. No paid fallback.",
+                "Local previews use short audio chunks. Qwen also streams text as it decodes. No paid fallback.",
                 xalign=0,
                 wrap=True,
                 css_classes=["caption"],
@@ -77,21 +82,41 @@ class LocalModelSettings(Gtk.Box):
 
     def is_ready(self):
         """Gate both selected weights and their optional execution runtime."""
-        return ready(self.selected) and (self.device == "cpu" or local_gpu.ready())
+        return self.downloaded() and supports_language(self.selected, self.languages.language)
+
+    def downloaded(self):
+        """Track files separately from whether the selected language is supported."""
+        return ready(self.selected) and runtime_ready(self.selected, self.device)
+
+    def _language_changed(self, language):
+        self.language_changed(language)
+        self.refresh()
+        self.changed(self.selected)
 
     def refresh(self):
         """Reflect verified on-disk readiness, never mere download progress."""
         model = MODELS[round(self.scale.get_value())]
+        self.languages.refresh(self.languages.language, self.selected)
         size = sum(item["size"] for item in model["files"]) / 1_000_000
         self.label.set_label(f"{model['label']} · {model['ram_mb'] / 1000:g} GB RAM · {size:.0f} MB storage")
-        extra = "GPU support adds up to 3.5 GB storage and additional working RAM. " if self.device == "cuda" else ""
-        self.requirements.set_label(extra + "Estimated working RAM on CPU · Czech + English.")
-        available = self.is_ready()
+        extra = (
+            (
+                "Compact GPU runtime included. "
+                if self.selected == "qwen3-1.7b"
+                else "GPU support adds up to 3.5 GB storage and additional working RAM. "
+            )
+            if self.device == "cuda"
+            else ""
+        )
+        self.requirements.set_label(extra + "Estimated working memory on CPU.")
+        available = self.downloaded()
         self.status.set_label(
             "Ready to use. Model memory is released after recording."
             if available
             else "Download required before continuing."
         )
+        if not supports_language(self.selected, self.languages.language):
+            self.status.set_label("Choose a supported language above before continuing.")
         self.progress.set_fraction(1 if available else 0)
         self.progress.set_text("Ready" if available else "Not downloaded")
         self.button.set_sensitive(not available)
@@ -116,7 +141,7 @@ class LocalModelSettings(Gtk.Box):
     def start(self):
         """Start only a selected download, keeping network and hashing off GTK."""
         self.pending = 0
-        if self.is_ready() or self.cancelled is not None:
+        if self.downloaded() or self.cancelled is not None:
             return GLib.SOURCE_REMOVE
         self.generation += 1
         generation = self.generation

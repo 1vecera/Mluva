@@ -149,3 +149,12 @@ class LocalSpeechClient:
         """Invalidate late output and interrupt inference promptly."""
         self.cancelled.set()
         self.close()
+
+
+def local_client(model, *, device="cpu", keep_alive=False):
+    """Select an app-owned runtime; never probe or reuse another dictation application."""
+    if model == "qwen3-1.7b":
+        from mluva_linux.qwen_asr import QwenSpeechClient
+
+        return QwenSpeechClient(model, device=device, keep_alive=keep_alive)
+    return LocalSpeechClient(model, device=device, keep_alive=keep_alive)

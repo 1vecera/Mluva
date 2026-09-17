@@ -1,7 +1,8 @@
 """Chunked local previews with one on-demand worker per recording."""
 
 from mluva_linux.batch_preview import BatchPreviewSession
-from mluva_linux.local_asr import LocalSpeechClient
+from mluva_linux.local_asr import local_client
+from mluva_linux.realtime import RealtimePreview
 
 
 class LocalPreviewClient:
@@ -25,12 +26,25 @@ class LocalPreviewSession(BatchPreviewSession):
         self.model = model
         self.device = device
         self.local_client = None
+        self.streaming_text = ""
         super().__init__(self._client, directory, language, chunk_seconds)
 
     def _client(self):
         if self.local_client is None or self.local_client.cancelled.is_set():
-            self.local_client = LocalSpeechClient(self.model, keep_alive=True, device=self.device)
+            self.local_client = local_client(self.model, keep_alive=True, device=self.device)
+            if self.model == "qwen3-1.7b":
+                self.local_client.on_partial = self._partial
         return self.local_client
+
+    def _partial(self, text):
+        with self.lock:
+            if not self.finishing and not self.cancelled.is_set():
+                self.streaming_text = (self.text + " " + text).strip()
+
+    def snapshot(self):
+        """Publish incremental decoder text as provisional, never final delivery."""
+        with self.lock:
+            return RealtimePreview(self.streaming_text or self.text, "")
 
     def set_preview_enabled(self, enabled):
         """Speech previews remain enabled even when text rewriting is switched off."""
@@ -47,6 +61,8 @@ class LocalPreviewSession(BatchPreviewSession):
     def cancel(self):
         """Stop the resident recording worker even between inference calls."""
         super().cancel()
+        with self.lock:
+            self.streaming_text = ""
         if self.local_client:
             self.local_client.cancel()
 

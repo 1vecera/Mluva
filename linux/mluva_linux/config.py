@@ -75,8 +75,7 @@ class AppConfig:
     transcription_base_url: str = "http://localhost:4000/v1"
     transcription_api_key_env: str = "LITELLM_API_KEY"
     transcription_remote_model: str = "whisper"
-    voxtype_model: str | None = None
-    local_model: str = "parakeet-v3"
+    local_model: str = "qwen3-1.7b"
     local_device: str = "cpu"
     transcription_chunk_seconds: int = 8
     auto_copy_dictation: bool = True
@@ -121,7 +120,6 @@ class AppConfig:
         _validate_codex_model(self.codex_model)
         _validate_codex_model(self.rewrite_model)
         _validate_codex_model(self.litellm_model)
-        _validate_codex_model(self.voxtype_model)
         _validate_codex_model(self.transcription_remote_model)
         if self.rewrite_provider not in {"codex", "litellm", "none"}:
             raise ValueError("rewrite_provider must be codex, litellm or none")
@@ -129,7 +127,14 @@ class AppConfig:
             raise ValueError("transcription_provider must be elevenlabs, litellm or local")
         if self.local_device not in {"cpu", "cuda"}:
             raise ValueError("local_device must be cpu or cuda")
-        if self.local_model not in {"whisper-tiny", "whisper-base", "whisper-small", "parakeet-v3", "whisper-turbo"}:
+        if self.local_model not in {
+            "whisper-tiny",
+            "whisper-base",
+            "whisper-small",
+            "parakeet-v3",
+            "whisper-turbo",
+            "qwen3-1.7b",
+        }:
             raise ValueError("Choose a supported local speech model")
         for endpoint in (self.litellm_base_url, self.transcription_base_url):
             validate_provider_url(endpoint)
@@ -229,8 +234,12 @@ def load_config(path: Path) -> AppConfig:
     # Existing installations already chose their providers. New installs see
     # onboarding until they deliberately continue into the workspace.
     payload.setdefault("welcome_completed", True)
+    payload.pop("voxtype_model", None)  # Discard retired settings; never read another app.
     if payload.get("transcription_provider") == "voxtype":
         payload["transcription_provider"] = "local"
+        payload["welcome_completed"] = False
+    if payload.get("local_model") == "whisper-turbo":
+        payload["local_model"] = "qwen3-1.7b"
         payload["welcome_completed"] = False
     legacy_retention = payload.pop("retain_audio_on_failure", None)
     if "audio_retention_policy" not in payload and legacy_retention is not None:

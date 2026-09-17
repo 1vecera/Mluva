@@ -13,14 +13,8 @@ from pathlib import Path
 from mluva_linux.codex_client import CodexModel
 from mluva_linux.config import AppConfig, elevenlabs_api_key, validate_provider_url
 from mluva_linux.elevenlabs import ElevenLabsClient, TranscriptionResult, encode_multipart
+from mluva_linux.speech_languages import ISO_CODES as LANGUAGES
 
-LANGUAGES: dict[str, str] = dict(
-    zip(
-        ("eng", "ces", "spa", "fra", "deu", "ita", "por", "nld", "jpn", "zho", "kor", "pol", "rus", "slk", "ukr"),
-        ("en", "cs", "es", "fr", "de", "it", "pt", "nl", "ja", "zh", "ko", "pl", "ru", "sk", "uk"),
-        strict=True,
-    )
-)
 MAX_HTTP_BYTES = 2_000_000
 
 
@@ -214,9 +208,9 @@ class LiteLLMClient:
 def transcription_client(config: AppConfig):
     """Create the selected speech route without requiring unrelated providers' credentials."""
     if config.transcription_provider == "local":
-        from mluva_linux.local_asr import LocalSpeechClient
+        from mluva_linux.local_asr import local_client
 
-        return LocalSpeechClient(config.local_model, device=config.local_device)
+        return local_client(config.local_model, device=config.local_device)
     if config.transcription_provider == "litellm":
         return LiteLLMClient(
             config.transcription_base_url,

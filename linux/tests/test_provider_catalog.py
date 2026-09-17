@@ -121,7 +121,6 @@ def test_provider_switching_persists_independent_models_and_key_references(tmp_p
         rewrite_fast_mode=True,
         litellm_model="chat-alias",
         transcription_remote_model="audio-alias",
-        voxtype_model="small",
         litellm_api_key_env="WRITER_KEY",
         transcription_api_key_env="SPEECH_KEY",
     )

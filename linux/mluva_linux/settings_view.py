@@ -9,6 +9,7 @@ import gi
 from mluva_linux.appearance_settings import AppearanceSettings
 from mluva_linux.config import AppConfig, elevenlabs_api_key
 from mluva_linux.credentials import store_speech_key
+from mluva_linux.polish_preview import PolishPreview
 from mluva_linux.provider_settings import ProviderSection
 from mluva_linux.ui import SPACE_2, SPACE_4, set_margins
 
@@ -29,13 +30,21 @@ class SettingsView(Gtk.Box):
         back = Gtk.Button(icon_name="go-previous-symbolic", tooltip_text="Back to workspace · Esc", has_frame=False)
         back.connect("clicked", lambda _button: self.close())
         header.append(back)
-        self.selector = Gtk.DropDown(hexpand=True)
-        self.names = Gtk.StringList()
-        self.selector.set_model(self.names)
-        self.selector.update_property([Gtk.AccessibleProperty.LABEL], ["Settings page"])
-        self.selector.connect("notify::selected", self._selected)
-        header.append(self.selector)
+        header.append(Gtk.Label(label="Settings", xalign=0, css_classes=["title-2"]))
         self.append(header)
+        self.navigation = Gtk.FlowBox(
+            selection_mode=Gtk.SelectionMode.NONE,
+            homogeneous=True,
+            min_children_per_line=2,
+            max_children_per_line=4,
+            row_spacing=6,
+            column_spacing=6,
+        )
+        self.navigation.set_margin_start(16)
+        self.navigation.set_margin_end(16)
+        self.navigation.set_margin_bottom(8)
+        self.buttons = []
+        self.append(self.navigation)
         self.stack = Gtk.Stack(vexpand=True, hexpand=True)
         self.pages: list[Adw.PreferencesPage] = []
         self.append(self.stack)
@@ -44,16 +53,20 @@ class SettingsView(Gtk.Box):
         """Index the actual page, retaining row deep links from command search."""
         self.pages.append(page)
         self.stack.add_named(page, page.get_name())
-        self.names.append(page.get_title())
-
-    def _selected(self, *_args: object) -> None:
-        index = self.selector.get_selected()
-        if index < len(self.pages):
-            self.stack.set_visible_child(self.pages[index])
+        button = Gtk.ToggleButton(label=page.get_title(), hexpand=True)
+        if self.buttons:
+            button.set_group(self.buttons[0])
+        button.connect(
+            "toggled", lambda selected: self.stack.set_visible_child(page) if selected.get_active() else None
+        )
+        self.buttons.append(button)
+        self.navigation.append(button)
+        if len(self.pages) == 1:
+            button.set_active(True)
 
     def set_visible_page(self, page: Adw.PreferencesPage) -> None:
         """Select a page without introducing a second copy of its settings state."""
-        self.selector.set_selected(self.pages.index(page))
+        self.buttons[self.pages.index(page)].set_active(True)
         self.stack.set_visible_child(page)
 
     def set_visible_page_name(self, name: str) -> None:
@@ -107,6 +120,10 @@ class WelcomeView(Gtk.Box):
         self.key_entry = self.speech.api_key_entry
         rewriting = Adw.PreferencesPage()
         rewriting.add(self.rewrite)
+        example = Adw.PreferencesGroup()
+        self.polish_preview = PolishPreview()
+        example.add(self.polish_preview)
+        rewriting.add(example)
         appearance = Gtk.ScrolledWindow(vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER)
         appearance.set_margin_start(20)
         appearance.set_margin_end(20)
@@ -155,6 +172,7 @@ class WelcomeView(Gtk.Box):
     def _refresh(self):
         self.step_label.set_label(f"Step {self.step + 1} of 3 · " + ("Speech", "Polishing", "Recorder")[self.step])
         self.progress.set_fraction((self.step + 1) / 3)
+        self.polish_preview.set_visible(self.rewrite.provider.id == "codex")
         self.back.set_visible(self.step > 0)
         self.next.set_label("Open Mluva" if self.step == 2 else "Continue")
         self.next.set_sensitive(not self.saving_key and (self.step != 0 or self.speech.is_ready()))

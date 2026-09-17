@@ -57,6 +57,7 @@ def main():
             with (
                 patch("mluva_linux.local_model_settings.download", download),
                 patch("mluva_linux.local_model_settings.ready", lambda value: value in downloaded),
+                patch("mluva_linux.local_model_settings.runtime_ready", lambda model, device: device == "cpu"),
             ):
                 view.speech.provider_row.set_selected([p.id for p in view.speech.providers].index("local"))
                 assert not arrived.is_set(), "Selecting a model must not start a download"
@@ -77,13 +78,28 @@ def main():
                     assert not view.speech.is_ready()
                     view.speech.local.gpu.set_active(False)
                 assert view.speech.is_ready()
+                view.speech.local.languages._choose("slk")
+                assert not view.speech.is_ready()
+                assert "supported language" in view.speech.local.status.get_label()
+                assert not view.speech.local.button.get_visible(), "Unsupported language must not trigger redownload"
+                view.speech.local.languages._choose("eng")
+                view.speech.local.languages.emit("clicked")
+                settle(lambda: view.speech.local.languages.dialog.get_mapped())
+                paint(app.window, output / "language-modal.png")
+                view.speech.local.languages._choose("deu")
+                assert view.speech.values["language_code"] == "deu"
+                view.speech.local.languages._choose("eng")
                 paint(app.window, output / "local-ready.png")
                 view._next()
                 assert view.step == 1
+                assert view.rewrite.provider.id == "codex"
+                settle(lambda: view.polish_preview.tick > 12)
+                paint(app.window, output / "rewrite-codex.png")
                 view.rewrite.provider_row.set_selected([p.id for p in view.rewrite.providers].index("none"))
                 paint(app.window, output / "rewrite-skip.png")
                 view._next()
                 assert view.step == 2
+                assert view.polish_preview.timer == 0
                 view.appearance.lines.set_value(3)
                 view.appearance.opacity.set_value(40)
                 view.appearance.position.set_selected(0)
@@ -107,6 +123,13 @@ def main():
             assert not workspace.send.get_sensitive()
             app._begin_rewrite(entry.identifier, "Polish")
             assert app.rewrite_client is None
+            app.settings_button.emit("clicked")
+            navigation = app.settings_view
+            for button, page in zip(navigation.buttons, navigation.pages, strict=True):
+                button.set_active(True)
+                assert navigation.get_visible_page_name() == page.get_name()
+            navigation.set_visible_page_name("providers")
+            paint(app.window, output / "settings-buttons.png")
             app._show_welcome()
             assert view.appearance.lines.get_value() == 5
             app._navigate_to_page("capture")

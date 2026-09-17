@@ -109,7 +109,7 @@
   },
   {
     "id": "parakeet-v3",
-    "label": "Parakeet v3 \u00b7 recommended",
+    "label": "Parakeet v3",
     "repo": "istupakov/parakeet-tdt-0.6b-v3-onnx",
     "revision": "8f23f0c03c8761650bdb5b40aaf3e40d2c15f1ce",
     "quantization": "int8",
@@ -172,6 +172,28 @@
         "sha256": "61481bd3be3a445d5a4b9070e8f8b2c6cc4fbbbbdc9f0e7ed048a132b8b84e0d"
       }
     ],
-    "ram_mb": 3000
+    "ram_mb": 3000,
+    "offered": false
+  },
+  {
+    "id": "qwen3-1.7b",
+    "label": "Qwen3-ASR 1.7B \u00b7 recommended",
+    "repo": "getonit/Qwen3-ASR-1.7B-Q4_0-GGUF",
+    "revision": "bdff9f9b31f387d6eb797a8d827c08904048c57c",
+    "engine": "qwen3-asr",
+    "quantization": "Q4_0",
+    "ram_mb": 3500,
+    "files": [
+      {
+        "name": "Qwen3-ASR-1.7B-Q4_0.gguf",
+        "size": 1229449152,
+        "sha256": "adf2c487fcce3993bb30c9406748f5ef111a3a28b0a6c26f34223185011427c7"
+      },
+      {
+        "name": "mmproj-Qwen3-ASR-1.7B-Q8_0.gguf",
+        "size": 355709344,
+        "sha256": "46c1d533af3f354ceb37ce855dbceff7da7fa7cf1e6a523df3b13440bd164c0d"
+      }
+    ]
   }
 ]

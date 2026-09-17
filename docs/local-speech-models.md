@@ -1,61 +1,64 @@
 # Local speech models for Mluva
 
-Research checked 16 September 2026 using Exa: 28 search results reviewed, followed by primary model cards, maintainer repositories and runtime documentation. Vendor accuracy/latency figures are claims under their own test conditions, not a common benchmark or a promise about a laptop.
+The five-stop slider is ordered by model storage and estimated CPU working RAM. Qwen3-ASR 1.7B is the default local selection. CPU remains the portable default; NVIDIA acceleration is optional. Selecting a model does not download it. Continue and Apply wait for verified files and a supported recognition language.
 
-## Five candidates to choose from
+| Slider choice | Model download | Estimated CPU RAM | Runtime |
+| --- | ---: | ---: | --- |
+| Whisper Tiny | 42 MB | 0.5 GB | ONNX |
+| Whisper Base | 78 MB | 0.75 GB | ONNX |
+| Whisper Small | 250 MB | 1.5 GB | ONNX |
+| Parakeet TDT 0.6B v3 INT8 | 670 MB | 2 GB | ONNX |
+| Qwen3-ASR 1.7B Q4_0, recommended | 1,585 MB | 3.5 GB | llama.cpp |
 
-| Candidate | Why consider it | Live transcript tradeoff | Czech |
-| --- | --- | --- | --- |
-| Moonshine Streaming, especially Small 123M | Small native streaming engine for CPU devices; Tiny 34M and Medium 245M are alternatives | Incremental processing; actual update latency depends on hardware and stream settings | No current Czech checkpoint |
-| NVIDIA Parakeet TDT 0.6B v3 | Practical multilingual local candidate, punctuation, 25 European languages | Official buffered streaming example uses 2-second chunks and 2-second right context; not a sub-200-ms promise | Yes |
-| Qwen3-ASR 0.6B | Smaller Qwen option with multilingual recognition and streaming support | Official streaming backend requires vLLM; the reported 92-ms time-to-first-token is a server inference measurement, not microphone-to-stable-text latency | Yes |
-| Whisper large-v3-turbo | Mature multilingual baseline, smaller decoder than large-v3 | No native streaming; a wrapper must supply rolling/chunked previews | Yes |
-| Qwen3-ASR 1.7B | Accuracy-oriented option, also supports streaming | Heavier than 0.6B; assess Czech accuracy and end-to-end latency on the target machine | Yes |
+The RAM values include headroom; they are not guaranteed peaks or total computer requirements. Whisper Turbo remains a benchmark/compatibility catalog entry but is no longer a sixth slider stop. An old Turbo configuration reopens setup with Qwen selected and requires its download before continuing.
 
-For this Linux app, benchmark Parakeet first for Czech and English. Use Moonshine for an English-first, small native-streaming mode if that becomes a priority. Qwen is promising, but adopting its official streaming stack would substantially increase packaging and hardware requirements. Voxtral Mini 4B Realtime has a native streaming architecture and a published 480-ms operating point, but its 13-language set does not include Czech and its full precision weights are too large for a compact 5-GB setup; it is not selected here.
+## What “live” means here
 
-Sources and observed quality:
+All these integrations process short audio chunks. They are **not native acoustic streaming engines**. Whisper and Parakeet publish completed chunk text. Qwen additionally streams provisional decoder tokens after each chunk has been encoded. Audio keeps arriving while inference runs; pending audio is coalesced instead of creating concurrent inference jobs. Stop recognizes the complete recording again to reconcile words across chunk boundaries. That adds measurable finalization time.
 
-- [Moonshine model catalog](https://moonshine-voice.readthedocs.io/en/stable/models/available-models/): maintained by the implementation authors; distinguishes streaming models, languages, licenses and noncomparable evaluations.
-- [Parakeet v3 model card](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3): original model publisher; includes Czech evaluation, languages and the buffered streaming configuration.
-- [Qwen3-ASR implementation](https://github.com/QwenLM/Qwen3-ASR) and [technical report](https://arxiv.org/abs/2601.21337): original authors; documents backend restrictions and streaming evaluation with two-second chunks. Performance claims need independent target-device validation.
-- [Whisper Turbo model card](https://huggingface.co/openai/whisper-large-v3-turbo): original model publisher; explains the decoder reduction and accuracy tradeoff.
-- [Voxtral Realtime model card](https://huggingface.co/mistralai/Voxtral-Mini-4B-Realtime-2602): original model publisher; distinguishes configurable delay and model size.
-- [ONNX ASR usage](https://istupakov.github.io/onnx-asr/usage/): runtime maintainer; documents local paths, quantization and supported conversions.
+Qwen's official streaming implementation uses vLLM. This app uses the smaller llama.cpp runtime instead; upstream streaming latency claims do not apply. The Q4_0 conversion reduces storage and computation compared with Q8/BF16, with an unmeasured accuracy tradeoff. A successful sample transcription is not an accuracy evaluation.
 
-## Implemented size slider
+## Ownership, memory and storage
 
-The shortlist above compares model families. The initial self-contained Linux slider instead prioritizes a small common runtime, Czech coverage at every stop, and a useful size range: Whisper Tiny (42 MB), Base (78 MB), Small (250 MB), Parakeet v3 INT8 (670 MB, recommended), and Whisper Turbo INT8 (1,086 MB). The corresponding CPU working-RAM estimates shown in the slider are 0.5, 0.75, 1.5, 2 and 3 GB. These include headroom above the sample measurements, not guaranteed peaks or total system requirements. All five together occupy about 2.13 GB before the runtime.
+Mluva owns weights and runtimes in its XDG data directory. It does not borrow another application's models, configuration, processes or endpoints. The retired provider adapter is removed. Only one-way settings cleanup and historical route labels remain so existing installations and saved records still open.
 
-Mluva owns the files in its XDG data directory; it does not borrow another app's configuration, process or models. Revision pins, expected sizes and weight hashes are in `linux/mluva_linux/local_models.json`. Only a complete verified download unlocks Continue/Apply. Interrupted downloads leave no ready model. Downloads have a five-billion-byte aggregate storage guard covering managed models plus the optional GPU runtime, and a free-space check. The base CPU application environment is separate. All five models fit together on CPU; with GPU libraries installed, the storage guard can require removing unused model downloads before adding more.
+Weights load on the first audio chunk, remain available during that recording, and unload at Stop or Cancel. The process is not a persistent system service. CPU ONNX workers have a 5-billion-byte address-space limit; GPU and Qwen workers have a resident-memory watchdog. No local failure switches to a paid provider.
 
-The worker loads on first audio, stays available during that recording, and exits at Stop/Cancel. It inherits no cloud credentials, loads only local paths with offline flags, and on CPU has a five-billion-byte address-space ceiling. GPU workers instead have resident RAM monitored with a five-billion-byte cutoff, since CUDA reserves large virtual address ranges; the monitor is not a hard instantaneous allocation cap. GPU provider arenas are capped at 2.5 GB per session, with total VRAM also constrained by the physical device. This is a worker limit, not a cap on the entire GTK application plus other processes. Selecting Local never falls back to a paid speech API.
+Managed models, runtimes and the Qwen shader cache count toward the 5-billion-byte download storage guard. The base app environment and temporary installation space are separate. All five CPU choices fit together. ONNX NVIDIA support adds approximately 3.36 GB, so installing every GPU model together would exceed the managed budget; download only the models needed. Tests use separate model stores for that reason.
 
-The initial local preview uses three-second chunks and keeps provisional text separate from final recognition. It is not native word-by-word streaming. Stop recognizes the recording again, in bounded 25-second blocks, so long recordings may have boundary artifacts. A rolling overlap/alignment implementation and a representative Czech/English accuracy benchmark are future work, not established capabilities of this revision.
+Qwen uses pinned llama.cpp b11011 binaries: CPU or Vulkan for NVIDIA. Device discovery selects the NVIDIA device by name, rather than assuming Vulkan device zero is the dedicated GPU. The model is the pinned `getonit/Qwen3-ASR-1.7B-Q4_0-GGUF` conversion, with the upstream Q8 audio projector. Release and model sizes and SHA-256 hashes are verified before use. The Qwen runtime listens only on an ephemeral loopback port with a temporary random credential, disables its web UI, ignores inherited HTTP proxies and redirects, and inherits no cloud credentials. The process and credential are removed together.
 
-## ElevenLabs recommendation copy
+The ONNX GPU runtime uses pinned ONNX Runtime 1.26 and CUDA 12 wheels with hashes. It verifies CUDA availability and disables runtime fallback. Whisper's merged quantized decoder requires disabling an incompatible graph optimization in that runtime.
 
-[ElevenLabs API pricing](https://elevenlabs.io/pricing/api) lists Scribe v2 Realtime at $0.39/hour excluding taxes, and advertises approximately 150-ms latency. At that usage rate, $5 corresponds to about 12.8 hours. This calculation is not a statement that a particular account offers a $5 top-up or that all plans have identical terms. The onboarding describes it as recommended and fast, without an unsupported universal “best/fastest” claim, and includes Daniel's non-affiliation statement.
+## Sources
 
-## Local smoke measurements
+Research refreshed 17 September 2026 with Exa and primary maintainer documentation. These sources describe architectures and supported configurations, not independently measured laptop performance.
 
-On the development laptop (i7-12700H, CPU execution, four inference threads), all five entries transcribed the same 15.05-second public English clip from the [Qwen example](https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen3-ASR-Repo/asr_en.wav). The clip was converted to 16-kHz mono PCM before testing. “Cold” includes launching the worker and loading weights; “warm” is a second request in the same worker. These are one-sample smoke timings under normal desktop load, not accuracy scores or live display latency.
+- [Qwen3-ASR implementation](https://github.com/QwenLM/Qwen3-ASR): supported languages, official streaming backend and models.
+- [llama.cpp Qwen ASR support](https://github.com/ggml-org/llama.cpp/pull/19441) and [audio preprocessing fix](https://github.com/ggml-org/llama.cpp/pull/23073).
+- [Pinned llama.cpp release](https://github.com/ggml-org/llama.cpp/releases/tag/b11011).
+- [Q4 conversion](https://huggingface.co/getonit/Qwen3-ASR-1.7B-Q4_0-GGUF) and [upstream GGUF/projector](https://huggingface.co/ggml-org/Qwen3-ASR-1.7B-GGUF).
+- [Parakeet v3 model card](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3) and [ONNX ASR runtime](https://istupakov.github.io/onnx-asr/usage/).
+- [Whisper models](https://github.com/openai/whisper) and [Turbo model card](https://huggingface.co/openai/whisper-large-v3-turbo).
+- [Moonshine model catalog](https://moonshine-voice.readthedocs.io/en/stable/models/available-models/) and [Voxtral Realtime](https://huggingface.co/mistralai/Voxtral-Mini-4B-Realtime-2602): native-streaming alternatives considered, but not implemented in this compact multilingual slider.
 
-| Managed model | Cold seconds | Warm seconds |
-| --- | ---: | ---: |
-| Whisper Tiny | 1.63 | 0.82 |
-| Whisper Base | 1.97 | 1.27 |
-| Whisper Small | 3.96 | 2.92 |
-| Parakeet v3 | 3.21 | 1.04 |
-| Whisper Turbo | 10.51 | 9.03 |
+## Paced microphone-path verification on this PC
 
-Parakeet is the practical default from this test. Turbo is a poor low-delay choice on this CPU. Three consecutive Turbo runs passed after disabling oversized ONNX memory arenas; the largest measured child RSS in that check was 2.20 GB. The recording lifecycle check verified unloaded startup, visible local preview, and worker exit on both Stop and Cancel. These checks do not establish Czech recognition accuracy, worst-case RAM across all recordings, or sub-second microphone-to-text latency.
+All six catalog entries were downloaded through the production size/hash verification path and run on CPU and NVIDIA GPU. A public 15.05125-second sample was repeated twice and fed in 50 ms frames at microphone speed. Each run used a new worker, the production three-second preview threshold, and final full-recording recognition. No microphone or paid speech provider was used. Hardware: i7-12700H, 62 GiB RAM, RTX A1000 Laptop GPU with 4 GiB VRAM. Runs were sequential under ordinary desktop/development load; these are single-run observations, not a controlled performance distribution.
 
+| Model | First text CPU / GPU | Stop-to-final CPU / GPU | Peak worker RAM CPU / GPU |
+| --- | ---: | ---: | ---: |
+| whisper-tiny | 17.9 / 7.5 s | 5.6 / 1.9 s | 0.33 / 0.95 GB |
+| whisper-base | 6.0 / 6.2 s | 6.6 / 3.3 s | 0.47 / 1.02 GB |
+| whisper-small | 9.0 / 9.5 s | 13.7 / 7.9 s | 0.97 / 1.31 GB |
+| parakeet-v3 | 11.2 / 10.8 s | 5.2 / 5.0 s | 1.15 / 2.07 GB |
+| qwen3-1.7b | 7.2 / 5.4 s | 28.3 / 5.4 s | 2.97 / 1.60 GB |
+| whisper-turbo | 22.6 / 19.5 s | 40.6 / 32.4 s | 2.21 / 2.11 GB |
 
-## Optional NVIDIA GPU execution
+Qwen's GPU row uses a prepared shader cache but a fresh model process. With a new shader cache, first text took 19.9 seconds; Stop took 5.4 seconds. Peak total NVIDIA memory in the cached run was 2,284 MiB, including desktop usage. CPU Qwen needs no dedicated GPU, but its 28-second finalization makes the tradeoff visible. The CPU and GPU both produced updates while audio continued arriving.
 
-GPU support uses a separate Mluva-owned Python environment with hash-locked ONNX Runtime 1.26 and CUDA 12/cuDNN wheels. CPU users do not download these libraries. The [ONNX ASR installation guide](https://istupakov.github.io/onnx-asr/installation/) and [ONNX Runtime CUDA documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html) describe the backend and library requirements. The NVIDIA driver must already work; Mluva does not alter the system driver. CUDA initialization must succeed for the model sessions; a failed GPU setup asks the user to choose CPU rather than pretending acceleration is active. Quantized graphs legitimately split operations between GPU and CPU.
+Tiny's CPU first chunk repeatedly hallucinated “yeah”; the final full-recording transcript recovered. Its smallest download does not imply the best short-phrase behavior. Turbo produced only one update before Stop on either device, so it is retained only for comparison/compatibility. None of these tests establishes general accuracy, and all short chunks can cut words or lose context.
 
-On the RTX A1000 Laptop GPU (4 GB), every slider model transcribed the same 15.05-second sample twice. The first GPU pass measured warm times of 0.61, 0.95, 3.52, 1.21 and 7.78 seconds respectively. GPU memory peaks were approximately 0.61, 0.73, 1.04, 0.39 and 1.76 GB; resident host memory stayed below 2.25 GB. Profiling confirmed CUDA-executed nodes. Subsequent checks under concurrent development load were slower, so these are smoke measurements, not speed guarantees. GPU execution was not faster for every model. Parakeet remains the practical general-purpose choice, while Turbo still has substantial preview delay.
+Every run confirmed no loaded worker at session creation and no remaining worker after finalization. Additional Qwen tests cancelled during loading and after preview text on both devices; cleanup took at most 1.23 seconds and discarded late text. Tests caught and fixed nullable streaming control messages and a concurrent cancellation cleanup race.
 
-The Whisper GPU path disables an ONNX graph optimization that otherwise breaks the pinned merged quantized decoder. A fresh hash-verified runtime install plus Parakeet occupied 4,027,962,464 bytes. Preview, Stop and Cancel were checked with a real GPU worker: no weights loaded at session creation, and the child exits at the end of the recording. CPU-only and GPU operation never fall back to paid recognition.
+[Measurements and provisional/final output sizes](benchmarks/local-speech-2026-09-17.json) use only the [public Qwen sample](https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen3-ASR-Repo/asr_en.wav). Reproduce with `scripts/benchmark_local_speech.py` after downloading a model into a task-specific XDG data directory; the script itself never downloads or records audio.

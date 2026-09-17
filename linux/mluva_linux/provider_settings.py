@@ -47,7 +47,7 @@ class ProviderSection(Adw.PreferencesGroup):
         self.catalog_client = None
         self.choices = []
         self.provider_row = DirectChoices(
-            ["ElevenLabs", "Local model", "Custom"] if scope == "speech" else ["Skip", "Codex", "Custom"]
+            ["ElevenLabs", "Local model", "Custom"] if scope == "speech" else ["Codex", "Skip", "Custom"]
         )
         self.provider_row.connect("notify::selected", self._provider_changed)
         choice_row = Gtk.ListBoxRow(activatable=False, selectable=False, child=self.provider_row)
@@ -113,11 +113,17 @@ class ProviderSection(Adw.PreferencesGroup):
         self.status = Gtk.Label(xalign=0, wrap=True, margin_top=8, margin_bottom=8)
         self.status.add_css_class("caption")
         self.add(self.status)
-        self.local = LocalModelSettings(config.local_model, self._local_changed, config.local_device)
+        self.local = LocalModelSettings(
+            config.local_model, self._local_changed, config.local_device, config.language_code, self._language_changed
+        )
         if self.scope == "speech":
             self.add(self.local)
         self.connect("unmap", self._stop_lookup)
         self.refresh_config(config)
+
+    def _language_changed(self, code):
+        if self.scope == "speech":
+            self.values["language_code"] = code
 
     def _local_changed(self, identifier):
         if self.scope == "speech":
@@ -139,10 +145,11 @@ class ProviderSection(Adw.PreferencesGroup):
         self.api_key_entry.set_text("")
         self.config = config
         self.local.stop()
+        self.local.languages.refresh(config.language_code, config.local_model)
         self.local.set_selection(config.local_model, config.local_device)
         names = [self.provider_field, self.base_field, self.key_field, *(p.model_field for p in self.providers)]
         if self.scope == "speech":
-            names.append("local_device")
+            names.extend(("local_device", "language_code"))
         names.append("transcription_chunk_seconds" if self.scope == "speech" else "rewrite_fast_mode")
         self.values = {name: getattr(config, name) for name in names}
         self.updating = True

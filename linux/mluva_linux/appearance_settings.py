@@ -2,6 +2,7 @@
 
 import math
 import os
+import time
 from collections.abc import Callable
 from pathlib import Path
 
@@ -14,7 +15,7 @@ from mluva_linux.theme import DarkTokens, LightTokens, read_omarchy_palette
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gtk, Pango, PangoCairo  # noqa: E402
+from gi.repository import Adw, GLib, Gtk, Pango, PangoCairo  # noqa: E402
 
 SAMPLE_LINES = (
     "A small idea becomes a clear thought.",
@@ -35,49 +36,81 @@ class AppearanceSettings(Adw.PreferencesGroup):
 
     def __init__(self, config: AppConfig, changed: Callable[[], None] = lambda: None) -> None:
         """Preview synthetic content without capturing or moving the user's desktop."""
-        super().__init__(title="Make it yours", description="Preview with ten sample lines. No desktop capture.")
+        super().__init__(title="Your recorder", description="A little space for your voice.")
         self.changed = changed
-        position_row = Adw.ActionRow(title="Recorder position")
-        self.position = DirectChoices(["Left", "Center", "Right"])
-        position_row.add_suffix(self.position)
-        self.position.set_selected([k for k, _ in WIDGET_POSITIONS].index(config.widget_position))
-        self.lines = Adw.SpinRow(
-            title="Visible transcript lines · 5 recommended",
-            adjustment=Gtk.Adjustment(value=config.widget_lines, lower=1, upper=10, step_increment=1),
+        self.timer = 0
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        self.preview_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, css_classes=["card"])
+        preview_header = Gtk.Box(margin_start=14, margin_end=14, margin_top=12)
+        preview_header.append(
+            Gtk.Label(label="DESKTOP PREVIEW", xalign=0, hexpand=True, css_classes=["caption", "dim-label"])
         )
-        self.opacity = Adw.SpinRow(
-            title="Background opacity (%)",
-            subtitle="Lower: see more desktop · Higher: read more easily",
-            adjustment=Gtk.Adjustment(
-                value=config.widget_opacity, lower=10, upper=100, step_increment=1, page_increment=10
-            ),
-        )
-        self.paste = Adw.SwitchRow(
-            title="Paste automatically",
-            subtitle="Off recommended. Copy and paste when you are ready.",
-            active=config.auto_paste,
-        )
-        for row in (position_row, self.lines, self.opacity, self.paste):
-            self.add(row)
-        self.preview_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.preview = Gtk.DrawingArea(content_height=190, hexpand=True)
+        preview_header.append(Gtk.Label(label="● Live", css_classes=["caption"]))
+        self.preview_box.append(preview_header)
+        self.preview = Gtk.DrawingArea(content_height=180, hexpand=True)
         self.preview.set_draw_func(self._draw)
         self.preview.update_property(
-            [Gtk.AccessibleProperty.LABEL],
-            ["Synthetic desktop with a recording widget and ten sample transcript lines"],
+            [Gtk.AccessibleProperty.LABEL], ["Recorder appearance preview over a sample desktop"]
         )
         self.preview_box.append(self.preview)
-        self.caption = Gtk.Label(wrap=True, xalign=0, margin_top=8, margin_bottom=8)
+        self.caption = Gtk.Label(
+            wrap=True, xalign=0, margin_start=14, margin_end=14, margin_bottom=12, css_classes=["caption", "dim-label"]
+        )
         self.preview_box.append(self.caption)
-        self.add(self.preview_box)
-        for row, prop in (
-            (self.position, "selected"),
-            (self.lines, "value"),
-            (self.opacity, "value"),
-            (self.paste, "active"),
-        ):
-            row.connect("notify::" + prop, self._changed)
+        content.append(self.preview_box)
+        position_heading = Gtk.Label(label="Where should it sit?", xalign=0, css_classes=["heading"])
+        content.append(position_heading)
+        self.position = DirectChoices(["↙  Left", "↓  Center", "↘  Right"])
+        self.position.set_selected([k for k, _ in WIDGET_POSITIONS].index(config.widget_position))
+        content.append(self.position)
+        self.lines = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 1, 10, 1)
+        self.lines.set_round_digits(0)
+        self.lines.set_draw_value(False)
+        self.lines.set_value(config.widget_lines)
+        self.lines.update_property([Gtk.AccessibleProperty.LABEL], ["Visible transcript lines"])
+        for value in (1, 3, 5, 10):
+            self.lines.add_mark(value, Gtk.PositionType.BOTTOM, str(value))
+        self.line_label = Gtk.Label(xalign=0, css_classes=["heading"])
+        content.append(self.line_label)
+        content.append(self.lines)
+        self.opacity = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 10, 100, 1)
+        self.opacity.set_draw_value(False)
+        self.opacity.set_value(config.widget_opacity)
+        self.opacity.update_property([Gtk.AccessibleProperty.LABEL], ["Recorder background opacity"])
+        self.opacity_label = Gtk.Label(xalign=0, css_classes=["heading"])
+        content.append(self.opacity_label)
+        content.append(self.opacity)
+        ends = Gtk.Box()
+        ends.append(Gtk.Label(label="More desktop", xalign=0, hexpand=True, css_classes=["caption", "dim-label"]))
+        ends.append(Gtk.Label(label="More contrast", xalign=1, css_classes=["caption", "dim-label"]))
+        content.append(ends)
+        self.paste = Adw.SwitchRow(
+            title="Paste when I stop", subtitle="Off recommended · copy when you are ready", active=config.auto_paste
+        )
+        switches = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, css_classes=["boxed-list"])
+        switches.append(self.paste)
+        content.append(switches)
+        self.add(content)
+        self.position.connect("notify::selected", self._changed)
+        self.lines.connect("value-changed", self._changed)
+        self.opacity.connect("value-changed", self._changed)
+        self.paste.connect("notify::active", self._changed)
+        self.preview.connect("map", self._animate)
+        self.preview.connect("unmap", self._stop_animation)
         self._changed()
+
+    def _animate(self, *_args):
+        if Gtk.Settings.get_default().get_property("gtk-enable-animations") and not self.timer:
+            self.timer = GLib.timeout_add(66, self._tick)
+
+    def _tick(self):
+        self.preview.queue_draw()
+        return GLib.SOURCE_CONTINUE
+
+    def _stop_animation(self, *_args):
+        if self.timer:
+            GLib.source_remove(self.timer)
+            self.timer = 0
 
     def values(self) -> dict:
         """Return only settings represented by this form."""
@@ -97,6 +130,8 @@ class AppearanceSettings(Adw.PreferencesGroup):
 
     def _changed(self, *_args) -> None:
         self.preview.queue_draw()
+        self.line_label.set_label(f"{int(self.lines.get_value())} visible lines · 5 recommended")
+        self.opacity_label.set_label(f"Background · {int(self.opacity.get_value())}%")
         self.caption.set_label(
             f"Showing the last {int(self.lines.get_value())} of 10 lines · "
             f"{int(self.opacity.get_value())}% background opacity"
@@ -124,9 +159,17 @@ class AppearanceSettings(Adw.PreferencesGroup):
         # A clearly synthetic workspace makes transparency readable without a screenshot.
         color(tokens["canvas"])
         cr.paint()
-        color(tokens["ink"], 0.12)
-        for i in range(12):
-            cr.rectangle(16, 18 + i * 22, width * (0.72 if i % 3 else 0.5), 2)
+        color(tokens["ink"], 0.06)
+        cr.rectangle(20, 12, width - 40, height - 28)
+        cr.fill()
+        color(tokens["action"], 0.09)
+        cr.rectangle(20, 12, 76, height - 28)
+        cr.fill()
+        color(tokens["ink"], 0.35)
+        text("Launch notes", 112, 25, 12)
+        color(tokens["ink"], 0.10)
+        for i in range(7):
+            cr.rectangle(112, 56 + i * 22, max(20, (width - 148) * (0.8 if i % 3 else 0.55)), 2)
         cr.fill()
         values = self.values()
         panel_width = 500
@@ -146,11 +189,28 @@ class AppearanceSettings(Adw.PreferencesGroup):
         cr.scale(scale, scale)
         # RecordingLight.qml at a fixed circular breathing endpoint: same bounds and gradient.
         ink = tuple(int(tokens["danger"][i : i + 2], 16) / 255 for i in (1, 3, 5))
-        gradient = cairo.RadialGradient(6.4, 8, 0, 8, 10, 8.8)
+        phase = (time.monotonic() % 3.4) / 3.4 * math.tau if self.timer else 0
+        radius = 6.4 - 1.6 * math.cos(phase)
+        gradient = cairo.RadialGradient(6.4, 8, 0, 8, 10, radius * 1.1)
         for stop, alpha in ((0, 0.84), (0.64, 0.66), (1, 0.12)):
             gradient.add_color_stop_rgba(stop, *ink, alpha)
         cr.set_source(gradient)
-        cr.arc(8, 10, 8, 0, math.tau)
+        points = []
+        for i in range(65):
+            angle = i / 64 * math.tau
+            wobble = math.sin(phase) ** 2 * (
+                0.07 * math.sin(3 * angle + phase) + 0.035 * math.sin(5 * angle - 2 * phase)
+            )
+            points.append(((1 + wobble) * math.cos(angle), (1 + wobble) * math.sin(angle)))
+        left, right = min(p[0] for p in points), max(p[0] for p in points)
+        top, bottom = min(p[1] for p in points), max(p[1] for p in points)
+        for i, (px, py) in enumerate(points):
+            point = (
+                8 + radius * (2 * (px - left) / (right - left) - 1),
+                10 + radius * (2 * (py - top) / (bottom - top) - 1),
+            )
+            (cr.move_to if i == 0 else cr.line_to)(*point)
+        cr.close_path()
         cr.fill()
         color(tokens["ink"])
         text("00:12", panel_width - 42, 0)

@@ -67,7 +67,13 @@ def install(cancelled) -> None:
     root = runtime_path()
     root.parent.mkdir(parents=True, exist_ok=True)
     # The caller holds the model download lock across runtime and weight downloads.
-    if disk_usage(root.parent / "models") + RUNTIME_BUDGET > STORAGE_LIMIT:
+    if (
+        disk_usage(root.parent / "models")
+        + disk_usage(root.parent / "qwen-runtime")
+        + disk_usage(root.parent / "qwen-cache")
+        + RUNTIME_BUDGET
+        > STORAGE_LIMIT
+    ):
         raise RuntimeError("GPU support needs 3.5 GB of the 5 GB local storage budget. Remove unused models first.")
     if shutil.disk_usage(root.parent).free < 6_000_000_000:
         raise RuntimeError("GPU installation needs 6 GB free temporarily to unpack its wheels.")
