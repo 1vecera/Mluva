@@ -14,7 +14,7 @@
       1,
       1
     ],
-    "strength": 26,
+    "strength": 14,
     "falloff": "crown",
     "color": [
       1,
@@ -37,7 +37,7 @@
       1,
       1
     ],
-    "strength": 22,
+    "strength": 14,
     "falloff": "constant",
     "color": [
       1,
@@ -60,7 +60,7 @@
       1,
       1
     ],
-    "strength": 24,
+    "strength": 13,
     "falloff": "constant",
     "color": [
       1,
@@ -83,12 +83,12 @@
       0.8,
       0.7
     ],
-    "strength": 1.5,
+    "strength": 5.0,
     "falloff": "radial",
     "color": [
       1,
-      0.16,
-      0.025
+      0.32,
+      0.1
     ]
   },
   {
@@ -106,7 +106,7 @@
       1,
       1
     ],
-    "strength": 18,
+    "strength": 10,
     "falloff": "constant",
     "color": [
       1,
