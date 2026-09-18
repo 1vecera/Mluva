@@ -4,6 +4,8 @@
 
 ![Mluva on dark and light backgrounds](assets/mluva-brand-sheet.png)
 
+The final logo set with the glossy red mark and the soft-M wordmark lives in [docs/brand](brand/README.md). The application, launcher tile and site still use the identity described below until they are switched.
+
 The original abstract mark suggests a thought unfolding into speech. Solid ink and frost variants keep its silhouette legible on light and dark surfaces. The custom wordmark uses JetBrains Mono Medium outlines, optical spacing and a narrowed “l”. Its [font provenance](assets/brand-source/wordmark-provenance.json) and [OFL notice](../linux/quickshell/mluva.dictation/fonts/OFL.txt) are retained. Editable app and film text uses the same JetBrains Mono family.
 
 | Surface | Asset |
