@@ -38,8 +38,8 @@ FLAT_RED = "#E91B27"  # mean colour of the rendered glossy mark
 
 # Mark height divided by M height, and the gap between them as a share of the mark height.
 LOCKUPS = {
-    "compact": (1.05, 0.30),  # mark reads like a letter; 5% optical compensation for the round shape
-    "": (1.50, 0.28),  # default icon-plus-name lockup
+    "": (1.05, 0.30),  # default: the mark reads like a letter; 5% optical compensation for the round shape
+    "medium-mark": (1.50, 0.28),  # icon-plus-name lockup
     "large-mark": (2.25, 0.25),  # mark-dominant, for about screens and cards
 }
 ICON_MARGIN = 0.04  # share of the icon canvas left free on each side of the mark
@@ -274,13 +274,13 @@ def build_rasters(blob: Blob, svgs: dict[str, str], tmp: Path) -> None:
 
 
 def build_preview(tmp: Path) -> None:
-    """Compose preview.png: on-light assets on a light panel beside on-dark assets on a dark panel."""
+    """Compose preview.png: on-light assets on a light panel beside on-dark assets on a black panel."""
     column_w, inner_w, gap = 760, 640, 36
 
     def column(tone: str, bg: str) -> Path:
         pieces = [
-            PNG_DIR / f"mluva-logo-compact-{tone}.png",
             PNG_DIR / f"mluva-logo-{tone}.png",
+            PNG_DIR / f"mluva-logo-medium-mark-{tone}.png",
             PNG_DIR / f"mluva-logo-large-mark-{tone}.png",
             PNG_DIR / f"mluva-wordmark-{tone}.png",
         ]
@@ -314,7 +314,7 @@ def build_preview(tmp: Path) -> None:
         return out
 
     light = column("on-light", "#F4F4F4")
-    dark = column("on-dark", "#161616")
+    dark = column("on-dark", "#000000")  # black is the default background when one is needed
     run("magick", str(light), str(dark), "-background", "none", "+append", *PNG_OPTS, str(BRAND / "preview.png"))
 
 
@@ -325,8 +325,10 @@ def main() -> int:
             print(f"missing tool: {tool}", file=sys.stderr)
             return 1
     blob, word = Blob(), Wordmark()
-    SVG_DIR.mkdir(exist_ok=True)
-    PNG_DIR.mkdir(exist_ok=True)
+    for directory in (SVG_DIR, PNG_DIR):  # regenerate from scratch so renamed variants leave no stale files
+        directory.mkdir(exist_ok=True)
+        for stale in directory.iterdir():
+            stale.unlink()
     svgs = build_svgs(blob, word)
     for name, text in svgs.items():
         (SVG_DIR / name).write_text(text)
