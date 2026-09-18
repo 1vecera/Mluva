@@ -1,0 +1,32 @@
+{
+  "date": "2026-09-18",
+  "sources": {
+    "glossy-red-blob.svg": {
+      "origin": "Daniel's vector reconstruction of the glossy red mark (Downloads/glossy-red-blob-under-50kb.svg)",
+      "note": "Editable Bezier silhouette (#s), reusable radial gradient, luminance masks, one feGaussianBlur; no raster.",
+      "sha256": "a6d5640f47fc3884be9e7861ff416bdba40216fa6d5cca1621518f1d373a01f5"
+    },
+    "glossy-red-blob.png": {
+      "origin": "Codex image generation, 18 Sep 2026 16:30 (1254 x 1254 RGBA); metadata stripped, recompressed losslessly",
+      "note": "Raster master for mluva-mark-*.png and mluva.ico. Same coordinate frame as the vector: silhouette bbox x 100-1194, y 120-1169.",
+      "sha256": "920d2809c972a2fe2524da795ba691e8fdd1dfb015c938bb368c2c6aac700839"
+    },
+    "figma-wordmark-outlines.svg": {
+      "origin": "Figma export 'Group 2.svg' (18 Sep 2026), raster M removed",
+      "note": "Keeps the 'l' rectangle, the 'uva' outlines and the M image placement box that build.py reuses.",
+      "sha256": "1779d1acf4dd8ccfe3cb0d37a20ed5ee1022729ba5d58690ac5c85ea1acd20e9"
+    },
+    "m-glyph-trace.svg": {
+      "origin": "potrace 1.16 outline of the 1292 x 1292 raster M embedded in the Figma export",
+      "command": "magick m.png -alpha extract -threshold 50% -negate m.pbm && potrace m.pbm -s -u 10 -a 1.0 -O 0.2 -o m-glyph-trace.svg",
+      "fidelity": "0.05% of pixels differ between the traced outline and the raster mask at 1292 px",
+      "sha256": "655095f600076745a84ed0ed39222e70a0f1f505608494872f9fe46dbc2f7377"
+    }
+  },
+  "colors": {
+    "ink_on_light": "#171717",
+    "ink_on_dark": "#F5F5F5",
+    "flat_red": "#E91B27 (mean of the rendered glossy mark)"
+  },
+  "generator": "build.py (uv run docs/brand/build.py)"
+}
