@@ -4,7 +4,7 @@
 
 Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install](#install)** · **[Watch the 55-second film ↗](https://1vecera.github.io/Mluva/#film)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.1.0)**
+**[Install](#install)** · **[Watch the 55-second film ↗](https://1vecera.github.io/Mluva/#film)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.2.0)**
 
 [![Watch Mluva in action — a 55-second introduction to dictation, live drafts and a workspace that follows your Omarchy theme](docs/promotion/assets/delight/opening-preview.png)](https://1vecera.github.io/Mluva/#film)
 
