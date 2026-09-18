@@ -4,7 +4,7 @@ Mluva itself is available under the Apache License 2.0 in `LICENSE`. The Linux i
 
 ## Linux runtime packages
 
-The [Mluva wordmark](docs/assets/brand-source/wordmark-outline.svg) uses JetBrains Mono Medium outlines with optical spacing and a narrowed “l”. The unchanged Regular, Medium, Bold and Italic font binaries are bundled for app, recorder and diagram text under [SIL OFL 1.1](linux/quickshell/mluva.dictation/fonts/OFL.txt). [Font provenance](docs/assets/brand-source/wordmark-provenance.json) records the upstream revision and checksum. The former Adwaita Sans notice remains for the previously published launch-film assets. Figma symbol and production-media rights are documented in the [video-kit attribution](docs/design/video-kit/ATTRIBUTION.md).
+The unchanged JetBrains Mono Regular, Medium, Bold and Italic font binaries from upstream commit [`19371302`](https://github.com/JetBrains/JetBrainsMono/tree/19371302b95d218af43299bce79ddbddd0bc364d) are bundled for app, recorder and diagram text under [SIL OFL 1.1](linux/quickshell/mluva.dictation/fonts/OFL.txt). The Mluva logo set in [docs/brand](docs/brand/README.md) is original artwork with its own [source provenance](docs/brand/source/provenance.json); the wordmark no longer derives from a font. The former [Adwaita Sans notice](docs/assets/brand-source/Adwaita-Sans-LICENSE.txt) remains for the previously published launch-film assets. Figma symbol and production-media rights are documented in the [video-kit attribution](docs/design/video-kit/ATTRIBUTION.md).
 
 | Package | Locked version | Upstream license | Project |
 | --- | --- | --- | --- |

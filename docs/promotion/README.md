@@ -10,4 +10,4 @@ The film uses actual Mluva UI. The speech and Live sequence uses ElevenLabs Scri
 
 This previously published film uses the former Adwaita Sans wordmark under the [SIL Open Font License](../assets/brand-source/Adwaita-Sans-LICENSE.txt). Background animation was generated with MiniMax H3 Max using Omarchy's Nord black-moon wallpaper as a visual reference. The sound bed is an original oscillator composition. Wallpapers and generated scenery are not covered by the repository's software license or claimed as public domain.
 
-The revised 59-second film has an [editable production kit](../design/video-kit/README.md), original thought mark, custom JetBrains Mono wordmark and licensed water background. Its final assembled cut is separate from the published film above.
+The revised 59-second film has an [editable production kit](../design/video-kit/README.md), the former thought mark and JetBrains Mono wordmark (superseded by [docs/brand](../brand/README.md) on 18 September 2026) and licensed water background. Its final assembled cut is separate from the published film above.

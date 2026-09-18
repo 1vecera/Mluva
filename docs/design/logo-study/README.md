@@ -1,6 +1,6 @@
 # Mluva logo study
 
-[Compare the ten directions in Figma](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=154-14). Each direction has a transparent logo and matching Mluva wordmark, developed from a separate agent’s brief and revised after its self-critique. The existing production identity stays in place until Daniel chooses a direction.
+[Compare the ten directions in Figma](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=154-14). Each direction has a transparent logo and matching Mluva wordmark, developed from a separate agent’s brief and revised after its self-critique. The existing production identity stays in place until Daniel chooses a direction. The final identity was chosen on 18 September 2026 and lives in [docs/brand](../../brand/README.md).
 
 Mluva turns speech into useful, editable text while preserving the original. It should feel calm, immediate and at home in Omarchy. The mark should suggest a thought finding form, speech becoming text, or a receptive space for words. Use a filled silhouette, clear negative space and a compact, recognizable shape. JetBrains Mono provides the common starting point for the wordmarks.
 

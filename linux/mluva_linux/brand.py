@@ -13,7 +13,8 @@ BRAND_SURFACE: Final = "#F1F6F3"
 BRAND_HIGHLIGHT: Final = "#FFFFFF"
 BRAND_SIGNAL: Final = "#91E6C8"
 
-# Static artwork uses the selected frost/slate identity; application colors remain theme-driven.
-LOGO_INK: Final = "#2E3440"
-LOGO_ACCENT: Final = "#88C0D0"
-LOGO_FOREGROUND: Final = "#ECEFF4"
+# Static artwork follows the final logo set in docs/brand; application colors remain theme-driven.
+LOGO_RED: Final = "#E91B27"  # flat stand-in for the glossy mark
+LOGO_INK_ON_DARK: Final = "#F5F5F5"  # default tone
+LOGO_INK_ON_LIGHT: Final = "#171717"
+LOGO_BACKGROUND: Final = "#000000"  # when a surface needs an opaque background

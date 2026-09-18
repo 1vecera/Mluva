@@ -24,7 +24,7 @@ Change the master first, then use exposed text/boolean properties for a particul
 
 Theme modes are Nord, Tokyo Night and Rosé Pine examples. Semantic colors alias primitives; source JSON retains checked hexadecimal values and OKLCH. Any installed Omarchy theme supplies the app’s real palette. Raster captures retain their recorded pixels and cannot recolor from a variable.
 
-Both `font/ui` and `font/display` default to JetBrains Mono. Five shared text styles bind family, size and leading. The custom wordmark is outlined artwork derived from JetBrains Mono Medium; changing a text variable does not reshape it. [sculpt_wordmark.py](../../../dev/sculpt_wordmark.py) regenerates its optical spacing and narrowed “l”. The app bundles unchanged Regular, Medium, Bold and Italic fonts.
+Both `font/ui` and `font/display` default to JetBrains Mono. Five shared text styles bind family, size and leading. The kit's wordmark is the former outlined JetBrains Mono lettering, superseded by the logo set in [docs/brand](../../brand/README.md) on 18 September 2026; its generator was removed with that switch and remains in git history. The app bundles unchanged Regular, Medium, Bold and Italic fonts.
 
 Layout variables bind repeated dimensions, padding, gaps, strokes, radii and surface opacity. Figma opacity values are percentages: `opacity/window = 82` resolves to alpha `0.82`. JSON retains both units. Surface transparency does not reduce text opacity.
 
@@ -72,4 +72,4 @@ Use full-opacity primary ink. Modeled contrast on opaque surfaces is 9.25:1 Nord
 
 ## September 14 logo and Live stability study
 
-[Logo Study](../logo-study/README.md) contains ten independent directions and twenty unchanged transparent PNGs, with long briefs, critiques, revisions, optical sizing and small-icon proofs. The production logo remains in place pending Daniel’s choice. [Live stability review](../live-stability-review.md) records the app changes and verification. The Notion brief contains the reusable Omarchy VM note and current downloadable study/loop sources.
+[Logo Study](../logo-study/README.md) contains ten independent directions and twenty unchanged transparent PNGs, with long briefs, critiques, revisions, optical sizing and small-icon proofs. The final identity was chosen on 18 September 2026 and lives in [docs/brand](../../brand/README.md); the kit still shows the former mark. [Live stability review](../live-stability-review.md) records the app changes and verification. The Notion brief contains the reusable Omarchy VM note and current downloadable study/loop sources.
