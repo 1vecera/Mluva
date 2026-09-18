@@ -36,7 +36,7 @@ export const Camera: React.FC<{
   </AbsoluteFill>
 );
 
-/** Fades scene content in over `inSec` and out over the last `outSec` of its sequence. */
+/** Fades scene content in over `inSec` and out over the last `outSec` of its sequence, with a subtle scale for depth instead of a flat opacity fade. */
 export const SceneFade: React.FC<{ inSec?: number; outSec?: number; children: React.ReactNode }> = ({
   inSec = 0.28,
   outSec = 0.3,
@@ -45,5 +45,8 @@ export const SceneFade: React.FC<{ inSec?: number; outSec?: number; children: Re
   const t = useT();
   const d = useDuration();
   const opacity = Math.min(tween(t, [0, inSec], [0, 1]), tween(t, [d - outSec, d], [1, 0], EASE_OUT));
-  return <AbsoluteFill style={{ opacity }}>{children}</AbsoluteFill>;
+  const scaleIn = tween(t, [0, inSec + 0.3], [0.985, 1]);
+  const scaleOut = tween(t, [d - outSec - 0.2, d], [1, 1.015]);
+  const scale = Math.min(scaleIn, scaleOut);
+  return <AbsoluteFill style={{ opacity, transform: `scale(${scale})` }}>{children}</AbsoluteFill>;
 };

@@ -5,7 +5,7 @@ import { BAR_H, BrowserWindow, DesktopChrome, GAP, HerdrWindow, lerpRect, SCREEN
 import { KeyCombo } from "../components/Keycap";
 import { Recorder } from "../components/Recorder";
 import { Workspace } from "../components/Workspace";
-import { NORD, tween } from "../theme";
+import { NORD, tween, EASE_IN_OUT } from "../theme";
 import type { SceneTiming } from "../timing";
 import { DICTATION } from "./S03F9";
 
@@ -32,7 +32,7 @@ export const S05Tiling: React.FC<{ scene: SceneTiming }> = () => {
   const pressAt = (at: number) => Math.min(tween(t, [at - 0.12, at], [0, 1]), tween(t, [at, at + 0.3], [1, 0]));
   return (
     <>
-      <Camera zoom={tween(t, [0, d], [1.03, 1.0], Easing.linear)}>
+      <Camera zoom={tween(t, [0, d], [1.03, 1.0], EASE_IN_OUT)}>
         <DesktopChrome palette={NORD} title={showWorkspace ? "Mluva" : "Chromium — Mluva · Docs"}>
           <div style={{ position: "absolute", inset: 0, opacity: companions }}>
             <BrowserWindow rect={browserRect} palette={NORD} t={t} />

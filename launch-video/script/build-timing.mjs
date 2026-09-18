@@ -31,7 +31,7 @@ const outFile = resolve(root, "src/generated/timing.json");
 const BEATS = [
   { id: "S01", leadIn: 1.0, holdAfter: 0.3 },
   { id: "S02", leadIn: 0.4, holdAfter: 0.7 },
-  { id: "S03", leadIn: 0.3, holdAfter: 2.2 },
+  { id: "S03", leadIn: 0.3, holdAfter: 1.8 },
   { id: "S04", leadIn: 0.3, holdAfter: 0.7 },
   { id: "S05", leadIn: 0.3, holdAfter: 0.9 },
   { id: "S06", leadIn: 0.3, holdAfter: 1.0 },
@@ -39,7 +39,7 @@ const BEATS = [
   { id: "S08", leadIn: 0.3, holdAfter: 0.6 },
   { id: "S09", leadIn: 0.3, holdAfter: 0.7 },
   { id: "S10", leadIn: 0.3, holdAfter: 0.9 },
-  { id: "S11", leadIn: 0.4, holdAfter: 3.0 },
+  { id: "S11", leadIn: 0.4, holdAfter: 2.2 },
 ];
 const MAX_TOTAL = 60;
 const PAD = 0.1; // seconds of silence kept around each spoken line when cutting the WAV

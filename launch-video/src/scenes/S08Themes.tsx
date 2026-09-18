@@ -3,7 +3,7 @@ import { Easing, Sequence, staticFile, useVideoConfig } from "remotion";
 import { Camera, useDuration, useT } from "../components/Camera";
 import { BAR_H, DesktopChrome, GAP, SCREEN_H, SCREEN_W, Window } from "../components/Desktop";
 import { Workspace } from "../components/Workspace";
-import { FONT, NORD, ROSE, TOKYO, hexToRgba, tween, type Palette } from "../theme";
+import { FONT, NORD, ROSE, TOKYO, hexToRgba, tween, EASE_IN_OUT, type Palette } from "../theme";
 import type { SceneTiming } from "../timing";
 import { POLISHED } from "./S06Polish";
 
@@ -48,7 +48,7 @@ export const S08Themes: React.FC<{ scene: SceneTiming }> = () => {
   const toRose = tween(t, [TO_ROSE, TO_ROSE + FADE], [0, 1]);
   return (
     <>
-      <Camera zoom={tween(t, [0, d], [1.04, 1.0], Easing.linear)}>
+      <Camera zoom={tween(t, [0, d], [1.04, 1.0], EASE_IN_OUT)}>
         <Layer palette={NORD} opacity={1} t={t} />
         <Layer palette={TOKYO} opacity={toTokyo} t={t} />
         <Layer palette={ROSE} opacity={toRose} t={t} />
