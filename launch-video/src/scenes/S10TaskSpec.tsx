@@ -44,6 +44,7 @@ export const S10TaskSpec: React.FC<{ scene: SceneTiming }> = () => {
   const t = useT();
   const answer = ANSWER.slice(0, revealed(t, ANSWER_FROM, 0.05, ANSWER.length));
   const retire = tween(t, [RETIRE, RETIRE + 0.3], [0, 1]);
+  const punch10 = Math.min(tween(t, [RETIRE, RETIRE + 0.12], [0, 0.02]), tween(t, [RETIRE + 0.12, RETIRE + 0.47], [0.02, 0]));
   const next = tween(t, [NEXT, NEXT + 0.3], [0, 1]);
   const blocks: Block[] = [
     ...DRAFT.filter((b) => b.text !== "Personal use.").map((b) => ({ ...b, at: -1 })),
@@ -51,8 +52,8 @@ export const S10TaskSpec: React.FC<{ scene: SceneTiming }> = () => {
   ];
   const confirmed = retire > 0 ? [{ text: ANSWER, kind: "ok" as const, at: RETIRE }] : [];
   return (
-    <Camera zoom={tween(t, [0, 1.2], [1.08, 1.18])} originX={72} originY={52}>
-      <div style={{ position: "absolute", left: HERO.x, top: HERO.y, width: HERO.w, height: HERO.h, border: `2px solid ${NORD.border}`, boxSizing: "border-box", boxShadow: `0 40px 100px ${hexToRgba("#000000", 0.5)}` }}>
+    <Camera zoom={tween(t, [0, 1.2], [1.08, 1.18]) + punch10} originX={72} originY={52}>
+      <div style={{ position: "absolute", left: HERO.x, top: HERO.y, width: HERO.w, height: HERO.h, border: `2px solid ${NORD.border}`, borderRadius: 16, overflow: "hidden", boxSizing: "border-box", boxShadow: `0 40px 100px ${hexToRgba("#000000", 0.5)}` }}>
         <Workspace
           width={HERO.w - 4}
           height={HERO.h - 4}
@@ -61,10 +62,11 @@ export const S10TaskSpec: React.FC<{ scene: SceneTiming }> = () => {
           fontSize={HERO_FONT}
           selected={1}
           noteTitle="Notes export requirements"
-          noteMeta="Task spec · Claude"
+          noteMeta="Task spec · Codex"
           badge="Task spec"
           statusLeft="1 question answered · 1 open"
           statusRight="Ctrl+1 Original · Ctrl+2 Draft"
+          composer
           original={<span style={{ opacity: 0.85 }}>{SOURCE}</span>}
           draft={
             <>

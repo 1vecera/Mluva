@@ -29,17 +29,17 @@ const outFile = resolve(root, "src/generated/timing.json");
 // Beat plan, seconds. leadIn: how long the scene is on screen before its line starts.
 // holdAfter: how long the scene stays after its line ends (room for the demo to finish).
 const BEATS = [
-  { id: "S01", leadIn: 1.0, holdAfter: 0.3 },
+  { id: "S01", leadIn: 0.8, holdAfter: 0.3 },
   { id: "S02", leadIn: 0.4, holdAfter: 0.7 },
-  { id: "S03", leadIn: 0.3, holdAfter: 1.8 },
+  { id: "S03", leadIn: 0.3, holdAfter: 1.3 },
   { id: "S04", leadIn: 0.3, holdAfter: 0.7 },
   { id: "S05", leadIn: 0.3, holdAfter: 0.9 },
-  { id: "S06", leadIn: 0.3, holdAfter: 1.0 },
+  { id: "S06", leadIn: 0.3, holdAfter: 0.7 },
   { id: "S07", leadIn: 0.3, holdAfter: 0.6 },
   { id: "S08", leadIn: 0.3, holdAfter: 0.6 },
   { id: "S09", leadIn: 0.3, holdAfter: 0.7 },
-  { id: "S10", leadIn: 0.3, holdAfter: 0.9 },
-  { id: "S11", leadIn: 0.4, holdAfter: 2.2 },
+  { id: "S10", leadIn: 0.3, holdAfter: 0.7 },
+  { id: "S11", leadIn: 0.4, holdAfter: 1.5 },
 ];
 const MAX_TOTAL = 60;
 const PAD = 0.1; // seconds of silence kept around each spoken line when cutting the WAV

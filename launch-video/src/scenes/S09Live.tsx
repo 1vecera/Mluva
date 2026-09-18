@@ -10,13 +10,13 @@ const SOURCE_WORDS = SOURCE.split(" ");
 
 export type Block = { text: string; kind: "h1" | "h2" | "li" | "p" | "ok"; at: number };
 export const DRAFT: Block[] = [
-  { text: "Notes export", kind: "h1", at: 1.1 },
-  { text: "Requirements", kind: "h2", at: 1.6 },
-  { text: "Preserve the original wording.", kind: "li", at: 2.0 },
-  { text: "Save files locally.", kind: "li", at: 2.45 },
-  { text: "Include the date in each file name.", kind: "li", at: 2.95 },
-  { text: "Audience", kind: "h2", at: 3.35 },
-  { text: "Personal use.", kind: "p", at: 3.7 },
+  { text: "Notes export", kind: "h1", at: 0.5 },
+  { text: "Requirements", kind: "h2", at: 0.9 },
+  { text: "Preserve the original wording.", kind: "li", at: 1.2 },
+  { text: "Save files locally.", kind: "li", at: 1.6 },
+  { text: "Include the date in each file name.", kind: "li", at: 2.0 },
+  { text: "Audience", kind: "h2", at: 2.4 },
+  { text: "Personal use.", kind: "p", at: 2.7 },
 ];
 
 export const MarkdownBlocks: React.FC<{ blocks: Block[]; t: number; palette: Palette; fontSize?: number }> = ({ blocks, t, palette, fontSize = 22 }) => (
@@ -33,6 +33,15 @@ export const MarkdownBlocks: React.FC<{ blocks: Block[]; t: number; palette: Pal
         marginTop: b.kind === "h2" ? 10 : 0,
         display: "flex",
         gap: 12,
+        ...(b.kind === "ok"
+          ? {
+              background: hexToRgba(palette.green, 0.12),
+              border: `1px solid ${hexToRgba(palette.green, 0.45)}`,
+              boxShadow: `0 0 22px ${hexToRgba(palette.green, 0.25)}`,
+              borderRadius: 10,
+              padding: "8px 14px",
+            }
+          : null),
       };
       return (
         <div key={i} style={style}>
@@ -49,10 +58,11 @@ export const MarkdownBlocks: React.FC<{ blocks: Block[]; t: number; palette: Pal
 export const S09Live: React.FC<{ scene: SceneTiming }> = () => {
   const t = useT();
   const d = useDuration();
-  const shown = revealed(t, 0.45, 0.075, SOURCE_WORDS.length);
+  const shown = revealed(t, 0.15, 0.075, SOURCE_WORDS.length);
+  const punch09 = Math.min(tween(t, [0.5, 0.62], [0, 0.025]), tween(t, [0.62, 0.97], [0.025, 0]));
   return (
-    <Camera zoom={tween(t, [0, d], [1.0, 1.14])} originX={56} originY={44}>
-      <div style={{ position: "absolute", left: HERO.x, top: HERO.y, width: HERO.w, height: HERO.h, border: `2px solid ${NORD.border}`, boxSizing: "border-box", boxShadow: `0 40px 100px ${hexToRgba("#000000", 0.5)}` }}>
+    <Camera zoom={tween(t, [0, d], [1.0, 1.14]) + punch09} originX={56} originY={44}>
+      <div style={{ position: "absolute", left: HERO.x, top: HERO.y, width: HERO.w, height: HERO.h, border: `2px solid ${NORD.border}`, borderRadius: 16, overflow: "hidden", boxSizing: "border-box", boxShadow: `0 40px 100px ${hexToRgba("#000000", 0.5)}` }}>
         <Workspace
           width={HERO.w - 4}
           height={HERO.h - 4}
@@ -61,10 +71,11 @@ export const S09Live: React.FC<{ scene: SceneTiming }> = () => {
           fontSize={HERO_FONT}
           selected={1}
           noteTitle="Notes export requirements"
-          noteMeta="Live · Whisper (local) · Claude"
+          noteMeta="Live · Voxtype (local) · Codex"
           badge="Live rewrite · Experimental"
           statusLeft="Recording · F9 to stop"
           statusRight="Ctrl+1 Original · Ctrl+2 Draft"
+          composer
           original={
             <span>
               {SOURCE_WORDS.slice(0, shown).join(" ")}

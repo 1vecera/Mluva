@@ -17,14 +17,22 @@ export const Soundtrack: React.FC = () => {
   const total = durationInFrames / fps;
   return (
     <>
-      {TIMING.scenes.map((s) => (
-        <Sequence key={s.id} from={f(s.lineStart)} durationInFrames={Math.max(1, f(s.srcEnd - s.srcStart))} layout="none" name={`voice ${s.id}`}>
-          <Audio src={staticFile(TIMING.narrationFile)} trimBefore={f(s.srcStart)} trimAfter={f(s.srcEnd)} volume={1.0} />
-        </Sequence>
-      ))}
+      {TIMING.scenes.map((s) => {
+        const dur = Math.max(1, f(s.srcEnd - s.srcStart));
+        return (
+          <Sequence key={s.id} from={f(s.lineStart)} durationInFrames={dur} layout="none" name={`voice ${s.id}`}>
+            <Audio
+              src={staticFile(TIMING.narrationFile)}
+              trimBefore={f(s.srcStart)}
+              trimAfter={f(s.srcEnd)}
+              volume={(frame) => Math.min(1, frame / (0.03 * fps), (dur - frame) / (0.03 * fps))}
+            />
+          </Sequence>
+        );
+      })}
       <Audio
         src={staticFile(MUSIC)}
-        trimAfter={durationInFrames}
+        trimAfter={f(MUSIC_DURATION)}
         volume={(frame) =>
           interpolate(
             frame / fps,
@@ -35,12 +43,13 @@ export const Soundtrack: React.FC = () => {
         }
       />
       {total > MUSIC_DURATION ? (
-        <Sequence from={f(MUSIC_DURATION)} durationInFrames={durationInFrames - f(MUSIC_DURATION)} layout="none" name="music loop tail">
+        <Sequence from={f(MUSIC_DURATION - 0.3)} durationInFrames={durationInFrames - f(MUSIC_DURATION - 0.3)} layout="none" name="music loop tail">
           <Audio
             src={staticFile(MUSIC)}
             volume={(frame) =>
+              Math.min(1, frame / (0.3 * fps)) *
               interpolate(
-                (f(MUSIC_DURATION) + frame) / fps,
+                (f(MUSIC_DURATION - 0.3) + frame) / fps,
                 [0, 0.6, TIMING.scenes[0].lineStart, last.lineEnd, total - 0.8, total],
                 [0.48, 0.56, 0.17, 0.17, 0.42, 0],
                 { extrapolateLeft: "clamp", extrapolateRight: "clamp" },

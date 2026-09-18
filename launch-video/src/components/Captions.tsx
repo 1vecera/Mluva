@@ -56,6 +56,7 @@ const CaptionPage: React.FC<{ page: Page; sceneOffset: number }> = ({ page, scen
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const now = sceneOffset + frame / fps;
+  const enter = Math.min(1, Math.max(0, (now - page.start) / 0.22));
   return (
     <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 46 }}>
       <div
@@ -71,6 +72,8 @@ const CaptionPage: React.FC<{ page: Page; sceneOffset: number }> = ({ page, scen
           padding: "12px 28px",
           borderRadius: 14,
           whiteSpace: "pre",
+          opacity: enter,
+          transform: `translateY(${(1 - enter) * 10}px)`,
         }}
       >
         {page.words.map((w, i) => {

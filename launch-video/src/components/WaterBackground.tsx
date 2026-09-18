@@ -26,12 +26,12 @@ export const WaterBackground: React.FC<{ intensity?: number }> = ({ intensity = 
         width={width}
         height={height}
         viewBox={`0 0 ${width} ${height}`}
-        style={{ position: "absolute", inset: 0, opacity: 0.42 * intensity }}
+        style={{ position: "absolute", inset: 0, opacity: 0.3 * intensity }}
       >
         <defs>
           <filter id="water-a" x="-10%" y="-10%" width="120%" height="120%">
             <feTurbulence type="fractalNoise" baseFrequency="0.0016 0.011" numOctaves="3" seed="11" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale={90 + breathe * 30} xChannelSelector="R" yChannelSelector="G" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale={60 + breathe * 20} xChannelSelector="R" yChannelSelector="G" />
             <feGaussianBlur stdDeviation="1.2" />
           </filter>
           <filter id="water-b" x="-10%" y="-10%" width="120%" height="120%">
@@ -65,6 +65,15 @@ export const WaterBackground: React.FC<{ intensity?: number }> = ({ intensity = 
           background: "radial-gradient(85% 70% at 50% 50%, rgba(0,0,0,0) 55%, rgba(6,8,12,0.6) 100%)",
         }}
       />
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ position: "absolute", inset: 0, opacity: 0.05 }}>
+        <defs>
+          <filter id="grain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n" />
+            <feColorMatrix in="n" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.6 0" />
+          </filter>
+        </defs>
+        <rect x={0} y={0} width={width} height={height} filter="url(#grain)" />
+      </svg>
     </AbsoluteFill>
   );
 };

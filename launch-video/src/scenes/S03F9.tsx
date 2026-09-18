@@ -30,16 +30,22 @@ export const S03F9: React.FC<{ scene: SceneTiming }> = () => {
   const state: "idle" | "recording" | "ready" = t < PRESS_1 + 0.05 ? "idle" : t < PRESS_2 ? "recording" : "ready";
   const visible = revealed(t, WORDS_FROM, CADENCE, WORDS);
   const label = t < PRESS_1 ? "Press F9" : t < PRESS_2 - 0.4 ? "Speak" : t < PASTE - 0.2 ? "Press F9 again" : "Pasted";
+  const stepAt = t < PRESS_1 ? 0 : t < PRESS_2 - 0.4 ? PRESS_1 : t < PASTE - 0.2 ? PRESS_2 - 0.4 : PASTE - 0.2;
+  const stepP = tween(t, [stepAt, stepAt + 0.25], [0, 1]);
   const ghost = Math.min(tween(t, [PASTE - 0.38, PASTE - 0.24], [0, 1]), tween(t, [PASTE - 0.1, PASTE], [1, 0]));
   const ghostP = tween(t, [PASTE - 0.38, PASTE], [0, 1], EASE_IN_OUT);
   const pasted = t >= PASTE;
   const flash = tween(t, [PASTE, PASTE + 0.9], [0.5, 0]);
+  const idlePulse = 0.5 + 0.5 * Math.sin((t / 2.4) * Math.PI * 2);
+  const idleGlow = t < PRESS_1 ? `drop-shadow(0 0 ${18 + 10 * idlePulse}px ${hexToRgba(NORD.frost, 0.25 + 0.2 * idlePulse)})` : "none";
   return (
     <>
       <Camera zoom={1.07 + punch(t, PRESS_1) + punch(t, PRESS_2) + punch(t, PASTE, 0.045)} x={tween(t, [3.4, 5.0], [70, -80], EASE_IN_OUT)} y={24}>
         <div style={{ position: "absolute", left: 210, top: 360, display: "flex", flexDirection: "column", alignItems: "center", gap: 34 }}>
-          <Keycap label="F9" size={210} press={press} palette={NORD} />
-          <div style={{ fontFamily: FONT, fontSize: 26, fontWeight: 500, color: NORD.fg, opacity: 0.9 }}>{label}</div>
+          <div style={{ filter: idleGlow }}>
+            <Keycap label="F9" size={210} press={press} palette={NORD} />
+          </div>
+          <div style={{ fontFamily: FONT, fontSize: 26, fontWeight: 500, color: NORD.fg, opacity: 0.9 * stepP, transform: `translateY(${(1 - stepP) * 10}px)` }}>{label}</div>
         </div>
         <div style={{ position: "absolute", left: 540, top: 330 }}>
           <Recorder width={760} palette={NORD} text={DICTATION} visibleWords={visible} state={state} seconds={state === "recording" ? t - PRESS_1 : state === "ready" ? PRESS_2 - PRESS_1 : 0} t={t} lines={4} />
@@ -77,13 +83,13 @@ export const S03F9: React.FC<{ scene: SceneTiming }> = () => {
         </div>
       </Camera>
       <Sequence from={Math.round(PRESS_1 * fps)} layout="none">
-        <Audio src={staticFile("sfx/switch.wav")} volume={0.42} />
+        <Audio src={staticFile("sfx/switch.wav")} volume={0.3} />
       </Sequence>
       <Sequence from={Math.round(PRESS_2 * fps)} layout="none">
-        <Audio src={staticFile("sfx/switch.wav")} volume={0.42} />
+        <Audio src={staticFile("sfx/switch.wav")} volume={0.3} />
       </Sequence>
       <Sequence from={Math.round(PASTE * fps)} layout="none">
-        <Audio src={staticFile("sfx/ding.wav")} volume={0.26} />
+        <Audio src={staticFile("sfx/ding.wav")} volume={0.28} />
       </Sequence>
     </>
   );

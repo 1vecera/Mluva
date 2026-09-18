@@ -10,7 +10,7 @@ export const S02Brand: React.FC<{ scene: SceneTiming }> = () => {
   const t = useT();
   const d = useDuration();
   return (
-    <Camera zoom={tween(t, [0, d], [1, 1.045], EASE_IN_OUT)} originX={30} originY={45}>
+    <Camera zoom={tween(t, [0, d], [1, 1.045], EASE_IN_OUT)} originX={tween(t, [0, d], [30, 34], EASE_IN_OUT)} originY={45}>
       <div style={{ position: "absolute", left: 240, top: 330 }}>
         <Lockup t={t} delay={0.15} height={256} descriptor={BRAND.tagline} descriptorSize={40} />
       </div>

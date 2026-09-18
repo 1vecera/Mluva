@@ -46,18 +46,19 @@ export const S08Themes: React.FC<{ scene: SceneTiming }> = () => {
   const { fps } = useVideoConfig();
   const toTokyo = tween(t, [TO_TOKYO, TO_TOKYO + FADE], [0, 1]);
   const toRose = tween(t, [TO_ROSE, TO_ROSE + FADE], [0, 1]);
+  const punchAt = (at: number, amp = 0.02) => Math.min(tween(t, [at, at + 0.12], [0, amp]), tween(t, [at + 0.12, at + 0.47], [amp, 0]));
   return (
     <>
-      <Camera zoom={tween(t, [0, d], [1.04, 1.0], EASE_IN_OUT)}>
+      <Camera zoom={tween(t, [0, d], [1.04, 1.0], EASE_IN_OUT) + punchAt(TO_TOKYO) + punchAt(TO_ROSE)}>
         <Layer palette={NORD} opacity={1} t={t} />
         <Layer palette={TOKYO} opacity={toTokyo} t={t} />
         <Layer palette={ROSE} opacity={toRose} t={t} />
       </Camera>
       <Sequence from={Math.round(TO_TOKYO * fps)} layout="none">
-        <Audio src={staticFile("sfx/switch.wav")} volume={0.2} />
+        <Audio src={staticFile("sfx/switch.wav")} volume={0.25} />
       </Sequence>
       <Sequence from={Math.round(TO_ROSE * fps)} layout="none">
-        <Audio src={staticFile("sfx/switch.wav")} volume={0.2} />
+        <Audio src={staticFile("sfx/switch.wav")} volume={0.25} />
       </Sequence>
     </>
   );

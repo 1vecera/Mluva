@@ -36,14 +36,14 @@ export const S06Polish: React.FC<{ scene: SceneTiming }> = () => {
   return (
     <>
       <Camera zoom={tween(t, [0.3, 2.3], [1.0, 1.18]) + punchIn} originX={58} originY={40}>
-        <div style={{ position: "absolute", left: HERO.x, top: HERO.y, width: HERO.w, height: HERO.h, border: `2px solid ${NORD.border}`, boxSizing: "border-box", boxShadow: `0 40px 100px ${hexToRgba("#000000", 0.5)}` }}>
+        <div style={{ position: "absolute", left: HERO.x, top: HERO.y, width: HERO.w, height: HERO.h, border: `2px solid ${NORD.border}`, borderRadius: 16, overflow: "hidden", boxSizing: "border-box", boxShadow: `0 40px 100px ${hexToRgba("#000000", 0.5)}` }}>
           <Workspace
             width={HERO.w - 4}
             height={HERO.h - 4}
             palette={NORD}
             t={t}
             fontSize={HERO_FONT}
-            noteMeta={t >= APPLY ? "Today · 14:31 · Polished" : "Today · 14:31 · Whisper (local)"}
+            noteMeta={t >= APPLY ? "Today · 14:31 · Polished" : "Today · 14:31 · Voxtype (local)"}
             statusLeft={t >= APPLY + 1.3 ? "Original preserved" : t >= APPLY ? "Polished · 2 words changed" : "Dictation ready. Automatic copying is off."}
             original={
               <div style={{ display: "flex", flexDirection: "column", gap: 34 }}>
@@ -80,10 +80,10 @@ export const S06Polish: React.FC<{ scene: SceneTiming }> = () => {
         </div>
       </Camera>
       <Sequence from={Math.round(OPEN * fps)} layout="none">
-        <Audio src={staticFile("sfx/mouse-click.wav")} volume={0.3} />
+        <Audio src={staticFile("sfx/mouse-click.wav")} volume={0.25} />
       </Sequence>
       <Sequence from={Math.round(SELECT * fps)} layout="none">
-        <Audio src={staticFile("sfx/switch.wav")} volume={0.26} />
+        <Audio src={staticFile("sfx/switch.wav")} volume={0.3} />
       </Sequence>
     </>
   );

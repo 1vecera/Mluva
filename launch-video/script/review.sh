@@ -12,30 +12,28 @@ mkdir -p "out/frames-$tag"
 while read -r name at; do
   ffmpeg -v error -y -ss "$at" -i "out/preview-$tag.mp4" -frames:v 1 "out/frames-$tag/$name.png"
 done <<'EOF'
-s01a 0.8
-s01b 2.6
-s02b 7.4
-s03a 9.4
-s03b 11.2
-s03c 12.1
-s03d 12.7
-s04b 19.5
-s05a 22.0
-s05b 23.6
-s05c 25.2
-s05d 26.8
-s06a 29.5
-s06b 31.2
-s06c 33.6
-s07a 36.2
-s08a 39.0
-s08b 41.3
-s09a 46.2
-s09b 48.4
-s10a 51.0
-s10b 53.1
-s11a 56.5
-s11b 58.9
+s01a 0.6
+s01b 2.57
+s02a 3.77
+s02b 8.59
+s03a 9.79
+s03b 15.31
+s04a 16.51
+s04b 21.81
+s05a 23.01
+s05b 28.97
+s06a 30.17
+s06b 35.13
+s07a 36.33
+s07b 37.53
+s08a 38.73
+s08b 44.43
+s09a 45.63
+s09b 49.83
+s10a 51.03
+s10b 54.41
+s11a 55.61
+s11b 59.09
 EOF
 cd "out/frames-$tag"
 magick montage $(ls *.png | head -12) -tile 3x4 -geometry 640x360+6+6 -background '#111' -fill white -pointsize 18 -label '%t' "../sheet-${tag}a.png"
@@ -43,4 +41,5 @@ magick montage $(ls *.png | tail -12) -tile 3x4 -geometry 640x360+6+6 -backgroun
 cd ../..
 echo "audio:"
 ffmpeg -v info -i "out/preview-$tag.mp4" -af volumedetect -f null - 2>&1 | grep -E 'mean_volume|max_volume' || true
+ffmpeg -hide_banner -i "out/preview-$tag.mp4" -af ebur128=peak=true -f null - 2>&1 | grep -E '^    I:|^    LRA:' | head -n 2 || true
 echo "done $tag"

@@ -38,11 +38,11 @@ export const MluvaLaunch: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: NORD.deep, fontFamily: FONT, color: NORD.fg }}>
       <WaterBackground />
-      {TIMING.scenes.map((scene) => {
+      {TIMING.scenes.map((scene, i) => {
         const Scene = SCENES[scene.id];
         return (
-          <Sequence key={scene.id} name={scene.id} from={f(scene.sceneStart)} durationInFrames={f(scene.sceneEnd) - f(scene.sceneStart)} premountFor={fps}>
-            <SceneFade>
+          <Sequence key={scene.id} name={scene.id} from={f(scene.sceneStart)} durationInFrames={Math.max(1, f(scene.sceneEnd) - f(scene.sceneStart))} premountFor={fps}>
+            <SceneFade dir={i % 2 === 0 ? 1 : -1}>
               <Scene scene={scene} />
             </SceneFade>
           </Sequence>

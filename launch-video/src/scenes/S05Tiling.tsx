@@ -30,14 +30,15 @@ export const S05Tiling: React.FC<{ scene: SceneTiming }> = () => {
   const combo1 = Math.min(tween(t, [0.85, 1.05], [0, 1]), tween(t, [2.3, 2.6], [1, 0]));
   const combo2 = Math.min(tween(t, [2.85, 3.05], [0, 1]), tween(t, [4.4, 4.7], [1, 0]));
   const pressAt = (at: number) => Math.min(tween(t, [at - 0.12, at], [0, 1]), tween(t, [at, at + 0.3], [1, 0]));
+  const punchAt = (at: number, amp = 0.02) => Math.min(tween(t, [at, at + 0.12], [0, amp]), tween(t, [at + 0.12, at + 0.47], [amp, 0]));
   return (
     <>
-      <Camera zoom={tween(t, [0, d], [1.03, 1.0], EASE_IN_OUT)}>
+      <Camera zoom={tween(t, [0, d], [1.03, 1.0], EASE_IN_OUT) + punchAt(TILE_AT) + punchAt(FULL_AT)}>
         <DesktopChrome palette={NORD} title={showWorkspace ? "Mluva" : "Chromium — Mluva · Docs"}>
-          <div style={{ position: "absolute", inset: 0, opacity: companions }}>
+          <div style={{ position: "absolute", inset: 0, opacity: companions, transform: `scale(${0.97 + 0.03 * companions})` }}>
             <BrowserWindow rect={browserRect} palette={NORD} t={t} />
           </div>
-          <div style={{ position: "absolute", inset: 0, opacity: p1 * companions }}>
+          <div style={{ position: "absolute", inset: 0, opacity: p1 * companions, transform: `scale(${0.97 + 0.03 * p1 * companions})` }}>
             <HerdrWindow rect={tile(1, 1, 2, 2)} palette={NORD} t={t} />
           </div>
           <Window rect={rect} palette={NORD} active contentStyle={{ background: NORD.bg }}>
@@ -60,10 +61,10 @@ export const S05Tiling: React.FC<{ scene: SceneTiming }> = () => {
         </DesktopChrome>
       </Camera>
       <Sequence from={Math.round(TILE_AT * fps)} layout="none">
-        <Audio src={staticFile("sfx/whoosh.wav")} volume={0.36} />
+        <Audio src={staticFile("sfx/whoosh.wav")} volume={0.3} />
       </Sequence>
       <Sequence from={Math.round(FULL_AT * fps)} layout="none">
-        <Audio src={staticFile("sfx/whoosh.wav")} volume={0.36} />
+        <Audio src={staticFile("sfx/whoosh.wav")} volume={0.3} />
       </Sequence>
     </>
   );

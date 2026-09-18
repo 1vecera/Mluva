@@ -112,6 +112,7 @@ export const Window: React.FC<{
       height: rect.h,
       boxSizing: "border-box",
       border: `2px solid ${active ? palette.border : palette.muted}`,
+      borderRadius: 14,
       background: palette.bg,
       opacity,
       overflow: "hidden",

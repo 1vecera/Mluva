@@ -1,4 +1,4 @@
-import { FONT, hexToRgba, type Palette } from "../theme";
+import { FONT, hexToRgba, tween, type Palette } from "../theme";
 
 export type HistoryItem = { title: string; date: string };
 
@@ -36,6 +36,8 @@ export const Workspace: React.FC<{
   statusLeft?: string;
   statusRight?: string;
   chips?: string[];
+  chipsAt?: number;
+  composer?: boolean;
   fontSize?: number;
 }> = ({
   width,
@@ -55,9 +57,12 @@ export const Workspace: React.FC<{
   statusLeft = "Dictation ready. Automatic copying is off.",
   statusRight = "Ctrl+P Commands",
   chips,
+  chipsAt = 0,
+  composer = false,
   fontSize = 22,
 }) => {
   const sidebarW = Math.round(width * 0.19);
+  const badgePulse = 0.5 + 0.5 * Math.sin((t / 1.6) * Math.PI * 2);
   return (
     <div
       style={{
@@ -84,6 +89,8 @@ export const Workspace: React.FC<{
               key={item.title}
               style={{
                 padding: "10px 12px",
+                paddingLeft: 9,
+                borderLeft: `3px solid ${i === selected ? palette.accent : "transparent"}`,
                 borderRadius: 8,
                 background: i === selected ? palette.selection : "transparent",
                 opacity: itemOpacities?.[i] ?? 1,
@@ -106,30 +113,47 @@ export const Workspace: React.FC<{
           <div style={{ fontSize: 20, fontWeight: 500, color: palette.fgStrong, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{noteTitle}</div>
           <div style={{ fontSize: 15, color: palette.muted, whiteSpace: "nowrap" }}>{noteMeta}</div>
           <div style={{ flex: 1 }} />
-          {chips?.map((c, i) => (
-            <div key={c} style={{ padding: "5px 12px", borderRadius: 999, fontSize: 14, background: i === chips.length - 1 ? palette.accent : palette.surface, color: i === chips.length - 1 ? palette.deep : palette.fg }}>
-              {c}
-            </div>
-          ))}
+          {chips?.map((c, i) => {
+            const cp = tween(t, [chipsAt + i * 0.08, chipsAt + 0.2 + i * 0.08], [0, 1]);
+            return (
+              <div key={c} style={{ padding: "5px 12px", borderRadius: 999, fontSize: 14, background: i === chips.length - 1 ? palette.accent : palette.surface, color: i === chips.length - 1 ? palette.deep : palette.fg, opacity: cp, transform: `scale(${0.85 + 0.15 * cp})` }}>
+                {c}
+              </div>
+            );
+          })}
           {badge ? (
-            <div style={{ padding: "5px 12px", borderRadius: 999, fontSize: 14, background: hexToRgba(palette.yellow, 0.18), color: palette.yellow, border: `1px solid ${hexToRgba(palette.yellow, 0.5)}` }}>{badge}</div>
+            <div style={{ padding: "5px 12px", borderRadius: 999, fontSize: 14, background: hexToRgba(palette.yellow, 0.18), color: palette.yellow, border: `1px solid ${hexToRgba(palette.yellow, 0.5)}`, boxShadow: `0 0 ${10 + 8 * badgePulse}px ${hexToRgba(palette.yellow, 0.25 + 0.2 * badgePulse)}` }}>{badge}</div>
           ) : null}
         </div>
         <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
           <div style={{ flex: 1, padding: "26px 32px", fontSize, lineHeight: 1.55, color: palette.fgStrong, minWidth: 0 }}>
-            {draft ? <div style={{ fontSize: 14, color: palette.muted, marginBottom: 14, letterSpacing: 1 }}>ORIGINAL</div> : null}
+            {draft ? <div style={{ display: "flex", alignItems: "center", fontSize: 14, color: palette.muted, marginBottom: 14, letterSpacing: 1 }}><span>ORIGINAL</span><div style={{ flex: 1 }} /><span style={{ padding: "3px 12px", borderRadius: 999, border: `1px solid ${hexToRgba(palette.fg, 0.16)}`, letterSpacing: 0 }}>Copy</span></div> : null}
             {original}
           </div>
           {draft ? (
             <>
               <div style={{ width: 1, background: hexToRgba(palette.fg, 0.16) }} />
               <div style={{ flex: 1, padding: "26px 32px", fontSize, lineHeight: 1.55, color: palette.fgStrong, background: hexToRgba(palette.fg, 0.025), minWidth: 0 }}>
-                <div style={{ fontSize: 14, color: palette.muted, marginBottom: 14, letterSpacing: 1 }}>{draftTitle.toUpperCase()}</div>
+                <div style={{ display: "flex", alignItems: "center", fontSize: 14, color: palette.muted, marginBottom: 14, letterSpacing: 1 }}><span>{draftTitle.toUpperCase()}</span><div style={{ flex: 1 }} /><span style={{ padding: "3px 12px", borderRadius: 999, border: `1px solid ${hexToRgba(palette.fg, 0.16)}`, letterSpacing: 0 }}>Copy</span></div>
                 {draft}
               </div>
             </>
           ) : null}
         </div>
+        {composer ? (
+          <div style={{ padding: "12px 28px 0", display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", gap: 22, alignItems: "center", fontSize: 17, color: palette.fg }}>
+              <span style={{ color: palette.accent, fontWeight: 600 }}>Polish</span>
+              <span>Structure</span>
+              <span>More ▾</span>
+            </div>
+            <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ flex: 1, padding: "12px 16px", borderRadius: 10, border: `1px solid ${hexToRgba(palette.fg, 0.14)}`, color: palette.muted, fontSize: 17 }}>Ask for a rewrite…</div>
+              <div style={{ padding: "12px 22px", borderRadius: 10, background: palette.accent, color: palette.deep, fontWeight: 600, fontSize: 17 }}>Rewrite</div>
+              <div style={{ padding: "12px 22px", borderRadius: 10, border: `1px solid ${hexToRgba(palette.accent, 0.6)}`, color: palette.accent, fontSize: 17 }}>Dictate</div>
+            </div>
+          </div>
+        ) : null}
         <div style={{ height: 34, flex: "0 0 34px", display: "flex", alignItems: "center", padding: "0 20px", fontSize: 14, color: palette.muted, borderTop: `1px solid ${hexToRgba(palette.fg, 0.08)}` }}>
           <span>{statusLeft}</span>
           <div style={{ flex: 1 }} />
