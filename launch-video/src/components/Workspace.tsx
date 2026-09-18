@@ -52,7 +52,7 @@ export const Workspace: React.FC<{
   draft,
   draftTitle = "Live draft",
   badge,
-  statusLeft = "Ready · F9 to dictate",
+  statusLeft = "Dictation ready. Automatic copying is off.",
   statusRight = "Ctrl+P Commands",
   chips,
   fontSize = 22,
@@ -72,9 +72,10 @@ export const Workspace: React.FC<{
       }}
     >
       <div style={{ width: sidebarW, flex: `0 0 ${sidebarW}px`, background: palette.deep, display: "flex", flexDirection: "column", borderRight: `1px solid ${hexToRgba(palette.fg, 0.08)}` }}>
-        <div style={{ padding: "18px 18px 10px", fontSize: 15, fontWeight: 500, color: palette.muted, letterSpacing: 1 }}>HISTORY</div>
+        <div style={{ padding: "18px 18px 10px", fontSize: 17, fontWeight: 600, color: palette.fgStrong }}>Mluva</div>
+        <div style={{ margin: "0 14px 12px", padding: "10px 14px", borderRadius: 8, background: palette.surface, fontSize: 16, color: palette.fgStrong, fontWeight: 500 }}>New conversation</div>
         <div style={{ margin: "0 14px 12px", padding: "10px 14px", borderRadius: 8, background: palette.bg, border: `1px solid ${query ? palette.accent : hexToRgba(palette.fg, 0.1)}`, fontSize: 17, color: query ? palette.fgStrong : palette.muted, display: "flex", alignItems: "center" }}>
-          {query || "Search"}
+          {query || "Search history"}
           {query ? <Caret t={t} color={palette.accent} height={18} /> : null}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4, padding: "0 10px" }}>
@@ -96,6 +97,9 @@ export const Workspace: React.FC<{
             </div>
           ))}
         </div>
+        <div style={{ flex: 1 }} />
+        <div style={{ padding: "10px 24px", fontSize: 15, color: palette.fg }}>Show more</div>
+        <div style={{ padding: "0 24px 18px", fontSize: 15, color: palette.muted }}>Manage history</div>
       </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <div style={{ height: 64, flex: "0 0 64px", display: "flex", alignItems: "center", padding: "0 28px", gap: 16, borderBottom: `1px solid ${hexToRgba(palette.fg, 0.08)}` }}>

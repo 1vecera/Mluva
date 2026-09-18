@@ -18,6 +18,10 @@ const PASTE = 4.5;
 
 const pressCurve = (t: number, at: number) => Math.min(tween(t, [at - 0.12, at], [0, 1]), tween(t, [at, at + 0.28], [1, 0]));
 
+/** Quick zoom bump that lands on a beat: up in 0.12 s, ease back over the next 0.35 s. */
+const punch = (t: number, at: number, amp = 0.035) =>
+  Math.min(tween(t, [at, at + 0.12], [0, amp]), tween(t, [at + 0.12, at + 0.47], [amp, 0]));
+
 /** S03 · F9, talk, F9, paste. One key, one widget, one editor. */
 export const S03F9: React.FC<{ scene: SceneTiming }> = () => {
   const t = useT();
@@ -32,7 +36,7 @@ export const S03F9: React.FC<{ scene: SceneTiming }> = () => {
   const flash = tween(t, [PASTE, PASTE + 0.9], [0.5, 0]);
   return (
     <>
-      <Camera zoom={1.07} x={tween(t, [3.4, 5.0], [70, -80], EASE_IN_OUT)} y={24}>
+      <Camera zoom={1.07 + punch(t, PRESS_1) + punch(t, PRESS_2) + punch(t, PASTE, 0.045)} x={tween(t, [3.4, 5.0], [70, -80], EASE_IN_OUT)} y={24}>
         <div style={{ position: "absolute", left: 210, top: 360, display: "flex", flexDirection: "column", alignItems: "center", gap: 34 }}>
           <Keycap label="F9" size={210} press={press} palette={NORD} />
           <div style={{ fontFamily: FONT, fontSize: 26, fontWeight: 500, color: NORD.fg, opacity: 0.9 }}>{label}</div>

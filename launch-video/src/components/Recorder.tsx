@@ -72,7 +72,7 @@ export const Recorder: React.FC<{
       </div>
       {state === "ready" ? (
         <div style={{ display: "flex", gap: 10, padding: "0 10px 12px", fontSize: 15 }}>
-          {["Polish", "Rewrite", "Copy", "Save"].map((b, i) => (
+          {["Polish", "Structure", "More", "Open"].map((b, i) => (
             <div
               key={b}
               style={{

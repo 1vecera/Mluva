@@ -4,702 +4,702 @@
     "scribe": "script/narration-sarah-scribe.json"
   },
   "narrationFile": "audio/narration-sarah.wav",
-  "totalSeconds": 59.62,
+  "totalSeconds": 58.6,
   "scenes": [
     {
       "id": "S01",
       "text": "Dictation should fit the way you work.",
       "sceneStart": 0,
       "lineStart": 1,
-      "lineEnd": 3.2,
-      "sceneEnd": 3.5,
-      "srcStart": 0.06,
-      "srcEnd": 2.26,
+      "lineEnd": 3.22,
+      "sceneEnd": 3.52,
+      "srcStart": 0,
+      "srcEnd": 2.22,
       "words": [
         {
           "text": "Dictation",
-          "start": 1.06,
-          "end": 1.74
+          "start": 1,
+          "end": 1.54
         },
         {
           "text": "should",
-          "start": 1.8,
-          "end": 1.96
+          "start": 1.6,
+          "end": 1.8
         },
         {
           "text": "fit",
-          "start": 2.16,
-          "end": 2.38
+          "start": 1.88,
+          "end": 2.3
         },
         {
           "text": "the",
-          "start": 2.44,
-          "end": 2.5
+          "start": 2.36,
+          "end": 2.4
         },
         {
           "text": "way",
-          "start": 2.54,
-          "end": 2.68
+          "start": 2.44,
+          "end": 2.6
         },
         {
           "text": "you",
-          "start": 2.72,
-          "end": 2.82
+          "start": 2.66,
+          "end": 2.76
         },
         {
           "text": "work.",
-          "start": 2.86,
-          "end": 3.1
+          "start": 2.82,
+          "end": 3.12
         }
       ]
     },
     {
       "id": "S02",
       "text": "Meet Mluva. The most delightful dictation app for Omarchy.",
-      "sceneStart": 3.5,
-      "lineStart": 3.9,
-      "lineEnd": 8.08,
-      "sceneEnd": 8.78,
-      "srcStart": 2.4,
-      "srcEnd": 6.58,
+      "sceneStart": 3.52,
+      "lineStart": 3.92,
+      "lineEnd": 7.94,
+      "sceneEnd": 8.64,
+      "srcStart": 2.76,
+      "srcEnd": 6.78,
       "words": [
         {
           "text": "Meet",
-          "start": 4,
+          "start": 4.02,
           "end": 4.2
         },
         {
           "text": "Mluva.",
-          "start": 4.32,
-          "end": 4.74
+          "start": 4.38,
+          "end": 4.82
         },
         {
           "text": "The",
-          "start": 5.1,
-          "end": 5.18
+          "start": 5.179,
+          "end": 5.24
         },
         {
           "text": "most",
-          "start": 5.24,
-          "end": 5.62
+          "start": 5.28,
+          "end": 5.5
         },
         {
           "text": "delightful",
-          "start": 5.68,
-          "end": 6.16
+          "start": 5.56,
+          "end": 6.14
         },
         {
           "text": "dictation",
-          "start": 6.26,
-          "end": 6.76
+          "start": 6.2,
+          "end": 6.7
         },
         {
           "text": "app",
-          "start": 6.84,
-          "end": 7.06
+          "start": 6.78,
+          "end": 6.98
         },
         {
           "text": "for",
-          "start": 7.12,
-          "end": 7.38
+          "start": 7.04,
+          "end": 7.2
         },
         {
           "text": "Omarchy.",
-          "start": 7.46,
-          "end": 7.98
+          "start": 7.3,
+          "end": 7.84
         }
       ]
     },
     {
       "id": "S03",
       "text": "It's that simple. Press F9, speak, press F9 again, and paste.",
-      "sceneStart": 8.78,
-      "lineStart": 9.08,
-      "lineEnd": 14.74,
-      "sceneEnd": 16.54,
-      "srcStart": 7.06,
-      "srcEnd": 12.72,
+      "sceneStart": 8.64,
+      "lineStart": 8.94,
+      "lineEnd": 14.04,
+      "sceneEnd": 15.84,
+      "srcStart": 6.92,
+      "srcEnd": 12.02,
       "words": [
         {
           "text": "It's",
-          "start": 9.18,
-          "end": 9.3
+          "start": 9.04,
+          "end": 9.16
         },
         {
           "text": "that",
-          "start": 9.36,
-          "end": 9.52
+          "start": 9.2,
+          "end": 9.36
         },
         {
           "text": "simple.",
-          "start": 9.58,
-          "end": 9.88
+          "start": 9.42,
+          "end": 9.76
         },
         {
           "text": "Press",
-          "start": 10.52,
-          "end": 10.92
+          "start": 10.28,
+          "end": 10.58
         },
         {
           "text": "F9,",
-          "start": 11.1,
-          "end": 11.54
+          "start": 10.8,
+          "end": 11.26
         },
         {
           "text": "speak,",
-          "start": 11.94,
-          "end": 12.22
+          "start": 11.52,
+          "end": 11.8
         },
         {
           "text": "press",
-          "start": 12.66,
-          "end": 13.02
+          "start": 12.04,
+          "end": 12.3
         },
         {
           "text": "F9",
-          "start": 13.2,
-          "end": 13.5
+          "start": 12.46,
+          "end": 12.74
         },
         {
           "text": "again,",
-          "start": 13.56,
-          "end": 13.86
+          "start": 12.8,
+          "end": 13.12
         },
         {
           "text": "and",
-          "start": 14.12,
-          "end": 14.2
+          "start": 13.42,
+          "end": 13.5
         },
         {
           "text": "paste.",
-          "start": 14.3,
-          "end": 14.64
+          "start": 13.58,
+          "end": 13.94
         }
       ]
     },
     {
       "id": "S04",
       "text": "Use the best local or cloud speech models. Whisper, ElevenLabs, or your own.",
-      "sceneStart": 16.54,
-      "lineStart": 16.84,
-      "lineEnd": 21.9,
-      "sceneEnd": 22.6,
-      "srcStart": 12.88,
-      "srcEnd": 17.94,
+      "sceneStart": 15.84,
+      "lineStart": 16.14,
+      "lineEnd": 21.24,
+      "sceneEnd": 21.94,
+      "srcStart": 12.44,
+      "srcEnd": 17.54,
       "words": [
         {
           "text": "Use",
-          "start": 16.94,
-          "end": 17.08
+          "start": 16.24,
+          "end": 16.38
         },
         {
           "text": "the",
-          "start": 17.14,
-          "end": 17.22
+          "start": 16.42,
+          "end": 16.48
         },
         {
           "text": "best",
-          "start": 17.28,
-          "end": 17.56
+          "start": 16.54,
+          "end": 16.78
         },
         {
           "text": "local",
-          "start": 17.62,
-          "end": 18
+          "start": 16.84,
+          "end": 17.22
         },
         {
           "text": "or",
-          "start": 18.06,
-          "end": 18.18
+          "start": 17.28,
+          "end": 17.38
         },
         {
           "text": "cloud",
-          "start": 18.24,
-          "end": 18.54
+          "start": 17.44,
+          "end": 17.76
         },
         {
           "text": "speech",
-          "start": 18.66,
-          "end": 18.88
+          "start": 17.86,
+          "end": 18.1
         },
         {
           "text": "models.",
-          "start": 18.92,
-          "end": 19.3
+          "start": 18.16,
+          "end": 18.54
         },
         {
           "text": "Whisper,",
-          "start": 19.74,
-          "end": 20.16
+          "start": 18.92,
+          "end": 19.32
         },
         {
           "text": "ElevenLabs,",
-          "start": 20.38,
-          "end": 21.06
+          "start": 19.56,
+          "end": 20.28
         },
         {
           "text": "or",
-          "start": 21.24,
-          "end": 21.38
+          "start": 20.52,
+          "end": 20.62
         },
         {
           "text": "your",
-          "start": 21.44,
-          "end": 21.54
+          "start": 20.66,
+          "end": 20.8
         },
         {
           "text": "own.",
-          "start": 21.62,
-          "end": 21.8
+          "start": 20.9,
+          "end": 21.14
         }
       ]
     },
     {
       "id": "S05",
       "text": "Omarchy moves like water. Mluva floats, tiles, and opens up to show every detail.",
-      "sceneStart": 22.6,
-      "lineStart": 22.9,
-      "lineEnd": 28.46,
-      "sceneEnd": 29.36,
-      "srcStart": 18.04,
-      "srcEnd": 23.6,
+      "sceneStart": 21.94,
+      "lineStart": 22.24,
+      "lineEnd": 27.94,
+      "sceneEnd": 28.84,
+      "srcStart": 17.64,
+      "srcEnd": 23.34,
       "words": [
         {
           "text": "Omarchy",
-          "start": 23,
-          "end": 23.42
+          "start": 22.34,
+          "end": 22.8
         },
         {
           "text": "moves",
-          "start": 23.5,
-          "end": 23.78
+          "start": 22.9,
+          "end": 23.18
         },
         {
           "text": "like",
-          "start": 23.82,
-          "end": 24
+          "start": 23.22,
+          "end": 23.42
         },
         {
           "text": "water.",
-          "start": 24.06,
-          "end": 24.36
+          "start": 23.46,
+          "end": 23.82
         },
         {
           "text": "Mluva",
-          "start": 24.84,
-          "end": 25.18
+          "start": 24.12,
+          "end": 24.54
         },
         {
           "text": "floats,",
-          "start": 25.34,
-          "end": 25.72
+          "start": 24.6,
+          "end": 24.98
         },
         {
           "text": "tiles,",
-          "start": 25.98,
-          "end": 26.44
+          "start": 25.28,
+          "end": 25.72
         },
         {
           "text": "and",
-          "start": 26.56,
-          "end": 26.66
+          "start": 25.88,
+          "end": 25.98
         },
         {
           "text": "opens",
-          "start": 26.74,
-          "end": 27.02
+          "start": 26.06,
+          "end": 26.34
         },
         {
           "text": "up",
-          "start": 27.1,
-          "end": 27.28
+          "start": 26.46,
+          "end": 26.62
         },
         {
           "text": "to",
-          "start": 27.34,
-          "end": 27.44
+          "start": 26.66,
+          "end": 26.76
         },
         {
           "text": "show",
-          "start": 27.48,
-          "end": 27.68
+          "start": 26.8,
+          "end": 27.02
         },
         {
           "text": "every",
-          "start": 27.74,
-          "end": 27.94
+          "start": 27.1,
+          "end": 27.36
         },
         {
           "text": "detail.",
-          "start": 27.98,
-          "end": 28.36
+          "start": 27.42,
+          "end": 27.84
         }
       ]
     },
     {
       "id": "S06",
       "text": "Done talking? Edit it, polish it, rewrite it. By hand, or with AI.",
-      "sceneStart": 29.36,
-      "lineStart": 29.66,
-      "lineEnd": 34.68,
-      "sceneEnd": 35.68,
-      "srcStart": 24.32,
-      "srcEnd": 29.34,
+      "sceneStart": 28.84,
+      "lineStart": 29.14,
+      "lineEnd": 33.82,
+      "sceneEnd": 34.82,
+      "srcStart": 23.78,
+      "srcEnd": 28.46,
       "words": [
         {
           "text": "Done",
-          "start": 29.76,
-          "end": 29.96
+          "start": 29.24,
+          "end": 29.42
         },
         {
           "text": "talking?",
-          "start": 30.02,
-          "end": 30.4
+          "start": 29.48,
+          "end": 29.86
         },
         {
           "text": "Edit",
-          "start": 30.94,
-          "end": 31.12
+          "start": 30.26,
+          "end": 30.42
         },
         {
           "text": "it,",
-          "start": 31.18,
-          "end": 31.3
+          "start": 30.48,
+          "end": 30.54
         },
         {
           "text": "polish",
-          "start": 31.6,
-          "end": 31.94
+          "start": 30.78,
+          "end": 31.08
         },
         {
           "text": "it,",
-          "start": 32,
-          "end": 32.14
+          "start": 31.16,
+          "end": 31.22
         },
         {
           "text": "rewrite",
-          "start": 32.42,
-          "end": 32.76
+          "start": 31.46,
+          "end": 31.82
         },
         {
           "text": "it.",
-          "start": 32.82,
-          "end": 32.94
+          "start": 31.86,
+          "end": 32.24
         },
         {
           "text": "By",
-          "start": 33.18,
-          "end": 33.32
+          "start": 32.3,
+          "end": 32.44
         },
         {
           "text": "hand,",
-          "start": 33.38,
-          "end": 33.86
+          "start": 32.5,
+          "end": 32.96
         },
         {
           "text": "or",
-          "start": 33.92,
-          "end": 34.02
+          "start": 33.04,
+          "end": 33.12
         },
         {
           "text": "with",
-          "start": 34.06,
-          "end": 34.2
+          "start": 33.14,
+          "end": 33.3
         },
         {
           "text": "AI.",
-          "start": 34.28,
-          "end": 34.58
+          "start": 33.38,
+          "end": 33.72
         }
       ]
     },
     {
       "id": "S07",
       "text": "Never lose your thoughts again.",
-      "sceneStart": 35.68,
-      "lineStart": 35.98,
-      "lineEnd": 37.54,
-      "sceneEnd": 38.14,
-      "srcStart": 29.68,
-      "srcEnd": 31.24,
+      "sceneStart": 34.82,
+      "lineStart": 35.12,
+      "lineEnd": 36.64,
+      "sceneEnd": 37.24,
+      "srcStart": 28.64,
+      "srcEnd": 30.16,
       "words": [
         {
           "text": "Never",
-          "start": 36.08,
-          "end": 36.32
+          "start": 35.22,
+          "end": 35.44
         },
         {
           "text": "lose",
-          "start": 36.38,
-          "end": 36.6
+          "start": 35.5,
+          "end": 35.68
         },
         {
           "text": "your",
-          "start": 36.64,
-          "end": 36.76
+          "start": 35.72,
+          "end": 35.82
         },
         {
           "text": "thoughts",
-          "start": 36.78,
-          "end": 37.04
+          "start": 35.86,
+          "end": 36.14
         },
         {
           "text": "again.",
-          "start": 37.12,
-          "end": 37.44
+          "start": 36.2,
+          "end": 36.54
         }
       ]
     },
     {
       "id": "S08",
       "text": "Make Mluva yours. Your desktop, your palette, any Omarchy theme, automatically.",
-      "sceneStart": 38.14,
-      "lineStart": 38.44,
-      "lineEnd": 44.02,
-      "sceneEnd": 44.62,
-      "srcStart": 31.54,
-      "srcEnd": 37.12,
+      "sceneStart": 37.24,
+      "lineStart": 37.54,
+      "lineEnd": 43,
+      "sceneEnd": 43.6,
+      "srcStart": 30.4,
+      "srcEnd": 35.86,
       "words": [
         {
           "text": "Make",
-          "start": 38.54,
-          "end": 38.72
+          "start": 37.64,
+          "end": 37.8
         },
         {
           "text": "Mluva",
-          "start": 38.8,
-          "end": 39.14
+          "start": 37.88,
+          "end": 38.22
         },
         {
           "text": "yours.",
-          "start": 39.199,
-          "end": 39.559
+          "start": 38.26,
+          "end": 38.64
         },
         {
           "text": "Your",
-          "start": 40.06,
-          "end": 40.2
+          "start": 39.1,
+          "end": 39.2
         },
         {
           "text": "desktop,",
-          "start": 40.26,
-          "end": 40.8
+          "start": 39.259,
+          "end": 39.799
         },
         {
           "text": "your",
-          "start": 41.02,
-          "end": 41.14
+          "start": 39.98,
+          "end": 40.08
         },
         {
           "text": "palette,",
-          "start": 41.2,
-          "end": 41.56
+          "start": 40.14,
+          "end": 40.54
         },
         {
           "text": "any",
-          "start": 41.86,
-          "end": 42.1
+          "start": 40.8,
+          "end": 41.02
         },
         {
           "text": "Omarchy",
-          "start": 42.16,
-          "end": 42.6
+          "start": 41.1,
+          "end": 41.56
         },
         {
           "text": "theme,",
-          "start": 42.66,
-          "end": 42.9
+          "start": 41.64,
+          "end": 42.14
         },
         {
           "text": "automatically.",
-          "start": 43.28,
-          "end": 43.92
+          "start": 42.24,
+          "end": 42.9
         }
       ]
     },
     {
       "id": "S09",
       "text": "Want more? Try Live rewrite. Your note takes shape as you talk.",
-      "sceneStart": 44.62,
-      "lineStart": 44.92,
-      "lineEnd": 49.3,
-      "sceneEnd": 50,
-      "srcStart": 37.62,
-      "srcEnd": 42,
+      "sceneStart": 43.6,
+      "lineStart": 43.9,
+      "lineEnd": 48.14,
+      "sceneEnd": 48.84,
+      "srcStart": 36.14,
+      "srcEnd": 40.38,
       "words": [
         {
           "text": "Want",
-          "start": 45.02,
-          "end": 45.2
+          "start": 44,
+          "end": 44.16
         },
         {
           "text": "more?",
-          "start": 45.24,
-          "end": 45.46
+          "start": 44.22,
+          "end": 44.46
         },
         {
           "text": "Try",
-          "start": 45.78,
-          "end": 46.02
+          "start": 44.8,
+          "end": 45.02
         },
         {
           "text": "Live",
-          "start": 46.08,
-          "end": 46.38
+          "start": 45.1,
+          "end": 45.4
         },
         {
           "text": "rewrite.",
-          "start": 46.48,
-          "end": 46.9
+          "start": 45.46,
+          "end": 45.92
         },
         {
           "text": "Your",
-          "start": 47.4,
-          "end": 47.54
+          "start": 46.34,
+          "end": 46.46
         },
         {
           "text": "note",
-          "start": 47.62,
-          "end": 47.88
+          "start": 46.52,
+          "end": 46.82
         },
         {
           "text": "takes",
-          "start": 47.94,
-          "end": 48.14
+          "start": 46.9,
+          "end": 47.1
         },
         {
           "text": "shape",
-          "start": 48.2,
-          "end": 48.44
+          "start": 47.14,
+          "end": 47.42
         },
         {
           "text": "as",
-          "start": 48.5,
-          "end": 48.58
+          "start": 47.5,
+          "end": 47.58
         },
         {
           "text": "you",
-          "start": 48.62,
-          "end": 48.7
+          "start": 47.62,
+          "end": 47.7
         },
         {
           "text": "talk.",
-          "start": 48.74,
-          "end": 49.26
+          "start": 47.76,
+          "end": 48.04
         }
       ]
     },
     {
       "id": "S10",
       "text": "Or build a task spec, with questions for what's still missing.",
-      "sceneStart": 50,
-      "lineStart": 50.3,
-      "lineEnd": 53.72,
-      "sceneEnd": 54.62,
-      "srcStart": 42,
-      "srcEnd": 45.42,
+      "sceneStart": 48.84,
+      "lineStart": 49.14,
+      "lineEnd": 52.56,
+      "sceneEnd": 53.46,
+      "srcStart": 40.58,
+      "srcEnd": 44,
       "words": [
         {
           "text": "Or",
-          "start": 50.34,
-          "end": 50.46
+          "start": 49.24,
+          "end": 49.36
         },
         {
           "text": "build",
-          "start": 50.54,
-          "end": 50.74
+          "start": 49.42,
+          "end": 49.6
         },
         {
           "text": "a",
-          "start": 50.8,
-          "end": 50.84
+          "start": 49.66,
+          "end": 49.7
         },
         {
           "text": "task",
-          "start": 50.92,
-          "end": 51.2
+          "start": 49.76,
+          "end": 50.06
         },
         {
           "text": "spec,",
-          "start": 51.28,
-          "end": 51.56
+          "start": 50.14,
+          "end": 50.68
         },
         {
           "text": "with",
-          "start": 51.92,
-          "end": 52.04
+          "start": 50.72,
+          "end": 50.84
         },
         {
           "text": "questions",
-          "start": 52.1,
-          "end": 52.56
+          "start": 50.9,
+          "end": 51.4
         },
         {
           "text": "for",
-          "start": 52.62,
-          "end": 52.74
+          "start": 51.44,
+          "end": 51.56
         },
         {
           "text": "what's",
-          "start": 52.78,
-          "end": 52.98
+          "start": 51.58,
+          "end": 51.82
         },
         {
           "text": "still",
-          "start": 53.04,
-          "end": 53.2
+          "start": 51.84,
+          "end": 52.02
         },
         {
           "text": "missing.",
-          "start": 53.26,
-          "end": 53.62
+          "start": 52.06,
+          "end": 52.46
         }
       ]
     },
     {
       "id": "S11",
       "text": "Mluva. A little more delight every day.",
-      "sceneStart": 54.62,
-      "lineStart": 55.02,
-      "lineEnd": 57.42,
-      "sceneEnd": 59.62,
-      "srcStart": 45.64,
-      "srcEnd": 48.04,
+      "sceneStart": 53.46,
+      "lineStart": 53.86,
+      "lineEnd": 56.4,
+      "sceneEnd": 58.6,
+      "srcStart": 44.16,
+      "srcEnd": 46.7,
       "words": [
         {
           "text": "Mluva.",
-          "start": 55.12,
-          "end": 55.5
+          "start": 53.96,
+          "end": 54.36
         },
         {
           "text": "A",
-          "start": 55.9,
-          "end": 55.94
+          "start": 54.74,
+          "end": 54.78
         },
         {
           "text": "little",
-          "start": 55.98,
-          "end": 56.16
+          "start": 54.82,
+          "end": 55.02
         },
         {
           "text": "more",
-          "start": 56.22,
-          "end": 56.38
+          "start": 55.06,
+          "end": 55.24
         },
         {
           "text": "delight",
-          "start": 56.42,
-          "end": 56.8
+          "start": 55.28,
+          "end": 55.72
         },
         {
           "text": "every",
-          "start": 56.88,
-          "end": 57.08
+          "start": 55.82,
+          "end": 55.98
         },
         {
           "text": "day.",
-          "start": 57.12,
-          "end": 57.32
+          "start": 56.08,
+          "end": 56.3
         }
       ]
     }
