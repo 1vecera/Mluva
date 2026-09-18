@@ -70,7 +70,9 @@ const aligned = lines.map((line, i) => {
     .map((w, j) => [w, slice[j].text])
     .filter(([a, b]) => normalize(a) !== normalize(b) && !normalize(a).startsWith(normalize(b)) && !normalize(b).startsWith(normalize(a)));
   cursor += scriptWords.length;
-  return { text: line, words: slice, mismatches };
+  // Captions show the script's spelling; only the timing comes from the transcript.
+  const lineWords = slice.map((w, j) => ({ ...w, text: scriptWords[j] }));
+  return { text: line, words: lineWords, mismatches };
 });
 
 // Cut points: half-way into the silence gap on both sides, at most PAD seconds.

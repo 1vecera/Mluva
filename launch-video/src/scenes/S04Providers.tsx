@@ -21,10 +21,10 @@ export const S04Providers: React.FC<{ scene: SceneTiming }> = () => {
         </div>
       </Camera>
       <Sequence from={Math.round(SWITCH_SPEECH * fps)} layout="none">
-        <Audio src={staticFile("sfx/mouse-click.wav")} volume={0.4} />
+        <Audio src={staticFile("sfx/mouse-click.wav")} volume={0.3} />
       </Sequence>
       <Sequence from={Math.round(SWITCH_REWRITE * fps)} layout="none">
-        <Audio src={staticFile("sfx/mouse-click.wav")} volume={0.4} />
+        <Audio src={staticFile("sfx/mouse-click.wav")} volume={0.3} />
       </Sequence>
     </>
   );

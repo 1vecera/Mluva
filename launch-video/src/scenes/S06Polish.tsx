@@ -79,10 +79,10 @@ export const S06Polish: React.FC<{ scene: SceneTiming }> = () => {
         </div>
       </Camera>
       <Sequence from={Math.round(OPEN * fps)} layout="none">
-        <Audio src={staticFile("sfx/mouse-click.wav")} volume={0.4} />
+        <Audio src={staticFile("sfx/mouse-click.wav")} volume={0.3} />
       </Sequence>
       <Sequence from={Math.round(SELECT * fps)} layout="none">
-        <Audio src={staticFile("sfx/switch.wav")} volume={0.35} />
+        <Audio src={staticFile("sfx/switch.wav")} volume={0.26} />
       </Sequence>
     </>
   );

@@ -60,10 +60,10 @@ export const S05Tiling: React.FC<{ scene: SceneTiming }> = () => {
         </DesktopChrome>
       </Camera>
       <Sequence from={Math.round(TILE_AT * fps)} layout="none">
-        <Audio src={staticFile("sfx/whoosh.wav")} volume={0.5} />
+        <Audio src={staticFile("sfx/whoosh.wav")} volume={0.36} />
       </Sequence>
       <Sequence from={Math.round(FULL_AT * fps)} layout="none">
-        <Audio src={staticFile("sfx/whoosh.wav")} volume={0.5} />
+        <Audio src={staticFile("sfx/whoosh.wav")} volume={0.36} />
       </Sequence>
     </>
   );

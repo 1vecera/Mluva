@@ -18,7 +18,7 @@ export const Soundtrack: React.FC = () => {
     <>
       {TIMING.scenes.map((s) => (
         <Sequence key={s.id} from={f(s.lineStart)} durationInFrames={Math.max(1, f(s.srcEnd - s.srcStart))} layout="none" name={`voice ${s.id}`}>
-          <Audio src={staticFile(TIMING.narrationFile)} trimBefore={f(s.srcStart)} trimAfter={f(s.srcEnd)} volume={1} />
+          <Audio src={staticFile(TIMING.narrationFile)} trimBefore={f(s.srcStart)} trimAfter={f(s.srcEnd)} volume={0.85} />
         </Sequence>
       ))}
       <Audio
@@ -28,7 +28,7 @@ export const Soundtrack: React.FC = () => {
           interpolate(
             frame / fps,
             [0, 0.6, TIMING.scenes[0].lineStart, last.lineEnd, last.lineEnd + 1.0, total - 1.8, total],
-            [0.42, 0.5, 0.15, 0.15, 0.36, 0.36, 0],
+            [0.34, 0.4, 0.12, 0.12, 0.3, 0.3, 0],
             { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
           )
         }

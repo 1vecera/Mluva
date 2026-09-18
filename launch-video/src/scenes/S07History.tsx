@@ -13,7 +13,7 @@ export const S07History: React.FC<{ scene: SceneTiming }> = () => {
   const filtered = tween(t, [1.0, 1.4], [1, 0.1]);
   const showChips = t >= 1.5;
   return (
-    <Camera zoom={1.3} originX={tween(t, [1.1, 2.0], [14, 52])} originY={40}>
+    <Camera zoom={1.18} originX={tween(t, [1.3, 2.1], [20, 50])} originY={26}>
       <div style={{ position: "absolute", left: HERO.x, top: HERO.y, width: HERO.w, height: HERO.h, border: `2px solid ${NORD.border}`, boxSizing: "border-box", boxShadow: `0 40px 100px ${hexToRgba("#000000", 0.5)}` }}>
         <Workspace
           width={HERO.w - 4}

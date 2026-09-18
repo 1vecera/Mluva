@@ -5,22 +5,38 @@ import type { Timing, Word } from "../timing";
 
 type Page = { words: Word[]; start: number; end: number };
 
-const MAX_CHARS = 44;
+const MAX_CHARS = 52;
 
-/** Group the narration words into short caption pages, breaking on sentence ends and width. */
+const chars = (words: Word[]) => words.reduce((n, w) => n + w.text.length, 0) + Math.max(0, words.length - 1);
+
+/** Split a run of words into pages: whole if it fits, else at the comma nearest the middle, else at the word nearest the middle. */
+const splitRun = (words: Word[]): Word[][] => {
+  if (chars(words) <= MAX_CHARS || words.length < 2) return [words];
+  const mid = words.length / 2;
+  let cut = -1;
+  let best = Infinity;
+  words.forEach((w, i) => {
+    if (i < words.length - 1 && /[,;:]$/.test(w.text) && Math.abs(i + 1 - mid) < best) {
+      best = Math.abs(i + 1 - mid);
+      cut = i + 1;
+    }
+  });
+  if (cut < 0) cut = Math.round(mid);
+  return [...splitRun(words.slice(0, cut)), ...splitRun(words.slice(cut))];
+};
+
+/** Group the narration words into caption pages: one sentence per page, long sentences split at commas. */
 const buildPages = (timing: Timing): Page[] => {
   const pages: Page[] = [];
   for (const scene of timing.scenes) {
-    let current: Word[] = [];
+    let sentence: Word[] = [];
     const flush = () => {
-      if (current.length) pages.push({ words: current, start: 0, end: 0 });
-      current = [];
+      if (sentence.length) for (const run of splitRun(sentence)) pages.push({ words: run, start: 0, end: 0 });
+      sentence = [];
     };
     for (const w of scene.words) {
-      const length = current.reduce((n, x) => n + x.text.length + 1, 0) + w.text.length;
-      if (current.length && length > MAX_CHARS) flush();
-      current.push(w);
-      if (/[.?!]$/.test(w.text) && current.length >= 3) flush();
+      sentence.push(w);
+      if (/[.?!]$/.test(w.text)) flush();
     }
     flush();
   }
@@ -46,7 +62,7 @@ const CaptionPage: React.FC<{ page: Page; sceneOffset: number }> = ({ page, scen
         style={{
           fontFamily: FONT,
           fontWeight: 500,
-          fontSize: 34,
+          fontSize: 36,
           lineHeight: 1.25,
           letterSpacing: -0.4,
           color: NORD.fgStrong,

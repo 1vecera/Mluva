@@ -54,10 +54,10 @@ export const S08Themes: React.FC<{ scene: SceneTiming }> = () => {
         <Layer palette={ROSE} opacity={toRose} t={t} />
       </Camera>
       <Sequence from={Math.round(TO_TOKYO * fps)} layout="none">
-        <Audio src={staticFile("sfx/switch.wav")} volume={0.25} />
+        <Audio src={staticFile("sfx/switch.wav")} volume={0.2} />
       </Sequence>
       <Sequence from={Math.round(TO_ROSE * fps)} layout="none">
-        <Audio src={staticFile("sfx/switch.wav")} volume={0.25} />
+        <Audio src={staticFile("sfx/switch.wav")} volume={0.2} />
       </Sequence>
     </>
   );

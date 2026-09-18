@@ -73,13 +73,13 @@ export const S03F9: React.FC<{ scene: SceneTiming }> = () => {
         </div>
       </Camera>
       <Sequence from={Math.round(PRESS_1 * fps)} layout="none">
-        <Audio src={staticFile("sfx/switch.wav")} volume={0.6} />
+        <Audio src={staticFile("sfx/switch.wav")} volume={0.42} />
       </Sequence>
       <Sequence from={Math.round(PRESS_2 * fps)} layout="none">
-        <Audio src={staticFile("sfx/switch.wav")} volume={0.6} />
+        <Audio src={staticFile("sfx/switch.wav")} volume={0.42} />
       </Sequence>
       <Sequence from={Math.round(PASTE * fps)} layout="none">
-        <Audio src={staticFile("sfx/ding.wav")} volume={0.35} />
+        <Audio src={staticFile("sfx/ding.wav")} volume={0.26} />
       </Sequence>
     </>
   );
