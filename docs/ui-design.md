@@ -15,7 +15,7 @@ Mluva gives speaking and editing more room: JetBrains Mono throughout, compact c
 | Markdown | Native text tags preserve exact source text while styling headings, emphasis and code. Mermaid uses a local renderer and embedded font. Copy and Save use the source rather than visual animation remnants. |
 | Commands | Ctrl+P searches actions and Settings-prefixed controls. Ctrl+L toggles Live; Ctrl+Shift+P polishes; Ctrl+R focuses rewrite instructions; Ctrl+Shift+C copies; Ctrl+S saves; Ctrl+H opens History; Ctrl+B toggles the sidebar; Ctrl+, opens Settings. |
 | Welcome and Settings | Full-window routes. Welcome reuses real provider/model controls and persists explicit completion. Settings has a page selector; Escape returns to the workspace. Automatic pasting remains experimental and off by default in Capture → Behavior. |
-| Identity | An original abstract unfolding-thought mark and custom JetBrains Mono Medium outlined wordmark. App tile, panel symbol and repository assets share the same geometry; see the [brand contract](brand-and-compatibility.md). |
+| Identity | The glossy red mark and soft-M wordmark from [docs/brand](brand/README.md). App tile, panel symbol and repository assets are composed from that set; see the [brand contract](brand-and-compatibility.md). |
 | Countdown | Four idle seconds by default, with a shrinking ring on Dismiss. Hover, keyboard focus and menus pause it; rewriting suspends it and completion starts a fresh interval. |
 
 ## Text and scrolling

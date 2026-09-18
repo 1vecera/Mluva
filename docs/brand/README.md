@@ -47,3 +47,5 @@ uv run docs/brand/build.py
 ```
 
 Needs `rsvg-convert` (librsvg, the renderer GTK uses) and `magick` (ImageMagick 7). The script clears `svg/` and `png/` and regenerates them, then prints the SVG sizes and the wordmark metrics: M height 53.46, wordmark 181.50 × 54.50 design units, baseline at 53.84.
+
+Then refresh the surfaces composed from this set (the `docs/assets` copies, the launcher tile, the GNOME symbolic icon and the site favicon) with `cd linux && uv run --locked python -m mluva_linux.brand_assets --png`; `make linux-test` checks them for drift. See the [identity contract](../brand-and-compatibility.md).

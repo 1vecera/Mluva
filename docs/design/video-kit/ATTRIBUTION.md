@@ -1,6 +1,6 @@
 # Asset attribution
 
-The abstract unfolding-thought mark is original Mluva artwork. The custom wordmark starts from JetBrains Mono Medium outlines, with optical spacing and an 87% width “l”. [Vector sources](../../assets/), [font provenance](../../assets/brand-source/wordmark-provenance.json), the [generator](../../../dev/sculpt_wordmark.py), and [OFL notice](../../../linux/quickshell/mluva.dictation/fonts/OFL.txt) accompany the kit.
+The abstract unfolding-thought mark and the outlined JetBrains Mono wordmark in the kit are original Mluva artwork from the former identity, superseded by the logo set in [docs/brand](../../brand/README.md) on 18 September 2026. The [OFL notice](../../../linux/quickshell/mluva.dictation/fonts/OFL.txt) covers the bundled font; the former outline generator and its provenance remain in git history.
 
 The ten native symbols in Figma are from the GNOME Project’s [Adwaita icon theme](https://github.com/GNOME/adwaita-icon-theme/tree/94f84e1975239501268e75a16064cf11e9dee550), commit `94f84e1975239501268e75a16064cf11e9dee550`. Geometry is retained; Figma semantic color bindings were added. The [upstream COPYING file](https://github.com/GNOME/adwaita-icon-theme/blob/94f84e1975239501268e75a16064cf11e9dee550/COPYING) offers LGPL-3.0 or CC BY-SA 3.0 US. Preserve GNOME attribution and the chosen license when exporting these symbols; they are not relicensed by the software’s Apache-2.0 label.
 
@@ -17,7 +17,7 @@ The ten native symbols in Figma are from the GNOME Project’s [Adwaita icon the
 | Stop | Adwaita/symbolic/actions/media-playback-stop-symbolic.svg |
 | Sidebar | Adwaita/symbolic/actions/sidebar-show-symbolic.svg |
 
-All editable app and film text uses [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono/tree/19371302b95d218af43299bce79ddbddd0bc364d), licensed under SIL OFL 1.1. The unchanged Regular, Medium, Bold and Italic binaries and their OFL notice are bundled with the app. Only the outlined wordmark artwork has optical modifications; the font files are unchanged.
+All editable app and film text uses [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono/tree/19371302b95d218af43299bce79ddbddd0bc364d), licensed under SIL OFL 1.1. The unchanged Regular, Medium, Bold and Italic binaries and their OFL notice are bundled with the app. The font files are unchanged.
 
 The Nord, Tokyo Night and Rosé Pine source colors come from the [Omarchy quattro theme files](https://github.com/basecamp/omarchy/tree/quattro/themes), checked on 2026-09-11. Exact per-theme URLs and derived semantic roles are recorded in `tokens.json`.
 

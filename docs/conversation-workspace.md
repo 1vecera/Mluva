@@ -56,7 +56,7 @@ Install the optional GNOME integration with `make linux-recording-overlay-instal
 
 ## Visual direction
 
-The workspace uses bundled JetBrains Mono type, compact action chips, a wider reading area and lightly translucent surfaces. Omarchy supplies the active light/dark palette; other desktops use a neutral green palette. The abstract thought mark, app tile and repository banner share flat SVG geometry, with an outlined software wordmark for larger surfaces. The symbolic variant follows the panel's foreground color; the app tile starts at 24 pixels. See the [brand contract](brand-and-compatibility.md) for assets and provenance, and the [UI design notes](ui-design.md) for layout choices.
+The workspace uses bundled JetBrains Mono type, compact action chips, a wider reading area and lightly translucent surfaces. Omarchy supplies the active light/dark palette; other desktops use a neutral green palette. The glossy red mark, the black app tile and the repository banner come from the logo set in [docs/brand](brand/README.md). The symbolic variant follows the panel's foreground color; below 24 pixels the flat or symbolic mark replaces the glossy one. See the [brand contract](brand-and-compatibility.md) for assets and provenance, and the [UI design notes](ui-design.md) for layout choices.
 
 ## Verification
 
