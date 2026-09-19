@@ -1,0 +1,29 @@
+{
+  "name": "mluva-launch-video",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Mluva app intro composed from verified native captures",
+  "scripts": {
+    "render": "node script/build-intro.mjs && remotion render src/index.ts MluvaIntro out/mluva-intro.mp4 --concurrency=4",
+    "preview": "node script/build-intro.mjs && remotion render src/index.ts MluvaIntroPreview out/mluva-intro-preview.mp4 --scale=0.5 --concurrency=4",
+    "lint": "tsc --noEmit",
+    "fidelity": "node script/build-intro.mjs && node script/render-references.mjs && uv run script/verify-fidelity.py",
+    "master": "uv run script/master.py out/mluva-intro.mp4"
+  },
+  "type": "module",
+  "dependencies": {
+    "@remotion/bundler": "4.0.526",
+    "@remotion/cli": "4.0.526",
+    "@remotion/fonts": "4.0.526",
+    "@remotion/renderer": "4.0.526",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.526"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2"
+  }
+}
