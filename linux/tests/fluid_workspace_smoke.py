@@ -15,8 +15,11 @@ from live_workspace_smoke import paint, settle
 
 from mluva_linux.command_palette import application_commands
 from mluva_linux.config import load_config
+from mluva_linux.delivery import DeliveryReceipt
+from mluva_linux.elevenlabs import TranscriptionResult
 from mluva_linux.realtime import RealtimePreview
 from mluva_linux.ui import set_button_content
+from mluva_linux.workflow import WorkflowResult
 
 
 def main():
@@ -130,6 +133,7 @@ def main():
                 assert bounds.get_x() + bounds.get_width() <= app.window.get_width()
             exercise_diagrams(app)
             exercise_paused_finalization(app, old)
+            exercise_empty_capture(app, old)
             (output / "workspace.json").write_text(
                 json.dumps(
                     {
@@ -242,6 +246,53 @@ def exercise_paused_finalization(app, old):
         assert len(saved) == 1 and saved[0].text == draft and "paused" in saved[0].instruction
         assert app.history_store.find(entry.identifier).raw_text == "Final source"
         assert workspace.entry.identifier == (entry.identifier if return_to_live else old.identifier)
+
+
+def exercise_empty_capture(app, old):
+    """Silence must preserve a viewed conversation or a manually edited grilling draft without delivery."""
+    workspace = app.conversation_workspace
+    for viewing_live in (False, True):
+        app.pending_session_identifier = "silent-capture"
+        app.pending_mode = "dictation"
+        app.pending_incognito = False
+        app.config = replace(app.config, live_rewrite_enabled=True)
+        app._start_live_rewrite()
+        workspace.set_live("00:04", "")
+        draft = "## Questions\n- Who owns this?\n\n## Intent\nKeep this deliberate edit."
+        workspace.show_live_draft(draft, "Grilling")
+        if not viewing_live:
+            workspace.show_conversation(old, [])
+        before_history = len(app.history_store.recent())
+        result = WorkflowResult(
+            transcription=TranscriptionResult("", "eng", None, "silent-capture"),
+            output_text="",
+            delivery=DeliveryReceipt(False, False, "No speech detected. Ready when you are."),
+            history_entry=None,
+            retained_audio_path=None,
+            requires_acceptance=False,
+            incognito=False,
+            mode="dictation",
+            recognition_ms=1,
+            enhancement_ms=0,
+            delivery_ms=0,
+            session_identifier="silent-capture",
+            recognition_fallback=False,
+            recognition_route="scribe-v2-realtime",
+            recognition_fallback_reason=None,
+        )
+        with patch("mluva_linux.app.deliver_text") as copy, patch.object(app, "_new_rewrite_client") as rewrite:
+            app._workflow_finished(result)
+            copy.assert_not_called()
+            rewrite.assert_not_called()
+        assert not app.capture_processing and app.live_schedule is None
+        assert app.record_button.get_sensitive()
+        assert len(app.history_store.recent()) == before_history
+        assert app.status_label.get_label() == "No speech detected. Ready when you are."
+        if viewing_live:
+            assert workspace.result_widgets[-1].get_text() == draft
+            assert workspace.notice.get_label() == "No speech detected. Your live draft is still here."
+        else:
+            assert workspace.entry.identifier == old.identifier
 
 
 if __name__ == "__main__":

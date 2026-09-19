@@ -147,8 +147,6 @@ def _transcription_result(payload: dict[str, object], include_speakers: bool) ->
     if not isinstance(text_value, str) or not isinstance(language_code, str):
         raise TranscriptionError("ElevenLabs returned an invalid transcription response.")
     text = text_value.strip()
-    if not text:
-        raise TranscriptionError("ElevenLabs returned an empty transcript.")
     language_probability = payload.get("language_probability")
     transcription_id = payload.get("transcription_id")
     audio_duration_seconds = payload.get("audio_duration_secs")
