@@ -279,9 +279,6 @@ class RealtimeTranscriptionSession:
                 self._configured_language_code if self._configured_language_code != "auto" else "und"
             )
             audio_duration_seconds = self._bytes_sent / (SAMPLE_RATE * SAMPLE_WIDTH_BYTES)
-        if not text:
-            self.cancel()
-            raise RealtimeTranscriptionError("ElevenLabs returned an empty committed realtime transcript.")
         result = RealtimeSessionResult(
             transcription=TranscriptionResult(
                 text=text,

@@ -195,7 +195,7 @@ class LiteLLMClient:
                 raise ValueError
             payload = json.loads(raw)
             text = payload["text"]
-            if not isinstance(text, str) or not text.strip():
+            if not isinstance(text, str):
                 raise ValueError
             return TranscriptionResult(text, language_code, None, None)
         except (OSError, ValueError, KeyError, TypeError):
@@ -256,8 +256,9 @@ class VoxtypeClient:
             raise ProviderError("Local transcription failed. Check Voxtype and install a Whisper model.") from None
         finally:
             self.process = None
-        text = stdout.partition("\n\n")[2].strip()
-        if not text or len(text) > MAX_HTTP_BYTES:
+        _header, separator, transcript = stdout.partition("\n\n")
+        text = transcript.strip()
+        if not separator or len(text) > MAX_HTTP_BYTES:
             raise ProviderError("Voxtype did not return a usable transcript.")
         return TranscriptionResult(text, language_code, None, None)
 

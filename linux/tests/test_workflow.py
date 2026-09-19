@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from http_fixture import local_http_server
 
+import mluva_linux.workflow as workflow_module
 from mluva_linux.codex_client import CodexAppServerClient
 from mluva_linux.config import AppConfig, AudioRetentionPolicy
 from mluva_linux.delivery import DeliveryReceipt
@@ -186,6 +187,52 @@ def make_workflow(tmp_path: Path, server: ThreadingHTTPServer) -> DictationWorkf
         history=history,
         cwd=tmp_path,
     )
+
+
+@pytest.mark.parametrize("mode", ["dictation", "command", "scratchpad"])
+@pytest.mark.parametrize("realtime", [False, True])
+@pytest.mark.parametrize("policy", list(AudioRetentionPolicy))
+def test_silent_recording_skips_rewriting_history_and_delivery(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mode: str, realtime: bool, policy: AudioRetentionPolicy
+) -> None:
+    """A successful empty recognition has no text side effects and follows successful-audio retention."""
+
+    def unexpected(*_args, **_kwargs):
+        raise AssertionError("Silence must not rewrite, persist text, or touch the target/clipboard")
+
+    audio_path = tmp_path / "silence.wav"
+    audio_path.write_bytes(b"RIFF-synthetic-silence")
+    history = HistoryStore(tmp_path / "history.sqlite3")
+    history.initialize()
+    monkeypatch.setattr(HistoryStore, "add", unexpected)
+    monkeypatch.setattr(CodexAppServerClient, "resolve_model", unexpected)
+    monkeypatch.setattr(CodexAppServerClient, "transform", unexpected)
+    monkeypatch.setattr(workflow_module, "deliver_text", unexpected)
+    workflow = DictationWorkflow(
+        AppConfig(),
+        StaticTranscriptionClient("  \n"),
+        CodexAppServerClient(command=("must-not-start",)),
+        history,
+        tmp_path,
+    )
+    target = FakeDeliveryTarget()
+    result = workflow.complete(
+        audio_path,
+        mode=mode,
+        use_codex_cleanup=True,
+        allow_auto_paste=True,
+        audio_retention_policy=policy,
+        delivery_target=target,
+        recognized_transcription=TranscriptionResult("", "eng", None, "silent") if realtime else None,
+        recognition_duration_seconds=0.1 if realtime else None,
+    )
+    assert result.output_text == ""
+    assert result.history_entry is None
+    assert not result.requires_acceptance
+    assert not result.delivery.copied and not result.delivery.pasted
+    assert result.delivery.guidance == "No speech detected. Ready when you are."
+    assert target.restore_calls == 0
+    assert audio_path.exists() == (policy is AudioRetentionPolicy.ALWAYS)
 
 
 def test_scratchpad_requires_explicit_delivery_and_retains_audio(
