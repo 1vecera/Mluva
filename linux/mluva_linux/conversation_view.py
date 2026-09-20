@@ -102,7 +102,7 @@ class _TailFollower:
             # A temporary reserve keeps deletion/layout from clamping the scroll
             # before its new wrapped extent is known. _anticipate_wrap resolves it.
             self.writing = True
-            if not reset:
+            if not reset and self.destination > 0:
                 view.set_bottom_margin(max(view.get_bottom_margin(), round(adjustment.get_page_size())))
 
     def updated(self) -> None:

@@ -8,12 +8,15 @@ from pathlib import Path
 import gi
 
 from mluva_linux.app import MluvaApplication
+from mluva_linux.live_rewrite import initial_draft
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import GLib, Gtk  # noqa: E402
 
 
-def exercise_scrolling(application: MluvaApplication, output: Path, *, short_only: bool = False) -> None:
+def exercise_scrolling(
+    application: MluvaApplication, output: Path, *, short_only: bool = False, draft_only: bool = False
+) -> None:
     """Prove intermediate positions, manual reading, corrected tails and document changes."""
     workspace = application.conversation_workspace
     workspace.set_config(replace(application.config, smooth_scrolling=True, scroll_duration_ms=800))
@@ -66,6 +69,30 @@ def exercise_scrolling(application: MluvaApplication, output: Path, *, short_onl
                     "short_capture_scroll_position": live.get_value(),
                 }
             )
+        )
+        return
+
+    if draft_only:
+        # A real Live capture seeds its template before the first provider snapshot.
+        workspace.show_live_draft(initial_draft(replace(application.config, live_rewrite_template="structured-note")))
+        workspace.live_draft_follower.follow(snap=True)
+        workspace.set_live("Recording", "We need to export notes to Markdown and save everything locally.")
+        frames(live, 0.15)
+        draft_text = (
+            "# Notes export\n\n## Requirements\n- Preserve the original wording.\n- Save files locally.\n"
+            "- Include the date in each file name.\n\n## Audience\nPersonal use."
+        )
+        draft_updates = (draft_text.replace("- Include the date in each file name.\n", ""), draft_text)
+        for text in draft_updates:
+            workspace.show_live_draft(text, "Structured note")
+            short_draft = workspace.live_draft_scroll.get_vadjustment()
+            positions = frames(short_draft)
+            assert workspace.live_draft_text.get_top_margin() == workspace.live_draft_follower.base_top
+            assert max(positions) == 0 and at_end(short_draft), positions
+        workspace.finish_live()
+        frames(live, 0.12)
+        (output / "draft-origin.json").write_text(
+            json.dumps({"draft_updates": len(draft_updates), "positions": positions, "top_margin": 4})
         )
         return
 
