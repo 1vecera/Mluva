@@ -6,6 +6,8 @@ Mluva turns speech or existing text into editable drafts while retaining the ori
 
 The recording shortcut toggles capture. A second press during preparation cancels before recording starts. Mluva checks the selected input and required provider readiness before opening the microphone. PipeWire audio is captured as private 16 kHz, 16-bit mono PCM.
 
+A successful recognition with no speech completes quietly. It does not rewrite, copy, paste, create a blank history entry or replace the current conversation. A visible Live draft remains available to edit and copy. Silent audio follows the successful-capture retention policy; Incognito erases it. Malformed responses, network errors and capture failures still use the normal recovery path.
+
 Scribe displays live recognition but only committed text becomes raw history or final dictation delivery. If realtime recognition cannot start or finalize, the app reports the batch fallback explicitly. Batch providers normally recognize at Stop; Live rewrite can request provisional chunk previews before final recognition.
 
 Raw recognition, edited source, completed rewrites and delivered text remain separate. Saving an editor changes its working version, not the raw record. Rewrites use the current saved version and conversation context. Partial replies remain in memory and cannot be copied as completed results. Failure, cancellation, deletion and Incognito invalidate late responses.

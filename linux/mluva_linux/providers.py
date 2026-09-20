@@ -188,7 +188,7 @@ class LiteLLMClient:
                 raise ValueError
             payload = json.loads(raw)
             text = payload["text"]
-            if not isinstance(text, str) or not text.strip():
+            if not isinstance(text, str):
                 raise ValueError
             return TranscriptionResult(text, language_code, None, None)
         except (OSError, ValueError, KeyError, TypeError):

@@ -13,6 +13,25 @@ import mluva_linux.elevenlabs as elevenlabs_module
 from mluva_linux.elevenlabs import ElevenLabsClient, TranscriptionError
 
 
+@pytest.mark.parametrize("text", ["", " \n\t"])
+def test_valid_silent_response_is_not_a_provider_failure(text: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A valid response with no recognized words can reach the workflow's quiet completion."""
+    monkeypatch.setattr(
+        ElevenLabsClient, "_request", lambda *_args: {"text": text, "language_code": "eng", "words": []}
+    )
+    result = ElevenLabsClient(api_key="test").transcribe(Path("silence.wav"), "eng")
+    assert result.text == ""
+    assert result.language_code == "eng"
+
+
+@pytest.mark.parametrize("payload", [{"text": None, "language_code": "eng"}, {"language_code": "eng"}])
+def test_malformed_text_remains_a_provider_failure(payload: dict, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Do not confuse absent or wrongly typed text with a successful silent response."""
+    monkeypatch.setattr(ElevenLabsClient, "_request", lambda *_args: payload)
+    with pytest.raises(TranscriptionError, match="invalid transcription response"):
+        ElevenLabsClient(api_key="test").transcribe(Path("capture.wav"), "eng")
+
+
 class ScribeHandler(BaseHTTPRequestHandler):
     """Inspect one real HTTP upload and return a representative Scribe response."""
 

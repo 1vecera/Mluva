@@ -259,8 +259,6 @@ class DictationWorkflow:
             )
         codex_requested = mode == "command" or use_codex_cleanup or style is not None
         enhancement_context_sources = _enhancement_context_sources(mode, selected_text, style)
-        if codex_requested and codex_model_identifier is None:
-            codex_model_identifier = self.codex.resolve_model(self.config.codex_model)
         if transcript_preparation is None:
             transcript_preparation = self.freeze_transcript_preparation(mode, application_identifier)
         elif transcript_preparation.mode != mode:
@@ -288,8 +286,6 @@ class DictationWorkflow:
                 )
                 recognition_seconds = time.monotonic() - recognition_started_at
             else:
-                if not recognized_transcription.text.strip():
-                    raise ValueError("Committed realtime recognition cannot be empty.")
                 if (
                     recognition_duration_seconds is None
                     or not isfinite(recognition_duration_seconds)
@@ -332,6 +328,29 @@ class DictationWorkflow:
             recognition_seconds,
             incognito,
         )
+        if not transcription.text.strip():
+            retain_audio = not incognito and audio_retention_policy.should_retain(delivery_succeeded=True)
+            if not retain_audio:
+                audio_path.unlink(missing_ok=True)
+            return WorkflowResult(
+                transcription=transcription,
+                output_text="",
+                delivery=DeliveryReceipt(False, False, "No speech detected. Ready when you are."),
+                history_entry=None,
+                retained_audio_path=audio_path if retain_audio else None,
+                requires_acceptance=False,
+                incognito=incognito,
+                mode=mode,
+                recognition_ms=recognition_ms,
+                enhancement_ms=0,
+                delivery_ms=0,
+                session_identifier=session_identifier,
+                recognition_fallback=recognition_used_batch_fallback,
+                recognition_route=recognition_route,
+                recognition_fallback_reason=resolved_fallback_reason,
+            )
+        if codex_requested and codex_model_identifier is None:
+            codex_model_identifier = self.codex.resolve_model(self.config.codex_model)
         structured_text = transcript_preparation.structured_text(transcription.text)
         protected_vocabulary = transcript_preparation.protected_vocabulary
         enhancement_started_at = time.monotonic()
