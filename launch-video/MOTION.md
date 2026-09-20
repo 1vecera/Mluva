@@ -1,48 +1,15 @@
-# Mluva launch film — motion style guide
+# Motion and sound decisions
 
-Derived from the waa catch-up loop (v6–v16): every rule below is implemented in `src/`, not aspirational.
+Establish the real app, make one useful action visible, then let its result settle. The native screen stays opaque across adjacent app shots. Larger scene cuts are reserved for changing context; the opening overlaps the incoming app so there is no empty beat. A short dissolve eases into the bright native theme and another hands the app to the closing brand card; backdrop intensity follows those handoffs.
 
-## Easing vocabulary
+Camera moves use a cubic Bézier `(0.42, 0, 0.2, 1)` with zero endpoint velocity. The full app starts at 1.28× logical size, and editing/Live details reach 1.664×. The Live move finishes before the question appears, leaving more than five seconds of stationary question visibility. Selection and cursor cues establish the editing actions; the keyboard cue is a film annotation outside the app.
 
-- `EASE_OUT` (default in `tween`): entrances, reveals, settles. Nothing arrives linearly.
-- `EASE_IN_OUT`: camera moves over a whole scene (S01, S02, S04, S05, S08, S11). Linear zooms are banned — they read as slideshows.
-- Overshoot pops (S01 recorder, `over` term): scale peaks ~1.05 then settles. Only one pop per scene.
-- Punch-ins: `punch(t, at, amp)` — up in 0.12 s, decay over 0.35 s. Land exactly on action beats: F9 presses, paste, tile/full snaps, polish apply, theme switches, first live block, question retire. Amplitudes 0.02–0.045, never stacked more than three per shot.
+Preserve complete native images. Splitting translucent surfaces into independently scaled bands introduced hairline seams and was removed. Black backing matches the capture desktop; native glyph patches advance the clock without resampling at fractional CSS coordinates. The short history transition is a genuine 30 fps screen recording; the 60 fps output does not claim 60 distinct native motion samples. The 30 fps background runs at half speed without synthesized in-between frames.
 
-## Transition vocabulary
+The animated obsidian backdrop uses restrained red/silver reflections. It is brighter on brand cards and reduced to 0.18 opacity behind the app, with an additional central contrast mask on brand copy. Native theme changes are actual captured Nord, Tokyo Night and Rosé Pine palettes. They demonstrate colour changes, without asking viewers to read new text at each switch.
 
-- Scene edges: `SceneFade` = opacity + 0.985→1→1.015 scale + alternating ±28 px horizontal slide (parity by scene index). Never a flat crossfade.
-- Theme/mode switches inside a scene: 0.6 s crossfade plus a punch and (S04) a decaying accent glow on the newly selected pill.
-- State changes inside widgets: slide + fade over 0.2–0.3 s (S03 step labels, chips stagger 0.08 s apart, S11 meta rows stagger 0.2 s).
+Narration remains one continuous take. Three supported Fish directions provide a conversational baseline, a curious middle and a relaxed finish; punctuation carries the rest. Scribe word timestamps determine picture and caption cues. A phoneme override guides the brand pronunciation, but transcript agreement alone cannot certify the pronunciation or acting. No sentence chopping or speed changes are applied in the film.
 
-## Camera
+Voice gain is 0.82 before mixing because the source is close to full-scale true peak. Music stays at 0.065 during speech, rises to 0.13 after the take, then fades. Four quiet clicks at 0.06 accompany F9, Polish, Structure and search. The master targets −16 LUFS integrated and −1.8 dBTP, then checks the encoded AAC output against −16 ±0.5 LUFS and a −1.5 dBTP ceiling.
 
-- Every scene has exactly one continuous move (slow push or drift + punch accents). No static shots except deliberate holds.
-- Origins sit on the subject (F9 key, diff region, search box), never dead center by accident.
-- Tightest framing is S06/S07 (~1.2×) and always eases back out so window chrome returns.
-
-## Typography in motion
-
-- Captions: one sentence per page (split at commas past 52 chars), active word in frost, whole page rises 10 px on entry.
-- Kinetic descriptor (S02 lockup tagline): word-by-word rise, 0.06 s stagger.
-- Closing line (S11): letter-spacing settles 2→−1 as it fades in.
-
-## Colour rules
-
-- Identity only through `src/brand.ts`. Scene palettes come from `theme.ts` (Nord default; Tokyo Night / Rosé Pine in S08).
-- Backgrounds: deep radial gradient + water texture at 0.30 opacity + grain at 0.05 + top light + vignette. Texture must never read as smoke: low displacement, cool highlights, UI always dominant.
-- Glow accents use the palette's own accent/frost/green/yellow at 0.2–0.55 alpha, never white.
-
-## Sound rules
-
-- Voice: one Sarah take, 30 ms edge fades per segment, unity gain; loudness finished in mastering (`script/master.sh`: −16 LUFS, TP −1.5).
-- Music: downloaded bombinsound bed, ducks to 0.17 under narration, swells to 0.42–0.56 at edges, 0.3 s crossfaded loop seam.
-- SFX ladder: clicks 0.25, switches 0.3, whooshes 0.3, ding 0.28. Every SFX lands on a visible action.
-
-## Verification (the loop)
-
-1. `npx tsc --noEmit` must pass before any render.
-2. Fast loop: `remotion still` on the touched scene's frames; look with fresh eyes for the single biggest flaw.
-3. Milestone loop: `script/review.sh vN` (preview + 22 timestamped frames + sheets + volumedetect + ebur128 summary).
-4. Audio loop: `script/master.sh` on release candidates; integrated −16 ± 1 LUFS, true peak ≤ −1 dBTP.
-5. Content loop: Scribe transcript of the mix must return all eleven lines in order (Omarchy heard as Omachi is a known Scribe bias, not a narration fault).
+Every animation is driven by Remotion frame time. Use the [quality method](review/quality.md) to inspect the completed export: matching still pixels, a successful render and loudness measurements each establish a different part of correctness. None alone establishes professional motion or natural delivery.
