@@ -1,6 +1,6 @@
 # Mluva app intro
 
-An 84-second, 1920×1080, 60 fps intro following the feature order of the [original Figma storyboard](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=3-10). It opens directly on Mluva's native Welcome screen while Sarah introduces “The most delightful dictation for Omarchy.” Remotion reframes the desktop recording and adds short keyboard cues, burned-in subtitles and a closing brand card.
+An 84-second, 1920×1080, 60 fps intro following the feature order of the [original Figma storyboard](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=3-10). It opens on Mluva's native Welcome screen with a six-second information overlay: “The most delightful dictation for Omarchy. Local or cloud. Your choice of tools.” The overlay fades away before setup interaction begins. Remotion reframes the desktop recording and adds short keyboard cues, burned-in subtitles and a closing brand card.
 
 The main take records the actual Omarchy desktop, theme changes, clipboard paste and animated wallpaper together. New Welcome/setup footage at 0–18 seconds and recorder footage at 30–44 seconds use a separate real Hyprland compositor, with native GTK/Quickshell, Chromium on FT, VS Code, Ghostty, htop and Linear's dark sign-in page arranged like the supplied reference. The recorder genuinely tiles, floats again and remains pinned while switching to Firefox/Hacker News on desktop 2. This is continuous native compositor footage; no desktop still or recreated widget is used in that scene. The isolated session leaves the visible desktop alone.
 
@@ -8,7 +8,7 @@ Live rewrite and Grilling at 63–79 seconds retain the take with the short-draf
 
 ## Render
 
-Requires Node/npm, FFmpeg/ffprobe and uv. The three media inputs below are intentionally local and ignored by Git; a source checkout alone does not include them. Restore them from the accompanying local media archive before rendering.
+Requires Node/npm, FFmpeg/ffprobe and uv. The three media inputs below are intentionally local and ignored by Git; a source checkout alone does not include them. Restore them from the local `mluva-intro-live-media-v3.tar.gz` archive before rendering. The v4 opening overlay reuses those unchanged inputs and the committed logo.
 
 | Input | Content |
 | --- | --- |
@@ -31,7 +31,7 @@ The final file is `out/mluva-intro-live-master.mp4`; preview is 960×540 at 60 f
 
 | File | Responsibility |
 | --- | --- |
-| `src/MluvaIntro.tsx` | Native footage, eased reframing, closing brand card, keyboard cues, subtitles and music ducking. |
+| `src/MluvaIntro.tsx` | Native footage, opening information overlay, eased reframing, closing brand card, keyboard cues, subtitles and music ducking. |
 | `reference/storyboard.json` | Original Figma shot order and readback. |
 | `reference/edit.json` | Revised scene timing, source ranges and playback rates. |
 | `script/capture-storyboard.py` | Production GTK states with prepared device/provider boundaries and private demonstration history. |
@@ -49,4 +49,4 @@ The fixture supports `--start-at` and `--end-at` for pickups, plus `--wait-for-s
 
 The v3 input archive also contains the isolated Hyprland pickup scripts, source recordings and capture receipts. These run a nested compositor with a private runtime, bus and application profiles, then record its output with wf-recorder. Recorder actions dispatch the same Hyprland operations used by Omarchy's Super+T and workspace shortcuts. The capture's incorrect full-range H.264 flag is corrected by stream copy; decoded colors were compared with native PNG captures. Blur was enabled only in the private compositor for legibility over the tiled windows.
 
-The old image-patching pipeline, recreated desktop surfaces, generated background and alternate compositions have been removed. Existing Git history preserves those earlier versions.
+The old image-patching pipeline, recreated desktop surfaces, generated background and alternate compositions have been removed. Unused promotion screenshots and the superseded Figma/Blender video pipeline have also been removed. Existing Git history preserves those earlier versions; the Figma storyboard, logo-study reflow helper, licensing records and media still embedded by the homepage remain.

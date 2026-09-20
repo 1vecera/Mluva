@@ -1,6 +1,6 @@
 # A quieter Mluva workspace
 
-Mluva gives speaking and editing more room: JetBrains Mono throughout, compact controls, full-width text panes and lightly translucent surrounding surfaces. The matching [Figma production kit](design/video-kit/README.md) records shared variables, editable masters and reviewed motion studies.
+Mluva gives speaking and editing more room: JetBrains Mono throughout, compact controls, full-width text panes and lightly translucent surrounding surfaces. The [original Figma kit](design/video-kit/README.md) retains shared variables, editable masters and motion studies; the current [app intro](../launch-video/README.md) uses native desktop footage.
 
 | Area | Applied decision |
 | --- | --- |

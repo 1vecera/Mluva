@@ -31,6 +31,39 @@ const envelope = (t: number, start: number, end: number, fade = 0.22) =>
 const camera = (t: number) =>
   1 + 0.33 * ramp(t, 17.15, 18, 1, 0) + 0.58 * envelope(t, 44, 79.4, 0.85);
 
+const OpeningInfo: React.FC<{ opacity: number }> = ({ opacity }) => (
+  <div
+    style={{
+      position: "absolute",
+      left: 460,
+      top: 578,
+      width: 1000,
+      padding: "24px 40px 28px",
+      opacity,
+      display: "flex",
+      alignItems: "center",
+      flexDirection: "column",
+      gap: 16,
+      borderRadius: 18,
+      background: "rgba(4, 9, 28, 0.95)",
+      border: "1px solid #7183a455",
+      boxShadow: "0 16px 48px #0004",
+      textAlign: "center",
+    }}
+  >
+    <Img
+      src={staticFile("brand/mluva-logo-large-mark-on-dark.svg")}
+      style={{ width: 280, height: 104, objectFit: "contain" }}
+    />
+    <div style={{ fontSize: 32, lineHeight: 1.35, letterSpacing: -0.8 }}>
+      The most delightful dictation for Omarchy.
+    </div>
+    <div style={{ fontSize: 22, color: "#b7c5d9" }}>
+      Local or cloud. Your choice of tools.
+    </div>
+  </div>
+);
+
 const Brand: React.FC<{ opacity: number }> = ({ opacity }) => (
   <AbsoluteFill
     style={{
@@ -89,6 +122,7 @@ export const MluvaIntro: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
+  const opening = ramp(t, 5.8, 6.4, 1, 0);
   const closing = ramp(t, 79, 79.55);
   const subtitle = cues.cues.find(
     (cue) => t >= cue.film_start && t < cue.subtitle_end,
@@ -133,6 +167,7 @@ export const MluvaIntro: React.FC = () => {
           }}
         />
       </AbsoluteFill>
+      {opening > 0 && <OpeningInfo opacity={opening} />}
       {key && (
         <div
           style={{

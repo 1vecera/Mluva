@@ -13,7 +13,7 @@
 | `public/live/sarah.wav` | Official Fish Audio Sarah, ID `933563129e564b19a115bedd57b7406a`, S2.1 Pro Free, speed 0.94. One energetic take with phoneme controls for Mluva and Live, normalized and placed in an 84-second 48 kHz mono PCM track. Script, voice identity, cue mapping and Scribe word timing are committed. |
 | `public/audio/music-bed.wav` | User-selected `bombinsound-upbeat-background-music-version-5-rise-600001.mp3` from Downloads. Crossfaded to 84 seconds, normalized to −26 LUFS, 48 kHz stereo. No new generated music. The downloaded file's license has not been independently established; the film remains local. |
 | `public/live/subtitles.srt` | Same text and timing as committed narration cues. Captions are burned into the rendered picture. The SRT stays in the media archive to avoid automatic duplicate playback subtitles. |
-| `public/brand/mluva-logo-large-mark-on-dark.svg` | Exact repository lockup from `docs/brand/svg/`, used on the closing card. |
+| `public/brand/mluva-logo-large-mark-on-dark.svg` | Exact repository lockup from `docs/brand/svg/`, used on the opening information overlay and closing card. |
 | `public/fonts/JetBrainsMono-Regular.ttf` | Repository JetBrains Mono; SIL Open Font License included as `OFL.txt`. |
 | `reference/{nord,tokyo-night,rose-pine}.toml` | Omarchy theme inputs applied by Mluva's production theme controller inside private capture state. |
 

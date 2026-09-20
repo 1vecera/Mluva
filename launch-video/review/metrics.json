@@ -1,6 +1,6 @@
 {
-  "file": "mluva-intro-live-sarah-v3.mp4",
-  "sha256": "b8643b631391c94ad6dcf0da0a2b868b89f355b1db6692ad062fcbf3eac33965",
+  "file": "mluva-intro-live-sarah-v4.mp4",
+  "sha256": "1184ef4027e14384a228b9ba4e349035a47bd498ca1a1552aa7e3b1696ab9f41",
   "probe": {
     "programs": [],
     "stream_groups": [],
@@ -24,7 +24,7 @@
     ],
     "format": {
       "duration": "84.100000",
-      "size": "18812495"
+      "size": "18854756"
     }
   },
   "audio": {
@@ -49,14 +49,37 @@
   "decode": "passed",
   "black_intervals_at_least_100ms": 0,
   "checked_feature_sequence": 9,
-  "checked_encoded_stills": 27,
+  "checked_encoded_stills": 24,
   "motion_sequences": [
-    "native widget tiling",
-    "native widget refloating",
-    "widget-to-Polish camera ramp"
+    "opening information overlay fade"
   ],
   "native_widget_states": "reference/capture-verification.json",
-  "sound_on_review": "Human review pending; phoneme controls, transcription and loudness checked.",
+  "sound_on_review": "No sound-on listening review claimed; v4 decoded PCM is identical to the reviewed v3 mix.",
   "final_audio_matches_transcribed_master": true,
-  "transcription": "Raw ElevenLabs Scribe v2; punctuation/case ignored, F nine\u2192F9 and spoken Omarchi\u2192visible Omarchy normalized for comparison."
+  "transcription": "Raw ElevenLabs Scribe v2; punctuation/case ignored, F nine\u2192F9 and spoken Omarchi\u2192visible Omarchy normalized for comparison.",
+  "opening_overlay": {
+    "visible_from_seconds": 0,
+    "fade_start_seconds": 5.8,
+    "fade_end_seconds": 6.4,
+    "copy": [
+      "The most delightful dictation for Omarchy.",
+      "Local or cloud. Your choice of tools."
+    ]
+  },
+  "previous_version_audio_identical": true,
+  "decoded_audio_sha256": "9ff4f6ac172abd799822a07457a609d3ab6116ba973b7cd41e1db615e6d0343a",
+  "previous_review": {
+    "version": "v3",
+    "checked_encoded_stills": 27,
+    "motion_sequences": [
+      "native widget tiling",
+      "native widget refloating",
+      "widget-to-Polish camera ramp"
+    ]
+  },
+  "cleanup": {
+    "files": 95,
+    "bytes": 18727851,
+    "local_scratch_bytes": 1575579025
+  }
 }
