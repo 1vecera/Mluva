@@ -1,137 +1,47 @@
 {
-  "master_sha256": "03a53e3239db264a27609cb7e38948a0373b2d661188a309c961c98d9911584d",
+  "file": "mluva-intro-live-sarah.mp4",
+  "sha256": "cf69947ed03d833b26fa973c53ba4133932c7cd8bdd66c2815e8cd41c99351fa",
+  "probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "60/1",
+        "duration": "59.000000",
+        "nb_frames": "3540"
+      },
+      {
+        "codec_name": "aac",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0",
+        "duration": "59.050667",
+        "nb_frames": "2769"
+      }
+    ],
+    "format": {
+      "duration": "59.050667",
+      "size": "17079032"
+    }
+  },
   "audio": {
-    "input_i": "-16.14",
-    "input_tp": "-1.81",
-    "input_lra": "2.80",
-    "input_thresh": "-27.10",
-    "output_i": "-16.30",
-    "output_tp": "-1.80",
-    "output_lra": "2.70",
-    "output_thresh": "-27.11",
+    "input_i": "-16.06",
+    "input_tp": "-2.90",
+    "input_lra": "6.30",
+    "input_thresh": "-26.33",
+    "output_i": "-15.67",
+    "output_tp": "-2.19",
+    "output_lra": "6.20",
+    "output_thresh": "-25.91",
     "normalization_type": "dynamic",
-    "target_offset": "0.30"
+    "target_offset": "-0.33"
   },
-  "speech": {
-    "canonical_and_mixed_scribe_match": true,
-    "normalized_words": 83,
-    "voice_sha256": "05531fcf35488989658e564f3bd9d209f5e3bb3c01172421dc0519b98a68fed9",
-    "mixed_audio_stream_sha256": "5e78ea695216fc67a41df546858ce4e058037e3440fcd8cde983aeedcd7c4cdc",
-    "scope": "The mixed soundtrack was transcribed with ElevenLabs Scribe v2. Exact normalized text agreement does not certify natural acting or pronunciation."
-  },
-  "background_loop": {
-    "mean_adjacent_difference_0_255": 0.6208505651251811,
-    "median": 0.5942592592592593,
-    "maximum": 0.9308217592592593,
-    "wrap": 0.4679224537037037,
-    "note": "Diagnostic only. Every step can include EEVEE sampling noise. No perceptual score."
-  },
-  "background_reproduction": {
-    "maximum_error": 0,
-    "mean_error": 0.0,
-    "source": "fresh --factory-startup scene versus original rendered first frame"
-  },
-  "video": {
-    "source": "mluva-intro-master.mp4",
-    "video": {
-      "codec_name": "h264",
-      "width": 1920,
-      "height": 1080,
-      "avg_frame_rate": "60/1",
-      "duration": "46.733333",
-      "nb_frames": "2804"
-    },
-    "container_duration": "46.800000",
-    "decoded_frames": 2804,
-    "strictly_increasing_pts": true,
-    "maximum_step_error_seconds": 6.666666694833678e-07,
-    "video_and_audio_decode_errors": 0,
-    "grayscale_frame_difference": {
-      "mean": 0.15856097881238357,
-      "median": 0.011527777777777777,
-      "largest_steps": [
-        {
-          "time": 17.8,
-          "mean_difference_255": 7.595572916666667
-        },
-        {
-          "time": 29.13333,
-          "mean_difference_255": 10.079270833333334
-        },
-        {
-          "time": 34.3,
-          "mean_difference_255": 6.811857638888889
-        },
-        {
-          "time": 38.48333,
-          "mean_difference_255": 10.178628472222222
-        },
-        {
-          "time": 39.3,
-          "mean_difference_255": 7.67265625
-        },
-        {
-          "time": 39.31667,
-          "mean_difference_255": 10.455677083333333
-        },
-        {
-          "time": 39.33333,
-          "mean_difference_255": 12.455104166666667
-        },
-        {
-          "time": 39.35,
-          "mean_difference_255": 12.798524305555556
-        },
-        {
-          "time": 39.36667,
-          "mean_difference_255": 10.319965277777778
-        },
-        {
-          "time": 39.38333,
-          "mean_difference_255": 7.768090277777778
-        },
-        {
-          "time": 39.4,
-          "mean_difference_255": 5.822100694444444
-        },
-        {
-          "time": 39.41667,
-          "mean_difference_255": 4.976527777777778
-        },
-        {
-          "time": 40.1,
-          "mean_difference_255": 4.944739583333333
-        },
-        {
-          "time": 40.11667,
-          "mean_difference_255": 7.189444444444445
-        },
-        {
-          "time": 40.13333,
-          "mean_difference_255": 10.220277777777778
-        },
-        {
-          "time": 40.15,
-          "mean_difference_255": 10.429774305555556
-        },
-        {
-          "time": 40.16667,
-          "mean_difference_255": 10.588611111111112
-        },
-        {
-          "time": 40.18333,
-          "mean_difference_255": 9.48453125
-        },
-        {
-          "time": 40.2,
-          "mean_difference_255": 6.7046875
-        },
-        {
-          "time": 40.21667,
-          "mean_difference_255": 6.561128472222222
-        }
-      ]
-    },
-    "scope": "Full-stream decoding, timing and reduced-resolution frame-difference diagnostics. Does not score perceived motion or audio quality."
-  }
+  "decode": "passed",
+  "black_intervals_at_least_100ms": 0,
+  "checked_story_beats": 11,
+  "checked_encoded_stills": 17,
+  "sound_on_review": "Human review pending; transcription and loudness verified."
 }

@@ -2,13 +2,12 @@
   "name": "mluva-launch-video",
   "private": true,
   "version": "0.1.0",
-  "description": "Mluva app intro composed from verified native captures",
+  "description": "Original storyboard, real Omarchy desktop footage, Fish Audio Sarah narration",
   "scripts": {
-    "render": "node script/build-intro.mjs && remotion render src/index.ts MluvaIntro out/mluva-intro.mp4 --concurrency=4",
-    "preview": "node script/build-intro.mjs && remotion render src/index.ts MluvaIntroPreview out/mluva-intro-preview.mp4 --scale=0.5 --concurrency=4",
+    "render": "remotion render src/index.ts MluvaIntro out/mluva-intro-live.mp4 --concurrency=4",
+    "preview": "remotion render src/index.ts MluvaIntro out/mluva-intro-live-preview.mp4 --scale=0.5 --concurrency=4",
     "lint": "tsc --noEmit",
-    "fidelity": "node script/build-intro.mjs && node script/render-references.mjs && uv run script/verify-fidelity.py",
-    "master": "uv run script/master.py out/mluva-intro.mp4"
+    "master": "uv run script/master.py out/mluva-intro-live.mp4"
   },
   "type": "module",
   "dependencies": {

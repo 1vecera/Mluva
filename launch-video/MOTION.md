@@ -1,15 +1,23 @@
-# Motion and sound decisions
+# Motion and voice decisions
 
-Establish the real app, make one useful action visible, then let its result settle. The native screen stays opaque across adjacent app shots. Larger scene cuts are reserved for changing context; the opening overlaps the incoming app so there is no empty beat. A short dissolve eases into the bright native theme and another hands the app to the closing brand card; backdrop intensity follows those handoffs.
+Follow the original eleven shots: desktop → brand → onboarding/providers → F9/talk/paste → tile/float → Polish → history → themes → Live rewrite → Grilling → closing brand. Hold readable results instead of adding headlines over the app. All app UI and desktop motion are native recorded pixels.
 
-Camera moves use a cubic Bézier `(0.42, 0, 0.2, 1)` with zero endpoint velocity. The full app starts at 1.28× logical size, and editing/Live details reach 1.664×. The Live move finishes before the question appears, leaving more than five seconds of stationary question visibility. Selection and cursor cues establish the editing actions; the keyboard cue is a film annotation outside the app.
+The 1920×1200 desktop fits inside 1920×1080 at 0.9× with quiet side margins. Camera close-ups reach 1.53× relative to that fit, using cubic Bézier `(0.42, 0, 0.2, 1)` and 0.6–0.65-second ramps. The full app stays in frame. Theme changes retain the live compositor border colours; the downloaded animated background is already part of the capture. Do not replace it with a separately moving image or redraw translucent app surfaces.
 
-Preserve complete native images. Splitting translucent surfaces into independently scaled bands introduced hairline seams and was removed. Black backing matches the capture desktop; native glyph patches advance the clock without resampling at fractional CSS coordinates. The short history transition is a genuine 30 fps screen recording; the 60 fps output does not claim 60 distinct native motion samples. The 30 fps background runs at half speed without synthesized in-between frames.
+Keyboard overlays identify F9, Ctrl+V, Super+T and Ctrl+P at the recorded actions. The cut at 42 seconds introduces the corrected Live rewrite pickup; 55 seconds returns to the main take beneath the closing brand. Native 60 fps capture is retained at 60 fps. No optical-flow frames are invented.
 
-The animated obsidian backdrop uses restrained red/silver reflections. It is brighter on brand cards and reduced to 0.18 opacity behind the app, with an additional central contrast mask on brand copy. Native theme changes are actual captured Nord, Tokyo Night and Rosé Pine palettes. They demonstrate colour changes, without asking viewers to read new text at each switch.
+## Fish Audio Sarah
 
-Narration remains one continuous take. Three supported Fish directions provide a conversational baseline, a curious middle and a relaxed finish; punctuation carries the rest. Scribe word timestamps determine picture and caption cues. A phoneme override guides the brand pronunciation, but transcript agreement alone cannot certify the pronunciation or acting. No sentence chopping or speed changes are applied in the film.
+Use Fish Audio's official **Sarah**, reference ID `933563129e564b19a115bedd57b7406a`, model `s2.1-pro-free`, speed `0.94`. This is the voice selected in the earlier production session. ElevenLabs is used only for Scribe transcription, never for narration generation.
 
-Voice gain is 0.82 before mixing because the source is close to full-scale true peak. Music stays at 0.065 during speech, rises to 0.13 after the take, then fades. Four quiet clicks at 0.06 accompany F9, Polish, Structure and search. The master targets −16 LUFS integrated and −1.8 dBTP, then checks the encoded AAC output against −16 ±0.5 LUFS and a −1.5 dBTP ceiling.
+Write **Ohmarchi** in speech input to guide the requested “omarči” sound; keep **Omarchy** in visible copy. Use `[emphasis] Mluva` so the opening M remains clear. The script uses restrained freeform bracket directions and short pauses supported by [Fish Audio's speech-control documentation](https://docs.fish.audio/developer-guide/core-features/emotions). Do not append a trailing pause direction: an earlier take added unwanted speech after it.
 
-Every animation is driven by Remotion frame time. Use the [quality method](review/quality.md) to inspect the completed export: matching still pixels, a successful render and loudness measurements each establish a different part of correctness. None alone establishes professional motion or natural delivery.
+The 37.022-second source take is divided at phrase boundaries and positioned in the 59-second film using `reference/narration-cues.json`. The F9, Talk and Paste phrases align with the corresponding actions. No speech is stretched or pitch-shifted; each excerpt has a 12 ms entrance and 25 ms exit fade. The source transcript preserves the script and contains no trailing ad-lib. A transcript cannot certify acting or precise pronunciation; the rendered audio remains available for listening review.
+
+Use the user-selected Bombinsound “Upbeat Background Music Version 5 — Rise” download. A 0.7-second crossfade joins its repeated section. In the composition, the music gain falls from 0.32 to 0.15 around speech, with a 0.6-second opening and 1.5-second closing fade. The final encoded master must measure −16 ±0.5 LUFS integrated with true peak no higher than −1.5 dBTP; the normalization target is −1.8 dBTP.
+
+## Review method
+
+Inspect native captures first, then the final encoded frames at every story beat and around camera ramps, keyboard cues and pickup cuts. Confirm the source stays readable, native controls remain inside frame, theme transitions settle, and short dictated text starts at the top. Review movement as sequences of adjacent frames; attractive stills alone do not establish smooth animation.
+
+Check duration, frame cadence, decoding errors, black frames and encoded audio loudness independently. Transcribe the final mix to catch clipped or missing phrases. Those checks establish technical integrity and script coverage; natural delivery and musical taste still benefit from a human sound-on pass.

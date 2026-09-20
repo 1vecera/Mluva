@@ -1,0 +1,77 @@
+{
+  "duration_seconds": 59,
+  "picture": "Native desktop recording; one pickup at 42\u201355 seconds",
+  "app_main_commit": "35c1afb01bd27facc652fbeb4e5c8100ac0b9b26",
+  "app_pickup_commit": "3c31e72",
+  "voice": {
+    "provider": "Fish Audio",
+    "name": "Sarah",
+    "reference_id": "933563129e564b19a115bedd57b7406a"
+  },
+  "media": [
+    {
+      "path": "public/live/desktop.mp4",
+      "sha256": "ceb3c6a16cb1adf2fc219af96926a881a4e97f2b3f6bb6624057ce4de9de8fb6",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1920,
+            "height": 1200,
+            "r_frame_rate": "60/1",
+            "duration": "59.000000",
+            "nb_frames": "3540"
+          }
+        ],
+        "format": {
+          "duration": "59.000000",
+          "size": "13703131"
+        }
+      }
+    },
+    {
+      "path": "public/live/sarah.wav",
+      "sha256": "561c6cc201e5f24fa695493d25f7a761389f84c8be9325a2b6a228a748656144",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "sample_rate": "48000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "duration": "59.000000"
+          }
+        ],
+        "format": {
+          "duration": "59.000000",
+          "size": "5664044"
+        }
+      }
+    },
+    {
+      "path": "public/audio/music-bed.wav",
+      "sha256": "6d8cd034e71c0a0b6a616e71f3767dea813cd6360c6e15ba0dff5c6222901779",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "sample_rate": "48000",
+            "channels": 2,
+            "r_frame_rate": "0/0",
+            "duration": "59.000000"
+          }
+        ],
+        "format": {
+          "duration": "59.000000",
+          "size": "11328078"
+        }
+      }
+    }
+  ]
+}

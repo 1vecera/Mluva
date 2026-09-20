@@ -1,3 +1,7 @@
 node_modules/
 out/
 .remotion/
+
+# Keep unreleased screen footage, narration and downloaded music local.
+public/live/
+public/audio/
