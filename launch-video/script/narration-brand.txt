@@ -1,0 +1,3 @@
+[warm, calm] Meet <|phoneme_start|>M L UW1 V AH0<|phoneme_end|>.
+
+[relaxed, conversational] <|phoneme_start|>M L UW1 V AH0<|phoneme_end|> floats like water.

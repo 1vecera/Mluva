@@ -1,8 +1,8 @@
 {
-  "duration_seconds": 59,
-  "picture": "Native desktop recording; one pickup at 42\u201355 seconds",
+  "duration_seconds": 78,
+  "picture": "Actual native Omarchy desktop footage, plus isolated native Welcome and widget pickups; widget backplate is a recorded still.",
   "app_main_commit": "35c1afb01bd27facc652fbeb4e5c8100ac0b9b26",
-  "app_pickup_commit": "3c31e72",
+  "app_live_pickup_commit": "3c31e7249b088c9784c9f57c857c66e5edcb54be",
   "voice": {
     "provider": "Fish Audio",
     "name": "Sarah",
@@ -11,7 +11,7 @@
   "media": [
     {
       "path": "public/live/desktop.mp4",
-      "sha256": "ceb3c6a16cb1adf2fc219af96926a881a4e97f2b3f6bb6624057ce4de9de8fb6",
+      "sha256": "146646482929e2354cf0269da83b9599bdc472fca7e501cfdcacfa3ee8c2c614",
       "probe": {
         "programs": [],
         "stream_groups": [],
@@ -21,19 +21,19 @@
             "width": 1920,
             "height": 1200,
             "r_frame_rate": "60/1",
-            "duration": "59.000000",
-            "nb_frames": "3540"
+            "duration": "78.000000",
+            "nb_frames": "4680"
           }
         ],
         "format": {
-          "duration": "59.000000",
-          "size": "13703131"
+          "duration": "78.000000",
+          "size": "22875708"
         }
       }
     },
     {
       "path": "public/live/sarah.wav",
-      "sha256": "561c6cc201e5f24fa695493d25f7a761389f84c8be9325a2b6a228a748656144",
+      "sha256": "99dd2b5ccceac89193980068ecc365e973db0755a09a15fa81e22da73d871ce4",
       "probe": {
         "programs": [],
         "stream_groups": [],
@@ -43,18 +43,18 @@
             "sample_rate": "48000",
             "channels": 1,
             "r_frame_rate": "0/0",
-            "duration": "59.000000"
+            "duration": "78.000000"
           }
         ],
         "format": {
-          "duration": "59.000000",
-          "size": "5664044"
+          "duration": "78.000000",
+          "size": "7488044"
         }
       }
     },
     {
       "path": "public/audio/music-bed.wav",
-      "sha256": "6d8cd034e71c0a0b6a616e71f3767dea813cd6360c6e15ba0dff5c6222901779",
+      "sha256": "fd6b4414e3ee7ba191f700f8aac4dc8ca9b07b252c5c3196461f20b730a7fc3c",
       "probe": {
         "programs": [],
         "stream_groups": [],
@@ -64,14 +64,18 @@
             "sample_rate": "48000",
             "channels": 2,
             "r_frame_rate": "0/0",
-            "duration": "59.000000"
+            "duration": "78.000000"
           }
         ],
         "format": {
-          "duration": "59.000000",
-          "size": "11328078"
+          "duration": "78.000000",
+          "size": "14976078"
         }
       }
+    },
+    {
+      "path": "public/live/subtitles.srt",
+      "sha256": "66bc6dfed4e81017e9b022a4bebde535d998687008a900b6a1646cab0cfef144"
     }
   ]
 }

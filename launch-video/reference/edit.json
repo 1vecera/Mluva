@@ -1,0 +1,109 @@
+{
+  "duration": 78,
+  "scenes": [
+    {
+      "scene": "intro",
+      "start": 0,
+      "end": 6,
+      "source_start": 0,
+      "source_duration": 3,
+      "playback_rate": 0.5,
+      "source": "native-v1"
+    },
+    {
+      "scene": "setup",
+      "start": 6,
+      "end": 18,
+      "source_start": 0.45,
+      "source_duration": 12,
+      "playback_rate": 1.0,
+      "source": "setup"
+    },
+    {
+      "scene": "dictation",
+      "start": 18,
+      "end": 30,
+      "source_start": 12,
+      "source_duration": 9,
+      "playback_rate": 0.75,
+      "source": "native-v1"
+    },
+    {
+      "scene": "widget",
+      "start": 30,
+      "end": 38,
+      "source_start": 0.5,
+      "source_duration": 8,
+      "playback_rate": 1.0,
+      "source": "widget"
+    },
+    {
+      "scene": "polish",
+      "start": 38,
+      "end": 45,
+      "source_start": 27,
+      "source_duration": 6,
+      "playback_rate": 0.8571428571428571,
+      "source": "native-v1"
+    },
+    {
+      "scene": "history",
+      "start": 45,
+      "end": 51,
+      "source_start": 33,
+      "source_duration": 4,
+      "playback_rate": 0.6666666666666666,
+      "source": "native-v1"
+    },
+    {
+      "scene": "themes",
+      "start": 51,
+      "end": 57,
+      "source_start": 37,
+      "source_duration": 5,
+      "playback_rate": 0.8333333333333334,
+      "source": "native-v1"
+    },
+    {
+      "scene": "live",
+      "start": 57,
+      "end": 66,
+      "source_start": 42,
+      "source_duration": 7,
+      "playback_rate": 0.7777777777777778,
+      "source": "native-v1"
+    },
+    {
+      "scene": "task",
+      "start": 66,
+      "end": 73,
+      "source_start": 49,
+      "source_duration": 6,
+      "playback_rate": 0.8571428571428571,
+      "source": "native-v1"
+    },
+    {
+      "scene": "closing",
+      "start": 73,
+      "end": 78,
+      "source_start": 55,
+      "source_duration": 4,
+      "playback_rate": 0.8,
+      "source": "native-v1"
+    }
+  ],
+  "sources": {
+    "native-v1": {
+      "archive_path": "production/native-v1.mp4",
+      "description": "Previous actual Omarchy desktop cut, including corrected Live rewrite and task pickup."
+    },
+    "setup": {
+      "archive_path": "production/setup.mp4",
+      "description": "Production Welcome flow on isolated X11."
+    },
+    "widget": {
+      "archive_path": "production/widget.mp4",
+      "description": "Production recording widget on isolated X11 over a still from the native desktop take."
+    }
+  }
+}

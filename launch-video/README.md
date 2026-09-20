@@ -1,8 +1,8 @@
 # Mluva app intro
 
-A 59-second, 1920×1080, 60 fps intro following the [original Figma storyboard](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=3-10). The picture is recorded on the actual Omarchy desktop with native Mluva, Chrome, Ghostty and Herdr. Remotion reframes that footage and adds two brand cards and short keyboard cues.
+A 78-second, 1920×1080, 60 fps intro following the feature order of the [original Figma storyboard](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=3-10), with longer holds and an immediate Mluva introduction. Native desktop footage shows Mluva, Chrome, Ghostty and Herdr. Remotion reframes it and adds brand cards, short keyboard cues and burned-in subtitles.
 
-The app pixels, window movement, theme changes, clipboard paste and animated wallpaper are recorded together. The Live rewrite and Grilling section uses a replacement take at 42–55 seconds after fixing the short-draft scroll origin. Microphone/provider responses and demonstration history are prepared fixtures; this film does not measure speech recognition quality or service latency. The original source remains visible beside the draft, and the app labels Live rewrite as Experimental.
+The main take records the actual Omarchy desktop, theme changes, clipboard paste and animated wallpaper together. Welcome/setup at 6–18 seconds is a native GTK pickup from a private X11 display. At 30–38 seconds, the production recording widget moves over a still from the clean Chrome/Ghostty/Herdr arrangement; this is a native widget pickup, not continuous host recording. Live rewrite and Grilling at 57–73 seconds use the take with the short-draft scroll correction. Microphone/provider responses and demonstration history are prepared fixtures; this film does not measure speech recognition quality or service latency. The source remains visible beside the draft, and the app labels Live rewrite as Experimental.
 
 ## Render
 
@@ -10,9 +10,9 @@ Requires Node/npm, FFmpeg/ffprobe and uv. The three media inputs below are inten
 
 | Input | Content |
 | --- | --- |
-| `public/live/desktop.mp4` | Edited 59-second native desktop recording, 1920×1200 at 60 fps. |
-| `public/live/sarah.wav` | Fish Audio Sarah, positioned against the storyboard in a 59-second PCM track. |
-| `public/audio/music-bed.wav` | User-selected downloaded music, crossfaded to cover 59 seconds. |
+| `public/live/desktop.mp4` | Edited 78-second native footage, 1920×1200 at 60 fps. |
+| `public/live/sarah.wav` | Fish Audio Sarah, positioned against the storyboard in a 78-second PCM track. |
+| `public/audio/music-bed.wav` | User-selected downloaded music, crossfaded to 78 seconds and normalized before ducking. |
 
 ```sh
 cd launch-video
@@ -23,18 +23,19 @@ npm run render -- --crf=16
 npm run master
 ```
 
-The final file is `out/mluva-intro-live-master.mp4`; preview is 960×540 at 60 fps. The original 16:10 desktop is contained in the 16:9 composition, with gentle close-ups for app details. [Final review](review/final.md), [asset provenance](reference/ASSETS.md), [motion and voice decisions](MOTION.md), and [media hashes](reference/media.json) describe the delivery and its limits. Nothing in these commands publishes the video.
+The final file is `out/mluva-intro-live-master.mp4`; preview is 960×540 at 60 fps. The 16:10 desktop is contained in the 16:9 composition, with close-ups for app details and space for readable subtitles. Captions are rendered into the picture from `reference/narration-cues.json`; the local archive also includes an SRT. [Final review](review/final.md), [asset provenance](reference/ASSETS.md), [motion and voice decisions](MOTION.md), and [media hashes](reference/media.json) describe the delivery and its limits. Nothing in these commands publishes the video.
 
 ## Source map
 
 | File | Responsibility |
 | --- | --- |
-| `src/MluvaIntro.tsx` | Native footage, eased reframing, brand cards, keyboard cues and music ducking. |
+| `src/MluvaIntro.tsx` | Native footage, eased reframing, brand cards, keyboard cues, subtitles and music ducking. |
 | `reference/storyboard.json` | Original Figma shot order and readback. |
+| `reference/edit.json` | Revised scene timing, source ranges and playback rates. |
 | `script/capture-storyboard.py` | Production GTK states with prepared device/provider boundaries and private demonstration history. |
-| `script/narration-storyboard.txt` | Fish Audio script with spoken pronunciation and direction tags. |
+| `script/narration-{storyboard,brand}.txt` | Fish Audio script and two-phrase pronunciation pickup with direction tags. |
 | `reference/narration-cues.json` | Source-to-film timing and exact Fish voice identity. |
-| `reference/narration-scribe.json` | Speech-to-text check of the final Sarah source take. |
+| `reference/narration-scribe.json` | Word timing and speech-to-text checks of both Sarah source takes. |
 | `script/master.py` | Measured two-pass loudness normalization and verification of encoded AAC. |
 
 ## Refresh app footage

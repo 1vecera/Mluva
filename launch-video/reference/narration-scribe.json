@@ -1,1150 +1,350 @@
 {
-  "language_code": "eng",
-  "language_probability": 1.0,
-  "text": "Dictation should fit the way you work. Meet Mluva, the most delightful dictation app for Omachi. Best of local and cloud. F9, talk and paste. Omachi moves like water. Tile it or let it float. Done talking? Edit it, polish it, rewrite it. Find your thoughts again, your desktop, your palette, any Omachi theme automatically. Try live rewrite. Keep speaking as your text takes shape or build a task spec with questions for what's still missing. A little more delight every day.",
-  "words": [
-    {
-      "text": "Dictation",
-      "start": 0.22,
-      "end": 0.84,
-      "type": "word",
-      "logprob": -0.008920229966608732
-    },
-    {
-      "text": " ",
-      "start": 0.84,
-      "end": 0.96,
-      "type": "spacing",
-      "logprob": -2.145764938177308e-06
-    },
-    {
-      "text": "should",
-      "start": 0.96,
-      "end": 1.12,
-      "type": "word",
-      "logprob": -2.145764938177308e-06
-    },
-    {
-      "text": " ",
-      "start": 1.12,
-      "end": 1.24,
-      "type": "spacing",
-      "logprob": -1.0728830375228426e-06
-    },
-    {
-      "text": "fit",
-      "start": 1.24,
-      "end": 1.46,
-      "type": "word",
-      "logprob": -1.0728830375228426e-06
-    },
-    {
-      "text": " ",
-      "start": 1.46,
-      "end": 1.48,
-      "type": "spacing",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": "the",
-      "start": 1.48,
-      "end": 1.58,
-      "type": "word",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": " ",
-      "start": 1.58,
-      "end": 1.62,
-      "type": "spacing",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": "way",
-      "start": 1.62,
-      "end": 1.74,
-      "type": "word",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": " ",
-      "start": 1.74,
-      "end": 1.82,
-      "type": "spacing",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": "you",
-      "start": 1.82,
-      "end": 1.92,
-      "type": "word",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": " ",
-      "start": 1.92,
-      "end": 1.98,
-      "type": "spacing",
-      "logprob": -1.5497195136049413e-06
-    },
-    {
-      "text": "work.",
-      "start": 1.98,
-      "end": 2.26,
-      "type": "word",
-      "logprob": -2.0240834146534326e-05
-    },
-    {
-      "text": " ",
-      "start": 2.26,
-      "end": 2.26,
-      "type": "spacing",
-      "logprob": -3.838465272565372e-05
-    },
-    {
-      "text": "Meet",
-      "start": 2.88,
-      "end": 3.08,
-      "type": "word",
-      "logprob": -3.838465272565372e-05
-    },
-    {
-      "text": " ",
-      "start": 3.08,
-      "end": 3.24,
-      "type": "spacing",
-      "logprob": -0.031601183116436005
-    },
-    {
-      "text": "Mluva,",
-      "start": 3.24,
-      "end": 3.7,
-      "type": "word",
-      "logprob": -0.007833470136271595
-    },
-    {
-      "text": " ",
-      "start": 3.7,
-      "end": 3.7,
-      "type": "spacing",
-      "logprob": -5.483612312673358e-06
-    },
-    {
-      "text": "the",
-      "start": 4.42,
-      "end": 4.48,
-      "type": "word",
-      "logprob": -5.483612312673358e-06
-    },
-    {
-      "text": " ",
-      "start": 4.48,
-      "end": 4.52,
-      "type": "spacing",
-      "logprob": -3.4570634852570947e-06
-    },
-    {
-      "text": "most",
-      "start": 4.52,
-      "end": 4.76,
-      "type": "word",
-      "logprob": -3.4570634852570947e-06
-    },
-    {
-      "text": " ",
-      "start": 4.76,
-      "end": 4.82,
-      "type": "spacing",
-      "logprob": -1.728519782773219e-05
-    },
-    {
-      "text": "delightful",
-      "start": 4.82,
-      "end": 5.34,
-      "type": "word",
-      "logprob": -1.728519782773219e-05
-    },
-    {
-      "text": " ",
-      "start": 5.34,
-      "end": 5.46,
-      "type": "spacing",
-      "logprob": -0.00014077626110520214
-    },
-    {
-      "text": "dictation",
-      "start": 5.46,
-      "end": 5.94,
-      "type": "word",
-      "logprob": -6.296459133005151e-05
-    },
-    {
-      "text": " ",
-      "start": 5.94,
-      "end": 6.06,
-      "type": "spacing",
-      "logprob": -5.960462772236497e-07
-    },
-    {
-      "text": "app",
-      "start": 6.06,
-      "end": 6.3,
-      "type": "word",
-      "logprob": -5.960462772236497e-07
-    },
-    {
-      "text": " ",
-      "start": 6.3,
-      "end": 6.36,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "for",
-      "start": 6.36,
-      "end": 6.48,
-      "type": "word",
-      "logprob": 0.0
-    },
-    {
-      "text": " ",
-      "start": 6.48,
-      "end": 6.54,
-      "type": "spacing",
-      "logprob": -0.21070758998394012
-    },
-    {
-      "text": "Omachi.",
-      "start": 6.54,
-      "end": 7.1,
-      "type": "word",
-      "logprob": -0.3002460688751723
-    },
-    {
-      "text": " ",
-      "start": 7.1,
-      "end": 7.1,
-      "type": "spacing",
-      "logprob": -2.3364747903542593e-05
-    },
-    {
-      "text": "Best",
-      "start": 7.78,
-      "end": 8.039,
-      "type": "word",
-      "logprob": -2.3364747903542593e-05
-    },
-    {
-      "text": " ",
-      "start": 8.039,
-      "end": 8.1,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "of",
-      "start": 8.1,
-      "end": 8.2,
-      "type": "word",
-      "logprob": 0.0
-    },
-    {
-      "text": " ",
-      "start": 8.2,
-      "end": 8.26,
-      "type": "spacing",
-      "logprob": -8.4638240878121e-06
-    },
-    {
-      "text": "local",
-      "start": 8.26,
-      "end": 8.64,
-      "type": "word",
-      "logprob": -8.4638240878121e-06
-    },
-    {
-      "text": " ",
-      "start": 8.64,
-      "end": 8.76,
-      "type": "spacing",
-      "logprob": -5.960462772236497e-07
-    },
-    {
-      "text": "and",
-      "start": 8.76,
-      "end": 8.86,
-      "type": "word",
-      "logprob": -5.960462772236497e-07
-    },
-    {
-      "text": " ",
-      "start": 8.86,
-      "end": 8.96,
-      "type": "spacing",
-      "logprob": -5.936446541454643e-05
-    },
-    {
-      "text": "cloud.",
-      "start": 8.96,
-      "end": 9.36,
-      "type": "word",
-      "logprob": -5.225191459127624e-05
-    },
-    {
-      "text": " ",
-      "start": 9.36,
-      "end": 9.36,
-      "type": "spacing",
-      "logprob": -9.536738616588991e-07
-    },
-    {
-      "text": "F9,",
-      "start": 9.98,
-      "end": 10.64,
-      "type": "word",
-      "logprob": -0.007082340482005141
-    },
-    {
-      "text": " ",
-      "start": 10.64,
-      "end": 10.64,
-      "type": "spacing",
-      "logprob": -0.00012599628826137632
-    },
-    {
-      "text": "talk",
-      "start": 11.16,
-      "end": 11.52,
-      "type": "word",
-      "logprob": -0.00012599628826137632
-    },
-    {
-      "text": " ",
-      "start": 11.52,
-      "end": 11.52,
-      "type": "spacing",
-      "logprob": -0.005235176533460617
-    },
-    {
-      "text": "and",
-      "start": 12.02,
-      "end": 12.12,
-      "type": "word",
-      "logprob": -0.005235176533460617
-    },
-    {
-      "text": " ",
-      "start": 12.12,
-      "end": 12.22,
-      "type": "spacing",
-      "logprob": -9.298280929215252e-06
-    },
-    {
-      "text": "paste.",
-      "start": 12.22,
-      "end": 12.66,
-      "type": "word",
-      "logprob": -1.0232075813595051e-05
-    },
-    {
-      "text": " ",
-      "start": 12.66,
-      "end": 12.94,
-      "type": "spacing",
-      "logprob": -0.00042655906872823834
-    },
-    {
-      "text": "Omachi",
-      "start": 12.94,
-      "end": 13.42,
-      "type": "word",
-      "logprob": -0.0003123954908611874
-    },
-    {
-      "text": " ",
-      "start": 13.42,
-      "end": 13.56,
-      "type": "spacing",
-      "logprob": -3.933898824470816e-06
-    },
-    {
-      "text": "moves",
-      "start": 13.56,
-      "end": 13.9,
-      "type": "word",
-      "logprob": -3.933898824470816e-06
-    },
-    {
-      "text": " ",
-      "start": 13.9,
-      "end": 13.94,
-      "type": "spacing",
-      "logprob": -8.344646857949556e-07
-    },
-    {
-      "text": "like",
-      "start": 13.94,
-      "end": 14.14,
-      "type": "word",
-      "logprob": -8.344646857949556e-07
-    },
-    {
-      "text": " ",
-      "start": 14.14,
-      "end": 14.2,
-      "type": "spacing",
-      "logprob": -1.4305104514278355e-06
-    },
-    {
-      "text": "water.",
-      "start": 14.2,
-      "end": 14.56,
-      "type": "word",
-      "logprob": -5.719117967828424e-05
-    },
-    {
-      "text": " ",
-      "start": 14.56,
-      "end": 15.0,
-      "type": "spacing",
-      "logprob": -8.535020606359467e-05
-    },
-    {
-      "text": "Tile",
-      "start": 15.0,
-      "end": 15.3,
-      "type": "word",
-      "logprob": -8.535020606359467e-05
-    },
-    {
-      "text": " ",
-      "start": 15.3,
-      "end": 15.38,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "it",
-      "start": 15.38,
-      "end": 15.58,
-      "type": "word",
-      "logprob": 0.0
-    },
-    {
-      "text": " ",
-      "start": 15.58,
-      "end": 15.88,
-      "type": "spacing",
-      "logprob": -1.0132738680113107e-05
-    },
-    {
-      "text": "or",
-      "start": 15.88,
-      "end": 15.96,
-      "type": "word",
-      "logprob": -1.0132738680113107e-05
-    },
-    {
-      "text": " ",
-      "start": 15.96,
-      "end": 16.04,
-      "type": "spacing",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": "let",
-      "start": 16.04,
-      "end": 16.14,
-      "type": "word",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": " ",
-      "start": 16.14,
-      "end": 16.18,
-      "type": "spacing",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": "it",
-      "start": 16.18,
-      "end": 16.28,
-      "type": "word",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": " ",
-      "start": 16.28,
-      "end": 16.36,
-      "type": "spacing",
-      "logprob": -2.074220174108632e-05
-    },
-    {
-      "text": "float.",
-      "start": 16.36,
-      "end": 16.7,
-      "type": "word",
-      "logprob": -1.7404377369227102e-05
-    },
-    {
-      "text": " ",
-      "start": 16.7,
-      "end": 17.0,
-      "type": "spacing",
-      "logprob": -4.1960789531003684e-05
-    },
-    {
-      "text": "Done",
-      "start": 17.0,
-      "end": 17.18,
-      "type": "word",
-      "logprob": -4.1960789531003684e-05
-    },
-    {
-      "text": " ",
-      "start": 17.18,
-      "end": 17.28,
-      "type": "spacing",
-      "logprob": -2.2291887944447808e-05
-    },
-    {
-      "text": "talking?",
-      "start": 17.28,
-      "end": 17.72,
-      "type": "word",
-      "logprob": -4.2451083800187916e-05
-    },
-    {
-      "text": " ",
-      "start": 17.72,
-      "end": 17.72,
-      "type": "spacing",
-      "logprob": -6.16293036728166e-05
-    },
-    {
-      "text": "Edit",
-      "start": 18.24,
-      "end": 18.46,
-      "type": "word",
-      "logprob": -6.16293036728166e-05
-    },
-    {
-      "text": " ",
-      "start": 18.46,
-      "end": 18.54,
-      "type": "spacing",
-      "logprob": -4.768370445162873e-07
-    },
-    {
-      "text": "it,",
-      "start": 18.54,
-      "end": 18.68,
-      "type": "word",
-      "logprob": -5.316315211227144e-05
-    },
-    {
-      "text": " ",
-      "start": 18.68,
-      "end": 18.94,
-      "type": "spacing",
-      "logprob": -3.194758028257638e-05
-    },
-    {
-      "text": "polish",
-      "start": 18.94,
-      "end": 19.32,
-      "type": "word",
-      "logprob": -3.194758028257638e-05
-    },
-    {
-      "text": " ",
-      "start": 19.32,
-      "end": 19.4,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "it,",
-      "start": 19.4,
-      "end": 19.54,
-      "type": "word",
-      "logprob": -3.973642748178463e-08
-    },
-    {
-      "text": " ",
-      "start": 19.54,
-      "end": 19.82,
-      "type": "spacing",
-      "logprob": -4.768370445162873e-07
-    },
-    {
-      "text": "rewrite",
-      "start": 19.82,
-      "end": 20.2,
-      "type": "word",
-      "logprob": -4.768370445162873e-07
-    },
-    {
-      "text": " ",
-      "start": 20.2,
-      "end": 20.26,
-      "type": "spacing",
-      "logprob": -2.3841855067985307e-07
-    },
-    {
-      "text": "it.",
-      "start": 20.26,
-      "end": 20.42,
-      "type": "word",
-      "logprob": -0.000236903976940539
-    },
-    {
-      "text": " ",
-      "start": 20.42,
-      "end": 20.42,
-      "type": "spacing",
-      "logprob": -3.099436753473128e-06
-    },
-    {
-      "text": "Find",
-      "start": 20.94,
-      "end": 21.16,
-      "type": "word",
-      "logprob": -3.099436753473128e-06
-    },
-    {
-      "text": " ",
-      "start": 21.16,
-      "end": 21.22,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "your",
-      "start": 21.22,
-      "end": 21.34,
-      "type": "word",
-      "logprob": 0.0
-    },
-    {
-      "text": " ",
-      "start": 21.34,
-      "end": 21.36,
-      "type": "spacing",
-      "logprob": -3.814689989667386e-06
-    },
-    {
-      "text": "thoughts",
-      "start": 21.36,
-      "end": 21.64,
-      "type": "word",
-      "logprob": -3.814689989667386e-06
-    },
-    {
-      "text": " ",
-      "start": 21.64,
-      "end": 21.7,
-      "type": "spacing",
-      "logprob": -2.264974000354414e-06
-    },
-    {
-      "text": "again,",
-      "start": 21.72,
-      "end": 22.02,
-      "type": "word",
-      "logprob": -4.032804073024939e-05
-    },
-    {
-      "text": " ",
-      "start": 22.02,
-      "end": 22.44,
-      "type": "spacing",
-      "logprob": -2.3841855067985307e-07
-    },
-    {
-      "text": "your",
-      "start": 22.46,
-      "end": 22.58,
-      "type": "word",
-      "logprob": -2.3841855067985307e-07
-    },
-    {
-      "text": " ",
-      "start": 22.58,
-      "end": 22.62,
-      "type": "spacing",
-      "logprob": -3.814689989667386e-06
-    },
-    {
-      "text": "desktop,",
-      "start": 22.62,
-      "end": 23.22,
-      "type": "word",
-      "logprob": -3.546469827142573e-06
-    },
-    {
-      "text": " ",
-      "start": 23.22,
-      "end": 23.36,
-      "type": "spacing",
-      "logprob": -2.3841855067985307e-07
-    },
-    {
-      "text": "your",
-      "start": 23.36,
-      "end": 23.48,
-      "type": "word",
-      "logprob": -2.3841855067985307e-07
-    },
-    {
-      "text": " ",
-      "start": 23.48,
-      "end": 23.54,
-      "type": "spacing",
-      "logprob": -0.004566360730677843
-    },
-    {
-      "text": "palette,",
-      "start": 23.54,
-      "end": 23.96,
-      "type": "word",
-      "logprob": -0.004109954199520871
-    },
-    {
-      "text": " ",
-      "start": 23.96,
-      "end": 24.28,
-      "type": "spacing",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": "any",
-      "start": 24.28,
-      "end": 24.5,
-      "type": "word",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": " ",
-      "start": 24.5,
-      "end": 24.56,
-      "type": "spacing",
-      "logprob": -0.00047874910524114966
-    },
-    {
-      "text": "Omachi",
-      "start": 24.58,
-      "end": 25.08,
-      "type": "word",
-      "logprob": -0.0004779547452926636
-    },
-    {
-      "text": " ",
-      "start": 25.08,
-      "end": 25.1,
-      "type": "spacing",
-      "logprob": -7.390703103737906e-05
-    },
-    {
-      "text": "theme",
-      "start": 25.14,
-      "end": 25.58,
-      "type": "word",
-      "logprob": -7.390703103737906e-05
-    },
-    {
-      "text": " ",
-      "start": 25.58,
-      "end": 25.66,
-      "type": "spacing",
-      "logprob": -0.0028072495479136705
-    },
-    {
-      "text": "automatically.",
-      "start": 25.66,
-      "end": 26.38,
-      "type": "word",
-      "logprob": -0.0026072255883978607
-    },
-    {
-      "text": " ",
-      "start": 26.38,
-      "end": 26.38,
-      "type": "spacing",
-      "logprob": -6.318072337307967e-06
-    },
-    {
-      "text": "Try",
-      "start": 27.16,
-      "end": 27.44,
-      "type": "word",
-      "logprob": -6.318072337307967e-06
-    },
-    {
-      "text": " ",
-      "start": 27.44,
-      "end": 27.52,
-      "type": "spacing",
-      "logprob": -0.012523227371275425
-    },
-    {
-      "text": "live",
-      "start": 27.52,
-      "end": 27.82,
-      "type": "word",
-      "logprob": -0.012523227371275425
-    },
-    {
-      "text": " ",
-      "start": 27.82,
-      "end": 27.92,
-      "type": "spacing",
-      "logprob": -0.0009264229447580874
-    },
-    {
-      "text": "rewrite.",
-      "start": 27.92,
-      "end": 28.4,
-      "type": "word",
-      "logprob": -0.0008136598764849623
-    },
-    {
-      "text": " ",
-      "start": 28.4,
-      "end": 28.82,
-      "type": "spacing",
-      "logprob": -6.437280717364047e-06
-    },
-    {
-      "text": "Keep",
-      "start": 28.82,
-      "end": 28.98,
-      "type": "word",
-      "logprob": -6.437280717364047e-06
-    },
-    {
-      "text": " ",
-      "start": 28.98,
-      "end": 29.14,
-      "type": "spacing",
-      "logprob": -3.576278118089249e-07
-    },
-    {
-      "text": "speaking",
-      "start": 29.14,
-      "end": 29.6,
-      "type": "word",
-      "logprob": -3.576278118089249e-07
-    },
-    {
-      "text": " ",
-      "start": 29.6,
-      "end": 29.68,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "as",
-      "start": 29.68,
-      "end": 29.76,
-      "type": "word",
-      "logprob": 0.0
-    },
-    {
-      "text": " ",
-      "start": 29.76,
-      "end": 29.8,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "your",
-      "start": 29.8,
-      "end": 29.94,
-      "type": "word",
-      "logprob": 0.0
-    },
-    {
-      "text": " ",
-      "start": 29.94,
-      "end": 30.0,
-      "type": "spacing",
-      "logprob": -2.264974000354414e-06
-    },
-    {
-      "text": "text",
-      "start": 30.0,
-      "end": 30.28,
-      "type": "word",
-      "logprob": -2.264974000354414e-06
-    },
-    {
-      "text": " ",
-      "start": 30.28,
-      "end": 30.34,
-      "type": "spacing",
-      "logprob": -2.0265558760002023e-06
-    },
-    {
-      "text": "takes",
-      "start": 30.34,
-      "end": 30.56,
-      "type": "word",
-      "logprob": -2.0265558760002023e-06
-    },
-    {
-      "text": " ",
-      "start": 30.56,
-      "end": 30.62,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "shape",
-      "start": 30.62,
-      "end": 30.94,
-      "type": "word",
-      "logprob": 0.0
-    },
-    {
-      "text": " ",
-      "start": 30.94,
-      "end": 31.2,
-      "type": "spacing",
-      "logprob": -0.38710352778434753
-    },
-    {
-      "text": "or",
-      "start": 31.2,
-      "end": 31.32,
-      "type": "word",
-      "logprob": -0.38710352778434753
-    },
-    {
-      "text": " ",
-      "start": 31.32,
-      "end": 31.36,
-      "type": "spacing",
-      "logprob": -5.483612312673358e-06
-    },
-    {
-      "text": "build",
-      "start": 31.36,
-      "end": 31.58,
-      "type": "word",
-      "logprob": -5.483612312673358e-06
-    },
-    {
-      "text": " ",
-      "start": 31.58,
-      "end": 31.64,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "a",
-      "start": 31.64,
-      "end": 31.7,
-      "type": "word",
-      "logprob": 0.0
-    },
-    {
-      "text": " ",
-      "start": 31.7,
-      "end": 31.76,
-      "type": "spacing",
-      "logprob": -9.179073458653875e-06
-    },
-    {
-      "text": "task",
-      "start": 31.76,
-      "end": 32.08,
-      "type": "word",
-      "logprob": -9.179073458653875e-06
-    },
-    {
-      "text": " ",
-      "start": 32.08,
-      "end": 32.2,
-      "type": "spacing",
-      "logprob": -7.009260298218578e-05
-    },
-    {
-      "text": "spec",
-      "start": 32.2,
-      "end": 32.5,
-      "type": "word",
-      "logprob": -7.009260298218578e-05
-    },
-    {
-      "text": " ",
-      "start": 32.5,
-      "end": 32.82,
-      "type": "spacing",
-      "logprob": -4.887569048150908e-06
-    },
-    {
-      "text": "with",
-      "start": 32.82,
-      "end": 32.96,
-      "type": "word",
-      "logprob": -4.887569048150908e-06
-    },
-    {
-      "text": " ",
-      "start": 32.96,
-      "end": 33.02,
-      "type": "spacing",
-      "logprob": -3.2186455882765586e-06
-    },
-    {
-      "text": "questions",
-      "start": 33.02,
-      "end": 33.58,
-      "type": "word",
-      "logprob": -3.2186455882765586e-06
-    },
-    {
-      "text": " ",
-      "start": 33.58,
-      "end": 33.62,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "for",
-      "start": 33.62,
-      "end": 33.74,
-      "type": "word",
-      "logprob": 0.0
-    },
-    {
-      "text": " ",
-      "start": 33.74,
-      "end": 33.78,
-      "type": "spacing",
-      "logprob": -1.1920928244535389e-07
-    },
-    {
-      "text": "what's",
-      "start": 33.78,
-      "end": 34.0,
-      "type": "word",
-      "logprob": -1.053012506228394e-06
-    },
-    {
-      "text": " ",
-      "start": 34.0,
-      "end": 34.08,
-      "type": "spacing",
-      "logprob": -5.960462772236497e-07
-    },
-    {
-      "text": "still",
-      "start": 34.08,
-      "end": 34.26,
-      "type": "word",
-      "logprob": -5.960462772236497e-07
-    },
-    {
-      "text": " ",
-      "start": 34.26,
-      "end": 34.32,
-      "type": "spacing",
-      "logprob": -5.722029527532868e-06
-    },
-    {
-      "text": "missing.",
-      "start": 34.32,
-      "end": 34.74,
-      "type": "word",
-      "logprob": -6.183962000250176e-06
-    },
-    {
-      "text": " ",
-      "start": 34.74,
-      "end": 35.24,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "A",
-      "start": 35.24,
-      "end": 35.26,
-      "type": "word",
-      "logprob": 0.0
-    },
-    {
-      "text": " ",
-      "start": 35.26,
-      "end": 35.32,
-      "type": "spacing",
-      "logprob": -3.576278118089249e-07
-    },
-    {
-      "text": "little",
-      "start": 35.32,
-      "end": 35.52,
-      "type": "word",
-      "logprob": -3.576278118089249e-07
-    },
-    {
-      "text": " ",
-      "start": 35.52,
-      "end": 35.56,
-      "type": "spacing",
-      "logprob": -2.3841855067985307e-07
-    },
-    {
-      "text": "more",
-      "start": 35.56,
-      "end": 35.76,
-      "type": "word",
-      "logprob": -2.3841855067985307e-07
-    },
-    {
-      "text": " ",
-      "start": 35.76,
-      "end": 35.8,
-      "type": "spacing",
-      "logprob": -0.00019143179815728217
-    },
-    {
-      "text": "delight",
-      "start": 35.8,
-      "end": 36.26,
-      "type": "word",
-      "logprob": -0.00019143179815728217
-    },
-    {
-      "text": " ",
-      "start": 36.26,
-      "end": 36.34,
-      "type": "spacing",
-      "logprob": -7.390948667307384e-06
-    },
-    {
-      "text": "every",
-      "start": 36.34,
-      "end": 36.52,
-      "type": "word",
-      "logprob": -7.390948667307384e-06
-    },
-    {
-      "text": " ",
-      "start": 36.52,
-      "end": 36.62,
-      "type": "spacing",
-      "logprob": 0.0
-    },
-    {
-      "text": "day.",
-      "start": 36.62,
-      "end": 36.86,
-      "type": "word",
-      "logprob": -0.14398755133152008
-    }
-  ],
-  "transcription_id": "tUFLcL0ktPoIk2fu0Glg",
-  "audio_duration_secs": 37.022
+  "sarah": {
+    "language_code": "eng",
+    "language_probability": 1.0,
+    "text": "Meet Maluva. Delightful dictation for OmarchI. Choose local or cloud, then pick your rewriting tools. Press F9, talk and paste. Maluva floats like water. Polish your words. Go through your history. It matches your OmarchI theme. Use live rewrite. See your document take shape as you talk or turn an idea into a task. A little more delight every day",
+    "words": [
+      {
+        "text": "Meet",
+        "start": 0.24,
+        "end": 0.54
+      },
+      {
+        "text": "Maluva.",
+        "start": 1.08,
+        "end": 1.66
+      },
+      {
+        "text": "Delightful",
+        "start": 2.56,
+        "end": 3.02
+      },
+      {
+        "text": "dictation",
+        "start": 3.1,
+        "end": 3.76
+      },
+      {
+        "text": "for",
+        "start": 3.94,
+        "end": 4.12
+      },
+      {
+        "text": "OmarchI.",
+        "start": 4.32,
+        "end": 4.92
+      },
+      {
+        "text": "Choose",
+        "start": 5.96,
+        "end": 6.2
+      },
+      {
+        "text": "local",
+        "start": 6.3,
+        "end": 6.68
+      },
+      {
+        "text": "or",
+        "start": 6.82,
+        "end": 6.9
+      },
+      {
+        "text": "cloud,",
+        "start": 7.02,
+        "end": 7.42
+      },
+      {
+        "text": "then",
+        "start": 7.76,
+        "end": 7.98
+      },
+      {
+        "text": "pick",
+        "start": 8.02,
+        "end": 8.22
+      },
+      {
+        "text": "your",
+        "start": 8.26,
+        "end": 8.38
+      },
+      {
+        "text": "rewriting",
+        "start": 8.42,
+        "end": 8.9
+      },
+      {
+        "text": "tools.",
+        "start": 9.0,
+        "end": 9.44
+      },
+      {
+        "text": "Press",
+        "start": 9.76,
+        "end": 10.0
+      },
+      {
+        "text": "F9,",
+        "start": 10.18,
+        "end": 10.76
+      },
+      {
+        "text": "talk",
+        "start": 11.38,
+        "end": 11.72
+      },
+      {
+        "text": "and",
+        "start": 12.16,
+        "end": 12.28
+      },
+      {
+        "text": "paste.",
+        "start": 12.4,
+        "end": 12.84
+      },
+      {
+        "text": "Maluva",
+        "start": 13.16,
+        "end": 13.6
+      },
+      {
+        "text": "floats",
+        "start": 13.78,
+        "end": 14.14
+      },
+      {
+        "text": "like",
+        "start": 14.2,
+        "end": 14.42
+      },
+      {
+        "text": "water.",
+        "start": 14.48,
+        "end": 14.86
+      },
+      {
+        "text": "Polish",
+        "start": 15.5,
+        "end": 15.88
+      },
+      {
+        "text": "your",
+        "start": 15.94,
+        "end": 16.04
+      },
+      {
+        "text": "words.",
+        "start": 16.12,
+        "end": 16.56
+      },
+      {
+        "text": "Go",
+        "start": 17.14,
+        "end": 17.26
+      },
+      {
+        "text": "through",
+        "start": 17.36,
+        "end": 17.58
+      },
+      {
+        "text": "your",
+        "start": 17.64,
+        "end": 17.74
+      },
+      {
+        "text": "history.",
+        "start": 17.8,
+        "end": 18.32
+      },
+      {
+        "text": "It",
+        "start": 18.6,
+        "end": 18.72
+      },
+      {
+        "text": "matches",
+        "start": 18.78,
+        "end": 19.22
+      },
+      {
+        "text": "your",
+        "start": 19.28,
+        "end": 19.4
+      },
+      {
+        "text": "OmarchI",
+        "start": 19.48,
+        "end": 20.02
+      },
+      {
+        "text": "theme.",
+        "start": 20.08,
+        "end": 20.46
+      },
+      {
+        "text": "Use",
+        "start": 20.98,
+        "end": 21.18
+      },
+      {
+        "text": "live",
+        "start": 21.32,
+        "end": 21.52
+      },
+      {
+        "text": "rewrite.",
+        "start": 21.6,
+        "end": 22.12
+      },
+      {
+        "text": "See",
+        "start": 22.72,
+        "end": 22.86
+      },
+      {
+        "text": "your",
+        "start": 22.9,
+        "end": 23.04
+      },
+      {
+        "text": "document",
+        "start": 23.1,
+        "end": 23.62
+      },
+      {
+        "text": "take",
+        "start": 23.68,
+        "end": 23.9
+      },
+      {
+        "text": "shape",
+        "start": 23.96,
+        "end": 24.34
+      },
+      {
+        "text": "as",
+        "start": 24.42,
+        "end": 24.54
+      },
+      {
+        "text": "you",
+        "start": 24.58,
+        "end": 24.68
+      },
+      {
+        "text": "talk",
+        "start": 24.74,
+        "end": 25.06
+      },
+      {
+        "text": "or",
+        "start": 25.86,
+        "end": 25.98
+      },
+      {
+        "text": "turn",
+        "start": 26.1,
+        "end": 26.3
+      },
+      {
+        "text": "an",
+        "start": 26.32,
+        "end": 26.4
+      },
+      {
+        "text": "idea",
+        "start": 26.48,
+        "end": 26.94
+      },
+      {
+        "text": "into",
+        "start": 27.02,
+        "end": 27.24
+      },
+      {
+        "text": "a",
+        "start": 27.28,
+        "end": 27.34
+      },
+      {
+        "text": "task.",
+        "start": 27.4,
+        "end": 27.86
+      },
+      {
+        "text": "A",
+        "start": 28.72,
+        "end": 28.76
+      },
+      {
+        "text": "little",
+        "start": 28.82,
+        "end": 29.02
+      },
+      {
+        "text": "more",
+        "start": 29.08,
+        "end": 29.28
+      },
+      {
+        "text": "delight",
+        "start": 29.32,
+        "end": 29.74
+      },
+      {
+        "text": "every",
+        "start": 29.96,
+        "end": 30.16
+      },
+      {
+        "text": "day",
+        "start": 30.26,
+        "end": 30.5
+      }
+    ],
+    "transcription_id": "vS8O1gywdANp6TZUV6WW",
+    "audio_duration_secs": 30.6616875
+  },
+  "brand": {
+    "language_code": "eng",
+    "language_probability": 1.0,
+    "text": "Meet Mluva. Mluva floats like water.",
+    "words": [
+      {
+        "text": "Meet",
+        "start": 0.22,
+        "end": 0.42
+      },
+      {
+        "text": "Mluva.",
+        "start": 0.56,
+        "end": 1.04
+      },
+      {
+        "text": "Mluva",
+        "start": 1.54,
+        "end": 1.92
+      },
+      {
+        "text": "floats",
+        "start": 2.1,
+        "end": 2.46
+      },
+      {
+        "text": "like",
+        "start": 2.52,
+        "end": 2.72
+      },
+      {
+        "text": "water.",
+        "start": 2.78,
+        "end": 3.18
+      }
+    ],
+    "transcription_id": "WNNbFW4q9xq25Hht2Dl6",
+    "audio_duration_secs": 3.414
+  }
 }

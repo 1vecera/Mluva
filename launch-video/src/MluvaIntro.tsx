@@ -29,9 +29,7 @@ const envelope = (t: number, start: number, end: number, fade = 0.22) =>
   ramp(t, start, start + fade) * ramp(t, end - fade, end, 1, 0);
 // Reframe native desktop footage; the app remains its original recorded pixels.
 const camera = (t: number) =>
-  1 +
-  0.53 * envelope(t, 5.55, 11.95, 0.6) +
-  0.53 * envelope(t, 26.5, 55.35, 0.65);
+  1 + 0.33 * envelope(t, 5.6, 18, 0.85) + 0.58 * envelope(t, 38, 73.4, 0.85);
 
 const Brand: React.FC<{ opacity: number; closing?: boolean }> = ({
   opacity,
@@ -65,8 +63,13 @@ const Brand: React.FC<{ opacity: number; closing?: boolean }> = ({
     >
       {closing
         ? "A little more delight every day."
-        : "Most delightful dictation for Omarchy"}
+        : "Delightful dictation for Omarchy"}
     </div>
+    {!closing && (
+      <div style={{ color: "#b7c5d9", fontSize: 24 }}>
+        Local or cloud · Your choice of tools
+      </div>
+    )}
     {closing && (
       <div
         style={{
@@ -86,19 +89,20 @@ const Brand: React.FC<{ opacity: number; closing?: boolean }> = ({
   </AbsoluteFill>
 );
 const keys = [
-  { start: 12.18, end: 13.75, key: "F9", label: "Talk" },
-  { start: 18.57, end: 19.23, key: "F9", label: "Finish" },
-  { start: 19.23, end: 20.9, key: "Ctrl + V", label: "Paste" },
-  { start: 21.95, end: 23.45, key: "Super + T", label: "Tile" },
-  { start: 24.05, end: 25.6, key: "Super + T", label: "Float" },
-  { start: 27.55, end: 29.15, key: "Ctrl + P", label: "Commands" },
+  { start: 18.3, end: 20.3, key: "F9", label: "Talk" },
+  { start: 26.8, end: 27.6, key: "F9", label: "Finish" },
+  { start: 27.6, end: 29.8, key: "Ctrl + V", label: "Paste" },
+  { start: 38.5, end: 40.3, key: "Ctrl + P", label: "Commands" },
 ];
 export const MluvaIntro: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
-  const opening = envelope(t, 3, 6.05, 0.28);
-  const closing = ramp(t, 55, 55.45);
+  const opening = ramp(t, 5.55, 6, 1, 0);
+  const closing = ramp(t, 73, 73.55);
+  const subtitle = cues.cues.find(
+    (cue) => t >= cue.film_start && t < cue.subtitle_end,
+  );
   const key = keys.find((cue) => t >= cue.start && t < cue.end);
   const musicVolume = (f: number) => {
     const time = f / fps;
@@ -109,7 +113,7 @@ export const MluvaIntro: React.FC = () => {
       ),
     );
     return (
-      (0.32 - 0.17 * voice) * ramp(time, 0, 0.6) * ramp(time, 57.5, 59, 1, 0)
+      (0.6 - 0.25 * voice) * ramp(time, 0, 1.2) * ramp(time, 75.5, 78, 1, 0)
     );
   };
   return (
@@ -122,17 +126,20 @@ export const MluvaIntro: React.FC = () => {
       }}
     >
       <AbsoluteFill
-        style={{ transform: `scale(${camera(t)})`, transformOrigin: "50% 50%" }}
+        style={{
+          transform: `scale(${camera(t)})`,
+          transformOrigin: "50% 46.3%",
+        }}
       >
         <OffthreadVideo
           src={staticFile("live/desktop.mp4")}
           muted
           style={{
             position: "absolute",
-            left: 96,
+            left: 160,
             top: 0,
-            width: 1728,
-            height: 1080,
+            width: 1600,
+            height: 1000,
           }}
         />
       </AbsoluteFill>
@@ -160,6 +167,34 @@ export const MluvaIntro: React.FC = () => {
       )}
       {opening > 0 && <Brand opacity={opening} />}
       {closing > 0 && <Brand opacity={closing} closing />}
+      {subtitle && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 24,
+            width: "100%",
+            textAlign: "center",
+            padding: "0 120px",
+          }}
+        >
+          <span
+            style={{
+              display: "inline-block",
+              maxWidth: 1440,
+              padding: "12px 24px",
+              borderRadius: 8,
+              background: "rgba(4, 9, 22, 0.94)",
+              color: "#ffffff",
+              fontSize: 34,
+              lineHeight: 1.3,
+              fontFamily: '"JetBrains Mono", monospace',
+              boxShadow: "0 2px 18px #0006",
+            }}
+          >
+            {subtitle.text}
+          </span>
+        </div>
+      )}
       <Audio src={staticFile("live/sarah.wav")} />
       <Audio src={staticFile("audio/music-bed.wav")} volume={musicVolume} />
     </AbsoluteFill>

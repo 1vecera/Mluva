@@ -1,6 +1,6 @@
 {
-  "file": "mluva-intro-live-sarah.mp4",
-  "sha256": "cf69947ed03d833b26fa973c53ba4133932c7cd8bdd66c2815e8cd41c99351fa",
+  "file": "mluva-intro-live-sarah-v2.mp4",
+  "sha256": "2c6dff1e942d9a29689dd24f2c5c80630cce196cb09e192ca8299098c7548456",
   "probe": {
     "programs": [],
     "stream_groups": [],
@@ -10,38 +10,50 @@
         "width": 1920,
         "height": 1080,
         "r_frame_rate": "60/1",
-        "duration": "59.000000",
-        "nb_frames": "3540"
+        "duration": "78.000000",
+        "nb_frames": "4680"
       },
       {
         "codec_name": "aac",
         "sample_rate": "48000",
         "channels": 2,
         "r_frame_rate": "0/0",
-        "duration": "59.050667",
-        "nb_frames": "2769"
+        "duration": "78.100000",
+        "nb_frames": "3660"
       }
     ],
     "format": {
-      "duration": "59.050667",
-      "size": "17079032"
+      "duration": "78.100000",
+      "size": "22155717"
     }
   },
   "audio": {
-    "input_i": "-16.06",
-    "input_tp": "-2.90",
-    "input_lra": "6.30",
-    "input_thresh": "-26.33",
-    "output_i": "-15.67",
-    "output_tp": "-2.19",
-    "output_lra": "6.20",
-    "output_thresh": "-25.91",
+    "input_i": "-16.29",
+    "input_tp": "-1.54",
+    "input_lra": "8.40",
+    "input_thresh": "-26.73",
+    "output_i": "-15.78",
+    "output_tp": "-1.80",
+    "output_lra": "7.60",
+    "output_thresh": "-26.16",
     "normalization_type": "dynamic",
-    "target_offset": "-0.33"
+    "target_offset": "-0.22"
+  },
+  "music_balance": {
+    "voice_minus_music_db_rms_during_phrases": 17.33,
+    "music_stem_lufs": -26,
+    "speech_gain": 0.35,
+    "gap_gain": 0.6,
+    "note": "Compares aligned mono voice against stereo-averaged music at ducked gain before final mastering; opening/closing fades make music quieter still."
   },
   "decode": "passed",
   "black_intervals_at_least_100ms": 0,
-  "checked_story_beats": 11,
-  "checked_encoded_stills": 17,
-  "sound_on_review": "Human review pending; transcription and loudness verified."
+  "checked_feature_sequence": 10,
+  "checked_encoded_stills": 25,
+  "motion_sequences": [
+    "widget movement",
+    "widget-to-Polish camera ramp"
+  ],
+  "sound_on_review": "Human review pending; transcription and loudness verified.",
+  "final_audio_matches_transcribed_master": true
 }
