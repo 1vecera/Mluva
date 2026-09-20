@@ -126,9 +126,20 @@ class _TailFollower:
         self.pending = False
         if not self.following:
             return GLib.SOURCE_REMOVE
-        self._anticipate_wrap()
         adjustment = self.scroll.get_vadjustment()
+        direct_text = self.view is not None and self.scroll.get_child() is self.view
+        if direct_text and (not self.scroll.get_mapped() or adjustment.get_page_size() <= 0):
+            return GLib.SOURCE_REMOVE
+        self._anticipate_wrap()
         destination = max(0, adjustment.get_upper() - adjustment.get_page_size())
+        if direct_text:
+            # GTK can still report the temporary page-sized bottom reserve
+            # after _anticipate_wrap removes it. Following that stale extent
+            # turns a short partial transcript into a permanent revision inset.
+            # TextView's laid-out buffer geometry excludes those pending margins.
+            line_y, line_height = self.view.get_line_yrange(self.view.get_buffer().get_end_iter())
+            content_end = line_y + line_height + self.view.get_top_margin() + self.view.get_bottom_margin()
+            destination = max(0, content_end - adjustment.get_page_size())
         if not self.snap_next:
             destination = max(adjustment.get_value(), self.destination, destination)
         if (

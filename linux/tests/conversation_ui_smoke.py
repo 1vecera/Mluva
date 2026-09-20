@@ -119,8 +119,8 @@ def main() -> int:
                 exercise_rewrite_settings(application)
             elif scenario == "titles":
                 exercise_titles(application)
-            elif scenario == "scroll-motion":
-                exercise_scrolling(application, output)
+            elif scenario in {"scroll-motion", "scroll-origin"}:
+                exercise_scrolling(application, output, short_only=scenario == "scroll-origin")
             application._navigate_to_page("capture")
             for text in (
                 "A few ideas for Friday's meeting",
