@@ -29,6 +29,7 @@ class RealtimeServerState:
     api_key: str | None = None
     events: list[dict[str, object]] = field(default_factory=list)
     audio: bytearray = field(default_factory=bytearray)
+    transcript: str = "Hello world."
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,13 +72,13 @@ def realtime_server() -> Iterator[RealtimeServer]:
                         json.dumps(
                             {
                                 "message_type": "final_transcript_with_timestamps",
-                                "text": "Hello world.",
+                                "text": state.transcript,
                                 "language_code": "eng",
                                 "words": [],
                             }
                         )
                     )
-                connection.send(json.dumps({"message_type": "committed_transcript", "text": "Hello world."}))
+                connection.send(json.dumps({"message_type": "committed_transcript", "text": state.transcript}))
                 return
             connection.send(json.dumps({"message_type": "partial_transcript", "text": "Hello wor"}))
             connection.send(json.dumps({"message_type": "final_transcript", "text": "Hello world"}))
@@ -85,6 +86,17 @@ def realtime_server() -> Iterator[RealtimeServer]:
     server, thread, endpoint = _start_server(handler)
     yield RealtimeServer(endpoint=endpoint, state=state)
     _stop_server(server, thread)
+
+
+def test_empty_committed_response_finishes_without_error_or_volatile_text(realtime_server: RealtimeServer) -> None:
+    """Acknowledge a silent final commit as success while discarding uncommitted hypotheses."""
+    realtime_server.state.transcript = ""
+    client = ElevenLabsRealtimeClient(api_key="test", endpoint=realtime_server.endpoint, finalization_timeout_seconds=2)
+    session = client.start("auto")
+    assert session.submit_audio(bytes(3_200))
+    result = session.finish()
+    assert result.transcription.text == ""
+    assert result.transcription.audio_duration_seconds == pytest.approx(0.1)
 
 
 def test_realtime_session_uses_reviewed_wire_contract_and_committed_text_only(

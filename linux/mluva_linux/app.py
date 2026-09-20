@@ -3180,6 +3180,10 @@ class MluvaApplication(Adw.Application):
         """Render the final output and restore the ready state on GTK's thread."""
         workspace = self.conversation_workspace
         viewing_live = workspace is not None and workspace.viewing_live
+        empty_capture = not result.transcription.text.strip()
+        preserved_draft = (
+            workspace.live_draft() if empty_capture and viewing_live and workspace.live_draft_available else ""
+        )
         self.capture_processing = False
         self.realtime_session = None
         self.segment_cleanup_session = None
@@ -3208,6 +3212,16 @@ class MluvaApplication(Adw.Application):
         self.pending_use_saved_style = False
         self.pending_codex_model_identifier = None
         self.pending_transcript_preparation = None
+        if empty_capture:
+            self._cancel_live_rewrite()
+            self.pending_command_target = None
+            self.pending_command_result = None
+            self._set_status(status)
+            self._reset_record_button()
+            if workspace is not None and preserved_draft.strip():
+                workspace.show_transient("", preserved_draft)
+                workspace.notice.set_label("No speech detected. Your live draft is still here.")
+            return GLib.SOURCE_REMOVE
         self.editing_scratchpad = result.mode == "scratchpad" and result.requires_acceptance
         if result.mode == "command" and result.requires_acceptance:
             self.pending_command_result = result
