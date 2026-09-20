@@ -2,6 +2,17 @@
 
 This file records user-visible Mluva releases.
 
+## 1.2.0 — 2026-09-18
+
+- Introduced the final Mluva identity: a glossy red mark beside the Mluva wordmark with its soft M. The launcher tile, GNOME panel icon, README, site and documentation use it. The complete asset set, with three lockup ratios, marks, icon PNGs and a favicon `.ico`, lives in [docs/brand](docs/brand/README.md) and regenerates from committed sources.
+- Made every prompt editable through Settings → Prompts and readable override files in `~/.config/mluva/prompts/`, with Ctrl+P deep links, staged restore, invalid-file fallback and external-edit conflict detection. Custom and saved-style text remains a lossless recovery baseline. A recording keeps its prompt set; saved changes apply to the next recording.
+- Stabilized Live dictation: new words appear immediately at full opacity, a fresh recording starts at the top, the Live draft pane is present from startup, and deliberate edits survive restarts within the same capture. The recording light moves between fixed circular endpoints with fluid deformation between them.
+- Refined the workspace: one JetBrains Mono typeface, full-window provider setup and settings, wider collapsible Live panes, a translucent command list with visible shortcuts, and recorder updates that fade only changed words and keep large corrections visible without reversing automatic scrolling.
+- Unified Live templates into single declarations and centralized rewrite provider and model policy; automatic titles run in a separate bounded queue with the same privacy, manual-naming and deletion gates. Prompt identities, defaults and generated prompts are preserved.
+- Trimmed the test suite to 451 focused cases and documented when a test earns its place.
+
+The matching Omarchy widget remains version 0.4.0.
+
 ## 1.1.0 — 2026-09-11
 
 - Enable, pause and change Live rewrite templates while dictating. Grilling is the default for new preferences, with unanswered questions pinned above notes that grow from supplied intent, constraints, preferences and technologies. Existing template choices are preserved and Live remains opt-in.
