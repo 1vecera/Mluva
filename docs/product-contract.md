@@ -16,7 +16,7 @@ Command and Notes modes retain an explicit preview/accept step. Meeting mode exp
 
 ## Providers and credentials
 
-Speech and rewriting are selected independently. Cloud speech sends audio to its provider; rewriting and automatic titles send text to the chosen rewrite provider. Local Voxtype/Whisper keeps recognition local, but does not determine where other processing happens.
+Speech and rewriting are selected independently. Cloud speech sends audio to its provider; rewriting and automatic titles send text to the chosen rewrite provider. App-managed local models keep recognition local and never use a paid fallback. They load only while transcribing. Choosing Skip for rewriting disables model-based polishing and automatic titles.
 
 Codex uses an authenticated app-server with a concrete model, an ephemeral read-only thread, disabled approvals and instructions forbidding tools. Compatible text endpoints receive chat messages without tools; tool requests and incomplete responses are rejected. Account access, service retention and usage charges belong to the selected provider.
 

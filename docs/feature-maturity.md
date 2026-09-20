@@ -22,7 +22,7 @@ Automatic paste is an explicit known limitation: it depends on the desktop and t
 
 | Feature | Current boundary |
 | --- | --- |
-| Independent rewrite and speech providers | LiteLLM transports and local Voxtype have controlled checks; cloud account compatibility needs acceptance. |
+| Independent rewrite and speech providers | Compatible APIs and app-owned local models have controlled checks; cloud accounts need acceptance. |
 | Live structured rewriting | Opt-in task, note, polish and custom drafts expose missing information; model quality needs acceptance. |
 | Automatic paste | Known limitation: insertion is disabled by default and depends on the target application and desktop; clipboard delivery is the standard workflow. |
 | Faithful cleanup | Optional Codex cleanup preserves the raw transcript and falls back safely, but still needs manual acceptance. |

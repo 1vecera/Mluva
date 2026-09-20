@@ -22,7 +22,7 @@ Speak freely, turn the result into a useful draft, and keep every original word.
 
 **A calm place to work.** Stable Live panes, restrained recording motion and subtle Markdown keep long notes readable. **Ctrl+P** finds actions; **Ctrl+Enter** sends a rewrite. Copy and scrolling preferences are yours to change.
 
-**Your choice of engines.** Select speech and rewriting independently: ElevenLabs Scribe, local Voxtype/Whisper or a compatible transcription API; native Codex app-server or a LiteLLM/OpenAI-compatible service for rewriting. Availability, credentials and models are configured in Settings.
+**Your choice of engines.** Select speech and rewriting independently: ElevenLabs Scribe, Mluva-managed local speech models or a compatible transcription API; native Codex app-server or a LiteLLM/OpenAI-compatible service for rewriting. Availability, credentials and models are configured in Settings.
 
 Live rewrite is opt-in and Experimental. It marks missing information, preserves manual edits and reconciles the draft with the final transcript when recording stops. [Explore the features and their limits →](docs/feature-story.md)
 
@@ -36,7 +36,7 @@ cd mluva
 bash install.sh
 ```
 
-Launch **Mluva** from the application menu, then choose your [speech and rewrite providers](docs/provider-selection.md). Cloud providers need an account and credentials; local Whisper needs Voxtype and a downloaded model. Provider setup is separate from installing the app.
+Launch **Mluva** from the application menu, then choose your [speech and rewrite providers](docs/provider-selection.md). Cloud providers need an account and credentials; local recognition downloads its own model, with CPU support by default and optional NVIDIA GPU acceleration. Provider setup is separate from installing the app.
 
 ### Install with an agent
 

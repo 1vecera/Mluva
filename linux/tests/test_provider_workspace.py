@@ -15,7 +15,7 @@ from mluva_linux.config import AppConfig
 from mluva_linux.conversation import ConversationStore, rewrite_prompt
 from mluva_linux.elevenlabs import TranscriptionResult
 from mluva_linux.history import HistoryStore
-from mluva_linux.providers import LiteLLMClient, ProviderError, VoxtypeClient
+from mluva_linux.providers import LiteLLMClient, ProviderError
 from mluva_linux.workflow import DictationWorkflow
 
 
@@ -111,30 +111,6 @@ def test_provider_urls_reject_credentials_and_cleartext_remote_hosts(url):
         AppConfig(litellm_base_url=url)
 
 
-def test_local_voxtype_file_mode_ignores_cli_diagnostics(tmp_path):
-    """Use the local engine, preserve Unicode and never invoke output or recording controls."""
-    with patch("mluva_linux.providers.subprocess.Popen") as run:
-        output = 'Loading audio file: "fixture"\nAudio format: 16000 Hz\nProcessing samples...\n\nČistý text.\n'
-        run.return_value.communicate.return_value = (output, None)
-        run.return_value.returncode = 0
-        assert VoxtypeClient("small").transcribe(tmp_path / "source.wav", "ces").text == "Čistý text."
-    command = run.call_args.args[0]
-    assert command == [
-        "voxtype",
-        "--quiet",
-        "--engine",
-        "whisper",
-        "--whisper-mode",
-        "local",
-        "--language",
-        "cs",
-        "--model",
-        "small",
-        "transcribe",
-        str(tmp_path / "source.wav"),
-    ]
-
-
 def test_saved_source_and_reply_edits_survive_restart_and_deletion(tmp_path):
     """Edited working documents drive rewriting without destroying raw recovery evidence."""
     history = HistoryStore(tmp_path / "history.sqlite3")
@@ -186,7 +162,7 @@ def test_local_capture_without_cloud_credentials_or_clipboard(tmp_path):
     """Exercise provider metadata and disabled automatic copying through the complete workflow."""
     history = HistoryStore(tmp_path / "history.sqlite3")
     history.initialize()
-    config = AppConfig(transcription_provider="voxtype", auto_copy_dictation=False)
+    config = AppConfig(transcription_provider="local", auto_copy_dictation=False)
     speech = SimpleNamespace(transcribe=lambda *args, **kwargs: TranscriptionResult("Hello", "eng", None, None))
     workflow = DictationWorkflow(config, speech, SimpleNamespace(), history, tmp_path)
     audio = tmp_path / "audio.wav"
@@ -194,7 +170,7 @@ def test_local_capture_without_cloud_credentials_or_clipboard(tmp_path):
     with patch("mluva_linux.workflow.deliver_text") as copy:
         result = workflow.complete(audio, "dictation", False, False)
     assert not copy.called and not result.delivery.copied
-    assert result.history_entry.recognition_route == "voxtype-local"
+    assert result.history_entry.recognition_route == "managed-local"
     assert result.history_entry.delivery_outcome == "ready"
 
 

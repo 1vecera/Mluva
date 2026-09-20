@@ -59,6 +59,9 @@ class RecordingOverlayState:
     scroll_duration_ms: int = 800
     scroll_lookahead_lines: int = 2
     widget_position: str = "bottom-center"
+    widget_lines: int = 5
+    widget_opacity: int = 82
+    rewrite_enabled: bool = True
 
     @classmethod
     def hidden(cls) -> "RecordingOverlayState":
@@ -97,6 +100,9 @@ class RecordingOverlayState:
             if boundary >= 0:
                 preview_start = boundary + 1
         values.update(
+            rewrite_enabled=GLib.Variant("b", self.rewrite_enabled),
+            widget_lines=GLib.Variant("u", max(1, min(10, self.widget_lines))),
+            widget_opacity=GLib.Variant("u", max(10, min(100, self.widget_opacity))),
             review_timeout=GLib.Variant("u", max(1, min(60, self.review_timeout_seconds))),
             show_copy=GLib.Variant("b", self.show_copy_action),
             smooth_scrolling=GLib.Variant("b", self.smooth_scrolling),

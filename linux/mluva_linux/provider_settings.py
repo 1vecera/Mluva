@@ -9,6 +9,9 @@ import gi
 
 from mluva_linux.codex_client import CodexAppServerError, CodexModel, select_model
 from mluva_linux.config import AppConfig
+from mluva_linux.credentials import store_speech_key
+from mluva_linux.direct_choices import DirectChoices
+from mluva_linux.local_model_settings import LocalModelSettings
 from mluva_linux.provider_catalog import (
     REWRITE_PROVIDERS,
     SPEECH_PROVIDERS,
@@ -43,12 +46,24 @@ class ProviderSection(Adw.PreferencesGroup):
         self.catalog_loaded = False
         self.catalog_client = None
         self.choices = []
-        self.provider_row = Adw.ComboRow(
-            title="Provider",
-            model=Gtk.StringList.new([provider.label for provider in self.providers]),
+        self.provider_row = DirectChoices(
+            ["ElevenLabs", "Local model", "Custom"] if scope == "speech" else ["Codex", "Skip", "Custom"]
         )
         self.provider_row.connect("notify::selected", self._provider_changed)
-        self.add(self.provider_row)
+        choice_row = Gtk.ListBoxRow(activatable=False, selectable=False, child=self.provider_row)
+        self.add(choice_row)
+        self.description = Gtk.Label(xalign=0, wrap=True, margin_bottom=12, css_classes=["caption"])
+        self.add(self.description)
+        self.api_key_entry = Adw.PasswordEntryRow(title="ElevenLabs API key")
+        self.add(self.api_key_entry)
+        self.key_hint = Gtk.Label(
+            label="Saved securely in your desktop keyring when you continue or apply.",
+            xalign=0,
+            wrap=True,
+            margin_top=8,
+            css_classes=["caption"],
+        )
+        self.add(self.key_hint)
         self.fixed_model_row = Adw.ActionRow(title="Model", subtitle="Scribe v2 · live recognition")
         self.add(self.fixed_model_row)
         self.model_row = Adw.ComboRow(title="Model", enable_search=True, use_subtitle=True)
@@ -98,8 +113,26 @@ class ProviderSection(Adw.PreferencesGroup):
         self.status = Gtk.Label(xalign=0, wrap=True, margin_top=8, margin_bottom=8)
         self.status.add_css_class("caption")
         self.add(self.status)
+        self.local = LocalModelSettings(
+            config.local_model, self._local_changed, config.local_device, config.language_code, self._language_changed
+        )
+        if self.scope == "speech":
+            self.add(self.local)
         self.connect("unmap", self._stop_lookup)
         self.refresh_config(config)
+
+    def _language_changed(self, code):
+        if self.scope == "speech":
+            self.values["language_code"] = code
+
+    def _local_changed(self, identifier):
+        if self.scope == "speech":
+            self.values["local_model"] = identifier
+            self.values["local_device"] = self.local.device
+
+    def is_ready(self):
+        """Require verified files for the selected local model."""
+        return self.provider.id != "local" or self.local.is_ready()
 
     @property
     def provider(self):
@@ -109,8 +142,14 @@ class ProviderSection(Adw.PreferencesGroup):
     def refresh_config(self, config: AppConfig) -> None:
         """Start a new edit from persisted settings when the dialog is reopened."""
         self._stop_lookup()
+        self.api_key_entry.set_text("")
         self.config = config
+        self.local.stop()
+        self.local.languages.refresh(config.language_code, config.local_model)
+        self.local.set_selection(config.local_model, config.local_device)
         names = [self.provider_field, self.base_field, self.key_field, *(p.model_field for p in self.providers)]
+        if self.scope == "speech":
+            names.extend(("local_device", "language_code"))
         names.append("transcription_chunk_seconds" if self.scope == "speech" else "rewrite_fast_mode")
         self.values = {name: getattr(config, name) for name in names}
         self.updating = True
@@ -126,6 +165,8 @@ class ProviderSection(Adw.PreferencesGroup):
         if not self.updating:
             self.values[self.provider_field] = self.provider.id
             self._reset_catalog()
+            self.local.stop()
+            self.local.refresh()
 
     def _reset_catalog(self) -> None:
         """Invalidate old endpoint results and show local setup evidence without making a request."""
@@ -133,19 +174,25 @@ class ProviderSection(Adw.PreferencesGroup):
         self.models = []
         self.catalog_loaded = False
         provider = self.provider
-        self.set_description(provider.description)
+        self.description.set_label(provider.description)
+        self.api_key_entry.set_visible(provider.id == "elevenlabs")
+        self.key_hint.set_visible(provider.id == "elevenlabs")
+        self.local.set_visible(self.scope == "speech" and provider.id == "local")
         self.advanced.set_visible(provider.id == "litellm")
-        self.preview.set_visible(self.scope == "speech" and provider.id != "elevenlabs")
-        self.fast_row.set_visible(provider.id == "codex")
-        self.refresh_button.set_visible(provider.id != "elevenlabs")
-        self.fixed_model_row.set_visible(provider.id == "elevenlabs")
-        self.model_row.set_visible(provider.id != "elevenlabs")
+        self.preview.set_visible(self.scope == "speech" and provider.id == "litellm")
+        self.fast_row.set_visible(False)
+        self.refresh_button.set_visible(provider.id not in {"elevenlabs", "none", "local"})
+        self.fixed_model_row.set_visible(False)
+        self.model_row.set_visible(provider.id == "litellm")
+        self.connection.set_visible(provider.id in {"codex", "litellm"})
         self.connection.set_subtitle(connection_hint(provider.id, self.values[self.key_field], os.environ))
         self.status.set_label("")
         self.status.set_visible(False)
         if provider.id == "elevenlabs":
             self.models = [CodexModel("scribe_v2", "scribe_v2", "Scribe v2", True)]
         self._show_models()
+        if provider.id != "litellm":
+            self.model_entry.set_visible(False)
 
     def _show_models(self) -> None:
         """Retain a saved or typed model even when a server omits it from its catalog."""
@@ -319,6 +366,7 @@ class ProviderSettings(Adw.PreferencesPage):
         super().__init__(name="providers", title="Providers", icon_name="network-server-symbolic")
         self.config = config
         self.save = save
+        self.saving_key = False
         if introduction is not None:
             group = Adw.PreferencesGroup()
             group.add(introduction)
@@ -346,6 +394,11 @@ class ProviderSettings(Adw.PreferencesPage):
 
     def apply(self, _button) -> None:
         """Keep drafts on validation/write failure and persist no credentials or discovery output."""
+        if self.saving_key:
+            return
+        if not self.speech.is_ready():
+            self.status.set_label("Finish downloading the selected local model before applying.")
+            return
         for section in (self.speech, self.rewrite):
             model = section.values[section.provider.model_field]
             if (model is not None and not valid_model_id(model)) or (section.provider.id == "litellm" and not model):
@@ -357,8 +410,34 @@ class ProviderSettings(Adw.PreferencesPage):
         except (ValueError, TypeError):
             self.status.set_label("Check Connection details. Use a plain base URL and an environment variable name.")
             return
+        if self.speech.provider.id == "elevenlabs" and self.speech.api_key_entry.get_text().strip():
+            key = self.speech.api_key_entry.get_text().strip()
+            self.speech.api_key_entry.set_text("")
+            self.saving_key = True
+            self.set_sensitive(False)
+            self.status.set_label("Saving your key…")
+
+            def store():
+                try:
+                    store_speech_key(key)
+                    error = ""
+                except (ValueError, RuntimeError) as failure:
+                    error = str(failure)
+                GLib.idle_add(self._key_saved, error)
+
+            threading.Thread(target=store, daemon=True, name="save-provider-key").start()
+            return
         if self.save(changes):
             self.config = self.speech.config = self.rewrite.config = config
             self.status.set_label("Provider choices saved. They apply to the next recording or request.")
         else:
             self.status.set_label("Could not save. Stop active work and try again; your edits are kept.")
+
+    def _key_saved(self, error):
+        self.saving_key = False
+        self.set_sensitive(True)
+        if error:
+            self.status.set_label(error)
+        else:
+            self.apply(None)
+        return GLib.SOURCE_REMOVE

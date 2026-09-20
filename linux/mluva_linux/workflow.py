@@ -194,7 +194,7 @@ class DictationWorkflow:
         return {
             "elevenlabs": DiagnosticProvider.ELEVENLABS_SCRIBE_V2,
             "litellm": DiagnosticProvider.LITELLM,
-            "voxtype": DiagnosticProvider.VOXTYPE,
+            "local": DiagnosticProvider.LOCAL,
         }[self.config.transcription_provider]
 
     @property
@@ -275,7 +275,7 @@ class DictationWorkflow:
                 fallback_reason=recognition_fallback_reason,
             )
             if self.config.transcription_provider != "elevenlabs":
-                recognition_route = {"litellm": "litellm-batch", "voxtype": "voxtype-local"}[
+                recognition_route = {"litellm": "litellm-batch", "local": "managed-local"}[
                     self.config.transcription_provider
                 ]
                 resolved_fallback_reason = None
@@ -646,7 +646,7 @@ class DictationWorkflow:
             recognition_route={
                 "elevenlabs": "scribe-v2-batch-retry",
                 "litellm": "litellm-batch-retry",
-                "voxtype": "voxtype-local-retry",
+                "local": "managed-local-retry",
             }[self.config.transcription_provider],
         )
 
