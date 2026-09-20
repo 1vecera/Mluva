@@ -1,0 +1,174 @@
+{
+  "provider": "Fish Audio",
+  "voice": "Sarah",
+  "reference_id": "933563129e564b19a115bedd57b7406a",
+  "model": "s2.1-pro-free",
+  "speed": 0.94,
+  "brand_phonemes": "M L UW1 V AH0",
+  "live_phonemes": "L AY1 V",
+  "voice_lufs_before_placement": -18,
+  "cues": [
+    {
+      "source": "sarah-energetic",
+      "source_start": 0.08,
+      "source_end": 1.58,
+      "film_start": 0.65,
+      "film_end": 2.15,
+      "subtitle_end": 2.43,
+      "text": "Meet Mluva."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 1.89,
+      "source_end": 4.91,
+      "film_start": 2.55,
+      "film_end": 5.57,
+      "subtitle_end": 6.37,
+      "text": "The most delightful dictation for Omarchy."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 5.35,
+      "source_end": 7.22,
+      "film_start": 6.65,
+      "film_end": 8.52,
+      "subtitle_end": 9.32,
+      "text": "Choose local or cloud."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 7.4,
+      "source_end": 9.4,
+      "film_start": 11.1,
+      "film_end": 13.1,
+      "subtitle_end": 13.9,
+      "text": "Then pick your rewriting tools."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 9.46,
+      "source_end": 10.78,
+      "film_start": 18.35,
+      "film_end": 19.67,
+      "subtitle_end": 20.47,
+      "text": "Press F9."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 10.98,
+      "source_end": 11.56,
+      "film_start": 20.7,
+      "film_end": 21.28,
+      "subtitle_end": 22.7,
+      "text": "Talk."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 11.75,
+      "source_end": 12.64,
+      "film_start": 27.6,
+      "film_end": 28.49,
+      "subtitle_end": 29.6,
+      "text": "And paste."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 13.3,
+      "source_end": 15.33,
+      "film_start": 30.55,
+      "film_end": 32.58,
+      "subtitle_end": 33.08,
+      "text": "Mluva floats like water."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 15.66,
+      "source_end": 16.42,
+      "film_start": 33.2,
+      "film_end": 33.96,
+      "subtitle_end": 35.2,
+      "text": "Tile it."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 16.6,
+      "source_end": 17.36,
+      "film_start": 36.2,
+      "film_end": 36.96,
+      "subtitle_end": 38.08,
+      "text": "Float it."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 17.62,
+      "source_end": 19.56,
+      "film_start": 38.2,
+      "film_end": 40.14,
+      "subtitle_end": 40.94,
+      "text": "Take it to your next desktop."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 19.83,
+      "source_end": 21.2,
+      "film_start": 45.1,
+      "film_end": 46.47,
+      "subtitle_end": 47.27,
+      "text": "Polish your words."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 21.4,
+      "source_end": 22.8,
+      "film_start": 51.4,
+      "film_end": 52.8,
+      "subtitle_end": 53.6,
+      "text": "Go through your history."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 23.17,
+      "source_end": 25.23,
+      "film_start": 57.4,
+      "film_end": 59.46,
+      "subtitle_end": 60.26,
+      "text": "It matches your Omarchy theme."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 25.7,
+      "source_end": 27.25,
+      "film_start": 63.6,
+      "film_end": 65.15,
+      "subtitle_end": 65.95,
+      "text": "Use Live rewrite."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 27.45,
+      "source_end": 30.0,
+      "film_start": 66.5,
+      "film_end": 69.05,
+      "subtitle_end": 69.85,
+      "text": "See your document take shape as you talk."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 30.2,
+      "source_end": 32.47,
+      "film_start": 72.5,
+      "film_end": 74.77,
+      "subtitle_end": 75.57,
+      "text": "Or turn an idea into a task."
+    },
+    {
+      "source": "sarah-energetic",
+      "source_start": 32.72,
+      "source_end": 34.62,
+      "film_start": 79.5,
+      "film_end": 81.4,
+      "subtitle_end": 82.2,
+      "text": "A little more delight every day."
+    }
+  ]
+}

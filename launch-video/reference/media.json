@@ -1,0 +1,84 @@
+{
+  "duration_seconds": 84,
+  "picture": "Actual native Omarchy desktop footage plus continuous Welcome and recorder pickups in an isolated native Hyprland compositor. Recorder tiling, refloating, pinning and workspace switching are real compositor behavior.",
+  "app_main_commit": "35c1afb01bd27facc652fbeb4e5c8100ac0b9b26",
+  "app_live_pickup_commit": "3c31e7249b088c9784c9f57c857c66e5edcb54be",
+  "pickup_source_commit": "931d90fe1a611e342fb188e1a17a2cf1c4877e2c",
+  "voice": {
+    "provider": "Fish Audio",
+    "name": "Sarah",
+    "reference_id": "933563129e564b19a115bedd57b7406a",
+    "model": "s2.1-pro-free",
+    "speed": 0.94
+  },
+  "media": [
+    {
+      "path": "public/live/desktop.mp4",
+      "sha256": "c6f16329dcd7b02d1eeb177d4679cbd31e0b4aaece491072f7217262cbc511e9",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1920,
+            "height": 1200,
+            "r_frame_rate": "60/1",
+            "duration": "84.000000",
+            "nb_frames": "5040"
+          }
+        ],
+        "format": {
+          "duration": "84.000000",
+          "size": "14431047"
+        }
+      }
+    },
+    {
+      "path": "public/live/sarah.wav",
+      "sha256": "770641d8e8ba3d9c89fa424fc4c68c331987243fd65aea948ed4c91ee7272714",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "sample_rate": "48000",
+            "channels": 1,
+            "r_frame_rate": "0/0",
+            "duration": "84.000000"
+          }
+        ],
+        "format": {
+          "duration": "84.000000",
+          "size": "8064044"
+        }
+      }
+    },
+    {
+      "path": "public/audio/music-bed.wav",
+      "sha256": "2e90e2a9f6a8396b1293eb96a78cc7e2778c98fe3cd13f71c4691e0d9b95064e",
+      "probe": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "codec_name": "pcm_s16le",
+            "sample_rate": "48000",
+            "channels": 2,
+            "r_frame_rate": "0/0",
+            "duration": "84.000000"
+          }
+        ],
+        "format": {
+          "duration": "84.000000",
+          "size": "16128078"
+        }
+      }
+    },
+    {
+      "path": "public/live/subtitles.srt",
+      "sha256": "a3954b470d5426d5c8c5a374796d2c055e272f9ac25d5fc04ab014a05333a836"
+    }
+  ]
+}

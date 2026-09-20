@@ -1,0 +1,96 @@
+{
+  "environment": "Isolated native Hyprland 0.56.2, nested in private headless labwc; private D-Bus, runtime and app profiles. Output MLUVA, 1920x1200 at 60 Hz.",
+  "component": "linux/quickshell/mluva.dictation/RecordingOverlay.qml",
+  "inputs": "Prepared transcript through the production component; same compositor dispatchers as Omarchy Super+T and Super+2.",
+  "wallpaper": "User-provided 15-second blue/gold video, played by a native layer-shell surface.",
+  "layout": {
+    "left": "Chromium, ft.com, about half the screen",
+    "middle": "VS Code above Ghostty and htop, about a quarter",
+    "right": "Linear dark sign-in page in Chromium, about a quarter",
+    "desktop2": "Firefox, news.ycombinator.com"
+  },
+  "states": [
+    {
+      "state": "floating",
+      "floating": true,
+      "pinned": true,
+      "workspace": 1,
+      "position": [
+        1424,
+        860
+      ],
+      "size": [
+        500,
+        128
+      ],
+      "native_wayland": true
+    },
+    {
+      "state": "tiled",
+      "floating": false,
+      "pinned": false,
+      "workspace": 1,
+      "position": [
+        965,
+        762
+      ],
+      "size": [
+        465,
+        135
+      ],
+      "native_wayland": true
+    },
+    {
+      "state": "refloated",
+      "floating": true,
+      "pinned": true,
+      "workspace": 1,
+      "position": [
+        948,
+        766
+      ],
+      "size": [
+        500,
+        128
+      ],
+      "native_wayland": true
+    },
+    {
+      "state": "desktop2",
+      "floating": true,
+      "pinned": true,
+      "workspace": 2,
+      "position": [
+        948,
+        766
+      ],
+      "size": [
+        500,
+        128
+      ],
+      "native_wayland": true
+    },
+    {
+      "state": "return",
+      "floating": true,
+      "pinned": true,
+      "workspace": 1,
+      "position": [
+        948,
+        766
+      ],
+      "size": [
+        500,
+        128
+      ],
+      "native_wayland": true
+    }
+  ],
+  "readability": "Compositor blur enabled in the private session; app pixels and production UI unchanged.",
+  "color_correction": "wf-recorder stored limited-range YUV with a full-range flag. Stream-copy H.264 metadata correction restores the limited-range flag. Sample decoded RGB values agree with native grim captures within 3 levels per channel.",
+  "limits": [
+    "Linear is signed out in the isolated browser profile.",
+    "Prepared microphone/provider data; no provider-latency or recognition-quality claim.",
+    "The new shots demonstrate native Wayland tiling and pinning in isolation; the visible desktop was not manipulated."
+  ]
+}

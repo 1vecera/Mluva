@@ -1,58 +1,52 @@
 # Mluva app intro
 
-A 46.73-second, 1920×1080/60 fps intro built in Remotion from production GTK captures. It follows dictation, editing, experimental Live rewrite, saved history, provider choices and Omarchy themes. A continuous narration take drives the edit; an original Blender animation provides the backdrop.
+An 84-second, 1920×1080, 60 fps intro following the feature order of the [original Figma storyboard](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=3-10). It opens on Mluva's native Welcome screen with a six-second information overlay: “The most delightful dictation for Omarchy. Local or cloud. Your choice of tools.” The overlay fades away before setup interaction begins. Remotion reframes the desktop recording and adds short keyboard cues, burned-in subtitles and a closing brand card.
 
-The UI reconstruction preserves native raster assets, with registered native clock patches and a recorded sidebar transition. It is not an independently redrawn vector UI. Capture content and provider responses are synthetic; timings are edited and do not measure recognition or rewrite latency. The film labels Live rewrite as Experimental and carries a demonstration disclosure.
+The main take records the actual Omarchy desktop, theme changes, clipboard paste and animated wallpaper together. New Welcome/setup footage at 0–18 seconds and recorder footage at 30–44 seconds use a separate real Hyprland compositor, with native GTK/Quickshell, Chromium on FT, VS Code, Ghostty, htop and Linear's dark sign-in page arranged like the supplied reference. The recorder genuinely tiles, floats again and remains pinned while switching to Firefox/Hacker News on desktop 2. This is continuous native compositor footage; no desktop still or recreated widget is used in that scene. The isolated session leaves the visible desktop alone.
 
-## Render and verify
+Live rewrite and Grilling at 63–79 seconds retain the take with the short-draft scroll correction. Microphone/provider responses and demonstration history are prepared fixtures; this film does not measure speech recognition quality or service latency. The source remains visible beside the draft, and the app labels Live rewrite as Experimental.
 
-Requires Node/npm, FFmpeg/ffprobe and uv. The checked environment used Node 26.8.1, FFmpeg 9.0.1 and uv 0.12.5. Capture additionally requires the repository's Linux GTK environment and isolated desktop runner; Blender is needed only to regenerate the supplied background.
+## Render
+
+Requires Node/npm, FFmpeg/ffprobe and uv. The three media inputs below are intentionally local and ignored by Git; a source checkout alone does not include them. Restore them from the local `mluva-intro-live-media-v3.tar.gz` archive before rendering. The v4 opening overlay reuses those unchanged inputs and the committed logo.
+
+| Input | Content |
+| --- | --- |
+| `public/live/desktop.mp4` | Edited 84-second native footage, 1920×1200 at 60 fps. |
+| `public/live/sarah.wav` | Fish Audio Sarah, positioned against the storyboard in an 84-second PCM track. |
+| `public/audio/music-bed.wav` | User-selected downloaded music, crossfaded to 84 seconds and normalized before ducking. |
 
 ```sh
 cd launch-video
 npm ci --ignore-scripts
 npm run lint
-npm run fidelity
+npm run preview
 npm run render -- --crf=16
 npm run master
 ```
 
-The review copy is `out/mluva-intro-master.mp4`. `npm run preview` makes a 960×540/30 fps working copy; `npx remotion studio src/index.ts` opens a local editor when wanted. Renders and temporary evidence are ignored by Git. The committed [review](review/final.md), [iteration log](review/iterations.md), [quality method](review/quality.md) and [asset record](reference/ASSETS.md) explain the result and its limits.
+The final file is `out/mluva-intro-live-master.mp4`; preview is 960×540 at 60 fps. The 16:10 desktop is contained in the 16:9 composition, with close-ups for app details and space for readable subtitles. Captions are rendered into the picture from `reference/narration-cues.json`; the local archive also includes an SRT. [Final review](review/final.md), [asset provenance](reference/ASSETS.md), [motion and voice decisions](MOTION.md), and [media hashes](reference/media.json) describe the delivery and its limits. Nothing in these commands publishes the video.
 
-## Small source map
+## Source map
 
 | File | Responsibility |
 | --- | --- |
-| `src/MluvaIntro.tsx` | Seven story beats, camera, annotations, continuous narration, music and four action clicks. |
-| `src/Surfaces.tsx` | Intact native image, black capture backing and registered clock patch. |
-| `script/build-intro.mjs` | Checks script/transcript agreement, derives word-based cues and captions, writes `src/generated/intro.json`. |
-| `script/capture-app.py` | Production GTK navigation with synthetic device/provider boundaries, private history and capture metadata. |
-| `script/import-capture.py` | Validates capture hashes/dimensions before importing; derives the clock patch from actual glyph changes. |
-| `script/render-references.mjs`, `script/verify-fidelity.py` | Renders source-size browser output and compares it against untouched native PNGs independently composited with Pillow. |
-| `script/create-background.py` | Reproducible six-second Blender wave loop, played at half speed. |
-| `script/master.py` | Two-pass loudness normalization, then verification of the encoded audio. |
+| `src/MluvaIntro.tsx` | Native footage, opening information overlay, eased reframing, closing brand card, keyboard cues, subtitles and music ducking. |
+| `reference/storyboard.json` | Original Figma shot order and readback. |
+| `reference/edit.json` | Revised scene timing, source ranges and playback rates. |
+| `script/capture-storyboard.py` | Production GTK states with prepared device/provider boundaries and private demonstration history. |
+| `script/narration-storyboard.txt` | Energetic Sarah script with delivery tags and phoneme controls for Mluva and Live. |
+| `reference/narration-cues.json` | Source-to-film timing and exact Fish voice identity. |
+| `reference/narration-scribe.json` | Word timing and speech-to-text check of the Sarah source take. |
+| `reference/capture-verification.json` | Native tiling, floating, pinning and desktop-switch evidence. |
+| `script/master.py` | Measured two-pass loudness normalization and verification of encoded AAC. |
 
-## Refresh native assets
+## Refresh app footage
 
-Run from the repository root after preparing the Linux environment with `make linux-setup`. Choose a free private display number. The runner supplies private display, configuration, history and theme state; the capture script refuses a normal desktop invocation.
+Use the repository's Linux environment and the installed offscreen verification runner for rehearsal. The fixture refuses ordinary desktop execution unless both `--host` and `MLUVA_AUTHORIZED_HOST_CAPTURE=1` are supplied. Host recording requires explicit authorization, isolated demonstration app data, a prepared Chrome Guest window and restoration of desktop state afterward.
 
-```sh
-OFFSCREEN_DISPLAY_NUMBER=196 OFFSCREEN_SCREEN_SPEC=2560x1600x24 dev/run-isolated.sh tmp/intro-capture -- env ADW_DISABLE_PORTAL=1 GTK_A11Y=none GDK_SCALE=2 GDK_DPI_SCALE=1 GSK_RENDERER=cairo PYTHONPATH=linux uv run --project linux python launch-video/script/capture-app.py
-uv run launch-video/script/import-capture.py tmp/intro-capture
-ffmpeg -ss 7.7 -i tmp/intro-capture/native-navigation.mp4 -t 1.2 -c:v libx264 -preset slow -crf 12 -an launch-video/public/ui/history-open.mp4
-```
+The fixture supports `--start-at` and `--end-at` for pickups, plus `--wait-for-start` to synchronize the app with a recorder through its output directory's `go` and `started.json` files. It records native snapshots and source/draft scroll measurements in `manifest.json`. For a complete host take, a separate recorder must capture the compositor and send actual F9 and window-manager shortcuts; the fixture deliberately does not synthesize global host input. Offscreen mode records its private X11 rehearsal automatically.
 
-Inspect the new transition's start/end before replacing it: capture scheduling can vary with machine load. The PNGs use the paintable's intrinsic 1040×640 logical size at 2× density. The manifest records source hashes, state times, dimensions and palette hashes. Do not substitute widget allocation dimensions or stretch captures to a different aspect ratio. Run fidelity and review the film again after importing.
+The v3 input archive also contains the isolated Hyprland pickup scripts, source recordings and capture receipts. These run a nested compositor with a private runtime, bus and application profiles, then record its output with wf-recorder. Recorder actions dispatch the same Hyprland operations used by Omarchy's Super+T and workspace shortcuts. The capture's incorrect full-range H.264 flag is corrected by stream copy; decoded colors were compared with native PNG captures. Blur was enabled only in the private compositor for legibility over the tiled windows.
 
-## Change the voice or background
-
-The canonical text and Fish delivery directions are in `script/narration-intro.txt`. The selected take uses `s2.1-pro-free`, speed 0.78, three tone cues and three breaks. Keep the take continuous, remux its streaming WAV into a normal PCM WAV, then transcribe the chosen file with Scribe v2 into `reference/narration-scribe.json`. Updating the wording requires reviewing the caption word ranges and cue indices in `build-intro.mjs`; it deliberately rejects an unreviewed transcript or word-count change. Generation credentials are never required to render the committed assets.
-
-Regenerate the original background from the repository root in a disposable Blender process (verified with Blender 5.2.0 LTS):
-
-```sh
-blender --background --factory-startup --python launch-video/script/create-background.py -a
-ffmpeg -framerate 30 -i tmp/background/frame-%04d.png -c:v libx264 -crf 16 -pix_fmt yuv420p -movflags +faststart launch-video/public/background.mp4
-```
-
-The background generator owns that fresh scene. Do not run it inside an existing project. Check the last/first frame seam and the composite behind text after any material or motion change.
+The old image-patching pipeline, recreated desktop surfaces, generated background and alternate compositions have been removed. Unused promotion screenshots and the superseded Figma/Blender video pipeline have also been removed. Existing Git history preserves those earlier versions; the Figma storyboard, logo-study reflow helper, licensing records and media still embedded by the homepage remain.
