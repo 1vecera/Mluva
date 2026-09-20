@@ -13,7 +13,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import GLib, Gtk  # noqa: E402
 
 
-def exercise_scrolling(application: MluvaApplication, output: Path) -> None:
+def exercise_scrolling(application: MluvaApplication, output: Path, *, short_only: bool = False) -> None:
     """Prove intermediate positions, manual reading, corrected tails and document changes."""
     workspace = application.conversation_workspace
     workspace.set_config(replace(application.config, smooth_scrolling=True, scroll_duration_ms=800))
@@ -34,11 +34,54 @@ def exercise_scrolling(application: MluvaApplication, output: Path) -> None:
         """Check the native viewport against the measured content extent."""
         return abs(adjustment.get_value() + adjustment.get_page_size() - adjustment.get_upper()) < 1
 
+    # Partial updates that still fit must never manufacture a scrollable page.
+    # Exercise successive captures: the reported failure often starts on the second.
+    live = workspace.live_scroll.get_vadjustment()
+    short = "Again, when I am dictating, the first words should stay at the top."
+    for capture in range(3):
+        workspace.set_live("Recording", "")
+        frames(live, 0.12)
+        for count in (6, 12, 20, 31, 43, len(short)):
+            workspace.set_live("Recording", short[:count])
+            positions = frames(live, 0.15)
+            observed = {
+                "capture": capture,
+                "characters": count,
+                "top_margin": workspace.live_text.get_top_margin(),
+                "upper": live.get_upper(),
+                "page_size": live.get_page_size(),
+                "positions": positions,
+            }
+            assert workspace.live_text.get_top_margin() == workspace.live_follower.base_top, observed
+            assert max(positions) == 0 and at_end(live), observed
+        workspace.finish_live()
+        frames(live, 0.12)
+    if short_only:
+        (output / "scroll-origin.json").write_text(
+            json.dumps(
+                {
+                    "successive_captures": 3,
+                    "updates_per_capture": 6,
+                    "top_margin": workspace.live_text.get_top_margin(),
+                    "short_capture_scroll_position": live.get_value(),
+                }
+            )
+        )
+        return
+
     source = "\n".join(f"A steady line of dictated text {index}." for index in range(48))
     workspace.set_live("Recording", source)
     live = workspace.live_scroll.get_vadjustment()
     frames(live)
-    assert at_end(live)
+    assert at_end(live), {
+        "value": live.get_value(),
+        "upper": live.get_upper(),
+        "page": live.get_page_size(),
+        "top": workspace.live_text.get_top_margin(),
+        "bottom": workspace.live_text.get_bottom_margin(),
+        "tail_y": workspace.live_text.get_iter_location(workspace.live_text.get_buffer().get_end_iter()).y,
+        "tail_height": workspace.live_text.get_iter_location(workspace.live_text.get_buffer().get_end_iter()).height,
+    }
     before = live.get_value()
     source += "\nOne more line arrives.\nThen the next complete thought."
     workspace.set_live("Recording", source)
@@ -140,6 +183,7 @@ def exercise_scrolling(application: MluvaApplication, output: Path) -> None:
                 "rewrite_positions": rewrite_motion,
                 "draft_positions": draft_motion,
                 "manual_reading_preserved": True,
+                "successive_short_captures_start_at_top": True,
                 "reduced_motion_and_smooth_settings": True,
             }
         )
