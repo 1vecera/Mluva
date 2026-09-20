@@ -1,19 +1,19 @@
-[warm, calm, conversational] Meet [emphasis] Mluva. [relaxed] Delightful dictation for Ohmarchi.
+[excited, warm, smiling] Meet <|phoneme_start|>M L UW1 V AH0<|phoneme_end|>. [confident, upbeat] The most delightful dictation for Ohmarchi.
 
-[unhurried, clear] Choose local or cloud. [break] Then pick your rewriting tools.
+[bright, conversational] Choose local or cloud. [break] Then pick your rewriting tools.
 
-[deliberate, relaxed] Press F9. [break] Talk. [break] And paste.
+[confident, inviting] Press F9. [break] Talk. [break] And paste.
 
-[relaxed] [emphasis] Mluva floats like water.
+[delighted] <|phoneme_start|>M L UW1 V AH0<|phoneme_end|> floats like water. [confident] Tile it. [break] Float it. [upbeat] Take it to your next desktop.
 
-[conversational] Polish your words.
+[bright] Polish your words.
 
-Go through your history.
+[inviting] Go through your history.
 
-It matches your Ohmarchi theme.
+[happy] It matches your Ohmarchi theme.
 
-[inviting, unhurried] Use Live rewrite. [break] See your document take shape as you talk.
+[excited, clear] Use <|phoneme_start|>L AY1 V<|phoneme_end|> rewrite. [inviting] See your document take shape as you talk.
 
-Or turn an idea into a task.
+[confident] Or turn an idea into a task.
 
-[warm, lightly smiling] A little more delight every day.
+[delighted, smiling] A little more delight every day.

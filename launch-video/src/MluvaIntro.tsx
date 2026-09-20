@@ -29,12 +29,9 @@ const envelope = (t: number, start: number, end: number, fade = 0.22) =>
   ramp(t, start, start + fade) * ramp(t, end - fade, end, 1, 0);
 // Reframe native desktop footage; the app remains its original recorded pixels.
 const camera = (t: number) =>
-  1 + 0.33 * envelope(t, 5.6, 18, 0.85) + 0.58 * envelope(t, 38, 73.4, 0.85);
+  1 + 0.33 * ramp(t, 17.15, 18, 1, 0) + 0.58 * envelope(t, 44, 79.4, 0.85);
 
-const Brand: React.FC<{ opacity: number; closing?: boolean }> = ({
-  opacity,
-  closing = false,
-}) => (
+const Brand: React.FC<{ opacity: number }> = ({ opacity }) => (
   <AbsoluteFill
     style={{
       opacity,
@@ -61,45 +58,38 @@ const Brand: React.FC<{ opacity: number; closing?: boolean }> = ({
         color: "#edf0f5",
       }}
     >
-      {closing
-        ? "A little more delight every day."
-        : "Delightful dictation for Omarchy"}
+      A little more delight every day.
     </div>
-    {!closing && (
-      <div style={{ color: "#b7c5d9", fontSize: 24 }}>
-        Local or cloud · Your choice of tools
-      </div>
-    )}
-    {closing && (
-      <div
-        style={{
-          textAlign: "center",
-          lineHeight: 2,
-          fontSize: 22,
-          color: "#b7c5d9",
-        }}
-      >
-        github.com/1vecera/Mluva
-        <br />
-        <span style={{ fontSize: 18, color: "#91a2bc" }}>
-          Open source · Apache-2.0
-        </span>
-      </div>
-    )}
+    <div
+      style={{
+        textAlign: "center",
+        lineHeight: 2,
+        fontSize: 22,
+        color: "#b7c5d9",
+      }}
+    >
+      github.com/1vecera/Mluva
+      <br />
+      <span style={{ fontSize: 18, color: "#91a2bc" }}>
+        Open source · Apache-2.0
+      </span>
+    </div>
   </AbsoluteFill>
 );
 const keys = [
   { start: 18.3, end: 20.3, key: "F9", label: "Talk" },
   { start: 26.8, end: 27.6, key: "F9", label: "Finish" },
   { start: 27.6, end: 29.8, key: "Ctrl + V", label: "Paste" },
-  { start: 38.5, end: 40.3, key: "Ctrl + P", label: "Commands" },
+  { start: 33.05, end: 35.3, key: "Super + T", label: "Tile" },
+  { start: 36.05, end: 38.15, key: "Super + T", label: "Float" },
+  { start: 38.8, end: 41.8, key: "Super + 2", label: "Next desktop" },
+  { start: 44.5, end: 46.3, key: "Ctrl + P", label: "Commands" },
 ];
 export const MluvaIntro: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
-  const opening = ramp(t, 5.55, 6, 1, 0);
-  const closing = ramp(t, 73, 73.55);
+  const closing = ramp(t, 79, 79.55);
   const subtitle = cues.cues.find(
     (cue) => t >= cue.film_start && t < cue.subtitle_end,
   );
@@ -113,7 +103,7 @@ export const MluvaIntro: React.FC = () => {
       ),
     );
     return (
-      (0.6 - 0.25 * voice) * ramp(time, 0, 1.2) * ramp(time, 75.5, 78, 1, 0)
+      (0.6 - 0.25 * voice) * ramp(time, 0, 1.2) * ramp(time, 81.5, 84, 1, 0)
     );
   };
   return (
@@ -165,8 +155,7 @@ export const MluvaIntro: React.FC = () => {
           <span>{key.label}</span>
         </div>
       )}
-      {opening > 0 && <Brand opacity={opening} />}
-      {closing > 0 && <Brand opacity={closing} closing />}
+      {closing > 0 && <Brand opacity={closing} />}
       {subtitle && (
         <div
           style={{

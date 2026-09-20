@@ -1,6 +1,6 @@
 {
-  "file": "mluva-intro-live-sarah-v2.mp4",
-  "sha256": "2c6dff1e942d9a29689dd24f2c5c80630cce196cb09e192ca8299098c7548456",
+  "file": "mluva-intro-live-sarah-v3.mp4",
+  "sha256": "b8643b631391c94ad6dcf0da0a2b868b89f355b1db6692ad062fcbf3eac33965",
   "probe": {
     "programs": [],
     "stream_groups": [],
@@ -10,37 +10,37 @@
         "width": 1920,
         "height": 1080,
         "r_frame_rate": "60/1",
-        "duration": "78.000000",
-        "nb_frames": "4680"
+        "duration": "84.000000",
+        "nb_frames": "5040"
       },
       {
         "codec_name": "aac",
         "sample_rate": "48000",
         "channels": 2,
         "r_frame_rate": "0/0",
-        "duration": "78.100000",
-        "nb_frames": "3660"
+        "duration": "84.100000",
+        "nb_frames": "3941"
       }
     ],
     "format": {
-      "duration": "78.100000",
-      "size": "22155717"
+      "duration": "84.100000",
+      "size": "18812495"
     }
   },
   "audio": {
-    "input_i": "-16.29",
-    "input_tp": "-1.54",
-    "input_lra": "8.40",
-    "input_thresh": "-26.73",
-    "output_i": "-15.78",
+    "input_i": "-16.40",
+    "input_tp": "-1.73",
+    "input_lra": "8.10",
+    "input_thresh": "-26.87",
+    "output_i": "-16.01",
     "output_tp": "-1.80",
-    "output_lra": "7.60",
-    "output_thresh": "-26.16",
+    "output_lra": "7.50",
+    "output_thresh": "-26.42",
     "normalization_type": "dynamic",
-    "target_offset": "-0.22"
+    "target_offset": "0.01"
   },
   "music_balance": {
-    "voice_minus_music_db_rms_during_phrases": 17.33,
+    "voice_minus_music_db_rms_during_phrases": 17.08,
     "music_stem_lufs": -26,
     "speech_gain": 0.35,
     "gap_gain": 0.6,
@@ -48,12 +48,15 @@
   },
   "decode": "passed",
   "black_intervals_at_least_100ms": 0,
-  "checked_feature_sequence": 10,
-  "checked_encoded_stills": 25,
+  "checked_feature_sequence": 9,
+  "checked_encoded_stills": 27,
   "motion_sequences": [
-    "widget movement",
+    "native widget tiling",
+    "native widget refloating",
     "widget-to-Polish camera ramp"
   ],
-  "sound_on_review": "Human review pending; transcription and loudness verified.",
-  "final_audio_matches_transcribed_master": true
+  "native_widget_states": "reference/capture-verification.json",
+  "sound_on_review": "Human review pending; phoneme controls, transcription and loudness checked.",
+  "final_audio_matches_transcribed_master": true,
+  "transcription": "Raw ElevenLabs Scribe v2; punctuation/case ignored, F nine\u2192F9 and spoken Omarchi\u2192visible Omarchy normalized for comparison."
 }

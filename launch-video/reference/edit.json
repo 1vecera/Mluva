@@ -1,21 +1,12 @@
 {
-  "duration": 78,
+  "duration": 84,
   "scenes": [
     {
-      "scene": "intro",
-      "start": 0,
-      "end": 6,
-      "source_start": 0,
-      "source_duration": 3,
-      "playback_rate": 0.5,
-      "source": "native-v1"
-    },
-    {
       "scene": "setup",
-      "start": 6,
+      "start": 0,
       "end": 18,
-      "source_start": 0.45,
-      "source_duration": 12,
+      "source_start": 1,
+      "source_duration": 18,
       "playback_rate": 1.0,
       "source": "setup"
     },
@@ -31,16 +22,16 @@
     {
       "scene": "widget",
       "start": 30,
-      "end": 38,
-      "source_start": 0.5,
-      "source_duration": 8,
+      "end": 44,
+      "source_start": 1,
+      "source_duration": 14,
       "playback_rate": 1.0,
       "source": "widget"
     },
     {
       "scene": "polish",
-      "start": 38,
-      "end": 45,
+      "start": 44,
+      "end": 51,
       "source_start": 27,
       "source_duration": 6,
       "playback_rate": 0.8571428571428571,
@@ -48,8 +39,8 @@
     },
     {
       "scene": "history",
-      "start": 45,
-      "end": 51,
+      "start": 51,
+      "end": 57,
       "source_start": 33,
       "source_duration": 4,
       "playback_rate": 0.6666666666666666,
@@ -57,8 +48,8 @@
     },
     {
       "scene": "themes",
-      "start": 51,
-      "end": 57,
+      "start": 57,
+      "end": 63,
       "source_start": 37,
       "source_duration": 5,
       "playback_rate": 0.8333333333333334,
@@ -66,8 +57,8 @@
     },
     {
       "scene": "live",
-      "start": 57,
-      "end": 66,
+      "start": 63,
+      "end": 72,
       "source_start": 42,
       "source_duration": 7,
       "playback_rate": 0.7777777777777778,
@@ -75,8 +66,8 @@
     },
     {
       "scene": "task",
-      "start": 66,
-      "end": 73,
+      "start": 72,
+      "end": 79,
       "source_start": 49,
       "source_duration": 6,
       "playback_rate": 0.8571428571428571,
@@ -84,8 +75,8 @@
     },
     {
       "scene": "closing",
-      "start": 73,
-      "end": 78,
+      "start": 79,
+      "end": 84,
       "source_start": 55,
       "source_duration": 4,
       "playback_rate": 0.8,
@@ -95,15 +86,15 @@
   "sources": {
     "native-v1": {
       "archive_path": "production/native-v1.mp4",
-      "description": "Previous actual Omarchy desktop cut, including corrected Live rewrite and task pickup."
+      "description": "Retained actual Omarchy desktop cut, including corrected Live rewrite and task pickup."
     },
     "setup": {
       "archive_path": "production/setup.mp4",
-      "description": "Production Welcome flow on isolated X11."
+      "description": "Native GTK Welcome on isolated Hyprland with real FT, VS Code, Ghostty, htop and Linear sign-in windows; compositor blur enabled for readability."
     },
     "widget": {
       "archive_path": "production/widget.mp4",
-      "description": "Production recording widget on isolated X11 over a still from the native desktop take."
+      "description": "Native Quickshell recorder on isolated Hyprland, genuinely tiled then floated and pinned while switching to Firefox/Hacker News on desktop 2. Continuous compositor capture with animated wallpaper."
     }
   }
 }

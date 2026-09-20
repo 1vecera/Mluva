@@ -1,350 +1,374 @@
 {
-  "sarah": {
+  "sarah-energetic": {
     "language_code": "eng",
-    "language_probability": 1.0,
-    "text": "Meet Maluva. Delightful dictation for OmarchI. Choose local or cloud, then pick your rewriting tools. Press F9, talk and paste. Maluva floats like water. Polish your words. Go through your history. It matches your OmarchI theme. Use live rewrite. See your document take shape as you talk or turn an idea into a task. A little more delight every day",
-    "words": [
-      {
-        "text": "Meet",
-        "start": 0.24,
-        "end": 0.54
-      },
-      {
-        "text": "Maluva.",
-        "start": 1.08,
-        "end": 1.66
-      },
-      {
-        "text": "Delightful",
-        "start": 2.56,
-        "end": 3.02
-      },
-      {
-        "text": "dictation",
-        "start": 3.1,
-        "end": 3.76
-      },
-      {
-        "text": "for",
-        "start": 3.94,
-        "end": 4.12
-      },
-      {
-        "text": "OmarchI.",
-        "start": 4.32,
-        "end": 4.92
-      },
-      {
-        "text": "Choose",
-        "start": 5.96,
-        "end": 6.2
-      },
-      {
-        "text": "local",
-        "start": 6.3,
-        "end": 6.68
-      },
-      {
-        "text": "or",
-        "start": 6.82,
-        "end": 6.9
-      },
-      {
-        "text": "cloud,",
-        "start": 7.02,
-        "end": 7.42
-      },
-      {
-        "text": "then",
-        "start": 7.76,
-        "end": 7.98
-      },
-      {
-        "text": "pick",
-        "start": 8.02,
-        "end": 8.22
-      },
-      {
-        "text": "your",
-        "start": 8.26,
-        "end": 8.38
-      },
-      {
-        "text": "rewriting",
-        "start": 8.42,
-        "end": 8.9
-      },
-      {
-        "text": "tools.",
-        "start": 9.0,
-        "end": 9.44
-      },
-      {
-        "text": "Press",
-        "start": 9.76,
-        "end": 10.0
-      },
-      {
-        "text": "F9,",
-        "start": 10.18,
-        "end": 10.76
-      },
-      {
-        "text": "talk",
-        "start": 11.38,
-        "end": 11.72
-      },
-      {
-        "text": "and",
-        "start": 12.16,
-        "end": 12.28
-      },
-      {
-        "text": "paste.",
-        "start": 12.4,
-        "end": 12.84
-      },
-      {
-        "text": "Maluva",
-        "start": 13.16,
-        "end": 13.6
-      },
-      {
-        "text": "floats",
-        "start": 13.78,
-        "end": 14.14
-      },
-      {
-        "text": "like",
-        "start": 14.2,
-        "end": 14.42
-      },
-      {
-        "text": "water.",
-        "start": 14.48,
-        "end": 14.86
-      },
-      {
-        "text": "Polish",
-        "start": 15.5,
-        "end": 15.88
-      },
-      {
-        "text": "your",
-        "start": 15.94,
-        "end": 16.04
-      },
-      {
-        "text": "words.",
-        "start": 16.12,
-        "end": 16.56
-      },
-      {
-        "text": "Go",
-        "start": 17.14,
-        "end": 17.26
-      },
-      {
-        "text": "through",
-        "start": 17.36,
-        "end": 17.58
-      },
-      {
-        "text": "your",
-        "start": 17.64,
-        "end": 17.74
-      },
-      {
-        "text": "history.",
-        "start": 17.8,
-        "end": 18.32
-      },
-      {
-        "text": "It",
-        "start": 18.6,
-        "end": 18.72
-      },
-      {
-        "text": "matches",
-        "start": 18.78,
-        "end": 19.22
-      },
-      {
-        "text": "your",
-        "start": 19.28,
-        "end": 19.4
-      },
-      {
-        "text": "OmarchI",
-        "start": 19.48,
-        "end": 20.02
-      },
-      {
-        "text": "theme.",
-        "start": 20.08,
-        "end": 20.46
-      },
-      {
-        "text": "Use",
-        "start": 20.98,
-        "end": 21.18
-      },
-      {
-        "text": "live",
-        "start": 21.32,
-        "end": 21.52
-      },
-      {
-        "text": "rewrite.",
-        "start": 21.6,
-        "end": 22.12
-      },
-      {
-        "text": "See",
-        "start": 22.72,
-        "end": 22.86
-      },
-      {
-        "text": "your",
-        "start": 22.9,
-        "end": 23.04
-      },
-      {
-        "text": "document",
-        "start": 23.1,
-        "end": 23.62
-      },
-      {
-        "text": "take",
-        "start": 23.68,
-        "end": 23.9
-      },
-      {
-        "text": "shape",
-        "start": 23.96,
-        "end": 24.34
-      },
-      {
-        "text": "as",
-        "start": 24.42,
-        "end": 24.54
-      },
-      {
-        "text": "you",
-        "start": 24.58,
-        "end": 24.68
-      },
-      {
-        "text": "talk",
-        "start": 24.74,
-        "end": 25.06
-      },
-      {
-        "text": "or",
-        "start": 25.86,
-        "end": 25.98
-      },
-      {
-        "text": "turn",
-        "start": 26.1,
-        "end": 26.3
-      },
-      {
-        "text": "an",
-        "start": 26.32,
-        "end": 26.4
-      },
-      {
-        "text": "idea",
-        "start": 26.48,
-        "end": 26.94
-      },
-      {
-        "text": "into",
-        "start": 27.02,
-        "end": 27.24
-      },
-      {
-        "text": "a",
-        "start": 27.28,
-        "end": 27.34
-      },
-      {
-        "text": "task.",
-        "start": 27.4,
-        "end": 27.86
-      },
-      {
-        "text": "A",
-        "start": 28.72,
-        "end": 28.76
-      },
-      {
-        "text": "little",
-        "start": 28.82,
-        "end": 29.02
-      },
-      {
-        "text": "more",
-        "start": 29.08,
-        "end": 29.28
-      },
-      {
-        "text": "delight",
-        "start": 29.32,
-        "end": 29.74
-      },
-      {
-        "text": "every",
-        "start": 29.96,
-        "end": 30.16
-      },
-      {
-        "text": "day",
-        "start": 30.26,
-        "end": 30.5
-      }
-    ],
-    "transcription_id": "vS8O1gywdANp6TZUV6WW",
-    "audio_duration_secs": 30.6616875
-  },
-  "brand": {
-    "language_code": "eng",
-    "language_probability": 1.0,
-    "text": "Meet Mluva. Mluva floats like water.",
+    "audio_duration_secs": 34.67775,
+    "text": "Meet Mluva the most delightful dictation for omarchi choose local or cloud then pick your rewriting tools press f nine talk and paste Mluva floats like water tile it float it take it to your next desktop polish your words go through your history it matches your omarchi theme use live rewrite see your document take shape as you talk or turn an idea into a task a little more delight every day",
     "words": [
       {
         "text": "Meet",
         "start": 0.22,
-        "end": 0.42
-      },
-      {
-        "text": "Mluva.",
-        "start": 0.56,
-        "end": 1.04
+        "end": 0.54
       },
       {
         "text": "Mluva",
-        "start": 1.54,
-        "end": 1.92
+        "start": 0.78,
+        "end": 1.38
+      },
+      {
+        "text": "the",
+        "start": 2.04,
+        "end": 2.16
+      },
+      {
+        "text": "most",
+        "start": 2.2,
+        "end": 2.44
+      },
+      {
+        "text": "delightful",
+        "start": 2.48,
+        "end": 3.02
+      },
+      {
+        "text": "dictation",
+        "start": 3.12,
+        "end": 3.7
+      },
+      {
+        "text": "for",
+        "start": 3.82,
+        "end": 4.04
+      },
+      {
+        "text": "omarchi",
+        "start": 4.12,
+        "end": 4.74
+      },
+      {
+        "text": "choose",
+        "start": 5.52,
+        "end": 5.82
+      },
+      {
+        "text": "local",
+        "start": 5.92,
+        "end": 6.3
+      },
+      {
+        "text": "or",
+        "start": 6.42,
+        "end": 6.5
+      },
+      {
+        "text": "cloud",
+        "start": 6.62,
+        "end": 7.04
+      },
+      {
+        "text": "then",
+        "start": 7.56,
+        "end": 7.78
+      },
+      {
+        "text": "pick",
+        "start": 7.82,
+        "end": 8.039
+      },
+      {
+        "text": "your",
+        "start": 8.119,
+        "end": 8.24
+      },
+      {
+        "text": "rewriting",
+        "start": 8.32,
+        "end": 8.8
+      },
+      {
+        "text": "tools",
+        "start": 8.9,
+        "end": 9.28
+      },
+      {
+        "text": "press",
+        "start": 9.54,
+        "end": 9.86
+      },
+      {
+        "text": "f",
+        "start": 10.08,
+        "end": 10.12
+      },
+      {
+        "text": "nine",
+        "start": 10.24,
+        "end": 10.6
+      },
+      {
+        "text": "talk",
+        "start": 11.08,
+        "end": 11.46
+      },
+      {
+        "text": "and",
+        "start": 11.84,
+        "end": 11.94
+      },
+      {
+        "text": "paste",
+        "start": 12.06,
+        "end": 12.46
+      },
+      {
+        "text": "Mluva",
+        "start": 13.44,
+        "end": 13.88
       },
       {
         "text": "floats",
-        "start": 2.1,
-        "end": 2.46
+        "start": 14.08,
+        "end": 14.46
       },
       {
         "text": "like",
-        "start": 2.52,
-        "end": 2.72
+        "start": 14.52,
+        "end": 14.72
       },
       {
-        "text": "water.",
-        "start": 2.78,
-        "end": 3.18
+        "text": "water",
+        "start": 14.78,
+        "end": 15.14
+      },
+      {
+        "text": "tile",
+        "start": 15.8,
+        "end": 16.1
+      },
+      {
+        "text": "it",
+        "start": 16.16,
+        "end": 16.34
+      },
+      {
+        "text": "float",
+        "start": 16.72,
+        "end": 16.96
+      },
+      {
+        "text": "it",
+        "start": 17.02,
+        "end": 17.2
+      },
+      {
+        "text": "take",
+        "start": 17.78,
+        "end": 17.96
+      },
+      {
+        "text": "it",
+        "start": 18.0,
+        "end": 18.1
+      },
+      {
+        "text": "to",
+        "start": 18.16,
+        "end": 18.24
+      },
+      {
+        "text": "your",
+        "start": 18.28,
+        "end": 18.42
+      },
+      {
+        "text": "next",
+        "start": 18.48,
+        "end": 18.78
+      },
+      {
+        "text": "desktop",
+        "start": 18.82,
+        "end": 19.42
+      },
+      {
+        "text": "polish",
+        "start": 19.98,
+        "end": 20.36
+      },
+      {
+        "text": "your",
+        "start": 20.42,
+        "end": 20.54
+      },
+      {
+        "text": "words",
+        "start": 20.58,
+        "end": 21.02
+      },
+      {
+        "text": "go",
+        "start": 21.54,
+        "end": 21.74
+      },
+      {
+        "text": "through",
+        "start": 21.76,
+        "end": 21.92
+      },
+      {
+        "text": "your",
+        "start": 21.98,
+        "end": 22.08
+      },
+      {
+        "text": "history",
+        "start": 22.14,
+        "end": 22.62
+      },
+      {
+        "text": "it",
+        "start": 23.32,
+        "end": 23.42
+      },
+      {
+        "text": "matches",
+        "start": 23.48,
+        "end": 23.9
+      },
+      {
+        "text": "your",
+        "start": 23.96,
+        "end": 24.1
+      },
+      {
+        "text": "omarchi",
+        "start": 24.16,
+        "end": 24.62
+      },
+      {
+        "text": "theme",
+        "start": 24.7,
+        "end": 25.04
+      },
+      {
+        "text": "use",
+        "start": 25.9,
+        "end": 26.12
+      },
+      {
+        "text": "live",
+        "start": 26.2,
+        "end": 26.5
+      },
+      {
+        "text": "rewrite",
+        "start": 26.6,
+        "end": 27.1
+      },
+      {
+        "text": "see",
+        "start": 27.62,
+        "end": 27.78
+      },
+      {
+        "text": "your",
+        "start": 27.84,
+        "end": 27.96
+      },
+      {
+        "text": "document",
+        "start": 28.0,
+        "end": 28.52
+      },
+      {
+        "text": "take",
+        "start": 28.58,
+        "end": 28.78
+      },
+      {
+        "text": "shape",
+        "start": 28.82,
+        "end": 29.16
+      },
+      {
+        "text": "as",
+        "start": 29.24,
+        "end": 29.36
+      },
+      {
+        "text": "you",
+        "start": 29.4,
+        "end": 29.5
+      },
+      {
+        "text": "talk",
+        "start": 29.56,
+        "end": 29.86
+      },
+      {
+        "text": "or",
+        "start": 30.36,
+        "end": 30.56
+      },
+      {
+        "text": "turn",
+        "start": 30.62,
+        "end": 30.8
+      },
+      {
+        "text": "an",
+        "start": 30.84,
+        "end": 30.92
+      },
+      {
+        "text": "idea",
+        "start": 31.0,
+        "end": 31.44
+      },
+      {
+        "text": "into",
+        "start": 31.5,
+        "end": 31.74
+      },
+      {
+        "text": "a",
+        "start": 31.78,
+        "end": 31.84
+      },
+      {
+        "text": "task",
+        "start": 31.9,
+        "end": 32.299
+      },
+      {
+        "text": "a",
+        "start": 32.88,
+        "end": 32.92
+      },
+      {
+        "text": "little",
+        "start": 32.98,
+        "end": 33.2
+      },
+      {
+        "text": "more",
+        "start": 33.24,
+        "end": 33.42
+      },
+      {
+        "text": "delight",
+        "start": 33.46,
+        "end": 33.9
+      },
+      {
+        "text": "every",
+        "start": 33.98,
+        "end": 34.16
+      },
+      {
+        "text": "day",
+        "start": 34.24,
+        "end": 34.46
       }
-    ],
-    "transcription_id": "WNNbFW4q9xq25Hht2Dl6",
-    "audio_duration_secs": 3.414
+    ]
   }
 }
