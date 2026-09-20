@@ -45,6 +45,25 @@ class RewriteClient(Protocol):
         ...
 
 
+class DisabledRewriteClient:
+    """Keep capture usable while preventing all inference when rewriting is skipped."""
+
+    def list_models(self):
+        """Expose no models and perform no discovery."""
+        return []
+
+    def resolve_model(self, *_args, **_kwargs):
+        """Reject an accidental rewrite entry point before any external work."""
+        raise RuntimeError("Choose a rewriting provider in Settings first.")
+
+    transform = resolve_model
+
+    def close(self):
+        """No process or connection exists to release."""
+
+    cancel = close
+
+
 class UnsupportedRewriteSpeed(ValueError):
     """Expose an actionable speed selection failure without provider response text."""
 
@@ -64,6 +83,8 @@ def rewrite_client(
     turn_timeout_seconds: float | None = None,
 ) -> RewriteClient:
     """Freeze one transport; short catalog/title budgets also apply to compatible HTTP providers."""
+    if config.rewrite_provider == "none":
+        return DisabledRewriteClient()
     if config.rewrite_provider == "litellm":
         timeout = turn_timeout_seconds if turn_timeout_seconds is not None else request_timeout_seconds
         return LiteLLMClient(
@@ -89,6 +110,8 @@ def rewrite_text(
     """Apply the same frozen model, speed and output limits to every full-document rewrite."""
     effort = None
     service_tier = None
+    if config.rewrite_provider == "none":
+        raise RuntimeError("Choose a rewriting provider in Settings first.")
     if config.rewrite_provider == "litellm":
         model = client.resolve_model(config.litellm_model)
     else:

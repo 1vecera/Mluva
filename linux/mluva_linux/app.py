@@ -642,7 +642,9 @@ class MluvaApplication(Adw.Application):
         """Reflect saved settings in the single Live rewrite control and its selected menu item."""
         if self.live_mode_switch is None:
             return
-        self.live_mode_switch.set_active(self.config.live_rewrite_enabled)
+        self.live_mode_switch.set_sensitive(self.config.rewrite_provider != "none")
+        self.live_mode_menu.set_sensitive(self.config.rewrite_provider != "none")
+        self.live_mode_switch.set_active(self.config.live_rewrite_enabled and self.config.rewrite_provider != "none")
         template = self.config.live_rewrite_template
         self.live_template_buttons[template].set_active(True)
         label = dict(TEMPLATE_CHOICES)[template]
@@ -892,6 +894,14 @@ class MluvaApplication(Adw.Application):
 
     def _apply_workspace_settings(self, changes: dict) -> bool:
         """Persist UI choices to the shared dotfile and replace idle provider transports."""
+        if changes.get("rewrite_provider") == "none":
+            changes = {**changes, "live_rewrite_enabled": False, "automatic_titles": False}
+        if (
+            self.config.rewrite_provider == "none"
+            and changes.get("live_rewrite_enabled")
+            and changes.get("rewrite_provider", "none") == "none"
+        ):
+            return False
         config = replace(self.config, **changes)
         changed = {name for name in changes if getattr(self.config, name) != getattr(config, name)}
         if not changed:
@@ -901,6 +911,8 @@ class MluvaApplication(Adw.Application):
             "history_sidebar_visible",
             "time_format",
             "widget_position",
+            "widget_lines",
+            "widget_opacity",
             "show_copy_action",
             "show_save_action",
             "smooth_scrolling",
@@ -1011,6 +1023,12 @@ class MluvaApplication(Adw.Application):
                 self.realtime_client = ElevenLabsRealtimeClient(api_key=elevenlabs_api_key())
             except RuntimeError:
                 self.realtime_client = None
+        elif config.transcription_provider == "local":
+            from mluva_linux.local_preview import LocalPreviewClient
+
+            self.realtime_client = LocalPreviewClient(
+                config.local_model, self.codex_workspace.parent / "speech-previews", device=config.local_device
+            )
         else:
             self.realtime_client = BatchPreviewClient(
                 lambda: transcription_client(config),
@@ -1029,7 +1047,12 @@ class MluvaApplication(Adw.Application):
 
     def _load_rewrite_models(self) -> None:
         """Discover installed models only when requested, without sending conversation text."""
-        if self.shutting_down or self.model_catalog_client is not None or self.rewrite_settings is None:
+        if (
+            self.config.rewrite_provider == "none"
+            or self.shutting_down
+            or self.model_catalog_client is not None
+            or self.rewrite_settings is None
+        ):
             return
         client = self._new_rewrite_client(request_timeout_seconds=10)
         self.model_catalog_client = client
@@ -1078,7 +1101,7 @@ class MluvaApplication(Adw.Application):
     def _begin_rewrite(self, identifier: str, instruction: str) -> None:
         """Run either rewrite surface against one explicit conversation, regardless of selection."""
         workspace = self.conversation_workspace
-        if workspace is None or self.shutting_down:
+        if workspace is None or self.shutting_down or self.config.rewrite_provider == "none":
             return
         if self.live_schedule is not None and self.live_final_entry is not None:
             return
@@ -1166,6 +1189,9 @@ class MluvaApplication(Adw.Application):
                     scroll_duration_ms=self.config.scroll_duration_ms,
                     scroll_lookahead_lines=self.config.scroll_lookahead_lines,
                     widget_position=self.config.widget_position,
+                    widget_lines=self.config.widget_lines,
+                    widget_opacity=self.config.widget_opacity,
+                    rewrite_enabled=self.config.rewrite_provider != "none",
                 )
             )
 
@@ -1293,6 +1319,9 @@ class MluvaApplication(Adw.Application):
                     scroll_duration_ms=self.config.scroll_duration_ms,
                     scroll_lookahead_lines=self.config.scroll_lookahead_lines,
                     widget_position=self.config.widget_position,
+                    widget_lines=self.config.widget_lines,
+                    widget_opacity=self.config.widget_opacity,
+                    rewrite_enabled=self.config.rewrite_provider != "none",
                 )
             )
         return GLib.SOURCE_REMOVE
@@ -2196,6 +2225,11 @@ class MluvaApplication(Adw.Application):
 
     def _start_meeting_capture(self) -> None:
         """Freeze privacy and start both Meeting sources after explicit button activation."""
+        if self.config.transcription_provider != "elevenlabs":
+            self._set_meeting_status(
+                "Meeting diarization requires ElevenLabs. Select it in Providers to enable uploads."
+            )
+            return
         if self.meeting_recorder is None or self.meeting_page is None:
             return
         if (
@@ -2386,6 +2420,9 @@ class MluvaApplication(Adw.Application):
 
     def _retry_meeting_recognition(self, meeting: MeetingRecord) -> None:
         """Start an explicit retained-audio retry without copying or delivering text."""
+        if self.config.transcription_provider != "elevenlabs":
+            self._set_meeting_status("Meeting retry uploads audio to ElevenLabs. Select it in Providers first.")
+            return
         if self.meeting_workflow is None or self.meeting_page is None:
             self._set_meeting_status("Meeting retry is unavailable until capture services are configured.")
             return
@@ -2640,8 +2677,19 @@ class MluvaApplication(Adw.Application):
                     "Command mode is unavailable in Incognito because Codex durability cannot be guaranteed."
                 )
                 return
-            self.pending_cleanup = self.cleanup_switch.get_active() and not self.pending_incognito
+            self.pending_cleanup = (
+                self.cleanup_switch.get_active()
+                and not self.pending_incognito
+                and self.config.rewrite_provider != "none"
+            )
             self._freeze_output_style()
+            if self.config.rewrite_provider == "none":
+                self.pending_use_saved_style = False
+                self.pending_style = None
+                self.pending_style_identifier = None
+                if self.pending_mode == "command":
+                    self._set_status("Choose a rewriting provider to use Command mode.")
+                    return
             self.pending_codex_model_identifier = None
             self.pending_transcript_preparation = None
             self.pending_command_target = None
@@ -3341,7 +3389,9 @@ class MluvaApplication(Adw.Application):
         if self.mode is not None:
             self.mode.set_sensitive(controls_available)
         if self.cleanup_switch is not None:
-            self.cleanup_switch.set_sensitive(not self.pending_incognito and controls_available)
+            self.cleanup_switch.set_sensitive(
+                self.config.rewrite_provider != "none" and not self.pending_incognito and controls_available
+            )
         if self.spoken_commands_switch is not None:
             self.spoken_commands_switch.set_sensitive(controls_available)
         if self.auto_paste_switch is not None:
@@ -3355,7 +3405,9 @@ class MluvaApplication(Adw.Application):
         if self.history_retention is not None:
             self.history_retention.set_sensitive(controls_available)
         if self.output_style is not None:
-            self.output_style.set_sensitive(not self.pending_incognito and controls_available)
+            self.output_style.set_sensitive(
+                self.config.rewrite_provider != "none" and not self.pending_incognito and controls_available
+            )
         if self.remember_application_switch is not None:
             self.remember_application_switch.set_sensitive(controls_available)
         if self.language is not None:
@@ -3427,6 +3479,9 @@ class MluvaApplication(Adw.Application):
                 scroll_duration_ms=self.config.scroll_duration_ms,
                 scroll_lookahead_lines=self.config.scroll_lookahead_lines,
                 widget_position=self.config.widget_position,
+                widget_lines=self.config.widget_lines,
+                widget_opacity=self.config.widget_opacity,
+                rewrite_enabled=self.config.rewrite_provider != "none",
             )
             if not self.recording_overlay_publisher.publish(overlay_state):
                 self.recording_overlay_publisher = None
@@ -3465,7 +3520,13 @@ class MluvaApplication(Adw.Application):
         if publisher is not None:
             publisher.publish(
                 RecordingOverlayState(
-                    phase=phase, detail=detail, preview=preview, widget_position=self.config.widget_position
+                    phase=phase,
+                    detail=detail,
+                    preview=preview,
+                    widget_position=self.config.widget_position,
+                    widget_lines=self.config.widget_lines,
+                    widget_opacity=self.config.widget_opacity,
+                    rewrite_enabled=self.config.rewrite_provider != "none",
                 )
             )
             if phase in {"copied", "error"}:
@@ -4077,7 +4138,7 @@ class MluvaApplication(Adw.Application):
             self._cancel_live_rewrite()
             self._cancel_titles()
         if self.automatic_titles_switch is not None:
-            self.automatic_titles_switch.set_sensitive(not incognito)
+            self.automatic_titles_switch.set_sensitive(self.config.rewrite_provider != "none" and not incognito)
         if incognito and getattr(self, "overlay_review_identifier", None) is not None:
             self._dismiss_review()
         workspace = getattr(self, "conversation_workspace", None)
@@ -4110,9 +4171,13 @@ class MluvaApplication(Adw.Application):
             and not self.meeting_processing
         )
         has_pending_review = self.pending_command_result is not None or self.scratchpad_store.draft is not None
-        self.cleanup_switch.set_sensitive(not incognito and recorder_idle and not has_pending_review)
+        self.cleanup_switch.set_sensitive(
+            self.config.rewrite_provider != "none" and not incognito and recorder_idle and not has_pending_review
+        )
         if self.output_style is not None:
-            self.output_style.set_sensitive(not incognito and recorder_idle and not has_pending_review)
+            self.output_style.set_sensitive(
+                self.config.rewrite_provider != "none" and not incognito and recorder_idle and not has_pending_review
+            )
 
     def _prune_history(self) -> int:
         """Apply configured age retention while preserving the unresolved Scratchpad row."""

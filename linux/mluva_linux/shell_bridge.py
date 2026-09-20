@@ -49,6 +49,9 @@ def project_state(parameters: GLib.Variant, overlay: bool = False) -> dict[str, 
             "preview_start": max(0, min(int(values.get("preview_start", 0)), 2**31 - 1)),
         }
         state.update(
+            rewrite_enabled=bool(values.get("rewrite_enabled", True)),
+            widget_lines=max(1, min(10, int(values.get("widget_lines", 5)))),
+            widget_opacity=max(10, min(100, int(values.get("widget_opacity", 82)))),
             review_timeout=max(1, min(60, int(values.get("review_timeout", 4)))),
             show_copy=bool(values.get("show_copy", True)),
             smooth_scrolling=bool(values.get("smooth_scrolling", True)),

@@ -595,6 +595,7 @@ class ConversationWorkspace(Gtk.Box):
             button.set_visible(config.show_copy_action)
         for button in self.save_buttons:
             button.set_visible(config.show_save_action)
+        self._update_actions()
 
     def _message(self, title: str, text: str, source: bool = False, reply_identifier: int | None = None) -> None:
         """Add a directly editable document with compact Copy and Save actions."""
@@ -943,8 +944,12 @@ class ConversationWorkspace(Gtk.Box):
         self.cancel.set_visible(self.busy)
         self.live_cancel_slot.set_visible_child_name("cancel" if self.busy else "idle")
         for button in (self.quick_polish, self.structured_note, *self.saved_prompt_buttons):
-            button.set_sensitive(self.entry is not None and not self.busy and not self.private)
-        self.send.set_sensitive(not self.busy and (self.entry is None or not self.private))
+            button.set_sensitive(
+                self.config.rewrite_provider != "none" and self.entry is not None and not self.busy and not self.private
+            )
+        self.send.set_sensitive(
+            not self.busy and (self.entry is None or (not self.private and self.config.rewrite_provider != "none"))
+        )
         self.save.set_sensitive(self.entry is not None and not self.private and not self.busy)
         if self.private:
             self.notice.set_label("Incognito: no saved conversation. Rewriting is unavailable.")
@@ -1017,7 +1022,9 @@ class ConversationWorkspace(Gtk.Box):
         self.saved_prompt_buttons = []
         for name, instruction in prompts:
             button = Gtk.Button(label=name, has_frame=False)
-            button.set_sensitive(self.entry is not None and not self.busy and not self.private)
+            button.set_sensitive(
+                self.config.rewrite_provider != "none" and self.entry is not None and not self.busy and not self.private
+            )
             self.saved_prompt_buttons.append(button)
             button.connect("clicked", self._saved_prompt_clicked, instruction, popover)
             choices.append(

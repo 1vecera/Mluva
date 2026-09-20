@@ -62,6 +62,7 @@ class RewriteSettings(Gtk.MenuButton):
 
     def set_config(self, config: AppConfig) -> None:
         """Reflect saved settings, guarding GTK notifications during a catalog refresh or rollback."""
+        self.set_sensitive(config.rewrite_provider != "none")
         remote = config.rewrite_provider == "litellm"
         if any(
             getattr(config, name) != getattr(self.config, name)

@@ -146,7 +146,10 @@ install -d -m 0755 \
     "${icons_dir}"
 install -d -m 0755 "${application_dir}/mluva_linux"
 install -m 0644 "${source_dir}/pyproject.toml" "${source_dir}/uv.lock" "${application_dir}/"
-install -m 0644 "${source_dir}/mluva_linux/"*.py "${application_dir}/mluva_linux/"
+install -m 0644 "${source_dir}/mluva_linux/"*.py \
+    "${source_dir}/mluva_linux/local_models.json" \
+    "${source_dir}/mluva_linux/qwen_runtime.json" \
+    "${source_dir}/mluva_linux/gpu-requirements.txt" "${application_dir}/mluva_linux/"
 install -d -m 0755 "${application_dir}/resources/mermaid"
 install -m 0644 "${source_dir}/resources/mermaid/"* "${application_dir}/resources/mermaid/"
 install -m 0644 \

@@ -72,7 +72,7 @@ FEATURE_CAPABILITIES: Final[tuple[FeatureCapability, ...]] = (
     FeatureCapability(
         "provider_choice",
         "Independent rewrite and speech providers",
-        "LiteLLM transports and local Voxtype have controlled checks; cloud account compatibility needs acceptance.",
+        "Compatible APIs and app-owned local models have controlled checks; cloud accounts need acceptance.",
         FeatureMaturity.EXPERIMENTAL,
     ),
     FeatureCapability(

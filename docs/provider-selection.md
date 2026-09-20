@@ -1,22 +1,21 @@
 # Choosing speech and rewrite providers
 
-Open **Settings → Providers**. Choose the speech provider and its model, then the rewrite provider and its model. **Apply** saves the page for the next recording or request. Recording and rewriting must be idle before applying changes. Switching providers keeps the other providers’ model choices; opening Settings again reloads the saved configuration. Workspace/Live controls remain on their existing surfaces.
+Open **Settings → Providers**. Use the visible buttons to choose speech recognition and optional polishing. Only Custom exposes endpoint and model details. **Apply** saves the page for the next recording or request. Recording and rewriting must be idle before applying changes. Switching providers keeps the other providers’ model choices; opening Settings again reloads the saved configuration. Workspace/Live controls remain on their existing surfaces.
 
-![Provider defaults in the production GTK settings dialog](images/provider-settings.png)
-
-Screenshots use isolated test credentials. [The compact failure state](images/provider-settings-error.png) keeps manual model entry and Apply reachable when discovery is unavailable.
+First launch uses the [three-step onboarding](onboarding.md), including optional rewriting and a live appearance preview.
 
 | Task | Provider | Default and setup |
 | --- | --- | --- |
-| Speech | ElevenLabs | Scribe v2. Set `ELEVENLABS_API_KEY` through the existing secret manager or session service; the supported legacy environment aliases still work. Meeting continues to use ElevenLabs. |
-| Speech | Voxtype · local Whisper | Use the existing Voxtype configuration, or select an installed Whisper model. Install Voxtype and run `voxtype setup model` to add models. Use a multilingual model for Czech or other non-English speech. |
+| Speech | ElevenLabs | Scribe v2. Paste the API key directly below the ElevenLabs choice; Apply stores it in the desktop keyring. A saved key takes priority over environment keys, whose supported legacy aliases still work. Meeting continues to use ElevenLabs. |
+| Speech | Local model | Mluva downloads verified weights into its own storage. Choose one of five RAM/storage sizes, optionally enable NVIDIA GPU, and press Download model. Five models support Czech and English; no other app is required. |
 | Speech | Compatible API | Use a transcription deployment on a LiteLLM or OpenAI-compatible server. The existing `whisper` alias remains the initial suggestion; replace it with your server’s deployment ID. |
-| Rewrite | Codex | Use the existing Codex default, or a specific model from the installed app-server. Authenticate through `codex login`. Fast mode is offered only when the model advertises a Fast tier. |
+| Rewrite | Skip | Keep transcription and editing; disable polish, Live rewrite and generated titles. |
+| Rewrite | Codex | Use the existing Codex account and selected model. Authenticate through `codex login`; the compact workspace rewrite picker retains model and supported Fast-tier choices. |
 | Rewrite | Compatible API | Choose a chat deployment on a LiteLLM or OpenAI-compatible server. A model ID is required; Mluva does not guess a cloud model or silently select the first catalog entry. |
 
-Model choices support search. **Enter model ID…** allows an explicit alias when the catalog is unavailable or omits a deployment. A listed model is not proof that the account can use it, and a model absent from a compatible server’s listing may still work. Codex and Voxtype defaults follow their existing configuration; their UI does not invent a fallback model.
+Custom model choices support search. **Enter model ID…** allows an explicit alias when the catalog is unavailable or omits a deployment. A listed model is not proof that the account can use it, and a model absent from a compatible server’s listing may still work. Codex follows its existing configuration. Local models use a size slider; see [model choices](local-speech-models.md).
 
-**Refresh** is optional. Opening Settings, switching providers and typing an endpoint do not contact a provider. Refresh reads Codex’s `model/list`, Voxtype’s installed Whisper inventory, or the selected compatible endpoint’s `GET /models`. It sends no audio, transcript or rewrite prompt. Speech and rewrite endpoints have separate catalogs. When a compatible server advertises a task mode, the picker filters it; aliases without task metadata remain visible, so choose the appropriate deployment. Older Voxtype versions without the JSON inventory command can still use their configured model or a manually entered name.
+**Refresh** is optional for Codex and compatible APIs. It reads model metadata without sending audio or text. The local model slider only previews requirements; Download model starts installation, opening settings alone does not download models. Speech and rewrite endpoints retain independent catalogs.
 
 A failed, empty or malformed listing leaves the current choice usable and explains the next step. Editing the endpoint/key reference, changing providers, closing the page or reopening Settings invalidates any older in-flight result. Discovery runs off the GTK thread, with bounded requests and child cleanup. It never falls back to another URL or provider.
 

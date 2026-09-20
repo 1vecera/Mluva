@@ -33,7 +33,6 @@ class DiagnosticProvider(StrEnum):
     DESKTOP = "desktop"
     LOCAL = "local"
     LITELLM = "litellm"
-    VOXTYPE = "voxtype"
 
 
 class DiagnosticOutcome(StrEnum):

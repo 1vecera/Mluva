@@ -163,6 +163,15 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
             lambda: True,
             "onboarding speech recognition local cloud model",
         ),
+        Command(
+            "Settings · Workspace · Floating widget position",
+            "preferences-system-symbolic",
+            lambda: open_setting(
+                app, app.workspace_settings_pages[0], app.workspace_settings_pages[0].appearance.position
+            ),
+            lambda: True,
+            "recorder appearance left center right",
+        ),
     )
     for name, choices, title in (
         ("widget_position", WIDGET_POSITIONS, "Widget position"),
@@ -238,7 +247,7 @@ def settings_commands(app: "MluvaApplication") -> tuple[Command, ...]:
     return tuple(commands)
 
 
-def open_setting(app: "MluvaApplication", page: Adw.PreferencesPage, row: Adw.PreferencesRow) -> None:
+def open_setting(app: "MluvaApplication", page: Adw.PreferencesPage, row: Gtk.Widget) -> None:
     """Open the containing page, expand advanced controls and scroll the requested setting into view."""
     app._show_settings(app.settings_button)
     app.settings_view.set_visible_page(page)

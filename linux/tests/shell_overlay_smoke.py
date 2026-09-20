@@ -551,6 +551,19 @@ def main() -> None:
             assert configured["reviewDuration"] == 3000 and not configured["copyVisible"]
             assert configured["scrollDuration"] == 1200 and not configured["smoothScrolling"]
             assert configured["scrollLookahead"] == 0
+            publisher.publish(
+                RecordingOverlayState(
+                    phase="recording",
+                    preview="Three-line appearance settings",
+                    widget_lines=3,
+                    widget_opacity=40,
+                    rewrite_enabled=False,
+                )
+            )
+            appearance = observe("recording", "Three-line appearance settings")
+            assert abs(appearance["surfaceOpacity"] - 0.4) < 0.01
+            assert abs(appearance["viewportHeight"] - 3 * appearance["lineHeight"]) < 1
+            subprocess.run(["import", "-window", "root", str(output / "three-lines-transparent.png")], check=True)
             publisher.publish(RecordingOverlayState(phase="recording", preview="Must disappear on owner loss"))
             observe("recording")
             Gio.bus_unown_name(owner)
