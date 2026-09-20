@@ -6,12 +6,20 @@ import "../quickshell/mluva.dictation" as Mluva
 
 ShellRoot {
     id: root
-    readonly property var overlay: widget.data.find(item => item.objectName === "mluva-recording-overlay")
+    readonly property var widgets: [primaryWidget.item, secondaryWidget.item].filter(item => item)
+    readonly property var widget: widgets.find(item => item.ownsOverlay)
+    readonly property var overlays: widgets.map(item =>
+        item.data.find(child => child.objectName === "mluva-overlay-loader").item).filter(item => item)
+    readonly property var overlay: overlays[0]
     function descendants(item): var {
         return [item].concat(...(item.children || []).map(child => descendants(child)));
     }
     IpcHandler {
         target: "fixture"
+        function bars(primary: bool, secondary: bool): void {
+            secondaryWidget.active = secondary;
+            primaryWidget.active = primary;
+        }
         function click(name: string): void {
             if (name === "more") root.overlay.menuOpen = true;
             else root.descendants(root.overlay.contentItem).find(item => item.objectName === name + "-button").clicked();
@@ -78,13 +86,43 @@ ShellRoot {
             anchors.centerIn: parent
             focus: true
         }
+        Loader {
+            id: primaryWidget
+            sourceComponent: barWidget
+        }
+        Loader {
+            id: secondaryWidget
+            active: false
+            sourceComponent: barWidget
+        }
+    }
+    QtObject {
+        id: barHost
+        property var moduleSlots: [primarySlot, secondarySlot]
+        property bool vertical: false
+        property int barSize: 26
+        property color foreground: Color.foreground
+    }
+    QtObject {
+        id: primarySlot
+        property string moduleName: "mluva.dictation"
+        property var activeItem: primaryWidget.item
+    }
+    QtObject {
+        id: secondarySlot
+        property string moduleName: "mluva.dictation"
+        property var activeItem: secondaryWidget.item
+    }
+    Component {
+        id: barWidget
         Mluva.Widget {
-            id: widget
+            bar: barHost
             settings: ({command: Quickshell.env("MLUVA_SHELL_COMMAND")})
         }
     }
     function snapshot(): string {
             const overlay = root.overlay;
+            if (!overlay || !overlay.contentItem) return "{}";
             const origin = overlay.contentItem.mapToGlobal(0, 0);
             const text = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-text");
             const viewport = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-viewport");
@@ -96,6 +134,8 @@ ShellRoot {
             const header = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-header");
             const timer = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-timer");
             return JSON.stringify({phase: widget.phase, preview: widget.preview, elapsed: widget.elapsed,
+                barCount: widgets.length, overlayCount: overlays.length,
+                visibleOverlays: overlays.filter(item => item.visible).length,
                 identifier: widget.identifier, options: widget.options, menuOpen: overlay.menuOpen,
                 copyEnabled: copy.enabled, copyVisible: copy.visible, renderedText: text.text,
                 reviewDuration: overlay.reviewDuration, smoothScrolling: overlay.smoothScrolling,
