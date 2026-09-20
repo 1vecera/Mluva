@@ -24,6 +24,10 @@ Item {
     property int scrollLookahead: 2
     property string widgetPosition: "bottom-center"
     property bool controlFailed: false
+    // Omarchy creates one widget per monitor. Only the first attached widget
+    // owns the floating recorder; removing its bar hands ownership to the next.
+    readonly property bool ownsOverlay: !bar || !bar.moduleSlots
+        || bar.moduleSlots.find(slot => slot.moduleName === root.moduleName && slot.activeItem)?.activeItem === root
     readonly property string executable: settings && settings.command ? settings.command : "mluva-shell"
     readonly property var labels: ({
         "unavailable": "Mluva unavailable", "stopped": "Mluva stopped", "idle": "Mluva ready",
@@ -106,23 +110,26 @@ Item {
             root.message = "";
         }
     }
-    RecordingOverlay {
-        screen: root.QsWindow.window ? root.QsWindow.window.screen : null
-        reviewDuration: root.reviewTimeout * 1000
-        showCopy: root.showCopy
-        smoothScrolling: root.smoothScrolling
-        scrollDuration: root.scrollDuration
-        scrollLookahead: root.scrollLookahead
-        positionPreset: root.widgetPosition
-        phase: root.phase
-        elapsed: root.elapsed
-        level: root.level
-        preview: root.preview
-        previewStart: root.previewStart
-        identifier: root.identifier
-        options: root.options
-        message: root.controlFailed ? "Control failed · open Mluva" : root.message
-        onReview: function(action, style) { root.review(action, style); }
+    LazyLoader {
+        objectName: "mluva-overlay-loader"
+        active: root.ownsOverlay
+        RecordingOverlay {
+            reviewDuration: root.reviewTimeout * 1000
+            showCopy: root.showCopy
+            smoothScrolling: root.smoothScrolling
+            scrollDuration: root.scrollDuration
+            scrollLookahead: root.scrollLookahead
+            positionPreset: root.widgetPosition
+            phase: root.phase
+            elapsed: root.elapsed
+            level: root.level
+            preview: root.preview
+            previewStart: root.previewStart
+            identifier: root.identifier
+            options: root.options
+            message: root.controlFailed ? "Control failed · open Mluva" : root.message
+            onReview: function(action, style) { root.review(action, style); }
+        }
     }
     Timer {
         interval: 5000
