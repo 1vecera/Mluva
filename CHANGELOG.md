@@ -2,6 +2,13 @@
 
 This file records user-visible Mluva releases.
 
+## 1.3.0 — 2026-09-21
+
+- Fixed desktop startup when a legacy managed credential profile references a retired 1Password item. Enabled local credential snapshots now take precedence and load only the supported speech token; existing process credentials and installations without snapshots keep their existing paths.
+- Updated the app introduction with Daniel's narration and inline GitHub playback.
+
+The matching Omarchy widget remains version 0.4.0. This release retains the security fixes from 1.2.1.
+
 ## 1.2.1 — 2026-09-21
 
 - Restricted native Codex rewrites to text-only sessions without tools, inherited instructions or integrations. Unsupported isolation capabilities fail closed; existing Codex sign-in is preserved. Setup now installs Bubblewrap for masking global instruction files.
