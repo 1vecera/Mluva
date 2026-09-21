@@ -1,14 +1,16 @@
 ![Mluva — Speak a rough idea. Shape it into useful text.](docs/assets/mluva-hero.svg)
 
-**Native dictation and rewriting for Omarchy.**
+**The most delightful dictation for Omarchy.**
 
 Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install](#install)** · **[Watch the 55-second film ↗](https://1vecera.github.io/Mluva/#film)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.2.1)**
+**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.2.1)**
 
+## Meet Mluva
 
+https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 
-<sub>Click the image to open the film with playback controls and captions. Native app footage, synthetic narration and edited timing; see the <a href="docs/promotion/README.md">media guide</a> for credits and demo disclosures.</sub>
+<sub>72 seconds · Narrated by Daniel Vecera · Captions included. <a href="docs/promotion/README.md">Video credits and demo notes</a>.</sub>
 
 ## From a thought to a finished draft
 

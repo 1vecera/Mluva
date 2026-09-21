@@ -1,52 +1,38 @@
 # Mluva app intro
 
-An 84-second, 1920×1080, 60 fps intro following the feature order of the [original Figma storyboard](https://www.figma.com/design/4mdtod74gknaCCm8q1nrDj?node-id=3-10). It opens on Mluva's native Welcome screen with a six-second information overlay: “The most delightful dictation for Omarchy. Local or cloud. Your choice of tools.” The overlay fades away before setup interaction begins. Remotion reframes the desktop recording and adds short keyboard cues, burned-in subtitles and a closing brand card.
+A 72.37-second, 1920×1080, 60 fps intro narrated by Daniel Vecera. His presenter cutout sits inside the native Omarchy desktop, and short captions at the top highlight selected spoken words. [Watch the published film](../README.md#meet-mluva).
 
-The main take records the actual Omarchy desktop, theme changes, clipboard paste and animated wallpaper together. New Welcome/setup footage at 0–18 seconds and recorder footage at 30–44 seconds use a separate real Hyprland compositor, with native GTK/Quickshell, Chromium on FT, VS Code, Ghostty, htop and Linear's dark sign-in page arranged like the supplied reference. The recorder genuinely tiles, floats again and remains pinned while switching to Firefox/Hacker News on desktop 2. This is continuous native compositor footage; no desktop still or recreated widget is used in that scene. The isolated session leaves the visible desktop alone.
-
-Live rewrite and Grilling at 63–79 seconds retain the take with the short-draft scroll correction. Microphone/provider responses and demonstration history are prepared fixtures; this film does not measure speech recognition quality or service latency. The source remains visible beside the draft, and the app labels Live rewrite as Experimental.
+The original 83.27-second camera recording is shortened by 10.91 seconds using matched picture/audio cuts. All 194 spoken tokens remain at their original speed and pitch. The original Figma feature order is retained. [Motion and voice decisions](MOTION.md) describe the treatment.
 
 ## Render
 
-Requires Node/npm, FFmpeg/ffprobe and uv. The three media inputs below are intentionally local and ignored by Git; a source checkout alone does not include them. Restore them from the local `mluva-intro-live-media-v3.tar.gz` archive before rendering. The v4 opening overlay reuses those unchanged inputs and the committed logo.
+Requires Node/npm, FFmpeg/ffprobe and uv. Extract the private `mluva-intro-daniel-media-v7.tar.gz` at the worktree root; it restores these four inputs. A source checkout alone cannot render the film.
 
 | Input | Content |
 | --- | --- |
-| `public/live/desktop.mp4` | Edited 84-second native footage, 1920×1200 at 60 fps. |
-| `public/live/sarah.wav` | Fish Audio Sarah, positioned against the storyboard in an 84-second PCM track. |
-| `public/audio/music-bed.wav` | User-selected downloaded music, crossfaded to 84 seconds and normalized before ducking. |
+| `public/live/desktop-daniel.mp4` | Retimed native desktop, 1920×1200 at 60 fps. |
+| `public/live/daniel-cutout.webm` | Synchronized 30 fps presenter footage with an alpha channel. |
+| `public/live/edit.json` | Caption/word timing, keyboard cues and composition duration. |
+| `public/audio/narration-mix.wav` | Approved 48 kHz stereo voice and music master. |
 
 ```sh
 cd launch-video
 npm ci --ignore-scripts
 npm run lint
-npm run preview
 npm run render -- --crf=16
 npm run master
 ```
 
-The final file is `out/mluva-intro-live-master.mp4`; preview is 960×540 at 60 fps. The 16:10 desktop is contained in the 16:9 composition, with close-ups for app details and space for readable subtitles. Captions are rendered into the picture from `reference/narration-cues.json`; the local archive also includes an SRT. [Final review](review/final.md), [asset provenance](reference/ASSETS.md), [motion and voice decisions](MOTION.md), and [media hashes](reference/media.json) describe the delivery and its limits. Nothing in these commands publishes the video.
+The result is `out/mluva-intro-live-master.mp4`. Remotion renders silent picture; `script/master.py` checks its duration and attaches the approved mix as AAC without changing the video. This keeps sound aligned and avoids repeated voice processing or renderer-specific audio-delay corrections. The Remotion composition still plays the mix during interactive preview.
 
-## Source map
+For a smaller full-length preview, use `npm run preview`, then `uv run script/master.py out/mluva-intro-live-preview.mp4`.
 
-| File | Responsibility |
-| --- | --- |
-| `src/MluvaIntro.tsx` | Native footage, opening information overlay, eased reframing, closing brand card, keyboard cues, subtitles and music ducking. |
-| `reference/storyboard.json` | Original Figma shot order and readback. |
-| `reference/edit.json` | Revised scene timing, source ranges and playback rates. |
-| `script/capture-storyboard.py` | Production GTK states with prepared device/provider boundaries and private demonstration history. |
-| `script/narration-storyboard.txt` | Energetic Sarah script with delivery tags and phoneme controls for Mluva and Live. |
-| `reference/narration-cues.json` | Source-to-film timing and exact Fish voice identity. |
-| `reference/narration-scribe.json` | Word timing and speech-to-text check of the Sarah source take. |
-| `reference/capture-verification.json` | Native tiling, floating, pinning and desktop-switch evidence. |
-| `script/master.py` | Measured two-pass loudness normalization and verification of encoded AAC. |
+`Root.tsx` reads the local edit plan and sets the exact frame count. `src/MluvaIntro.tsx` lays out the scene; `src/PoppyCaptions.tsx` renders captions. The desktop fills a 1728×1080 area at (96, 0), preserving its 16:10 aspect. The cutout has no backdrop, outline, shadow or added edge fades.
 
-## Refresh app footage
+## Sources and review
 
-Use the repository's Linux environment and the installed offscreen verification runner for rehearsal. The fixture refuses ordinary desktop execution unless both `--host` and `MLUVA_AUTHORIZED_HOST_CAPTURE=1` are supplied. Host recording requires explicit authorization, isolated demonstration app data, a prepared Chrome Guest window and restoration of desktop state afterward.
+The v7 private archive holds the four current inputs, the final voice stem, processing scripts and verification records. Earlier private archives retain the original camera recording, raw transcript, preparation sources and native capture takes. These files stay outside Git. The approved finished movie is the public artifact; [input hashes](reference/media.json), [asset provenance](reference/ASSETS.md) and [final review](review/final.md) document it.
 
-The fixture supports `--start-at` and `--end-at` for pickups, plus `--wait-for-start` to synchronize the app with a recorder through its output directory's `go` and `started.json` files. It records native snapshots and source/draft scroll measurements in `manifest.json`. For a complete host take, a separate recorder must capture the compositor and send actual F9 and window-manager shortcuts; the fixture deliberately does not synthesize global host input. Offscreen mode records its private X11 rehearsal automatically.
+[Capture receipts](reference/capture-verification.json) establish actual recorder tile/float/pin behavior and the switch to Firefox/Hacker News. The old capture fixture, theme snapshots and superseded storyboard timing export have been retired. The [Figma storyboard](../docs/design/video-kit/README.md) remains the narrative reference.
 
-The v3 input archive also contains the isolated Hyprland pickup scripts, source recordings and capture receipts. These run a nested compositor with a private runtime, bus and application profiles, then record its output with wf-recorder. Recorder actions dispatch the same Hyprland operations used by Omarchy's Super+T and workspace shortcuts. The capture's incorrect full-range H.264 flag is corrected by stream copy; decoded colors were compared with native PNG captures. Blur was enabled only in the private compositor for legibility over the tiled windows.
-
-The old image-patching pipeline, recreated desktop surfaces, generated background and alternate compositions have been removed. Unused promotion screenshots and the superseded Figma/Blender video pipeline have also been removed. Existing Git history preserves those earlier versions; the Figma storyboard, logo-study reflow helper, licensing records and media still embedded by the homepage remain.
+Provider responses and demonstration history are prepared examples. The retained transfer into Chrome uses native F9 start/stop and Ctrl+V; it does not establish service latency, recognition accuracy or automatic insertion into every app. Live rewrite remains visibly Experimental, and its footage retains PR #45's short-draft scroll correction. This revision changes no application code.

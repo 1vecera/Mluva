@@ -1,20 +1,29 @@
 {
-  "duration_seconds": 84,
-  "picture": "Actual native Omarchy desktop footage plus continuous Welcome and recorder pickups in an isolated native Hyprland compositor. Recorder tiling, refloating, pinning and workspace switching are real compositor behavior.",
-  "app_main_commit": "35c1afb01bd27facc652fbeb4e5c8100ac0b9b26",
-  "app_live_pickup_commit": "3c31e7249b088c9784c9f57c857c66e5edcb54be",
-  "pickup_source_commit": "931d90fe1a611e342fb188e1a17a2cf1c4877e2c",
-  "voice": {
-    "provider": "Fish Audio",
-    "name": "Sarah",
-    "reference_id": "933563129e564b19a115bedd57b7406a",
-    "model": "s2.1-pro-free",
-    "speed": 0.94
+  "version": 7,
+  "duration_seconds": 72.36666666666667,
+  "narrator": "Daniel Vecera, original camera recording; no synthesized speech",
+  "picture": "Retimed native Omarchy footage with temporally matted presenter footage. Matched audio/video cuts only shorten pauses; speech and presenter motion remain at original speed.",
+  "matting": {
+    "model": "RVM MobileNetV3 FP32 ONNX",
+    "source": "https://github.com/PeterL1n/RobustVideoMatting",
+    "model_sha256": "88d4531297118f595bf2fd60f6f566aec2e559393802d1f436c380f0cbbd2828",
+    "input_crop": [
+      0,
+      338,
+      1080,
+      1452
+    ],
+    "output_size": [
+      432,
+      580
+    ],
+    "downsample_ratio": 0.65
   },
   "media": [
     {
-      "path": "public/live/desktop.mp4",
-      "sha256": "c6f16329dcd7b02d1eeb177d4679cbd31e0b4aaece491072f7217262cbc511e9",
+      "path": "public/live/desktop-daniel.mp4",
+      "sha256": "78ab62c9cded8a98cfbac1f06d2bb1b0419e207c2085ba59b9d34ff8d1213ab7",
+      "bytes": 15216226,
       "probe": {
         "programs": [],
         "stream_groups": [],
@@ -24,61 +33,72 @@
             "width": 1920,
             "height": 1200,
             "r_frame_rate": "60/1",
-            "duration": "84.000000",
-            "nb_frames": "5040"
+            "start_time": "0.000000",
+            "duration": "72.366333",
+            "nb_frames": "4342"
           }
         ],
         "format": {
-          "duration": "84.000000",
-          "size": "14431047"
+          "duration": "72.366333",
+          "size": "15216226"
         }
       }
     },
     {
-      "path": "public/live/sarah.wav",
-      "sha256": "770641d8e8ba3d9c89fa424fc4c68c331987243fd65aea948ed4c91ee7272714",
+      "path": "public/live/daniel-cutout.webm",
+      "sha256": "ca2bc443f5827d5307c4cbc678a46e1f332d0f6521d9f691e35f1044dda1d5d7",
+      "bytes": 18306143,
       "probe": {
         "programs": [],
         "stream_groups": [],
         "streams": [
           {
-            "codec_name": "pcm_s16le",
-            "sample_rate": "48000",
-            "channels": 1,
-            "r_frame_rate": "0/0",
-            "duration": "84.000000"
+            "codec_name": "vp9",
+            "width": 432,
+            "height": 580,
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000"
           }
         ],
         "format": {
-          "duration": "84.000000",
-          "size": "8064044"
+          "duration": "72.366000",
+          "size": "18306143"
         }
       }
     },
     {
-      "path": "public/audio/music-bed.wav",
-      "sha256": "2e90e2a9f6a8396b1293eb96a78cc7e2778c98fe3cd13f71c4691e0d9b95064e",
+      "path": "public/live/edit.json",
+      "sha256": "49aef4e15ef4049cc48c66a90d41a3b34a9d41e4e3780c0ce3eb25b9b1caffcb",
+      "bytes": 41654
+    },
+    {
+      "path": "public/audio/narration-mix.wav",
+      "sha256": "f2663aa56a4c065e058e90f5234ef815f92a0be4b2237b5c5fa19c14ab9314c5",
+      "bytes": 20841702,
       "probe": {
         "programs": [],
         "stream_groups": [],
         "streams": [
           {
-            "codec_name": "pcm_s16le",
+            "codec_name": "pcm_s24le",
             "sample_rate": "48000",
             "channels": 2,
             "r_frame_rate": "0/0",
-            "duration": "84.000000"
+            "duration": "72.366667"
           }
         ],
         "format": {
-          "duration": "84.000000",
-          "size": "16128078"
+          "duration": "72.366667",
+          "size": "20841702"
         }
       }
-    },
-    {
-      "path": "public/live/subtitles.srt",
-      "sha256": "a3954b470d5426d5c8c5a374796d2c055e272f9ac25d5fc04ab014a05333a836"
     }
-  ]
+  ],
+  "audio_enhancement": {
+    "model": "DeepFilterNet3",
+    "tool": "DeepFilterNet",
+    "release": "v0.5.6",
+    "source": "https://github.com/Rikorose/DeepFilterNet/releases/download/v0.5.6/deep-filter-0.5.6-x86_64-unknown-linux-musl",
+    "binary_sha256": "70775e251eee44c0f2451a1e833326cf8bcbbe304d3e7cd12851e6fce72ef7da"
+  }
 }

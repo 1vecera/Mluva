@@ -1,6 +1,6 @@
 {
-  "file": "mluva-intro-live-sarah-v4.mp4",
-  "sha256": "1184ef4027e14384a228b9ba4e349035a47bd498ca1a1552aa7e3b1696ab9f41",
+  "file": "mluva-intro-daniel-v7-voice.mp4",
+  "sha256": "37f364bfe4b5fb37b36c9a331250c4fba71f24f0388ba2beb579d55bff5ad6cc",
   "probe": {
     "programs": [],
     "stream_groups": [],
@@ -10,76 +10,234 @@
         "width": 1920,
         "height": 1080,
         "r_frame_rate": "60/1",
-        "duration": "84.000000",
-        "nb_frames": "5040"
+        "start_time": "0.000000",
+        "duration": "72.366667",
+        "nb_frames": "4342",
+        "side_data_list": [
+          {}
+        ]
       },
       {
         "codec_name": "aac",
         "sample_rate": "48000",
         "channels": 2,
         "r_frame_rate": "0/0",
-        "duration": "84.100000",
-        "nb_frames": "3941"
+        "start_time": "0.000000",
+        "duration": "72.366667",
+        "nb_frames": "3394"
       }
     ],
     "format": {
-      "duration": "84.100000",
-      "size": "18854756"
+      "duration": "72.366667",
+      "size": "31742571"
     }
   },
-  "audio": {
-    "input_i": "-16.40",
-    "input_tp": "-1.73",
-    "input_lra": "8.10",
-    "input_thresh": "-26.87",
-    "output_i": "-16.01",
-    "output_tp": "-1.80",
-    "output_lra": "7.50",
-    "output_thresh": "-26.42",
-    "normalization_type": "dynamic",
-    "target_offset": "0.01"
+  "decode": "passed, 4342 frames",
+  "black_intervals_at_least_100ms": [],
+  "captions": {
+    "caption_phrases": 48,
+    "preserved_spoken_tokens": 194,
+    "available_width": 1680,
+    "widest_phrases": [
+      {
+        "start": 28.066666666666666,
+        "width": 981.2
+      },
+      {
+        "start": 39.666666666666664,
+        "width": 953.0
+      },
+      {
+        "start": 10.133333333333333,
+        "width": 883.4
+      },
+      {
+        "start": 6.806666666666667,
+        "width": 837.7
+      },
+      {
+        "start": 43.35999999999999,
+        "width": 795.9
+      }
+    ],
+    "ordered_nonoverlapping_phrases": true,
+    "word_times_within_phrases": true,
+    "token_sequence_matches_previous_captions": true
   },
-  "music_balance": {
-    "voice_minus_music_db_rms_during_phrases": 17.08,
-    "music_stem_lufs": -26,
-    "speech_gain": 0.35,
-    "gap_gain": 0.6,
-    "note": "Compares aligned mono voice against stereo-averaged music at ducked gain before final mastering; opening/closing fades make music quieter still."
-  },
-  "decode": "passed",
-  "black_intervals_at_least_100ms": 0,
-  "checked_feature_sequence": 9,
-  "checked_encoded_stills": 24,
-  "motion_sequences": [
-    "opening information overlay fade"
+  "encoded_still_times": [
+    0,
+    1.6,
+    7.3,
+    10,
+    13.3,
+    16,
+    20.9,
+    24.4,
+    25.4833,
+    25.5167,
+    27.8,
+    29.4,
+    31.5,
+    32.1833,
+    32.2167,
+    34,
+    41,
+    47,
+    53.6,
+    58,
+    65,
+    67,
+    70,
+    71.5
   ],
-  "native_widget_states": "reference/capture-verification.json",
-  "sound_on_review": "No sound-on listening review claimed; v4 decoded PCM is identical to the reviewed v3 mix.",
-  "final_audio_matches_transcribed_master": true,
-  "transcription": "Raw ElevenLabs Scribe v2; punctuation/case ignored, F nine\u2192F9 and spoken Omarchi\u2192visible Omarchy normalized for comparison.",
-  "opening_overlay": {
-    "visible_from_seconds": 0,
-    "fade_start_seconds": 5.8,
-    "fade_end_seconds": 6.4,
-    "copy": [
-      "The most delightful dictation for Omarchy.",
-      "Local or cloud. Your choice of tools."
-    ]
+  "presenter": {
+    "source_alpha_only": true,
+    "outline": false,
+    "background": false,
+    "added_edge_fades": false,
+    "size": [
+      260,
+      349
+    ],
+    "bottom": -14
   },
-  "previous_version_audio_identical": true,
-  "decoded_audio_sha256": "9ff4f6ac172abd799822a07457a609d3ab6116ba973b7cd41e1db615e6d0343a",
-  "previous_review": {
-    "version": "v3",
-    "checked_encoded_stills": 27,
-    "motion_sequences": [
-      "native widget tiling",
-      "native widget refloating",
-      "widget-to-Polish camera ramp"
-    ]
+  "audio": {
+    "provider": "DeepFilterNet3, local",
+    "noise_attenuation_limit_db": 18,
+    "processing_filter": "highpass=f=65:p=2,equalizer=f=145:t=q:w=0.75:g=1.6,equalizer=f=340:t=q:w=0.85:g=-2.2,equalizer=f=2900:t=q:w=0.7:g=2.1,highshelf=f=6500:t=q:w=0.7:g=1.1,deesser=i=0.12:m=0.35:f=0.6,volume=4dB,acompressor=threshold=0.065:ratio=2.6:attack=12:release=150:knee=2.8:makeup=1.45:mix=0.85",
+    "ai_alignment_checks": [
+      {
+        "start": 1,
+        "end": 8,
+        "lag_samples_48khz": 0,
+        "correlation": 0.9993501305580139
+      },
+      {
+        "start": 19,
+        "end": 25,
+        "lag_samples_48khz": 0,
+        "correlation": 0.9998638033866882
+      },
+      {
+        "start": 32.5,
+        "end": 38.5,
+        "lag_samples_48khz": 0,
+        "correlation": 0.9998686909675598
+      },
+      {
+        "start": 49,
+        "end": 56,
+        "lag_samples_48khz": 0,
+        "correlation": 0.9934082627296448
+      },
+      {
+        "start": 63.5,
+        "end": 71.5,
+        "lag_samples_48khz": 0,
+        "correlation": 0.9926885962486267
+      }
+    ],
+    "corrected_ai_delay_samples": 0,
+    "zero_padded_tail_samples": 1440,
+    "samples_48khz": 3473600,
+    "voice_loudness": {
+      "input_i": "-18.12",
+      "input_tp": "-3.00",
+      "input_lra": "3.30",
+      "input_thresh": "-28.44",
+      "output_i": "-16.14",
+      "output_tp": "-1.80",
+      "output_lra": "2.70",
+      "output_thresh": "-26.43",
+      "normalization_type": "dynamic",
+      "target_offset": "0.14"
+    },
+    "mix_loudness": {
+      "input_i": "-16.00",
+      "input_tp": "-3.60",
+      "input_lra": "3.30",
+      "input_thresh": "-26.33",
+      "output_i": "-16.03",
+      "output_tp": "-3.44",
+      "output_lra": "2.60",
+      "output_thresh": "-26.32",
+      "normalization_type": "dynamic",
+      "target_offset": "0.03"
+    },
+    "encoded_loudness": {
+      "input_i": "-16.01",
+      "input_tp": "-3.61",
+      "input_lra": "3.30",
+      "input_thresh": "-26.34",
+      "output_i": "-16.03",
+      "output_tp": "-3.44",
+      "output_lra": "2.60",
+      "output_thresh": "-26.31",
+      "normalization_type": "dynamic",
+      "target_offset": "0.03"
+    },
+    "final_sync_checks": [
+      {
+        "start": 1,
+        "end": 8,
+        "lag_samples_48khz": -4,
+        "offset_ms": -0.08333333333333333
+      },
+      {
+        "start": 19,
+        "end": 25,
+        "lag_samples_48khz": -2,
+        "offset_ms": -0.041666666666666664
+      },
+      {
+        "start": 32.5,
+        "end": 38.5,
+        "lag_samples_48khz": -4,
+        "offset_ms": -0.08333333333333333
+      },
+      {
+        "start": 49,
+        "end": 56,
+        "lag_samples_48khz": -2,
+        "offset_ms": -0.041666666666666664
+      },
+      {
+        "start": 63.5,
+        "end": 71.5,
+        "lag_samples_48khz": -4,
+        "offset_ms": -0.08333333333333333
+      }
+    ],
+    "music_below_voice_db": 21.5413818359375,
+    "speech_speed": 1,
+    "pitch_shift": 0,
+    "transcript_comparison": {
+      "previous_tokens": 196,
+      "enhanced_tokens": 196,
+      "variations": [],
+      "provider": "ElevenLabs Scribe v2"
+    },
+    "decoded_sha256": "c7127d5741b1587ee6162f4eb091f61e19fed30e328ac21f2de5ae35aa77345a"
   },
-  "cleanup": {
-    "files": 95,
-    "bytes": 18727851,
-    "local_scratch_bytes": 1575579025
+  "duration_seconds": 72.36666666666667,
+  "caption_phrases": 48,
+  "preserved_spoken_tokens": 194,
+  "typescript": "passed",
+  "sound_on_review": false,
+  "visual_review": "Inspected 24 encoded v6 story frames and full-resolution cutout samples. The approved v7 retains the identical H.264 picture stream.",
+  "picture_stream_sha256": "70cd8f2d166bbe6433134ebe14e952cdf18f2e46f8a6ef29a7eefe27c0dcca30",
+  "picture_identical_to_reviewed_v6": true,
+  "simplified_master_verified": {
+    "approved_video_sha256": "70cd8f2d166bbe6433134ebe14e952cdf18f2e46f8a6ef29a7eefe27c0dcca30",
+    "approved_decoded_audio_sha256": "c7127d5741b1587ee6162f4eb091f61e19fed30e328ac21f2de5ae35aa77345a",
+    "remux_picture_identical": true,
+    "remux_decoded_audio_identical": true,
+    "full_decode": "passed"
+  },
+  "user_approved": true,
+  "public_attachment": {
+    "url": "https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26",
+    "anonymous_download_hash_matches": true,
+    "native_github_video_controls": true
   }
 }
