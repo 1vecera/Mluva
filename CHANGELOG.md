@@ -2,6 +2,16 @@
 
 This file records user-visible Mluva releases.
 
+## 1.2.1 — 2026-09-21
+
+- Restricted native Codex rewrites to text-only sessions without tools, inherited instructions or integrations. Unsupported isolation capabilities fail closed; existing Codex sign-in is preserved. Setup now installs Bubblewrap for masking global instruction files.
+- Moved Incognito dictation, meeting and batch-preview audio into private memory-backed storage, with cleanup after app exit or a crash and no disk fallback. Operating-system swap and crash dumps remain outside Mluva's control.
+- Prevented ElevenLabs uploads from following redirects that could disclose credentials or recordings.
+- Made scratchpad, settings and personalization files private before content is written, with atomic replacement and owner-only application data directories.
+- Rebuilt the local Mermaid renderer with patched DOMPurify and lodash-es dependencies, a locked build, checksum, component inventory and license notices.
+
+This source release also includes the changes prepared for 1.2.0 below. The matching Omarchy widget remains version 0.4.0. Native Codex isolation was verified with Codex 0.155.1; older unsupported protocols fail closed.
+
 ## 1.2.0 — 2026-09-18
 
 - Introduced the final Mluva identity: a glossy red mark beside the Mluva wordmark with its soft M. The launcher tile, GNOME panel icon, README, site and documentation use it. The complete asset set, with three lockup ratios, marks, icon PNGs and a favicon `.ico`, lives in [docs/brand](docs/brand/README.md) and regenerates from committed sources.
