@@ -21,6 +21,10 @@ linux-test: linux-setup
 	cd linux && uv run --locked ruff check .
 	cd linux && uv run --locked ruff format --check .
 
+.PHONY: linux-codex-isolation-test
+linux-codex-isolation-test: linux-setup
+	cd linux && PYTHONPATH=. uv run --locked python tests/codex_isolation_smoke.py ../tmp/codex-isolation
+
 # Quick text/editing feedback; linux-test remains the complete handoff gate.
 .PHONY: linux-test-fast linux-command-test linux-fluid-workspace-test linux-live-stability-test
 linux-test-fast: linux-setup

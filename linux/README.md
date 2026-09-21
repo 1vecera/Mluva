@@ -28,11 +28,11 @@ Settings → Workspace controls automatic copy, action icons, scrolling and the 
 ```sh
 # Omarchy
 omarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita \
-  at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard procps-ng webkitgtk-6.0
+  at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard procps-ng webkitgtk-6.0 bubblewrap
 
 # Fedora GNOME compatibility
 sudo dnf install git uv python3-gobject gtk4 libadwaita at-spi2-core \
-  gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng webkitgtk6.0
+  gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng webkitgtk6.0 bubblewrap
 ```
 
 X11 clipboard delivery needs `xclip`; its optional keyboard fallback needs `xdotool`. The Omarchy widget requires the existing Omarchy shell and plugin manager; setup does not install an operating system or replace desktop configuration.
