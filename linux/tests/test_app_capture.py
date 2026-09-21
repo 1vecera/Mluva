@@ -303,8 +303,9 @@ def test_prepare_capture_model_failure_never_opens_realtime_route(
     ],
 )
 @pytest.mark.parametrize("batch", [False, True])
+@pytest.mark.parametrize("incognito", [False, True])
 def test_prepare_capture_keeps_provisional_input_ready_for_live_toggle(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, enabled, mode, live_session, expected_preview, batch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, enabled, mode, live_session, expected_preview, batch, incognito
 ) -> None:
     """Keep the same recognition transport; the callback gates model work until Live is explicitly enabled."""
     starts = []
@@ -320,6 +321,7 @@ def test_prepare_capture_keeps_provisional_input_ready_for_live_toggle(
         shutting_down=False,
         pending_session_identifier="capture",
         live_session_identifier=live_session,
+        pending_incognito=incognito,
         config=replace(AppConfig(), live_rewrite_enabled=enabled),
         realtime_client=realtime,
         _live_preview_callback=lambda _session: preview_callback,
@@ -337,6 +339,7 @@ def test_prepare_capture_keeps_provisional_input_ready_for_live_toggle(
     )
     if batch_session is not None:
         batch_session.cancel()
+        assert batch_session.directory == (tmp_path / "speech-previews" if incognito else tmp_path)
         assert batch_session.preview_enabled == (mode == "dictation" and live_session == "capture")
     assert len(starts) == len(prepared) == 1
     client, language, callbacks = starts[0]

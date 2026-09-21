@@ -13,6 +13,7 @@ from mluva_linux.app import MluvaApplication
 from mluva_linux.codex_client import CodexAppServerClient
 from mluva_linux.conversation import QUICK_POLISH
 from mluva_linux.delivery import DeliveryReceipt
+from mluva_linux.elevenlabs import TranscriptionResult
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import GLib, Gtk  # noqa: E402
@@ -104,6 +105,7 @@ def exercise(application: MluvaApplication) -> None:
     ):
         application._workflow_finished(
             SimpleNamespace(
+                transcription=TranscriptionResult(source.raw_text, "eng", None, None),
                 delivery=receipt,
                 incognito=False,
                 requires_acceptance=False,

@@ -1,6 +1,7 @@
 """Minimal subprocess implementing the app-server frames used by contract tests."""
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -14,6 +15,9 @@ def send(message: dict[str, object]) -> None:
 
 def main() -> None:
     """Answer initialization, thread creation, and one text transformation turn."""
+    if "--observe-environment" in sys.argv:
+        path = Path(sys.argv[sys.argv.index("--observe-environment") + 1])
+        path.write_text(json.dumps({"canary_inherited": "MLUVA_SECRET_CANARY" in os.environ}))
     if "--fill-stderr" in sys.argv:
         sys.stderr.write("diagnostic-noise\n" * 32_768)
         sys.stderr.flush()
@@ -32,6 +36,11 @@ def main() -> None:
                     },
                 }
             )
+        elif method == "config/read":
+            send({"id": message["id"], "result": {"config": {"mcp_servers": {"fixture": {"command": "unused"}}}}})
+        elif method == "mcpServerStatus/list":
+            data = [{"tools": {"unexpected": {}}}] if "--exposed-mcp" in sys.argv else []
+            send({"id": message["id"], "result": {"data": data, "nextCursor": None}})
         elif method == "model/list":
             assert message["params"]["includeHidden"] is True
             assert message["params"]["limit"] == 100
@@ -65,22 +74,38 @@ def main() -> None:
         elif method == "thread/start":
             assert message["params"]["sandbox"] == "read-only"
             assert message["params"]["approvalPolicy"] == "never"
+            assert message["params"]["environments"] == []
+            assert message["params"]["config"]["mcp_servers"]["fixture"]["enabled"] is False
             assert message["params"]["model"] in {"gpt-5.4", "gpt-5.4-mini"}
             send(
                 {
                     "id": message["id"],
                     "result": {
-                        "thread": {"id": "thread-test"},
+                        "thread": {
+                            "id": "thread-test",
+                            "environments": None if "--old-server" in sys.argv else [],
+                            "ephemeral": True,
+                        },
                         "model": message["params"]["model"],
                     },
                 }
             )
         elif method == "turn/start":
+            if "--unexpected-request" in sys.argv:
+                send({"id": message["id"], "method": "item/permissions/requestApproval", "params": {}})
             assert message["params"]["input"][0]["type"] == "text"
             if "--expect-fast" in sys.argv or "--expect-standard" in sys.argv:
                 assert message["params"]["effort"] == "low"
                 assert message["params"]["serviceTier"] == ("priority" if "--expect-fast" in sys.argv else "default")
             send({"id": message["id"], "result": {"turn": {"id": "turn-test"}}})
+            if "--tool-item" in sys.argv:
+                item_type = sys.argv[sys.argv.index("--tool-item") + 1]
+                send(
+                    {
+                        "method": "item/started",
+                        "params": {"threadId": "thread-test", "turnId": "turn-test", "item": {"type": item_type}},
+                    }
+                )
             if "--exit-during-turn" in sys.argv:
                 return
             if "--title" in sys.argv:

@@ -253,7 +253,11 @@ def test_transcribe_closes_http_error_response(tmp_path: Path, monkeypatch: pyte
         assert timeout == 300
         raise provider_error
 
-    monkeypatch.setattr(elevenlabs_module.urllib.request, "urlopen", reject_request)
+    monkeypatch.setattr(
+        elevenlabs_module.urllib.request.OpenerDirector,
+        "open",
+        lambda _self, *args, **kwargs: reject_request(*args, **kwargs),
+    )
 
     with pytest.raises(TranscriptionError, match="HTTP 401"):
         ElevenLabsClient(api_key="write-only-test-key").transcribe(audio_path, "eng")
@@ -270,3 +274,40 @@ def test_transcribe_sanitizes_malformed_success_response(tmp_path: Path) -> None
         with pytest.raises(TranscriptionError, match="invalid transcription response") as error_info:
             ElevenLabsClient(api_key="write-only-test-key", endpoint=endpoint).transcribe(audio_path, "eng")
     assert "sensitive malformed provider response" not in str(error_info.value)
+
+
+@pytest.mark.parametrize("status", [301, 302, 303, 307, 308])
+@pytest.mark.parametrize("meeting", [False, True])
+def test_redirect_never_receives_credentials_or_audio(tmp_path: Path, status: int, meeting: bool) -> None:
+    """Exercise real cross-origin HTTP redirects for both authenticated upload paths."""
+    received = []
+
+    class Destination(BaseHTTPRequestHandler):
+        def do_GET(self):
+            received.append(dict(self.headers))
+            self.send_response(200)
+            self.end_headers()
+
+        do_POST = do_GET
+
+        def log_message(self, *_args):
+            pass
+
+    with local_http_server(Destination) as destination:
+
+        class Redirect(Destination):
+            def do_POST(self):
+                self.rfile.read(int(self.headers["Content-Length"]))
+                self.send_response(status)
+                self.send_header("Location", f"http://127.0.0.1:{destination.server_port}/capture")
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+
+        with local_http_server(Redirect) as origin:
+            audio = tmp_path / "synthetic.wav"
+            audio.write_bytes(b"synthetic-audio")
+            client = ElevenLabsClient("synthetic-key", endpoint=f"http://127.0.0.1:{origin.server_port}/speech")
+            upload = client.transcribe_meeting if meeting else client.transcribe
+            with pytest.raises(TranscriptionError, match=f"HTTP {status}"):
+                upload(audio, "eng")
+    assert received == []

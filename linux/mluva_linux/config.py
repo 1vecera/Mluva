@@ -9,6 +9,7 @@ from enum import StrEnum
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from mluva_linux.private_files import atomic_write_private_text
 from mluva_linux.prompt_defaults import LIVE_TEMPLATE_BY_ID
 
 ELEVENLABS_API_KEY_ENVIRONMENT_VARIABLES = (
@@ -256,11 +257,7 @@ def save_config(config: AppConfig, path: Path) -> None:
             load_config(path)
         except (ValueError, TypeError) as error:
             raise OSError("config.json needs repair; refusing to overwrite it") from error
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    temporary_path = path.with_suffix(".tmp")
-    temporary_path.write_text(json.dumps(asdict(config), indent=2) + "\n", encoding="utf-8")
-    temporary_path.chmod(0o600)
-    temporary_path.replace(path)
+    atomic_write_private_text(path, json.dumps(asdict(config), indent=2) + "\n")
 
 
 def elevenlabs_api_key(

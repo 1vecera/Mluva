@@ -381,6 +381,7 @@ def test_installer_replaces_a_complete_current_install(tmp_path: Path) -> None:
     assert (application_dir / ".venv" / "bin" / "python").is_file()
     assert list(application_dir.parent.glob(".app.previous.*")) == []
     assert (install_home / ".local" / "bin" / "mluva").is_file()
+    assert application_dir.parent.stat().st_mode & 0o777 == 0o700
     assert not previous_launcher.is_symlink()
     bin_dir = install_home / ".local" / "bin"
     for name, target in {

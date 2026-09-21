@@ -1,5 +1,6 @@
 """Contract coverage for the Codex app-server subprocess client."""
 
+import json
 import sys
 from pathlib import Path
 
@@ -152,3 +153,58 @@ def test_catalog_compatibility_does_not_invent_fast_or_reasoning_support() -> No
     assert current.fast_tier == "priority" and current.rewrite_effort == "medium"
     with pytest.raises(CodexAppServerError, match="exactly one default"):
         select_model([old, current], None)
+
+
+def test_child_does_not_inherit_other_service_credentials(tmp_path, monkeypatch):
+    """Inspect the environment in a separate process, without printing any credential values."""
+    monkeypatch.setenv("MLUVA_SECRET_CANARY", "synthetic-only")
+    evidence = tmp_path / "environment.json"
+    client = CodexAppServerClient(
+        command=(
+            sys.executable,
+            str(Path(__file__).with_name("fake_app_server.py")),
+            "--observe-environment",
+            str(evidence),
+        )
+    )
+    try:
+        assert client.transform("Clean this", tmp_path) == "Clean text."
+    finally:
+        client.close()
+    assert json.loads(evidence.read_text()) == {"canary_inherited": False}
+
+
+@pytest.mark.parametrize("flag", ["--old-server", "--exposed-mcp", "--unexpected-request"])
+def test_unconfirmed_isolation_and_server_requests_fail_closed(tmp_path, flag):
+    """Never downgrade isolation or mistake a server request for a reply with the same ID."""
+    client = CodexAppServerClient(command=(sys.executable, str(Path(__file__).with_name("fake_app_server.py")), flag))
+    deltas = []
+    with pytest.raises(CodexAppServerError, match="text-only"):
+        client.transform("Clean this", tmp_path, on_delta=deltas.append)
+    assert client.process is None
+    assert deltas == []
+
+
+@pytest.mark.parametrize(
+    "item",
+    [
+        "commandExecution",
+        "fileChange",
+        "mcpToolCall",
+        "webSearch",
+        "imageView",
+        "collabToolCall",
+        "dynamicToolCall",
+        "unknownFutureTool",
+    ],
+)
+def test_reported_tool_activity_never_becomes_replacement_text(tmp_path, item):
+    """Treat any capability use as a failed transform even if a server later emits good-looking text."""
+    client = CodexAppServerClient(
+        command=(sys.executable, str(Path(__file__).with_name("fake_app_server.py")), "--tool-item", item)
+    )
+    deltas = []
+    with pytest.raises(CodexAppServerError, match="outside text-only"):
+        client.transform("Clean this", tmp_path, on_delta=deltas.append)
+    assert client.process is None
+    assert deltas == []
