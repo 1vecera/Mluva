@@ -8,9 +8,33 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("source", type=Path)
+parser.add_argument(
+    "--audio-advance-samples",
+    type=int,
+    default=0,
+    help="Remove a measured render delay, in samples at 48 kHz (default: 0).",
+)
 args = parser.parse_args()
+if args.audio_advance_samples < 0:
+    parser.error("Audio advance must be nonnegative.")
 source = args.source.resolve()
 output = source.with_stem(source.stem + "-master")
+probe = subprocess.run(
+    [
+        "ffprobe", "-v", "error", "-select_streams", "v:0",
+        "-show_entries", "stream=duration", "-of", "json", str(source),
+    ],
+    capture_output=True,
+    text=True,
+    check=True,
+)
+duration = float(json.loads(probe.stdout)["streams"][0]["duration"])
+if args.audio_advance_samples >= round(duration * 48000):
+    parser.error("Audio advance must be shorter than the picture.")
+align = (
+    f"aresample=48000,atrim=start_sample={args.audio_advance_samples},"
+    f"asetpts=PTS-STARTPTS,apad=whole_dur={duration},atrim=duration={duration},"
+)
 target = "I=-16:TP=-1.8:LRA=11"
 first = subprocess.run(
     [
@@ -19,7 +43,7 @@ first = subprocess.run(
         "-i",
         str(source),
         "-af",
-        f"loudnorm={target}:print_format=json",
+        f"{align}loudnorm={target}:print_format=json",
         "-f",
         "null",
         "-",
@@ -49,7 +73,7 @@ subprocess.run(
         "-i",
         str(source),
         "-af",
-        f"loudnorm={target}:{options}:linear=true",
+        f"{align}loudnorm={target}:{options}:linear=true",
         "-ar",
         "48000",
         "-c:v",
@@ -87,6 +111,8 @@ output.with_suffix(".audio.json").write_text(
             "source": str(source),
             "target_lufs": -16,
             "target_true_peak": -1.8,
+            "audio_advance_samples_48khz": args.audio_advance_samples,
+            "picture_duration": duration,
             "first_pass": measure,
             "verified_encoded_output": verified,
         },

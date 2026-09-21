@@ -1,6 +1,6 @@
 {
-  "file": "mluva-intro-live-sarah-v4.mp4",
-  "sha256": "1184ef4027e14384a228b9ba4e349035a47bd498ca1a1552aa7e3b1696ab9f41",
+  "file": "mluva-intro-daniel-v5.mp4",
+  "sha256": "bf5833050556815702d90b5001ff52428ab7340589e142ddc0551b94be2546dc",
   "probe": {
     "programs": [],
     "stream_groups": [],
@@ -10,76 +10,178 @@
         "width": 1920,
         "height": 1080,
         "r_frame_rate": "60/1",
-        "duration": "84.000000",
-        "nb_frames": "5040"
+        "start_time": "0.000000",
+        "duration": "72.366667",
+        "nb_frames": "4342"
       },
       {
         "codec_name": "aac",
         "sample_rate": "48000",
         "channels": 2,
         "r_frame_rate": "0/0",
-        "duration": "84.100000",
-        "nb_frames": "3941"
+        "start_time": "0.000000",
+        "duration": "72.366667",
+        "nb_frames": "3394"
       }
     ],
     "format": {
-      "duration": "84.100000",
-      "size": "18854756"
+      "duration": "72.366667",
+      "size": "23535613"
     }
   },
-  "audio": {
-    "input_i": "-16.40",
-    "input_tp": "-1.73",
-    "input_lra": "8.10",
-    "input_thresh": "-26.87",
-    "output_i": "-16.01",
-    "output_tp": "-1.80",
-    "output_lra": "7.50",
-    "output_thresh": "-26.42",
-    "normalization_type": "dynamic",
-    "target_offset": "0.01"
-  },
-  "music_balance": {
-    "voice_minus_music_db_rms_during_phrases": 17.08,
-    "music_stem_lufs": -26,
-    "speech_gain": 0.35,
-    "gap_gain": 0.6,
-    "note": "Compares aligned mono voice against stereo-averaged music at ducked gain before final mastering; opening/closing fades make music quieter still."
-  },
   "decode": "passed",
-  "black_intervals_at_least_100ms": 0,
-  "checked_feature_sequence": 9,
-  "checked_encoded_stills": 24,
-  "motion_sequences": [
-    "opening information overlay fade"
+  "black_intervals_at_least_100ms": [],
+  "caption_count": 29,
+  "preserved_source_words": 194,
+  "source_duration": 83.273333,
+  "picture_duration": 72.36666666666667,
+  "pause_time_removed": 10.90666633333332,
+  "internal_pauses_shortened": 10,
+  "speech_speed": 1,
+  "audio_sync_checks": [
+    {
+      "start": 1,
+      "end": 8,
+      "audio_offset_seconds": 0.0,
+      "correlation": 0.9945802688598633
+    },
+    {
+      "start": 19,
+      "end": 25,
+      "audio_offset_seconds": 0.0,
+      "correlation": 0.9945918917655945
+    },
+    {
+      "start": 32.5,
+      "end": 38.5,
+      "audio_offset_seconds": 0.0,
+      "correlation": 0.9972350001335144
+    },
+    {
+      "start": 49,
+      "end": 56,
+      "audio_offset_seconds": 0.0,
+      "correlation": 0.9974119663238525
+    },
+    {
+      "start": 63.5,
+      "end": 71.5,
+      "audio_offset_seconds": 0.0,
+      "correlation": 0.9955751299858093
+    }
   ],
-  "native_widget_states": "reference/capture-verification.json",
-  "sound_on_review": "No sound-on listening review claimed; v4 decoded PCM is identical to the reviewed v3 mix.",
-  "final_audio_matches_transcribed_master": true,
-  "transcription": "Raw ElevenLabs Scribe v2; punctuation/case ignored, F nine\u2192F9 and spoken Omarchi\u2192visible Omarchy normalized for comparison.",
-  "opening_overlay": {
-    "visible_from_seconds": 0,
-    "fade_start_seconds": 5.8,
-    "fade_end_seconds": 6.4,
-    "copy": [
-      "The most delightful dictation for Omarchy.",
-      "Local or cloud. Your choice of tools."
+  "music_balance": {
+    "music_gain": 0.2,
+    "voice_rms": 0.13964350521564484,
+    "music_rms": 0.011891388334333897,
+    "music_below_voice_db": 21.39576359162649
+  },
+  "encoded_still_times": [
+    0,
+    1.6,
+    7.3,
+    10,
+    13.3,
+    16,
+    20.9,
+    24.4,
+    27.8,
+    29.4,
+    31.5,
+    34,
+    41,
+    47,
+    53,
+    58,
+    65,
+    67,
+    70,
+    71.5
+  ],
+  "motion_sequences": {
+    "widget_tile_refloat_and_desktop_switch": [
+      27.4,
+      27.55,
+      27.7,
+      27.85,
+      28.1,
+      28.28,
+      28.43,
+      28.6,
+      28.82,
+      28.98,
+      29.17,
+      29.4
+    ],
+    "presenter_pause_cuts": [
+      8.95,
+      9.0,
+      9.05,
+      17.483333333333334,
+      17.533333333333335,
+      17.583333333333332,
+      25.416666666666668,
+      25.466666666666665,
+      25.516666666666666,
+      32.11666666666667,
+      32.166666666666664,
+      32.21666666666667,
+      36.35,
+      36.4,
+      36.45,
+      38.28333333333333,
+      38.333333333333336,
+      38.38333333333333,
+      39.38333333333333,
+      39.43333333333333,
+      39.483333333333334,
+      43.083333333333336,
+      43.13333333333333,
+      43.18333333333333,
+      48.88333333333333,
+      48.93333333333333,
+      48.983333333333334,
+      63.38333333333333,
+      63.43333333333333,
+      63.483333333333334
     ]
   },
-  "previous_version_audio_identical": true,
-  "decoded_audio_sha256": "9ff4f6ac172abd799822a07457a609d3ab6116ba973b7cd41e1db615e6d0343a",
-  "previous_review": {
-    "version": "v3",
-    "checked_encoded_stills": 27,
-    "motion_sequences": [
-      "native widget tiling",
-      "native widget refloating",
-      "widget-to-Polish camera ramp"
-    ]
+  "audio": {
+    "input_i": "-16.01",
+    "input_tp": "-3.36",
+    "input_lra": "3.70",
+    "input_thresh": "-26.41",
+    "output_i": "-15.95",
+    "output_tp": "-3.14",
+    "output_lra": "3.70",
+    "output_thresh": "-26.30",
+    "normalization_type": "dynamic",
+    "target_offset": "-0.05"
   },
-  "cleanup": {
-    "files": 95,
-    "bytes": 18727851,
-    "local_scratch_bytes": 1575579025
-  }
+  "render_audio_advance_samples_48khz": 2048,
+  "transcription": {
+    "provider": "ElevenLabs Scribe v2",
+    "source_tokens": 194,
+    "final_mix_tokens": 194,
+    "recognition_variations": 1,
+    "variation_token_count": 2,
+    "all_source_word_intervals_retained": true,
+    "note": "One recognition variation in the retained paste clause. Captions follow the original source transcription; full comparison remains private."
+  },
+  "presenter_frames": 2171,
+  "presenter_fps": 30,
+  "voice_samples_48khz": 3473600,
+  "sound_on_review": false,
+  "visual_review": "Encoded story frames and adjacent motion/cut samples",
+  "checked_encoded_story_frames": 20,
+  "checked_widget_motion_frames": 12,
+  "checked_portrait_cut_frames": 30,
+  "private_media_archive": {
+    "file": "mluva-intro-daniel-media-v5.tar.gz",
+    "bytes": 173992727,
+    "sha256": "c97b89e2de6d7abf5f1b3161da91e82d85484690fcdd14adfc8bec8270b52606",
+    "members": 37,
+    "hash_verification": "Every member hash and all five render input hashes match"
+  },
+  "final_transcribed_pcm_sha256": "f47db40295b60377c9bc6a26fec7621dde9c0d976676ba7bd0233a698d76786e"
 }

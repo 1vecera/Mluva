@@ -2,12 +2,12 @@
   "name": "mluva-launch-video",
   "private": true,
   "version": "0.1.0",
-  "description": "Original storyboard, real Omarchy desktop footage, Fish Audio Sarah narration",
+  "description": "Native Mluva app intro with Daniel Vecera\u2019s recorded narration and presenter cutout",
   "scripts": {
     "render": "remotion render src/index.ts MluvaIntro out/mluva-intro-live.mp4 --concurrency=4",
     "preview": "remotion render src/index.ts MluvaIntro out/mluva-intro-live-preview.mp4 --scale=0.5 --concurrency=4",
     "lint": "tsc --noEmit",
-    "master": "uv run script/master.py out/mluva-intro-live.mp4"
+    "master": "uv run script/master.py out/mluva-intro-live.mp4 --audio-advance-samples 2048"
   },
   "type": "module",
   "dependencies": {
