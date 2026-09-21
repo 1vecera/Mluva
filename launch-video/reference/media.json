@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 7,
   "duration_seconds": 72.36666666666667,
   "narrator": "Daniel Vecera, original camera recording; no synthesized speech",
   "picture": "Retimed native Omarchy footage with temporally matted presenter footage. Matched audio/video cuts only shorten pauses; speech and presenter motion remain at original speed.",
@@ -33,6 +33,8 @@
             "width": 1920,
             "height": 1200,
             "r_frame_rate": "60/1",
+            "start_time": "0.000000",
+            "duration": "72.366333",
             "nb_frames": "4342"
           }
         ],
@@ -54,7 +56,8 @@
             "codec_name": "vp9",
             "width": 432,
             "height": 580,
-            "r_frame_rate": "30/1"
+            "r_frame_rate": "30/1",
+            "start_time": "0.000000"
           }
         ],
         "format": {
@@ -64,9 +67,14 @@
       }
     },
     {
-      "path": "public/live/daniel.wav",
-      "sha256": "933da06fcb61da09a2591beac0687185ca1758588c174d8138fe19a4248b8342",
-      "bytes": 10420902,
+      "path": "public/live/edit.json",
+      "sha256": "49aef4e15ef4049cc48c66a90d41a3b34a9d41e4e3780c0ce3eb25b9b1caffcb",
+      "bytes": 41654
+    },
+    {
+      "path": "public/audio/narration-mix.wav",
+      "sha256": "f2663aa56a4c065e058e90f5234ef815f92a0be4b2237b5c5fa19c14ab9314c5",
+      "bytes": 20841702,
       "probe": {
         "programs": [],
         "stream_groups": [],
@@ -74,41 +82,23 @@
           {
             "codec_name": "pcm_s24le",
             "sample_rate": "48000",
-            "channels": 1,
-            "r_frame_rate": "0/0"
+            "channels": 2,
+            "r_frame_rate": "0/0",
+            "duration": "72.366667"
           }
         ],
         "format": {
           "duration": "72.366667",
-          "size": "10420902"
-        }
-      }
-    },
-    {
-      "path": "public/live/edit.json",
-      "sha256": "3b59aaf7312a0fbc243e545aa74700ab18d6cc4eb2bfca8e6f75d830e9438b41",
-      "bytes": 7764
-    },
-    {
-      "path": "public/audio/music-bed.wav",
-      "sha256": "2e90e2a9f6a8396b1293eb96a78cc7e2778c98fe3cd13f71c4691e0d9b95064e",
-      "bytes": 16128078,
-      "probe": {
-        "programs": [],
-        "stream_groups": [],
-        "streams": [
-          {
-            "codec_name": "pcm_s16le",
-            "sample_rate": "48000",
-            "channels": 2,
-            "r_frame_rate": "0/0"
-          }
-        ],
-        "format": {
-          "duration": "84.000000",
-          "size": "16128078"
+          "size": "20841702"
         }
       }
     }
-  ]
+  ],
+  "audio_enhancement": {
+    "model": "DeepFilterNet3",
+    "tool": "DeepFilterNet",
+    "release": "v0.5.6",
+    "source": "https://github.com/Rikorose/DeepFilterNet/releases/download/v0.5.6/deep-filter-0.5.6-x86_64-unknown-linux-musl",
+    "binary_sha256": "70775e251eee44c0f2451a1e833326cf8bcbbe304d3e7cd12851e6fce72ef7da"
+  }
 }

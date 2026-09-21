@@ -5,7 +5,7 @@ const metadata: CalculateMetadataFunction<IntroProps> = async () => {
   const response = await fetch(staticFile("live/edit.json"));
   if (!response.ok) throw new Error("Restore public/live/edit.json from the local media archive.");
   const edit = (await response.json()) as EditPlan;
-  if (!Number.isFinite(edit.duration) || edit.duration <= 0 || !edit.captions.length) {
+  if (!Number.isFinite(edit.duration) || edit.duration <= 0 || !edit.poppy_captions?.length) {
     throw new Error("The local narration edit plan is incomplete.");
   }
   return { durationInFrames: Math.round(edit.duration * 60), props: { edit } };

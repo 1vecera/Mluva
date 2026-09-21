@@ -10,11 +10,12 @@ import {
   useVideoConfig,
 } from "remotion";
 import { loadFont } from "@remotion/fonts";
+import { CaptionPhrase, PoppyCaptions } from "./PoppyCaptions";
 import "./style.css";
 
 export type EditPlan = {
   duration: number;
-  captions: { start: number; end: number; text: string }[];
+  poppy_captions: CaptionPhrase[];
   opening_end: number;
   closing_start: number;
   name: { start: number; end: number; text: string };
@@ -42,8 +43,8 @@ const OpeningInfo: React.FC<{ opacity: number }> = ({ opacity }) => (
   <div
     style={{
       position: "absolute",
-      left: 315,
-      top: 558,
+      left: 470,
+      top: 600,
       width: 980,
       padding: "24px 40px 28px",
       opacity,
@@ -100,8 +101,9 @@ export const MluvaIntro: React.FC<IntroProps> = ({ edit }) => {
   const { fps } = useVideoConfig();
   if (!edit) throw new Error("Restore the local human-narration edit plan before rendering.");
   const t = frame / fps;
-  const subtitle = edit.captions.find((cue) => t >= cue.start && t < cue.end);
   const key = edit.keys.find((cue) => t >= cue.start && t < cue.end);
+  const recorderScene = t >= 25.5 && t < edit.camera.detail_start;
+  const presenterLeft = recorderScene ? 116 : 1544;
   const camera =
     1 +
     0.24 * ramp(t, edit.camera.welcome_end - 0.7, edit.camera.welcome_end, 1, 0) +
@@ -121,21 +123,21 @@ export const MluvaIntro: React.FC<IntroProps> = ({ edit }) => {
       <div
         style={{
           position: "absolute",
-          left: 40,
-          top: 24,
-          width: 1536,
-          height: 960,
+          left: 96,
+          top: 0,
+          width: 1728,
+          height: 1080,
           overflow: "hidden",
-          borderRadius: 10,
+          borderRadius: 0,
         }}
       >
         <AbsoluteFill
-          style={{ transform: `scale(${camera})`, transformOrigin: "50% 46.3%" }}
+          style={{ transform: `scale(${camera})`, transformOrigin: "60% 46.3%" }}
         >
           <OffthreadVideo
             src={staticFile("live/desktop-daniel.mp4")}
             muted
-            style={{ width: 1536, height: 960 }}
+            style={{ width: 1728, height: 1080 }}
           />
         </AbsoluteFill>
         {closing > 0 && <Closing opacity={closing} />}
@@ -145,9 +147,8 @@ export const MluvaIntro: React.FC<IntroProps> = ({ edit }) => {
         <div
           style={{
             position: "absolute",
-            top: 46,
-            left: 808,
-            transform: "translateX(-50%)",
+            top: 168,
+            left: 126,
             display: "flex",
             gap: 18,
             opacity: envelope(t, key.start, key.end, 0.1),
@@ -165,35 +166,33 @@ export const MluvaIntro: React.FC<IntroProps> = ({ edit }) => {
       <div
         style={{
           position: "absolute",
-          right: 18,
-          bottom: 112,
-          width: 350,
-          height: 470,
-          filter: "drop-shadow(0 6px 12px #0006)",
-          maskImage:
-            "linear-gradient(to bottom, black 0%, black 88%, transparent 100%), linear-gradient(to right, transparent, black 4%, black 96%, transparent)",
-          maskComposite: "intersect",
+          left: presenterLeft,
+          bottom: -14,
+          width: 260,
+          height: 349,
         }}
       >
         <OffthreadVideo
           src={staticFile("live/daniel-cutout.webm")}
           transparent
           muted
-          style={{ width: "100%", height: "100%" }}
+          style={{ position: "relative", width: "100%", height: "100%" }}
         />
       </div>
       {name > 0 && (
         <div
           style={{
             position: "absolute",
-            right: 24,
-            bottom: 130,
-            width: 334,
-            padding: "12px 16px",
+            left: presenterLeft - 6,
+            bottom: 24,
+            width: 272,
+            padding: "10px 14px",
             borderRadius: 10,
             background: "rgba(8, 15, 34, .96)",
             border: "1px solid #7183a466",
-            fontSize: 27,
+            fontSize: 25,
+            fontFamily: '"Adwaita Sans", sans-serif',
+            fontWeight: 700,
             textAlign: "center",
             opacity: name,
           }}
@@ -201,39 +200,8 @@ export const MluvaIntro: React.FC<IntroProps> = ({ edit }) => {
           {edit.name.text}
         </div>
       )}
-      {subtitle && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: 22,
-            width: "100%",
-            textAlign: "center",
-            padding: "0 90px",
-          }}
-        >
-          <span
-            style={{
-              display: "inline-block",
-              maxWidth: 1650,
-              padding: "12px 24px",
-              borderRadius: 8,
-              background: "rgba(4, 9, 22, 0.96)",
-              color: "#fff",
-              fontSize: 31,
-              lineHeight: 1.3,
-            }}
-          >
-            {subtitle.text}
-          </span>
-        </div>
-      )}
-      <Audio src={staticFile("live/daniel.wav")} />
-      <Audio
-        src={staticFile("audio/music-bed.wav")}
-        volume={(f) =>
-          0.2 * ramp(f / fps, 0, 1.2) * ramp(f / fps, edit.duration - 1.4, edit.duration, 1, 0)
-        }
-      />
+      <PoppyCaptions phrases={edit.poppy_captions} time={t} />
+      <Audio src={staticFile("audio/narration-mix.wav")} />
       <AbsoluteFill
         style={{
           background: "#04091c",
