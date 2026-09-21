@@ -1,6 +1,7 @@
 build/
 tmp/
 linux/.venv/
+scripts/mermaid/node_modules/
 __pycache__/
 *.pyc
 .claude/

@@ -116,6 +116,7 @@ from mluva_linux.ui import (
     set_button_content,
     set_margins,
 )
+from mluva_linux.volatile_audio import volatile_audio_directory
 from mluva_linux.workflow import (
     DictationWorkflow,
     TranscriptPreparationSnapshot,
@@ -2252,7 +2253,12 @@ class MluvaApplication(Adw.Application):
             )
             return
         identifier = str(uuid.uuid4())
-        audio_path = self.data_directory / "meetings" / "recordings" / f"{identifier}.wav"
+        try:
+            directory = volatile_audio_directory() if self.config.incognito_mode else self.data_directory
+        except OSError as error:
+            self._set_meeting_status(str(error))
+            return
+        audio_path = directory / "meetings" / "recordings" / f"{identifier}.wav"
         self.meeting_identifier = identifier
         self.meeting_audio_path = audio_path
         self.meeting_started_at = datetime.now(UTC)
@@ -2742,7 +2748,12 @@ class MluvaApplication(Adw.Application):
                 self.system_audio_device.set_sensitive(False)
             if self.refresh_audio_button is not None:
                 self.refresh_audio_button.set_sensitive(False)
-        data_dir = self.data_directory / "recordings"
+        try:
+            data_dir = (volatile_audio_directory() if self.pending_incognito else self.data_directory) / "recordings"
+        except OSError as error:
+            self._reset_record_button()
+            self._set_status(str(error))
+            return
         stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%f")
         self.audio_path = data_dir / f"{stamp}.wav"
         self.pending_session_identifier = str(uuid.uuid4())
@@ -2875,6 +2886,8 @@ class MluvaApplication(Adw.Application):
                     ),
                 )
                 if isinstance(realtime_session, BatchPreviewSession):
+                    if self.pending_incognito:
+                        realtime_session.directory = audio_path.parent / "speech-previews"
                     realtime_session.set_preview_enabled(
                         mode == "dictation" and self.live_session_identifier == session_identifier
                     )

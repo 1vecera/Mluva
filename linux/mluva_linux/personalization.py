@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import uuid
 from dataclasses import dataclass, field, replace
@@ -11,6 +10,8 @@ from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from mluva_linux.private_files import atomic_write_private_text
 
 if TYPE_CHECKING:
     from mluva_linux.prompts import PromptStore
@@ -685,20 +686,7 @@ class PersonalizationStore:
                 else dismissed_vocabulary_suggestion_identifiers
             ),
         }
-        self.path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-        self.path.parent.chmod(0o700)
-        temporary_path = self.path.with_name(f".{self.path.name}.tmp")
-        try:
-            temporary_path.write_text(
-                json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
-                encoding="utf-8",
-            )
-            temporary_path.chmod(0o600)
-            os.replace(temporary_path, self.path)
-            self.path.chmod(0o600)
-        except OSError:
-            temporary_path.unlink(missing_ok=True)
-            raise
+        atomic_write_private_text(self.path, json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n")
 
 
 def personalize_transcript(

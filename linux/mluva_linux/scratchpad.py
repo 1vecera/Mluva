@@ -4,6 +4,8 @@ import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from mluva_linux.private_files import atomic_write_private_text
+
 
 @dataclass(frozen=True, slots=True)
 class ScratchpadDraft:
@@ -46,14 +48,7 @@ class ScratchpadDraftStore:
             self.path.with_suffix(".tmp").unlink(missing_ok=True)
             self.draft = draft
             return
-        self.path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-        temporary_path = self.path.with_suffix(".tmp")
-        try:
-            temporary_path.write_text(json.dumps(asdict(draft), indent=2) + "\n", encoding="utf-8")
-            temporary_path.chmod(0o600)
-            temporary_path.replace(self.path)
-        finally:
-            temporary_path.unlink(missing_ok=True)
+        atomic_write_private_text(self.path, json.dumps(asdict(draft), indent=2) + "\n")
         self.draft = draft
 
     def clear(self, remove_audio: bool) -> None:

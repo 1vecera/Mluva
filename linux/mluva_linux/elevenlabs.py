@@ -19,6 +19,14 @@ class TranscriptionError(RuntimeError):
     """Report an ElevenLabs request or response that cannot produce text."""
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Keep the API key and recording at the explicitly configured endpoint."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        """Reject every redirect, including same-origin redirects and TLS downgrades."""
+        return None
+
+
 @dataclass(frozen=True, slots=True)
 class TranscriptionResult:
     """Preserve the text and service metadata returned by Scribe."""
@@ -126,7 +134,7 @@ class ElevenLabsClient:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+            with urllib.request.build_opener(_NoRedirect()).open(request, timeout=self.timeout_seconds) as response:
                 payload = json.loads(response.read())
         except urllib.error.HTTPError as error:
             error.close()

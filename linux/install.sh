@@ -107,7 +107,7 @@ if pgrep -f -- "${application_dir}/.venv/bin/python -m mluva_linux.app" >/dev/nu
     exit 1
 fi
 
-install -d -m 0755 "${application_parent}"
+install -d -m 0700 "${application_parent}"
 previous_application=false
 if [[ -e "${application_backup}" || -L "${application_backup}" ]]; then
     echo "Refusing to reuse an existing installation backup path: ${application_backup}" >&2

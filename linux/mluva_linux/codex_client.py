@@ -1,8 +1,11 @@
 """Typed synchronous client for the Codex app-server JSONL transport."""
 
 import json
+import os
 import queue
+import shutil
 import subprocess
+import tempfile
 import threading
 import time
 from collections.abc import Callable, Sequence
@@ -11,8 +14,15 @@ from pathlib import Path
 from typing import Self
 
 from mluva_linux.brand import PRODUCT_NAME, PRODUCT_VERSION
+from mluva_linux.codex_policy import (
+    TEXT_ONLY_CONFIG,
+    CodexIsolationError,
+    child_environment,
+    mask_global_instructions,
+)
 
 _SERVER_EXITED_METHOD = "_mluva/serverExited"
+_UNEXPECTED_REQUEST_METHOD = "_mluva/unexpectedRequest"
 MODEL_PAGE_SIZE = 100
 MAX_MODEL_PAGES = 10
 MAX_TRANSFORMATION_OUTPUT_CHARACTERS = 8_000
@@ -87,6 +97,7 @@ class CodexAppServerClient:
     _lock: threading.Lock = field(default_factory=threading.Lock)
     _cancel_requested: threading.Event = field(default_factory=threading.Event)
     _reader: threading.Thread | None = None
+    _workspace: tempfile.TemporaryDirectory | None = field(default=None, init=False, repr=False)
 
     def start(self) -> None:
         """Start and initialize one app-server transport connection."""
@@ -97,15 +108,33 @@ class CodexAppServerClient:
                 return
             self.close()
         try:
+            workspace = tempfile.TemporaryDirectory(prefix="mluva-codex-")
+            self._workspace = workspace
+            command = list(self.command)
+            executable = shutil.which(command[0])
+            if executable is None:
+                raise OSError("Codex executable is unavailable.")
+            command[0] = str(Path(executable).absolute())
+            command.append("--strict-config")
+            for key, value in TEXT_ONLY_CONFIG.items():
+                command.extend(("-c", f"{key}={json.dumps(value)}"))
+            environment = child_environment(os.environ)
+            command = mask_global_instructions(command, environment)
             self.process = subprocess.Popen(
-                list(self.command),
+                command,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,
                 text=True,
                 bufsize=1,
+                cwd=workspace.name,
+                env=environment,
             )
+        except CodexIsolationError as error:
+            self.close()
+            raise CodexAppServerError(str(error)) from error
         except OSError as error:
+            self.close()
             raise CodexAppServerError("Codex app-server could not start.") from error
         if self._cancel_requested.is_set():
             self.close()
@@ -123,7 +152,7 @@ class CodexAppServerClient:
                         "title": PRODUCT_NAME,
                         "version": PRODUCT_VERSION,
                     },
-                    "capabilities": {"experimentalApi": False},
+                    "capabilities": {"experimentalApi": True},
                 },
             )
             self._send({"method": "initialized", "params": {}})
@@ -135,6 +164,9 @@ class CodexAppServerClient:
         """Terminate the child server without leaving a background process."""
         process = self.process
         if process is None:
+            if self._workspace is not None:
+                self._workspace.cleanup()
+                self._workspace = None
             return
         self.process = None
         if process.poll() is None:
@@ -152,6 +184,9 @@ class CodexAppServerClient:
         if process.stdout is not None:
             process.stdout.close()
         self._reader = None
+        if self._workspace is not None:
+            self._workspace.cleanup()
+            self._workspace = None
         while True:
             try:
                 self._notifications.get_nowait()
@@ -186,13 +221,27 @@ class CodexAppServerClient:
         resolved_model = model or self.resolve_model(None)
         self.start()
         self.last_model_identifier = None
+        # Resolve inherited MCP names without starting a model turn. Passing an
+        # empty MCP table would merge with, rather than remove, user servers.
+        workspace = self._workspace.name
+        configuration = self._request("config/read", {"includeLayers": False, "cwd": workspace})["config"]
+        servers = configuration.get("mcp_servers", {})
+        if not isinstance(servers, dict):
+            self.close()
+            raise CodexAppServerError("Codex could not establish text-only permissions.")
+        overrides = dict(TEXT_ONLY_CONFIG)
+        overrides["mcp_servers"] = {name: {"enabled": False} for name in servers}
         thread_params: dict[str, object] = {
-            "cwd": str(cwd),
+            "cwd": workspace,
             "model": resolved_model,
             "approvalPolicy": "never",
             "sandbox": "read-only",
             "ephemeral": True,
             "serviceName": "mluva_linux",
+            "environments": [],
+            "dynamicTools": [],
+            "config": overrides,
+            "developerInstructions": "",
             "baseInstructions": (
                 "You transform dictated text. Follow the user's requested operation exactly. "
                 "Return only replacement text, without commentary, quotes, or Markdown fences. "
@@ -205,7 +254,21 @@ class CodexAppServerClient:
             raise CodexAppServerError("Codex app-server changed the frozen model for this transformation.")
         self.last_model_identifier = actual_model
         thread = thread_result["thread"]
+        if (
+            thread.get("environments") != []
+            or thread.get("ephemeral") is not True
+            or thread_result.get("instructionSources")
+        ):
+            self.close()
+            raise CodexAppServerError("Codex cannot confirm text-only isolation. Update Codex before rewriting.")
         thread_id = thread["id"]
+        inventory = self._request("mcpServerStatus/list", {"threadId": thread_id, "limit": 100})
+        if inventory.get("nextCursor") or any(
+            server.get("tools") or server.get("resources") or server.get("resourceTemplates")
+            for server in inventory["data"]
+        ):
+            self.close()
+            raise CodexAppServerError("Codex exposed external capabilities during text-only setup.")
         turn_params: dict[str, object] = {"threadId": thread_id, "input": [{"type": "text", "text": prompt}]}
         if effort is not None:
             turn_params["effort"] = effort
@@ -226,9 +289,24 @@ class CodexAppServerClient:
                 raise CodexAppServerError("Codex app-server timed out while producing text.") from error
             if message.get("method") == _SERVER_EXITED_METHOD:
                 raise CodexAppServerError("Codex app-server exited before completing the text transformation.")
+            if message.get("method") == _UNEXPECTED_REQUEST_METHOD:
+                self.close()
+                raise CodexAppServerError("Codex requested an operation outside text-only rewriting.")
             params = message["params"]
             if params.get("threadId") != thread_id:
                 continue
+            method = message["method"]
+            permitted_items = {"userMessage", "agentMessage", "reasoning"}
+            items = [params.get("item", {})] if method in {"item/started", "item/completed"} else []
+            if method == "turn/completed":
+                items.extend(params.get("turn", {}).get("items", []))
+            if any(item.get("type") not in permitted_items for item in items) or (
+                method.startswith("item/")
+                and method not in {"item/started", "item/completed"}
+                and not method.startswith(("item/agentMessage/", "item/reasoning/"))
+            ):
+                self.close()
+                raise CodexAppServerError("Codex attempted an operation outside text-only rewriting.")
             if message["method"] == "item/agentMessage/delta" and params["turnId"] == turn_id:
                 delta = params["delta"]
                 if not isinstance(delta, str):
@@ -311,14 +389,21 @@ class CodexAppServerClient:
                 message = json.loads(line)
                 if not isinstance(message, dict):
                     break
-                if "id" in message:
+                if "id" in message and "method" in message:
+                    with self._lock:
+                        self._send({"id": message["id"], "error": {"code": -32601, "message": "Unsupported operation"}})
+                    self._notifications.put({"method": _UNEXPECTED_REQUEST_METHOD, "params": {}})
+                elif "id" in message:
                     with self._lock:
                         response_queue = self._responses.get(message["id"])
                     if response_queue is not None:
-                        response_queue.put(message)
+                        try:
+                            response_queue.put_nowait(message)
+                        except queue.Full:
+                            break
                 elif "method" in message:
                     self._notifications.put(message)
-        except (OSError, TypeError, ValueError):
+        except (CodexAppServerError, OSError, TypeError, ValueError):
             pass
         finally:
             failure_response: dict[str, object] = {"error": {}}

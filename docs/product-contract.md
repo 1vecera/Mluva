@@ -20,9 +20,9 @@ Command and Notes modes retain an explicit preview/accept step. Meeting mode exp
 
 Speech and rewriting are selected independently. Cloud speech sends audio to its provider; rewriting and automatic titles send text to the chosen rewrite provider. App-managed local models keep recognition local and never use a paid fallback. They load only while transcribing. Choosing Skip for rewriting disables model-based polishing and automatic titles.
 
-Codex uses an authenticated app-server with a concrete model, an ephemeral read-only thread, disabled approvals and instructions forbidding tools. Compatible text endpoints receive chat messages without tools; tool requests and incomplete responses are rejected. Account access, service retention and usage charges belong to the selected provider.
+Codex uses its existing authentication and a concrete model in an ephemeral thread with no execution environment. Mluva disables tools, MCP, apps, hooks and skills, filters inherited environment variables, and hides global instruction files in a child mount namespace. Isolation is checked before text is submitted; unsupported servers and unexpected tool activity fail closed. Compatible text endpoints receive chat messages without tools; tool requests and incomplete responses are rejected. Account access, service retention and usage charges belong to the selected provider.
 
-Credentials enter through the application process environment or an existing managed launcher. Settings stores variable names, not values. Credentials are excluded from history, diagnostics and shell previews. Compatible endpoints reject embedded credentials and redirects; HTTPS is required except for loopback servers. [Provider setup](provider-selection.md) explains connection settings.
+Credentials enter through the application process environment or an existing managed launcher. Settings stores variable names, not values. Credentials are excluded from history, diagnostics and shell previews. ElevenLabs batch uploads and compatible endpoints reject redirects so credentials and recordings stay at the configured endpoint. Compatible endpoints reject embedded credentials; HTTPS is required except for loopback servers. [Provider setup](provider-selection.md) explains connection settings.
 
 ## Clipboard and insertion
 
@@ -38,7 +38,7 @@ Audio retention follows the selected policy. Recognition failures can retain rec
 
 Automatic titles are enabled by default. They send up to 6,000 characters from a new conversation to the rewrite provider. A local label remains if generation fails, and manual renames take precedence. Existing history is not submitted for titles on startup. Titles can be disabled independently.
 
-Incognito saves no new history or recovery audio and disables conversation rewriting and generated titles. Recognition still uses the chosen speech provider; cancellation cannot recall audio already sent to a cloud service.
+Incognito saves no new history or recovery audio and disables conversation rewriting and generated titles. Dictation, meeting source files and batch preview chunks use a private memory-backed `/dev/shm` directory, with no disk-directory fallback. An independent cleanup process removes it when Mluva exits or is killed; reboot also clears the volatile filesystem. This does not control operating-system swap or crash dumps. Recognition still uses the chosen speech provider; cancellation cannot recall audio already sent to a cloud service.
 
 ## Desktop integration and diagnostics
 
