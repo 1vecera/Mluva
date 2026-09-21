@@ -67,6 +67,54 @@ exit 92
     )
 
 
+@pytest.mark.parametrize("legacy_profiles", [False, True], ids=["snapshot-only", "stale-profiles"])
+@pytest.mark.parametrize("custom_secret_name", [None, "ELEVENLABS_API_KEY"], ids=["default-key", "custom-key"])
+def test_launcher_prefers_enabled_snapshot(
+    tmp_path: Path, legacy_profiles: bool, custom_secret_name: str | None
+) -> None:
+    """Start from the enabled credential cache even when network profiles are stale or absent."""
+    launcher_path, application_dir = _render_launcher(tmp_path)
+    environ, home = _launcher_environment(tmp_path)
+    if custom_secret_name:
+        environ["MLUVA_AGENT_SECRET_NAME"] = custom_secret_name
+    managed = home / ".config" / "daniel-ai-skills"
+    managed.mkdir(parents=True)
+    (managed / "snapshot.enabled").touch()
+    if legacy_profiles:
+        (managed / "env").mkdir()
+        for profile in ("mluva.env", "agent.env"):
+            (managed / "env" / profile).write_text("synthetic stale reference\n")
+    for command in ("das-mcp-launch", "das-agent-launch"):
+        _write_executable(managed / "bin" / command, "#!/bin/sh\nexit 91\n")
+    _write_executable(
+        managed / "bin" / "das-agent-snapshot",
+        "#!/bin/sh\nset -eu\n"
+        'test "$1" = launch\n'
+        'test "$2" = --only\n'
+        'test "$3" = "${MLUVA_AGENT_SECRET_NAME:-ELEVEN_LABS_STT_TOKEN}"\n'
+        'test "$4" = --\n'
+        'export "$3=test-only"\n'
+        "shift 4\n"
+        'exec "$@"\n',
+    )
+    _write_executable(
+        application_dir / ".venv" / "bin" / "python",
+        "#!/bin/sh\nset -eu\n"
+        'test "$MLUVA_SECRET_PROFILE" = 1\n'
+        'test "${ELEVENLABS_API_KEY:-${ELEVEN_LABS_STT_TOKEN:-}}" = test-only\n'
+        'test "$#" = 3\n'
+        'test "$3" = "argument with spaces"\n'
+        'printf \'python:%s:%s\\n\' "$PYTHONPATH" "$*"\n',
+    )
+
+    result = subprocess.run(
+        [str(launcher_path), "argument with spaces"], env=environ, capture_output=True, text=True, check=False
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == f"python:{application_dir}:-m mluva_linux.app argument with spaces"
+
+
 def test_launcher_uses_scoped_managed_profile_when_credential_is_missing(tmp_path: Path) -> None:
     """Re-exec through the proven managed profile interface without putting a secret in arguments."""
     launcher_path, application_dir = _render_launcher(tmp_path)
@@ -104,19 +152,25 @@ def test_launcher_uses_scoped_managed_profile_when_credential_is_missing(tmp_pat
 
 @pytest.mark.parametrize(
     "environment_overrides",
-    [{"MLUVA_SECRET_PROFILE": "1"}, {"ELEVENLABS_API_KEY": "test-only"}],
-    ids=["active-profile", "direct-key"],
+    [
+        {"MLUVA_SECRET_PROFILE": "1"},
+        {"ELEVENLABS_API_KEY": "test-only"},
+        {"DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL": "test-only"},
+        {"ELEVEN_LABS_STT_TOKEN": "test-only"},
+    ],
+    ids=["active-profile", "direct-key", "scoped-key", "stt-key"],
 )
 def test_launcher_skips_available_managed_credentials(tmp_path: Path, environment_overrides: dict[str, str]) -> None:
-    """An active profile or direct key must bypass both available credential resolvers."""
+    """An active profile or direct key must bypass all available credential resolvers."""
     launcher_path, application_dir = _render_launcher(tmp_path)
     environ, home = _launcher_environment(tmp_path)
     environ.update(environment_overrides)
     managed = home / ".config" / "daniel-ai-skills"
     (managed / "env").mkdir(parents=True)
+    (managed / "snapshot.enabled").touch()
     for profile in ("mluva.env", "agent.env"):
         (managed / "env" / profile).write_text("synthetic credential reference\n")
-    for command in ("das-mcp-launch", "das-agent-launch"):
+    for command in ("das-agent-snapshot", "das-mcp-launch", "das-agent-launch"):
         _write_executable(managed / "bin" / command, "#!/bin/sh\nexit 91\n")
 
     result = subprocess.run(
