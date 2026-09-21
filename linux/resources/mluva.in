@@ -25,6 +25,12 @@ PYCONFIG
 
 if needs_elevenlabs_credential && [[ "${MLUVA_SECRET_PROFILE:-}" != "1" ]] && ! has_elevenlabs_credential; then
     secret_config_dir="${DAS_CONF_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/daniel-ai-skills}"
+    snapshot_launcher="${secret_config_dir}/bin/das-agent-snapshot"
+    if [[ -f "${secret_config_dir}/snapshot.enabled" && -x "${snapshot_launcher}" ]]; then
+        exec "${snapshot_launcher}" launch --only \
+            "${MLUVA_AGENT_SECRET_NAME:-ELEVEN_LABS_STT_TOKEN}" -- \
+            env MLUVA_SECRET_PROFILE=1 "$0" "$@"
+    fi
     managed_launcher="${secret_config_dir}/bin/das-mcp-launch"
     profile_references="${secret_config_dir}/env/mluva.env"
     if [[ -x "${managed_launcher}" && -s "${profile_references}" ]]; then

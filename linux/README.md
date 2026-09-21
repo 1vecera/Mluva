@@ -65,7 +65,7 @@ Speech recognition and rewriting are selected independently in **Settings → Pr
 
 Supply credentials to the app process through your secret manager or desktop launch environment. Settings stores key-variable names, never key values. Restart Mluva after changing that environment. A cloud route may send audio or text off the device; local recognition alone does not make rewrites or generated titles local.
 
-The launcher also supports an existing managed credential profile. That optional integration is implemented in `resources/mluva.in` and `configure-secret-profile.sh`; ordinary installations do not require it.
+The launcher also supports an existing managed credential profile. When the managed local snapshot is enabled, the launcher reads only `ELEVEN_LABS_STT_TOKEN` from it before considering legacy network profiles. `MLUVA_AGENT_SECRET_NAME` can select another supported credential name in that snapshot. This avoids retired profile references blocking startup after credential rotation. That optional integration is implemented in `resources/mluva.in` and `configure-secret-profile.sh`; ordinary installations do not require it.
 
 ## Optional GNOME integrations
 
