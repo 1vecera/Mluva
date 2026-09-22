@@ -44,6 +44,8 @@ def _application_stub(**overrides: object) -> _ProductionPaths:
         pending_command_target=None,
         capture_status_timeout_id=None,
         capture_started_at=None,
+        continuation_identifier=None,
+        continuation_source="",
         status_label=None,
         _update_capture_status_rows=noop,
     )

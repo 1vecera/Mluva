@@ -125,6 +125,11 @@ class HistoryPage(Gtk.Box):
 
     def focus_entry(self, identifier: str | None) -> None:
         """Expose the selected conversation's recovery tools even beyond the recent page."""
+        if identifier is not None:
+            try:
+                identifier = self.store.recording_conversation(identifier).identifier
+            except KeyError:
+                identifier = None
         self.focused_identifier = identifier
         self.refresh()
         if identifier in self.entry_rows:
@@ -137,7 +142,7 @@ class HistoryPage(Gtk.Box):
         self._clear_list(self.list_box)
         self.entry_rows.clear()
         self.title_entries.clear()
-        entries = self.store.recent()
+        entries = self.conversations.search(limit=100) if self.conversations else self.store.recent()
         if self.focused_identifier is not None:
             try:
                 selected = self.store.find(self.focused_identifier)
@@ -151,7 +156,7 @@ class HistoryPage(Gtk.Box):
         else:
             self.archive_stack.set_visible_child_name("entries")
             for entry in entries:
-                row = self._build_entry(entry)
+                row = self._build_conversation(entry)
                 row.set_expanded(entry.identifier in expanded)
                 self.entry_rows[entry.identifier] = row
                 self.list_box.append(row)
@@ -233,6 +238,39 @@ class HistoryPage(Gtk.Box):
         )
         reprocess.connect("clicked", self._reprocess, entry)
         actions.append(reprocess)
+        self._add_export_actions(actions, entry)
+        row.add_row(actions)
+        return row
+
+    def _build_conversation(self, entry: HistoryEntry) -> Adw.ExpanderRow:
+        """Present continued speech as one document, with raw recordings nested for recovery."""
+        first_recording = self._build_entry(entry)
+        segments = self.store.continuations(entry.identifier)
+        if not segments or self.conversations is None:
+            return first_recording
+        replies = self.conversations.replies(entry.identifier)
+        text = replies[-1].text if replies else self.conversations.source_text(entry)
+        row = Adw.ExpanderRow(title=first_recording.get_title(), subtitle=f"Dictation · {len(segments) + 1} recordings")
+        current = Adw.ActionRow(title="Current text", subtitle=text)
+        current.set_subtitle_lines(3)
+        copy = Gtk.Button(label="Copy", valign=Gtk.Align.CENTER)
+        copy.connect("clicked", lambda _button: self.copy_text(text))
+        current.add_suffix(copy)
+        row.add_row(current)
+        recordings = Adw.ExpanderRow(title="Original recordings", subtitle="Raw captures and recovery tools")
+        recordings.add_row(first_recording)
+        for segment in segments:
+            recordings.add_row(self._build_entry(segment))
+        row.add_row(recordings)
+        actions = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, row_spacing=SPACE_2, column_spacing=SPACE_2)
+        actions.set_max_children_per_line(3)
+        set_margins(actions, SPACE_3)
+        self._add_export_actions(actions, entry)
+        row.add_row(actions)
+        return row
+
+    def _add_export_actions(self, actions: Gtk.FlowBox, entry: HistoryEntry) -> None:
+        """Keep document export and deletion available on both grouped and single recordings."""
         export_markdown = Gtk.Button(label="Export Markdown")
         export_markdown.connect("clicked", self._export, entry, "markdown")
         actions.append(export_markdown)
@@ -243,8 +281,6 @@ class HistoryPage(Gtk.Box):
         delete.add_css_class("destructive-action")
         delete.connect("clicked", self._confirm_delete, entry)
         actions.append(delete)
-        row.add_row(actions)
-        return row
 
     def _correction_editor(self, entry: HistoryEntry) -> Gtk.Box:
         """Build a labelled multiline correction surface without nested row focus chrome."""
