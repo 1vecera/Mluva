@@ -12,7 +12,7 @@ from http_fixture import local_http_server
 from mluva_linux.codex_client import CodexAppServerClient, CodexAppServerError
 from mluva_linux.config import AppConfig
 from mluva_linux.providers import ProviderError
-from mluva_linux.rewriting import UnsupportedRewriteSpeed, rewrite_client, rewrite_text
+from mluva_linux.rewriting import UnsupportedRewriteSpeed, UnsupportedThinkingLevel, rewrite_client, rewrite_text
 
 
 @pytest.mark.parametrize(
@@ -124,3 +124,20 @@ def test_short_request_budgets_reach_the_selected_transport():
     assert rewrite_client(config, request_timeout_seconds=10, turn_timeout_seconds=20).timeout == 20
     native = rewrite_client(AppConfig(), request_timeout_seconds=10, turn_timeout_seconds=20)
     assert (native.request_timeout_seconds, native.turn_timeout_seconds) == (10, 20)
+
+
+def test_explicit_thinking_level_reaches_codex_and_stale_level_never_sends_text(tmp_path):
+    """Use advertised levels on the wire and fail before inference when a model cannot serve one."""
+    client = CodexAppServerClient(
+        command=(sys.executable, str(Path(__file__).with_name("fake_app_server.py")), "--expect-high")
+    )
+    try:
+        result = rewrite_text(client, AppConfig(rewrite_reasoning_effort="high"), "Synthetic source", tmp_path)
+        assert result.text == "Clean text."
+        with patch.object(CodexAppServerClient, "transform") as transform, pytest.raises(UnsupportedThinkingLevel):
+            rewrite_text(
+                client, AppConfig(rewrite_model="gpt-5.4-mini", rewrite_reasoning_effort="high"), "Source", tmp_path
+            )
+        transform.assert_not_called()
+    finally:
+        client.close()

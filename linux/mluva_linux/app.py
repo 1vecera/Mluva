@@ -36,7 +36,7 @@ from mluva_linux.conversation import (
     rewrite_prompt,
 )
 from mluva_linux.conversation_view import ConversationWorkspace
-from mluva_linux.delivery import deliver_text, keyboard_paste_available
+from mluva_linux.delivery import DeliveryReceipt, deliver_text, keyboard_paste_available
 from mluva_linux.diagnostics import (
     DiagnosticOutcome,
     DiagnosticProvider,
@@ -339,6 +339,10 @@ class MluvaApplication(Adw.Application):
         self.live_revision = 0
         self.live_updating = False
         self.live_mode_switch = None
+        self.syncing_live_mode = False
+        self.live_once_active = False
+        self.continuation_identifier = None
+        self.continuation_source = ""
         self.live_template_buttons = {}
         self.prompt_editor = None
         self.prompts_page = None
@@ -621,11 +625,17 @@ class MluvaApplication(Adw.Application):
             self._cancel_titles()
 
     def _live_mode_changed(self, button) -> None:
-        """Start or pause Live during dictation without replacing the speech transport."""
-        if button.get_active() == self.config.live_rewrite_enabled:
+        """Cycle Off, Once and Continuous without replacing the speech transport."""
+        if self.syncing_live_mode:
             return
-        if not self._apply_workspace_settings({"live_rewrite_enabled": button.get_active()}):
-            button.set_active(self.config.live_rewrite_enabled)
+        enabled = self.config.live_rewrite_enabled
+        continuous = self.config.live_rewrite_continuous
+        changes = {
+            "live_rewrite_enabled": not (enabled and continuous),
+            "live_rewrite_continuous": enabled and not continuous,
+        }
+        if not self._apply_workspace_settings(changes):
+            self._sync_live_mode()
             self._show_toast(
                 "Live rewrite is available during dictation; wait for preparation or finalization to finish."
             )
@@ -645,12 +655,21 @@ class MluvaApplication(Adw.Application):
             return
         self.live_mode_switch.set_sensitive(self.config.rewrite_provider != "none")
         self.live_mode_menu.set_sensitive(self.config.rewrite_provider != "none")
+        self.syncing_live_mode = True
         self.live_mode_switch.set_active(self.config.live_rewrite_enabled and self.config.rewrite_provider != "none")
+        mode = "Continuous" if self.config.live_rewrite_continuous else "Once"
+        suffix = " · ∞" if self.config.live_rewrite_continuous else " · 1×"
+        self.live_mode_switch.set_label("Live rewrite" + suffix if self.config.live_rewrite_enabled else "Live rewrite")
+        self.live_mode_switch.update_property(
+            [Gtk.AccessibleProperty.LABEL],
+            ["Live rewrite · " + mode if self.config.live_rewrite_enabled else "Live rewrite · Off"],
+        )
+        self.syncing_live_mode = False
         template = self.config.live_rewrite_template
         self.live_template_buttons[template].set_active(True)
         label = dict(TEMPLATE_CHOICES)[template]
         self.live_mode_switch.set_tooltip_text(
-            f"Build a {label.lower()} draft from provisional speech; reconcile with the final transcript at Stop"
+            f"Off → Once → Continuous. Build a {label.lower()} draft; reconcile at Stop."
         )
         self.live_mode_menu.set_tooltip_text(f"Live rewrite template: {label}")
 
@@ -684,8 +703,12 @@ class MluvaApplication(Adw.Application):
             if preserve_draft
             else initial_draft(self.config, self.live_prompts)
         )
+        if self.continuation_identifier is not None and not preserve_draft:
+            replies = self.conversation_store.replies(self.continuation_identifier)
+            draft = replies[-1].text if replies else self.continuation_source
         self._cancel_live_rewrite()
         enabled = self.config.live_rewrite_enabled and not self.pending_incognito and self.pending_mode == "dictation"
+        self.live_once_active = enabled and not self.config.live_rewrite_continuous
         # Seed every capture, including one that starts with Live disabled, so
         # enabling Live later preserves this capture rather than a previous one.
         self.live_updating = True
@@ -713,6 +736,8 @@ class MluvaApplication(Adw.Application):
 
     def _maybe_live_rewrite(self, text: str, *, final: bool = False) -> None:
         """Coalesce speech snapshots, keeping at most one bounded rewrite in flight."""
+        if not final and self.continuation_source and text.strip():
+            text = self.continuation_source.rstrip() + "\n\n" + text
         schedule = self.live_schedule
         if schedule is None or self.config.incognito_mode or self.shutting_down:
             return
@@ -923,6 +948,7 @@ class MluvaApplication(Adw.Application):
         }
         live = {
             "live_rewrite_enabled",
+            "live_rewrite_continuous",
             "live_rewrite_template",
             "live_rewrite_custom_instructions",
             "live_rewrite_min_characters",
@@ -1080,12 +1106,12 @@ class MluvaApplication(Adw.Application):
             self.rewrite_settings.set_models(models)
         return GLib.SOURCE_REMOVE
 
-    def _save_rewrite_settings(self, model: str | None, fast: bool) -> None:
+    def _save_rewrite_settings(self, model: str | None, fast: bool, effort: str | None = None) -> None:
         """Persist rewrite-only preferences, restoring the controls when the write fails."""
         config = (
-            replace(self.config, litellm_model=model)
+            replace(self.config, litellm_model=model, litellm_reasoning_effort=effort)
             if self.config.rewrite_provider == "litellm"
-            else replace(self.config, rewrite_model=model, rewrite_fast_mode=fast)
+            else replace(self.config, rewrite_model=model, rewrite_fast_mode=fast, rewrite_reasoning_effort=effort)
         )
         try:
             save_config(config, self.config_path)
@@ -1245,6 +1271,8 @@ class MluvaApplication(Adw.Application):
                 self._publish_review(identifier, "review-error", "Could not copy. Try again.")
             else:
                 self._publish_review(identifier, message="Copied")
+        elif operation == "continue":
+            self._continue_recording(identifier)
         elif operation == "open":
             self.activate()
             self._navigate_to_page("capture")
@@ -1467,6 +1495,7 @@ class MluvaApplication(Adw.Application):
             cancel_rewrite=self._cancel_rewrite,
         )
         self.conversation_workspace.set_vexpand(True)
+        self.conversation_workspace.continue_recording = self._continue_recording
         self.rewrite_settings = RewriteSettings(self.config, self._load_rewrite_models, self._save_rewrite_settings)
         self.conversation_workspace.set_rewrite_settings(self.rewrite_settings)
         body.append(self.conversation_workspace)
@@ -2633,7 +2662,35 @@ class MluvaApplication(Adw.Application):
             return
         self._stop_capture()
 
-    def _start_capture(self) -> None:
+    def _continue_recording(self, identifier: str) -> None:
+        """Resume one explicit conversation with copy-only delivery and protected saved edits."""
+        if (
+            self.shutting_down
+            or self.config.incognito_mode
+            or self.capture_preparing
+            or self.capture_processing
+            or self.rewrite_client is not None
+            or self.live_final_entry is not None
+            or self.recorder is None
+            or self.recorder.process is not None
+        ):
+            return
+        try:
+            entry = self.history_store.recording_conversation(identifier)
+            identifier = entry.identifier
+            if entry.mode != "dictation":
+                return
+            workspace = self.conversation_workspace
+            for key in list(workspace.edit_drafts):
+                if key[0] == identifier and not workspace.save_edits(key):
+                    return
+        except (KeyError, OSError):
+            self._set_status("This conversation is no longer available.")
+            return
+        self.capture_allows_auto_paste = False
+        self._start_capture(continuation=identifier)
+
+    def _start_capture(self, *, continuation: str | None = None) -> None:
         """Start PipeWire capture after the caller establishes delivery safety."""
         if self.record_button is None or self.recorder is None or self.workflow is None:
             return
@@ -2652,6 +2709,10 @@ class MluvaApplication(Adw.Application):
         if self.scratchpad_store.draft is not None:
             self._set_status("Resolve or delete the current Scratchpad draft before recording again.")
             return
+        self.continuation_identifier = continuation
+        self.continuation_source = (
+            self.conversation_store.source_text(self.history_store.find(continuation)) if continuation else ""
+        )
         if self.mode is not None and self.cleanup_switch is not None:
             focus_tracker = self.focus_tracker
             self.pending_delivery_target = (
@@ -2672,7 +2733,7 @@ class MluvaApplication(Adw.Application):
                 if self.config.remember_per_application and self.pending_application_identifier is not None
                 else CAPTURE_MODE_IDS[self.mode.get_selected()]
             )
-            self.pending_mode = self._capture_mode_for_application(fallback_mode)
+            self.pending_mode = "dictation" if continuation else self._capture_mode_for_application(fallback_mode)
             self.mode.set_selected(CAPTURE_MODE_IDS.index(self.pending_mode))
             self.pending_incognito = self.incognito_switch is not None and self.incognito_switch.get_active()
             self.pending_audio_retention = self._selected_audio_retention()
@@ -3163,6 +3224,7 @@ class MluvaApplication(Adw.Application):
                 segment_cleanup=segment_cleanup,
                 frozen_style=frozen_style,
                 style_is_frozen=True,
+                defer_delivery=self.continuation_identifier is not None,
             )
         except WorkflowFailure as error:
             GLib.idle_add(
@@ -3191,6 +3253,31 @@ class MluvaApplication(Adw.Application):
 
     def _workflow_finished(self, result: WorkflowResult) -> bool:
         """Render the final output and restore the ready state on GTK's thread."""
+        if self.continuation_identifier is not None and result.history_entry is not None and not result.incognito:
+            try:
+                for key in list(self.conversation_workspace.edit_drafts):
+                    if key[0] == self.continuation_identifier and not self.conversation_workspace.save_edits(key):
+                        raise OSError("Could not save the existing document.")
+                output = self.conversation_store.append_recording(self.continuation_identifier, result.history_entry)
+                entry = self.history_store.find(self.continuation_identifier)
+            except Exception:
+                self._cancel_live_rewrite()
+                result = replace(
+                    result,
+                    delivery=DeliveryReceipt(
+                        False, False, "Could not append. This recording remains separately in History."
+                    ),
+                )
+                self.continuation_identifier = None
+                self.continuation_source = ""
+            else:
+                receipt = DeliveryReceipt(False, False, "Recording appended.")
+                if self.config.auto_copy_dictation:
+                    try:
+                        receipt = deliver_text(output, auto_paste=False)
+                    except Exception:
+                        receipt = DeliveryReceipt(False, False, "Recording appended. Automatic copy failed; use Copy.")
+                result = replace(result, history_entry=entry, output_text=output, delivery=receipt)
         workspace = self.conversation_workspace
         viewing_live = workspace is not None and workspace.viewing_live
         empty_capture = not result.transcription.text.strip()
@@ -3210,7 +3297,11 @@ class MluvaApplication(Adw.Application):
         )
         if finishing_live:
             self.live_final_entry = result.history_entry.identifier
-            self.live_final_text = result.transcription.text
+            self.live_final_text = (
+                self.conversation_store.source_text(result.history_entry)
+                if self.continuation_identifier
+                else result.transcription.text
+            )
         else:
             self._clear_live_capture()
         status = result.delivery.guidance
@@ -3313,7 +3404,11 @@ class MluvaApplication(Adw.Application):
                 workspace.finish_live()
             if result.history_entry is not None:
                 if viewing_live and not workspace.prompt_text() and self.rewrite_client is None:
-                    workspace.show_conversation(result.history_entry, [], preserve_live=finishing_live)
+                    workspace.show_conversation(
+                        result.history_entry,
+                        self.conversation_store.replies(result.history_entry.identifier),
+                        preserve_live=finishing_live,
+                    )
             else:
                 workspace.show_transient(result.transcription.text, result.output_text)
         if not result.requires_acceptance:
@@ -3394,8 +3489,27 @@ class MluvaApplication(Adw.Application):
             self.conversation_workspace.notice.set_label("Capture failed. Your live draft is available to copy.")
         return GLib.SOURCE_REMOVE
 
+    def _consume_live_once(self) -> bool:
+        """Disarm a used Once selection on completion, cancellation or application exit."""
+        if self.live_once_active:
+            self.live_once_active = False
+            if self.config.live_rewrite_enabled and not self.config.live_rewrite_continuous:
+                self.config = replace(self.config, live_rewrite_enabled=False)
+                try:
+                    save_config(self.config, self.config_path)
+                except OSError:
+                    self._show_toast("Live rewrite is off for this session; the preference could not be saved.")
+                return True
+        return False
+
     def _reset_record_button(self, *, keep_overlay: bool = False) -> None:
         """Return the primary action to the idle capture state."""
+        self.continuation_identifier = None
+        self.continuation_source = ""
+        if self._consume_live_once():
+            self._sync_live_mode()
+            self._synchronize_workflow_config()
+            self._configure_realtime_provider()
         self._clear_capture_status_timeout()
         self.capture_preparing = False
         self.capture_stop_requested = False
@@ -4214,6 +4328,8 @@ class MluvaApplication(Adw.Application):
             excluded_identifiers = frozenset((draft.history_identifier,))
         if self.retry_identifier is not None:
             excluded_identifiers = excluded_identifiers | frozenset((self.retry_identifier,))
+        if self.continuation_identifier is not None:
+            excluded_identifiers |= frozenset((self.continuation_identifier,))
         if self.pending_command_result is not None and self.pending_command_result.history_entry is not None:
             excluded_identifiers = excluded_identifiers | frozenset(
                 (self.pending_command_result.history_entry.identifier,)
@@ -4975,6 +5091,7 @@ class MluvaApplication(Adw.Application):
     def _on_shutdown(self, _application: Adw.Application) -> None:
         """Release child processes and portal registrations during application exit."""
         self.shutting_down = True
+        self._consume_live_once()
         self._cancel_live_rewrite()
         self._cancel_titles(wait=True)
         self.theme_controller.close()

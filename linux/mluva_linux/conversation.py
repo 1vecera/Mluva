@@ -97,6 +97,47 @@ class ConversationStore:
             ).fetchall()
         return [Rewrite(*row) for row in rows]
 
+    def append_recording(self, identifier: str, segment: HistoryEntry) -> str:
+        """Append one completed capture atomically while keeping every raw segment immutable."""
+        entry = self.history.find(identifier)
+        if entry.mode != "dictation" or segment.mode != "dictation" or identifier == segment.identifier:
+            raise ValueError("Continue recording requires a separate completed dictation.")
+        with closing(sqlite3.connect(self.history.path)) as connection, connection:
+            connection.execute("PRAGMA foreign_keys = ON")
+            connection.execute("BEGIN IMMEDIATE")
+            linked = connection.execute(
+                "SELECT history_identifier FROM recording_continuations WHERE segment_identifier = ?",
+                (segment.identifier,),
+            ).fetchone()
+            if linked:
+                raise ValueError("This recording has already been appended.")
+            if connection.execute(
+                "SELECT 1 FROM recording_continuations WHERE segment_identifier = ? OR history_identifier = ?",
+                (identifier, segment.identifier),
+            ).fetchone():
+                raise ValueError("Continue the original conversation, not an individual recording segment.")
+            source = connection.execute(
+                "SELECT text FROM conversation_sources WHERE history_identifier = ?", (identifier,)
+            ).fetchone()
+            combined = (source[0] if source else entry.raw_text).rstrip() + "\n\n" + segment.raw_text.strip()
+            reply = connection.execute(
+                "SELECT identifier, text FROM conversation_rewrites WHERE history_identifier = ? "
+                "ORDER BY identifier DESC LIMIT 1",
+                (identifier,),
+            ).fetchone()
+            output = reply[1].rstrip() + "\n\n" + segment.delivered_text.strip() if reply else combined
+            if max(len(combined), len(output)) > MAX_CONVERSATION_CHARACTERS:
+                raise ValueError("This conversation is full. The new recording remains in History.")
+            connection.execute("INSERT INTO recording_continuations VALUES (?, ?)", (segment.identifier, identifier))
+            connection.execute(
+                "INSERT INTO conversation_sources VALUES (?, ?) "
+                "ON CONFLICT(history_identifier) DO UPDATE SET text = excluded.text",
+                (identifier, combined),
+            )
+            if reply:
+                connection.execute("UPDATE conversation_rewrites SET text = ? WHERE identifier = ?", (output, reply[0]))
+        return output
+
     def append(self, identifier: str, instruction: str, text: str, model: str) -> Rewrite:
         """Commit only a complete result while its source still exists, even after concurrent deletion."""
         if not instruction.strip() or not text.strip():
@@ -119,14 +160,18 @@ class ConversationStore:
             connection.row_factory = sqlite3.Row
             connection.create_function("unicode_fold", 1, lambda text: (text or "").casefold(), deterministic=True)
             identifiers = connection.execute(
-                "SELECT h.identifier FROM transcription_history h WHERE "
+                "SELECT h.identifier FROM transcription_history h WHERE NOT EXISTS "
+                "(SELECT 1 FROM recording_continuations c WHERE c.segment_identifier = h.identifier) AND ("
                 "unicode_fold(h.title) LIKE ? ESCAPE '\\' OR unicode_fold(h.raw_text) LIKE ? ESCAPE '\\' "
                 "OR unicode_fold(h.delivered_text) LIKE ? ESCAPE '\\' "
                 "OR EXISTS (SELECT 1 FROM conversation_sources s WHERE s.history_identifier = h.identifier "
                 "AND unicode_fold(s.text) LIKE ? ESCAPE '\\') OR EXISTS (SELECT 1 FROM conversation_rewrites r "
                 "WHERE r.history_identifier = h.identifier AND "
                 "(unicode_fold(r.text) LIKE ? ESCAPE '\\' OR unicode_fold(r.instruction) LIKE ? ESCAPE '\\')) "
-                "ORDER BY h.created_at DESC LIMIT ?",
+                ") ORDER BY MAX(h.created_at, COALESCE((SELECT MAX(segment.created_at) "
+                "FROM recording_continuations c JOIN transcription_history segment "
+                "ON segment.identifier = c.segment_identifier WHERE c.history_identifier = h.identifier), "
+                "h.created_at)) DESC LIMIT ?",
                 (pattern, pattern, pattern, pattern, pattern, pattern, limit),
             ).fetchall()
         return [self.history.find(row["identifier"]) for row in identifiers]

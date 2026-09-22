@@ -16,6 +16,7 @@ from mluva_linux.conversation import ConversationStore, rewrite_prompt
 from mluva_linux.elevenlabs import TranscriptionResult
 from mluva_linux.history import HistoryStore
 from mluva_linux.providers import LiteLLMClient, ProviderError
+from mluva_linux.rewriting import rewrite_client, rewrite_text
 from mluva_linux.workflow import DictationWorkflow
 
 
@@ -74,6 +75,31 @@ def test_remote_catalog_stream_and_audio(service, tmp_path, monkeypatch):
     assert b'name="language"\r\n\r\ncs' in requests[-1][2]
     assert b"RIFF-fixture-wave" in requests[-1][2]
     assert requests[-1][1]["Authorization"] == "Bearer fixture-key"
+
+
+@pytest.mark.parametrize("effort", [None, "none", "low", "high", "max"])
+def test_remote_thinking_override_is_optional_and_provider_specific(service, tmp_path, effort):
+    """Only explicit compatible-API choices add reasoning_effort to the actual JSON request."""
+    url, requests, _options = service
+    config = AppConfig(
+        rewrite_provider="litellm",
+        litellm_base_url=url,
+        litellm_model="local-editor",
+        litellm_reasoning_effort=effort,
+        rewrite_reasoning_effort="high",
+        rewrite_fast_mode=True,
+    )
+    client = rewrite_client(config)
+    try:
+        assert rewrite_text(client, config, "Synthetic words.", tmp_path).text == "Hotový zápis."
+    finally:
+        client.close()
+    body = json.loads(requests[-1][2])
+    assert "service_tier" not in body
+    if effort is None:
+        assert "reasoning_effort" not in body
+    else:
+        assert body["reasoning_effort"] == effort
 
 
 @pytest.mark.parametrize(

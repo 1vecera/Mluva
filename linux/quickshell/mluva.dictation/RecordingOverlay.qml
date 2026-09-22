@@ -35,7 +35,8 @@ FloatingWindow {
     property real remaining: reviewDuration
     property double lastTick: Date.now()
     property bool dismissed: false
-    readonly property bool countdownPaused: reviewHover.hovered || menuOpen || surface.Window.active
+    property bool reviewInteracted: false
+    readonly property bool countdownPaused: reviewHover.hovered || menuOpen || (reviewInteracted && surface.Window.active)
     readonly property bool reviewing: ["ready", "rewriting", "review-error"].includes(phase)
     readonly property bool busy: phase === "rewriting"
     readonly property bool active: reviewing || ["preparing", "recording", "processing", "error"].includes(phase)
@@ -200,12 +201,16 @@ FloatingWindow {
     onPreviewChanged: Qt.callLater(syncPreview)
     onPreviewStartChanged: Qt.callLater(syncPreview)
     onPhaseChanged: {
+        reviewInteracted = false;
         if (!active) resetPreviewLayout();
         if (!reviewing || busy) menuOpen = false;
         resetCountdown();
         resetPreviewMotion();
     }
-    onIdentifierChanged: { menuOpen = false; resetCountdown(); resetPreviewMotion(); Qt.callLater(syncPreview); }
+    onIdentifierChanged: {
+        reviewInteracted = false; menuOpen = false;
+        resetCountdown(); resetPreviewMotion(); Qt.callLater(syncPreview);
+    }
     onMessageChanged: resetCountdown()
     onCountdownPausedChanged: lastTick = Date.now()
     title: "Mluva recording"
@@ -267,6 +272,7 @@ FloatingWindow {
         horizontalPadding: 8
         verticalPadding: 5
         focusable: true
+        Keys.onPressed: event => { if (root.reviewing) root.reviewInteracted = true; }
     }
 
     NumberAnimation {
@@ -295,8 +301,12 @@ FloatingWindow {
     Item {
         id: surface
         anchors.fill: parent
+        Keys.onPressed: event => { if (root.reviewing) root.reviewInteracted = true; }
         Keys.onEscapePressed: root.menuOpen ? root.menuOpen = false : root.act("dismiss")
         HoverHandler { id: reviewHover }
+        TapHandler {
+            onPressedChanged: if (pressed && root.reviewing) root.reviewInteracted = true
+        }
         // The preview and its bare status row share one native move target. Buttons
         // painted above this area retain their own pointer handling.
         MouseArea {
@@ -466,6 +476,14 @@ FloatingWindow {
                     width: parent.width
                     visible: root.reviewing
                     spacing: 2
+                    ActionButton {
+                        objectName: "continue-button"
+                        text: "Continue"
+                        tooltipText: "Continue recording in this conversation"
+                        Accessible.name: "Continue recording"
+                        visible: !root.busy
+                        onClicked: root.act("continue")
+                    }
                     ActionButton {
                         objectName: "polish-button"
                         text: "Polish"

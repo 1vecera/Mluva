@@ -12,6 +12,8 @@ Press **F9** to start and stop dictation. Completed text copies automatically an
 
 Settings → Workspace controls automatic copy, action icons, scrolling and the Omarchy widget's four-second dismissal. **Live rewrite** is opt-in and Experimental and can be toggled during dictation. Its default **Grilling** template keeps evolving questions above architecture notes and local Mermaid sketches. Task spec, Structured note, Polish and Custom remain available. Active drafts reconcile at Stop; paused drafts are saved with a review label. See [workspace settings](../docs/providers-and-live-rewrite.md).
 
+After a completed dictation, **Continue** in the widget or **Continue recording** in the app adds speech to the same conversation. The Live rewrite button cycles Off, Once (1×) and Continuous (∞). The rewrite model picker and Providers settings offer model/provider-specific **Thinking level** choices.
+
 ## Supported desktop contract
 
 | Requirement | Omarchy | Fedora GNOME compatibility |

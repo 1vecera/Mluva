@@ -73,7 +73,7 @@ class LiteLLMClient:
             rows = json.loads(raw)["data"]
             if not isinstance(rows, list) or len(rows) > 2000:
                 raise ValueError
-            identifiers = []
+            models = {}
             for row in rows:
                 if not isinstance(row, dict) or not valid_model_id(row["id"]):
                     raise ValueError
@@ -86,8 +86,17 @@ class LiteLLMClient:
                 allowed = {"speech": {"audio_transcription", "transcription", "stt"}, "rewrite": {"chat"}}
                 if capability in allowed and mode and mode not in allowed[capability]:
                     continue
-                identifiers.append(row["id"])
-            return [CodexModel(value, value, value, value == self.model) for value in dict.fromkeys(identifiers)]
+                efforts = info.get("supported_reasoning_efforts", row.get("supported_reasoning_efforts", []))
+                if not isinstance(efforts, list) or any(
+                    not isinstance(effort, str) or not effort.isascii() or not effort.isidentifier() or len(effort) > 32
+                    for effort in efforts
+                ):
+                    raise ValueError
+                value = row["id"]
+                models[value] = CodexModel(
+                    value, value, value, value == self.model, reasoning_efforts=tuple(dict.fromkeys(efforts))
+                )
+            return list(models.values())
         except (OSError, ValueError, KeyError, TypeError):
             raise ProviderError("The provider returned an invalid model catalog.") from None
 
@@ -111,13 +120,10 @@ class LiteLLMClient:
     ) -> str:
         """Stream plain text, rejecting incomplete, oversized, tool-call and cancelled results."""
         model = self.resolve_model(model)
-        body = json.dumps(
-            {
-                "model": model,
-                "messages": [{"role": "user", "content": prompt}],
-                "stream": True,
-            }
-        ).encode()
+        payload = {"model": model, "messages": [{"role": "user", "content": prompt}], "stream": True}
+        if effort is not None:
+            payload["reasoning_effort"] = effort
+        body = json.dumps(payload).encode()
         parts: list[str] = []
         size = 0
         completed = False

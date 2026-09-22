@@ -29,7 +29,7 @@ from mluva_linux.overlay_state import (  # noqa: E402
 BUS_NAME = "com.mluva.Linux"
 ACTION_PATH = "/com/mluva/Linux"
 ACTIONS = ("record", "cancel", "latest", "status")
-REVIEW_ACTIONS = ("rewrite", "copy", "open", "dismiss", "cancel")
+REVIEW_ACTIONS = ("rewrite", "copy", "open", "dismiss", "cancel", "continue")
 
 
 def project_state(parameters: GLib.Variant, overlay: bool = False) -> dict[str, object]:

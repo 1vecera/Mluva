@@ -101,6 +101,20 @@ def test_empty_catalog_is_not_a_failure_and_does_not_invent_a_default(catalog_se
     assert "No matching models" in catalog_message(CatalogRequest("speech", "litellm", url), [])
 
 
+def test_compatible_catalog_keeps_advertised_thinking_levels(catalog_server):
+    """Use explicit deployment capabilities without guessing them from an alias."""
+    url, state = catalog_server
+    state["payload"] = {
+        "data": [
+            {"id": "writer", "model_info": {"supported_reasoning_efforts": ["low", "high", "high"]}},
+            {"id": "other", "supported_reasoning_efforts": ["medium"]},
+            {"id": "unknown"},
+        ]
+    }
+    models = LiteLLMClient(url, "UNSET_CATALOG_TEST_KEY", None).list_models()
+    assert [model.reasoning_efforts for model in models] == [("low", "high"), ("medium",), ()]
+
+
 def test_setup_hints_do_not_disclose_keys_or_claim_authentication():
     """Availability hints report only local evidence and useful next steps."""
     present = {"ELEVENLABS_API_KEY": "private-api-key", "CUSTOM_KEY": "private-api-key"}

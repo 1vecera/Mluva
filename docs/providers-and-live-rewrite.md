@@ -22,7 +22,7 @@ Completed dictation and successful rewrites copy automatically by default. Volat
 | `auto_copy_rewrite` | `true` | Copy successfully completed rewrites, including the final live draft. |
 | `show_copy_action` | `true` | Show Copy icons in documents and the Omarchy review widget. |
 | `show_save_action` | `true` | Show Save icons in editable documents; Ctrl+S remains available. |
-| `review_timeout_seconds` | `4` | Omarchy review dismissal, 1–60 seconds; hover, focus, menus and rewriting pause it. |
+| `review_timeout_seconds` | `4` | Omarchy review dismissal, 1–60 seconds; hover, active interaction, menus and rewriting pause it. |
 | `widget_position` | `"bottom-center"` | Omarchy widget preset: `bottom-left`, `bottom-center` or `bottom-right`; manual dragging remains available. |
 | `history_sidebar_visible` | `false` | Show the history sidebar in the wide layout; compact windows use an overlay. |
 | `time_format` | `"24h"` | History clock: `24h` or `12h` with AM/PM. |
@@ -32,9 +32,13 @@ Completed dictation and successful rewrites copy automatically by default. Volat
 
 The widget's finished note is already persisted, so it has no redundant Save control. Editing takes place in the main window.
 
+After dictation finishes, **Continue** in the floating widget or **Continue recording** above the app's current conversation adds another recording to that conversation. Existing edits are saved first. New speech appends to the working original and latest rewrite; Live rewrite, when enabled, starts from that draft and reconciles the combined source. Each raw capture stays separately recoverable in History and is included in conversation exports. Deleting the conversation also deletes its additional recordings and retained audio. Retention uses the most recent recording in the conversation. Continuation copies the combined result according to your copy settings and never automatically pastes the whole conversation again. Cancellation leaves the previous conversation intact; a failed append keeps the new capture separately in History.
+
+The review countdown starts as soon as the completed result is ready. Hovering, an open menu, deliberate keyboard/pointer interaction while focused, or an active rewrite pauses it. Window focus inherited from recording or rewriting alone does not pause a new countdown.
+
 ## Rewrite providers
 
-**Codex app-server** remains the default. Authenticate the installed Codex CLI as usual. Its model picker and optional Fast tier remain available; the chosen model is frozen for each request. Fast and reasoning overrides apply only to Codex. The local app-server is a client boundary, not a claim that model inference stays on the device.
+**Codex app-server** remains the default. Authenticate the installed Codex CLI as usual. The model, **Thinking level** and optional Fast tier are available in the rewrite picker and Settings → Providers. Codex thinking levels come from the installed server's model catalog; Auto retains the previous low-when-supported behavior. Changing models resets thinking to Auto, and a stale unsupported level fails before document content is sent. Model, thinking and speed are frozen for each request. The local app-server is a client boundary, not a claim that model inference stays on the device.
 
 **LiteLLM / compatible API** connects to an existing LiteLLM proxy or another compatible server. Mluva uses `GET /models` for the picker and streaming `POST /chat/completions` for text. Choose a deployment alias exposed by that server; an explicit alias also works if the server does not expose a model catalog. Responses must contain text and a successful `stop` finish reason. Tool requests, truncated output, cancellation and broken streams are rejected instead of saved as completed rewrites. No tool definitions are sent.
 
@@ -47,6 +51,10 @@ The widget's finished note is already persisted, so it has no redundant Save con
 | `codex_model` | `null` | Existing Codex default for cleanup and titles. |
 | `rewrite_model` | `null` | Codex rewrite override; null follows the configured/catalog default. |
 | `rewrite_fast_mode` | `false` | Codex Fast tier, only where advertised. |
+| `rewrite_reasoning_effort` | `null` | Codex rewrite thinking override; null means Auto. Available values come from the model catalog. |
+| `litellm_reasoning_effort` | `null` | Compatible-API rewrite thinking override, sent as `reasoning_effort`; null leaves the server default. |
+
+Compatible servers have a separate thinking preference. When the catalog includes a `supported_reasoning_efforts` list (on the model or in `model_info`), the picker uses it. Otherwise it offers explicit overrides: None, Minimal, Low, Medium, High, Extra high and Max. These are requests, not a claim that every deployment supports them; choose the level supported by your server/model, or leave Provider default. Fast remains Codex-only. See the [Codex model catalog](https://developers.openai.com/codex/app-server#models) and [LiteLLM reasoning support](https://docs.litellm.ai/docs/reasoning_content). Thinking overrides affect manual and Live rewrites; cleanup and titles retain their existing behavior.
 
 For LiteLLM, cleanup, titles, normal rewrites and Live rewrite use the configured rewrite deployment. Service credentials and routing belong in the proxy; see [LiteLLM proxy authentication](https://docs.litellm.ai/docs/proxy/user_keys). Mluva does not install a proxy or download models. Endpoints must use HTTPS, except loopback HTTP for local servers; URLs cannot embed credentials, queries or fragments. The client rejects redirects to keep requests on the configured endpoint.
 
@@ -84,7 +92,7 @@ For example, a partial config for local speech with a local or remote rewrite pr
 
 ## Live rewrite
 
-Turn on **Live rewrite** beside Dictate before or during dictation. Its small downward arrow selects **Grilling**, **Task spec**, **Structured note**, **Polish** or **Custom**. The selection persists and stays in sync with Settings → Workspace, where custom instructions can be edited. The original speech appears beside an editable structured draft; narrow windows stack them. Grilling is the default template for new settings; existing explicit template choices are preserved. Live rewrite itself remains opt-in.
+Click **Live rewrite** beside Dictate to cycle **Off → Once (1×) → Continuous (∞)** before or during dictation. Once applies to the next/current capture and returns to Off when it finishes or is cancelled. Continuous stays selected across recordings; it does not keep the microphone running. The small downward arrow selects **Grilling**, **Task spec**, **Structured note**, **Polish** or **Custom**. Settings → Workspace offers the same three activation modes. Existing enabled installations retain Continuous behavior. The original speech appears beside an editable structured draft; narrow windows stack them. Grilling is the default template for new settings; existing explicit template choices are preserved. Live rewrite itself remains opt-in.
 
 Grilling keeps up to three unanswered questions pinned above the evolving architecture notes. Each update is instructed to retire answered questions and advance to the next material decisions. Intent, constraints, preferences, technologies and other sections appear only when the speaker supplies content. Small Mermaid sketches describe supplied relationships. This adapts the question progression in [Matt Pocock's grilling skill](https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md) to uninterrupted speech. Task and note templates retain their `[Missing: …]` markers; Custom accepts your own structure.
 
@@ -93,6 +101,7 @@ You can change templates or pause Live while the microphone stays open. Pausing 
 | JSON setting | Default | Meaning |
 | --- | --- | --- |
 | `live_rewrite_enabled` | `false` | Enable before or during a Dictation capture. |
+| `live_rewrite_continuous` | `true` | When enabled, true keeps Live selected across captures; false selects Once and resets at completion/cancellation. |
 | `live_rewrite_template` | `"grilling"` | `grilling`, `task-spec`, `structured-note`, `polish` or `custom`. |
 | `live_rewrite_custom_instructions` | `""` | Legacy custom baseline; `prompts/live-custom.md` overrides it. Edit through Settings → Prompts. |
 | `live_rewrite_min_characters` | `160` | Group new characters after the first draft, 40–4,000; a paused short tail also updates. |

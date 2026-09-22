@@ -3,7 +3,8 @@
 import os
 import threading
 from collections.abc import Callable
-from dataclasses import replace
+from dataclasses import asdict, replace
+from types import SimpleNamespace
 
 import gi
 
@@ -21,6 +22,7 @@ from mluva_linux.provider_catalog import (
     read_catalog,
 )
 from mluva_linux.providers import valid_model_id
+from mluva_linux.thinking_settings import ThinkingRow
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -76,6 +78,8 @@ class ProviderSection(Adw.PreferencesGroup):
         self.fast_row = Adw.SwitchRow(title="Fast mode")
         self.fast_row.connect("notify::active", self._fast_changed)
         self.add(self.fast_row)
+        self.thinking_row = ThinkingRow(self._thinking_changed)
+        self.add(self.thinking_row)
         self.connection = Adw.ActionRow(title="Connection")
         self.connection.set_subtitle_lines(0)
         self.refresh_button = Gtk.Button(label="Refresh", valign=Gtk.Align.CENTER)
@@ -150,6 +154,8 @@ class ProviderSection(Adw.PreferencesGroup):
         names = [self.provider_field, self.base_field, self.key_field, *(p.model_field for p in self.providers)]
         if self.scope == "speech":
             names.extend(("local_device", "language_code"))
+        else:
+            names.extend(("rewrite_reasoning_effort", "litellm_reasoning_effort"))
         names.append("transcription_chunk_seconds" if self.scope == "speech" else "rewrite_fast_mode")
         self.values = {name: getattr(config, name) for name in names}
         self.updating = True
@@ -183,7 +189,7 @@ class ProviderSection(Adw.PreferencesGroup):
         self.fast_row.set_visible(False)
         self.refresh_button.set_visible(provider.id not in {"elevenlabs", "none", "local"})
         self.fixed_model_row.set_visible(False)
-        self.model_row.set_visible(provider.id == "litellm")
+        self.model_row.set_visible(provider.id in {"codex", "litellm"})
         self.connection.set_visible(provider.id in {"codex", "litellm"})
         self.connection.set_subtitle(connection_hint(provider.id, self.values[self.key_field], os.environ))
         self.status.set_label("")
@@ -249,6 +255,14 @@ class ProviderSection(Adw.PreferencesGroup):
 
     def _show_fast(self, *, reset: bool = False) -> None:
         """Offer only advertised Codex speed tiers, while allowing a stale tier to be disabled."""
+        if self.scope == "rewrite":
+            if reset:
+                field = "litellm_reasoning_effort" if self.provider.id == "litellm" else "rewrite_reasoning_effort"
+                self.values[field] = None
+            self.thinking_row.configure(SimpleNamespace(**(asdict(self.config) | self.values)), self.models)
+        else:
+            self.thinking_row.set_visible(False)
+        self.fast_row.set_visible(self.scope == "rewrite" and self.provider.id == "codex")
         if self.provider.id != "codex":
             return
         try:
@@ -275,6 +289,12 @@ class ProviderSection(Adw.PreferencesGroup):
         """Preserve native Codex speed choice independently from a compatible server."""
         if not self.updating:
             self.values["rewrite_fast_mode"] = self.fast_row.get_active()
+
+    def _thinking_changed(self, effort: str | None) -> None:
+        """Keep each provider's thinking choice separate until Apply."""
+        if not self.updating:
+            field = "litellm_reasoning_effort" if self.provider.id == "litellm" else "rewrite_reasoning_effort"
+            self.values[field] = effort
 
     def _chunk_changed(self, *_args) -> None:
         """Retain the bounded preview setting without changing capture scheduling."""

@@ -68,6 +68,10 @@ class UnsupportedRewriteSpeed(ValueError):
     """Expose an actionable speed selection failure without provider response text."""
 
 
+class UnsupportedThinkingLevel(ValueError):
+    """Reject a stale model-specific thinking choice before sending document content."""
+
+
 @dataclass(frozen=True, slots=True)
 class RewriteResult:
     """Pair completed text with the actual model that produced it."""
@@ -114,6 +118,7 @@ def rewrite_text(
         raise RuntimeError("Choose a rewriting provider in Settings first.")
     if config.rewrite_provider == "litellm":
         model = client.resolve_model(config.litellm_model)
+        effort = config.litellm_reasoning_effort
     else:
         selected = select_model(client.list_models(), config.rewrite_model or config.codex_model)
         if config.rewrite_fast_mode and selected.fast_tier is None:
@@ -121,7 +126,13 @@ def rewrite_text(
                 "Fast mode is unavailable for this model. Turn it off or choose another model."
             )
         model = selected.identifier
-        effort = selected.rewrite_effort
+        effort = config.rewrite_reasoning_effort
+        if effort is not None and effort not in selected.reasoning_efforts:
+            raise UnsupportedThinkingLevel(
+                "Thinking level is unavailable for this model. Choose Auto or another level."
+            )
+        if effort is None:
+            effort = selected.rewrite_effort
         service_tier = selected.fast_tier if config.rewrite_fast_mode else "default"
     text = client.transform(
         prompt,

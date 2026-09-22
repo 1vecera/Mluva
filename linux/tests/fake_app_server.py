@@ -55,7 +55,7 @@ def main() -> None:
                                 "displayName": "GPT-5.4",
                                 "isDefault": True,
                                 "defaultReasoningEffort": "medium",
-                                "supportedReasoningEfforts": [{"reasoningEffort": "low"}],
+                                "supportedReasoningEfforts": [{"reasoningEffort": "low"}, {"reasoningEffort": "high"}],
                                 "serviceTiers": [{"id": "priority", "name": "Fast"}],
                             },
                             {
@@ -94,6 +94,8 @@ def main() -> None:
             if "--unexpected-request" in sys.argv:
                 send({"id": message["id"], "method": "item/permissions/requestApproval", "params": {}})
             assert message["params"]["input"][0]["type"] == "text"
+            if "--expect-high" in sys.argv:
+                assert message["params"]["effort"] == "high"
             if "--expect-fast" in sys.argv or "--expect-standard" in sys.argv:
                 assert message["params"]["effort"] == "low"
                 assert message["params"]["serviceTier"] == ("priority" if "--expect-fast" in sys.argv else "default")
