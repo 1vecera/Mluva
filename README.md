@@ -4,7 +4,7 @@
 
 Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.3.0)**
+**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.4.0)**
 
 ## Meet Mluva
 
@@ -18,7 +18,7 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 | --- | --- |
 | A rough idea | Dictate with F9. Scribe streams words while you speak; completed text copies to the clipboard. |
 | Text you already have | Paste into a conversation, then choose **Polish**, **Structure** or your own instruction. |
-| A note that needs shape | Enable **Live rewrite** while speaking. Grilling keeps useful questions above evolving notes; task spec, structured note and custom templates remain available. |
+| A note that needs shape | Select **Live rewrite** once or continuously across recordings. Grilling keeps useful questions above evolving notes; task spec, structured note and custom templates remain available. |
 | A draft worth keeping | Edit originals and rewrites, save with **Ctrl+S**, and keep raw recognition available separately. |
 | Work to return to | Find conversations through History, reuse saved prompts, and export Markdown or JSON. |
 
@@ -61,7 +61,7 @@ them. Tell me how to launch Mluva and approve its recording shortcuts.
 
 ### The Omarchy widget
 
-The floating widget starts with five preview lines while you speak. A bare light sits at top left and the timer at top right. Drag the text box or status row to move it, choose a lower-left/bottom/lower-right preset, or focus it and press **Super+T** on Omarchy to tile it. Floating mode keeps it above other windows; resizing gives the preview more room. The main app uses the same monospace text and bare header above its content. When you finish, rewrite, copy or open the note in the workspace. Hover, keyboard focus and active rewrites pause its configurable four-second dismissal. **Shift+F9** reopens the latest conversation when configured.
+The floating widget starts with five preview lines while you speak. A bare light sits at top left and the timer at top right. Drag the text box or status row to move it, choose a lower-left/bottom/lower-right preset, or focus it and press **Super+T** on Omarchy to tile it. Floating mode keeps it above other windows; resizing gives the preview more room. The main app uses the same monospace text and bare header above its content. When you finish, **Continue** adds speech to the same conversation; you can also rewrite, copy or open it in the workspace. The app offers **Continue recording** above the conversation. Hover, deliberate interaction, menus and active rewrites pause the widget's configurable four-second dismissal; inherited focus alone does not. **Shift+F9** reopens the latest conversation when configured.
 
 ![The compact Omarchy widget with rewrite actions, Copy, Open and a countdown ring](docs/promotion/assets/widget-review.png)
 

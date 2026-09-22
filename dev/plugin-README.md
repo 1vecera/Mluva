@@ -1,6 +1,6 @@
 # Mluva for Omarchy
 
-Five lines of live dictation, a preview that follows your theme, and Polish or Structure when you finish. Your original and completed rewrites stay together in [Mluva](https://github.com/1vecera/Mluva).
+Five lines of live dictation, a preview that follows your theme, and Continue, Polish or Structure when you finish. Continue appends speech to the same conversation while keeping the previous text visible. Your original and completed rewrites stay together in [Mluva](https://github.com/1vecera/Mluva).
 
 ![Mluva conversation workspace and Omarchy widget](preview.png)
 
@@ -24,14 +24,16 @@ If Mluva is already installed, add only the widget:
 omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
 ```
 
-The widget needs Omarchy Quattro's shell, Quickshell 0.3+, Hyprland 0.55+ and the native app's `mluva-shell` command. If that command is absent from the shell's PATH, set **Mluva shell executable** to the full installed path, usually `~/.local/bin/mluva-shell` expanded to your home directory. An old manually copied plugin must be backed up and removed before adding a Git-managed copy. See the [integration guide](https://github.com/1vecera/Mluva/blob/main/docs/omarchy-integration.md).
+The widget needs Omarchy Quattro's shell, Quickshell 0.3+, Hyprland 0.55+ and the native app's `mluva-shell` command. Continue requires Mluva 1.4.0 or later; update the app and widget together. If that command is absent from the shell's PATH, set **Mluva shell executable** to the full installed path, usually `~/.local/bin/mluva-shell` expanded to your home directory. An old manually copied plugin must be backed up and removed before adding a Git-managed copy. See the [integration guide](https://github.com/1vecera/Mluva/blob/main/docs/omarchy-integration.md).
 
 ## Use
 
 - Left-click the bar widget to start or stop dictation. Right-click cancels; middle-click opens the latest conversation.
-- The recorder opens without taking typing focus. Drag its status row to move it, resize it for more preview space, or focus it and press **Super+T** to tile. Floating mode stays above other windows and across workspaces.
-- After dictation, choose **Polish**, **Structure**, a saved prompt through **More**, **Copy** or **Open**. Rewrites preserve the original; partial replies cannot be copied.
-- The completed-note controls close after four idle seconds by default. Hover, focus, menus and rewriting pause the timer; configure the delay in Mluva's workspace settings.
+- The recorder opens without taking typing focus, with a bare recording light at top left and timer at top right. Drag its status row or transcript to move it, resize it for more preview space, or focus it and press **Super+T** to tile. Floating mode stays above other windows and across workspaces.
+- Mluva's Workspace settings and Ctrl+P offer lower-left, bottom and lower-right presets. The selected preset stays anchored as the window grows; manual dragging keeps control until another preset is chosen.
+- The recording light uses a smooth inner/outer breathing pulse and honors Mluva's reduced-motion preferences.
+- After dictation, **Continue** adds speech to the same conversation. Choose **Polish**, **Structure**, a saved prompt through **More**, **Copy** or **Open** for other actions. Rewrites preserve the original; partial replies cannot be copied.
+- The completed-note controls close after four idle seconds by default. Hover, deliberate interaction while focused, menus and rewriting pause the timer; inherited focus alone does not. Configure the delay in Mluva's workspace settings.
 
 ## Update or remove
 

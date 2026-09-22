@@ -2,6 +2,15 @@
 
 This file records user-visible Mluva releases.
 
+## 1.4.0 — 2026-09-22
+
+- Added **Continue recording** in the app and **Continue** in the finished Omarchy widget. New speech appends to the same conversation, with the previous text visible throughout. History shows one combined conversation and keeps individual raw recordings available for recovery.
+- Added three Live rewrite modes: **Off**, **Once** for one recording, and **Continuous** across recordings. Existing enabled installations retain Continuous behavior.
+- Added rewrite thinking levels. Codex choices follow the selected model's catalog; compatible providers use advertised choices or explicit overrides, with a provider-default option.
+- Fixed the completed widget's dismissal countdown being held by inherited keyboard focus. Deliberate interaction, hovering, menus and active rewrites still pause it.
+
+The matching Omarchy widget is version 0.5.0. Update the app and widget together to use Continue.
+
 ## 1.3.0 — 2026-09-21
 
 - Fixed desktop startup when a legacy managed credential profile references a retired 1Password item. Enabled local credential snapshots now take precedence and load only the supported speech token; existing process credentials and installations without snapshots keep their existing paths.
