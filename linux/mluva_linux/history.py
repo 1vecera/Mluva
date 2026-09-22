@@ -115,6 +115,19 @@ class HistoryStore:
                 """
             )
             columns = {row[1] for row in connection.execute("PRAGMA table_info(transcription_history)")}
+            connection.executescript("""
+                CREATE TABLE IF NOT EXISTS recording_continuations (
+                    segment_identifier TEXT PRIMARY KEY REFERENCES transcription_history(identifier),
+                    history_identifier TEXT NOT NULL REFERENCES transcription_history(identifier)
+                );
+                CREATE INDEX IF NOT EXISTS recording_continuations_parent
+                    ON recording_continuations(history_identifier);
+                CREATE TRIGGER IF NOT EXISTS erase_recording_continuations
+                AFTER DELETE ON transcription_history BEGIN
+                    DELETE FROM recording_continuations
+                    WHERE segment_identifier = OLD.identifier OR history_identifier = OLD.identifier;
+                END;
+            """)
             if "title" not in columns:
                 connection.execute("ALTER TABLE transcription_history ADD COLUMN title TEXT")
             if "title_revision" not in columns:
@@ -464,21 +477,30 @@ class HistoryStore:
             return 0
         cutoff = (now or datetime.now(UTC)) - timedelta(days=retention_days)
         removed = 0
+        with closing(sqlite3.connect(self.path)) as connection:
+            segments = dict(
+                connection.execute("SELECT segment_identifier, history_identifier FROM recording_continuations")
+            )
+        groups: dict[str, list[HistoryEntry]] = {}
         for entry in self.recent(limit=2_147_483_647):
-            if entry.identifier in excluded_identifiers:
+            groups.setdefault(segments.get(entry.identifier, entry.identifier), []).append(entry)
+        for group in groups.values():
+            if any(item.identifier in excluded_identifiers for item in group):
                 continue
-            created_at = datetime.fromisoformat(entry.created_at)
-            if created_at.tzinfo is None:
-                created_at = created_at.replace(tzinfo=UTC)
-            if created_at >= cutoff:
+            timestamps = [datetime.fromisoformat(item.created_at) for item in group]
+            latest = max(stamp if stamp.tzinfo else stamp.replace(tzinfo=UTC) for stamp in timestamps)
+            if latest >= cutoff:
                 continue
-            try:
-                self._delete_retained_audio(entry)
-            except ValueError:
-                pass
+            for item in group:
+                try:
+                    self._delete_retained_audio(item)
+                except ValueError:
+                    pass
             with closing(sqlite3.connect(self.path)) as connection, connection:
-                connection.execute("DELETE FROM transcription_history WHERE identifier = ?", (entry.identifier,))
-            removed += 1
+                connection.executemany(
+                    "DELETE FROM transcription_history WHERE identifier = ?", [(item.identifier,) for item in group]
+                )
+            removed += len(group)
         return removed
 
     def export(
@@ -493,6 +515,7 @@ class HistoryStore:
         """Write one selected history entry to an owner-local recovery artifact."""
         directory.mkdir(mode=0o700, parents=True, exist_ok=True)
         directory.chmod(0o700)
+        segments = self.continuations(entry.identifier)
         filename = f"mluva-{entry.created_at[:19].replace(':', '')}-{entry.identifier[:8]}"
         if export_format == "json":
             output_path = directory / f"{filename}.json"
@@ -502,6 +525,7 @@ class HistoryStore:
                         **asdict(entry),
                         "working_source": source_text if source_text is not None else entry.raw_text,
                         "rewrites": [asdict(reply) for reply in rewrites or []],
+                        "recording_segments": [asdict(segment) for segment in segments],
                     },
                     ensure_ascii=False,
                     indent=2,
@@ -532,6 +556,8 @@ class HistoryStore:
             )
             if source_text is not None and source_text != entry.raw_text:
                 content += f"\n## Edited source\n\n{source_text}\n"
+            for segment in segments:
+                content += f"\n## Continued recording · {segment.created_at}\n\n{segment.raw_text}\n"
             for reply in rewrites or []:
                 content += (
                     f"\n## Rewrite · {reply.created_at}\n\n"
@@ -544,9 +570,30 @@ class HistoryStore:
         output_path.chmod(0o600)
         return output_path
 
+    def recording_conversation(self, identifier: str) -> HistoryEntry:
+        """Resolve an archived segment back to the conversation it continued."""
+        with closing(sqlite3.connect(self.path)) as connection:
+            parent = connection.execute(
+                "SELECT history_identifier FROM recording_continuations WHERE segment_identifier = ?", (identifier,)
+            ).fetchone()
+        return self.find(parent[0] if parent else identifier)
+
+    def continuations(self, identifier: str) -> list[HistoryEntry]:
+        """Read the immutable additional captures in their recording order."""
+        with closing(sqlite3.connect(self.path)) as connection:
+            rows = connection.execute(
+                "SELECT c.segment_identifier FROM recording_continuations c "
+                "JOIN transcription_history h ON h.identifier = c.segment_identifier "
+                "WHERE c.history_identifier = ? ORDER BY h.created_at",
+                (identifier,),
+            ).fetchall()
+        return [self.find(row[0]) for row in rows]
+
     def delete(self, identifier: str) -> None:
         """Permanently delete one explicitly selected history entry."""
         entry = self.find(identifier)
+        for segment in self.continuations(identifier):
+            self.delete(segment.identifier)
         self._delete_retained_audio(entry)
         with closing(sqlite3.connect(self.path)) as connection, connection:
             connection.execute("DELETE FROM transcription_history WHERE identifier = ?", (identifier,))

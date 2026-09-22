@@ -43,6 +43,7 @@ class CodexModel:
     hidden: bool = False
     rewrite_effort: str | None = None
     fast_tier: str | None = None
+    reasoning_efforts: tuple[str, ...] = ()
 
     @classmethod
     def from_catalog(cls, model: dict[str, object]) -> Self:
@@ -66,6 +67,7 @@ class CodexModel:
             hidden=model.get("hidden", False),
             rewrite_effort="low" if "low" in efforts else model.get("defaultReasoningEffort"),
             fast_tier=fast_tier,
+            reasoning_efforts=tuple(option["reasoningEffort"] for option in model.get("supportedReasoningEfforts", [])),
         )
 
 

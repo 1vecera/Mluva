@@ -46,6 +46,12 @@ linux-live-stability-test: linux-setup
 		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
 		uv run --project linux --locked python linux/tests/live_stability_smoke.py
 
+.PHONY: linux-continuation-test
+linux-continuation-test: linux-setup
+	OFFSCREEN_ENABLE_ATSPI=1 bash dev/run-isolated.sh tmp/continuation-controls -- env PYTHONPATH=linux:linux/tests \
+		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
+		uv run --project linux --locked python linux/tests/continuation_controls_smoke.py
+
 .PHONY: linux-omarchy-test
 linux-omarchy-test: linux-setup
 	@mkdir -p tmp/omarchy-widget

@@ -7,6 +7,7 @@ import gi
 
 from mluva_linux.codex_client import CodexAppServerError, CodexModel, select_model
 from mluva_linux.config import AppConfig
+from mluva_linux.thinking_settings import ThinkingRow
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -20,7 +21,7 @@ class RewriteSettings(Gtk.MenuButton):
         self,
         config: AppConfig,
         load_models: Callable[[], None],
-        save_settings: Callable[[str | None, bool], None],
+        save_settings: Callable[[str | None, bool, str | None], None],
     ) -> None:
         """Keep a usable saved choice even when Codex cannot supply its catalog."""
         super().__init__()
@@ -45,6 +46,8 @@ class RewriteSettings(Gtk.MenuButton):
         self.model_row = Adw.ComboRow(title="Codex model")
         self.model_row.connect("notify::selected", self._changed)
         group.add(self.model_row)
+        self.thinking_row = ThinkingRow(lambda _effort: self._changed())
+        group.add(self.thinking_row)
         self.fast_row = Adw.SwitchRow(title="Fast mode")
         self.fast_row.connect("notify::active", self._changed)
         group.add(self.fast_row)
@@ -72,6 +75,7 @@ class RewriteSettings(Gtk.MenuButton):
             self.refresh.set_sensitive(True)
             self.status.set_label("")
         self.config = config
+        self.thinking_row.configure(config, self.models)
         self.model_row.set_title("Server model" if remote else "Codex model")
         self.fast_row.set_visible(not remote)
         self.set_tooltip_text("Choose the rewrite model and speed")
@@ -146,7 +150,7 @@ class RewriteSettings(Gtk.MenuButton):
         self.status.set_label(
             "Select an available deployment. You can also enter its alias in Settings → Providers."
             if self.config.rewrite_provider == "litellm"
-            else "Rewrites use low reasoning when supported. Default follows your Codex model setting."
+            else "Thinking levels follow the selected model. Auto uses low reasoning when supported."
         )
 
     def _changed(self, *_args: object) -> None:
@@ -154,6 +158,17 @@ class RewriteSettings(Gtk.MenuButton):
         if self.updating:
             return
         selected = self.choices[self.model_row.get_selected()]
+        effort = self.thinking_row.choices[self.thinking_row.get_selected()]
+        previous_model = (
+            self.config.litellm_model if self.config.rewrite_provider == "litellm" else self.config.rewrite_model
+        )
+        if previous_model is not None:
+            try:
+                previous_model = select_model(self.models, previous_model).identifier
+            except CodexAppServerError:
+                pass
+        if selected != previous_model:
+            effort = None
         try:
             model = select_model(self.models, selected or self.config.codex_model)
         except CodexAppServerError:
@@ -161,9 +176,13 @@ class RewriteSettings(Gtk.MenuButton):
         else:
             fast = self.fast_row.get_active() and model.fast_tier is not None
         if self.config.rewrite_provider == "litellm":
-            if selected != self.config.litellm_model:
-                self.save_settings(selected, False)
+            if (selected, effort) != (self.config.litellm_model, self.config.litellm_reasoning_effort):
+                self.save_settings(selected, False, effort)
             return
-        if (selected, fast) == (self.config.rewrite_model, self.config.rewrite_fast_mode):
+        if (selected, fast, effort) == (
+            self.config.rewrite_model,
+            self.config.rewrite_fast_mode,
+            self.config.rewrite_reasoning_effort,
+        ):
             return
-        self.save_settings(selected, fast)
+        self.save_settings(selected, fast, effort)

@@ -68,6 +68,8 @@ class AppConfig:
     codex_model: str | None = None
     rewrite_model: str | None = None
     rewrite_fast_mode: bool = False
+    rewrite_reasoning_effort: str | None = None
+    litellm_reasoning_effort: str | None = None
     rewrite_provider: str = "codex"
     litellm_base_url: str = "http://localhost:4000/v1"
     litellm_model: str | None = None
@@ -94,6 +96,7 @@ class AppConfig:
     welcome_completed: bool = False
     time_format: str = "24h"
     live_rewrite_enabled: bool = False
+    live_rewrite_continuous: bool = True
     live_rewrite_template: str = "grilling"
     live_rewrite_custom_instructions: str = ""
     live_rewrite_min_characters: int = 160
@@ -122,6 +125,11 @@ class AppConfig:
         _validate_codex_model(self.rewrite_model)
         _validate_codex_model(self.litellm_model)
         _validate_codex_model(self.transcription_remote_model)
+        for effort in (self.rewrite_reasoning_effort, self.litellm_reasoning_effort):
+            if effort is not None and (
+                not isinstance(effort, str) or not re.fullmatch(r"[a-z][a-z0-9_-]{0,31}", effort)
+            ):
+                raise ValueError("Thinking level must be null or a bounded provider effort identifier")
         if self.rewrite_provider not in {"codex", "litellm", "none"}:
             raise ValueError("rewrite_provider must be codex, litellm or none")
         if self.transcription_provider not in {"elevenlabs", "litellm", "local"}:
@@ -149,6 +157,7 @@ class AppConfig:
             "show_save_action",
             "smooth_scrolling",
             "live_rewrite_enabled",
+            "live_rewrite_continuous",
             "history_sidebar_visible",
             "welcome_completed",
         ):

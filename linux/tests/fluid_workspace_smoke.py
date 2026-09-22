@@ -90,6 +90,8 @@ def main():
                 workspace.live_draft_text.get_buffer().insert_at_cursor("\nKeep my deliberate edit.")
                 edited = workspace.live_draft()
                 app.live_mode_switch.set_active(False)
+                assert app.config.live_rewrite_continuous and app.live_schedule is not None
+                app.live_mode_switch.set_active(False)
                 assert app.live_schedule.paused
                 app.live_mode_switch.set_active(True)
                 assert app.live_schedule is not None and workspace.live_draft() == edited

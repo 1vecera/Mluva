@@ -66,7 +66,7 @@ def application_commands(app: "MluvaApplication") -> tuple[Command, ...]:
             "record microphone capture F9",
         ),
         Command(
-            "Turn off Live rewrite" if app.config.live_rewrite_enabled else "Turn on Live rewrite",
+            "Cycle Live rewrite: Off → Once → Continuous",
             "document-edit-symbolic",
             lambda: app.live_mode_switch.set_active(not app.live_mode_switch.get_active()),
             lambda: app.live_mode_switch.is_sensitive() and app.config.live_rewrite_enabled == live_enabled,

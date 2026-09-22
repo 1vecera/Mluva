@@ -56,7 +56,15 @@ class WorkspaceSettings(Adw.PreferencesPage):
                 "Extra provider requests may use credits."
             ),
         )
-        self.switch(live, "live_rewrite_enabled", "Enable live rewrite")
+        self.live_mode = Adw.ComboRow(
+            title="Live rewrite mode", model=Gtk.StringList.new(["Off", "Once", "Continuous"])
+        )
+        self.live_mode.set_selected(
+            0 if not config.live_rewrite_enabled else 2 if config.live_rewrite_continuous else 1
+        )
+        self.fields["live_rewrite_enabled"] = lambda: self.live_mode.get_selected() != 0
+        self.fields["live_rewrite_continuous"] = lambda: self.live_mode.get_selected() == 2
+        live.add(self.live_mode)
         self.choice(live, "live_rewrite_template", "Template", TEMPLATE_CHOICES)
         self.spin(live, "live_rewrite_min_characters", "New characters to group after the first draft", 40, 4000)
         self.spin(live, "live_rewrite_interval_seconds", "Minimum time between updates (seconds)", 2, 60)
@@ -115,6 +123,9 @@ class WorkspaceSettings(Adw.PreferencesPage):
         """Reflect choices changed outside this page when the dialog is opened again."""
         self.config = config
         self.appearance.refresh_config(config)
+        self.live_mode.set_selected(
+            0 if not config.live_rewrite_enabled else 2 if config.live_rewrite_continuous else 1
+        )
         for name, write in self.setters.items():
             write(getattr(config, name))
 

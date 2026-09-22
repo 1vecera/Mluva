@@ -242,6 +242,7 @@ class DictationWorkflow:
         segment_cleanup: SegmentCleanupTerminalSnapshot | None = None,
         frozen_style: SavedStyle | None = None,
         style_is_frozen: bool = False,
+        defer_delivery: bool = False,
     ) -> WorkflowResult:
         """Complete one finalized recording from committed realtime text or one batch upload."""
         session_identifier = session_identifier or str(uuid.uuid4())
@@ -484,6 +485,8 @@ class DictationWorkflow:
                         )
                     ),
                 )
+            elif defer_delivery:
+                delivery = DeliveryReceipt(False, False, "Recording ready to append.")
             elif not self.config.auto_copy_dictation:
                 delivery = DeliveryReceipt(False, False, "Dictation ready. Automatic copying is off.")
             else:

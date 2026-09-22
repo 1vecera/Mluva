@@ -138,9 +138,11 @@ def main() -> int:
                 choose_model(rewrite, "gpt-5.4")
                 assert rewrite.fast_row.get_sensitive()
                 rewrite.fast_row.set_active(True)
+                rewrite.thinking_row.set_selected(rewrite.thinking_row.choices.index("high"))
                 page.apply_button.emit("clicked")
                 assert load_config(app.config_path).rewrite_model == "gpt-5.4"
                 assert load_config(app.config_path).rewrite_fast_mode
+                assert load_config(app.config_path).rewrite_reasoning_effort == "high"
                 # The compact picker must also forget a previous provider's catalog
                 # and must never offer a nonexistent compatible-server default.
                 app.rewrite_settings.set_loading()
@@ -175,10 +177,12 @@ def main() -> int:
                     assert set(state["requests"]) == {"/rewrite/models", "/speech/models"}
                     choose_model(rewrite, "writer-alias")
                     choose_model(speech, "speech-alias")
+                    rewrite.thinking_row.set_selected(rewrite.thinking_row.choices.index("medium"))
                     page.apply_button.emit("clicked")
                     saved = load_config(app.config_path)
                     assert saved.litellm_model == "writer-alias" and saved.transcription_remote_model == "speech-alias"
                     assert saved.rewrite_model == "gpt-5.4" and saved.local_model == "whisper-small"
+                    assert saved.litellm_reasoning_effort == "medium" and saved.rewrite_reasoning_effort == "high"
                     assert saved.litellm_api_key_env == "FIXTURE_REWRITE_KEY"
                     assert app.rewrite_settings.refresh.get_sensitive()
                     assert not app.rewrite_settings.models

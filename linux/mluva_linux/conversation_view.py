@@ -281,6 +281,7 @@ class ConversationWorkspace(Gtk.Box):
         self.saved_prompt_buttons = []
         self.edit_prompt = lambda _key: None
         self.cancel_rewrite = cancel_rewrite
+        self.continue_recording = lambda _identifier: None
         self.entry: HistoryEntry | None = None
         self.title_label: Gtk.Label | None = None
         self.busy = False
@@ -366,6 +367,12 @@ class ConversationWorkspace(Gtk.Box):
         self.conversation_title = Gtk.Label(xalign=0, hexpand=True, ellipsize=Pango.EllipsizeMode.END)
         self.conversation_title.add_css_class("ml-conversation-title")
         self.heading.append(self.conversation_title)
+        self.continue_button = Gtk.Button(label="Continue recording")
+        self.continue_button.set_tooltip_text("Add speech to this conversation")
+        self.continue_button.connect(
+            "clicked", lambda _button: self.continue_recording(self.entry.identifier) if self.entry else None
+        )
+        self.heading.append(self.continue_button)
         self.live_header = Gtk.Box(spacing=SPACE_2, valign=Gtk.Align.CENTER, visible=False)
         self.live_light = RecordingLight()
         self.live_header.append(self.live_light)
@@ -950,6 +957,8 @@ class ConversationWorkspace(Gtk.Box):
 
     def _update_actions(self) -> None:
         """Make privacy and in-flight work authoritative for all rewrite entry points."""
+        self.continue_button.set_visible(self.entry is not None and self.entry.mode == "dictation" and not self.private)
+        self.continue_button.set_sensitive(not self.busy and not self.live_active)
         for editor in self.editors.values():
             editor.set_editable(not self.busy)
         self.cancel.set_visible(self.busy)
@@ -977,6 +986,7 @@ class ConversationWorkspace(Gtk.Box):
         """Show every live word separately from committed, copyable messages."""
         starting = not self.live_active
         self.live_active = True
+        self._update_actions()
         self.live_navigation.set_visible(True)
         if starting:
             self._sync_live_panes()
@@ -1013,6 +1023,7 @@ class ConversationWorkspace(Gtk.Box):
     def finish_live(self) -> None:
         """Erase volatile text when finalization completes or capture is cancelled."""
         self.live_active = False
+        self._update_actions()
         self.live_navigation.set_visible(False)
         self.live_follower.stop()
         self.live_draft_follower.stop()

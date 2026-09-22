@@ -91,6 +91,28 @@ def move_pointer(x: int, y: int) -> None:
         x11.XCloseDisplay(display)
 
 
+def press_tab() -> None:
+    """Send one real key only to the already isolated X11 fixture display."""
+    assert "OFFSCREEN_SESSION_ROOT" in os.environ and not os.environ.get("WAYLAND_DISPLAY")
+    x11, xtest = ctypes.CDLL("libX11.so.6"), ctypes.CDLL("libXtst.so.6")
+    x11.XOpenDisplay.restype = ctypes.c_void_p
+    x11.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+    x11.XKeysymToKeycode.restype = ctypes.c_uint
+    x11.XSync.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
+    xtest.XTestFakeKeyEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
+    display = x11.XOpenDisplay(None)
+    assert display
+    try:
+        code = x11.XKeysymToKeycode(display, 0xFF09)
+        assert code
+        assert xtest.XTestFakeKeyEvent(display, code, True, 0)
+        assert xtest.XTestFakeKeyEvent(display, code, False, 0)
+        x11.XSync(display, False)
+    finally:
+        x11.XCloseDisplay(display)
+
+
 def main() -> None:
     """Prove preview, lifecycle and focus behavior without microphone or live desktop access."""
     if "OFFSCREEN_SESSION_ROOT" not in os.environ:
@@ -497,7 +519,11 @@ def main() -> None:
             ipc("focusReview")
             observe("ready")
             focused = countdown()
-            assert focused["paused"]
+            assert not focused["paused"], "Inherited window focus must not stall a new review"
+            press_tab()
+            observe("ready")
+            focused = countdown()
+            assert focused["paused"], "Deliberate keyboard interaction should pause the review"
             time.sleep(0.6)
             assert countdown()["remaining"] == focused["remaining"]
             focus_editor()
@@ -551,6 +577,9 @@ def main() -> None:
             assert configured["reviewDuration"] == 3000 and not configured["copyVisible"]
             assert configured["scrollDuration"] == 1200 and not configured["smoothScrolling"]
             assert configured["scrollLookahead"] == 0
+            before_continue = list(commands)
+            ipc("click", "continue")
+            expect_commands(before_continue + [("continue", "custom-settings", "")])
             publisher.publish(
                 RecordingOverlayState(
                     phase="recording",
