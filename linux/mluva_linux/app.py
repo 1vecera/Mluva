@@ -2684,6 +2684,7 @@ class MluvaApplication(Adw.Application):
             for key in list(workspace.edit_drafts):
                 if key[0] == identifier and not workspace.save_edits(key):
                     return
+            workspace.show_conversation(entry, self.conversation_store.replies(identifier))
         except (KeyError, OSError):
             self._set_status("This conversation is no longer available.")
             return
@@ -3282,7 +3283,12 @@ class MluvaApplication(Adw.Application):
         viewing_live = workspace is not None and workspace.viewing_live
         empty_capture = not result.transcription.text.strip()
         preserved_draft = (
-            workspace.live_draft() if empty_capture and viewing_live and workspace.live_draft_available else ""
+            workspace.live_draft()
+            if empty_capture
+            and viewing_live
+            and workspace.live_draft_available
+            and self.continuation_identifier is None
+            else ""
         )
         self.capture_processing = False
         self.realtime_session = None
@@ -3399,7 +3405,7 @@ class MluvaApplication(Adw.Application):
         workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None and result.mode == "dictation":
             if finishing_live:
-                workspace.set_live("Finishing live draft…", result.transcription.text, recording=False)
+                workspace.set_live("Finishing live draft…", self.live_final_text, recording=False)
             else:
                 workspace.finish_live()
             if result.history_entry is not None:
@@ -3585,7 +3591,6 @@ class MluvaApplication(Adw.Application):
             self._recording_bar_state(
                 kind=RECORDING_KIND_PREPARING,
                 detail="Preparing recognition readiness…",
-                preview="Preparing recognition…",
             )
         )
 
@@ -3595,8 +3600,11 @@ class MluvaApplication(Adw.Application):
         self.overlay_review_identifier = None
         workspace = getattr(self, "conversation_workspace", None)
         if workspace is not None:
+            phase = "Preparing…" if state.kind == "preparing" else state.elapsed
+            if self.continuation_identifier is not None:
+                phase = "Continuing…" if state.kind == "preparing" else f"Continuing · {state.elapsed}"
             workspace.set_live(
-                "Preparing…" if state.kind == "preparing" else state.elapsed,
+                phase,
                 state.preview,
                 recording=state.kind == RECORDING_KIND_RECORDING,
             )
@@ -3709,6 +3717,8 @@ class MluvaApplication(Adw.Application):
         )
         mode_label = CAPTURE_MODE_LABELS[mode_index]
         delivery = "Paste armed" if MluvaApplication._automatic_paste_armed(self) else "Copy only"
+        if self.continuation_source:
+            preview = self.continuation_source.rstrip() + ("\n\n" + preview if preview else "")
         if not preview:
             # "Listening" is a microphone-live promise only recording can make.
             preview = "Preparing recognition…" if kind == RECORDING_KIND_PREPARING else "Listening…"
@@ -4954,7 +4964,11 @@ class MluvaApplication(Adw.Application):
                     else RECOGNITION_FALLBACK_UNAVAILABLE
                 )
             provider = f"{self.config.transcription_provider} · final transcription at Stop"
-            preview_text = "Realtime preview unavailable; finalized local audio will use batch recognition."
+            preview_text = (
+                ""
+                if self.continuation_identifier
+                else "Realtime preview unavailable; finalized local audio will use batch recognition."
+            )
         else:
             provider = (
                 "Scribe Realtime"
@@ -4962,7 +4976,7 @@ class MluvaApplication(Adw.Application):
                 else f"{self.config.transcription_provider} · chunk preview"
             )
             snapshot = realtime_session.snapshot()
-            preview_text = snapshot.display_text or "Waiting for speech…"
+            preview_text = snapshot.display_text or ("" if self.continuation_identifier else "Waiting for speech…")
             self._maybe_live_rewrite(snapshot.display_text)
         self._present_recording_bar(
             self._recording_bar_state(

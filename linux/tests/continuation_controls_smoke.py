@@ -8,13 +8,15 @@ from pathlib import Path
 from unittest.mock import patch
 
 from conversation_ui_smoke import IsolatedApplication
-from gi.repository import GLib
+from gi.repository import Adw, GLib, Gtk
 from live_workspace_smoke import paint, settle
 
 from mluva_linux.codex_client import CodexAppServerClient
 from mluva_linux.config import load_config
 from mluva_linux.delivery import DeliveryReceipt
 from mluva_linux.elevenlabs import TranscriptionResult
+from mluva_linux.realtime import RealtimePreview, RealtimeSessionResult
+from mluva_linux.shell_bridge import project_state
 from mluva_linux.workflow import DictationWorkflow
 
 
@@ -52,6 +54,34 @@ class SyntheticSpeech:
         return TranscriptionResult("More words.", "eng", None, None)
 
 
+class SyntheticPreview:
+    """Supply changing recognition snapshots without a microphone or provider connection."""
+
+    is_healthy = True
+    bytes_sent = 0
+    text = ""
+
+    def snapshot(self):
+        """Keep each provisional revision separate from the previous saved speech."""
+        return RealtimePreview("", self.text)
+
+    def finish(self):
+        """Finalize only this recording's words."""
+        return RealtimeSessionResult(TranscriptionResult(self.text, "eng", None, None), 0.01)
+
+    def cancel(self):
+        """Accept cancellation without touching a device."""
+
+
+def descendants(widget):
+    """Inspect the actual nested history controls and their displayed document."""
+    yield widget
+    child = widget.get_first_child()
+    while child is not None:
+        yield from descendants(child)
+        child = child.get_next_sibling()
+
+
 def main():
     """Verify the actual GTK controls, SQLite writes and asynchronous completion gates."""
     if "OFFSCREEN_SESSION_ROOT" not in os.environ:
@@ -64,6 +94,10 @@ def main():
     def exercise():
         try:
             workspace = app.conversation_workspace
+            source_updates = []
+            workspace.live_text.get_buffer().connect(
+                "changed", lambda _buffer: source_updates.append(workspace.live_text.get_text())
+            )
             app.config = replace(app.config, auto_copy_dictation=True, auto_copy_rewrite=False)
             app.recorder = SyntheticRecorder()
             app.workflow = DictationWorkflow(
@@ -101,10 +135,36 @@ def main():
                 patch("mluva_linux.workflow.deliver_text", side_effect=AssertionError("Segment delivered too early")),
             ):
                 workspace.continue_button.emit("clicked")
+                assert workspace.live_text.get_text() == "My edited original.", (
+                    "Continue must retain the original while preparing the next recording"
+                )
+                assert project_state(app.recording_overlay_publisher._shell_parameters, True)["preview"] == (
+                    "My edited original."
+                )
                 settle(lambda: app.recorder.process is not None)
+                assert workspace.live_text.get_text() == "My edited original.", (
+                    "Batch-only capture must keep the original visible while waiting for speech"
+                )
                 assert not app.capture_allows_auto_paste
                 assert not workspace.continue_button.get_sensitive()
+                preview = SyntheticPreview()
+                app.realtime_session = preview
+                app.pending_realtime_fallback_reason = None
+                for words in ("", "More", "More words."):
+                    preview.text = words
+                    app._update_capture_status()
+                    expected = "My edited original." + ("\n\n" + words if words else "")
+                    assert workspace.live_text.get_text() == expected
+                    assert project_state(app.recording_overlay_publisher._shell_parameters, True)["preview"] == (
+                        " ".join(expected.split())
+                    )
+                paint(app.window, output / "continue-recording.png")
                 app._toggle_recording(app.record_button)
+                assert app.capture_processing
+                assert workspace.live_text.get_text() == "My edited original.\n\nMore words."
+                assert project_state(app.recording_overlay_publisher._shell_parameters, True)["preview"] == (
+                    "My edited original. More words."
+                )
                 settle(lambda: not app.capture_processing)
                 assert workspace.entry.identifier == source.identifier
                 assert app.conversation_store.source_text(source) == "My edited original.\n\nMore words."
@@ -112,6 +172,39 @@ def main():
                 assert copies == ["My edited rewrite.\n\nMore words."]
                 assert len(app.history_store.recent()) == 2
                 assert len(app.conversation_store.search()) == 1
+                assert list(app.history_page.entry_rows) == [source.identifier]
+                history_row = app.history_page.entry_rows[source.identifier]
+                assert history_row.get_subtitle() == "Dictation · 2 recordings"
+                current = next(
+                    widget
+                    for widget in descendants(history_row)
+                    if isinstance(widget, Adw.ActionRow) and widget.get_title() == "Current text"
+                )
+                assert current.get_subtitle() == "My edited rewrite.\n\nMore words."
+                with patch.object(app.history_page, "copy_text") as history_copy:
+                    next(
+                        widget
+                        for widget in descendants(current)
+                        if isinstance(widget, Gtk.Button) and widget.get_label() == "Copy"
+                    ).emit("clicked")
+                    history_copy.assert_called_once_with("My edited rewrite.\n\nMore words.")
+                app.history_page.focus_entry(app.history_store.continuations(source.identifier)[0].identifier)
+                assert app.history_page.focused_identifier == source.identifier
+                app._navigate_to_page("history")
+                paint(app.window, output / "continued-history.png")
+                recordings = next(
+                    widget
+                    for widget in descendants(app.history_page.entry_rows[source.identifier])
+                    if isinstance(widget, Adw.ExpanderRow) and widget.get_title() == "Original recordings"
+                )
+                recordings.set_expanded(True)
+                raw_rows = [
+                    widget
+                    for widget in descendants(recordings)
+                    if isinstance(widget, Adw.ActionRow) and widget.get_title() == "Raw transcript"
+                ]
+                assert {row.get_subtitle() for row in raw_rows} == {"First raw.", "More words."}
+                app._navigate_to_page("capture")
 
                 app.live_mode_switch.set_active(True)
                 assert app.config.live_rewrite_enabled and not app.config.live_rewrite_continuous
@@ -127,6 +220,10 @@ def main():
                 assert app.conversation_store.replies(source.identifier)[-1].text == "Clean text."
                 assert app.conversation_store.source_text(source).endswith("More words.\n\nMore words.")
                 assert app.history_store.find(source.identifier).raw_text == "First raw."
+                assert all(not text or text.startswith("My edited original.") for text in source_updates), (
+                    "Preparation, recording and final reconciliation must never replace the old text with a new segment"
+                )
+                assert list(app.history_page.entry_rows) == [source.identifier]
 
                 app.live_mode_switch.set_active(True)
                 app.live_mode_switch.set_active(False)
@@ -169,9 +266,45 @@ def main():
                 picker.popup()
                 paint(app.window, output / "thinking.png")
                 picker.popdown()
+                plain = app.history_store.add("First sentence.", "First sentence.", "dictation", "eng", None, "copied")
+                for _ in range(2):
+                    workspace.show_conversation(source, app.conversation_store.replies(source.identifier))
+                    app._publish_review(plain.identifier)
+                    app._review_action(None, GLib.Variant("(sss)", ("continue", plain.identifier, "")))
+                    assert workspace.entry.identifier == plain.identifier
+                    assert workspace.live_text.get_text() == app.conversation_store.source_text(plain)
+                    settle(lambda: app.recorder.process is not None)
+                    app._toggle_recording(app.record_button)
+                    settle(lambda: not app.capture_processing)
+                combined = "First sentence.\n\nMore words.\n\nMore words."
+                assert workspace.result_widgets[-1].get_text() == combined
+                assert copies[-1] == combined
+                assert len(app.history_page.entry_rows) == 2
+                assert len(app.conversation_store.search()) == 2
+                workspace.continue_button.emit("clicked")
+                assert workspace.live_text.get_text() == combined
+                app._cancel_capture()
+                assert workspace.entry.identifier == plain.identifier
+                assert workspace.result_widgets[-1].get_text() == combined
+                app.live_mode_switch.set_active(True)
+                workspace.continue_button.emit("clicked")
+                settle(lambda: app.recorder.process is not None)
+                with patch.object(
+                    SyntheticSpeech, "transcribe", return_value=TranscriptionResult("", "eng", None, None)
+                ):
+                    app._toggle_recording(app.record_button)
+                    settle(lambda: not app.capture_processing)
+                assert workspace.entry.identifier == plain.identifier, (
+                    "An empty continuation must keep its conversation"
+                )
+                assert workspace.result_widgets[-1].get_text() == combined
+                assert len(app.history_page.entry_rows) == 2
+                app._toggle_recording(app.record_button)
+                assert "First sentence." not in workspace.live_text.get_text(), "New dictation must start fresh"
+                app._cancel_capture()
             (output / "result.txt").write_text(
-                "PASS: append/edit/raw recovery, widget continuation, cancellation, "
-                "Once/Continuous, thinking, narrow layout\n"
+                "PASS: visible append through preparation/recording/finalization, grouped History and copy, "
+                "repeated widget continuation, cancellation, raw recovery, Once/Continuous, thinking, narrow layout\n"
             )
         except Exception:
             errors.append(traceback.format_exc())
