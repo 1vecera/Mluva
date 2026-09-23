@@ -412,6 +412,7 @@ class ConversationWorkspace(Gtk.Box):
         self.live_title.add_css_class("caption")
         self.live_cancel = Gtk.Button(label="Cancel", has_frame=False, valign=Gtk.Align.CENTER)
         self.live_cancel.set_tooltip_text("Cancel the final rewrite; keep the original dictation")
+        self.live_cancel.update_property([Gtk.AccessibleProperty.LABEL], ["Cancel final rewrite"])
         self.live_cancel.connect("clicked", lambda _button: self.cancel_rewrite())
         # Reserve the finalization action's height throughout recording so it
         # cannot push either Live panel down when the microphone stops.
@@ -589,8 +590,10 @@ class ConversationWorkspace(Gtk.Box):
         """Leave room for the conversation title and let rewrite actions use the available width."""
         if compact:
             self.continue_button.set_icon_name("audio-input-microphone-symbolic")
+            self.live_cancel.set_icon_name("process-stop-symbolic")
         else:
             self.continue_button.set_label("Continue recording")
+            self.live_cancel.set_label("Cancel")
         self.actions.set_halign(Gtk.Align.FILL if compact else Gtk.Align.START)
         self.live_header.set_spacing(SPACE_1 if compact else SPACE_2)
 
