@@ -2,6 +2,15 @@
 
 This file records user-visible Mluva releases.
 
+## 1.5.0 — 2026-09-23
+
+- Added **Rename**, **Merge with…** and **Delete…** directly to each conversation's sidebar menu.
+- Made conversation titles editable with a click. Enter or the checkmark saves; Escape or Cancel discards the rename. Manual titles take precedence over automatic titles without disturbing document edits or unsent prompts.
+- Added searchable conversation merging. The destination keeps its title, working text and prompt drafts are combined, and original recordings plus saved rewrites remain recoverable in History and exports.
+- Added confirmation before merging or deleting. Deletion covers the whole combined conversation and retained recordings; active recording, rewriting, recovery and Incognito prevent sidebar merge/delete operations.
+
+The compatible Omarchy widget remains version 0.5.0. This release changes the native app; existing settings and conversations are preserved.
+
 ## 1.4.0 — 2026-09-22
 
 - Added **Continue recording** in the app and **Continue** in the finished Omarchy widget. New speech appends to the same conversation, with the previous text visible throughout. History shows one combined conversation and keeps individual raw recordings available for recovery.

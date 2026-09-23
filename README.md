@@ -4,7 +4,7 @@
 
 Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.4.0)**
+**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.5.0)**
 
 ## Meet Mluva
 
@@ -20,7 +20,7 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 | Text you already have | Paste into a conversation, then choose **Polish**, **Structure** or your own instruction. |
 | A note that needs shape | Select **Live rewrite** once or continuously across recordings. Grilling keeps useful questions above evolving notes; task spec, structured note and custom templates remain available. |
 | A draft worth keeping | Edit originals and rewrites, save with **Ctrl+S**, and keep raw recognition available separately. |
-| Work to return to | Find conversations through History, reuse saved prompts, and export Markdown or JSON. |
+| Work to return to | Search the sidebar, click a title to rename it, or use the conversation menu to merge or delete chats. Reuse saved prompts and export Markdown or JSON. |
 
 **A calm place to work.** Stable Live panes, restrained recording motion and subtle Markdown keep long notes readable. **Ctrl+P** finds actions; **Ctrl+Enter** sends a rewrite. Copy and scrolling preferences are yours to change.
 
