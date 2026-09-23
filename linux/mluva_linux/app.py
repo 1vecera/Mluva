@@ -604,6 +604,93 @@ class MluvaApplication(Adw.Application):
         if self.history_page is not None:
             self.history_page.refresh_title(identifier)
 
+    def _rename_conversation(self, identifier: str, title: str) -> bool:
+        """Save a manual title without rebuilding document editors or replacing their drafts."""
+        if self.config.incognito_mode or not title.strip():
+            return False
+        try:
+            self.history_store.update_title(identifier, title.strip())
+            self._refresh_conversation_title(identifier)
+        except Exception:
+            self._show_toast("Could not rename this conversation. Try again.")
+            return False
+        return True
+
+    def _can_manage_conversations(self) -> bool:
+        """Keep saved chat changes outside active capture, rewrite and recovery operations."""
+        workspace = self.conversation_workspace
+        return not (
+            self.config.incognito_mode
+            or self.capture_preparing
+            or self.capture_processing
+            or self.retry_identifier is not None
+            or self.continuation_identifier is not None
+            or self.live_final_entry is not None
+            or self.rewrite_client is not None
+            or workspace.busy
+            or workspace.live_active
+        )
+
+    def _merge_conversations(self, source_identifier: str, target_identifier: str) -> bool:
+        """Save pending edits and join two idle chats without provider requests or clipboard changes."""
+        if not self._can_manage_conversations():
+            self._show_toast("Finish the current operation before merging conversations.")
+            return False
+        workspace = self.conversation_workspace
+        identifiers = {source_identifier, target_identifier}
+        for key in list(workspace.edit_drafts):
+            if key[0] in identifiers and not workspace.save_edits(key):
+                return False
+        if workspace.entry is not None:
+            workspace.drafts[workspace.entry.identifier] = workspace.prompt_text()
+        prompt = "\n\n".join(
+            workspace.drafts[identifier]
+            for identifier in (target_identifier, source_identifier)
+            if workspace.drafts.get(identifier)
+        )
+        try:
+            entry = self.conversation_store.merge(target_identifier, source_identifier)
+        except ValueError as error:
+            self._show_toast(str(error))
+            return False
+        except Exception:
+            self._show_toast("Could not merge these conversations. Reopen them and try again.")
+            return False
+        workspace.show_conversation(entry, self.conversation_store.replies(entry.identifier))
+        workspace.drafts.pop(source_identifier, None)
+        workspace.drafts[target_identifier] = prompt
+        workspace.prompt.get_buffer().set_text(prompt)
+        workspace.refresh_history()
+        self.history_page.refresh()
+        if self.overlay_review_identifier in identifiers:
+            self._publish_review(target_identifier)
+        self._show_toast("Conversations merged. Originals remain in History.")
+        return True
+
+    def _delete_conversation(self, identifier: str) -> bool:
+        """Delete a confirmed sidebar selection through the shared history lifecycle."""
+        if not self._can_manage_conversations():
+            self._show_toast("Finish the current operation before deleting conversations.")
+            return False
+        try:
+            entry = self.history_store.find(identifier)
+            identifiers = {identifier, *(item.identifier for item in self.history_store.continuations(identifier))}
+        except KeyError:
+            return False
+        if not self._delete_history_entry(entry):
+            return False
+        self._history_changed()
+        self.history_page.refresh()
+        workspace = self.conversation_workspace
+        for removed in identifiers:
+            workspace.drafts.pop(removed, None)
+            self.history_delivery_targets.pop(removed, None)
+        for key in list(workspace.edit_drafts):
+            if key[0] in identifiers:
+                del workspace.edit_drafts[key]
+        self._show_toast("Conversation and retained recordings deleted.")
+        return True
+
     def _cancel_titles(self, wait: bool = False) -> None:
         """Invalidate title work when privacy, provider settings or application lifetime changes."""
         if self.title_jobs is not None:
@@ -1493,6 +1580,9 @@ class MluvaApplication(Adw.Application):
             open_archive=self._open_history,
             save_prompt=self._save_rewrite_prompt,
             cancel_rewrite=self._cancel_rewrite,
+            rename_conversation=self._rename_conversation,
+            delete_conversation=self._delete_conversation,
+            merge_conversations=self._merge_conversations,
         )
         self.conversation_workspace.set_vexpand(True)
         self.conversation_workspace.continue_recording = self._continue_recording

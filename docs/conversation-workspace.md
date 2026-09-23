@@ -22,6 +22,12 @@ Quick Polish removes filler words, false starts and accidental repetitions, fixe
 
 ## History and privacy
 
+Each sidebar conversation has an actions menu for Rename, Merge with… and Delete…. Clicking the open conversation's title also opens its inline editor: Enter or the checkmark saves; Escape, Cancel or navigation discards the rename. Saving a title keeps the current document edits, prompt draft and reading position. Manual titles take precedence over pending automatic titles.
+
+Merge with… lets you search for the destination conversation. That chat keeps its title; the chosen chat's working source is appended after it. Pending document edits are saved first, saved replies are retained, and a local merged version combines each chat's latest text for follow-up rewriting. Unsent prompt drafts are combined too. The original transcripts, recording metadata and retained audio remain recoverable through History and exports. Only the destination remains in the sidebar, and search can still find the original titles and transcripts. Merge does not call a provider or change the clipboard and has no automatic undo.
+
+Delete asks for confirmation and removes the whole conversation, including merged or continued recordings, saved replies and retained audio. Merge and sidebar deletion wait until recording, rewriting and recovery operations finish; Incognito disables these actions. Run `make linux-conversation-management-test` for native control, stale-dialog and minimum/narrow/wide layout checks with synthetic content.
+
 Existing dictation history supplies the conversation identity. SQLite tables store the editable working source, complete instructions, replies, model identity and timestamps. Raw recognition and its original provenance are not overwritten by document editing. Reopening a conversation after restart reconstructs its complete local history. Search covers titles, source text, copied text and rewrite instructions/results before limiting the visible sidebar page. Show more extends the result page.
 
 Deleting or pruning a source also deletes its replies. A completed background rewrite cannot recreate a deleted source. Incognito keeps new text out of the history database, disables rewriting and prompt persistence, and cancels an active rewrite when enabled. Existing audio and history retention settings continue to apply.
