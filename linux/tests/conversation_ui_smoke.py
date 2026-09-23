@@ -5,6 +5,7 @@ import os
 import sqlite3
 import struct
 import subprocess
+import sys
 import time
 import traceback
 from dataclasses import replace
@@ -94,6 +95,7 @@ def main() -> int:
         )
     application = IsolatedApplication()
     errors: list[str] = []
+    sys.excepthook = lambda *error: errors.append("".join(traceback.format_exception(*error)))
     source = (
         "Let's keep the first release focused on dictation, rewriting and history. "
         "When I press F9, I want to see that the microphone is listening, then know when the text is copied.\n\n"
@@ -162,11 +164,21 @@ def main() -> int:
                 workspace.show_conversation(entry, [])
             if scenario == "empty":
                 workspace.show_conversation(None, [])
-            elif scenario in {"recording", "long-live"}:
+            elif scenario in {"recording", "long-live", "live-draft", "finalizing"}:
                 workspace.set_live("01:13", source if scenario == "long-live" else source * 3)
                 application.capture_status_title.set_label("Recording")
                 application.status_label.set_label("Listening. Press F9 when you're done.")
                 set_button_content(application.record_button, "media-playback-stop-symbolic", "Stop")
+                if scenario in {"live-draft", "finalizing"}:
+                    application.config = replace(
+                        application.config, live_rewrite_enabled=True, live_rewrite_continuous=scenario == "live-draft"
+                    )
+                    application._sync_live_mode()
+                    workspace.show_live_draft("## Working note\nKeep the original and the editable draft in reach.")
+                    if scenario == "finalizing":
+                        workspace.set_live_status("Finishing…")
+                        workspace.set_busy(True, "Finishing rewrite…")
+                        application.record_button.set_sensitive(False)
             elif scenario == "processing":
                 workspace.set_live("Processing…", source, recording=False)
                 application.capture_status_title.set_label("Processing…")
@@ -290,6 +302,35 @@ def main() -> int:
             scale = window.get_surface().get_scale_factor()
             assert png_size == (width * scale, height * scale), "Virtual screen clipped the scaled window"
             workspace = application.conversation_workspace
+            controls = {}
+            for widget in (
+                workspace.continue_button,
+                workspace.quick_polish,
+                workspace.structured_note,
+                workspace.saved_prompts,
+                application.rewrite_settings,
+                workspace.save,
+                workspace.cancel,
+                workspace.send,
+                workspace.notice,
+                application.status_label,
+                application.record_button,
+                application.live_mode_switch,
+                application.live_mode_menu,
+                workspace.live_cancel,
+                *workspace.pane_buttons.values(),
+            ):
+                if not widget.get_mapped():
+                    continue
+                success, bounds = widget.compute_bounds(window)
+                label = widget.get_tooltip_text() or widget.get_name()
+                rectangle = [bounds.get_x(), bounds.get_y(), bounds.get_width(), bounds.get_height()]
+                controls[label] = rectangle
+                assert success and 0 <= rectangle[0] and 0 <= rectangle[1], (label, rectangle)
+                assert rectangle[0] + rectangle[2] <= window.get_width(), (label, rectangle)
+                assert rectangle[1] + rectangle[3] <= window.get_height(), (label, rectangle)
+                assert rectangle[2] >= widget.measure(Gtk.Orientation.HORIZONTAL, -1)[0], (label, rectangle)
+            (output / "controls.json").write_text(json.dumps(controls, indent=2))
             if scenario in {"menu", "prompts", "rewrite-models", "rewrite-models-error"}:
                 button = (
                     application.main_menu_button
@@ -389,6 +430,7 @@ def main() -> int:
     ):
         GLib.idle_add(prepare)
         application.run(None)
+    sys.excepthook = sys.__excepthook__
     if errors:
         raise RuntimeError("; ".join(errors))
     return 0

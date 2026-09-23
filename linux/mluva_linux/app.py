@@ -408,7 +408,8 @@ class MluvaApplication(Adw.Application):
         self.page_title_label.add_css_class("vs-page-title")
         self.header_bar.set_title_widget(self.page_title_label)
         toolbar.add_top_bar(self.header_bar)
-        stack = Adw.ViewStack()
+        # Hidden settings and meeting pages must not widen a tiled conversation.
+        stack = Adw.ViewStack(hhomogeneous=False, vhomogeneous=False)
         self.page_stack = stack
         stack.add_titled_with_icon(
             self._build_capture_page(),
@@ -1692,13 +1693,15 @@ class MluvaApplication(Adw.Application):
         self.capture_action_hint.set_visible(False)
         status.append(self.capture_action_hint)
         dock.append(status)
+        self.capture_buttons = Gtk.Box(spacing=SPACE_2, halign=Gtk.Align.END)
+        dock.append(self.capture_buttons)
         self.record_button = Gtk.Button(valign=Gtk.Align.CENTER)
         self.record_button.set_tooltip_text("Start or stop dictation · F9")
         self.record_button.add_css_class("suggested-action")
         self.record_button.add_css_class("ml-record-toggle")
         set_button_content(self.record_button, "audio-input-microphone-symbolic", "Dictate")
         self.record_button.connect("clicked", self._toggle_recording)
-        dock.append(self.record_button)
+        self.capture_buttons.append(self.record_button)
         live_control = Gtk.Box(valign=Gtk.Align.CENTER, css_classes=["linked"])
         self.live_mode_switch = Gtk.ToggleButton(label="Live rewrite", active=self.config.live_rewrite_enabled)
         self.live_mode_switch.connect("toggled", self._live_mode_changed)
@@ -1727,7 +1730,7 @@ class MluvaApplication(Adw.Application):
         self.live_mode_menu.set_popover(popover)
         live_control.append(self.live_mode_menu)
         self._sync_live_mode()
-        dock.append(live_control)
+        self.capture_buttons.append(live_control)
         return dock
 
     def _build_settings_view(self) -> SettingsView:
@@ -1996,6 +1999,11 @@ class MluvaApplication(Adw.Application):
             self.conversation_workspace.split.set_collapsed(True)
             self.conversation_workspace.live_box.set_orientation(Gtk.Orientation.VERTICAL)
             self.conversation_workspace.split.set_show_sidebar(False)
+            self.conversation_workspace.set_compact(True)
+        self.capture_action_bar.set_orientation(Gtk.Orientation.VERTICAL)
+        self.capture_action_bar.add_css_class("compact")
+        self.capture_buttons.set_halign(Gtk.Align.FILL)
+        self.record_button.set_hexpand(True)
         if self.navigation_rail is not None:
             self.navigation_rail.set_visible(False)
         self._sync_header_title()
@@ -2010,6 +2018,11 @@ class MluvaApplication(Adw.Application):
             self.conversation_workspace.split.set_collapsed(False)
             self.conversation_workspace.live_box.set_orientation(Gtk.Orientation.HORIZONTAL)
             self.conversation_workspace.split.set_show_sidebar(self.config.history_sidebar_visible)
+            self.conversation_workspace.set_compact(False)
+        self.capture_action_bar.set_orientation(Gtk.Orientation.HORIZONTAL)
+        self.capture_action_bar.remove_css_class("compact")
+        self.capture_buttons.set_halign(Gtk.Align.END)
+        self.record_button.set_hexpand(False)
         if self.navigation_rail is not None:
             self.navigation_rail.set_visible(True)
         self._sync_header_title()
@@ -2022,8 +2035,8 @@ class MluvaApplication(Adw.Application):
         """Keep utility page titles out of the dictation workspace's quiet header."""
         if self.header_bar is None or self.window is None:
             return
-        title = None if self.window.get_width() <= COMPACT_LAYOUT_MAX_WIDTH else self.page_title_label
-        self.header_bar.set_title_widget(title)
+        self.header_bar.set_show_title(self.window.get_width() > COMPACT_LAYOUT_MAX_WIDTH)
+        self.header_bar.set_title_widget(self.page_title_label)
 
     def _show_settings(self, _button: Gtk.Button) -> None:
         """Open full-window settings; Ctrl+P also reaches every individual preference."""

@@ -79,6 +79,19 @@ linux-text-target-test: linux-setup
 linux-conversation-test: linux-setup
 	MLUVA_SMOKE=conversation bash linux/tests/run_native_text_target_smoke.sh tmp/conversation-smoke
 
+.PHONY: linux-compact-workspace-test
+linux-compact-workspace-test: linux-setup
+	@mkdir -p tmp/compact-workspace
+	@set -e; for spec in minimum:420:520:1 narrow:480:640:1 tiled:360:1174:2 wide:1060:780:1 empty:360:700:1 rewriting:360:700:1 recording:360:700:1 processing:360:700:1 live-draft:360:700:1 finalizing:360:700:1; do \
+		scenario=$${spec%%:*}; rest=$${spec#*:}; width=$${rest%%:*}; rest=$${rest#*:}; height=$${rest%%:*}; scale=$${rest#*:}; \
+		OFFSCREEN_SCREEN_SPEC=2200x2500x24 OFFSCREEN_ENABLE_ATSPI=1 \
+		bash dev/run-isolated.sh "tmp/compact-workspace/$$scenario" -- env \
+			GDK_SCALE="$$scale" GDK_DPI_SCALE=1 PYTHONPATH=linux:linux/tests ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
+			MLUVA_UI_SCENARIO="$$scenario" MLUVA_UI_WIDTH="$$width" MLUVA_UI_HEIGHT="$$height" \
+			uv run --project linux --locked python linux/tests/conversation_ui_smoke.py \
+			> "tmp/compact-workspace/$$scenario.log" 2>&1; \
+	done
+
 .PHONY: linux-conversation-management-test
 linux-conversation-management-test: linux-setup
 	@mkdir -p tmp/chat-management
