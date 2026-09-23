@@ -2,6 +2,12 @@
 
 This file records user-visible Mluva releases.
 
+## 1.5.2 — 2026-09-23
+
+- Fixed clipped conversation controls in narrow tiled windows, including 360-pixel tiles at 2× scaling. Hidden settings and meeting pages no longer force the conversation wider than its window.
+- Compact windows keep recording status above the buttons, use accessible icons for Continue recording and final-rewrite cancellation, and give rewrite actions room to reflow. Long feedback wraps without widening the composer.
+- Preserved the text-labelled controls in wide windows and verified empty, rewriting, recording, Live draft and finalization layouts. The app and bundled widget remain one matching release package.
+
 ## 1.5.1 — 2026-09-23
 
 - The native app and Omarchy widget now share one repository, release version and source archive. The combined installer uses the bundled widget without fetching a second repository.
