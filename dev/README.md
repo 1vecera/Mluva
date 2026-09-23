@@ -26,13 +26,15 @@ bash dev/run-isolated.sh tmp/my-scenario -- \
 
 Use `OFFSCREEN_ENABLE_ATSPI=1` for a fixture that exercises accessibility. Run virtual-display tests sequentially, or assign distinct unused `OFFSCREEN_DISPLAY_NUMBER` values and separate output directories. Keep external providers, microphones, input devices and credentials disabled unless the fixture explicitly needs them.
 
-## Plugin distribution
+## Unified release package
 
-The installable [Omarchy plugin repository](https://github.com/1vecera/omarchy-mluva) mirrors `linux/quickshell/mluva.dictation`. Export the reviewed checkout by its full commit ID:
+The native app and widget ship from this repository in one source archive and use the same release version. `linux/quickshell/mluva.dictation` is the widget source; `linux/install_widget.py` installs those exact QML, JavaScript and font files through a versioned entry point, validates them with Omarchy and enables the stable `mluva.dictation` ID. No plugin mirror or separate export is needed.
+
+`bash install.sh` installs both parts. Installer tests cover fresh installs, upgrades, clean legacy Git migration without network access, protected local edits and rollback after shell failures. Run `make linux-test` and the isolated widget check before releasing. To build the package from a reviewed tag:
 
 ```sh
-uv run --no-project dev/export_plugin.py tmp/plugin-release \
-  --commit "$(git rev-parse HEAD)" --preview docs/promotion/assets/widget-review.png
+git archive --format=tar.gz --prefix=mluva-1.5.1/ \
+  --output=tmp/mluva-1.5.1-source.tar.gz v1.5.1
 ```
 
-Use `--release` with an explicit release tag when exporting a tagged version. The export contains that revision's QML and manifest, license, current README template and `SOURCE.json` with the source commit, optional release tag and file hashes. Review the guide against the selected source before publishing an update. Edit `dev/plugin-README.md` when the installation or usage guide changes.
+Publish that archive and its SHA-256 checksum together on the main Mluva release. Re-running setup from the new archive updates app and widget together.

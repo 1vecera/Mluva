@@ -2,6 +2,13 @@
 
 This file records user-visible Mluva releases.
 
+## 1.5.1 — 2026-09-23
+
+- The native app and Omarchy widget now share one repository, release version and source archive. The combined installer uses the bundled widget without fetching a second repository.
+- Clean legacy Git widget installs migrate with a backup. Edited or unmanaged widgets are preserved for manual reconciliation; `--app-only` continues to leave them alone.
+- Widget upgrades load new QML entry-point paths and rescan the shell, avoiding a desktop-shell restart. Failed shell integration restores the previous widget files.
+- Removed the separate plugin export workflow. Use the main Mluva installer for both app and widget updates.
+
 ## 1.5.0 — 2026-09-23
 
 - Added **Rename**, **Merge with…** and **Delete…** directly to each conversation's sidebar menu.

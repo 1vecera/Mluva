@@ -16,26 +16,27 @@ The recording and review surfaces accept pointer input. Neither requests focus w
 
 ## Installation
 
-Use the [combined installation command or agent prompt](../README.md#install). From a complete Mluva checkout, `bash install.sh` installs system dependencies, the native app and the [community Omarchy plugin](https://github.com/1vecera/omarchy-mluva) together. Start Mluva from the application menu after setup. This integration needs Omarchy Quattro's existing shell and plugin manager, Quickshell 0.3+ and Hyprland 0.55+.
+Use the [combined installation command or agent prompt](../README.md#install). From a complete Mluva checkout, `bash install.sh` installs system dependencies, the native app and the bundled Omarchy widget together from the same release. Start Mluva from the application menu after setup. This integration needs Omarchy Quattro's existing shell and plugin manager, Quickshell 0.3+ and Hyprland 0.55+.
 
 The plugin registers a Lua rule for its own window before showing it and reapplies that rule after a compositor configuration reload. It does not edit desktop configuration files.
 
-If the native app is already installed and you only need the widget:
+If the matching native app is already installed and you only need the widget, run this from the same Mluva checkout or extracted release archive:
 
 ```sh
-omarchy plugin add https://github.com/1vecera/omarchy-mluva.git --enable
+python3 linux/install_widget.py
 ```
 
 The plugin invokes the native app's `mluva-shell` bridge. If the shell cannot find it, set the widget's **Mluva shell executable** setting to the full path of `~/.local/bin/mluva-shell`, expanded to your actual home directory.
 
-Rerun the combined setup to update both parts after updating your Mluva checkout. It uses Omarchy's plugin manager and refuses to overwrite an unmanaged plugin directory or local plugin edits. Back up customizations before resolving those conflicts. `bash install.sh --app-only` leaves plugins alone. If widget setup fails after native installation, the app remains available; resolve the reported plugin error and rerun setup.
+Rerun the combined setup from the latest Mluva release to update both parts. The app and widget share one version; the installer never fetches a separate widget repository. Clean legacy Git installations migrate automatically without contacting their retired remote. Previous widget files are retained outside plugin discovery under `~/.config/omarchy/plugin-backups/`. Local edits, symlinks, duplicate widgets and unmanaged manual installations stop setup before package or app changes. Move any custom installation outside the plugins directory after backing it up, then rerun setup; `bash install.sh --app-only` leaves plugins alone.
 
-An already loaded plugin can retain its old QML components after copying files and rescanning. For a manual install, moving the plugin directory to a fresh name under `~/.config/omarchy/plugins/` before calling `omarchy-shell shell rescanPlugins` gives it a new source URL; keep the manifest ID `mluva.dictation` unchanged and keep only one copy under that directory. This reloads the plugin without restarting the bar. For a Git-managed install, use `omarchy restart shell` if an update remains cached. The native recorder has loaded when `hyprctl eval "assert(mluva_recording_rule ~= nil)"` succeeds; file hashes alone do not establish which component is running.
+The installer validates the widget, uses a content-specific QML entry-point path and rescans the existing shell before enabling the stable `mluva.dictation` ID. This loads changed components without restarting the bar or moving its controls. If widget setup fails after native installation, its previous files are restored and the native app remains available. Resolve the reported error and rerun setup. To restore a backup manually, disable the widget, move the current plugin directory aside, restore the saved directory under `~/.config/omarchy/plugins/`, then rescan and enable it.
 
 For plugin-only maintenance:
 
 ```sh
-omarchy plugin update mluva.dictation
+# Update from the matching Mluva release:
+python3 linux/install_widget.py
 omarchy plugin disable mluva.dictation
 omarchy plugin remove mluva.dictation
 ```
