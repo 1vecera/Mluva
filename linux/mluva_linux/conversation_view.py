@@ -16,7 +16,7 @@ from mluva_linux.mermaid_view import MermaidPreview
 from mluva_linux.prompt_editor import prompt_control
 from mluva_linux.recording_control import RecordingLight
 from mluva_linux.scroll_forecast import SpeechScrollForecast
-from mluva_linux.ui import SPACE_2, SPACE_4, brand_mark, document_scroll, set_margins
+from mluva_linux.ui import SPACE_1, SPACE_2, SPACE_4, brand_mark, document_scroll, set_margins
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -399,7 +399,8 @@ class ConversationWorkspace(Gtk.Box):
         self.title_stack.add_named(title_editor, "edit")
         self.heading.append(self.title_stack)
         self.continue_button = Gtk.Button(label="Continue recording")
-        self.continue_button.set_tooltip_text("Add speech to this conversation")
+        self.continue_button.set_tooltip_text("Continue recording · Add speech to this conversation")
+        self.continue_button.update_property([Gtk.AccessibleProperty.LABEL], ["Continue recording"])
         self.continue_button.connect(
             "clicked", lambda _button: self.continue_recording(self.entry.identifier) if self.entry else None
         )
@@ -556,7 +557,13 @@ class ConversationWorkspace(Gtk.Box):
         keys.connect("key-pressed", self._prompt_key)
         self.prompt.add_controller(keys)
         footer = Gtk.Box(spacing=SPACE_2)
-        self.notice = Gtk.Label(xalign=0, wrap=True, hexpand=True, accessible_role=Gtk.AccessibleRole.STATUS)
+        self.notice = Gtk.Label(
+            xalign=0,
+            wrap=True,
+            wrap_mode=Pango.WrapMode.WORD_CHAR,
+            hexpand=True,
+            accessible_role=Gtk.AccessibleRole.STATUS,
+        )
         self.notice.add_css_class("caption")
         self.notice.set_max_width_chars(28)
         footer.append(self.notice)
@@ -577,6 +584,15 @@ class ConversationWorkspace(Gtk.Box):
         self.composer_column = composer
         content.append(self.composer_column)
         return content
+
+    def set_compact(self, compact: bool) -> None:
+        """Leave room for the conversation title and let rewrite actions use the available width."""
+        if compact:
+            self.continue_button.set_icon_name("audio-input-microphone-symbolic")
+        else:
+            self.continue_button.set_label("Continue recording")
+        self.actions.set_halign(Gtk.Align.FILL if compact else Gtk.Align.START)
+        self.live_header.set_spacing(SPACE_1 if compact else SPACE_2)
 
     def _pane_orientation_changed(self, *_args: object) -> None:
         """Keep the divider between panes when the narrow layout stacks them."""

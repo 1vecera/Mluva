@@ -243,6 +243,7 @@ overlay-split-view > .sidebar-pane, overlay-split-view > .content-pane { backgro
 .ml-prompt { padding: 8px 10px; border: 1px solid alpha(@vs_ink, 0.16); border-radius: $CONTROL_RADIUSpx; }
 .ml-recording-dock { background: transparent; }
 .ml-recording-dock button, button.ml-primary { min-height: 30px; padding: 3px 12px; }
+.ml-recording-dock.compact button { padding-left: 8px; padding-right: 8px; }
 button.ml-record-toggle { min-width: 76px; }
 button.ml-record-toggle.destructive-action { border-color: alpha(@vs_danger, 0.22);
   background: alpha(@vs_danger, 0.07); }
