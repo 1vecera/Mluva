@@ -11,6 +11,7 @@ from mluva_linux.prompt_defaults import QUICK_POLISH, STRUCTURED_NOTE  # noqa: F
 
 MAX_CONVERSATION_CHARACTERS = 120_000
 MAX_REWRITE_CHARACTERS = 40_000
+MERGE_MODEL = "local-merge"
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,7 +154,76 @@ class ConversationStore:
             assert cursor.lastrowid is not None
             return Rewrite(cursor.lastrowid, identifier, instruction, text, model, stamp)
 
-    def search(self, query: str = "", limit: int = 80) -> list[HistoryEntry]:
+    def merge(self, target_identifier: str, source_identifier: str) -> HistoryEntry:
+        """Join saved conversations atomically, retaining immutable originals and every completed reply."""
+        if target_identifier == source_identifier:
+            raise ValueError("Choose a different conversation to merge with.")
+        with closing(sqlite3.connect(self.history.path)) as connection, connection:
+            connection.execute("PRAGMA foreign_keys = ON")
+            connection.execute("BEGIN IMMEDIATE")
+            sources = []
+            outputs = []
+            has_replies = False
+            for identifier in (target_identifier, source_identifier):
+                row = connection.execute(
+                    "SELECT raw_text, delivered_text, mode FROM transcription_history WHERE identifier = ?",
+                    (identifier,),
+                ).fetchone()
+                if row is None:
+                    raise KeyError(identifier)
+                if (
+                    row[2] != "dictation"
+                    or connection.execute(
+                        "SELECT 1 FROM recording_continuations WHERE segment_identifier = ?", (identifier,)
+                    ).fetchone()
+                ):
+                    raise ValueError("Choose two separate dictation conversations.")
+                source = connection.execute(
+                    "SELECT text FROM conversation_sources WHERE history_identifier = ?", (identifier,)
+                ).fetchone()
+                reply = connection.execute(
+                    "SELECT text FROM conversation_rewrites WHERE history_identifier = ? "
+                    "ORDER BY identifier DESC LIMIT 1",
+                    (identifier,),
+                ).fetchone()
+                sources.append(source[0] if source else row[0])
+                outputs.append(reply[0] if reply else source[0] if source else row[1] or row[0])
+                has_replies |= reply is not None
+            combined = "\n\n".join(sources)
+            output = "\n\n".join(outputs)
+            if max(len(combined), len(output)) > MAX_CONVERSATION_CHARACTERS:
+                raise ValueError("The combined conversation exceeds 120,000 characters. Both chats are unchanged.")
+            connection.execute(
+                "INSERT INTO conversation_sources VALUES (?, ?) "
+                "ON CONFLICT(history_identifier) DO UPDATE SET text = excluded.text",
+                (target_identifier, combined),
+            )
+            connection.execute(
+                "UPDATE conversation_rewrites SET history_identifier = ? WHERE history_identifier = ?",
+                (target_identifier, source_identifier),
+            )
+            # A final local version keeps follow-up rewrites grounded in BOTH chats.
+            if has_replies or output != combined:
+                connection.execute(
+                    "INSERT INTO conversation_rewrites(history_identifier, instruction, text, model, created_at) "
+                    "VALUES (?, ?, ?, ?, ?)",
+                    (target_identifier, "Merged conversations", output, MERGE_MODEL, datetime.now(UTC).isoformat()),
+                )
+            connection.execute(
+                "UPDATE recording_continuations SET history_identifier = ? WHERE history_identifier = ?",
+                (target_identifier, source_identifier),
+            )
+            connection.execute(
+                "INSERT INTO recording_continuations VALUES (?, ?)", (source_identifier, target_identifier)
+            )
+            # Neither pending title request should rename the newly combined chat.
+            connection.execute(
+                "UPDATE transcription_history SET title_revision = title_revision + 1 WHERE identifier IN (?, ?)",
+                (target_identifier, source_identifier),
+            )
+        return self.history.find(target_identifier)
+
+    def search(self, query: str = "", limit: int = 80, *, merge_target_for: str | None = None) -> list[HistoryEntry]:
         """Search all source text, titles and replies before bounding the sidebar result set."""
         pattern = "%" + query.strip().casefold().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
         with closing(sqlite3.connect(self.history.path)) as connection:
@@ -161,18 +231,23 @@ class ConversationStore:
             connection.create_function("unicode_fold", 1, lambda text: (text or "").casefold(), deterministic=True)
             identifiers = connection.execute(
                 "SELECT h.identifier FROM transcription_history h WHERE NOT EXISTS "
-                "(SELECT 1 FROM recording_continuations c WHERE c.segment_identifier = h.identifier) AND ("
+                "(SELECT 1 FROM recording_continuations c WHERE c.segment_identifier = h.identifier) "
+                "AND (? IS NULL OR (h.identifier != ? AND h.mode = 'dictation')) AND ("
                 "unicode_fold(h.title) LIKE ? ESCAPE '\\' OR unicode_fold(h.raw_text) LIKE ? ESCAPE '\\' "
                 "OR unicode_fold(h.delivered_text) LIKE ? ESCAPE '\\' "
                 "OR EXISTS (SELECT 1 FROM conversation_sources s WHERE s.history_identifier = h.identifier "
                 "AND unicode_fold(s.text) LIKE ? ESCAPE '\\') OR EXISTS (SELECT 1 FROM conversation_rewrites r "
                 "WHERE r.history_identifier = h.identifier AND "
                 "(unicode_fold(r.text) LIKE ? ESCAPE '\\' OR unicode_fold(r.instruction) LIKE ? ESCAPE '\\')) "
+                "OR EXISTS (SELECT 1 FROM recording_continuations c JOIN transcription_history segment "
+                "ON segment.identifier = c.segment_identifier WHERE c.history_identifier = h.identifier AND "
+                "(unicode_fold(segment.title) LIKE ? ESCAPE '\\' OR unicode_fold(segment.raw_text) LIKE ? ESCAPE '\\' "
+                "OR unicode_fold(segment.delivered_text) LIKE ? ESCAPE '\\')) "
                 ") ORDER BY MAX(h.created_at, COALESCE((SELECT MAX(segment.created_at) "
                 "FROM recording_continuations c JOIN transcription_history segment "
                 "ON segment.identifier = c.segment_identifier WHERE c.history_identifier = h.identifier), "
                 "h.created_at)) DESC LIMIT ?",
-                (pattern, pattern, pattern, pattern, pattern, pattern, limit),
+                (merge_target_for, merge_target_for, *(pattern for _ in range(9)), limit),
             ).fetchall()
         return [self.history.find(row["identifier"]) for row in identifiers]
 

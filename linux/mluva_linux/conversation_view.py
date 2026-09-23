@@ -6,7 +6,7 @@ from collections.abc import Callable
 import gi
 
 from mluva_linux.config import AppConfig
-from mluva_linux.conversation import QUICK_POLISH, STRUCTURED_NOTE, ConversationStore, Rewrite
+from mluva_linux.conversation import MERGE_MODEL, QUICK_POLISH, STRUCTURED_NOTE, ConversationStore, Rewrite
 from mluva_linux.conversation_titles import fallback_title
 from mluva_linux.display_time import history_timestamp
 from mluva_linux.history import HistoryEntry
@@ -263,6 +263,9 @@ class ConversationWorkspace(Gtk.Box):
         open_archive: Callable[[], None],
         save_prompt: Callable[[str], None],
         cancel_rewrite: Callable[[], None],
+        rename_conversation: Callable[[str, str], bool],
+        delete_conversation: Callable[[str], bool],
+        merge_conversations: Callable[[str, str], bool],
     ) -> None:
         """Bind user intentions while leaving recording and provider work to the application."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
@@ -281,6 +284,12 @@ class ConversationWorkspace(Gtk.Box):
         self.saved_prompt_buttons = []
         self.edit_prompt = lambda _key: None
         self.cancel_rewrite = cancel_rewrite
+        self.rename_conversation = rename_conversation
+        self.delete_conversation = delete_conversation
+        self.merge_conversations = merge_conversations
+        self.renaming_identifier: str | None = None
+        self.row_titles: dict[str, Gtk.Label] = {}
+        self.row_menus: dict[str, Gtk.MenuButton] = {}
         self.continue_recording = lambda _identifier: None
         self.entry: HistoryEntry | None = None
         self.title_label: Gtk.Label | None = None
@@ -366,7 +375,29 @@ class ConversationWorkspace(Gtk.Box):
         self.heading.set_size_request(-1, 32)
         self.conversation_title = Gtk.Label(xalign=0, hexpand=True, ellipsize=Pango.EllipsizeMode.END)
         self.conversation_title.add_css_class("ml-conversation-title")
-        self.heading.append(self.conversation_title)
+        self.title_button = Gtk.Button(child=self.conversation_title, has_frame=False, hexpand=True)
+        self.title_button.set_tooltip_text("Rename conversation")
+        self.title_button.connect(
+            "clicked", lambda _button: self.begin_rename(self.entry.identifier) if self.entry else None
+        )
+        self.title_stack = Gtk.Stack(hexpand=True, hhomogeneous=False, vhomogeneous=False)
+        self.title_stack.add_named(self.title_button, "title")
+        title_editor = Gtk.Box(spacing=4)
+        self.title_entry = Gtk.Entry(hexpand=True, width_chars=1)
+        self.title_entry.update_property([Gtk.AccessibleProperty.LABEL], ["Conversation title"])
+        self.title_entry.connect("activate", lambda _entry: self._save_title())
+        title_keys = Gtk.EventControllerKey()
+        title_keys.connect("key-pressed", self._title_key)
+        self.title_entry.add_controller(title_keys)
+        title_editor.append(self.title_entry)
+        self.title_save = Gtk.Button(icon_name="object-select-symbolic", tooltip_text="Save title")
+        self.title_save.connect("clicked", lambda _button: self._save_title())
+        title_editor.append(self.title_save)
+        title_cancel = Gtk.Button(icon_name="window-close-symbolic", tooltip_text="Cancel rename")
+        title_cancel.connect("clicked", lambda _button: self._cancel_title())
+        title_editor.append(title_cancel)
+        self.title_stack.add_named(title_editor, "edit")
+        self.heading.append(self.title_stack)
         self.continue_button = Gtk.Button(label="Continue recording")
         self.continue_button.set_tooltip_text("Add speech to this conversation")
         self.continue_button.connect(
@@ -727,6 +758,7 @@ class ConversationWorkspace(Gtk.Box):
         self, entry: HistoryEntry | None, replies: list[Rewrite], *, preserve_live: bool = False
     ) -> None:
         """Open the exact selected history item and every saved rewrite, preserving original text."""
+        self._cancel_title()
         if not preserve_live:
             self._set_live_visibility(False)
         self.drafts[self.entry.identifier if self.entry else "new"] = self.prompt_text()
@@ -785,7 +817,11 @@ class ConversationWorkspace(Gtk.Box):
                 request.set_max_width_chars(64)
                 request.add_css_class("ml-instruction")
                 self.messages.append(request)
-                self._message("Rewrite", reply.text, reply_identifier=reply.identifier)
+                self._message(
+                    "Merged text" if reply.model == MERGE_MODEL else "Rewrite",
+                    reply.text,
+                    reply_identifier=reply.identifier,
+                )
             self._render_rewrite_preview()
         self.prompt.get_buffer().set_text(self.drafts.get(entry.identifier if entry else "new", ""))
         self.prompt_label.set_label(
@@ -851,27 +887,35 @@ class ConversationWorkspace(Gtk.Box):
     def refresh_history(self) -> None:
         """Search the whole archive while rendering only the requested page of results."""
         self.rows.clear()
+        self.row_titles.clear()
+        self.row_menus.clear()
         child = self.history_list.get_first_child()
         while child is not None:
             self.history_list.remove(child)
             child = self.history_list.get_first_child()
         entries = self.store.search(self.search.get_text(), self.search_limit)
         for entry in entries:
-            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-            set_margins(box, 6)
+            row_content = Gtk.Box(spacing=2)
+            set_margins(row_content, 6)
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, hexpand=True)
+            row_content.append(box)
             title = Gtk.Label(
                 label=entry.title or fallback_title(entry.raw_text),
                 xalign=0,
                 ellipsize=Pango.EllipsizeMode.END,
             )
             title.set_max_width_chars(23)
+            self.row_titles[entry.identifier] = title
             box.append(title)
             stamp = history_timestamp(entry.created_at, self.config.time_format)
             date = Gtk.Label(label=stamp, xalign=0)
             date.add_css_class("caption")
             date.add_css_class("dim-label")
             box.append(date)
-            row = Gtk.ListBoxRow(child=box)
+            menu = self._conversation_menu(entry)
+            self.row_menus[entry.identifier] = menu
+            row_content.append(menu)
+            row = Gtk.ListBoxRow(child=row_content)
             self.rows[row] = entry.identifier
             self.history_list.append(row)
             if not self.viewing_live and self.entry is not None and self.entry.identifier == entry.identifier:
@@ -897,9 +941,175 @@ class ConversationWorkspace(Gtk.Box):
         if self.search.get_text():
             self.refresh_history()
         else:
-            for row, row_identifier in self.rows.items():
-                if row_identifier == identifier:
-                    row.get_child().get_first_child().set_label(entry.title or fallback_title(entry.raw_text))
+            if identifier in self.row_titles:
+                self.row_titles[identifier].set_label(entry.title or fallback_title(entry.raw_text))
+
+    def _conversation_menu(self, entry: HistoryEntry) -> Gtk.MenuButton:
+        """Expose actions for the exact sidebar row, independently of the open chat."""
+        menu = Gtk.MenuButton(icon_name="view-more-symbolic", has_frame=False, valign=Gtk.Align.CENTER)
+        menu.set_tooltip_text("Conversation actions")
+        menu.set_sensitive(not self.private and not self.busy and not self.live_active)
+        popover = Gtk.Popover()
+        actions = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        for label, callback in (
+            ("Rename", self.begin_rename),
+            ("Merge with…", self._choose_merge),
+            ("Delete…", self._confirm_delete),
+        ):
+            button = Gtk.Button(label=label, has_frame=False)
+            if label == "Delete…":
+                button.add_css_class("destructive-action")
+            if label == "Merge with…":
+                button.set_sensitive(entry.mode == "dictation")
+
+            def activate(_button, action=callback, identifier=entry.identifier):
+                popover.popdown()
+                action(identifier)
+
+            button.connect("clicked", activate)
+            actions.append(button)
+        popover.set_child(actions)
+        menu.set_popover(popover)
+        return menu
+
+    def begin_rename(self, identifier: str) -> None:
+        """Turn the selected chat's title into an editor without disturbing its document or prompt."""
+        if self.private:
+            return
+        try:
+            entry = self.store.history.find(identifier)
+        except KeyError:
+            self.refresh_history()
+            return
+        if self.entry is None or self.entry.identifier != identifier:
+            self.show_conversation(entry, self.store.replies(identifier))
+        self.renaming_identifier = identifier
+        self.title_entry.set_text(entry.title or fallback_title(entry.raw_text))
+        self.title_entry.remove_css_class("error")
+        self.title_stack.set_visible_child_name("edit")
+        self.continue_button.set_visible(False)
+        self.title_entry.grab_focus()
+        self.title_entry.select_region(0, -1)
+
+    def _save_title(self) -> None:
+        """Commit only the chat that opened the editor; leave invalid or failed edits available."""
+        identifier = self.renaming_identifier
+        title = self.title_entry.get_text().strip()
+        if not title:
+            self.title_entry.add_css_class("error")
+            self.title_entry.set_tooltip_text("Enter a title before saving.")
+            return
+        if identifier is not None and self.rename_conversation(identifier, title):
+            self._cancel_title()
+            self.title_button.grab_focus()
+
+    def _cancel_title(self) -> None:
+        """Discard a rename on Escape or navigation, never carrying it into another chat."""
+        self.renaming_identifier = None
+        self.title_stack.set_visible_child_name("title")
+        self.title_entry.set_tooltip_text(None)
+        self.continue_button.set_visible(self.entry is not None and self.entry.mode == "dictation" and not self.private)
+
+    def _title_key(self, _controller, key, _code, _state) -> bool:
+        """Support keyboard cancellation while Enter uses the entry's save action."""
+        if key == Gdk.KEY_Escape:
+            self._cancel_title()
+            self.title_button.grab_focus()
+            return True
+        return False
+
+    def _confirm_delete(self, identifier: str) -> None:
+        """Explain the full deletion boundary before asking to remove the chosen conversation."""
+        try:
+            entry = self.store.history.find(identifier)
+        except KeyError:
+            self.refresh_history()
+            return
+        dialog = Adw.AlertDialog.new(
+            "Delete conversation?",
+            f"“{entry.title or fallback_title(entry.raw_text)}” and all its originals, saved rewrites and retained "
+            "recordings will be permanently deleted.",
+        )
+        dialog.add_response("cancel", "Cancel")
+        dialog.add_response("delete", "Delete")
+        dialog.set_default_response("cancel")
+        dialog.set_close_response("cancel")
+        dialog.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
+        dialog.choose(
+            self,
+            None,
+            lambda chosen, result: (
+                self.delete_conversation(identifier) if chosen.choose_finish(result) == "delete" else None
+            ),
+        )
+
+    def _choose_merge(self, identifier: str) -> None:
+        """Choose a destination by searchable title and date, then explicitly confirm the join."""
+        try:
+            source = self.store.history.find(identifier)
+        except KeyError:
+            self.refresh_history()
+            return
+        dialog = Adw.AlertDialog.new(
+            "Merge conversations",
+            f"Choose the chat to keep. “{source.title or fallback_title(source.raw_text)}” is added after it, "
+            "using its title. "
+            "Originals and saved rewrites are kept. This cannot be undone.",
+        )
+        dialog.add_response("cancel", "Cancel")
+        dialog.add_response("merge", "Merge")
+        dialog.set_default_response("cancel")
+        dialog.set_close_response("cancel")
+        dialog.set_response_appearance("merge", Adw.ResponseAppearance.SUGGESTED)
+        dialog.set_response_enabled("merge", False)
+        content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        search = Gtk.SearchEntry(placeholder_text="Find a conversation")
+        content.append(search)
+        choices = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE, css_classes=["boxed-list"])
+        scroll = Gtk.ScrolledWindow(hscrollbar_policy=Gtk.PolicyType.NEVER, min_content_height=180)
+        scroll.set_child(choices)
+        content.append(scroll)
+        empty = Gtk.Label(label="No other matching conversations", wrap=True, css_classes=["dim-label"])
+        content.append(empty)
+        targets: dict[Gtk.ListBoxRow, str] = {}
+
+        def populate(*_args):
+            targets.clear()
+            while (row := choices.get_first_child()) is not None:
+                choices.remove(row)
+            for entry in self.store.search(search.get_text(), merge_target_for=identifier):
+                label = Gtk.Label(
+                    label=entry.title or fallback_title(entry.raw_text),
+                    xalign=0,
+                    ellipsize=Pango.EllipsizeMode.END,
+                    max_width_chars=28,
+                )
+                box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+                set_margins(box, 8)
+                box.append(label)
+                box.append(
+                    Gtk.Label(
+                        label=history_timestamp(entry.created_at, self.config.time_format),
+                        xalign=0,
+                        css_classes=["caption", "dim-label"],
+                    )
+                )
+                row = Gtk.ListBoxRow(child=box)
+                choices.append(row)
+                targets[row] = entry.identifier
+            empty.set_visible(not targets)
+            dialog.set_response_enabled("merge", False)
+
+        choices.connect("row-selected", lambda _list, row: dialog.set_response_enabled("merge", row in targets))
+        search.connect("search-changed", populate)
+        populate()
+        dialog.set_extra_child(content)
+
+        def chosen(alert, result):
+            if alert.choose_finish(result) == "merge" and (target := targets.get(choices.get_selected_row())):
+                self.merge_conversations(identifier, target)
+
+        dialog.choose(self, None, chosen)
 
     def show_transient(self, original: str, text: str) -> None:
         """Show an unsaved Incognito result with explicit copying and no durable source."""
@@ -957,7 +1167,16 @@ class ConversationWorkspace(Gtk.Box):
 
     def _update_actions(self) -> None:
         """Make privacy and in-flight work authoritative for all rewrite entry points."""
-        self.continue_button.set_visible(self.entry is not None and self.entry.mode == "dictation" and not self.private)
+        self.title_button.set_sensitive(self.entry is not None and not self.private)
+        self.title_save.set_sensitive(not self.private)
+        for menu in self.row_menus.values():
+            menu.set_sensitive(not self.private and not self.busy and not self.live_active)
+        self.continue_button.set_visible(
+            self.entry is not None
+            and self.entry.mode == "dictation"
+            and not self.private
+            and self.renaming_identifier is None
+        )
         self.continue_button.set_sensitive(not self.busy and not self.live_active)
         for editor in self.editors.values():
             editor.set_editable(not self.busy)
@@ -978,6 +1197,7 @@ class ConversationWorkspace(Gtk.Box):
         """Prevent rewrite and prompt persistence in Incognito."""
         self.private = private
         if private:
+            self._cancel_title()
             self.drafts.clear()
             self.clear_rewrite_preview()
         self._update_actions()
