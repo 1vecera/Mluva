@@ -33,8 +33,8 @@ The native app and widget ship from this repository in one source archive and us
 `bash install.sh` installs both parts. Installer tests cover fresh installs, upgrades, clean legacy Git migration without network access, protected local edits and rollback after shell failures. Run `make linux-test` and the isolated widget check before releasing. To build the package from a reviewed tag:
 
 ```sh
-git archive --format=tar.gz --prefix=mluva-1.5.1/ \
-  --output=tmp/mluva-1.5.1-source.tar.gz v1.5.1
+git archive --format=tar.gz --prefix=mluva-1.5.2/ \
+  --output=tmp/mluva-1.5.2-source.tar.gz v1.5.2
 ```
 
 Publish that archive and its SHA-256 checksum together on the main Mluva release. Re-running setup from the new archive updates app and widget together.
