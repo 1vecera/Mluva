@@ -4,7 +4,7 @@
 
 Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.5.0)**
+**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.5.1)**
 
 ## Meet Mluva
 
@@ -30,7 +30,7 @@ Live rewrite is opt-in and Experimental. It marks missing information, preserves
 
 ## Install
 
-Run the setup from a source checkout. On **Omarchy Quattro**, it installs the desktop dependencies, native application and shell plugin together. It shows the installation plan first; system packages may request your sudo password.
+Run the setup from a source checkout or extracted [release archive](https://github.com/1vecera/Mluva/releases/latest). On **Omarchy Quattro**, it installs the desktop dependencies, native application and bundled shell widget together. Both parts share one repository, version and package. It shows the installation plan first; system packages may request your sudo password.
 
 ```sh
 git clone --depth 1 https://github.com/1vecera/Mluva.git mluva

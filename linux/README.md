@@ -59,7 +59,7 @@ MLUVA_INSTALL_HOME="$PWD/tmp/staged-home" bash linux/install.sh
 
 Staged mode skips live desktop, systemd and credential integration. Use the [isolated runner](../dev/README.md) for any GUI launch from that prefix.
 
-Run `mluva-uninstall` to remove the native app and owned launch integrations. Settings, history, recordings and migration backups remain. On Omarchy, remove the separately managed widget with `omarchy plugin remove mluva.dictation` before uninstalling the app.
+Run `mluva-uninstall` to remove the native app and owned launch integrations. Settings, history, recordings and migration backups remain. On Omarchy, remove the bundled widget with `omarchy plugin remove mluva.dictation` before uninstalling the app.
 
 ## Provider setup
 

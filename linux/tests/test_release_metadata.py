@@ -1,6 +1,7 @@
 """Drift protection for release and dependency metadata."""
 
 import hashlib
+import json
 import tomllib
 from pathlib import Path
 
@@ -43,7 +44,6 @@ def test_public_surfaces_use_canonical_repository_url() -> None:
     public_surfaces = [
         REPOSITORY_ROOT / "README.md",
         REPOSITORY_ROOT / "SECURITY.md",
-        REPOSITORY_ROOT / "dev" / "plugin-README.md",
         REPOSITORY_ROOT / "linux" / "gnome-extension" / "recording-status@mluva.local" / "metadata.json",
         REPOSITORY_ROOT / "linux" / "resources" / "mluva-input@.service",
     ]
@@ -64,3 +64,13 @@ def test_linux_package_declares_public_license_and_urls() -> None:
         "Repository": CANONICAL_REPOSITORY_URL,
         "Issues": f"{CANONICAL_REPOSITORY_URL}/issues",
     }
+
+
+def test_app_and_bundled_widget_share_a_release_version() -> None:
+    """Keep the single release package coherent across native and widget metadata."""
+    from mluva_linux.brand import PRODUCT_VERSION
+
+    linux = REPOSITORY_ROOT / "linux"
+    project = tomllib.loads((linux / "pyproject.toml").read_text())["project"]
+    manifest = json.loads((linux / "quickshell/mluva.dictation/manifest.json").read_text())
+    assert project["version"] == manifest["version"] == PRODUCT_VERSION

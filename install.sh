@@ -42,28 +42,14 @@ done
 [[ -f "${source_root}/linux/install.sh" ]] || fail "Run this script from a complete Mluva source checkout."
 
 install_plugin=false
-plugin_present=false
-plugin_dir="${HOME}/.config/omarchy/plugins/mluva.dictation"
-plugin_url="https://github.com/1vecera/omarchy-mluva.git"
 
 if command -v omarchy >/dev/null 2>&1; then
     platform=omarchy
     if [[ "${app_only}" == false ]]; then
-        omarchy plugin add --help >/dev/null 2>&1 \
+        omarchy plugin enable --help >/dev/null 2>&1 \
             || fail "The widget needs Omarchy Quattro's plugin manager. Use --app-only for the native app."
         install_plugin=true
-        if [[ -e "${plugin_dir}" || -L "${plugin_dir}" ]]; then
-            [[ ! -L "${plugin_dir}" && -d "${plugin_dir}/.git" ]] \
-                || fail "An unmanaged plugin exists at ${plugin_dir}. Back it up, then remove it with omarchy plugin remove mluva.dictation before retrying."
-            plugin_origin="$(git -C "${plugin_dir}" remote get-url origin)"
-            case "${plugin_origin}" in
-                "${plugin_url}" | "${plugin_url%.git}" | git@github.com:1vecera/omarchy-mluva.git) ;;
-                *) fail "Preserved a plugin with a different source: ${plugin_dir}. Use --app-only to keep it." ;;
-            esac
-            [[ -z "$(git -C "${plugin_dir}" status --porcelain)" ]] \
-                || fail "Preserved local plugin changes in ${plugin_dir}. Commit or back them up before updating, or use --app-only."
-            plugin_present=true
-        fi
+        python3 "${source_root}/linux/install_widget.py" --check
     fi
 elif command -v dnf >/dev/null 2>&1; then
     platform=fedora
@@ -86,13 +72,6 @@ if [[ "${assume_yes}" == false ]]; then
     esac
 fi
 
-if [[ "${plugin_present}" == true ]]; then
-    GIT_TERMINAL_PROMPT=0 git -C "${plugin_dir}" fetch --quiet origin HEAD \
-        || fail "Could not check the plugin update. No installation was started; retry when its source is reachable."
-    git -C "${plugin_dir}" merge-base --is-ancestor HEAD FETCH_HEAD \
-        || fail "The plugin has local commits or a divergent history. Use --app-only to preserve it, or reconcile it before updating. No installation was started."
-fi
-
 if [[ "${platform}" == omarchy ]]; then
     omarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita \
         at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard procps-ng webkitgtk-6.0 bubblewrap
@@ -103,17 +82,8 @@ fi
 
 bash "${source_root}/linux/install.sh"
 
-install_widget() {
-    if [[ "${plugin_present}" == true ]]; then
-        omarchy plugin update mluva.dictation --yes \
-            && omarchy plugin enable mluva.dictation
-    else
-        omarchy plugin add "${plugin_url}" --enable --yes
-    fi
-}
-
 if [[ "${install_plugin}" == true ]]; then
-    if install_widget; then
+    if python3 "${source_root}/linux/install_widget.py"; then
         echo "Omarchy widget is ready."
     else
         plugin_status=$?
