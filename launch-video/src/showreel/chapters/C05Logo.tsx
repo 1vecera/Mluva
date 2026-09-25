@@ -2,7 +2,7 @@ import { AbsoluteFill, Easing, random, useCurrentFrame } from "remotion";
 import { interpolatePath } from "@remotion/paths";
 import { noise2D } from "@remotion/noise";
 import { beatFrame } from "../timing";
-import { brand, C, display, easeIn, easeInOut, easeOut, ramp, ring, T } from "../theme";
+import { brand, C, easeIn, easeInOut, easeOut, ramp, ring } from "../theme";
 import { Box, lockupBoxes, LOCKUP, LockupFull, LockupHalf } from "../parts/Logo";
 import { MARK_PATH, MARK_VIEWBOX } from "../parts/markPath";
 
@@ -83,16 +83,6 @@ const Explosion: React.FC<{ frame: number }> = ({ frame }) => {
               strokeLinecap="round"
               opacity={op}
             />
-          );
-        })}
-        {Array.from({ length: 30 }, (_, i) => {
-          const angle = random(`sp-a-${i}`) * Math.PI * 2;
-          const speed = 250 + 800 * random(`sp-s-${i}`);
-          const d = (speed * (1 - Math.exp(-2.4 * t))) / 2.4;
-          const size = 1.5 + 3 * random(`sp-r-${i}`);
-          const op = ramp(frame, 0, 3) * ramp(frame, 16, 34, easeOut, 1, 0);
-          return (
-            <circle key={i} cx={CX + Math.cos(angle) * d} cy={CY + Math.sin(angle) * d + 40 * t * t} r={size} fill="#fff" opacity={op} filter="url(#spark-glow)" />
           );
         })}
       </svg>
@@ -182,15 +172,10 @@ const FormingMark: React.FC<{ frame: number; ambient: boolean }> = ({ frame, amb
   );
 };
 
-const markRightAt = (frame: number) => {
-  const move = ramp(frame, 38, 60, easeInOut);
-  const start: Box = { x: CX - 210, y: CY - 210, w: 420, h: 420 };
-  const box = lerpBox(start, FINAL.mark, move);
-  return box.x + box.w * 0.961;
-};
-
+// The wordmark wipes in once the sliding mark has cleared its space (its right edge passes x = 900
+// at about frame 54), so nothing is occluded or cut.
 const Word: React.FC<{ frame: number }> = ({ frame }) => {
-  const reveal = ramp(frame, 48, 66, easeOut);
+  const reveal = ramp(frame, 54, 70, easeOut);
   const out = ramp(frame, LENGTH - 18, LENGTH - 6, easeIn);
   if (reveal <= 0 || out >= 1 || atRest(frame)) return null;
   const rest = reveal >= 1 && out <= 0;
@@ -200,60 +185,17 @@ const Word: React.FC<{ frame: number }> = ({ frame }) => {
       left={LOCKUP_LEFT}
       top={LOCKUP_TOP}
       scale={LOCKUP_SCALE}
-      transform={rest ? "" : `translateX(${(1 - reveal) * -28 + out * 60}px)`}
+      transform={rest ? "" : `translateX(${(1 - reveal) * -16 + out * 60}px)`}
       style={
         rest
           ? undefined
           : {
-              // Hidden behind the sliding mark: never drawn left of the mark's trailing edge.
-              clipPath: `inset(-20% ${(1 - reveal) * (1 - FINAL_WORD_LEFT) * 100}% -20% ${Math.max(
-                0,
-                ((markRightAt(frame) + 12 - LOCKUP_LEFT) / (LOCKUP.w * LOCKUP_SCALE)) * 100,
-              )}%)`,
-              filter: `blur(${(1 - reveal) * 6 + out * 12}px)`,
+              clipPath: `inset(-20% ${(1 - reveal) * (1 - FINAL_WORD_LEFT) * 100}% -20% 0)`,
+              filter: `blur(${(1 - reveal) * 3 + out * 10}px)`,
               opacity: 1 - out,
             }
       }
     />
-  );
-};
-
-const TAGLINE = "The most delightful dictation for Omarchy.".split(" ");
-
-const Tagline: React.FC<{ frame: number }> = ({ frame }) => {
-  const out = ramp(frame, LENGTH - 20, LENGTH - 8, easeIn);
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        top: LOCKUP_TOP + LOCKUP.h * LOCKUP_SCALE + 34,
-        display: "flex",
-        justifyContent: "center",
-        gap: 13,
-        opacity: 1 - out,
-      }}
-    >
-      {TAGLINE.map((word, i) => {
-        const inT = ramp(frame, 58 + i * 2, 70 + i * 2, easeOut);
-        return (
-          <span
-            key={i}
-            style={{
-              ...display(T.xs, 500),
-              letterSpacing: "-0.01em",
-              color: C.ink2,
-              opacity: inT,
-              transform: `translateY(${(1 - inT) * 16}px)`,
-              display: "inline-block",
-            }}
-          >
-            {word}
-          </span>
-        );
-      })}
-    </div>
   );
 };
 
@@ -270,7 +212,6 @@ export const C05Logo: React.FC<{ ambient?: boolean }> = ({ ambient = true }) => 
       <Explosion frame={frame} />
       <FormingMark frame={frame} ambient={ambient} />
       <Word frame={frame} />
-      <Tagline frame={frame} />
     </AbsoluteFill>
   );
 };

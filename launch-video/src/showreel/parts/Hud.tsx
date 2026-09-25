@@ -1,6 +1,6 @@
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { beatAt, chapterAt, DURATION, FPS } from "../timing";
-import { C, easeOut, mono, ramp } from "../theme";
+import { C, easeOut, LABEL, mono, ramp } from "../theme";
 import { scramble } from "./Scramble";
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -48,7 +48,7 @@ export const Hud: React.FC<{ onAccent?: boolean; quiet?: number }> = ({ onAccent
   const fade = ramp(frame, DURATION - 24, DURATION - 2, easeOut, 1, 0);
   const text = 1 - quiet;
   const ink = onAccent ? "#0A0A0A" : C.ink;
-  const dim = onAccent ? "rgba(0,0,0,0.55)" : C.ink3;
+  const dim = onAccent ? "rgba(0,0,0,0.55)" : LABEL;
   const accent = onAccent ? "#0A0A0A" : C.red;
   const type = (value: string, delay: number) => scramble(value, ramp(frame, delay, delay + 12), value, frame);
 

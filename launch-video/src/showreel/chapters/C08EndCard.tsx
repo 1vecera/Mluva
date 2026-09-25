@@ -106,7 +106,7 @@ export const C08EndCard: React.FC<{ ambient?: boolean; push?: boolean }> = ({ am
             transform: `translateY(${(1 - tagline) * 14}px)`,
           }}
         >
-          A little more delight every day.
+          The most delightful dictation for Omarchy.
         </div>
         <div style={{ position: "absolute", left: 0, right: 0, top: BOTTOM + 112, display: "flex", justifyContent: "center" }}>
           <div

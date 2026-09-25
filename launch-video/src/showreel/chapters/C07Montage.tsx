@@ -13,7 +13,7 @@ export const CUTS = Array.from({ length: 9 }, (_, k) => beatFrame(24 + k / 2) - 
 const INK_LEFT = "0.047em";
 const INK_RIGHT = "0.0065em";
 // Keep type walls clear of the HUD bands at the top and bottom of the frame.
-const HUD_SAFE = "linear-gradient(transparent 0px, transparent 130px, black 210px, black 870px, transparent 950px)";
+const HUD_SAFE = "linear-gradient(transparent 0px, transparent 140px, black 220px, black 820px, transparent 900px)";
 
 const Punch: React.FC<{ f: number; children: React.ReactNode; bg?: string }> = ({ f, children, bg }) => {
   const inT = ramp(f, 0, 4, easeOut);
@@ -168,7 +168,7 @@ const Flaps: React.FC<{ f: number }> = ({ f }) => (
                   justifyContent: "center",
                   fontFamily: DISPLAY,
                   fontWeight: 800,
-                  fontSize: 124,
+                  fontSize: T.m,
                   color: r === 0 && ch === "P" && done ? C.red : C.ink,
                   transform: `perspective(600px) rotateX(${(1 - flip) * 30}deg)`,
                   opacity: ch === " " && done ? 0.25 : 1,
@@ -214,7 +214,9 @@ const Export: React.FC<{ f: number }> = ({ f }) => (
         ))}
       </AbsoluteFill>
     </AbsoluteFill>
-    <div style={{ ...mono(15, LABEL), position: "absolute", left: 960, top: 214, transform: "translateX(-50%)" }}>EXPORT EVERY CONVERSATION</div>
+    <div style={{ ...mono(15, LABEL), position: "absolute", left: 960, top: 196, transform: "translateX(-50%)", background: C.bg, padding: "10px 22px" }}>
+      EXPORT EVERY CONVERSATION
+    </div>
   </Punch>
 );
 

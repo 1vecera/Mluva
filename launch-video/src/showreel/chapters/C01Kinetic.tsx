@@ -2,12 +2,12 @@ import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { noise2D } from "@remotion/noise";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import { beatFrame } from "../timing";
-import { BLOOM, C, display, easeIn, easeOut, LABEL, mono, outline, ramp, ring, T } from "../theme";
+import { C, display, easeIn, easeOut, LABEL, mono, outline, ramp, ring, T } from "../theme";
 import { MarkPeriod } from "../parts/MarkPeriod";
 
 const PHRASES = [
   { text: "SPEAK FREELY", sub: "F9 · START / STOP", start: beatFrame(1) },
-  { text: "SHAPE IT", sub: "POLISH · STRUCTURE · LIVE REWRITE", start: beatFrame(2) },
+  { text: "SHAPE IT", sub: "POLISH · STRUCTURE · YOUR INSTRUCTION", start: beatFrame(2) },
   { text: "KEEP EVERY WORD", sub: "ORIGINALS · REWRITES · HISTORY", start: beatFrame(3) },
 ];
 const END = beatFrame(4);
@@ -50,11 +50,9 @@ const Light: React.FC<{ frame: number }> = ({ frame }) => {
           top: CY - 3,
           width: 1400,
           height: 6,
-          background:
-            "linear-gradient(90deg, transparent, rgba(233,27,39,0.6) 30%, #fff 50%, rgba(233,27,39,0.6) 70%, transparent)",
-          transform: `scaleX(${0.08 + 0.92 * stretch}) scaleY(${1 + 1.5 * stretch})`,
-          opacity: 0.25 + 0.75 * stretch,
-          filter: "blur(1px)",
+          background: "#fff",
+          transform: `scaleX(${0.02 + 0.98 * stretch}) scaleY(${0.34})`,
+          opacity: stretch,
         }}
       />
       <div
@@ -159,7 +157,7 @@ const Phrase: React.FC<{ index: number; frame: number }> = ({ index, frame }) =>
               whiteSpace: "pre",
               transform: `translateY(${(1 - appear) * 60}px)`,
               opacity: appear,
-              textShadow: blend ? "none" : BLOOM,
+              textShadow: "none",
             }}
           >
             {ch}

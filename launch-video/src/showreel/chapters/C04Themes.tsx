@@ -141,13 +141,37 @@ const Odometer: React.FC<{ value: number; size: number }> = ({ value, size }) =>
   );
 };
 
+// A short departures-style list: each theme name scrolls through three rows as it is counted.
+const ROW = 26;
+const ThemeList: React.FC<{ value: number }> = ({ value }) => (
+  <div
+    style={{
+      position: "relative",
+      height: ROW * 3,
+      marginTop: 18,
+      overflow: "hidden",
+      WebkitMaskImage: "linear-gradient(transparent 0%, black 30%, black 70%, transparent 100%)",
+    }}
+  >
+    <div style={{ transform: `translateY(${ROW - (value - 1) * ROW}px)` }}>
+      {COUNT_ORDER.map((theme, i) => {
+        const near = 1 - Math.min(1, Math.abs(value - 1 - i));
+        return (
+          <div key={theme} style={{ ...mono(15, near > 0.5 ? C.ink : LABEL), height: ROW, lineHeight: `${ROW}px`, opacity: 0.45 + 0.55 * near }}>
+            <span style={{ color: near > 0.5 ? C.red : "transparent" }}>● </span>
+            {String(i + 1).padStart(2, "0")} {theme.replace("-", " ").toUpperCase()}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
+
 const Counter: React.FC<{ frame: number }> = ({ frame }) => {
   const enter = ramp(frame, 0, 10);
   const exit = ramp(frame, COLLAPSE, COLLAPSE + 10, easeIn);
   const value = countAt(frame);
   const rolling = Math.abs(value - Math.round(value)) > 0.02;
-  const named = Math.max(1, Math.round(value));
-  const name = COUNT_ORDER[named - 1].replace("-", " ").toUpperCase();
   return (
     <div
       style={{
@@ -167,10 +191,7 @@ const Counter: React.FC<{ frame: number }> = ({ frame }) => {
         <Odometer value={value} size={T.xl} />
       </div>
       <div style={{ ...display(T.s, 800), letterSpacing: "-0.03em", marginTop: 6 }}>Omarchy themes</div>
-      <div style={{ ...mono(15, C.ink), marginTop: 26 }}>
-        <span style={{ color: C.red }}>● </span>
-        {value < 0.5 ? "" : name}
-      </div>
+      <ThemeList value={value} />
       <div style={{ ...mono(15, LABEL), marginTop: 14 }}>CAPTURED FROM THE REAL WIDGET</div>
     </div>
   );

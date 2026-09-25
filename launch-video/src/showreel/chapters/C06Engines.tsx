@@ -67,14 +67,18 @@ const Satellite: React.FC<{ index: number; frame: number }> = ({ index, frame })
   const draw = ramp(frame, s.at, s.at + 8, easeOut);
   const label = ramp(frame, s.at + 6, s.at + 12);
   if (draw <= 0) return null;
-  const bend = 0.22 * (index % 2 === 0 ? 1 : -1);
-  const mx = (OX + x) / 2 - (y - OY) * bend;
-  const my = (OY + y) / 2 + (x - OX) * bend;
-  const path = `M ${OX} ${OY} Q ${mx} ${my} ${x} ${y}`;
+  // Links leave the on-device ring (or the core's edge for the ring's own satellite), never the mark.
+  const from = s.radius === INNER ? 84 : INNER;
+  const sx = OX + Math.cos(a) * from;
+  const sy = OY + Math.sin(a) * from;
+  const bend = 0.18 * (index % 2 === 0 ? 1 : -1);
+  const mx = (sx + x) / 2 - (y - sy) * bend;
+  const my = (sy + y) / 2 + (x - sx) * bend;
+  const path = `M ${sx} ${sy} Q ${mx} ${my} ${x} ${y}`;
   const flowing = frame >= s.at + 10;
   const phase = (((frame - s.at - 10) % 14) + 14) % 14 / 14;
-  const px = (1 - phase) ** 2 * OX + 2 * (1 - phase) * phase * mx + phase ** 2 * x;
-  const py = (1 - phase) ** 2 * OY + 2 * (1 - phase) * phase * my + phase ** 2 * y;
+  const px = (1 - phase) ** 2 * sx + 2 * (1 - phase) * phase * mx + phase ** 2 * x;
+  const py = (1 - phase) ** 2 * sy + 2 * (1 - phase) * phase * my + phase ** 2 * y;
   const pop = 1 + 0.5 * ring((frame - s.at - 8) / 60, 3, 7);
   const box: React.CSSProperties =
     s.place === "below" ? { left: x - 24, top: y + 26 } : { left: x + 28, top: y - 30 };

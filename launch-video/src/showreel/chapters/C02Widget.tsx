@@ -1,5 +1,5 @@
 import { AbsoluteFill, Easing, Img, staticFile, useCurrentFrame } from "remotion";
-import { C, easeIn, easeOut, LABEL, mono, ramp } from "../theme";
+import { easeIn, easeOut, LABEL, mono, ramp } from "../theme";
 import { Callout } from "../parts/Callout";
 import { Keycap } from "../parts/Keycap";
 import { hBlur } from "../parts/Blur";
@@ -24,9 +24,12 @@ const REVIEW_FRAME = 175;
 const LENGTH = 113;
 const captureFrame = (frame: number) => Math.min(LAST, Math.round(TRIM + frame * RATE));
 
+// A small tilt only while the widget unfolds; flat from the first beat so streamed words read level.
+const FLAT_BY = 28;
 const stage = (frame: number) => {
-  const t = Easing.inOut(Easing.cubic)(Math.min(1, Math.max(0, frame / LENGTH)));
-  return { rx: 9 - 7 * t, ry: -12 + 9 * t, s: 0.93 + 0.07 * t };
+  const settle = Easing.out(Easing.cubic)(Math.min(1, Math.max(0, frame / FLAT_BY)));
+  const push = Easing.inOut(Easing.cubic)(Math.min(1, Math.max(0, frame / LENGTH)));
+  return { rx: 3 * (1 - settle), ry: -4 * (1 - settle), s: 0.95 + 0.05 * push };
 };
 
 // Project a capture-pixel point on the tilted plane to the screen (CSS: rotateX · rotateY · scale).
@@ -68,6 +71,7 @@ export const C02Widget: React.FC = () => {
   const keyIn = ramp(frame, 0, 8);
   const keyLabel = stopped ? "STOP" : "START";
   const bottom = project(frame, WIDGET.x + WIDGET.w / 2, WIDGET.bottom);
+  const disclosure = project(frame, WIDGET.x + WIDGET.w, WIDGET.bottom);
 
   return (
     <AbsoluteFill
@@ -119,7 +123,7 @@ export const C02Widget: React.FC = () => {
         }}
       />
       <Callout frame={frame} at={14} until={62} x={dot.x} y={dot.y} dx={-36} dy={-70} label="RECORDING LIGHT" align="right" />
-      <Callout frame={frame} at={22} until={62} x={timer.x} y={timer.y} dx={36} dy={-70} label="TIME AS SPOKEN" />
+      <Callout frame={frame} at={22} until={62} x={timer.x} y={timer.y} dx={36} dy={-70} label="RECORDING TIME" />
       <Callout frame={frame} at={86} x={review.x} y={review.y} dx={-36} dy={-56} label="COPIED TO CLIPBOARD" align="right" />
       <div
         style={{
@@ -135,8 +139,16 @@ export const C02Widget: React.FC = () => {
           {scramble(keyLabel, ramp(frame, stopped ? 67 : 2, stopped ? 71 : 6), keyLabel, frame)}
         </div>
       </div>
-      <div style={{ ...mono(15, C.ink3), position: "absolute", right: 94, top: 150, opacity: ramp(frame, 20, 30) * (1 - exit) }}>
-        REAL CAPTURE · TIME-LAPSE
+      <div
+        style={{
+          ...mono(15, LABEL),
+          position: "absolute",
+          right: 1920 - disclosure.x,
+          top: disclosure.y + 44,
+          opacity: ramp(frame, 20, 30),
+        }}
+      >
+        REAL APP · SCRIPTED DEMO · SPED UP
       </div>
     </AbsoluteFill>
   );

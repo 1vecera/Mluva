@@ -29,14 +29,14 @@ const GLOW = [
 
 // A slow camera: 2.5 % push and a few pixels of drift across the bar. Chapters that show real UI
 // (02), the brand lockup (05, 08) or run their own cuts (07) keep a locked frame.
-const CAMERA: Record<number, [number, number]> = { 1: [10, -4], 3: [-12, 5], 4: [12, 4], 6: [-10, -5] };
+const CAMERA: Record<number, [number, number, number]> = { 1: [10, -4, 0.025], 3: [-6, -3, 0.012], 4: [12, 4, 0.025], 6: [-10, -5, 0.025] };
 const Camera: React.FC<{ index: number; length: number; children: React.ReactNode }> = ({ index, length, children }) => {
   const frame = useCurrentFrame();
   const drift = CAMERA[index];
   if (!drift) return <AbsoluteFill>{children}</AbsoluteFill>;
   const p = Math.min(1, Math.max(0, frame / length));
   return (
-    <AbsoluteFill style={{ transform: `translate(${drift[0] * (p - 0.5)}px, ${drift[1] * (p - 0.5)}px) scale(${1 + 0.025 * p})` }}>
+    <AbsoluteFill style={{ transform: `translate(${drift[0] * (p - 0.5)}px, ${drift[1] * (p - 0.5)}px) scale(${1 + drift[2] * p})` }}>
       {children}
     </AbsoluteFill>
   );

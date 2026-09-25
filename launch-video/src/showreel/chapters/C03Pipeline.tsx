@@ -3,7 +3,7 @@ import { noise2D } from "@remotion/noise";
 import { getLength, getPointAtLength } from "@remotion/paths";
 import { beatFrame } from "../timing";
 import { BLOOM, C, display, easeIn, easeInOut, easeOut, LABEL, MONO, mono, ramp, ring, T } from "../theme";
-import { hBlur, vBlur } from "../parts/Blur";
+import { hBlur } from "../parts/Blur";
 import { beatPulse } from "../parts/Background";
 import { MarkPeriod } from "../parts/MarkPeriod";
 
@@ -13,7 +13,7 @@ const LENGTH = beatFrame(12) - B0;
 
 const NODES = [
   { x: 420, y: 606, name: "Speak", sub: "01 · F9 · MICROPHONE", word: "Spoken" },
-  { x: 800, y: 504, name: "Transcribe", sub: "02 · SCRIBE · LOCAL · API", word: "Heard" },
+  { x: 800, y: 504, name: "Transcribe", sub: "02 · SPEECH ENGINE", word: "Heard" },
   { x: 1180, y: 606, name: "Copy", sub: "03 · CLIPBOARD", word: "Copied" },
   { x: 1560, y: 504, name: "Rewrite", sub: "04 · ON DEMAND", word: "Shaped" },
 ];
@@ -28,6 +28,8 @@ const PATH = `${FIXED} ${segment(NODES[2], NODES[3])}`;
 const TOTAL = getLength(PATH);
 const FIXED_LENGTH = getLength(FIXED);
 const STOPS = NODES.map((_, i) => (TOTAL * i) / 3);
+// Only the link in flight is red; finished links settle to grey.
+const lastStop = (s: number) => STOPS.filter((stop) => stop <= s + 0.5).pop() ?? 0;
 
 const Icon: React.FC<{ index: number; color: string }> = ({ index, color }) => {
   const common = { fill: "none", stroke: color, strokeWidth: 2.4, strokeLinecap: "round" as const };
@@ -131,7 +133,14 @@ const Track: React.FC<{ frame: number }> = ({ frame }) => {
         </filter>
       </defs>
       <path d={PATH} fill="none" stroke="rgba(245,245,245,0.2)" strokeWidth={2} strokeDasharray="2 9" strokeLinecap="round" opacity={draw} />
-      <path d={FIXED} fill="none" stroke={C.red} strokeWidth={2} strokeDasharray={`${fixed} ${TOTAL}`} />
+      <path d={FIXED} fill="none" stroke="rgba(245,245,245,0.45)" strokeWidth={2} strokeDasharray={`${fixed} ${TOTAL}`} />
+      <path
+        d={FIXED}
+        fill="none"
+        stroke={C.red}
+        strokeWidth={2}
+        strokeDasharray={`0 ${Math.max(0, lastStop(s))} ${Math.max(0, Math.min(s, FIXED_LENGTH) - lastStop(s))} ${TOTAL}`}
+      />
       {demand > 0 ? (
         <path
           d={ON_DEMAND}
@@ -269,7 +278,7 @@ const Frames: React.FC<{ frame: number }> = ({ frame }) => {
         <div style={{ ...mono(24, copied ? C.ink : C.ink3), letterSpacing: "0.12em", marginTop: 40 }}>
           {polished ? "POLISHED DRAFT" : copied ? "ORIGINAL TEXT" : "—"}
         </div>
-        <div style={{ ...mono(15, LABEL), marginTop: 28 }}>PASTE WITH CTRL+V</div>
+        <div style={{ ...mono(15, LABEL), marginTop: 28 }}>READY TO PASTE</div>
       </Frame>
     </>
   );
@@ -284,10 +293,9 @@ const BigWord: React.FC<{ frame: number }> = ({ frame }) => {
   const next = BEATS[index + 1] ?? LENGTH;
   const inT = ramp(local, 0, 7, easeOut);
   const outT = index < 3 ? ramp(frame, next - 5, next, easeIn) : 0;
-  const y = (1 - inT) * 70 - outT * 70;
-  const blur = 30 * (1 - inT) + 30 * outT;
+  const y = (1 - inT) * 124 - outT * 124;
   return (
-    <div style={{ position: "absolute", left: 128, top: 790 }}>
+    <div style={{ position: "absolute", left: 128, top: 772 }}>
       <div style={{ ...mono(15, LABEL), display: "flex", gap: 36 }}>
         <span>
           <span style={{ display: "inline-block", width: 9, height: 9, background: C.red, marginRight: 14 }} />
@@ -298,7 +306,7 @@ const BigWord: React.FC<{ frame: number }> = ({ frame }) => {
         </span>
       </div>
       <div style={{ height: 124, overflow: "hidden", marginTop: 12 }}>
-        <div style={{ display: "flex", alignItems: "baseline", transform: `translateY(${y}px)`, filter: vBlur(blur), opacity: 1 - outT }}>
+        <div style={{ display: "flex", alignItems: "baseline", transform: `translateY(${y}px)` }}>
           <span style={{ ...display(T.m), textShadow: BLOOM }}>{NODES[index].word}</span>
           <MarkPeriod fontSize={T.m} local={local} at={3} />
         </div>
