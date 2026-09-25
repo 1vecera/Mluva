@@ -11,7 +11,7 @@ A 15-second, 1920×1080, 60 fps motion-design reel: eight chapters, one bar each
 | 451–563 | 05 Logo animation | The drop: the light bursts into the mark, which settles into the large-mark lockup |
 | 563–676 | 06 Data visualisation | Local or cloud: the speech and rewrite engines from the provider guide |
 | 676–788 | 07 Type montage | Eight cuts on eighth notes: F9, Live rewrite, Polish/Structure, history, Incognito, Ctrl+P, export, open source |
-| 788–900 | 08 End card | Lockup, "A little more delight every day." and github.com/1vecera/Mluva |
+| 788–900 | 08 End card | Lockup, "The most delightful dictation for Omarchy." and github.com/1vecera/Mluva |
 
 `src/showreel/timing.ts` holds the beat grid (`0.014 s + n × 0.46875 s`); every chapter derives its keyframes from it. `theme.ts` holds the identity: black, #F5F5F5 ink, one red accent, Adwaita Sans on a five-step scale and JetBrains Mono labels.
 
