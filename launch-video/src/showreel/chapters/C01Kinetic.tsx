@@ -164,7 +164,7 @@ const Phrase: React.FC<{ index: number; frame: number }> = ({ index, frame }) =>
           </span>
         );
       })}
-      {blend ? null : <MarkPeriod fontSize={SIZE} local={local} at={popAt} />}
+      {blend ? null : <MarkPeriod fontSize={SIZE} local={local} at={popAt} after={phrase.text} />}
     </div>
   );
   return (

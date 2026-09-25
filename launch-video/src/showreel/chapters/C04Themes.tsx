@@ -1,4 +1,4 @@
-import { AbsoluteFill, Easing, Img, random, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, Img, interpolate, random, staticFile, useCurrentFrame } from "remotion";
 import { beatFrame } from "../timing";
 import { C, display, easeIn, easeInOut, easeOut, LABEL, mono, ramp, T } from "../theme";
 import { vBlur } from "../parts/Blur";
@@ -17,13 +17,13 @@ const TILES = LIGHT_TO_DARK.flatMap((theme) => [
   { theme, src: `showreel/themes/${theme}-review.png` },
 ]);
 const B0 = beatFrame(12);
-const COLLAPSE = beatFrame(15) - B0;
+const COLLAPSE = beatFrame(15) - B0 + 6;
 const LENGTH = beatFrame(16) - B0;
 const RADIUS = 360;
 const TILE_W = 190;
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
-const COUNT_FROM = 2;
-const COUNT_TO = 82;
+const COUNT_FROM = 0;
+const COUNT_TO = 72;
 
 const POINTS = TILES.map((_, i) => {
   const y = -1 + (2 * (i + 0.5)) / TILES.length;
@@ -31,15 +31,22 @@ const POINTS = TILES.map((_, i) => {
   return { x: Math.cos(i * GOLDEN) * r, y, z: Math.sin(i * GOLDEN) * r };
 });
 const expoOut = Easing.out(Easing.exp);
-// The count steps once per theme: each digit rolls for two frames, then holds crisp.
-const ROLL = 2;
-const stepAt = (k: number) => COUNT_FROM + (k / 22) * (COUNT_TO - COUNT_FROM);
-const namedAt = (theme: string) => stepAt(COUNT_ORDER.indexOf(theme) + 1);
-const countAt = (frame: number) =>
-  Array.from({ length: 22 }, (_, i) => easeOut(Math.min(1, Math.max(0, (frame - stepAt(i + 1) + ROLL) / ROLL)))).reduce(
-    (sum, v) => sum + v,
-    0,
-  );
+// The count eases from 1 to 22: fast at first, then each theme holds long enough to read.
+const eased = (frame: number) =>
+  interpolate(frame, [COUNT_FROM, COUNT_TO], [1, 22], {
+    easing: Easing.out(Easing.cubic),
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+const countAt = (frame: number) => (frame < COUNT_FROM ? 0 : Math.round(eased(frame)));
+// First frame at which the count reaches k.
+const STEP_FRAMES = Array.from({ length: 23 }, (_, k) => {
+  for (let f = 0; f <= COUNT_TO; f++) if (countAt(f) >= k) return f;
+  return COUNT_TO;
+});
+const namedAt = (theme: string) => STEP_FRAMES[COUNT_ORDER.indexOf(theme) + 1];
+// One highlight sweeps across the sphere on each beat of the hold.
+const SWEEPS = [beatFrame(13) - B0, beatFrame(14) - B0];
 
 const Sphere: React.FC<{ frame: number }> = ({ frame }) => {
   const collapse = ramp(frame, COLLAPSE, LENGTH - 6, easeIn);
@@ -73,13 +80,20 @@ const Sphere: React.FC<{ frame: number }> = ({ frame }) => {
         .map(({ i, x, y, z }) => {
           const tile = TILES[i];
           // Assemble from deep behind the sphere, staggered, with an exponential ease.
-          const delay = Math.floor(random(`tile-${i}`) * 18);
-          const a = expoOut(Math.min(1, Math.max(0, (frame - delay) / 22)));
+          const delay = Math.floor(random(`tile-${i}`) * 10);
+          const a = expoOut(Math.min(1, Math.max(0, (frame + 2 - delay) / 16)));
           if (a <= 0) return null;
           const depthZ = z * radius * a - 1800 * (1 - a);
           const perspective = 1500 / (1500 - depthZ);
           const facing = (z + 1) / 2;
-          const shade = 0.35 + 0.65 * Math.max(0, z);
+          const screenX = cx + x * radius * a * perspective;
+          const sweep = SWEEPS.reduce((sum, at) => {
+            const t = (frame - at) / 16;
+            if (t < 0 || t > 1) return sum;
+            const bandX = cx - radius * 1.3 + t * radius * 2.6;
+            return sum + Math.exp(-(((screenX - bandX) / 70) ** 2));
+          }, 0);
+          const shade = 0.4 + 0.7 * Math.max(0, z) + 0.35 * sweep;
           const edge = Math.min(1, (z + 0.08) / 0.25);
           const yaw = Math.atan2(x, z);
           const pitch = -Math.asin(Math.max(-1, Math.min(1, y)));
@@ -111,37 +125,32 @@ const Sphere: React.FC<{ frame: number }> = ({ frame }) => {
   );
 };
 
-// Digit strips masked with a soft gradient so glow and motion blur are not boxed in.
-const Odometer: React.FC<{ value: number; size: number }> = ({ value, size }) => {
-  const ones = value % 10;
-  const tens = Math.floor(value / 10) + Math.max(0, ones - 9);
-  const strip = (pos: number, key: string) => (
+// Integer digits: each change slides the new number up 18 % of its size over three frames.
+const Count: React.FC<{ frame: number; size: number }> = ({ frame, size }) => {
+  const value = countAt(frame);
+  const since = value > 0 ? frame - STEP_FRAMES[value] : 99;
+  const slide = 1 - easeOut(Math.min(1, since / 3));
+  const pop = value === 22 ? 1 + 0.06 * (1 - expoOut(Math.min(1, (frame - STEP_FRAMES[22]) / 10))) : 1;
+  return (
     <div
-      key={key}
       style={{
+        ...display(size),
         height: size,
-        width: size * 0.62,
-        WebkitMaskImage: "linear-gradient(transparent 0%, black 16%, black 84%, transparent 100%)",
+        lineHeight: `${size}px`,
+        transform: `translateY(${slide * size * 0.18}px) scale(${pop})`,
+        transformOrigin: "0% 60%",
+        opacity: 0.35 + 0.65 * (1 - slide),
+        filter: "drop-shadow(0 0 22px rgba(255,255,255,0.1))",
+        fontVariantNumeric: "tabular-nums",
       }}
     >
-      <div style={{ transform: `translateY(${-pos * size}px)` }}>
-        {Array.from({ length: 11 }, (_, d) => (
-          <div key={d} style={{ ...display(size), height: size, lineHeight: `${size}px`, textAlign: "center" }}>
-            {d % 10}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-  return (
-    <div style={{ display: "flex", filter: "drop-shadow(0 0 22px rgba(255,255,255,0.1))" }}>
-      {strip(tens, "t")}
-      {strip(ones, "o")}
+      {String(value).padStart(2, "0")}
     </div>
   );
 };
 
 // A short departures-style list: each theme name scrolls through three rows as it is counted.
+// `value` is the eased, continuous count, so the list glides between names.
 const ROW = 26;
 const ThemeList: React.FC<{ value: number }> = ({ value }) => (
   <div
@@ -170,8 +179,7 @@ const ThemeList: React.FC<{ value: number }> = ({ value }) => (
 const Counter: React.FC<{ frame: number }> = ({ frame }) => {
   const enter = ramp(frame, 0, 10);
   const exit = ramp(frame, COLLAPSE, COLLAPSE + 10, easeIn);
-  const value = countAt(frame);
-  const rolling = Math.abs(value - Math.round(value)) > 0.02;
+  const glide = frame < COUNT_FROM ? 1 : eased(frame);
   return (
     <div
       style={{
@@ -187,11 +195,11 @@ const Counter: React.FC<{ frame: number }> = ({ frame }) => {
         <span style={{ display: "inline-block", width: 9, height: 9, background: C.red, marginRight: 14 }} />
         ONE WIDGET · EVERY THEME
       </div>
-      <div style={{ marginTop: 20, filter: rolling ? vBlur(8) : undefined }}>
-        <Odometer value={value} size={T.xl} />
+      <div style={{ marginTop: 20 }}>
+        <Count frame={frame} size={T.xl} />
       </div>
       <div style={{ ...display(T.s, 800), letterSpacing: "-0.03em", marginTop: 6 }}>Omarchy themes</div>
-      <ThemeList value={value} />
+      <ThemeList value={glide} />
       <div style={{ ...mono(15, LABEL), marginTop: 14 }}>CAPTURED FROM THE REAL WIDGET</div>
     </div>
   );

@@ -7,10 +7,11 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const INSET = 56;
 const ARM = 22;
 
-const Bracket: React.FC<{ corner: "tl" | "tr" | "bl" | "br"; offset: number; opacity: number }> = ({
+const Bracket: React.FC<{ corner: "tl" | "tr" | "bl" | "br"; offset: number; opacity: number; color: string }> = ({
   corner,
   offset,
   opacity,
+  color,
 }) => {
   const top = corner[0] === "t";
   const left = corner[1] === "l";
@@ -23,7 +24,7 @@ const Bracket: React.FC<{ corner: "tl" | "tr" | "bl" | "br"; offset: number; opa
         opacity,
         [top ? "top" : "bottom"]: INSET - offset,
         [left ? "left" : "right"]: INSET - offset,
-        borderColor: C.ink2 as string,
+        borderColor: color,
         borderStyle: "solid",
         borderWidth: 0,
         [top ? "borderTopWidth" : "borderBottomWidth"]: 1.5,
@@ -55,7 +56,7 @@ export const Hud: React.FC<{ onAccent?: boolean; quiet?: number }> = ({ onAccent
   return (
     <AbsoluteFill style={{ opacity: fade, pointerEvents: "none" }}>
       {(["tl", "tr", "bl", "br"] as const).map((corner) => (
-        <Bracket key={corner} corner={corner} offset={(1 - boot) * 18} opacity={boot} />
+        <Bracket key={corner} corner={corner} offset={(1 - boot) * 18} opacity={boot} color={onAccent ? "rgba(0,0,0,0.55)" : C.ink2} />
       ))}
       <div style={{ position: "absolute", left: 94, top: 62 }}>
         <div style={{ ...mono(15, ink), opacity: text }}>{type("SHOWREEL '26", 2)}</div>

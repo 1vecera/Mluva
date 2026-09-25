@@ -222,8 +222,15 @@ const LINES = [
   { y0: 62, y1: 125, at: 24 },
 ];
 
+// The widget draws white text on black; keying luminance to alpha keeps every glyph as captured
+// while its black ground drops out against the frame.
 const Transcript: React.FC<{ frame: number }> = ({ frame }) => (
   <div style={{ position: "relative", width: CROP.w * CROP.scale, height: CROP.h * CROP.scale, marginTop: 34 }}>
+    <svg width={0} height={0} style={{ position: "absolute" }}>
+      <filter id="luma-key" colorInterpolationFilters="sRGB">
+        <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0.2126 0.7152 0.0722 0 0" />
+      </filter>
+    </svg>
     {LINES.map((line, i) => {
       const reveal = ramp(frame, line.at, line.at + 12, (t) => t);
       return (
@@ -242,6 +249,7 @@ const Transcript: React.FC<{ frame: number }> = ({ frame }) => (
           <Img
             src={staticFile(TEXT_FRAME)}
             style={{
+              filter: "url(#luma-key)",
               position: "absolute",
               left: -CROP.x * CROP.scale,
               top: -(CROP.y + line.y0) * CROP.scale,
@@ -318,14 +326,16 @@ const BigWord: React.FC<{ frame: number }> = ({ frame }) => {
 export const C03Pipeline: React.FC = () => {
   const frame = useCurrentFrame();
   const enter = ramp(frame, 0, 9, easeOut);
-  const push = ramp(frame, LENGTH - 6, LENGTH, easeIn);
+  // The camera flies into the Rewrite node: its dark face fills the frame and opens onto the sphere.
+  const portal = ramp(frame, LENGTH - 10, LENGTH, easeIn);
+  const node = NODES[3];
   return (
     <AbsoluteFill
       style={{
-        transform: `translateX(${900 * (1 - enter)}px) scale(${1 + 0.35 * push})`,
-        transformOrigin: "1250px 540px",
-        filter: enter < 1 ? hBlur(60 * (1 - enter)) : push > 0 ? `blur(${push * 10}px)` : undefined,
-        opacity: 1 - push,
+        transform: `translateX(${900 * (1 - enter)}px) scale(${1 + 21 * portal})`,
+        transformOrigin: `${node.x}px ${node.y}px`,
+        filter: enter < 1 ? hBlur(60 * (1 - enter)) : portal > 0 ? `blur(${portal * 6}px)` : undefined,
+        opacity: 1 - ramp(frame, LENGTH - 2, LENGTH, easeIn),
       }}
     >
       <Frames frame={frame} />

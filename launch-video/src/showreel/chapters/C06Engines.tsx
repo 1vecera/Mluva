@@ -24,9 +24,14 @@ const DOTS = Array.from({ length: 760 }, (_, i) => {
 const SATELLITES = [
   { label: "ELEVENLABS SCRIBE V2", tag: "CLOUD · SPEECH", radius: OUTER, angle: -62, at: 6, place: "right" },
   { label: "LOCAL MODEL", tag: "ON DEVICE · SPEECH", radius: INNER, angle: 70, at: 20, place: "right", experimental: true },
-  { label: "COMPATIBLE API", tag: "YOUR SERVER · SPEECH + REWRITE", radius: OUTER, angle: 150, at: 48, place: "below", experimental: true },
+  { label: "COMPATIBLE API", tag: "YOUR SERVER · SPEECH + REWRITE", radius: OUTER, angle: 140, at: 48, place: "left", experimental: true },
   { label: "CODEX", tag: "REWRITE", radius: OUTER, angle: -5, at: 76, place: "right" },
 ] as const;
+
+// A link lands 8 frames after it starts drawing. Compatible APIs serve speech and rewriting.
+const landsAt = (label: string) => (SATELLITES.find((s) => s.label === label)?.at ?? 0) + 8;
+const SPEECH_LANDS = ["ELEVENLABS SCRIBE V2", "LOCAL MODEL", "COMPATIBLE API"].map(landsAt);
+const REWRITE_LANDS = ["COMPATIBLE API", "CODEX"].map(landsAt);
 
 const Cloud: React.FC<{ frame: number }> = ({ frame }) => {
   const appear = ramp(frame, 0, 20, easeOut);
@@ -80,8 +85,7 @@ const Satellite: React.FC<{ index: number; frame: number }> = ({ index, frame })
   const px = (1 - phase) ** 2 * sx + 2 * (1 - phase) * phase * mx + phase ** 2 * x;
   const py = (1 - phase) ** 2 * sy + 2 * (1 - phase) * phase * my + phase ** 2 * y;
   const pop = 1 + 0.5 * ring((frame - s.at - 8) / 60, 3, 7);
-  const box: React.CSSProperties =
-    s.place === "below" ? { left: x - 24, top: y + 26 } : { left: x + 28, top: y - 30 };
+  const box: React.CSSProperties = s.place === "left" ? { right: 1920 - x + 24, top: y + 8 } : { left: x + 28, top: y - 30 };
   return (
     <>
       <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
@@ -136,16 +140,32 @@ const Headline: React.FC<{ frame: number }> = ({ frame }) => {
       </div>
       <div style={{ display: "flex", gap: 72, marginTop: 50, opacity: stats }}>
         {[
-          { label: "SPEECH", value: 3 },
-          { label: "REWRITE", value: 2 },
-        ].map((s) => (
-          <div key={s.label}>
-            <div style={mono(15, LABEL)}>{s.label}</div>
-            <div style={{ fontFamily: MONO, fontSize: T.s, color: C.ink, marginTop: 10, lineHeight: 1 }}>
-              0{Math.round(s.value * ramp(frame, 24, 44, easeOut))}
+          { label: "SPEECH", lands: SPEECH_LANDS },
+          { label: "REWRITE", lands: REWRITE_LANDS },
+        ].map((stat) => {
+          // Count only the engines whose link has landed; each new digit slides up over six frames.
+          const landed = stat.lands.filter((at) => frame >= at);
+          const since = landed.length ? frame - landed[landed.length - 1] : 99;
+          const slide = 1 - easeOut(Math.min(1, since / 6));
+          return (
+            <div key={stat.label}>
+              <div style={mono(15, LABEL)}>{stat.label}</div>
+              <div
+                style={{
+                  fontFamily: MONO,
+                  fontSize: T.s,
+                  color: C.ink,
+                  marginTop: 10,
+                  lineHeight: 1,
+                  transform: `translateY(${slide * 14}px)`,
+                  opacity: 0.4 + 0.6 * (1 - slide),
+                }}
+              >
+                0{landed.length}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

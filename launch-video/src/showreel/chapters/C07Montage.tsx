@@ -3,13 +3,13 @@ import { beatFrame } from "../timing";
 import { BLOOM, C, display, DISPLAY, easeOut, LABEL, MONO, mono, outline, ramp, T } from "../theme";
 import { Keycap } from "../parts/Keycap";
 import { MarkPeriod } from "../parts/MarkPeriod";
-import { scramble } from "../parts/Scramble";
 
 const B0 = beatFrame(24);
 export const CUTS = Array.from({ length: 9 }, (_, k) => beatFrame(24 + k / 2) - B0);
 
 // Ink bounds of Adwaita Sans Black at -0.035em tracking (fontTools, AdwaitaSans-Black-NoOverlap.ttf):
 // the ink starts 0.047em inside the text box and ends 0.0065em before its right edge.
+const GLYPHS = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&*+";
 const INK_LEFT = "0.047em";
 const INK_RIGHT = "0.0065em";
 // Keep type walls clear of the HUD bands at the top and bottom of the frame.
@@ -47,7 +47,11 @@ const PressF9: React.FC<{ f: number }> = ({ f }) => {
 };
 
 const LiveRewrite: React.FC<{ f: number }> = ({ f }) => {
-  const text = scramble("LIVE REWRITE", ramp(f, 0, 4), "live", f * 3, 0.85);
+  // Every position decodes left to right within four frames; nothing starts blank.
+  const text = "LIVE REWRITE"
+    .split("")
+    .map((ch, i) => (ch === " " || f >= 1 + i * 0.25 ? ch : GLYPHS[Math.floor(random(`live-${i}-${f}`) * GLYPHS.length)]))
+    .join("");
   const line = ramp(f, 2, 9, easeOut);
   return (
     <Punch f={f}>

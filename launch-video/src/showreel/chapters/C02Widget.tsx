@@ -81,6 +81,12 @@ export const C02Widget: React.FC = () => {
         opacity: 1 - exit * 0.4,
       }}
     >
+      <AbsoluteFill
+        style={{
+          background: "radial-gradient(ellipse 46% 40% at 50% 46%, rgba(255,255,255,0.06), transparent 70%)",
+          opacity: open,
+        }}
+      />
       <AbsoluteFill style={{ perspective: PERSPECTIVE }}>
         <div
           style={{
@@ -100,7 +106,7 @@ export const C02Widget: React.FC = () => {
               top: top * K,
               width: WIDGET.w * K,
               height: (WIDGET.bottom - top) * K,
-              boxShadow: "0 60px 140px rgba(0,0,0,0.75), 0 0 0 1px rgba(245,245,245,0.04)",
+              boxShadow: "0 0 0 1px rgba(255,255,255,0.1), 0 40px 160px rgba(255,255,255,0.05), 0 60px 140px rgba(0,0,0,0.75)",
               opacity: open,
             }}
           />

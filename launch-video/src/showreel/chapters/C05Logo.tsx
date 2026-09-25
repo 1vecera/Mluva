@@ -1,5 +1,4 @@
 import { AbsoluteFill, Easing, random, useCurrentFrame } from "remotion";
-import { interpolatePath } from "@remotion/paths";
 import { noise2D } from "@remotion/noise";
 import { beatFrame } from "../timing";
 import { brand, C, easeIn, easeInOut, easeOut, ramp, ring } from "../theme";
@@ -23,17 +22,6 @@ const atRest = (frame: number) => frame >= REST_FROM && frame < REST_TO;
 const FINAL_WORD_LEFT = (FINAL.word.x - LOCKUP_LEFT) / (LOCKUP.w * LOCKUP_SCALE);
 // Chapter 06 picks the mark up as the orbit core.
 export const CORE_BOX: Box = { x: 1330 - 62, y: 560 - 62, w: 124, h: 124 };
-
-const [vx, vy, vw] = MARK_VIEWBOX.split(" ").map(Number);
-const MID = { x: vx + vw / 2, y: vy + vw / 2 };
-const circle = (r: number) => {
-  const k = 0.5523 * r;
-  const { x, y } = MID;
-  return `M ${x} ${y - r} C ${x + k} ${y - r} ${x + r} ${y - k} ${x + r} ${y} C ${x + r} ${y + k} ${x + k} ${y + r} ${x} ${
-    y + r
-  } C ${x - k} ${y + r} ${x - r} ${y + k} ${x - r} ${y} C ${x - r} ${y - k} ${x - k} ${y - r} ${x} ${y - r} Z`;
-};
-const CIRCLE = circle(300);
 
 const lerpBox = (a: Box, b: Box, t: number): Box => ({
   x: a.x + (b.x - a.x) * t,
@@ -93,7 +81,7 @@ const Explosion: React.FC<{ frame: number }> = ({ frame }) => {
 // The drop's full-frame hit: white, then a red afterglow, gone in six frames.
 const Hit: React.FC<{ frame: number }> = ({ frame }) => {
   if (frame > 6) return null;
-  const white = frame <= 1 ? 0.7 : ramp(frame, 1, 3, easeOut, 0.7, 0);
+  const white = frame <= 2 ? 0.7 : ramp(frame, 2, 5, easeOut, 0.7, 0);
   const red = frame < 3 ? 0.25 * ramp(frame, 0, 3) : ramp(frame, 3, 6, easeOut, 0.25, 0);
   return (
     <>
@@ -106,7 +94,6 @@ const Hit: React.FC<{ frame: number }> = ({ frame }) => {
 const FormingMark: React.FC<{ frame: number; ambient: boolean }> = ({ frame, ambient }) => {
   const t = (frame - 2) / 60;
   const settled = frame > 74;
-  const morph = ramp(frame, 2, 24, easeOut);
   const grow = ramp(frame, 1, 20, easeOut);
   const jelly = settled ? 0 : 0.17 * ring(t - 0.05, 2.6, 4.2);
   const wobble = settled ? 0 : 7 * ring(t, 1.7, 3.8);
@@ -120,7 +107,7 @@ const FormingMark: React.FC<{ frame: number; ambient: boolean }> = ({ frame, amb
   const sx = settle * (1 + jelly);
   const sy = settle * (1 - jelly);
   const identity = Math.abs(sx - 1) < 1e-4 && Math.abs(sy - 1) < 1e-4 && Math.abs(wobble) < 1e-3;
-  const path = interpolatePath(morph, CIRCLE, MARK_PATH);
+
   const sweep = ramp(frame, 30, 52, easeInOut);
   return (
     <AbsoluteFill
@@ -143,7 +130,7 @@ const FormingMark: React.FC<{ frame: number; ambient: boolean }> = ({ frame, amb
       />
       {glossy < 1 ? (
         <svg viewBox={MARK_VIEWBOX} width={box.w} height={box.h} style={{ position: "absolute", left: box.x, top: box.y, opacity: ramp(glossy, 0.8, 1, (t) => t, 1, 0) }}>
-          <path d={path} fill={C.red} />
+          <path d={MARK_PATH} fill={C.red} />
         </svg>
       ) : null}
       {atRest(frame) ? (
