@@ -44,6 +44,7 @@ SFX = {
 
 
 def run(*command: str) -> None:
+    """Run one external tool and stop on failure."""
     subprocess.run(command, check=True)
 
 
@@ -59,6 +60,7 @@ def crop_box(take: dict, phase: str) -> tuple[int, int, int, int]:
 
 
 def main() -> None:
+    """Stage captures, fonts, brand files and audio, then record their hashes."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--audio", type=Path, required=True, help="Folder with the score and SFX takes")
     args = parser.parse_args()
@@ -87,12 +89,17 @@ def main() -> None:
     (folder / "themes.json").write_text(json.dumps(themes, indent=2))
 
     # Outlined display type needs a static Black instance without overlapping contours;
-    # -webkit-text-stroke on the variable font draws every overlap as a seam.
+    # -webkit-text-stroke on the variable font draws every overlap as a seam. Pin both axes:
+    # Chrome sets opsz to its maximum (32) at display sizes, and fontTools removes overlaps
+    # only from a fully static instance.
     fonts = OUT / "fonts"
     fonts.mkdir(exist_ok=True)
     black = instancer.instantiateVariableFont(
-        TTFont(ROOT / "public/fonts/AdwaitaSans-Regular.ttf"), {"wght": 900}, overlap=instancer.OverlapMode.REMOVE
+        TTFont(ROOT / "public/fonts/AdwaitaSans-Regular.ttf"),
+        {"wght": 900, "opsz": 32},
+        overlap=instancer.OverlapMode.REMOVE,
     )
+    assert "fvar" not in black, "The outline instance must be static for overlap removal."
     black.save(fonts / "AdwaitaSans-Black-NoOverlap.ttf")
 
     brand = OUT / "brand"

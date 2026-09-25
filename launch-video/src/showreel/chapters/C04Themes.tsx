@@ -1,7 +1,6 @@
 import { AbsoluteFill, Easing, Img, random, staticFile, useCurrentFrame } from "remotion";
 import { beatFrame } from "../timing";
 import { C, display, easeIn, easeInOut, easeOut, LABEL, mono, ramp, T } from "../theme";
-import { scramble } from "../parts/Scramble";
 import { vBlur } from "../parts/Blur";
 
 // Every theme installed with Omarchy, photographed from the production widget (showreel/capture_widget.py),
@@ -32,8 +31,15 @@ const POINTS = TILES.map((_, i) => {
   return { x: Math.cos(i * GOLDEN) * r, y, z: Math.sin(i * GOLDEN) * r };
 });
 const expoOut = Easing.out(Easing.exp);
-const countAt = (frame: number) => Math.max(0, Math.min(22, ((frame - COUNT_FROM) / (COUNT_TO - COUNT_FROM)) * 22));
-const namedAt = (theme: string) => COUNT_FROM + ((COUNT_ORDER.indexOf(theme) + 1) / 22) * (COUNT_TO - COUNT_FROM);
+// The count steps once per theme: each digit rolls for two frames, then holds crisp.
+const ROLL = 2;
+const stepAt = (k: number) => COUNT_FROM + (k / 22) * (COUNT_TO - COUNT_FROM);
+const namedAt = (theme: string) => stepAt(COUNT_ORDER.indexOf(theme) + 1);
+const countAt = (frame: number) =>
+  Array.from({ length: 22 }, (_, i) => easeOut(Math.min(1, Math.max(0, (frame - stepAt(i + 1) + ROLL) / ROLL)))).reduce(
+    (sum, v) => sum + v,
+    0,
+  );
 
 const Sphere: React.FC<{ frame: number }> = ({ frame }) => {
   const collapse = ramp(frame, COLLAPSE, LENGTH - 6, easeIn);
@@ -139,10 +145,9 @@ const Counter: React.FC<{ frame: number }> = ({ frame }) => {
   const enter = ramp(frame, 0, 10);
   const exit = ramp(frame, COLLAPSE, COLLAPSE + 10, easeIn);
   const value = countAt(frame);
-  const speed = countAt(frame + 1) - value;
-  const named = Math.max(1, Math.ceil(value));
+  const rolling = Math.abs(value - Math.round(value)) > 0.02;
+  const named = Math.max(1, Math.round(value));
   const name = COUNT_ORDER[named - 1].replace("-", " ").toUpperCase();
-  const since = frame - namedAt(COUNT_ORDER[named - 1]);
   return (
     <div
       style={{
@@ -158,13 +163,13 @@ const Counter: React.FC<{ frame: number }> = ({ frame }) => {
         <span style={{ display: "inline-block", width: 9, height: 9, background: C.red, marginRight: 14 }} />
         ONE WIDGET · EVERY THEME
       </div>
-      <div style={{ marginTop: 20, filter: vBlur(Math.min(20, speed * 40)) }}>
+      <div style={{ marginTop: 20, filter: rolling ? vBlur(8) : undefined }}>
         <Odometer value={value} size={T.xl} />
       </div>
       <div style={{ ...display(T.s, 800), letterSpacing: "-0.03em", marginTop: 6 }}>Omarchy themes</div>
       <div style={{ ...mono(15, C.ink), marginTop: 26 }}>
         <span style={{ color: C.red }}>● </span>
-        {scramble(name, ramp(since, -1, 2), `t${named}`, frame, 0.6)}
+        {value < 0.5 ? "" : name}
       </div>
       <div style={{ ...mono(15, LABEL), marginTop: 14 }}>CAPTURED FROM THE REAL WIDGET</div>
     </div>

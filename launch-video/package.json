@@ -7,7 +7,10 @@
     "render": "remotion render src/index.ts MluvaIntro out/mluva-intro-live.mp4 --muted --concurrency=4",
     "preview": "remotion render src/index.ts MluvaIntro out/mluva-intro-live-preview.mp4 --muted --scale=0.5 --concurrency=4",
     "lint": "tsc --noEmit",
-    "master": "uv run script/master.py out/mluva-intro-live.mp4"
+    "master": "uv run script/master.py out/mluva-intro-live.mp4",
+    "showreel:prepare": "uv run showreel/prepare.py --audio ../tmp/showreel/audio",
+    "showreel:render": "remotion render src/index.ts MluvaShowreel out/mluva-showreel.mp4 --muted --crf=14 --concurrency=10",
+    "showreel:master": "uv run showreel/mix.py out/mluva-showreel.mp4"
   },
   "type": "module",
   "dependencies": {

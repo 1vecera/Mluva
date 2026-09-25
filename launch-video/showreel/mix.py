@@ -7,7 +7,8 @@
     uv run showreel/mix.py out/mluva-showreel.mp4
 
 Each cue's frame marks where the effect's peak lands; `sfx_peaks_s` holds that offset per effect.
-Loudness uses FFmpeg's two-pass EBU R128 loudnorm with a -1 dBTP ceiling.
+Loudness uses FFmpeg's two-pass EBU R128 loudnorm with a -1.5 dBTP ceiling, then a small trim if the
+linear pass lands more than 0.2 LU from the target.
 """
 
 import json
@@ -21,23 +22,31 @@ ROOT = Path(__file__).resolve().parents[1]
 AUDIO = ROOT / "public/showreel/audio"
 RATE = 48000
 TARGET = {"I": -14.0, "TP": -1.5, "LRA": 11.0}
+LOUDNORM = f"loudnorm=I={TARGET['I']}:TP={TARGET['TP']}:LRA={TARGET['LRA']}"
 
 
 def decode(path: Path) -> np.ndarray:
-    raw = subprocess.run(
-        ["ffmpeg", "-v", "error", "-i", str(path), "-f", "f32le", "-ac", "2", "-ar", str(RATE), "-"],
-        check=True,
-        capture_output=True,
-    ).stdout
+    """Decode an audio file to 48 kHz stereo float samples."""
+    command = ["ffmpeg", "-v", "error", "-i", str(path), "-f", "f32le", "-ac", "2", "-ar", str(RATE), "-"]
+    raw = subprocess.run(command, check=True, capture_output=True).stdout
     return np.frombuffer(raw, dtype=np.float32).reshape(-1, 2).copy()
 
 
-def loudnorm_json(stderr: str) -> dict:
+def measure(path: Path) -> dict:
+    """Return FFmpeg loudnorm's measurement of a file."""
+    command = ["ffmpeg", "-hide_banner", "-i", str(path), "-af", f"{LOUDNORM}:print_format=json", "-f", "null", "-"]
+    stderr = subprocess.run(command, check=True, capture_output=True, text=True).stderr
     start = stderr.rindex("{")
     return json.loads(stderr[start : stderr.index("}", start) + 1])
 
 
+def ffmpeg(*arguments: str) -> None:
+    """Run FFmpeg quietly, overwriting outputs."""
+    subprocess.run(["ffmpeg", "-v", "error", "-y", *arguments], check=True)
+
+
 def main() -> None:
+    """Build the mix, master it and attach it to the silent render."""
     video = Path(sys.argv[1]).resolve()
     plan = json.loads((ROOT / "src/showreel/cues.json").read_text())
     fps, frames = plan["fps"], plan["duration_frames"]
@@ -73,39 +82,28 @@ def main() -> None:
         check=True,
     )
 
-    target = f"I={TARGET['I']}:TP={TARGET['TP']}:LRA={TARGET['LRA']}"
-    probe = subprocess.run(
-        ["ffmpeg", "-hide_banner", "-i", str(raw_wav), "-af", f"loudnorm={target}:print_format=json", "-f", "null", "-"],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stderr
-    measured = loudnorm_json(probe)
+    measured = measure(raw_wav)
     second = (
-        f"loudnorm={target}:measured_I={measured['input_i']}:measured_TP={measured['input_tp']}"
+        f"{LOUDNORM}:measured_I={measured['input_i']}:measured_TP={measured['input_tp']}"
         f":measured_LRA={measured['input_lra']}:measured_thresh={measured['input_thresh']}"
         f":offset={measured['target_offset']}:linear=true"
     )
-    subprocess.run(
-        ["ffmpeg", "-v", "error", "-y", "-i", str(raw_wav), "-af", second, "-ar", str(RATE), "-c:a", "pcm_s24le", str(master_wav)],
-        check=True,
-    )
+    ffmpeg("-i", str(raw_wav), "-af", second, "-ar", str(RATE), "-c:a", "pcm_s24le", str(master_wav))
+    trim = TARGET["I"] - float(measure(master_wav)["input_i"])
+    if abs(trim) > 0.2:
+        trimmed = stem.parent / f"{stem.name}-mix-trim.wav"
+        ceiling = 10 ** (TARGET["TP"] / 20)
+        ffmpeg("-i", str(master_wav), "-af", f"volume={trim:.2f}dB,alimiter=limit={ceiling:.4f}:level=false",
+               "-ar", str(RATE), "-c:a", "pcm_s24le", str(trimmed))  # fmt: skip
+        trimmed.replace(master_wav)
+
     final = stem.parent / f"{stem.name}-master.mp4"
-    subprocess.run(
-        [
-            "ffmpeg", "-v", "error", "-y", "-i", str(video), "-i", str(master_wav),
-            "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac", "-b:a", "320k",
-            "-t", f"{frames / fps:.3f}", "-movflags", "+faststart", str(final),
-        ],
-        check=True,
+    ffmpeg(
+        "-i", str(video), "-i", str(master_wav),
+        "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac", "-b:a", "320k",
+        "-t", f"{frames / fps:.3f}", "-movflags", "+faststart", str(final),
     )  # fmt: skip
-    check = subprocess.run(
-        ["ffmpeg", "-hide_banner", "-i", str(final), "-af", f"loudnorm={target}:print_format=json", "-f", "null", "-"],
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stderr
-    result = loudnorm_json(check)
+    result = measure(final)
     print(f"{final.name}: {result['input_i']} LUFS, {result['input_tp']} dBTP, LRA {result['input_lra']}")
 
 

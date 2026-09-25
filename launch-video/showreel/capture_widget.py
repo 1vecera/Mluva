@@ -46,6 +46,8 @@ NATURAL_WORDS_PER_SECOND = 2.6
 LEAD_IN = 0.4
 PROCESSING_HOLD = 0.3
 REVIEW_HOLD = 2.0
+# Extra fixture IPC: load a real Omarchy colors.toml into the shell's Color singleton.
+THEME_IPC = "        function themeRaw(raw: string): void { Color.loadColors(raw); }\n"
 
 
 def pump(seconds: float = 0.0) -> None:
@@ -138,10 +140,7 @@ def main() -> None:
         (REPO / "linux/tests/shell_overlay_fixture.qml")
         .read_text()
         .replace('"../quickshell/mluva.dictation"', '"./mluva.dictation"')
-        .replace(
-            "        function closeMenu(): void",
-            "        function themeRaw(raw: string): void { Color.loadColors(raw); }\n        function closeMenu(): void",
-        )
+        .replace("        function closeMenu(): void", THEME_IPC + "        function closeMenu(): void")
     )
     shutil.copytree(REPO / "linux/quickshell/mluva.dictation", output / "mluva.dictation")
     for module in ("Commons", "Ui"):
