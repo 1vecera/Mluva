@@ -25,7 +25,7 @@ const SATELLITES = [
   { label: "ELEVENLABS SCRIBE V2", tag: "CLOUD · SPEECH", radius: OUTER, angle: -62, at: 6, place: "right" },
   { label: "LOCAL MODEL", tag: "ON DEVICE · SPEECH", radius: INNER, angle: 70, at: 20, place: "right", experimental: true },
   { label: "COMPATIBLE API", tag: "YOUR SERVER · SPEECH + REWRITE", radius: OUTER, angle: 140, at: 48, place: "left", experimental: true },
-  { label: "CODEX", tag: "REWRITE", radius: OUTER, angle: -5, at: 76, place: "right" },
+  { label: "CODEX", tag: "CLOUD · REWRITE", radius: OUTER, angle: -5, at: 76, place: "right" },
 ] as const;
 
 // A link lands 8 frames after it starts drawing. Compatible APIs serve speech and rewriting.

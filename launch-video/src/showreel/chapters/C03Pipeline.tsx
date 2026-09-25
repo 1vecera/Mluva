@@ -6,6 +6,8 @@ import { BLOOM, C, display, easeIn, easeInOut, easeOut, LABEL, MONO, mono, ramp,
 import { hBlur } from "../parts/Blur";
 import { beatPulse } from "../parts/Background";
 import { MarkPeriod } from "../parts/MarkPeriod";
+import { PORTAL_FRAMES, PORTAL_NODE, portalAt } from "../parts/Portal";
+import { scramble } from "../parts/Scramble";
 
 const B0 = beatFrame(8);
 const BEATS = [0, 1, 2, 3].map((i) => beatFrame(8 + i) - B0);
@@ -51,16 +53,22 @@ const Icon: React.FC<{ index: number; color: string }> = ({ index, color }) => {
         <line x1={16} y1={28} x2={25} y2={28} {...common} />
       </svg>
     );
+  // Mluva's rewrite actions use a document-edit icon: a pencil over a line of text.
   return (
     <svg width={44} height={44} viewBox="0 0 44 44">
-      <path d="M22 6 L25 18 L37 22 L25 26 L22 38 L19 26 L7 22 L19 18 Z" {...common} strokeLinejoin="round" />
-      <path d="M35 6 L36 10 L40 11 L36 12 L35 16 L34 12 L30 11 L34 10 Z" fill={color} />
+      <path d="M12 28 L28 12 L33 17 L17 33 L11 34 Z" {...common} strokeLinejoin="round" />
+      <line x1={25} y1={15} x2={30} y2={20} {...common} />
+      <line x1={21} y1={36} x2={34} y2={36} {...common} />
     </svg>
   );
 };
 
+const portalFade = (frame: number, from: number, to: number) =>
+  ramp(frame, LENGTH - PORTAL_FRAMES + from, LENGTH - PORTAL_FRAMES + to, (v) => v, 1, 0);
+
 const Node: React.FC<{ index: number; frame: number }> = ({ index, frame }) => {
   const node = NODES[index];
+  const isPortal = index === 3;
   const on = BEATS[index];
   const next = BEATS[index + 1] ?? LENGTH;
   const reached = frame >= on;
@@ -90,15 +98,17 @@ const Node: React.FC<{ index: number; frame: number }> = ({ index, frame }) => {
           height: 96,
           borderRadius: 24,
           background: "#0c0c0c",
-          border: `1.5px solid ${current ? C.red : reached ? "rgba(245,245,245,0.3)" : "rgba(245,245,245,0.12)"}`,
-          boxShadow: current ? "0 0 30px rgba(233,27,39,0.35)" : "none",
+          border: `1.5px solid ${current ? (isPortal ? `rgba(233,27,39,${portalFade(frame, 1, 5)})` : C.red) : reached ? "rgba(245,245,245,0.3)" : "rgba(245,245,245,0.12)"}`,
+          boxShadow: current ? `0 0 30px rgba(233,27,39,${0.35 * (isPortal ? portalFade(frame, 0, 3) : 1)})` : "none",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           transform: `scale(${bump})`,
         }}
       >
-        <Icon index={index} color={color} />
+        <div style={{ opacity: isPortal ? portalFade(frame, 0, 3) : 1 }}>
+          <Icon index={index} color={color} />
+        </div>
       </div>
       {reached && !current ? (
         <svg width={22} height={22} viewBox="0 0 22 22" style={{ position: "absolute", left: 84, top: -8 }}>
@@ -106,7 +116,16 @@ const Node: React.FC<{ index: number; frame: number }> = ({ index, frame }) => {
           <path d="M6.5 11.5 L9.5 14.5 L15.5 8" fill="none" stroke={C.ink} strokeWidth={1.8} strokeLinecap="round" />
         </svg>
       ) : null}
-      <div style={{ position: "absolute", left: 48, top: 116, transform: "translateX(-50%)", textAlign: "center" }}>
+      <div
+        style={{
+          position: "absolute",
+          left: 48,
+          top: 116,
+          transform: "translateX(-50%)",
+          textAlign: "center",
+          opacity: isPortal ? portalFade(frame, 0, 3) : 1,
+        }}
+      >
         <div style={{ ...display(T.xs, 700), letterSpacing: "-0.02em", color: reached ? C.ink : C.ink2 }}>{node.name}</div>
         <div style={{ ...mono(15, LABEL), marginTop: 12 }}>{node.sub}</div>
       </div>
@@ -282,11 +301,13 @@ const Frames: React.FC<{ frame: number }> = ({ frame }) => {
       <Frame x={600} w={640} title="TRANSCRIPT" state={copied ? "FINAL" : "LIVE"} live={!copied} frame={frame} delay={5}>
         <Transcript frame={frame} />
       </Frame>
-      <Frame x={1292} w={500} title="CLIPBOARD" state={copied ? "COPIED" : "EMPTY"} frame={frame} delay={8}>
+      <Frame x={1292} w={500} title="CLIPBOARD" state={copied ? "COPIED" : "WAITING"} frame={frame} delay={8}>
         <div style={{ ...mono(24, copied ? C.ink : C.ink3), letterSpacing: "0.12em", marginTop: 40 }}>
           {polished ? "POLISHED DRAFT" : copied ? "ORIGINAL TEXT" : "—"}
         </div>
-        <div style={{ ...mono(15, LABEL), marginTop: 28 }}>READY TO PASTE</div>
+        <div style={{ ...mono(15, LABEL), marginTop: 28 }}>
+          {copied ? scramble("READY TO PASTE", ramp(frame, BEATS[2], BEATS[2] + 5), "paste", frame) : ""}
+        </div>
       </Frame>
     </>
   );
@@ -326,24 +347,27 @@ const BigWord: React.FC<{ frame: number }> = ({ frame }) => {
 export const C03Pipeline: React.FC = () => {
   const frame = useCurrentFrame();
   const enter = ramp(frame, 0, 9, easeOut);
-  // The camera flies into the Rewrite node: its dark face fills the frame and opens onto the sphere.
-  const portal = ramp(frame, LENGTH - 10, LENGTH, easeIn);
-  const node = NODES[3];
+  // The camera flies into the Rewrite node; chapter 04 shows through it (parts/Portal.ts).
+  const t = (frame - (LENGTH - PORTAL_FRAMES)) / PORTAL_FRAMES;
+  const portal = portalAt(t);
+  const flying = t > 0;
   return (
     <AbsoluteFill
       style={{
-        transform: `translateX(${900 * (1 - enter)}px) scale(${1 + 21 * portal})`,
-        transformOrigin: `${node.x}px ${node.y}px`,
-        filter: enter < 1 ? hBlur(60 * (1 - enter)) : portal > 0 ? `blur(${portal * 6}px)` : undefined,
-        opacity: 1 - ramp(frame, LENGTH - 2, LENGTH, easeIn),
+        transform: flying ? `translate(${portal.dx}px, ${portal.dy}px) scale(${portal.k})` : `translateX(${900 * (1 - enter)}px)`,
+        transformOrigin: `${PORTAL_NODE.x}px ${PORTAL_NODE.y}px`,
+        filter: enter < 1 ? hBlur(60 * (1 - enter)) : flying ? `blur(${Math.min(1, t) * 5}px)` : undefined,
       }}
     >
-      <Frames frame={frame} />
-      <Track frame={frame} />
-      {NODES.map((_, i) => (
-        <Node key={i} index={i} frame={frame} />
-      ))}
-      <BigWord frame={frame} />
+      <AbsoluteFill style={{ opacity: portalFade(frame, 0, 4) }}>
+        <Frames frame={frame} />
+        <Track frame={frame} />
+        {NODES.slice(0, 3).map((_, i) => (
+          <Node key={i} index={i} frame={frame} />
+        ))}
+        <BigWord frame={frame} />
+      </AbsoluteFill>
+      <Node index={3} frame={frame} />
     </AbsoluteFill>
   );
 };

@@ -9,11 +9,10 @@ export const CUTS = Array.from({ length: 9 }, (_, k) => beatFrame(24 + k / 2) - 
 
 // Ink bounds of Adwaita Sans Black at -0.035em tracking (fontTools, AdwaitaSans-Black-NoOverlap.ttf):
 // the ink starts 0.047em inside the text box and ends 0.0065em before its right edge.
-const GLYPHS = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&*+";
 const INK_LEFT = "0.047em";
 const INK_RIGHT = "0.0065em";
 // Keep type walls clear of the HUD bands at the top and bottom of the frame.
-const HUD_SAFE = "linear-gradient(transparent 0px, transparent 140px, black 220px, black 820px, transparent 900px)";
+const HUD_SAFE = "linear-gradient(transparent 0px, transparent 150px, black 210px, black 820px, transparent 900px)";
 
 const Punch: React.FC<{ f: number; children: React.ReactNode; bg?: string }> = ({ f, children, bg }) => {
   const inT = ramp(f, 0, 4, easeOut);
@@ -47,18 +46,12 @@ const PressF9: React.FC<{ f: number }> = ({ f }) => {
 };
 
 const LiveRewrite: React.FC<{ f: number }> = ({ f }) => {
-  // Every position decodes left to right within four frames; nothing starts blank.
-  const text = "LIVE REWRITE"
-    .split("")
-    .map((ch, i) => (ch === " " || f >= 1 + i * 0.25 ? ch : GLYPHS[Math.floor(random(`live-${i}-${f}`) * GLYPHS.length)]))
-    .join("");
   const line = ramp(f, 2, 9, easeOut);
   return (
     <Punch f={f}>
       <AbsoluteFill style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ position: "relative", ...display(T.xl), textShadow: BLOOM }}>
-          <span style={{ visibility: "hidden" }}>LIVE REWRITE</span>
-          <span style={{ position: "absolute", left: 0, top: 0 }}>{text}</span>
+          LIVE REWRITE
           <div
             style={{
               position: "absolute",
@@ -71,7 +64,7 @@ const LiveRewrite: React.FC<{ f: number }> = ({ f }) => {
               transform: `scaleX(${line})`,
             }}
           />
-          <Tag color={C.red} style={{ right: INK_RIGHT, top: -58, opacity: ramp(f, 3, 5), fontFamily: MONO }} />
+          <Tag color={C.red} style={{ right: INK_RIGHT, top: -58, fontFamily: MONO }} />
         </div>
       </AbsoluteFill>
     </Punch>
@@ -219,7 +212,7 @@ const Export: React.FC<{ f: number }> = ({ f }) => (
       </AbsoluteFill>
     </AbsoluteFill>
     <div style={{ ...mono(15, LABEL), position: "absolute", left: 960, top: 196, transform: "translateX(-50%)", background: C.bg, padding: "10px 22px" }}>
-      EXPORT EVERY CONVERSATION
+      EXPORT ANY CONVERSATION
     </div>
   </Punch>
 );

@@ -2,6 +2,7 @@ import { AbsoluteFill, Easing, Img, interpolate, random, staticFile, useCurrentF
 import { beatFrame } from "../timing";
 import { C, display, easeIn, easeInOut, easeOut, LABEL, mono, ramp, T } from "../theme";
 import { vBlur } from "../parts/Blur";
+import { PORTAL_FRAMES, portalAt } from "../parts/Portal";
 
 // Every theme installed with Omarchy, photographed from the production widget (showreel/capture_widget.py),
 // sorted by the widget's background luminance from themes.json: light at the top of the sphere.
@@ -80,8 +81,8 @@ const Sphere: React.FC<{ frame: number }> = ({ frame }) => {
         .map(({ i, x, y, z }) => {
           const tile = TILES[i];
           // Assemble from deep behind the sphere, staggered, with an exponential ease.
-          const delay = Math.floor(random(`tile-${i}`) * 10);
-          const a = expoOut(Math.min(1, Math.max(0, (frame + 2 - delay) / 16)));
+          const delay = Math.floor(random(`tile-${i}`) * 8);
+          const a = expoOut(Math.min(1, Math.max(0, (frame + PORTAL_FRAMES - delay) / 16)));
           if (a <= 0) return null;
           const depthZ = z * radius * a - 1800 * (1 - a);
           const perspective = 1500 / (1500 - depthZ);
@@ -226,10 +227,19 @@ const Point: React.FC<{ frame: number }> = ({ frame }) => {
   );
 };
 
+// The Sequence starts PORTAL_FRAMES early: during that pre-roll only the sphere renders, clipped to
+// chapter 03's growing Rewrite node.
 export const C04Themes: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useCurrentFrame() - PORTAL_FRAMES;
+  if (frame < 0) {
+    return (
+      <AbsoluteFill style={{ clipPath: portalAt((frame + PORTAL_FRAMES) / PORTAL_FRAMES).clip }}>
+        <Sphere frame={frame} />
+      </AbsoluteFill>
+    );
+  }
   return (
-    <AbsoluteFill style={{ opacity: ramp(frame, 0, 3, easeOut) }}>
+    <AbsoluteFill>
       <Counter frame={frame} />
       <Sphere frame={frame} />
       <Point frame={frame} />

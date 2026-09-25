@@ -4,6 +4,7 @@ import { BlurDefs } from "./parts/Blur";
 import { Hud } from "./parts/Hud";
 import { beatFrame, chapterAt, CHAPTERS } from "./timing";
 import { easeInOut, ramp } from "./theme";
+import { PORTAL_FRAMES } from "./parts/Portal";
 import { C01Kinetic } from "./chapters/C01Kinetic";
 import { C02Widget } from "./chapters/C02Widget";
 import { C03Pipeline } from "./chapters/C03Pipeline";
@@ -29,12 +30,15 @@ const GLOW = [
 
 // A slow camera: 2.5 % push and a few pixels of drift across the bar. Chapters that show real UI
 // (02), the brand lockup (05, 08) or run their own cuts (07) keep a locked frame.
-const CAMERA: Record<number, [number, number, number]> = { 1: [10, -4, 0.025], 3: [-6, -3, 0.012], 4: [12, 4, 0.025], 6: [-10, -5, 0.025] };
+const CAMERA: Record<number, [number, number, number]> = { 1: [10, -4, 0.025], 3: [-6, -3, 0.012], 4: [0, 0, 0.025], 6: [-10, -5, 0.025] };
+// Chapter 04 starts early to show through chapter 03's portal.
+const PREROLL: Record<number, number> = { 4: PORTAL_FRAMES };
 const Camera: React.FC<{ index: number; length: number; children: React.ReactNode }> = ({ index, length, children }) => {
-  const frame = useCurrentFrame();
+  const frame = useCurrentFrame() - (PREROLL[index] ?? 0);
   const drift = CAMERA[index];
   if (!drift) return <AbsoluteFill>{children}</AbsoluteFill>;
   const p = Math.min(1, Math.max(0, frame / length));
+  if (p === 0) return <AbsoluteFill>{children}</AbsoluteFill>;
   return (
     <AbsoluteFill style={{ transform: `translate(${drift[0] * (p - 0.5)}px, ${drift[1] * (p - 0.5)}px) scale(${1 + drift[2] * p})` }}>
       {children}
@@ -72,7 +76,12 @@ export const MluvaShowreel: React.FC<{ audio?: boolean }> = ({ audio = true }) =
       {CHAPTERS.map((c, index) => {
         const View = VIEWS[index];
         return (
-          <Sequence key={c.index} from={c.from} durationInFrames={c.to - c.from} layout="none">
+          <Sequence
+            key={c.index}
+            from={c.from - (PREROLL[c.index] ?? 0)}
+            durationInFrames={c.to - c.from + (PREROLL[c.index] ?? 0)}
+            layout="none"
+          >
             <Camera index={c.index} length={c.to - c.from}>
               <View />
             </Camera>
