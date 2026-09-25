@@ -5,3 +5,5 @@ out/
 # Keep unreleased screen footage, narration and downloaded music local.
 public/live/
 public/audio/
+# Showreel captures, score and effects are staged by showreel/prepare.py.
+public/showreel/

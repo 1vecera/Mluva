@@ -29,6 +29,10 @@ For a smaller full-length preview, use `npm run preview`, then `uv run script/ma
 
 `Root.tsx` reads the local edit plan and sets the exact frame count. `src/MluvaIntro.tsx` lays out the scene; `src/PoppyCaptions.tsx` renders captions. The desktop fills a 1728×1080 area at (96, 0), preserving its 16:10 aspect. The cutout has no backdrop, outline, shadow or added edge fades.
 
+## Showreel
+
+The same project renders `MluvaShowreel`, a 15-second motion-design reel built from real widget captures and the brand files. [Its README](showreel/README.md) covers capture, staging, render and mastering.
+
 ## Sources and review
 
 The v7 private archive holds the four current inputs, the final voice stem, processing scripts and verification records. Earlier private archives retain the original camera recording, raw transcript, preparation sources and native capture takes. These files stay outside Git. The approved finished movie is the public artifact; [input hashes](reference/media.json), [asset provenance](reference/ASSETS.md) and [final review](review/final.md) document it.
