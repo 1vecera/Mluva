@@ -1,8 +1,9 @@
-import { AbsoluteFill, Img, useCurrentFrame } from "remotion";
+import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { noise2D } from "@remotion/noise";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import { beatFrame } from "../timing";
-import { brand, C, display, easeIn, easeOut, mono, ramp, ring } from "../theme";
+import { BLOOM, C, display, easeIn, easeOut, LABEL, mono, outline, ramp, ring, T } from "../theme";
+import { MarkPeriod } from "../parts/MarkPeriod";
 
 const PHRASES = [
   { text: "SPEAK FREELY", sub: "F9 · START / STOP", start: beatFrame(1) },
@@ -12,7 +13,7 @@ const PHRASES = [
 const END = beatFrame(4);
 const COLLAPSE = END - 7;
 const CY = 500;
-const SIZE = 142;
+const SIZE = T.l;
 
 const phraseIndexAt = (frame: number) => {
   let index = -1;
@@ -128,10 +129,9 @@ const Phrase: React.FC<{ index: number; frame: number }> = ({ index, frame }) =>
   const squashOut = ramp(frame, outAt - 5, outAt, easeIn);
   const scaleY = index === 0 ? 1 : 0.04 + 0.96 * squashIn;
   const y = scaleY * (1 - squashOut * 0.97);
-  const split = index === 0 ? 0 : 10 * (1 - ramp(local, 0, 9));
+  const split = index === 0 ? 0 : 6 * (1 - ramp(local, 0, 8));
   const letters = phrase.text.split("");
   const popAt = index === 0 ? 13 : 5;
-  const pop = ramp(local, popAt, popAt + 9, easeOut) + 0.45 * ring((local - popAt - 2) / 60, 2.4, 5);
   const layer = (color: string, dx: number, blend?: React.CSSProperties["mixBlendMode"]) => (
     <div
       style={{
@@ -159,24 +159,14 @@ const Phrase: React.FC<{ index: number; frame: number }> = ({ index, frame }) =>
               whiteSpace: "pre",
               transform: `translateY(${(1 - appear) * 60}px)`,
               opacity: appear,
-              textShadow: blend ? "none" : "0 0 26px rgba(255,255,255,0.22), 0 0 70px rgba(255,255,255,0.08)",
+              textShadow: blend ? "none" : BLOOM,
             }}
           >
             {ch}
           </span>
         );
       })}
-      <Img
-        src={brand("mluva-mark.svg")}
-        style={{
-          width: SIZE * 0.36,
-          height: SIZE * 0.36,
-          marginLeft: SIZE * 0.05,
-          transform: `translateY(${SIZE * 0.1}px) scale(${Math.max(0, pop)})`,
-          opacity: blend ? 0 : 1,
-          filter: "drop-shadow(0 0 14px rgba(233,27,39,0.6))",
-        }}
-      />
+      {blend ? null : <MarkPeriod fontSize={SIZE} local={local} at={popAt} />}
     </div>
   );
   return (
@@ -221,7 +211,7 @@ const Ruler: React.FC<{ frame: number }> = ({ frame }) => {
         }}
       />
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 26 }}>
-        <div style={{ ...mono(15, C.ink2), opacity: subIn, transform: `translateY(${(1 - subIn) * 8}px)` }}>
+        <div style={{ ...mono(15, LABEL), opacity: subIn, transform: `translateY(${(1 - subIn) * 8}px)` }}>
           {PHRASES[index].sub}
         </div>
         <div style={{ ...mono(15, C.ink3), opacity: draw }}>
@@ -241,12 +231,10 @@ const Numeral: React.FC<{ frame: number }> = ({ frame }) => {
   return (
     <div
       style={{
-        ...display(640, 900),
+        ...outline(640, "rgba(245,245,245,0.06)", 1.5),
         position: "absolute",
         left: 1030 - frame * 0.6,
         top: 140,
-        color: "transparent",
-        WebkitTextStroke: "1.5px rgba(245,245,245,0.055)",
         transform: `translateY(${(1 - inT) * 60}px)`,
         opacity: inT * fade,
       }}

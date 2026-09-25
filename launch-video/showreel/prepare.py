@@ -1,5 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
+# dependencies = ["fonttools", "skia-pathops"]
 # ///
 """Stage the showreel's inputs under public/showreel/ from captures, brand files and the score.
 
@@ -16,6 +17,9 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+
+from fontTools.ttLib import TTFont
+from fontTools.varLib import instancer
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT.parent
@@ -81,6 +85,15 @@ def main() -> None:
             run("magick", str(source), "-crop", f"{w}x{h}+{x}+{y}", "+repage", "-resize", "50%",
                 str(folder / f"{record['theme']}-{suffix}.png"))  # fmt: skip
     (folder / "themes.json").write_text(json.dumps(themes, indent=2))
+
+    # Outlined display type needs a static Black instance without overlapping contours;
+    # -webkit-text-stroke on the variable font draws every overlap as a seam.
+    fonts = OUT / "fonts"
+    fonts.mkdir(exist_ok=True)
+    black = instancer.instantiateVariableFont(
+        TTFont(ROOT / "public/fonts/AdwaitaSans-Regular.ttf"), {"wght": 900}, overlap=instancer.OverlapMode.REMOVE
+    )
+    black.save(fonts / "AdwaitaSans-Black-NoOverlap.ttf")
 
     brand = OUT / "brand"
     brand.mkdir(exist_ok=True)

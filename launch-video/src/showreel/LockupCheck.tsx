@@ -25,7 +25,7 @@ export const LockupCheck: React.FC<{ mode: LockupCheckMode }> = ({ mode }) => {
       ) : null}
       {mode === "end-chapter" ? (
         <Sequence from={-70} layout="none">
-          <C08EndCard ambient={false} />
+          <C08EndCard ambient={false} push={false} />
         </Sequence>
       ) : null}
     </AbsoluteFill>

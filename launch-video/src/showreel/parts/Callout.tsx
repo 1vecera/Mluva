@@ -20,7 +20,7 @@ export const Callout: React.FC<{
   const elbowY = y + dy * Math.min(1, draw * 2);
   const run = Math.max(0, draw * 2 - 1);
   const endX = x + dx * run;
-  const text = scramble(label, ramp(frame, at + 6, at + 18), label, frame);
+  const text = scramble(label, ramp(frame, at + 5, at + 9), label, frame);
   return (
     <div style={{ position: "absolute", inset: 0, opacity, pointerEvents: "none" }}>
       <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
@@ -35,7 +35,7 @@ export const Callout: React.FC<{
       </svg>
       <div
         style={{
-          ...mono(14, C.ink),
+          ...mono(15, C.ink),
           position: "absolute",
           top: y + dy - 8,
           ...(align === "left" ? { left: x + dx + 14 } : { right: 1920 - (x + dx) + 14 }),

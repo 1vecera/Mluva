@@ -1,6 +1,6 @@
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { beatFrame, DURATION } from "../timing";
-import { brand, C, display, easeIn, easeOut, mono, ramp, ring } from "../theme";
+import { brand, C, display, easeIn, easeInOut, easeOut, LABEL, mono, ramp, ring, T } from "../theme";
 import { lockupBoxes, LOCKUP, LockupFull, LockupHalf } from "../parts/Logo";
 
 const LENGTH = DURATION - beatFrame(28);
@@ -13,15 +13,17 @@ const TOP = END_TOP;
 const BOXES = lockupBoxes(LEFT, TOP, SCALE);
 const BOTTOM = TOP + LOCKUP.h * SCALE;
 
-// `ambient` false hides the glow for the pixel check in LockupCheck.tsx.
-export const C08EndCard: React.FC<{ ambient?: boolean }> = ({ ambient = true }) => {
+// `ambient` false hides the glow and `push` the slow push-in, for the pixel check in LockupCheck.tsx.
+export const C08EndCard: React.FC<{ ambient?: boolean; push?: boolean }> = ({ ambient = true, push = true }) => {
   const frame = useCurrentFrame();
-  const flash = ramp(frame, 0, 10, easeOut, 1, 0);
+  // Three frames of white on the final impact, then gone: no grey haze over the mark.
+  const flash = frame < 3 ? 1 : ramp(frame, 3, 6, (t) => t, 1, 0);
+  const pushIn = push ? 1 + 0.035 * ramp(frame, 12, LENGTH, easeInOut) : 1;
   const mark = ramp(frame, 1, 16, easeOut);
   const markRest = frame > 60;
   const jelly = markRest ? 0 : 0.07 * ring((frame - 2) / 60, 2.4, 5);
   const word = ramp(frame, 7, 22, easeOut);
-  const sweep = ramp(frame, 22, 46, (t) => t);
+  const sweep = ramp(frame, 80, 100, (t) => t);
   const tagline = ramp(frame, 18, 32, easeOut);
   const pill = ramp(frame, 28, 40, easeOut);
   const meta = ramp(frame, 36, 48, easeOut);
@@ -29,7 +31,7 @@ export const C08EndCard: React.FC<{ ambient?: boolean }> = ({ ambient = true }) 
   const s = 0.72 + 0.28 * mark;
   return (
     <AbsoluteFill>
-      <AbsoluteFill style={{ opacity: fade }}>
+      <AbsoluteFill style={{ opacity: fade, transform: pushIn !== 1 ? `scale(${pushIn})` : undefined, transformOrigin: "960px 470px" }}>
         <div
           style={{
             position: "absolute",
@@ -77,14 +79,14 @@ export const C08EndCard: React.FC<{ ambient?: boolean }> = ({ ambient = true }) 
           <div
             style={{
               position: "absolute",
-              left: LEFT,
-              top: TOP,
-              width: LOCKUP.w * SCALE,
-              height: LOCKUP.h * SCALE,
-              WebkitMaskImage: `url(${brand("mluva-logo-large-mark-on-dark.svg")})`,
+              left: BOXES.mark.x,
+              top: BOXES.mark.y,
+              width: BOXES.mark.w,
+              height: BOXES.mark.h,
+              WebkitMaskImage: `url(${brand("mluva-mark-flat.svg")})`,
               WebkitMaskSize: "100% 100%",
-              background: `linear-gradient(110deg, transparent ${sweep * 150 - 30}%, rgba(255,255,255,0.7) ${sweep * 150 - 18}%, transparent ${
-                sweep * 150 - 6
+              background: `linear-gradient(115deg, transparent ${sweep * 150 - 30}%, rgba(255,255,255,0.45) ${sweep * 150 - 16}%, transparent ${
+                sweep * 150 - 4
               }%)`,
               mixBlendMode: "screen",
             }}
@@ -92,7 +94,7 @@ export const C08EndCard: React.FC<{ ambient?: boolean }> = ({ ambient = true }) 
         ) : null}
         <div
           style={{
-            ...display(38, 500),
+            ...display(T.xs, 500),
             letterSpacing: "-0.01em",
             color: C.ink2,
             position: "absolute",
@@ -104,7 +106,7 @@ export const C08EndCard: React.FC<{ ambient?: boolean }> = ({ ambient = true }) 
             transform: `translateY(${(1 - tagline) * 14}px)`,
           }}
         >
-          The most delightful dictation for Omarchy.
+          A little more delight every day.
         </div>
         <div style={{ position: "absolute", left: 0, right: 0, top: BOTTOM + 112, display: "flex", justifyContent: "center" }}>
           <div
@@ -126,7 +128,7 @@ export const C08EndCard: React.FC<{ ambient?: boolean }> = ({ ambient = true }) 
             github.com/1vecera/Mluva <span style={{ color: C.red }}>→</span>
           </div>
         </div>
-        <div style={{ ...mono(14, C.ink3), position: "absolute", left: 0, right: 0, top: BOTTOM + 196, textAlign: "center", opacity: meta }}>
+        <div style={{ ...mono(18, LABEL), position: "absolute", left: 0, right: 0, top: BOTTOM + 196, textAlign: "center", opacity: meta }}>
           FREE · OPEN SOURCE · APACHE-2.0
         </div>
       </AbsoluteFill>

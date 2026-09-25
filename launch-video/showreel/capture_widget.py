@@ -32,15 +32,17 @@ from gi.repository import Gio, GLib  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 THEMES = Path("/usr/share/omarchy/themes")
-THEME = THEMES / os.environ.get("MLUVA_CAPTURE_THEME", "kanagawa")
+THEME = THEMES / os.environ.get("MLUVA_CAPTURE_THEME", "vantablack")
 MODE = os.environ.get("MLUVA_CAPTURE_MODE", "take")
 SCALE = int(os.environ.get("QT_SCALE_FACTOR", "1"))
 MARGIN = 24
 TEXT = os.environ.get(
     "MLUVA_CAPTURE_TEXT", "Quick note for the team: the release is ready and we ship on Friday. Coffee is on me."
 )
-# Showreel pacing: the chapter compresses a spoken note into about one second of streaming.
+# Showreel pacing: the chapter compresses a spoken note into about one second of streaming,
+# while the widget's timer keeps natural speech time (about 156 words per minute), like a time-lapse.
 WORDS_PER_SECOND = float(os.environ.get("MLUVA_CAPTURE_WPS", "16"))
+NATURAL_WORDS_PER_SECOND = 2.6
 LEAD_IN = 0.4
 PROCESSING_HOLD = 0.3
 REVIEW_HOLD = 2.0
@@ -252,12 +254,14 @@ def main() -> None:
                         timeline.append({"t": round(now, 3), "phase": "recording", "preview": preview})
                         next_event += 1
                     speaking = LEAD_IN - 0.15 < now < speech_end
-                    publisher.publish(state("recording", preview, int(now), level_at(now) if speaking else 0.04))
+                    spoken = int(len(preview.split()) / NATURAL_WORDS_PER_SECOND)
+                    publisher.publish(state("recording", preview, spoken, level_at(now) if speaking else 0.04))
                     pump(0.05)
-                publisher.publish(state("processing", TEXT, int(speech_end)))
+                spoken = int(len(TEXT.split()) / NATURAL_WORDS_PER_SECOND)
+                publisher.publish(state("processing", TEXT, spoken))
                 timeline.append({"t": round(time.monotonic() - started, 3), "phase": "processing"})
                 pump(PROCESSING_HOLD)
-                publisher.publish(state("ready", TEXT, int(speech_end)))
+                publisher.publish(state("ready", TEXT, spoken))
                 timeline.append({"t": round(time.monotonic() - started, 3), "phase": "ready"})
                 while capture.poll() is None and time.monotonic() - started < duration + 5:
                     pump(0.05)
@@ -272,6 +276,7 @@ def main() -> None:
                         "region": region,
                         "capture_started_before_first_event": 0.5,
                         "text": TEXT,
+                        "timer_words_per_second": NATURAL_WORDS_PER_SECOND,
                         "timeline": timeline,
                         "recording": recording,
                         "ready": ready,

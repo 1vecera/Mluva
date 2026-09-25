@@ -1,8 +1,8 @@
-import { AbsoluteFill, random, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, random, useCurrentFrame } from "remotion";
 import { interpolatePath } from "@remotion/paths";
 import { noise2D } from "@remotion/noise";
 import { beatFrame } from "../timing";
-import { brand, C, display, easeIn, easeInOut, easeOut, ramp, ring } from "../theme";
+import { brand, C, display, easeIn, easeInOut, easeOut, ramp, ring, T } from "../theme";
 import { Box, lockupBoxes, LOCKUP, LockupFull, LockupHalf } from "../parts/Logo";
 import { MARK_PATH, MARK_VIEWBOX } from "../parts/markPath";
 
@@ -43,38 +43,34 @@ const lerpBox = (a: Box, b: Box, t: number): Box => ({
 });
 
 const Explosion: React.FC<{ frame: number }> = ({ frame }) => {
-  if (frame > 48) return null;
-  const flash = ramp(frame, 0, 14, easeOut, 1, 0);
-  const ring1 = ramp(frame, 0, 30, easeOut);
-  const ring2 = ramp(frame, 3, 40, easeOut);
-  const flare = ramp(frame, 0, 22, easeOut, 1, 0);
+  if (frame > 36) return null;
+  const core = ramp(frame, 0, 12, easeOut, 1, 0);
+  const wave = ramp(frame, 0, 28, easeOut);
   const t = frame / 60;
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
       <AbsoluteFill
         style={{
-          background: `radial-gradient(circle at ${CX}px ${CY}px, rgba(255,255,255,${0.95 * flash}) 0%, rgba(255,120,128,${
-            0.7 * flash
-          }) 12%, rgba(233,27,39,${0.45 * flash}) 30%, rgba(0,0,0,0) 62%)`,
+          background: `radial-gradient(circle at ${CX}px ${CY}px, rgba(255,255,255,${0.9 * core}) 0%, rgba(255,120,128,${
+            0.55 * core
+          }) 12%, rgba(233,27,39,${0.3 * core}) 30%, rgba(0,0,0,0) 60%)`,
         }}
       />
       <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
         <defs>
           <filter id="spark-glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" />
+            <feGaussianBlur stdDeviation="2.5" />
           </filter>
         </defs>
-        <circle cx={CX} cy={CY} r={30 + 1150 * ring1} fill="none" stroke="#fff" strokeWidth={3 - 2 * ring1} opacity={0.9 * (1 - ring1)} />
-        <circle cx={CX} cy={CY} r={20 + 820 * ring2} fill="none" stroke={C.red} strokeWidth={6 - 4 * ring2} opacity={0.8 * (1 - ring2)} filter="url(#spark-glow)" />
-        {Array.from({ length: 150 }, (_, i) => {
-          const angle = random(`ray-a-${i}`) * Math.PI * 2;
-          const speed = 650 + 1300 * random(`ray-s-${i}`);
-          const len = 50 + 240 * random(`ray-l-${i}`);
-          const travel = speed * (1 - Math.exp(-3.2 * t)) / 3.2;
-          const head = 40 + travel;
-          const tail = Math.max(20, head - len * (1 - ramp(frame, 18, 40)));
-          const op = ramp(frame, 0, 2) * ramp(frame, 14 + 18 * random(`ray-o-${i}`), 40, easeOut, 1, 0);
-          const red = random(`ray-c-${i}`) < 0.35;
+        <circle cx={CX} cy={CY} r={30 + 900 * wave} fill="none" stroke="#fff" strokeWidth={2.5 - 1.8 * wave} opacity={0.8 * (1 - wave)} />
+        {Array.from({ length: 48 }, (_, i) => {
+          const angle = (i / 48) * Math.PI * 2 + 0.6 * (random(`ray-a-${i}`) - 0.5) * (Math.PI / 24);
+          const speed = 700 + 1100 * random(`ray-s-${i}`);
+          const len = 60 + 160 * random(`ray-l-${i}`);
+          const travel = (speed * (1 - Math.exp(-3.4 * t))) / 3.4;
+          const head = 50 + travel;
+          const tail = Math.max(30, head - len * (1 - ramp(frame, 10, 24)));
+          const op = ramp(frame, 0, 2) * ramp(frame, 8 + 10 * random(`ray-o-${i}`), 24, easeOut, 1, 0);
           return (
             <line
               key={i}
@@ -82,46 +78,38 @@ const Explosion: React.FC<{ frame: number }> = ({ frame }) => {
               y1={CY + Math.sin(angle) * tail}
               x2={CX + Math.cos(angle) * head}
               y2={CY + Math.sin(angle) * head}
-              stroke={red ? "#ff3b47" : "#fff"}
-              strokeWidth={1 + 2.2 * random(`ray-w-${i}`)}
+              stroke={i % 6 === 0 ? "#ff4a55" : "#fff"}
+              strokeWidth={1.2 + 1.6 * random(`ray-w-${i}`)}
               strokeLinecap="round"
               opacity={op}
             />
           );
         })}
-        {Array.from({ length: 70 }, (_, i) => {
+        {Array.from({ length: 30 }, (_, i) => {
           const angle = random(`sp-a-${i}`) * Math.PI * 2;
-          const speed = 250 + 900 * random(`sp-s-${i}`);
+          const speed = 250 + 800 * random(`sp-s-${i}`);
           const d = (speed * (1 - Math.exp(-2.4 * t))) / 2.4;
-          const size = 1.5 + 3.5 * random(`sp-r-${i}`);
-          const op = ramp(frame, 0, 3) * ramp(frame, 20, 46, easeOut, 1, 0);
+          const size = 1.5 + 3 * random(`sp-r-${i}`);
+          const op = ramp(frame, 0, 3) * ramp(frame, 16, 34, easeOut, 1, 0);
           return (
-            <circle
-              key={i}
-              cx={CX + Math.cos(angle) * d}
-              cy={CY + Math.sin(angle) * d + 40 * t * t}
-              r={size}
-              fill={i % 3 === 0 ? "#ff5a64" : "#fff"}
-              opacity={op}
-              filter="url(#spark-glow)"
-            />
+            <circle key={i} cx={CX + Math.cos(angle) * d} cy={CY + Math.sin(angle) * d + 40 * t * t} r={size} fill="#fff" opacity={op} filter="url(#spark-glow)" />
           );
         })}
       </svg>
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          top: CY - 6,
-          width: 1920,
-          height: 12,
-          background: "linear-gradient(90deg, transparent, rgba(233,27,39,0.7) 25%, #fff 50%, rgba(233,27,39,0.7) 75%, transparent)",
-          opacity: flare,
-          transform: `scaleY(${0.3 + 0.7 * flare})`,
-          filter: "blur(2px)",
-        }}
-      />
     </AbsoluteFill>
+  );
+};
+
+// The drop's full-frame hit: white, then a red afterglow, gone in six frames.
+const Hit: React.FC<{ frame: number }> = ({ frame }) => {
+  if (frame > 6) return null;
+  const white = frame <= 1 ? 0.7 : ramp(frame, 1, 3, easeOut, 0.7, 0);
+  const red = frame < 3 ? 0.25 * ramp(frame, 0, 3) : ramp(frame, 3, 6, easeOut, 0.25, 0);
+  return (
+    <>
+      <AbsoluteFill style={{ background: "#fff", opacity: white, mixBlendMode: "screen" }} />
+      <AbsoluteFill style={{ background: C.red, opacity: red, mixBlendMode: "screen" }} />
+    </>
   );
 };
 
@@ -194,8 +182,15 @@ const FormingMark: React.FC<{ frame: number; ambient: boolean }> = ({ frame, amb
   );
 };
 
+const markRightAt = (frame: number) => {
+  const move = ramp(frame, 38, 60, easeInOut);
+  const start: Box = { x: CX - 210, y: CY - 210, w: 420, h: 420 };
+  const box = lerpBox(start, FINAL.mark, move);
+  return box.x + box.w * 0.961;
+};
+
 const Word: React.FC<{ frame: number }> = ({ frame }) => {
-  const reveal = ramp(frame, 44, 64, easeOut);
+  const reveal = ramp(frame, 48, 66, easeOut);
   const out = ramp(frame, LENGTH - 18, LENGTH - 6, easeIn);
   if (reveal <= 0 || out >= 1 || atRest(frame)) return null;
   const rest = reveal >= 1 && out <= 0;
@@ -210,7 +205,11 @@ const Word: React.FC<{ frame: number }> = ({ frame }) => {
         rest
           ? undefined
           : {
-              clipPath: `inset(-20% ${(1 - reveal) * (1 - FINAL_WORD_LEFT) * 100}% -20% 0)`,
+              // Hidden behind the sliding mark: never drawn left of the mark's trailing edge.
+              clipPath: `inset(-20% ${(1 - reveal) * (1 - FINAL_WORD_LEFT) * 100}% -20% ${Math.max(
+                0,
+                ((markRightAt(frame) + 12 - LOCKUP_LEFT) / (LOCKUP.w * LOCKUP_SCALE)) * 100,
+              )}%)`,
               filter: `blur(${(1 - reveal) * 6 + out * 12}px)`,
               opacity: 1 - out,
             }
@@ -242,7 +241,7 @@ const Tagline: React.FC<{ frame: number }> = ({ frame }) => {
           <span
             key={i}
             style={{
-              ...display(40, 500),
+              ...display(T.xs, 500),
               letterSpacing: "-0.01em",
               color: C.ink2,
               opacity: inT,
@@ -261,11 +260,13 @@ const Tagline: React.FC<{ frame: number }> = ({ frame }) => {
 // `ambient` false hides the glow for the pixel check in LockupCheck.tsx.
 export const C05Logo: React.FC<{ ambient?: boolean }> = ({ ambient = true }) => {
   const frame = useCurrentFrame();
-  const shake = frame < 14 ? (1 - frame / 14) * 11 : 0;
+  const shake = frame < 12 ? (1 - frame / 12) * 8 : 0;
   const sx = shake * noise2D("shake-x", frame * 0.9, 0);
   const sy = shake * noise2D("shake-y", 0, frame * 0.9);
+  const punch = frame < 14 ? 1 + 0.06 * (1 - Easing.out(Easing.exp)(frame / 14)) : 1;
   return (
-    <AbsoluteFill style={{ transform: `translate(${sx}px, ${sy}px)` }}>
+    <AbsoluteFill style={{ transform: frame < 14 ? `translate(${sx}px, ${sy}px) scale(${punch})` : undefined }}>
+      <Hit frame={frame} />
       <Explosion frame={frame} />
       <FormingMark frame={frame} ambient={ambient} />
       <Word frame={frame} />

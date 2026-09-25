@@ -1,53 +1,52 @@
-import { AbsoluteFill, Img, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, Img, random, staticFile, useCurrentFrame } from "remotion";
 import { beatFrame } from "../timing";
-import { C, display, easeIn, easeInOut, easeOut, mono, ramp } from "../theme";
+import { C, display, easeIn, easeInOut, easeOut, LABEL, mono, ramp, T } from "../theme";
 import { scramble } from "../parts/Scramble";
 import { vBlur } from "../parts/Blur";
 
-// Every theme installed with Omarchy, photographed from the production widget (showreel/capture_widget.py).
-const THEMES = [
-  "catppuccin", "catppuccin-latte", "ethereal", "everforest", "flexoki-light", "gruvbox", "hackerman", "kanagawa",
-  "last-horizon", "lumon", "lupine", "matte-black", "miasma", "nord", "osaka-jade", "retro-82", "ristretto",
-  "rose-pine", "solitude", "tokyo-night", "vantablack", "white",
+// Every theme installed with Omarchy, photographed from the production widget (showreel/capture_widget.py),
+// sorted by the widget's background luminance from themes.json: light at the top of the sphere.
+const LIGHT_TO_DARK = [
+  "white", "flexoki-light", "lupine", "rose-pine", "catppuccin-latte", "everforest", "nord", "gruvbox", "ristretto",
+  "lumon", "miasma", "kanagawa", "catppuccin", "tokyo-night", "osaka-jade", "retro-82", "solitude", "matte-black",
+  "hackerman", "ethereal", "last-horizon", "vantablack",
 ];
-const STILLS = THEMES.flatMap((theme) => [
-  { src: `showreel/themes/${theme}-recording.png`, aspect: 225 / 750 },
-  { src: `showreel/themes/${theme}-review.png`, aspect: 281 / 750 },
+// The counter names them from the hero's Vantablack outward.
+const COUNT_ORDER = [...LIGHT_TO_DARK].reverse();
+const TILES = LIGHT_TO_DARK.flatMap((theme) => [
+  { theme, src: `showreel/themes/${theme}-recording.png` },
+  { theme, src: `showreel/themes/${theme}-review.png` },
 ]);
-// Each still appears twice, spread apart on the sphere so neighbours differ.
-const CARDS = [...STILLS, ...STILLS.slice(22), ...STILLS.slice(0, 22)];
 const B0 = beatFrame(12);
 const COLLAPSE = beatFrame(15) - B0;
 const LENGTH = beatFrame(16) - B0;
 const RADIUS = 360;
-const CARD_W = 172;
+const TILE_W = 190;
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+const COUNT_FROM = 2;
+const COUNT_TO = 82;
 
-const POINTS = CARDS.map((_, i) => {
-  const y = 1 - (2 * (i + 0.5)) / CARDS.length;
+const POINTS = TILES.map((_, i) => {
+  const y = -1 + (2 * (i + 0.5)) / TILES.length;
   const r = Math.sqrt(1 - y * y);
-  const phi = i * GOLDEN;
-  return { x: Math.cos(phi) * r, y, z: Math.sin(phi) * r };
+  return { x: Math.cos(i * GOLDEN) * r, y, z: Math.sin(i * GOLDEN) * r };
 });
+const expoOut = Easing.out(Easing.exp);
+const countAt = (frame: number) => Math.max(0, Math.min(22, ((frame - COUNT_FROM) / (COUNT_TO - COUNT_FROM)) * 22));
+const namedAt = (theme: string) => COUNT_FROM + ((COUNT_ORDER.indexOf(theme) + 1) / 22) * (COUNT_TO - COUNT_FROM);
 
 const Sphere: React.FC<{ frame: number }> = ({ frame }) => {
-  const enter = ramp(frame, 0, 18, easeOut);
-  const zoom = 1 + 0.35 * (1 - ramp(frame, 0, 14, easeOut));
   const collapse = ramp(frame, COLLAPSE, LENGTH - 6, easeIn);
-  const spin = 2.6 * ramp(frame, 0, 70, easeOut) + 0.012 * frame + 5 * collapse * collapse;
-  const tilt = 0.32;
-  const radius = RADIUS * zoom * (0.8 + 0.2 * enter) * (1 - collapse);
+  const spin = 1.4 * (1 - expoOut(Math.min(1, frame / 26))) + 0.0045 * frame + 5 * collapse * collapse;
+  const tilt = 0.3;
+  const radius = RADIUS * (1 - collapse);
   const cx = 1250 - 290 * ramp(frame, COLLAPSE - 6, LENGTH - 8, easeInOut);
   const cy = 540;
-  const cosY = Math.cos(spin);
-  const sinY = Math.sin(spin);
-  const cosX = Math.cos(tilt);
-  const sinX = Math.sin(tilt);
   const placed = POINTS.map((p, i) => {
-    const x1 = p.x * cosY + p.z * sinY;
-    const z1 = -p.x * sinY + p.z * cosY;
-    const y2 = p.y * cosX - z1 * sinX;
-    const z2 = p.y * sinX + z1 * cosX;
+    const x1 = p.x * Math.cos(spin) + p.z * Math.sin(spin);
+    const z1 = -p.x * Math.sin(spin) + p.z * Math.cos(spin);
+    const y2 = p.y * Math.cos(tilt) - z1 * Math.sin(tilt);
+    const z2 = p.y * Math.sin(tilt) + z1 * Math.cos(tilt);
     return { i, x: x1, y: y2, z: z2 };
   }).sort((a, b) => a.z - b.z);
   return (
@@ -60,53 +59,68 @@ const Sphere: React.FC<{ frame: number }> = ({ frame }) => {
           width: radius * 2.5,
           height: radius * 2.5,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(233,27,39,0.10) 0%, rgba(233,27,39,0.04) 45%, transparent 70%)",
-          opacity: enter,
+          background: "radial-gradient(circle, rgba(233,27,39,0.09) 0%, rgba(233,27,39,0.03) 45%, transparent 70%)",
         }}
       />
-      {placed.filter(({ z }) => z > -0.08).map(({ i, x, y, z }) => {
-        const card = CARDS[i];
-        const depth = (z + 1) / 2;
-        const perspective = 1500 / (1500 - z * radius);
-        const yaw = Math.atan2(x, z);
-        const pitch = -Math.asin(Math.max(-1, Math.min(1, y)));
-        const appear = ramp(frame, (i % 11) * 0.5, 6 + (i % 11) * 0.5);
-        const w = CARD_W * perspective * (1 - 0.6 * collapse);
-        const edge = Math.min(1, (z + 0.08) / 0.25);
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              left: cx + x * radius * perspective - w / 2,
-              top: cy + y * radius * perspective - (w * card.aspect) / 2,
-              width: w,
-              height: w * card.aspect,
-              transform: `perspective(900px) rotateY(${yaw}rad) rotateX(${pitch}rad)`,
-              opacity: appear * edge * (0.45 + 0.55 * depth) * (1 - collapse * 0.6),
-              filter: `brightness(${0.5 + 0.7 * depth})`,
-              boxShadow: `0 ${12 * depth}px ${26 * depth}px rgba(0,0,0,0.6)`,
-            }}
-          >
-            <Img src={staticFile(card.src)} style={{ width: "100%", height: "100%", display: "block" }} />
-          </div>
-        );
-      })}
+      {placed
+        .filter(({ z }) => z > -0.08)
+        .map(({ i, x, y, z }) => {
+          const tile = TILES[i];
+          // Assemble from deep behind the sphere, staggered, with an exponential ease.
+          const delay = Math.floor(random(`tile-${i}`) * 18);
+          const a = expoOut(Math.min(1, Math.max(0, (frame - delay) / 22)));
+          if (a <= 0) return null;
+          const depthZ = z * radius * a - 1800 * (1 - a);
+          const perspective = 1500 / (1500 - depthZ);
+          const facing = (z + 1) / 2;
+          const shade = 0.35 + 0.65 * Math.max(0, z);
+          const edge = Math.min(1, (z + 0.08) / 0.25);
+          const yaw = Math.atan2(x, z);
+          const pitch = -Math.asin(Math.max(-1, Math.min(1, y)));
+          const at = namedAt(tile.theme);
+          const pop = ramp(frame, at, at + 3) * ramp(frame, at + 3, at + 11, (t) => t, 1, 0);
+          const w = TILE_W * perspective * (1 - 0.6 * collapse) * (1 + 0.12 * pop);
+          const h = w / 2;
+          return (
+            <div
+              key={i}
+              style={{
+                position: "absolute",
+                left: cx + x * radius * a * perspective - w / 2,
+                top: cy + y * radius * a * perspective - h / 2,
+                width: w,
+                height: h,
+                overflow: "hidden",
+                transform: `perspective(900px) rotateY(${yaw}rad) rotateX(${pitch}rad)`,
+                opacity: Math.min(1, a * 1.4) * edge * (1 - collapse * 0.6),
+                filter: `brightness(${shade + 0.35 * pop})`,
+                boxShadow: `0 ${12 * facing}px ${26 * facing}px rgba(0,0,0,0.6)`,
+              }}
+            >
+              <Img src={staticFile(tile.src)} style={{ height: "100%", width: "auto", maxWidth: "none", display: "block" }} />
+            </div>
+          );
+        })}
     </AbsoluteFill>
   );
 };
 
+// Digit strips masked with a soft gradient so glow and motion blur are not boxed in.
 const Odometer: React.FC<{ value: number; size: number }> = ({ value, size }) => {
-  const digitH = size * 1.0;
   const ones = value % 10;
-  const tensBase = Math.floor(value / 10);
-  const carry = Math.max(0, (ones - 9) / 1);
-  const tens = tensBase + carry;
+  const tens = Math.floor(value / 10) + Math.max(0, ones - 9);
   const strip = (pos: number, key: string) => (
-    <div key={key} style={{ height: digitH, overflow: "hidden", width: size * 0.62 }}>
-      <div style={{ transform: `translateY(${-pos * digitH}px)`, filter: vBlur(0) }}>
+    <div
+      key={key}
+      style={{
+        height: size,
+        width: size * 0.62,
+        WebkitMaskImage: "linear-gradient(transparent 0%, black 16%, black 84%, transparent 100%)",
+      }}
+    >
+      <div style={{ transform: `translateY(${-pos * size}px)` }}>
         {Array.from({ length: 11 }, (_, d) => (
-          <div key={d} style={{ ...display(size), height: digitH, lineHeight: `${digitH}px`, textAlign: "center" }}>
+          <div key={d} style={{ ...display(size), height: size, lineHeight: `${size}px`, textAlign: "center" }}>
             {d % 10}
           </div>
         ))}
@@ -114,7 +128,7 @@ const Odometer: React.FC<{ value: number; size: number }> = ({ value, size }) =>
     </div>
   );
   return (
-    <div style={{ display: "flex", textShadow: "0 0 30px rgba(255,255,255,0.2)" }}>
+    <div style={{ display: "flex", filter: "drop-shadow(0 0 22px rgba(255,255,255,0.1))" }}>
       {strip(tens, "t")}
       {strip(ones, "o")}
     </div>
@@ -122,11 +136,13 @@ const Odometer: React.FC<{ value: number; size: number }> = ({ value, size }) =>
 };
 
 const Counter: React.FC<{ frame: number }> = ({ frame }) => {
-  const enter = ramp(frame, 2, 14);
+  const enter = ramp(frame, 0, 10);
   const exit = ramp(frame, COLLAPSE, COLLAPSE + 10, easeIn);
-  const value = 22 * ramp(frame, 6, 64, easeOut);
-  const speed = 22 * (ramp(frame + 1, 6, 64, easeOut) - ramp(frame, 6, 64, easeOut));
-  const name = THEMES[Math.floor(frame / 5) % THEMES.length].replace("-", " ").toUpperCase();
+  const value = countAt(frame);
+  const speed = countAt(frame + 1) - value;
+  const named = Math.max(1, Math.ceil(value));
+  const name = COUNT_ORDER[named - 1].replace("-", " ").toUpperCase();
+  const since = frame - namedAt(COUNT_ORDER[named - 1]);
   return (
     <div
       style={{
@@ -135,21 +151,22 @@ const Counter: React.FC<{ frame: number }> = ({ frame }) => {
         top: 318,
         opacity: enter * (1 - exit),
         transform: `translateY(${(1 - enter) * 30 - exit * 40}px)`,
-        filter: vBlur(exit * 30),
+        filter: exit > 0 ? vBlur(exit * 30) : undefined,
       }}
     >
-      <div style={{ ...mono(14, C.ink2) }}>
+      <div style={mono(15, LABEL)}>
         <span style={{ display: "inline-block", width: 9, height: 9, background: C.red, marginRight: 14 }} />
         ONE WIDGET · EVERY THEME
       </div>
-      <div style={{ marginTop: 20, filter: vBlur(Math.min(30, speed * 60)) }}>
-        <Odometer value={value} size={220} />
+      <div style={{ marginTop: 20, filter: vBlur(Math.min(20, speed * 40)) }}>
+        <Odometer value={value} size={T.xl} />
       </div>
-      <div style={{ ...display(66, 800), letterSpacing: "-0.03em", marginTop: 8 }}>Omarchy themes</div>
-      <div style={{ ...mono(15, C.ink3), marginTop: 26 }}>
-        <span style={{ color: C.red }}>● </span>+ {scramble(name, ramp(frame % 5, 0, 3), `t${Math.floor(frame / 5)}`, frame, 0.6)}
+      <div style={{ ...display(T.s, 800), letterSpacing: "-0.03em", marginTop: 6 }}>Omarchy themes</div>
+      <div style={{ ...mono(15, C.ink), marginTop: 26 }}>
+        <span style={{ color: C.red }}>● </span>
+        {scramble(name, ramp(since, -1, 2), `t${named}`, frame, 0.6)}
       </div>
-      <div style={{ ...mono(12, C.ink3), marginTop: 14 }}>CAPTURED FROM THE REAL WIDGET</div>
+      <div style={{ ...mono(15, LABEL), marginTop: 14 }}>CAPTURED FROM THE REAL WIDGET</div>
     </div>
   );
 };
@@ -177,9 +194,8 @@ const Point: React.FC<{ frame: number }> = ({ frame }) => {
 
 export const C04Themes: React.FC = () => {
   const frame = useCurrentFrame();
-  const enter = ramp(frame, 0, 5, easeOut);
   return (
-    <AbsoluteFill style={{ opacity: enter }}>
+    <AbsoluteFill style={{ opacity: ramp(frame, 0, 3, easeOut) }}>
       <Counter frame={frame} />
       <Sphere frame={frame} />
       <Point frame={frame} />
