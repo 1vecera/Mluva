@@ -28,9 +28,13 @@ Use `OFFSCREEN_ENABLE_ATSPI=1` for a fixture that exercises accessibility. Run v
 
 ## Unified release package
 
-The native app and widget ship from this repository in one source archive and use the same release version. `linux/quickshell/mluva.dictation` is the widget source; `linux/install_widget.py` installs those exact QML, JavaScript and font files through a versioned entry point, validates them with Omarchy and enables the stable `mluva.dictation` ID. No plugin mirror or separate export is needed.
+The native app and widget ship from this repository in one source archive and use the same release version. The root `manifest.json` is the sole plugin manifest and points directly into `linux/quickshell/mluva.dictation`. Omarchy can clone this repository as a plugin; the native app still needs explicit setup from that checkout. No plugin mirror, separate export or second website is needed.
 
-`bash install.sh` installs both parts. Installer tests cover fresh installs, upgrades, clean legacy Git migration without network access, protected local edits and rollback after shell failures. Run `make linux-test` and the isolated widget check before releasing. To build the package from a reviewed tag:
+Omarchy's current plugin manager uses a full Git clone, including this project's older design and video history. On 29 September 2026 the checked-out source occupied about 29 MiB and local Git packs about 361 MiB; actual download size varies. The documented shallow clone or release archive with combined setup remains the smaller download. Keeping one repository avoids a publishing mirror; reducing historical clone size would require a separate, explicitly planned history migration.
+
+`linux/install_widget.py --stage <new-folder>` copies the QML, JavaScript and fonts and derives a folder-relative manifest from the root manifest. The native app installer uses that same staging operation. The combined installer then loads the staged widget through a content-specific entry point, validates it with Omarchy and enables the stable `mluva.dictation` ID. This preserves the existing bundled upgrade and rollback behavior while keeping manifest metadata in one place.
+
+`bash install.sh` installs both parts. Installer tests cover fresh installs, upgrades, clean legacy Git migration without network access, protected local edits and rollback after shell failures. Validate a clean checkout or source archive with `omarchy plugin validate <repository>` and the staged widget with the same command. Use a clean tree because Omarchy rejects symlinks, including those in a development virtual environment. Run `make linux-test` and the isolated widget check before releasing. To build the package from a reviewed tag:
 
 ```sh
 git archive --format=tar.gz --prefix=mluva-1.5.2/ \

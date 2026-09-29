@@ -448,10 +448,15 @@ def test_installer_replaces_a_complete_current_install(tmp_path: Path) -> None:
     assert f"Exec={bin_dir}/mluva" in desktop.read_text(encoding="utf-8")
     shell_launcher = install_home / ".local" / "bin" / "mluva-shell"
     assert shell_launcher.resolve() == application_dir / "mluva-shell"
-    for filename in ("Widget.qml", "RecordingOverlay.qml", "manifest.json"):
+    for filename in ("Widget.qml", "RecordingOverlay.qml"):
         assert (application_dir / "quickshell/mluva.dictation" / filename).read_bytes() == (
             script.parent / "quickshell/mluva.dictation" / filename
         ).read_bytes()
+    widget_manifest = json.loads((application_dir / "quickshell/mluva.dictation/manifest.json").read_text())
+    root_manifest = json.loads((script.parent.parent / "manifest.json").read_text())
+    assert widget_manifest.pop("entryPoints") == {"barWidget": "Widget.qml"}
+    root_manifest.pop("entryPoints")
+    assert widget_manifest == root_manifest
     extension = application_dir / "gnome-extension" / "recording-status@mluva.local"
     for filename in ("extension.js", "recordingOverlay.js", "metadata.json", "stylesheet.css", "mluva-symbolic.svg"):
         assert (extension / filename).read_bytes() == (
