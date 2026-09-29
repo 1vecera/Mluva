@@ -14,7 +14,7 @@ import install_widget as widget
 def installation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Isolate files and shell integration while exercising production installer logic."""
     source = tmp_path / "source"
-    shutil.copytree(Path(widget.__file__).parent / "quickshell" / widget.PLUGIN_ID, source)
+    widget.stage_widget(Path(widget.__file__).parent.parent, source)
     home = tmp_path / "home"
     calls = []
 
@@ -120,7 +120,8 @@ def test_legacy_git_migration_without_network(tmp_path, monkeypatch, state: str)
     upstream = tmp_path / "upstream"
     target = tmp_path / "home/.config/omarchy/plugins/mluva.dictation-old"
     target.parent.mkdir(parents=True)
-    source = Path(widget.__file__).parent / "quickshell" / widget.PLUGIN_ID
+    source = tmp_path / "source"
+    widget.stage_widget(Path(widget.__file__).parent.parent, source)
     shutil.copytree(source, upstream)
     for arguments in (
         ["init", str(upstream)],

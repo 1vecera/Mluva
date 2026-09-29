@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 
 PLUGIN_ID = "mluva.dictation"
+PLUGIN_SOURCE = Path("linux/quickshell") / PLUGIN_ID
 RECEIPT = ".mluva-bundle.json"
 REPOSITORY = "https://github.com/1vecera/Mluva"
 LEGACY_ORIGINS = {
@@ -28,6 +29,21 @@ def file_hashes(directory: Path) -> dict[str, str]:
         if path.is_file() and path != directory / RECEIPT:
             hashes[path.relative_to(directory).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
     return hashes
+
+
+def stage_widget(repository: Path, target: Path) -> None:
+    """Derive an installable widget from the repository's single root manifest."""
+    source = repository / PLUGIN_SOURCE
+    manifest_path = repository / "manifest.json"
+    if source.is_symlink() or manifest_path.is_symlink():
+        raise ValueError("The bundled widget source and manifest must not be symbolic links.")
+    file_hashes(source)
+    manifest = json.loads(manifest_path.read_text())
+    manifest["entryPoints"] = {
+        key: str(Path(path).relative_to(PLUGIN_SOURCE)) for key, path in manifest["entryPoints"].items()
+    }
+    shutil.copytree(source, target)
+    (target / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
 
 def existing_plugin(plugins: Path) -> Path | None:
@@ -141,10 +157,19 @@ def install_widget(source: Path, home: Path, *, check_only: bool = False) -> Non
 def main() -> None:
     """Install from a checkout/archive, or inspect ownership before native app installation."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="Validate without changing the installation")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--check", action="store_true", help="Validate without changing the installation")
+    mode.add_argument("--stage", type=Path, help="Prepare a widget folder without contacting the desktop")
     args = parser.parse_args()
     try:
-        install_widget(Path(__file__).parent / "quickshell" / PLUGIN_ID, Path.home(), check_only=args.check)
+        repository = Path(__file__).resolve().parent.parent
+        if args.stage is not None:
+            stage_widget(repository, args.stage)
+        else:
+            with tempfile.TemporaryDirectory(prefix="mluva-widget-") as temporary:
+                source = Path(temporary) / PLUGIN_ID
+                stage_widget(repository, source)
+                install_widget(source, Path.home(), check_only=args.check)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
         parser.exit(1, f"Mluva widget setup: {error}\n")
 

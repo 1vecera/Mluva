@@ -59,6 +59,28 @@ them. Tell me how to launch Mluva and approve its recording shortcuts.
 
 **Upgrading:** quit Mluva, update the checkout with `git pull --ff-only`, and rerun `bash install.sh`. Existing plugin customizations are preserved; setup checks for conflicting changes before installing. If a later plugin operation fails, the native app remains installed and setup reports how to retry. Upgrades from 0.x migrate the old product identities and retain a private backup of settings, conversations, drafts and audio. See the [migration guide](docs/identity-migration.md) for customized installations.
 
+### Install through Omarchy's plugin manager
+
+This same repository is also an Omarchy plugin. Its root `manifest.json` loads the bundled QML directly; there is no separate plugin repository or website. Omarchy's plugin manager installs the widget only. Install the native app and desktop dependencies explicitly from that same checkout:
+
+```sh
+omarchy plugin add https://github.com/1vecera/Mluva.git --enable
+bash "$HOME/.config/omarchy/plugins/mluva.dictation/install.sh" --app-only
+```
+
+Launch Mluva from the application menu and choose your providers. The widget requires its `mluva-shell` bridge and does not install or launch the app itself. Quit Mluva before upgrading, run `omarchy plugin update mluva.dictation`, then rerun the `--app-only` command above so the app matches the updated widget. Keep using the combined setup if you already installed that way; Omarchy refuses duplicate `mluva.dictation` installations. See the [Omarchy guide](docs/omarchy-integration.md#installation) for both update paths and customization protection.
+
+### Remove Mluva
+
+Remove the widget before uninstalling the app. Both commands preserve Mluva's settings and saved conversations:
+
+```sh
+omarchy plugin remove mluva.dictation
+mluva-uninstall
+```
+
+If you installed only the app, run just `mluva-uninstall`. The [desktop requirements](docs/linux-platform-profile.md), [provider guide](docs/provider-selection.md) and [third-party notices](THIRD_PARTY_NOTICES.md) document runtime dependencies, optional accounts/models and licenses.
+
 ### The Omarchy widget
 
 The floating widget starts with five preview lines while you speak. A bare light sits at top left and the timer at top right. Drag the text box or status row to move it, choose a lower-left/bottom/lower-right preset, or focus it and press **Super+T** on Omarchy to tile it. Floating mode keeps it above other windows; resizing gives the preview more room. The main app uses the same monospace text and bare header above its content. When you finish, **Continue** adds speech to the same conversation; you can also rewrite, copy or open it in the workspace. The app offers **Continue recording** above the conversation. Hover, deliberate interaction, menus and active rewrites pause the widget's configurable four-second dismissal; inherited focus alone does not. **Shift+F9** reopens the latest conversation when configured.

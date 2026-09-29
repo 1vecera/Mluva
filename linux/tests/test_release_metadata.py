@@ -72,5 +72,5 @@ def test_app_and_bundled_widget_share_a_release_version() -> None:
 
     linux = REPOSITORY_ROOT / "linux"
     project = tomllib.loads((linux / "pyproject.toml").read_text())["project"]
-    manifest = json.loads((linux / "quickshell/mluva.dictation/manifest.json").read_text())
+    manifest = json.loads((REPOSITORY_ROOT / "manifest.json").read_text())
     assert project["version"] == manifest["version"] == PRODUCT_VERSION
