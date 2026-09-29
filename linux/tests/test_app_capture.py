@@ -84,6 +84,8 @@ class CapturingRealtimeClient:
 class RestorableHistoryTarget:
     """Expose an exact session-only target for a headless explicit History paste."""
 
+    application_identifier = "/usr/bin/foot"
+
     def __init__(self, restores: bool) -> None:
         """Configure whether the retained accessibility object is still usable."""
         self.restores = restores
@@ -462,6 +464,19 @@ def test_capture_delivery_requires_portal_approval_and_reports_the_actual_trigge
     assert delivery.title == "Automatic paste armed"
 
 
+@pytest.mark.parametrize(("application_identifier", "ready"), [("/usr/bin/foot", True), ("/usr/bin/code", False)])
+def test_capture_readiness_matches_target_specific_ydotool_support(
+    monkeypatch: pytest.MonkeyPatch, application_identifier: str, ready: bool
+) -> None:
+    """Do not arm an ordinary target when only a physical-key injector is available."""
+    monkeypatch.setattr("mluva_linux.delivery.shutil.which", {"ydotool": "/bin/ydotool"}.get)
+    monkeypatch.setattr("mluva_linux.delivery._ydotool_socket_ready", lambda _environment: True)
+    target = SimpleNamespace(editable_text=None, application_identifier=application_identifier)
+    application = SimpleNamespace(pending_delivery_target=target)
+
+    assert MluvaApplication._pending_target_and_insert_readiness(application) == (target, ready)
+
+
 def test_incognito_temporarily_suspends_and_then_restores_cleanup() -> None:
     """Do not erase the user's cleanup preference when Incognito requires it off."""
     incognito = ToggleSpy(active=True)
@@ -654,12 +669,14 @@ def test_history_retry_pastes_once_only_after_exact_cached_target_restoration(
         confirm_paste: object = None,
         insert_directly: object = None,
         authorize_keyboard_paste: object = None,
+        application_identifier: str | None = None,
     ) -> DeliveryReceipt:
         """Require restoration to precede one content-free paste confirmation."""
         calls.append((text, auto_paste))
         assert callable(insert_directly)
         assert insert_directly(text)
         assert callable(authorize_keyboard_paste)
+        assert application_identifier == "/usr/bin/foot"
         assert callable(confirm_paste)
         assert confirm_paste()
         return DeliveryReceipt(

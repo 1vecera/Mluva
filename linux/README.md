@@ -30,7 +30,7 @@ After a completed dictation, **Continue** in the widget or **Continue recording*
 ```sh
 # Omarchy
 omarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita \
-  at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard procps-ng webkitgtk-6.0 bubblewrap
+  at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap
 
 # Fedora GNOME compatibility
 sudo dnf install git uv python3-gobject gtk4 libadwaita at-spi2-core \
@@ -38,6 +38,8 @@ sudo dnf install git uv python3-gobject gtk4 libadwaita at-spi2-core \
 ```
 
 X11 clipboard delivery needs `xclip`; its optional keyboard fallback needs `xdotool`. The Omarchy widget requires the existing Omarchy shell and plugin manager; setup does not install an operating system or replace desktop configuration.
+
+Omarchy setup includes `wtype` for optional keyboard paste. Existing installations can add it with `omarchy pkg add wtype`. This uses symbolic keys, so the paste shortcut does not assume a QWERTY letter position.
 
 ## Install for the current user
 
@@ -69,15 +71,17 @@ Supply credentials to the app process through your secret manager or desktop lau
 
 The launcher also supports an existing managed credential profile. When the managed local snapshot is enabled, the launcher reads only `ELEVEN_LABS_STT_TOKEN` from it before considering legacy network profiles. `MLUVA_AGENT_SECRET_NAME` can select another supported credential name in that snapshot. This avoids retired profile references blocking startup after credential rotation. That optional integration is implemented in `resources/mluva.in` and `configure-secret-profile.sh`; ordinary installations do not require it.
 
-## Optional GNOME integrations
+## Optional desktop integrations
 
-These Fedora compatibility paths have not been tested in recent releases. Clipboard delivery remains the standard workflow.
+Clipboard delivery remains the standard workflow. The optional GNOME overlay below has not been tested in recent releases.
 
 `mluva-overlay install` enables the optional GNOME Shell menu and display-only recording bar. A newly installed extension may need one logout/login before GNOME discovers it. The app's in-window recording display is available without the extension. Remove it with `mluva-overlay remove`.
 
 Automatic insertion is Experimental and disabled by default. Native AT-SPI editing needs accessibility enabled before the app starts. On GNOME, check `gsettings get org.gnome.desktop.interface toolkit-accessibility`; enable it through desktop settings or `gsettings set org.gnome.desktop.interface toolkit-accessibility true`, then restart applications that do not expose text targets.
 
-For targets without native accessibility editing, the optional `ydotool` helper can supply a keyboard-only fallback. Install the distribution's `ydotool` package, then explicitly run `mluva-input-helper install`. This uses sudo to install a system service and gives processes running as your user access to its private synthetic-keyboard socket. Remove it with `mluva-input-helper remove`. Ordinary installation does not enable it.
+When a captured AT-SPI target lacks native editing, keyboard paste uses `Shift+Insert` for recognized terminal executables (Foot, Alacritty, Ghostty, Kitty and WezTerm) and `Ctrl+V` for other applications. The terminal chord matches Omarchy's clipboard bindings. Terminals that expose no usable AT-SPI text target remain copy-only; detecting a window alone does not authorize insertion.
+
+The optional `ydotool` helper supports only the terminal `Shift+Insert` fallback. It sends physical keycodes, so Mluva does not guess a letter-key code from the physical keyboard's layout: ydotool's virtual device can use a different layout. Ordinary targets require symbolic `wtype` on supported Wayland compositors or `xdotool` on X11; otherwise the complete text stays on the clipboard. To enable the terminal helper, install the distribution's `ydotool` package and explicitly run `mluva-input-helper install`. This uses sudo to install a system service and gives processes running as your user access to its private synthetic-keyboard socket. Remove it with `mluva-input-helper remove`. Ordinary installation does not enable it.
 
 ## Data and troubleshooting
 

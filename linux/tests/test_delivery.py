@@ -7,7 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from mluva_linux.delivery import DeliveryError, _paste_command, _ydotool_socket_ready, deliver_text
+from mluva_linux.delivery import (
+    DeliveryError,
+    _paste_command,
+    _ydotool_socket_ready,
+    deliver_text,
+    keyboard_paste_available,
+)
 
 
 def install_fake_desktop(
@@ -77,8 +83,25 @@ def test_confirmed_native_insertion_precedes_keyboard_fallback(monkeypatch: pyte
     assert "accessibility editing interface" in receipt.guidance
 
 
-def test_unsupported_native_insertion_allows_one_keyboard_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Fall through only when the target declines native mutation before changing content."""
+@pytest.mark.parametrize(
+    ("application_identifier", "chord"),
+    [
+        ("/usr/bin/foot", ["-M", "shift", "-k", "Insert", "-m", "shift"]),
+        ("/usr/bin/alacritty", ["-M", "shift", "-k", "Insert", "-m", "shift"]),
+        ("/opt/ghostty/bin/ghostty", ["-M", "shift", "-k", "Insert", "-m", "shift"]),
+        ("process:foot", ["-M", "shift", "-k", "Insert", "-m", "shift"]),
+        ("/usr/bin/code", ["-M", "ctrl", "v", "-m", "ctrl"]),
+        ("Terminal · foot", ["-M", "ctrl", "v", "-m", "ctrl"]),
+        ("/usr/bin/not-foot", ["-M", "ctrl", "v", "-m", "ctrl"]),
+        (None, ["-M", "ctrl", "v", "-m", "ctrl"]),
+    ],
+)
+def test_unsupported_native_insertion_uses_captured_process_paste_chord(
+    monkeypatch: pytest.MonkeyPatch,
+    application_identifier: str | None,
+    chord: list[str],
+) -> None:
+    """Paste once with terminal semantics only for a known captured executable, never a title substring."""
     calls = install_fake_desktop(
         monkeypatch,
         {
@@ -92,11 +115,12 @@ def test_unsupported_native_insertion_allows_one_keyboard_fallback(monkeypatch: 
         auto_paste=True,
         insert_directly=lambda _text: None,
         confirm_paste=lambda: True,
+        application_identifier=application_identifier,
     )
 
     assert calls == [
         (["/usr/bin/wl-copy"], "Keyboard fallback"),
-        (["/usr/bin/wtype", "-M", "ctrl", "v", "-m", "ctrl"], None),
+        (["/usr/bin/wtype", *chord], None),
     ]
     assert receipt.pasted
     assert receipt.paste_confirmed is True
@@ -117,6 +141,7 @@ def test_changed_target_prevents_keyboard_fallback_after_clipboard_recovery(monk
         auto_paste=True,
         insert_directly=lambda _text: None,
         authorize_keyboard_paste=lambda: False,
+        application_identifier="/usr/bin/foot",
     )
 
     assert calls == [(["/usr/bin/wl-copy"], "Do not redirect")]
@@ -193,11 +218,12 @@ def test_unconfirmed_dispatch_remains_recoverable_without_automatic_retry(
         auto_paste=True,
         confirm_paste=lambda: False,
         confirmation_timeout_seconds=0,
+        application_identifier="/usr/bin/foot",
     )
 
     assert calls == [
         (["/usr/bin/wl-copy"], "Unconfirmed"),
-        (["/usr/bin/ydotool", "key", "29:1", "47:1", "47:0", "29:0"], None),
+        (["/usr/bin/ydotool", "key", "42:1", "110:1", "110:0", "42:0"], None),
     ]
     assert not receipt.pasted
     assert receipt.paste_dispatched
@@ -303,11 +329,50 @@ def test_installed_ydotool_without_a_live_daemon_stays_copy_only(monkeypatch: py
     )
     monkeypatch.setattr("mluva_linux.delivery._ydotool_socket_ready", lambda _environment: False)
 
-    receipt = deliver_text("Manual recovery", auto_paste=True)
+    receipt = deliver_text("Manual recovery", auto_paste=True, application_identifier="/usr/bin/foot")
 
     assert calls == [(["/usr/bin/wl-copy"], "Manual recovery")]
     assert receipt.history_outcome == "copied"
     assert "helper is ready" in receipt.guidance
+
+
+def test_ydotool_only_keeps_ordinary_targets_copy_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep ordinary targets copy-only when the only injector exposes physical keycodes."""
+    calls = install_fake_desktop(
+        monkeypatch,
+        {"wl-copy": "/usr/bin/wl-copy", "ydotool": "/usr/bin/ydotool"},
+    )
+
+    assert not keyboard_paste_available(application_identifier="/usr/bin/code")
+    assert keyboard_paste_available(application_identifier="/usr/bin/foot")
+    receipt = deliver_text("Keep the complete text", auto_paste=True, application_identifier="/usr/bin/code")
+
+    assert calls == [(["/usr/bin/wl-copy"], "Keep the complete text")]
+    assert receipt.history_outcome == "copied"
+    assert not receipt.paste_dispatched
+    assert "layout-safe" in receipt.guidance
+
+
+@pytest.mark.parametrize(
+    ("application_identifier", "chord"), [("/usr/bin/code", "ctrl+v"), ("/usr/bin/foot", "shift+Insert")]
+)
+def test_x11_prefers_symbolic_paste_over_ydotool_physical_keys(
+    monkeypatch: pytest.MonkeyPatch, application_identifier: str, chord: str
+) -> None:
+    """Resolve paste through X11 keysyms even when a numeric injector is also ready."""
+    monkeypatch.setenv("XDG_SESSION_TYPE", "x11")
+    calls = install_fake_desktop(
+        monkeypatch,
+        {"xclip": "/usr/bin/xclip", "xdotool": "/usr/bin/xdotool", "ydotool": "/usr/bin/ydotool"},
+    )
+
+    receipt = deliver_text("One paste", auto_paste=True, application_identifier=application_identifier)
+
+    assert calls == [
+        (["/usr/bin/xclip", "-selection", "clipboard"], "One paste"),
+        (["/usr/bin/xdotool", "key", "--clearmodifiers", chord], None),
+    ]
+    assert receipt.paste_dispatched
 
 
 def test_ydotool_requires_a_live_owner_only_socket(tmp_path: Path) -> None:

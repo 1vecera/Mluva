@@ -118,6 +118,8 @@ class TextTransformationClient(Protocol):
 class DeliveryTarget(Protocol):
     """Describe an in-memory target that can be restored and confirmed without reading text."""
 
+    application_identifier: str | None
+
     def restore(self) -> bool:
         """Restore the captured focus and selection or caret."""
         ...
@@ -509,6 +511,7 @@ class DictationWorkflow:
                         confirm_paste=lambda: delivery_target.confirm_insertion(output_text),
                         insert_directly=delivery_target.insert_text,
                         authorize_keyboard_paste=delivery_target.restore,
+                        application_identifier=delivery_target.application_identifier,
                     )
                 else:
                     delivery = deliver_text(output_text, auto_paste=False)

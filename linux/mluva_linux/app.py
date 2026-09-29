@@ -2093,7 +2093,8 @@ class MluvaApplication(Adw.Application):
             None,
         )
         target_can_insert = pending_target is not None and (
-            pending_target.editable_text is not None or keyboard_paste_available()
+            pending_target.editable_text is not None
+            or keyboard_paste_available(application_identifier=pending_target.application_identifier)
         )
         return pending_target, target_can_insert
 
@@ -4500,6 +4501,7 @@ class MluvaApplication(Adw.Application):
                     confirm_paste=lambda: target.confirm_insertion(result.output_text),
                     insert_directly=target.insert_text,
                     authorize_keyboard_paste=target.restore,
+                    application_identifier=target.application_identifier,
                 )
                 if restored_target and target is not None
                 else deliver_text(result.output_text, auto_paste=False)
@@ -4786,6 +4788,7 @@ class MluvaApplication(Adw.Application):
                     confirm_paste=lambda: target.confirm_insertion(entry.delivered_text),
                     insert_directly=target.insert_text,
                     authorize_keyboard_paste=target.restore,
+                    application_identifier=target.application_identifier,
                 )
                 if restored_target and target is not None
                 else deliver_text(entry.delivered_text, auto_paste=False)

@@ -10,6 +10,8 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+TERMINAL_EXECUTABLES = frozenset({"alacritty", "foot", "footclient", "ghostty", "kitty", "wezterm", "wezterm-gui"})
+
 
 class DeliveryError(RuntimeError):
     """Report that text could not be placed on the desktop clipboard."""
@@ -42,6 +44,7 @@ def deliver_text(
     insert_directly: Callable[[str], bool | None] | None = None,
     authorize_keyboard_paste: Callable[[], bool] | None = None,
     confirmation_timeout_seconds: float = 0.75,
+    application_identifier: str | None = None,
 ) -> DeliveryReceipt:
     """Copy once, attempt one native insertion or paste, and distinguish dispatch from confirmation."""
     if not text:
@@ -79,12 +82,12 @@ def deliver_text(
                 paste_dispatched=True,
                 paste_confirmed=False,
             )
-    paste_command = _paste_command()
+    paste_command = _paste_command(application_identifier=application_identifier)
     if paste_command is None:
         return DeliveryReceipt(
             copied=True,
             pasted=False,
-            guidance="Copied. No supported keyboard paste helper is ready; paste manually.",
+            guidance="Copied. No layout-safe keyboard paste helper is ready for this target; paste manually.",
         )
     time.sleep(0.12)
     if authorize_keyboard_paste is not None:
@@ -163,20 +166,34 @@ def _confirm_paste(
         time.sleep(min(0.05, remaining))
 
 
-def keyboard_paste_available(environment: Mapping[str, str] | None = None) -> bool:
+def keyboard_paste_available(
+    environment: Mapping[str, str] | None = None,
+    *,
+    application_identifier: str | None = None,
+) -> bool:
     """Return whether one keyboard paste backend is usable now, not merely installed."""
-    return _paste_command(environment) is not None
+    return _paste_command(environment, application_identifier=application_identifier) is not None
 
 
-def _paste_command(environment: Mapping[str, str] | None = None) -> list[str] | None:
-    """Resolve the first ready input injector supported by the active desktop."""
+def _paste_command(
+    environment: Mapping[str, str] | None = None,
+    *,
+    application_identifier: str | None = None,
+) -> list[str] | None:
+    """Choose a paste chord from captured process identity, never the current window title."""
     environment = os.environ if environment is None else environment
+    executable_name = Path((application_identifier or "").removeprefix("process:")).name.casefold()
+    terminal = executable_name in TERMINAL_EXECUTABLES
     if executable := shutil.which("wtype"):
+        if terminal:
+            return [executable, "-M", "shift", "-k", "Insert", "-m", "shift"]
         return [executable, "-M", "ctrl", "v", "-m", "ctrl"]
-    if (executable := shutil.which("ydotool")) and _ydotool_socket_ready(environment):
-        return [executable, "key", "29:1", "47:1", "47:0", "29:0"]
     if (executable := shutil.which("xdotool")) and _x11_keyboard_injection_available(environment):
-        return [executable, "key", "--clearmodifiers", "ctrl+v"]
+        return [executable, "key", "--clearmodifiers", "shift+Insert" if terminal else "ctrl+v"]
+    # ydotool sends physical evdev codes. A seat/physical keyboard's keymap does
+    # not establish its virtual device's layout, so never guess the code for V.
+    if terminal and (executable := shutil.which("ydotool")) and _ydotool_socket_ready(environment):
+        return [executable, "key", "42:1", "110:1", "110:0", "42:0"]
     return None
 
 

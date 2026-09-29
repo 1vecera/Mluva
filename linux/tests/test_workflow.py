@@ -1,6 +1,7 @@
 """End-to-end workflow coverage around external-service boundaries."""
 
 import json
+import subprocess
 from collections.abc import Callable, Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -82,6 +83,8 @@ class ForbiddenTranscriptionClient:
 
 class FakeDeliveryTarget:
     """Record restoration and content-free caret confirmation around one workflow delivery."""
+
+    application_identifier = "/usr/bin/foot"
 
     def __init__(self, restore_succeeds: bool = True, confirmation: bool | None = True) -> None:
         """Configure deterministic restore and confirmation results."""
@@ -1183,6 +1186,7 @@ def test_dictation_restores_and_confirms_captured_target_immediately_before_past
         confirm_paste: Callable[[], bool | None] | None = None,
         insert_directly: Callable[[str], bool | None] | None = None,
         authorize_keyboard_paste: Callable[[], bool] | None = None,
+        application_identifier: str | None = None,
     ) -> DeliveryReceipt:
         """Prove restoration precedes the single confirmed delivery call."""
         assert text == "Restored target text."
@@ -1190,6 +1194,7 @@ def test_dictation_restores_and_confirms_captured_target_immediately_before_past
         assert target.restore_calls == 1
         assert insert_directly is not None and insert_directly(text) is True
         assert authorize_keyboard_paste is not None
+        assert application_identifier == "/usr/bin/foot"
         assert confirm_paste is not None and confirm_paste() is True
         return DeliveryReceipt(
             copied=True,
@@ -1285,6 +1290,7 @@ def test_unconfirmed_target_records_safe_fallback_without_retrying_paste(
         confirm_paste: Callable[[], bool | None] | None = None,
         insert_directly: Callable[[str], bool | None] | None = None,
         authorize_keyboard_paste: Callable[[], bool] | None = None,
+        application_identifier: str | None = None,
     ) -> DeliveryReceipt:
         """Return one uncertain receipt after consulting the content-free target callback."""
         nonlocal delivery_calls
@@ -1293,6 +1299,7 @@ def test_unconfirmed_target_records_safe_fallback_without_retrying_paste(
         assert auto_paste
         assert insert_directly is not None and insert_directly(text) is False
         assert authorize_keyboard_paste is not None
+        assert application_identifier == "/usr/bin/foot"
         assert confirm_paste is not None and confirm_paste() is False
         return DeliveryReceipt(
             copied=True,
@@ -1334,3 +1341,47 @@ def test_unconfirmed_target_records_safe_fallback_without_retrying_paste(
     assert result.history_entry.delivery_outcome == "paste-unconfirmed"
     delivery_event = next(event for event in diagnostics.recent() if event.stage == "delivery")
     assert delivery_event.outcome == "safe-fallback"
+
+
+def test_dictation_uses_captured_terminal_identity_instead_of_personalization_scope(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Run final delivery with fake desktop processes and preserve one honest terminal paste receipt."""
+    calls: list[tuple[list[str], str | None]] = []
+
+    def fake_run(command: list[str], *, input: str | None = None, **_kwargs: object) -> subprocess.CompletedProcess:
+        calls.append((command, input))
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr("mluva_linux.delivery.shutil.which", {"wl-copy": "/bin/wl-copy", "wtype": "/bin/wtype"}.get)
+    monkeypatch.setattr("mluva_linux.delivery.subprocess.run", fake_run)
+    monkeypatch.setattr("mluva_linux.delivery.time.sleep", lambda _seconds: None)
+    audio_path = tmp_path / "dictation.wav"
+    audio_path.write_bytes(b"synthetic recording")
+    history = HistoryStore(tmp_path / "history.sqlite3")
+    history.initialize()
+    target = FakeDeliveryTarget(confirmation=None)
+    workflow = DictationWorkflow(
+        config=AppConfig(auto_paste=True),
+        elevenlabs=StaticTranscriptionClient("Příliš žluťoučký."),
+        codex=CodexAppServerClient(command=("must-not-start",)),
+        history=history,
+        cwd=tmp_path,
+    )
+
+    result = workflow.complete(
+        audio_path,
+        mode="dictation",
+        use_codex_cleanup=False,
+        allow_auto_paste=True,
+        application_identifier="/usr/bin/code",
+        delivery_target=target,
+    )
+
+    assert calls == [
+        (["/bin/wl-copy"], "Příliš žluťoučký."),
+        (["/bin/wtype", "-M", "shift", "-k", "Insert", "-m", "shift"], None),
+    ]
+    assert target.restore_calls == 2
+    assert result.delivery.paste_dispatched and not result.delivery.pasted
+    assert result.history_entry.delivery_outcome == "paste-unconfirmed"

@@ -28,6 +28,8 @@ Clipboard delivery is the standard workflow. Optional insertion captures an exac
 
 Target compatibility depends on applications publishing a usable accessibility interface. Browser, terminal and rich-text behavior should be checked in the actual target application before relying on insertion.
 
+For a captured terminal target, keyboard fallback uses Omarchy's `Shift+Insert` clipboard binding, based on the captured executable rather than the active window title. Other targets use symbolic `Ctrl+V` through `wtype` or X11 `xdotool`. The physical-keycode `ydotool` fallback is limited to terminal `Shift+Insert`; Mluva cannot infer its virtual keyboard's letter layout from another keyboard. Terminals without a usable AT-SPI target and ordinary targets with only `ydotool` remain copy-only. An unconfirmed key dispatch is never reported as confirmed insertion.
+
 Mluva supports explicitly spoken snippets. It stores portable typed-trigger definitions but runs no desktop-wide typed-trigger listener and does not read raw keyboard devices for text expansion.
 
 ## Verification
