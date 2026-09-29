@@ -2,6 +2,14 @@
 
 This file records user-visible Mluva releases.
 
+## 1.5.3 — 2026-09-29
+
+- Fixed keyboard fallback for captured terminal targets: Foot, Alacritty, Ghostty, Kitty and WezTerm use Shift+Insert instead of Ctrl+V.
+- Removed layout-dependent ydotool letter-key injection, which could send Ctrl+K on Dvorak. Ordinary targets use symbolic wtype or X11 xdotool; if only ydotool is available, text stays on the clipboard. Omarchy setup now installs wtype.
+- Added the root Omarchy plugin manifest to the main Mluva repository. App and widget share this release and source archive; the existing plugin ID remains `mluva.dictation`. Plugin-manager installations require explicit native-app setup from the same checkout, including after updates.
+
+Automatic insertion still requires a usable captured accessibility target. Terminals without one remain copy-only. The existing marketplace listing needs maintainer migration from the retired repository; this release does not claim that listing is already repaired.
+
 ## 1.5.2 — 2026-09-23
 
 - Fixed clipped conversation controls in narrow tiled windows, including 360-pixel tiles at 2× scaling. Hidden settings and meeting pages no longer force the conversation wider than its window.
