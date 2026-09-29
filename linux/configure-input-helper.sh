@@ -75,7 +75,8 @@ case "${action}" in
             echo "The input service socket does not have the required owner and 0600 permissions." >&2
             exit 1
         }
-        echo "Mluva keyboard paste is ready for user ${user_id}."
+        echo "Mluva terminal keyboard paste is ready for user ${user_id}."
+        echo "Other targets need a symbolic paste helper: wtype on supported Wayland compositors or xdotool on X11."
         echo "The service exposes keyboard-only synthetic input to processes owned by this user; remove it when that tradeoff is unwanted."
         ;;
     remove)
