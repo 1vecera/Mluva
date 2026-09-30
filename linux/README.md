@@ -21,7 +21,7 @@ After a completed dictation, **Continue** in the widget or **Continue recording*
 | Desktop | Omarchy Quattro with Hyprland 0.55+ and Quickshell 0.3+ | Last accepted on Fedora 44 / GNOME 50; recent releases unverified |
 | Native UI | GTK 4, Libadwaita, distribution PyGObject and Cairo bindings | Same |
 | Audio | PipeWire, `pw-record`, `pw-dump` | Same |
-| Shortcuts | XDG Global Shortcuts portal and the desktop backend | Same |
+| Shortcuts | Hyprland compositor binding or XDG Global Shortcuts portal | XDG Global Shortcuts portal and the desktop backend |
 | Clipboard | `wl-copy` on Wayland | Same |
 | Python | Distribution Python 3.12+ and `uv` | Same |
 
@@ -52,6 +52,8 @@ make linux-install
 Application files go under `~/.local/share/mluva/app`, commands under `~/.local/bin`, and the desktop entry under the XDG applications directory. The installer uses distribution GTK bindings and the locked Python dependencies. It refuses an active app or unrecognized installation, preserves the previous app until setup succeeds, and rolls back on failure. [Upgrades from 0.x](../docs/identity-migration.md) preserve settings and saved work.
 
 The app requests approval for recording, cancellation and opening the latest conversation on first launch. Settings shows the keys actually approved by the desktop. The default recording key is F9; alternatives range from F1 to F24. Changing a key replaces the portal session. Right Alt/AltGr remains available to the keyboard layout.
+
+On Hyprland, a native keyboard binding can use `mluva-shell global-record` with portal shortcuts disabled. Bindings to `mluva-shell record` start copy-only capture, even when automatic paste is enabled. See the [Omarchy binding instructions](../docs/omarchy-integration.md).
 
 To verify the package in a disposable prefix without changing the active installation:
 

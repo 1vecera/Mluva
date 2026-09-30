@@ -561,8 +561,38 @@ def test_function_key_selection_persists_and_rebinds_portal_service(tmp_path: Pa
     assert statuses == ["F24 saved; the desktop portal is replacing the global binding."]
 
 
+@pytest.mark.parametrize("origin,allows_paste", [("record", False), ("global-record", True)])
+def test_recording_actions_preserve_the_origin_when_another_control_stops_capture(
+    origin: str, allows_paste: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Allow compositor-key dictation without upgrading a shell-button capture at Stop."""
+    monkeypatch.setattr("mluva_linux.app.ThemeController", lambda: None)
+    application = MluvaApplication()
+    application.window = object()
+    application.record_button = object()
+    application.recorder = SimpleNamespace(process=None)
+    application.config = AppConfig(auto_paste=True)
+    events: list[bool] = []
+
+    def start() -> None:
+        """Observe the frozen delivery origin before audio capture."""
+        events.append(application.capture_allows_auto_paste)
+        application.recorder.process = object()
+
+    application._start_capture = start
+    application._stop_capture = lambda: events.append(application.capture_allows_auto_paste)
+    action = application.lookup_action(origin)
+    assert action is not None
+    action.activate(None)
+    stop = application.lookup_action("record" if origin == "global-record" else "global-record")
+    assert stop is not None
+    stop.activate(None)
+
+    assert events == [allows_paste, allows_paste]
+
+
 def test_global_function_key_starts_an_auto_paste_eligible_capture() -> None:
-    """Make a portal activation the sole automatic-paste recording origin."""
+    """Allow automatic paste when recording originates from the global keyboard path."""
     events: list[str] = []
     application = SimpleNamespace(
         recorder=SimpleNamespace(process=None),
