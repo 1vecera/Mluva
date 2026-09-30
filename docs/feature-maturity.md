@@ -22,6 +22,7 @@ Automatic paste is an explicit known limitation: it depends on the desktop and t
 
 | Feature | Current boundary |
 | --- | --- |
+| Screenshot context and narrated annotations | Omarchy region capture, visual AI context and spoken Tensaku text boxes passed isolated checks; physical-key and microphone acceptance remain pending. |
 | Independent rewrite and speech providers | Compatible APIs and app-owned local models have controlled checks; cloud accounts need acceptance. |
 | Live structured rewriting | Opt-in task, note, polish and custom drafts expose missing information; model quality needs acceptance. |
 | Automatic paste | Known limitation: insertion is disabled by default and depends on the target application and desktop; clipboard delivery is the standard workflow. |

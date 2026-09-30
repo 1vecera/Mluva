@@ -114,6 +114,9 @@ remove_exact_symlink "${bin_dir}/mluva-input-helper" "${application_dir}/configu
 remove_exact_symlink "${bin_dir}/mluva-overlay" "${application_dir}/configure-recording-overlay.sh"
 remove_exact_symlink "${bin_dir}/mluva-uninstall" "${application_dir}/uninstall.sh"
 remove_exact_symlink "${bin_dir}/mluva-shell" "${application_dir}/mluva-shell"
+remove_exact_symlink "${bin_dir}/mluva-narrate" "${application_dir}/mluva-narrate"
+remove_exact_symlink "${bin_dir}/mluva-screenshot-editor" "${application_dir}/mluva-screenshot-editor"
+remove_exact_symlink "${bin_dir}/tensaku-edit" "${application_dir}/mluva-screenshot-editor"
 
 for entry in "${desktop_entry}" "${config_home}/autostart/com.mluva.Linux.desktop"; do
     if [[ -f "${entry}" && ! -L "${entry}" ]] \

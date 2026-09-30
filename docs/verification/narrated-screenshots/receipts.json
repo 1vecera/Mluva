@@ -1,0 +1,91 @@
+{
+  "verified_on": "2026-09-30",
+  "status": "installed local preview; draft feature; no new release",
+  "linux_tests": {
+    "passed": 628,
+    "existing_deprecation_warnings": 1
+  },
+  "tensaku_tests": {
+    "application_passed": 270,
+    "cli_passed": 2,
+    "upstream_ignored": 10,
+    "clippy_warnings_denied": true
+  },
+  "workspace": {
+    "capture_waits_for_picker_and_keeps_frozen_conversation": true,
+    "follow_up_receives_saved_editor_pixels": true,
+    "incognito_cancels_picker_without_creating_or_uploading_an_image": true,
+    "native_remove_and_delete_erase_owned_images": true,
+    "preparation_failure_preserves_images_with_reviewable_history_owner": true
+  },
+  "installed_capture": {
+    "configured_F10_command_dispatched_installed_bridge_and_app": true,
+    "physical_function_key_tested": false,
+    "real_omarchy_region_picker_saved_valid_png": true,
+    "default_tensaku_editor_opened_managed_image": true,
+    "upgraded_editor_narration_button_visible": true,
+    "clipboard_preserved": true,
+    "escape_cancels_without_attachment_or_temporary_pixels": true,
+    "png_bytes": 13486,
+    "installed_app_sha256": "1456c6af104ff95433b1d20ead793f628fada4ef9a67d76b5cf1dc4431885d67"
+  },
+  "installed_annotation": {
+    "native_editor_button_and_chosen_area": true,
+    "external_narration_stop_commits_text_box_and_saves_png": true,
+    "independent_png_ocr": "Private screenshot annotation check\n\nNarration selected area 71",
+    "escape_cancels_owned_command_without_saving_late_text": true,
+    "subsequent_save_contains_no_cancelled_empty_box": true,
+    "microphone_or_speech_provider_used": "Synthetic microphone boundary; real loopback speech transport",
+    "installed_mluva_annotation_command": "mluva-narrate",
+    "real_recorder_and_compatible_speech_transport": true,
+    "synthetic_audio_and_loopback_speech_response_only": true,
+    "editor_sha256": "79de63b635ec5a711bb250bb4fa7cd2dd69aeeb70dffe735a39c3669f7082831",
+    "speech_uploads_after_stop_and_escape": 1
+  },
+  "production_visual_input": {
+    "model": "gpt-6-astra",
+    "expected_number": "5986",
+    "observed": {
+      "left_shape": "triangle",
+      "left_color": "blue",
+      "right_shape": "circle",
+      "right_color": "orange",
+      "number": 5986
+    },
+    "generated_pixels_only": true,
+    "production_inline_image_transport": true
+  },
+  "local_upgrade": {
+    "applied": true,
+    "app_version": "1.5.4",
+    "widget_version": "1.5.4",
+    "settings_preserved": true,
+    "background_restart": true,
+    "focus_preserved": true,
+    "pointer_preserved": true,
+    "workspace_preserved": true,
+    "editor_version": "tensaku 0.29.0",
+    "editor_settings_preserved": true,
+    "default_editor_activated": true,
+    "screenshot_action_registered": true,
+    "f10_binding_configured": true,
+    "editor_sha256": "79de63b635ec5a711bb250bb4fa7cd2dd69aeeb70dffe735a39c3669f7082831",
+    "global_action_registered": true,
+    "hyprland_errors": "",
+    "modules": {
+      "app.py": "1456c6af104ff95433b1d20ead793f628fada4ef9a67d76b5cf1dc4431885d67",
+      "shell_bridge.py": "9dffa08d7996d7510e9132e5ec92aee89092d7bca6e78137dad78a5cb848ae32",
+      "text_target.py": "a916b65519d33b3401ebfee910c392560b86d5e70d6131aa3e6702394fef02c7"
+    }
+  },
+  "source": {
+    "tensaku_upstream_commit": "05a199f345976c432fa1b4452e57a385e73d3a76",
+    "tensaku_patch_sha256": "600e44ad3253cfbf7c738e219c12d5b8b9b7ea491cc9bfae2c39f62c5d4f3f75"
+  },
+  "limits": {
+    "physical_f10_tested": false,
+    "physical_f9_tested": false,
+    "real_microphone_tested": false,
+    "simultaneous_real_microphone_tested": false
+  }
+}

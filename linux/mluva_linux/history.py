@@ -9,6 +9,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from mluva_linux.screenshots import ScreenshotStore
+
 if TYPE_CHECKING:
     from mluva_linux.conversation import Rewrite
 
@@ -41,9 +43,10 @@ SUPPORTED_RECOGNITION_FALLBACK_REASONS = frozenset(
 ENHANCEMENT_PROVIDER_CODEX_APP_SERVER = "codex-app-server"
 ENHANCEMENT_CONTEXT_SELECTED_TEXT = "selected-text"
 ENHANCEMENT_CONTEXT_STYLE_INSTRUCTIONS = "style-instructions"
+ENHANCEMENT_CONTEXT_SCREENSHOTS = "screenshots"
 SUPPORTED_ENHANCEMENT_PROVIDERS = frozenset((ENHANCEMENT_PROVIDER_CODEX_APP_SERVER, "litellm"))
 SUPPORTED_ENHANCEMENT_CONTEXT_SOURCES = frozenset(
-    (ENHANCEMENT_CONTEXT_SELECTED_TEXT, ENHANCEMENT_CONTEXT_STYLE_INSTRUCTIONS)
+    (ENHANCEMENT_CONTEXT_SELECTED_TEXT, ENHANCEMENT_CONTEXT_STYLE_INSTRUCTIONS, ENHANCEMENT_CONTEXT_SCREENSHOTS)
 )
 SUPPORTED_ENHANCEMENT_OUTCOMES = frozenset(("completed", "raw-fallback", "safe-fallback", "failed"))
 
@@ -159,6 +162,7 @@ class HistoryStore:
                 if column not in columns:
                     connection.execute(f"ALTER TABLE transcription_history ADD COLUMN {column} {column_type}")
         self.path.chmod(0o600)
+        ScreenshotStore(self.path).initialize()
 
     def add(
         self,
@@ -492,6 +496,7 @@ class HistoryStore:
             if latest >= cutoff:
                 continue
             for item in group:
+                ScreenshotStore(self.path).delete_owner(item.identifier)
                 try:
                     self._delete_retained_audio(item)
                 except ValueError:
@@ -595,6 +600,7 @@ class HistoryStore:
         for segment in self.continuations(identifier):
             self.delete(segment.identifier)
         self._delete_retained_audio(entry)
+        ScreenshotStore(self.path).delete_owner(identifier)
         with closing(sqlite3.connect(self.path)) as connection, connection:
             connection.execute("DELETE FROM transcription_history WHERE identifier = ?", (identifier,))
 

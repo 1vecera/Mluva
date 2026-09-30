@@ -73,6 +73,8 @@ require_managed_link "${bin_dir}/mluva-input-helper" "${application_dir}/configu
 require_managed_link "${bin_dir}/mluva-overlay" "${application_dir}/configure-recording-overlay.sh"
 require_managed_link "${bin_dir}/mluva-uninstall" "${application_dir}/uninstall.sh"
 require_managed_link "${bin_dir}/mluva-shell" "${application_dir}/mluva-shell"
+require_managed_link "${bin_dir}/mluva-narrate" "${application_dir}/mluva-narrate"
+require_managed_link "${bin_dir}/mluva-screenshot-editor" "${application_dir}/mluva-screenshot-editor"
 
 if [[ -L "${application_dir}" || ( -e "${application_dir}" && ! -d "${application_dir}" ) ]]; then
     echo "Refusing to replace an unexpected application path: ${application_dir}" >&2
@@ -165,6 +167,10 @@ install -m 0755 "${source_dir}/configure-input-helper.sh" "${application_dir}/co
 install -m 0755 "${source_dir}/configure-recording-overlay.sh" "${application_dir}/configure-recording-overlay.sh"
 install -m 0755 "${source_dir}/uninstall.sh" "${application_dir}/uninstall.sh"
 install -m 0755 "${source_dir}/mluva-shell" "${application_dir}/mluva-shell"
+sed "s|@BIN_DIR@|${bin_dir}|g" "${source_dir}/resources/mluva-narrate.in" > "${application_dir}/mluva-narrate"
+sed -e "s|@BIN_DIR@|${bin_dir}|g" -e "s|@EDITOR_DIR@|${data_home}/mluva/tensaku|g" \
+    "${source_dir}/resources/mluva-screenshot-editor.in" > "${application_dir}/mluva-screenshot-editor"
+chmod 0755 "${application_dir}/mluva-narrate" "${application_dir}/mluva-screenshot-editor"
 /usr/bin/python3 "${source_dir}/install_widget.py" --stage "${application_dir}/quickshell/mluva.dictation"
 uv venv --clear --system-site-packages --python /usr/bin/python3 "${application_dir}/.venv"
 uv sync --project "${application_dir}" --no-dev --frozen
@@ -176,6 +182,8 @@ ln -sfn "${application_dir}/configure-input-helper.sh" "${bin_dir}/mluva-input-h
 ln -sfn "${application_dir}/configure-recording-overlay.sh" "${bin_dir}/mluva-overlay"
 ln -sfn "${application_dir}/uninstall.sh" "${bin_dir}/mluva-uninstall"
 ln -sfn "${application_dir}/mluva-shell" "${bin_dir}/mluva-shell"
+ln -sfn "${application_dir}/mluva-narrate" "${bin_dir}/mluva-narrate"
+ln -sfn "${application_dir}/mluva-screenshot-editor" "${bin_dir}/mluva-screenshot-editor"
 sed "s|@EXECUTABLE@|${bin_dir}/mluva|g" "${source_dir}/resources/com.mluva.Linux.desktop.in" \
     > "${applications_dir}/com.mluva.Linux.desktop"
 chmod 0644 "${applications_dir}/com.mluva.Linux.desktop"

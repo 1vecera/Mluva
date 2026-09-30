@@ -214,6 +214,10 @@ class ConversationStore:
                 (target_identifier, source_identifier),
             )
             connection.execute(
+                "UPDATE conversation_screenshots SET history_identifier = ? WHERE history_identifier = ?",
+                (target_identifier, source_identifier),
+            )
+            connection.execute(
                 "INSERT INTO recording_continuations VALUES (?, ?)", (source_identifier, target_identifier)
             )
             # Neither pending title request should rename the newly combined chat.

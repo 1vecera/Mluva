@@ -91,6 +91,8 @@ The optional `ydotool` helper supports only the terminal `Shift+Insert` fallback
 
 Settings normally live in `~/.config/mluva`, persistent data in `~/.local/share/mluva`, and temporary state in the XDG runtime directory. The [product contract](../docs/product-contract.md) covers privacy, recovery and retention.
 
+On Omarchy, `mluva-shell screenshot` adds a selected region to the current narration or saved conversation without changing the clipboard. The camera button exposes the same action; [bind an unused F10](../docs/omarchy-integration.md#screenshot-context) for capture from another application. Saved images can be edited in Tensaku and are sent with subsequent AI processing when the selected model supports images. Incognito disables capture. The optional [narrated editor extension](integrations/tensaku/README.md) uses the configured speech provider for a fresh text box phrase and saves it in the chosen image area.
+
 If capture fails, check the input and provider status in Settings. If the widget reports that Mluva is unavailable, start the app and check that its `mluva-shell` command is reachable; see the [Omarchy guide](../docs/omarchy-integration.md#installation). A failed or uncertain insertion leaves the text available for Copy rather than retrying into an unknown target.
 
 ## Development

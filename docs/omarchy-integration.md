@@ -62,6 +62,21 @@ When using compositor bindings, launch Mluva with `MLUVA_DISABLE_GLOBAL_SHORTCUT
 
 `mluva-shell watch` emits only capture phase and elapsed seconds. The plugin opts into `watch --overlay`, which carries audio level, up to 4,096 characters of volatile text, its character offset, and bounded conversation/style identifiers and labels. The offset lets the widget keep the same wrapping as older words leave the bounded preview, including text containing emoji. Saved instructions, credentials, device names, and target application names are excluded. The production plugin does not log or persist this stream; do not redirect it into persistent logs. Review commands pass only action, conversation ID, and style ID through the existing GApplication action group.
 
+## Screenshot context
+
+Bind an unused function key to `mluva-shell screenshot`; F10 is the suggested choice. In the existing Omarchy Lua bindings file, use the same native binding API as F9:
+
+```lua
+hl.unbind("F10")
+o.bind("F10", "Mluva screenshot context", os.getenv("HOME") .. "/.local/bin/mluva-shell screenshot")
+```
+
+During a narration this invokes Omarchy's existing region selector and attaches its PNG to that recording, with its elapsed time. In a saved conversation it attaches to the selected conversation. Switching conversations while selecting does not change the frozen destination. Escape cancels; the capture does not replace the clipboard. Incognito and Scratchpad do not accept screenshots.
+
+Mluva opens the attached image in the normal `tensaku-edit` editor. Its thumbnail refreshes after a save; AI requests use complete saved pixels frozen at request start. Finish editor changes before requesting a rewrite. Codex and compatible rewrite providers receive the images directly with the narration; choose a model that accepts images. Requests without screenshots remain text-only. Removing an image, deleting its conversation and history pruning remove its managed file. Screenshot files live under the Mluva data directory and inherit the conversation's retention.
+
+Install the optional [Tensaku source extension](../linux/integrations/tensaku/README.md) to enable narrated text boxes in the current default editor. **Add narration** → choose an area → speak a fresh phrase → **Stop narration** inserts the complete text and saves the PNG. It uses Mluva's saved microphone, language and speech provider, with its deterministic text rules. A main narration can continue recording the same speech. Escape or closing the editor cancels the annotation; its temporary raw audio is erased. This action does not copy, paste or create an extra Mluva conversation. Incognito is checked again before uploading annotation audio.
+
 ## Verification
 
 Run `make linux-test linux-shortcut-test`, repository shell checks and `make linux-omarchy-test`. The Omarchy runtime fixture requires an installed shell under `/usr/share/omarchy/shell`; the runner supplies a private X11 display, session bus and XDG state. `linux/tests/shell_overlay_smoke.py` copies the installed controls into its private fixture and redirects desktop configuration reads. It runs the production widget and bridge against a separate synthetic publisher, checks focus retention while recording, five-line geometry, intermediate scrolling frames, long-preview wrapping, controls, light/dark colors, errors, preview erasure, owner loss, monitor fit, timed dismissal and actual pointer/keyboard countdown pauses, and retains screenshots.

@@ -31,6 +31,13 @@ class FeatureCapability:
 
 FEATURE_CAPABILITIES: Final[tuple[FeatureCapability, ...]] = (
     FeatureCapability(
+        "screenshot_context",
+        "Screenshot context and narrated annotations",
+        "Omarchy region capture, visual AI context and spoken Tensaku text boxes passed isolated checks; "
+        "physical-key and microphone acceptance remain pending.",
+        FeatureMaturity.EXPERIMENTAL,
+    ),
+    FeatureCapability(
         "dictation",
         "Recording and transcription",
         "F9 and the visible record control start, stop, and finalize ordinary dictation.",

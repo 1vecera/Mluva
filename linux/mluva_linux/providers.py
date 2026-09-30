@@ -13,6 +13,7 @@ from pathlib import Path
 from mluva_linux.codex_client import CodexModel
 from mluva_linux.config import AppConfig, elevenlabs_api_key, validate_provider_url
 from mluva_linux.elevenlabs import ElevenLabsClient, TranscriptionResult, encode_multipart
+from mluva_linux.screenshots import ImageInput, image_context, validate_images
 from mluva_linux.speech_languages import ISO_CODES as LANGUAGES
 
 MAX_HTTP_BYTES = 2_000_000
@@ -117,10 +118,16 @@ class LiteLLMClient:
         on_delta: Callable[[str], None] | None = None,
         effort: str | None = None,
         service_tier: str | None = None,
+        images: tuple[ImageInput, ...] = (),
     ) -> str:
         """Stream plain text, rejecting incomplete, oversized, tool-call and cancelled results."""
+        validate_images(images)
         model = self.resolve_model(model)
-        payload = {"model": model, "messages": [{"role": "user", "content": prompt}], "stream": True}
+        content = prompt
+        if images:
+            content = [{"type": "text", "text": image_context(prompt, images)}]
+            content.extend({"type": "image_url", "image_url": {"url": image.data_url}} for image in images)
+        payload = {"model": model, "messages": [{"role": "user", "content": content}], "stream": True}
         if effort is not None:
             payload["reasoning_effort"] = effort
         body = json.dumps(payload).encode()

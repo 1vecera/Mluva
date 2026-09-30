@@ -1,0 +1,742 @@
+diff --git c/Cargo.toml i/Cargo.toml
+index 144015b..9be3b87 100644
+--- c/Cargo.toml
++++ i/Cargo.toml
+@@ -66,7 +66,7 @@ wayland-client = "0.31"
+ wayland-protocols-wlr = { version = "0.3", features = ["client"] }
+ wayland-protocols-misc = { version = "0.3", features = ["client"] }
+ smithay-client-toolkit = { version = "0.19", default-features = false }
+-rustix = { version = "1.1", features = ["fs"] }
++rustix = { version = "1.1", features = ["fs", "process"] }
+ gtk4-layer-shell = "0.7"
+ 
+ # auto-scroll uses zwlr_virtual_pointer_manager_v1 from wayland-protocols-wlr above
+diff --git c/cli/src/command_line.rs i/cli/src/command_line.rs
+index e7d73d8..c01570c 100644
+--- c/cli/src/command_line.rs
++++ i/cli/src/command_line.rs
+@@ -136,6 +136,10 @@ pub struct CommandLine {
+     #[arg(long)]
+     pub copy_command: Option<String>,
+ 
++    /// Executable supplying a text annotation on stdout; stop sends `stop` on stdin and closes it
++    #[arg(long, value_name = "EXECUTABLE")]
++    pub narration_command: Option<String>,
++
+     /// Increase or decrease the size of the annotations
+     #[arg(long)]
+     pub annotation_size_factor: Option<f32>,
+diff --git c/src/configuration.rs i/src/configuration.rs
+index b74607a..d22407f 100644
+--- c/src/configuration.rs
++++ i/src/configuration.rs
+@@ -113,6 +113,7 @@ pub struct Configuration {
+     corner_roundness: f32,
+     initial_tool: Tools,
+     copy_command: Option<String>,
++    narration_command: Option<String>,
+     annotation_size_factor: f32,
+     /// True when the factor came from config.toml, legacy preference
+     /// migration, the CLI, or a successful Preferences save. The welcome
+@@ -869,6 +870,7 @@ impl Configuration {
+         if let Some(v) = command_line.copy_command {
+             self.copy_command = Some(v);
+         }
++        self.narration_command = command_line.narration_command;
+         if let Some(v) = command_line.output_filename {
+             self.output_filename = Some(v);
+         }
+@@ -1023,6 +1025,10 @@ impl Configuration {
+         self.copy_command.as_ref()
+     }
+ 
++    pub fn narration_command(&self) -> Option<&String> {
++        self.narration_command.as_ref()
++    }
++
+     pub fn fullscreen(&self) -> Option<Fullscreen> {
+         self.fullscreen
+     }
+@@ -1366,6 +1372,7 @@ impl Default for Configuration {
+             corner_roundness: 12.0,
+             initial_tool: Tools::Pointer,
+             copy_command: None,
++            narration_command: None,
+             annotation_size_factor: 1.0,
+             annotation_size_factor_is_explicit: false,
+             save_after_copy: false,
+diff --git c/src/main.rs i/src/main.rs
+index e66aa68..d95b7ee 100644
+--- c/src/main.rs
++++ i/src/main.rs
+@@ -44,6 +44,7 @@ mod icons;
+ mod image_export;
+ mod ime;
+ mod math;
++mod narration;
+ mod notification;
+ mod omarchy_wrapper;
+ mod pin;
+@@ -323,6 +324,7 @@ enum AppInput {
+     /// timer. Independent of the structured `*Cycled` events so
+     /// other UI surfaces don't have to know about presentation.
+     ShowCycleToast(String),
++    NarrationState(crate::narration::NarrationState),
+     /// Longer-lived warning for a scroll-capture seam the user explicitly
+     /// chose to keep even though its alignment was not uniquely verifiable.
+     ShowWarningToast(String),
+@@ -1431,6 +1433,9 @@ impl Component for App {
+             AppInput::ShowCycleToast(text) => {
+                 self.show_toast(&text, 1200);
+             }
++            AppInput::NarrationState(state) => self
++                .tools_toolbar
++                .emit(ToolsToolbarInput::NarrationState(state)),
+             AppInput::ShowWarningToast(text) => {
+                 self.show_toast(&text, 4000);
+             }
+@@ -1528,6 +1533,7 @@ impl Component for App {
+                         AppInput::HighlighterStyleCycled(style)
+                     }
+                     SketchBoardOutput::ShowCycleToast(text) => AppInput::ShowCycleToast(text),
++                    SketchBoardOutput::NarrationState(state) => AppInput::NarrationState(state),
+                     SketchBoardOutput::SelectionTextBackgroundChanged(bg) => {
+                         AppInput::SelectionTextBackgroundChanged(bg)
+                     }
+diff --git c/src/narration.rs i/src/narration.rs
+new file mode 100644
+index 0000000..7f6fb24
+--- /dev/null
++++ i/src/narration.rs
+@@ -0,0 +1,231 @@
++//! Bounded text from an explicitly configured narration program; stdin closes when recording stops.
++
++use std::io::{Read, Write};
++use std::os::unix::process::CommandExt;
++use std::process::{Child, ChildStdin, Command, Stdio};
++use std::sync::atomic::{AtomicBool, Ordering};
++use std::sync::{Arc, Mutex, mpsc};
++use std::time::{Duration, Instant};
++
++const MAX_TEXT_CHARACTERS: usize = 120_000;
++const MAX_TEXT_BYTES: u64 = (MAX_TEXT_CHARACTERS * 4 + 1) as u64;
++
++#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
++pub enum NarrationState {
++    #[default]
++    Idle,
++    Selecting,
++    Recording,
++    Finishing,
++}
++
++impl NarrationState {
++    pub fn label(self) -> &'static str {
++        match self {
++            Self::Idle => "Add narration",
++            Self::Selecting => "Choose text area",
++            Self::Recording => "Stop narration",
++            Self::Finishing => "Finishing narration…",
++        }
++    }
++}
++
++pub type NarrationResult = Result<String, String>;
++
++pub struct NarrationJob {
++    child: Arc<Mutex<Child>>,
++    stdin: Option<ChildStdin>,
++    cancelled: Arc<AtomicBool>,
++    finished: Arc<AtomicBool>,
++}
++
++fn kill_owned_group(child: &mut Child) {
++    // The command starts a new process group, including any recording helper it spawns.
++    if child.id() > 1
++        && let Some(pid) = rustix::process::Pid::from_raw(child.id() as i32)
++    {
++        let _ = rustix::process::kill_process_group(pid, rustix::process::Signal::KILL);
++    }
++}
++
++impl NarrationJob {
++    pub fn start(command: &str) -> std::io::Result<(Self, mpsc::Receiver<NarrationResult>)> {
++        // Treat the configured value as one executable, never a shell fragment.
++        let mut child = Command::new(command)
++            .process_group(0)
++            .stdin(Stdio::piped())
++            .stdout(Stdio::piped())
++            .stderr(Stdio::null())
++            .spawn()?;
++        let stdout = child.stdout.take().expect("piped narration stdout");
++        let stdin = child.stdin.take();
++        let child = Arc::new(Mutex::new(child));
++        let worker_child = child.clone();
++        let cancelled = Arc::new(AtomicBool::new(false));
++        let worker_cancelled = cancelled.clone();
++        let finished = Arc::new(AtomicBool::new(false));
++        let worker_finished = finished.clone();
++        let (sender, receiver) = mpsc::channel();
++        std::thread::spawn(move || {
++            let mut text = String::new();
++            let read = stdout.take(MAX_TEXT_BYTES).read_to_string(&mut text);
++            let result = if read.is_err()
++                || worker_cancelled.load(Ordering::SeqCst)
++                || text.chars().count() > MAX_TEXT_CHARACTERS
++                || text.trim().is_empty()
++            {
++                kill_owned_group(&mut worker_child.lock().unwrap());
++                Err("Narration did not return complete text. Try again.".to_owned())
++            } else {
++                let deadline = Instant::now() + Duration::from_secs(5);
++                loop {
++                    let status = worker_child.lock().unwrap().try_wait();
++                    match status {
++                        Ok(Some(status)) if status.success() => {
++                            break Ok(text.trim_end_matches(['\r', '\n']).to_owned());
++                        }
++                        Ok(Some(_)) | Err(_) => {
++                            break Err(
++                                "Narration was cancelled or failed. Your image is unchanged."
++                                    .to_owned(),
++                            );
++                        }
++                        Ok(None) if Instant::now() < deadline => {}
++                        Ok(None) => {
++                            kill_owned_group(&mut worker_child.lock().unwrap());
++                            break Err("Narration did not finish. Try again.".to_owned());
++                        }
++                    }
++                    std::thread::sleep(Duration::from_millis(10));
++                }
++            };
++            let mut child = worker_child.lock().unwrap();
++            let _ = child.wait();
++            worker_finished.store(true, Ordering::SeqCst);
++            let _ = sender.send(result);
++        });
++        Ok((
++            Self {
++                child,
++                stdin,
++                cancelled,
++                finished,
++            },
++            receiver,
++        ))
++    }
++
++    pub fn stop(&mut self) {
++        if let Some(mut stdin) = self.stdin.take() {
++            let _ = stdin.write_all(b"stop\n");
++        }
++    }
++
++    pub fn cancel(&mut self) {
++        self.cancelled.store(true, Ordering::SeqCst);
++        let mut child = self.child.lock().unwrap();
++        if !self.finished.load(Ordering::SeqCst) {
++            kill_owned_group(&mut child);
++        }
++        self.stdin.take();
++    }
++}
++
++impl Drop for NarrationJob {
++    fn drop(&mut self) {
++        self.cancel();
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use std::os::unix::fs::PermissionsExt;
++    use std::path::PathBuf;
++    use std::time::{SystemTime, UNIX_EPOCH};
++
++    fn program(body: &str) -> PathBuf {
++        let directory = PathBuf::from("tmp/narration-tests");
++        std::fs::create_dir_all(&directory).unwrap();
++        let id = SystemTime::now()
++            .duration_since(UNIX_EPOCH)
++            .unwrap()
++            .as_nanos();
++        let path = directory.join(format!("program-{}-{id}", std::process::id()));
++        std::fs::write(&path, format!("#!/bin/sh\n{body}\n")).unwrap();
++        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o700)).unwrap();
++        path
++    }
++
++    #[test]
++    fn stop_returns_verbatim_unicode_from_the_independent_program() {
++        let path = program(
++            "read request\n[ \"$request\" = stop ] || exit 1\nprintf 'Česká poznámka\\nSecond line\\n'",
++        );
++        let (mut job, result) = NarrationJob::start(path.to_str().unwrap()).unwrap();
++        assert!(matches!(result.try_recv(), Err(mpsc::TryRecvError::Empty)));
++        job.stop();
++        assert_eq!(
++            result
++                .recv_timeout(Duration::from_secs(2))
++                .unwrap()
++                .unwrap(),
++            "Česká poznámka\nSecond line"
++        );
++        std::fs::remove_file(path).unwrap();
++    }
++
++    #[test]
++    fn cancellation_discards_output_and_reaps_the_owned_program() {
++        let path = program("read request\nprintf 'Must not be inserted'");
++        let (mut job, result) = NarrationJob::start(path.to_str().unwrap()).unwrap();
++        job.cancel();
++        assert!(
++            result
++                .recv_timeout(Duration::from_secs(2))
++                .unwrap()
++                .is_err()
++        );
++        assert!(job.child.lock().unwrap().try_wait().unwrap().is_some());
++        std::fs::remove_file(path).unwrap();
++    }
++
++    #[test]
++    fn oversized_output_is_rejected_without_truncating_the_annotation() {
++        let path = program("head -c 480010 /dev/zero | tr '\\000' x");
++        let (_job, result) = NarrationJob::start(path.to_str().unwrap()).unwrap();
++        assert!(
++            result
++                .recv_timeout(Duration::from_secs(2))
++                .unwrap()
++                .is_err()
++        );
++        std::fs::remove_file(path).unwrap();
++    }
++
++    #[test]
++    fn cancellation_stops_a_recording_child_even_when_it_keeps_stdout_open() {
++        let path = program("sleep 30 &\nprintf '%s' \"$!\" > \"$0.child\"\nread request");
++        let marker = PathBuf::from(format!("{}.child", path.display()));
++        let (mut job, result) = NarrationJob::start(path.to_str().unwrap()).unwrap();
++        let deadline = Instant::now() + Duration::from_secs(2);
++        while !marker.exists() && Instant::now() < deadline {
++            std::thread::sleep(Duration::from_millis(10));
++        }
++        let pid = std::fs::read_to_string(&marker)
++            .unwrap()
++            .parse::<u32>()
++            .unwrap();
++        job.cancel();
++        assert!(
++            result
++                .recv_timeout(Duration::from_secs(2))
++                .unwrap()
++                .is_err()
++        );
++        let state = std::fs::read_to_string(format!("/proc/{pid}/stat"));
++        assert!(state.is_err() || state.unwrap().rsplit(')').next().unwrap().starts_with(" Z"));
++        std::fs::remove_file(path).unwrap();
++        std::fs::remove_file(marker).unwrap();
++    }
++}
+diff --git c/src/sketch_board.rs i/src/sketch_board.rs
+index 638c90c..caffa60 100644
+--- c/src/sketch_board.rs
++++ i/src/sketch_board.rs
+@@ -44,6 +44,7 @@ pub enum SketchBoardInput {
+     RenderResult(RenderedImage, Vec<Action>),
+     RenderResultFollowup(Option<Pixbuf>, Vec<Action>, Option<String>),
+     CommitEvent(TextEventMsg),
++    NarrationFinished(u64, crate::narration::NarrationResult),
+     Refresh,
+     Exit,
+     ScaleFactorChanged,
+@@ -359,6 +360,7 @@ pub enum SketchBoardOutput {
+     /// presentation lives in main.rs / the overlay alongside the
+     /// rest of the chrome.
+     ShowCycleToast(String),
++    NarrationState(crate::narration::NarrationState),
+     /// The selected text drawable's background style — used to
+     /// re-seed the StyleToolbar's TextBackground dropdown when the
+     /// user clicks between texts with different backgrounds. Silent
+@@ -696,6 +698,12 @@ pub struct SketchBoard {
+     keyboard_confirmed: bool,
+     active_tool: Rc<RefCell<dyn Tool>>,
+     tools: ToolsManager,
++    narration_armed: bool,
++    narration_area_start: Option<Vec2D>,
++    narration_generation: u64,
++    narration_job: Option<crate::narration::NarrationJob>,
++    narration_buffer: Option<gtk::TextBuffer>,
++    narration_timer: Option<gtk::glib::SourceId>,
+     style: Style,
+     im_context: gtk::IMMulticontext,
+     last_saved_filepath: RefCell<Option<String>>,
+@@ -819,6 +827,121 @@ const LAYER_PANEL_DEFAULT_WIDTH: f32 = 140.0;
+ const TOOL_CYCLE_MS: u64 = 1000;
+ 
+ impl SketchBoard {
++    fn cancel_narration(&mut self, sender: &ComponentSender<Self>) {
++        self.narration_armed = false;
++        self.narration_area_start = None;
++        self.narration_generation = self.narration_generation.wrapping_add(1);
++        self.narration_buffer = None;
++        self.narration_job.take();
++        if let Some(timer) = self.narration_timer.take() {
++            timer.remove();
++        }
++        sender
++            .output(SketchBoardOutput::NarrationState(
++                crate::narration::NarrationState::Idle,
++            ))
++            .ok();
++    }
++
++    fn start_narration(&mut self, sender: &ComponentSender<Self>) {
++        let Some(buffer) = self.tools.get(&Tools::Text).borrow().text_input_buffer() else {
++            return;
++        };
++        let Some(command) = APP_CONFIG.read().narration_command().cloned() else {
++            return;
++        };
++        self.narration_armed = false;
++        self.narration_area_start = None;
++        self.narration_generation = self.narration_generation.wrapping_add(1);
++        let generation = self.narration_generation;
++        let (job, result) = match crate::narration::NarrationJob::start(&command) {
++            Ok(started) => started,
++            Err(_) => {
++                sender
++                    .output(SketchBoardOutput::ShowCycleToast(
++                        "Could not start narration. Check Mluva and try again.".to_owned(),
++                    ))
++                    .ok();
++                self.cancel_narration(sender);
++                return;
++            }
++        };
++        self.narration_job = Some(job);
++        self.narration_buffer = Some(buffer);
++        sender
++            .output(SketchBoardOutput::NarrationState(
++                crate::narration::NarrationState::Recording,
++            ))
++            .ok();
++        let input = sender.input_sender().clone();
++        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(300);
++        let mut notified = false;
++        self.narration_timer = Some(gtk::glib::timeout_add_local(
++            std::time::Duration::from_millis(50),
++            move || {
++                if notified {
++                    return gtk::glib::ControlFlow::Continue;
++                }
++                let completed = match result.try_recv() {
++                    Ok(result) => Some(result),
++                    Err(std::sync::mpsc::TryRecvError::Disconnected) => {
++                        Some(Err("Narration ended without text.".to_owned()))
++                    }
++                    Err(std::sync::mpsc::TryRecvError::Empty)
++                        if std::time::Instant::now() > deadline =>
++                    {
++                        Some(Err(
++                            "Narration timed out. Your image is unchanged.".to_owned()
++                        ))
++                    }
++                    Err(std::sync::mpsc::TryRecvError::Empty) => None,
++                };
++                if let Some(completed) = completed {
++                    notified = true;
++                    if input
++                        .send(SketchBoardInput::NarrationFinished(generation, completed))
++                        .is_err()
++                    {
++                        return gtk::glib::ControlFlow::Break;
++                    }
++                }
++                gtk::glib::ControlFlow::Continue
++            },
++        ));
++    }
++
++    fn finish_narration(
++        &mut self,
++        generation: u64,
++        result: crate::narration::NarrationResult,
++        sender: &ComponentSender<Self>,
++    ) -> ToolUpdateResult {
++        if generation != self.narration_generation {
++            return ToolUpdateResult::Unmodified;
++        }
++        let target_matches = self.active_tool_type() == Tools::Text
++            && self.narration_buffer.is_some()
++            && self.tools.get(&Tools::Text).borrow().text_input_buffer() == self.narration_buffer;
++        self.cancel_narration(sender);
++        let text = match result {
++            Ok(text) if target_matches => text,
++            Ok(_) => return ToolUpdateResult::Unmodified,
++            Err(message) => {
++                sender
++                    .output(SketchBoardOutput::ShowCycleToast(message))
++                    .ok();
++                return ToolUpdateResult::Unmodified;
++            }
++        };
++        let text_tool = self.tools.get(&Tools::Text);
++        let mut text_tool = text_tool.borrow_mut();
++        text_tool.handle_text_event(TextEventMsg::Commit(text));
++        let committed = text_tool.handle_deactivated();
++        // The queued save runs after this commit enters the ordinary undo stack.
++        sender.input(SketchBoardInput::ToolbarEvent(ToolbarEvent::SaveFile));
++        committed
++    }
++
+     fn refresh_screen(&mut self) {
+         // Rebuild the layer panel BEFORE queuing the canvas render so the
+         // panel's row list reflects the same drawable stack the next
+@@ -2595,7 +2718,39 @@ impl SketchBoard {
+         sender: ComponentSender<Self>,
+     ) -> ToolUpdateResult {
+         match toolbar_event {
++            ToolbarEvent::Narration => {
++                if let Some(job) = &mut self.narration_job {
++                    job.stop();
++                    sender
++                        .output(SketchBoardOutput::NarrationState(
++                            crate::narration::NarrationState::Finishing,
++                        ))
++                        .ok();
++                } else if self.active_tool_type() == Tools::Text
++                    && self.active_tool.borrow().input_enabled()
++                {
++                    self.start_narration(&sender);
++                } else {
++                    self.switch_active_tool(Tools::Text, sender.clone());
++                    self.narration_armed = true;
++                    self.narration_area_start = None;
++                    sender
++                        .output(SketchBoardOutput::NarrationState(
++                            crate::narration::NarrationState::Selecting,
++                        ))
++                        .ok();
++                    sender
++                        .output(SketchBoardOutput::ShowCycleToast(
++                            "Click or drag an area for the narration text box.".to_owned(),
++                        ))
++                        .ok();
++                }
++                ToolUpdateResult::Redraw
++            }
+             ToolbarEvent::ToolSelected(tool) => {
++                if self.narration_armed || self.narration_job.is_some() {
++                    self.cancel_narration(&sender);
++                }
+                 // Explicit user-driven tool change always clears any
+                 // existing selection — "I'm switching tools" reads as a
+                 // start-fresh action. The selection-driven auto-switch
+@@ -5304,6 +5459,32 @@ impl Component for SketchBoard {
+         // the result-processing match at the bottom can still use it
+         // (e.g. for `EditTextDrawable` which triggers a tool switch).
+         let outer_sender = sender.clone();
++        let mut narration_area = None;
++        if self.narration_armed
++            && let SketchBoardInput::InputEvent(InputEvent::Mouse(event)) = &msg
++            && event.button == MouseButton::Primary
++        {
++            match event.type_ {
++                MouseEventType::Click => {
++                    self.narration_area_start =
++                        Some(self.renderer.abs_canvas_to_image_coordinates(event.pos));
++                }
++                MouseEventType::Release | MouseEventType::EndDrag => {
++                    if let Some(start) = self.narration_area_start {
++                        let mut end = if event.type_ == MouseEventType::EndDrag {
++                            start + self.renderer.rel_canvas_to_image_coordinates(event.pos)
++                        } else {
++                            self.renderer.abs_canvas_to_image_coordinates(event.pos)
++                        };
++                        if (end.x - start.x).abs() < 6.0 {
++                            end.x = self.renderer.image_dimensions().0 as f32 - 12.0;
++                        }
++                        narration_area = Some((start, end));
++                    }
++                }
++                _ => {}
++            }
++        }
+         // Frame-profiler hook (`TENSAKU_PERF`): drag and hover motion
+         // are the two messages that arrive at pointer-report rate, so
+         // their handler cost is what a "laggy while dragging" report
+@@ -5336,6 +5517,9 @@ impl Component for SketchBoard {
+ 
+         // handle resize ourselves, pass everything else to tool
+         let result = match msg {
++            SketchBoardInput::NarrationFinished(generation, result) => {
++                self.finish_narration(generation, result, &sender)
++            }
+             SketchBoardInput::InputEvent(mut ie) => {
+                 if let InputEvent::Key(ke) = ie {
+                     // Implicit selection: route Delete / Escape through the
+@@ -6374,6 +6558,24 @@ impl Component for SketchBoard {
+             }
+         };
+ 
++        if self.narration_armed
++            && let Some((start, end)) = narration_area
++            && self.active_tool_type() == Tools::Text
++            && self.active_tool.borrow().input_enabled()
++        {
++            self.active_tool
++                .borrow_mut()
++                .prepare_narration_area(start, end);
++            self.start_narration(&outer_sender);
++        }
++        if self.narration_buffer.is_some()
++            && (self.active_tool_type() != Tools::Text
++                || self.tools.get(&Tools::Text).borrow().text_input_buffer()
++                    != self.narration_buffer)
++        {
++            self.cancel_narration(&outer_sender);
++        }
++
+         // println!(" Result={:?}", result);
+         match result {
+             ToolUpdateResult::Commit(drawable) => {
+@@ -6507,6 +6709,12 @@ impl Component for SketchBoard {
+                 ..Style::default()
+             },
+             tools,
++            narration_armed: false,
++            narration_area_start: None,
++            narration_generation: 0,
++            narration_job: None,
++            narration_buffer: None,
++            narration_timer: None,
+             im_context,
+             last_saved_filepath: RefCell::new(None),
+             pinned: RefCell::new(None),
+diff --git c/src/tools/mod.rs i/src/tools/mod.rs
+index fcc18e8..6e11446 100644
+--- c/src/tools/mod.rs
++++ i/src/tools/mod.rs
+@@ -110,6 +110,14 @@ pub trait Tool {
+ 
+     fn set_input_enabled(&mut self, value: bool);
+ 
++    /// Identity of the current text box, used to reject late narration after the user changes boxes.
++    fn text_input_buffer(&self) -> Option<gtk::TextBuffer> {
++        None
++    }
++
++    /// Give a new narrated text box the image-space region chosen with the pointer.
++    fn prepare_narration_area(&mut self, _start: Vec2D, _end: Vec2D) {}
++
+     fn handle_undo(&mut self) -> ToolUpdateResult {
+         ToolUpdateResult::Unmodified
+     }
+diff --git c/src/tools/text.rs i/src/tools/text.rs
+index 7df77be..98c80ea 100644
+--- c/src/tools/text.rs
++++ i/src/tools/text.rs
+@@ -1778,6 +1778,21 @@ impl Tool for TextTool {
+         self.input_enabled = value;
+     }
+ 
++    fn text_input_buffer(&self) -> Option<gtk::TextBuffer> {
++        self.text.as_ref().map(|text| text.text_buffer.clone())
++    }
++
++    fn prepare_narration_area(&mut self, start: Vec2D, end: Vec2D) {
++        if let Some(text) = &mut self.text {
++            let font_height =
++                text.style
++                    .size
++                    .to_text_size(text.style.annotation_size_factor) as f32;
++            text.pos = Vec2D::new(start.x.min(end.x), start.y.min(end.y) + font_height);
++            text.text_box_width = Some((end.x - start.x).abs().max(MIN_TEXT_BOX_WIDTH));
++        }
++    }
++
+     fn set_im_context(&mut self, context: Option<InputContext>) {
+         self.im_context = context.clone();
+         if let Some(text) = &mut self.text {
+@@ -2457,6 +2472,7 @@ impl Tool for TextTool {
+             t.text_buffer
+                 .select_range(&t.text_buffer.start_iter(), &t.text_buffer.start_iter());
+             let result = t.clone_box();
++            let empty = t.text_buffer.char_count() == 0;
+             let edit_id = self.edit_target_id.take();
+             self.text = None;
+             self.input_enabled = false;
+@@ -2465,6 +2481,7 @@ impl Tool for TextTool {
+             }
+             match edit_id {
+                 Some(id) => ToolUpdateResult::ModifyDrawable(id, result),
++                None if empty => ToolUpdateResult::Unmodified,
+                 None => ToolUpdateResult::Commit(result),
+             }
+         } else {
+diff --git c/src/ui/toolbars.rs i/src/ui/toolbars.rs
+index f3307c0..52f2382 100644
+--- c/src/ui/toolbars.rs
++++ i/src/ui/toolbars.rs
+@@ -235,6 +235,7 @@ pub struct ToolsToolbar {
+     /// image size / Cancel-Crop). Initial value is `Pointer` —
+     /// reset to the actual starting tool right before view_output!.
+     current_tool: Tools,
++    narration_state: crate::narration::NarrationState,
+     /// Each shape's OWN fill state, so the Rectangle and Ellipse buttons
+     /// show a filled or outline glyph independently. Both are on screen
+     /// at once, so a single "is fill on" flag cannot describe them —
+@@ -2103,6 +2104,7 @@ const CLUSTER_SLIDER_WIDTH: i32 = 100;
+ 
+ #[derive(Debug, Copy, Clone)]
+ pub enum ToolbarEvent {
++    Narration,
+     ToolSelected(Tools),
+     ColorSelected(Color),
+     SizeSelected(Size),
+@@ -2242,6 +2244,7 @@ pub enum TopBarLayout {
+ 
+ #[derive(Debug, Copy, Clone)]
+ pub enum ToolsToolbarInput {
++    NarrationState(crate::narration::NarrationState),
+     /// Each shape's own fill state, for the Rectangle / Ellipse glyphs.
+     SetShapeFill {
+         rect: bool,
+@@ -2993,6 +2996,18 @@ impl Component for ToolsToolbar {
+                     // side space, so balanced clusters are what let the
+                     // tool row wrap right at its packed width instead
+                     // of ~70 px early.
++                    #[name(narration_button)]
++                    gtk::Button {
++                        set_focus_on_click: false,
++                        #[watch]
++                        set_visible: APP_CONFIG.read().narration_command().is_some(),
++                        #[watch]
++                        set_label: model.narration_state.label(),
++                        #[watch]
++                        set_sensitive: model.narration_state != crate::narration::NarrationState::Finishing,
++                        install_tooltip: "Place a text box, dictate its narration, then stop to insert and save it",
++                        connect_clicked[sender] => move |_| { sender.output_sender().emit(ToolbarEvent::Narration); },
++                    },
+                     gtk::Button {
+                         set_focusable: true,
+                         set_focus_on_click: false,
+@@ -3648,6 +3663,7 @@ impl Component for ToolsToolbar {
+ 
+     fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>, _root: &Self::Root) {
+         match message {
++            ToolsToolbarInput::NarrationState(state) => self.narration_state = state,
+             ToolsToolbarInput::SetShapeFill { rect, ellipse } => {
+                 self.fill_rect = rect;
+                 self.fill_ellipse = ellipse;
+@@ -4282,6 +4298,7 @@ impl Component for ToolsToolbar {
+             tool_buttons: HashMap::new(),
+             tool_action: tool_action.clone().into(),
+             current_tool: Tools::Pointer,
++            narration_state: crate::narration::NarrationState::Idle,
+             fill_rect: APP_CONFIG.read().default_fill_shapes(),
+             fill_ellipse: APP_CONFIG.read().default_fill_shapes(),
+             crop_width: 0,

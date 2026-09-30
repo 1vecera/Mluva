@@ -1,6 +1,7 @@
 """GTK 4 desktop application for Mluva on Linux."""
 
 import os
+import subprocess
 import sys
 import threading
 import time
@@ -85,6 +86,8 @@ from mluva_linux.realtime import (
 from mluva_linux.rewrite_settings import RewriteSettings
 from mluva_linux.rewriting import RewriteClient, UnsupportedRewriteSpeed, rewrite_client, rewrite_text
 from mluva_linux.scratchpad import ScratchpadDraft, ScratchpadDraftStore
+from mluva_linux.screenshot_capture import ScreenshotCapture
+from mluva_linux.screenshots import ImageInput, ScreenshotStore
 from mluva_linux.segment_cleanup import (
     CodexSegmentCleanupAttempt,
     SegmentCleanupSession,
@@ -322,6 +325,11 @@ class MluvaApplication(Adw.Application):
         self.capture_status_timeout_id: int | None = None
         self.capture_started_at: float | None = None
         self.pending_session_identifier: str | None = None
+        self.screenshot_picker: ScreenshotCapture | None = None
+        self.screenshot_picker_owner: tuple[str, bool] | None = None
+        self.screenshot_capture_owners: dict[str, str | None] = {}
+        self.screenshot_editors: dict[str, subprocess.Popen] = {}
+        self.screenshot_monitors: dict[str, Gio.FileMonitor] = {}
         self.data_directory: Path
         self.codex_workspace: Path
         self.config_path: Path
@@ -364,6 +372,7 @@ class MluvaApplication(Adw.Application):
             ("latest", self._open_latest_conversation),
             ("record", self._shell_record),
             ("global-record", self._shortcut_toggled),
+            ("screenshot", self._request_screenshot),
             ("cancel", self._shortcut_cancelled),
             ("status", self._replay_overlay_status),
             ("history", self._open_history),
@@ -853,6 +862,10 @@ class MluvaApplication(Adw.Application):
                 final=final,
                 prompts=self.live_prompts,
             )
+            images = self._capture_images(
+                None if self.live_final_entry else self.live_session_identifier,
+                self.live_final_entry or self.continuation_identifier,
+            )
             client = self._new_rewrite_client(self.live_config)
         except Exception as error:
             schedule.finish(False)
@@ -871,7 +884,7 @@ class MluvaApplication(Adw.Application):
         def run():
             """Compute one whole draft, never streaming half a template into the editor."""
             try:
-                outcome = rewrite_text(client, config, prompt, self.codex_workspace)
+                outcome = rewrite_text(client, config, prompt, self.codex_workspace, images=images)
                 result, model = outcome.text, outcome.model
             except Exception:
                 result, model = "", ""
@@ -1239,7 +1252,8 @@ class MluvaApplication(Adw.Application):
                 instruction,
                 self.conversation_store.source_text(entry),
             )
-        except (KeyError, ValueError):
+            images = self.screenshot_store.snapshot(entry.identifier)
+        except (KeyError, ValueError, OSError):
             workspace.set_busy(False, "This conversation cannot be rewritten. Reopen it or start with shorter text.")
             if self.overlay_review_identifier == identifier:
                 self._publish_review(identifier, "review-error", "Open this note to review it.")
@@ -1263,10 +1277,202 @@ class MluvaApplication(Adw.Application):
                 prompt,
                 self.config,
                 time.monotonic(),
+                images,
             ),
             name="conversation-rewrite",
             daemon=True,
         ).start()
+
+    def _request_screenshot(self) -> None:
+        """Freeze the current narration owner before opening Omarchy's ordinary region picker."""
+        if (
+            self.shutting_down
+            or self.config.incognito_mode
+            or (self.pending_session_identifier and self.pending_incognito)
+        ):
+            self._show_toast("Screenshots are unavailable in Incognito.")
+            return
+        if self.screenshot_picker is not None:
+            return
+        if self.capture_processing or self.rewrite_client is not None:
+            self._show_toast("Wait for processing to finish, then add a screenshot.")
+            return
+        workspace = self.conversation_workspace
+        capture = self.pending_session_identifier is not None
+        if capture and self.pending_mode == "scratchpad":
+            self._show_toast("Screenshot context is available in Dictation and Command modes.")
+            return
+        owner = (
+            self.pending_session_identifier
+            if capture
+            else workspace.entry.identifier
+            if workspace and workspace.entry
+            else None
+        )
+        if owner is None:
+            self._show_toast("Start recording or choose a conversation before adding a screenshot.")
+            return
+        elapsed = max(0, time.monotonic() - self.capture_started_at) if capture and self.capture_started_at else None
+        if capture:
+            self.screenshot_capture_owners[owner] = owner
+        picker = ScreenshotCapture(default_runtime_dir(os.environ))
+        self.screenshot_picker = picker
+        self.screenshot_picker_owner = (owner, capture)
+
+        def run() -> None:
+            """Keep the region picker and file reading off GTK's event loop."""
+            try:
+                data = picker.run()
+                error = ""
+            except (OSError, RuntimeError, ValueError):
+                data, error = None, "Could not capture a screenshot. Check Omarchy, then press F10 to try again."
+            GLib.idle_add(self._screenshot_selected, picker, owner, capture, elapsed, data, error)
+
+        threading.Thread(target=run, name="screenshot-capture", daemon=True).start()
+
+    def _screenshot_selected(self, picker, owner, capture, elapsed, data, error) -> bool:
+        """Release a finishing recording after the image has been attached or discarded."""
+        try:
+            return self._attach_screenshot(picker, owner, capture, elapsed, data, error)
+        finally:
+            if capture:
+                self.screenshot_capture_owners.pop(owner, None)
+            picker.attached.set()
+
+    def _attach_screenshot(self, picker, owner, capture, elapsed, data, error) -> bool:
+        """Attach only to the frozen owner, including a recording that finished while selection was open."""
+        if picker is not self.screenshot_picker:
+            return GLib.SOURCE_REMOVE
+        self.screenshot_picker = None
+        self.screenshot_picker_owner = None
+        if self.shutting_down or self.config.incognito_mode or picker.cancelled.is_set():
+            return GLib.SOURCE_REMOVE
+        if error:
+            self._show_toast(error)
+        if data is None:
+            return GLib.SOURCE_REMOVE
+        if capture:
+            destination = self.screenshot_capture_owners.get(owner)
+            if destination is None:
+                return GLib.SOURCE_REMOVE
+            capture = destination == owner
+            owner = destination
+        try:
+            screenshot = self.screenshot_store.add(owner, data, capture=capture, captured_after_seconds=elapsed)
+        except (OSError, ValueError):
+            self._show_toast("Could not attach the screenshot. The conversation may be full or no longer available.")
+            return GLib.SOURCE_REMOVE
+        self._refresh_screenshots()
+        self._show_toast("Screenshot attached.")
+        self._edit_screenshot(screenshot.identifier)
+        if self.live_schedule is not None:
+            self.live_schedule.last_text = ""
+            self.live_schedule.last_final = False
+        return GLib.SOURCE_REMOVE
+
+    def _refresh_screenshots(self) -> None:
+        """Show images for the visible live narration or selected saved conversation."""
+        workspace = self.conversation_workspace
+        if workspace is None:
+            return
+        workspace.live_screenshot_capture = self.pending_session_identifier
+        workspace.live_screenshot_conversation = self.continuation_identifier
+        workspace.refresh_screenshots()
+
+    def _edit_screenshot(self, identifier: str) -> None:
+        """Open an attached image in the current default editor and refresh its preview after saves."""
+        if self.config.incognito_mode or self.shutting_down:
+            return
+        existing = self.screenshot_editors.get(identifier)
+        if existing is not None and existing.poll() is None:
+            self._show_toast("This screenshot is already open in the editor.")
+            return
+        try:
+            path = self.screenshot_store.path_for(identifier)
+            if not path.is_file():
+                raise FileNotFoundError
+            installed_editor = Path(__file__).resolve().parent.parent / "mluva-screenshot-editor"
+            process = subprocess.Popen(
+                [str(installed_editor) if installed_editor.is_file() else "tensaku-edit", str(path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            self.screenshot_editors[identifier] = process
+            monitor = self.screenshot_monitors.get(identifier)
+            if monitor is None:
+                monitor = Gio.File.new_for_path(str(path)).monitor_file(Gio.FileMonitorFlags.NONE, None)
+                monitor.connect("changed", lambda *_args: self._refresh_screenshots())
+                self.screenshot_monitors[identifier] = monitor
+        except (OSError, ValueError, GLib.Error):
+            self._show_toast("Could not open Tensaku. The screenshot is still attached.")
+
+    def _close_screenshot_editor(self, identifier: str) -> None:
+        """Release only the editor and monitor owned by the screenshot being removed."""
+        process = self.screenshot_editors.pop(identifier, None)
+        if process is not None and process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=2)
+        monitor = self.screenshot_monitors.pop(identifier, None)
+        if monitor is not None:
+            monitor.cancel()
+
+    def _remove_screenshot(self, identifier: str) -> None:
+        """Remove an explicit image selection and prevent its editor from saving it again."""
+        self._close_screenshot_editor(identifier)
+        try:
+            self.screenshot_store.delete(identifier)
+        except (OSError, ValueError):
+            self._show_toast("Could not remove the screenshot.")
+        self._refresh_screenshots()
+
+    def _capture_images(self, capture: str | None, conversation: str | None = None) -> tuple[ImageInput, ...]:
+        """Freeze all current visual context for a recording or continued narration."""
+        images = self.screenshot_store.snapshot(conversation) if conversation else ()
+        return images + (self.screenshot_store.snapshot(capture, capture=True) if capture else ())
+
+    def _finish_screenshot_capture(self, capture: str | None, conversation: str | None) -> None:
+        """Commit image ownership with the transcript or discard a cancelled capture's pixels."""
+        if capture is None:
+            return
+        if self.screenshot_picker_owner == (capture, True):
+            self.screenshot_capture_owners[capture] = conversation
+        else:
+            self.screenshot_capture_owners.pop(capture, None)
+        if conversation is not None:
+            self.screenshot_store.bind_capture(capture, conversation)
+        else:
+            if self.screenshot_picker_owner == (capture, True) and self.screenshot_picker is not None:
+                self.screenshot_picker.cancel()
+            for screenshot in self.screenshot_store.recent(capture, capture=True):
+                self._close_screenshot_editor(screenshot.identifier)
+            self.screenshot_store.delete_owner(capture, capture=True)
+        if self.conversation_workspace is not None:
+            self.conversation_workspace.live_screenshot_capture = None
+            self.conversation_workspace.live_screenshot_conversation = None
+
+    def _preserve_interrupted_screenshots(self, capture: str | None) -> None:
+        """Keep already selected images reviewable when microphone preparation or the app stops."""
+        if capture is None:
+            return
+        if self.config.incognito_mode:
+            self._finish_screenshot_capture(capture, None)
+            return
+        target = self.continuation_identifier
+        if target is None and self.screenshot_store.recent(capture, capture=True):
+            entry = self.history_store.add(
+                "",
+                "Screenshots from an interrupted narration.",
+                "dictation",
+                self.config.language_code,
+                None,
+                "failed",
+            )
+            target = entry.identifier
+        self._finish_screenshot_capture(capture, target)
 
     def _publish_review(self, identifier: str, phase: str = "ready", message: str = "") -> None:
         """Offer the completed note to the shell for timed, deliberate review."""
@@ -1381,6 +1587,7 @@ class MluvaApplication(Adw.Application):
         prompt: str,
         config: AppConfig,
         started_at: float,
+        images: tuple[ImageInput, ...] = (),
     ) -> None:
         """Resolve and run the model away from GTK, leaving durable writes to the completion gate."""
         parts: list[str] = []
@@ -1402,7 +1609,7 @@ class MluvaApplication(Adw.Application):
                 GLib.idle_add(self._rewrite_progress, client, identifier, "".join(parts))
 
         try:
-            result = rewrite_text(client, config, prompt, self.codex_workspace, on_delta=progress)
+            result = rewrite_text(client, config, prompt, self.codex_workspace, on_delta=progress, images=images)
         except UnsupportedRewriteSpeed as error:
             GLib.idle_add(self._rewrite_finished, client, identifier, instruction, "", "", None, str(error))
         except Exception:
@@ -1586,6 +1793,9 @@ class MluvaApplication(Adw.Application):
             rename_conversation=self._rename_conversation,
             delete_conversation=self._delete_conversation,
             merge_conversations=self._merge_conversations,
+            capture_screenshot=self._request_screenshot,
+            edit_screenshot=self._edit_screenshot,
+            remove_screenshot=self._remove_screenshot,
         )
         self.conversation_workspace.set_vexpand(True)
         self.conversation_workspace.continue_recording = self._continue_recording
@@ -2284,6 +2494,17 @@ class MluvaApplication(Adw.Application):
             self.pipewire_catalog_error = str(error)
         self.history_store = HistoryStore(self.data_directory / "history.sqlite3")
         self.history_store.initialize()
+        self.screenshot_store = ScreenshotStore(self.history_store.path)
+        for capture in self.screenshot_store.pending_captures() if not self.config.incognito_mode else ():
+            recovered = self.history_store.add(
+                "",
+                "Screenshots from an interrupted narration.",
+                "dictation",
+                self.config.language_code,
+                None,
+                "failed",
+            )
+            self.screenshot_store.bind_capture(capture, recovered.identifier)
         self.conversation_store = ConversationStore(self.history_store)
         self.conversation_store.initialize()
         self.title_jobs = ConversationTitleJobs(
@@ -2925,6 +3146,7 @@ class MluvaApplication(Adw.Application):
         stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%f")
         self.audio_path = data_dir / f"{stamp}.wav"
         self.pending_session_identifier = str(uuid.uuid4())
+        self._refresh_screenshots()
         self._start_live_rewrite()
         self.capture_preparing = True
         self.capture_stop_requested = False
@@ -3100,6 +3322,7 @@ class MluvaApplication(Adw.Application):
         self.audio_path = None
         self.pending_command_target = None
         self.pending_delivery_target = None
+        self._preserve_interrupted_screenshots(self.pending_session_identifier)
         self.pending_session_identifier = None
         self.pending_application_identifier = None
         self.pending_style_identifier = None
@@ -3165,6 +3388,7 @@ class MluvaApplication(Adw.Application):
             self.audio_path = None
             self.pending_command_target = None
             self.pending_delivery_target = None
+            self._finish_screenshot_capture(self.pending_session_identifier, None)
             self.pending_session_identifier = None
             self.pending_application_identifier = None
             self.pending_style_identifier = None
@@ -3204,6 +3428,7 @@ class MluvaApplication(Adw.Application):
             self.audio_path = None
             self.pending_command_target = None
             self.pending_delivery_target = None
+            self._preserve_interrupted_screenshots(self.pending_session_identifier)
             self.pending_session_identifier = None
             self.pending_application_identifier = None
             self.pending_style_identifier = None
@@ -3289,6 +3514,9 @@ class MluvaApplication(Adw.Application):
         codex_model_identifier = self.pending_codex_model_identifier
         transcript_preparation = self.pending_transcript_preparation
         frozen_style = self.pending_style
+        screenshot_picker = (
+            self.screenshot_picker if self.screenshot_picker_owner == (session_identifier, True) else None
+        )
         try:
             audio_path = self.recorder.stop()
             if realtime_session is not None:
@@ -3309,6 +3537,16 @@ class MluvaApplication(Adw.Application):
                 fallback_reason = RECOGNITION_FALLBACK_UNAVAILABLE
             if recognized_transcription is None and segment_cleanup_session is not None:
                 segment_cleanup_session.cancel()
+            if screenshot_picker is not None and not screenshot_picker.attached.wait(timeout=180):
+                raise RuntimeError("Finish or cancel the screenshot selection before processing your narration.")
+            if self.shutting_down:
+                return
+            visual_warning = ""
+            try:
+                images = self._capture_images(session_identifier, self.continuation_identifier) if not incognito else ()
+            except (OSError, ValueError):
+                images = ()
+                visual_warning = " Screenshot was not ready. Save it in the editor, then rewrite with its context."
             result = self.workflow.complete(
                 audio_path,
                 mode=mode,
@@ -3332,7 +3570,12 @@ class MluvaApplication(Adw.Application):
                 frozen_style=frozen_style,
                 style_is_frozen=True,
                 defer_delivery=self.continuation_identifier is not None,
+                images=images,
             )
+            if visual_warning:
+                result = replace(
+                    result, delivery=replace(result.delivery, guidance=result.delivery.guidance + visual_warning)
+                )
         except WorkflowFailure as error:
             GLib.idle_add(
                 self._workflow_failed,
@@ -3360,6 +3603,16 @@ class MluvaApplication(Adw.Application):
 
     def _workflow_finished(self, result: WorkflowResult) -> bool:
         """Render the final output and restore the ready state on GTK's thread."""
+        if (
+            result.history_entry is None
+            and not result.incognito
+            and self.pending_session_identifier is not None
+            and self.screenshot_store.recent(self.pending_session_identifier, capture=True)
+        ):
+            entry = self.history_store.add(
+                result.transcription.text, result.output_text, result.mode, self.config.language_code, None, "saved"
+            )
+            result = replace(result, history_entry=entry)
         if self.continuation_identifier is not None and result.history_entry is not None and not result.incognito:
             try:
                 for key in list(self.conversation_workspace.edit_drafts):
@@ -3386,8 +3639,11 @@ class MluvaApplication(Adw.Application):
                         receipt = DeliveryReceipt(False, False, "Recording appended. Automatic copy failed; use Copy.")
                 result = replace(result, history_entry=entry, output_text=output, delivery=receipt)
         workspace = self.conversation_workspace
+        self._finish_screenshot_capture(
+            self.pending_session_identifier, result.history_entry.identifier if result.history_entry else None
+        )
         viewing_live = workspace is not None and workspace.viewing_live
-        empty_capture = not result.transcription.text.strip()
+        empty_capture = not result.transcription.text.strip() and result.history_entry is None
         preserved_draft = (
             workspace.live_draft()
             if empty_capture
@@ -3405,6 +3661,7 @@ class MluvaApplication(Adw.Application):
             self.live_schedule is not None
             and result.mode == "dictation"
             and result.history_entry is not None
+            and bool(result.transcription.text.strip())
             and not result.incognito
         )
         if finishing_live:
@@ -3556,6 +3813,25 @@ class MluvaApplication(Adw.Application):
         live_text = self.conversation_workspace.live_draft() if self.live_schedule is not None else ""
         self._cancel_live_rewrite()
         self.capture_processing = False
+        if (
+            history_entry is None
+            and not self.pending_incognito
+            and self.pending_session_identifier is not None
+            and self.screenshot_store.recent(self.pending_session_identifier, capture=True)
+        ):
+            history_entry = self.history_store.add(
+                "",
+                output_text,
+                self.pending_mode,
+                self.config.language_code,
+                None,
+                "failed",
+                retained_audio_path=str(retained_audio_path) if retained_audio_path else None,
+                audio_retention_policy=self.pending_audio_retention.value,
+            )
+        self._finish_screenshot_capture(
+            self.pending_session_identifier, history_entry.identifier if history_entry else None
+        )
         if history_entry is not None and self.pending_delivery_target is not None:
             self._remember_history_delivery_target(history_entry.identifier, self.pending_delivery_target)
         self.realtime_session = None
@@ -4394,6 +4670,8 @@ class MluvaApplication(Adw.Application):
         if incognito:
             self._cancel_live_rewrite()
             self._cancel_titles()
+            if self.screenshot_picker is not None:
+                self.screenshot_picker.cancel()
         if self.automatic_titles_switch is not None:
             self.automatic_titles_switch.set_sensitive(self.config.rewrite_provider != "none" and not incognito)
         if incognito and getattr(self, "overlay_review_identifier", None) is not None:
@@ -4956,6 +5234,13 @@ class MluvaApplication(Adw.Application):
             self._set_status("Apply or discard the active Command preview before deleting its history entry.")
             return False
         try:
+            identifiers = [
+                entry.identifier,
+                *(segment.identifier for segment in self.history_store.continuations(entry.identifier)),
+            ]
+            for identifier in identifiers:
+                for screenshot in self.screenshot_store.recent(identifier):
+                    self._close_screenshot_editor(screenshot.identifier)
             draft = self.scratchpad_store.draft
             if draft is not None and draft.history_identifier == entry.identifier:
                 self._delete_scratchpad_draft(draft)
@@ -4996,6 +5281,7 @@ class MluvaApplication(Adw.Application):
             self._set_status("The stopped recording is still being processed.")
             return GLib.SOURCE_REMOVE
         if self.capture_preparing:
+            self._finish_screenshot_capture(self.pending_session_identifier, None)
             self._cancel_capture()
             return GLib.SOURCE_REMOVE
         if self.recorder.process is None:
@@ -5161,6 +5447,7 @@ class MluvaApplication(Adw.Application):
             self.capture_stop_requested = False
             self.audio_path = None
             self.pending_command_target = None
+            self._finish_screenshot_capture(self.pending_session_identifier, None)
             self.pending_session_identifier = None
             self.pending_application_identifier = None
             self.pending_style_identifier = None
@@ -5182,6 +5469,7 @@ class MluvaApplication(Adw.Application):
                 time.monotonic() - self.capture_started_at,
             )
         self.recorder.cancel()
+        self._finish_screenshot_capture(self.pending_session_identifier, None)
         realtime_session = self.realtime_session
         if realtime_session is not None:
             realtime_session.cancel()
@@ -5213,6 +5501,11 @@ class MluvaApplication(Adw.Application):
     def _on_shutdown(self, _application: Adw.Application) -> None:
         """Release child processes and portal registrations during application exit."""
         self.shutting_down = True
+        if self.screenshot_picker is not None:
+            self.screenshot_picker.cancel()
+        for monitor in self.screenshot_monitors.values():
+            monitor.cancel()
+        self.screenshot_monitors.clear()
         self._consume_live_once()
         self._cancel_live_rewrite()
         self._cancel_titles(wait=True)
@@ -5235,6 +5528,7 @@ class MluvaApplication(Adw.Application):
         self.pending_command_target = None
         self.pending_delivery_target = None
         self.history_delivery_targets.clear()
+        self._preserve_interrupted_screenshots(self.pending_session_identifier)
         self.pending_session_identifier = None
         self.pending_application_identifier = None
         self.pending_style_identifier = None
@@ -5341,6 +5635,10 @@ class MluvaApplication(Adw.Application):
 
 def main() -> int:
     """Run the GTK application under the distro Python selected by the launcher."""
+    if sys.argv[1:] == ["--narrate"]:
+        from mluva_linux.narration import main as narrate
+
+        return narrate()
     application = MluvaApplication()
     return application.run(sys.argv)
 

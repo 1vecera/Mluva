@@ -482,10 +482,12 @@ def test_incognito_temporarily_suspends_and_then_restores_cleanup() -> None:
     incognito = ToggleSpy(active=True)
     cleanup = ToggleSpy(active=True)
     output_style = ToggleSpy(active=False)
+    cancelled = []
     application = SimpleNamespace(
         config=AppConfig(),
         incognito_switch=incognito,
         automatic_titles_switch=None,
+        screenshot_picker=SimpleNamespace(cancel=lambda: cancelled.append("screenshot")),
         _cancel_titles=lambda: None,
         _cancel_live_rewrite=lambda: None,
         cleanup_switch=cleanup,
@@ -503,6 +505,7 @@ def test_incognito_temporarily_suspends_and_then_restores_cleanup() -> None:
     MluvaApplication._apply_incognito_controls(application)
 
     assert application.cleanup_before_incognito is True
+    assert cancelled == ["screenshot"]
     assert not cleanup.active
     assert not cleanup.sensitive
     assert "Unavailable in Incognito" in cleanup.subtitle

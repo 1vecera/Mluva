@@ -32,6 +32,8 @@ Automatic insertion is Experimental and off by default. It requires a restorable
 
 ## Local history and recovery
 
+Explicit screenshot context belongs to its recording or selected conversation. Captures use Omarchy's normal region picker and leave the clipboard unchanged. Saved PNGs remain editable in Tensaku; each AI request freezes complete saved image bytes and their narration offsets. The selected rewrite provider receives those pixels only during an explicit rewrite or the already enabled recording processing. Incognito rejects screenshot capture and image requests. A request accepts at most eight screenshots, 8 MiB per image and 24 MiB total. Images are retained, merged, removed and pruned with their conversation. Completed selection before an interrupted recording remains reviewable in History; unfinished selections are cancelled.
+
 Settings and saved work use the XDG config/data directories with owner-only state. History retains raw recognition and completed working versions, instructions, provider/model metadata and timestamps. Search covers saved conversations. Markdown and JSON exports contain raw recognition, saved source and completed replies.
 
 Audio retention follows the selected policy. Recognition failures can retain recovery audio when allowed; retry validates that it belongs to managed storage and produces a preview without automatic copying or insertion. Deletion and retention pruning also remove associated conversations and replies. Path ownership checks prevent arbitrary files from being adopted as recovery audio.

@@ -28,7 +28,7 @@ from mluva_linux.overlay_state import (  # noqa: E402
 
 BUS_NAME = "com.mluva.Linux"
 ACTION_PATH = "/com/mluva/Linux"
-ACTIONS = ("record", "global-record", "cancel", "latest", "status")
+ACTIONS = ("record", "global-record", "screenshot", "cancel", "latest", "status")
 REVIEW_ACTIONS = ("rewrite", "copy", "open", "dismiss", "cancel", "continue")
 
 

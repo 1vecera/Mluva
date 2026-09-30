@@ -9,6 +9,7 @@ from mluva_linux.codex_client import CodexAppServerClient, CodexModel, select_mo
 from mluva_linux.config import AppConfig
 from mluva_linux.conversation import MAX_REWRITE_CHARACTERS
 from mluva_linux.providers import LiteLLMClient
+from mluva_linux.screenshots import ImageInput
 
 
 class RewriteClient(Protocol):
@@ -32,6 +33,7 @@ class RewriteClient(Protocol):
         on_delta: Callable[[str], None] | None = None,
         effort: str | None = None,
         service_tier: str | None = None,
+        images: tuple[ImageInput, ...] = (),
     ) -> str:
         """Return completed text; deltas are provisional and failures raise."""
         ...
@@ -110,6 +112,7 @@ def rewrite_text(
     cwd: Path,
     *,
     on_delta: Callable[[str], None] | None = None,
+    images: tuple[ImageInput, ...] = (),
 ) -> RewriteResult:
     """Apply the same frozen model, speed and output limits to every full-document rewrite."""
     effort = None
@@ -134,6 +137,7 @@ def rewrite_text(
         if effort is None:
             effort = selected.rewrite_effort
         service_tier = selected.fast_tier if config.rewrite_fast_mode else "default"
+    visual = {"images": images} if images else {}
     text = client.transform(
         prompt,
         cwd,
@@ -142,5 +146,6 @@ def rewrite_text(
         on_delta=on_delta,
         effort=effort,
         service_tier=service_tier,
+        **visual,
     )
     return RewriteResult(text, model)

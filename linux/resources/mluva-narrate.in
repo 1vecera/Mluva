@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# mluva:managed-narration-launcher
+set -euo pipefail
+exec "@BIN_DIR@/mluva" --narrate

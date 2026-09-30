@@ -45,6 +45,7 @@ RECOGNITION_FALLBACK_LABELS = {
 ENHANCEMENT_CONTEXT_LABELS = {
     "selected-text": "explicit selected text",
     "style-instructions": "saved style instructions",
+    "screenshots": "attached screenshots",
 }
 ENHANCEMENT_OUTCOME_LABELS = {
     "completed": "completed",
