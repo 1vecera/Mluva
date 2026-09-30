@@ -2,6 +2,16 @@
 
 This file records user-visible Mluva releases.
 
+## 1.6.0 — 2026-09-30
+
+- Fixed automatic paste from Omarchy keyboard recording: bind F9 to `mluva-shell global-record` to capture the target at Start. Bar/button recording remains clipboard-only, including when stopped from another control.
+- Fixed Firefox fields whose accessibility insertion silently did nothing, and initialized the focused field when the accessibility tracker starts. Firefox uses the guarded keyboard path; changed targets stay clipboard-only.
+- Added experimental screenshot context to recordings and saved conversations through `mluva-shell screenshot` and an F10 binding. Omarchy's region picker attaches ordered images with recording offsets; supported rewrite models receive their pixels.
+- Added **Add narration** to the optional upgraded Tensaku editor: choose an area, dictate a fresh phrase and stop to save a text box into the screenshot. Escape cancels without uploading the annotation audio. The main narration can continue recording.
+- Attached screenshots follow History retention and deletion. Incognito and Scratchpad cannot capture screenshots. App and widget share version 1.6.0; a separate prebuilt Tensaku package is available for Omarchy x86_64, alongside its complete source patch and notices.
+
+Linux tests and disposable native GTK/Wayland checks passed, including the actual installed app, picker and editor. Physical F9/F10 and the user's microphone were not exercised; both automatic paste and screenshot context remain Experimental.
+
 ## 1.5.4 — 2026-09-30
 
 - Fixed automatic paste into Hyprland terminals that expose no accessibility text field. Delivery requires the same focused window and owning terminal process immediately before paste, and never activates another window.
