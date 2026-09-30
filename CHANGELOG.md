@@ -2,7 +2,7 @@
 
 This file records user-visible Mluva releases.
 
-## Unreleased
+## 1.5.4 — 2026-09-30
 
 - Fixed automatic paste into Hyprland terminals that expose no accessibility text field. Delivery requires the same focused window and owning terminal process immediately before paste, and never activates another window.
 - Symbolic terminal paste uses Ctrl+Shift+V so it reads the clipboard, including on default Foot where Shift+Insert reads the primary selection.
