@@ -1,0 +1,49 @@
+# Rust port acceptance
+
+Reference: Mluva `v1.6.0`, commit `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. Work branch: `feat/rust-port`. The installed release remains the reference application while the replacement is developed. No Rust application parity is claimed yet.
+
+The evidence must observe results through public/native boundaries rather than inspecting implementation statements. Compare rendering and interactions with synthetic content on the same isolated desktop and compare protocol/data outputs against independent fixtures. Preserve failures, privacy behavior and recovery as carefully as successful workflows.
+
+| User workflow or contract | Required comparison/evidence | Rust status |
+| --- | --- | --- |
+| Cold launch and background restart | Native windows, existing focused field, first recording, no extra focus event required, no window shown for helper invocation | Pending |
+| Welcome, navigation, Ctrl+P and settings pages | Same labels, available actions, keyboard navigation, preference values and persistence across restart | Pending |
+| Theme, fonts and native accessibility | Light/dark/Omarchy palette, native roles/action names, focus order and text readability | Pending |
+| Workspace and recorder layout | Minimum/360-pixel tiled/2×/wide views, five preview lines, dragging/tiling, no focus theft, stable source/draft panes, motion preference | Pending |
+| Recording preparation, stop and cancellation | Selected PipeWire input, PCM framing, rapid toggle during preparation, silent audio, malformed capture and child-process cleanup | Pending |
+| ElevenLabs batch and realtime | Request/response frames, committed versus provisional speech, language/model selection and explicit batch fallback | Pending |
+| Compatible speech endpoints | Multipart payload, endpoint/key-variable settings, redirects, size bounds, malformed responses and cancellation | Pending |
+| Managed local speech and downloads | Every catalog model/size/language, pinned verified artifacts, cancellation/cache/retry, no paid fallback and unloading | Pending |
+| ONNX/Qwen and GPU processing | Existing CPU/GPU routes, recognition quality on shared clips, readiness/error messages, device choice and memory cleanup without Python | Pending |
+| Provider/model discovery and Skip | Independent speech/rewrite choices, availability, advanced settings, concrete models and titles disabled when rewriting is skipped | Pending |
+| Codex app-server and compatible rewriting | Model/effort/tier payloads, bounded streaming, ephemeral context, no tools/MCP/apps/hooks/skills, inherited-environment/instruction isolation | Pending |
+| Immutable recognition and deterministic transcript rules | Raw/source/processed/delivered separation, dictionary/snippets/protected vocabulary, exact Unicode and lossless edits | Pending |
+| Dictation and clipboard settings | Final text, automatic copy toggles, explicit Copy/Save, clipboard recovery and no partial/provisional delivery | Pending |
+| Command and Scratchpad/Notes | Captured selection, explicit preview/accept, drafts/restart/recovery, unavailable/stale actions and intentional cancellation | Pending |
+| Live modes and template prompts | Grilling/questions, structured note/task spec/custom modes, start/pause/continue, final reconciliation, paused labels and manual revision guards | Pending |
+| Markdown, Mermaid and document editing | Plain/Markdown round trips, tags, source versus rewrite working copies, offline diagrams, current-text Copy/Save and exports | Pending |
+| Conversations, titles, history and merge/delete | Search/rename/automatic title/manual precedence, original segments/replies, transaction ownership, deletion, retention and audio cleanup | Pending |
+| Prompt/style/dictionary editors | Local overrides, Save/Cancel/reset, current models, snapshots during capture and no unintended provider/clipboard effects | Pending |
+| Meeting and system audio | Explicit source selection, selected sink monitor, mixed audio, partial-source failure, privacy, persistence and recovery | Pending |
+| Global keys and portal lifecycle | F1–F24 settings, F9/global-record versus record origins, cancellation/latest actions, returned keys and session replacement | Pending |
+| AT-SPI text insertion | GTK Entry/TextView and browser/editor targets; caret/selection, UTF-16 emoji in Firefox, cold tracker, password/stale/ambiguous target guards | Pending |
+| Terminal and X11 delivery | Same focused executable/window/process, clipboard selection, independent bracketed/input-event observations and one-attempt uncertainty behavior | Pending |
+| D-Bus and Omarchy widget | Existing action/signal schema, record/global-record/cancel/latest/status, recording/review rewrite controls, hot upgrade and preserved layout | Pending |
+| Fedora GNOME compatibility surfaces | Existing portal/clipboard/extension contracts remain; actual desktop acceptance stays explicitly unverified unless renewed | Pending |
+| F10 screenshot capture and image context | Real Omarchy selection on private Wayland/PID namespace, frozen narration owner, stop waits for picker, image order/offsets and immutable upload bytes | Pending |
+| Tensaku narrated text boxes | Chosen area, fresh phrase, saved readable pixels/OCR, normal undo, clipboard preserved, EOF/Escape cancels, no extra History item or Python helper | Pending |
+| Screenshot lifecycle and privacy | Editor saves reach rewrites, remove/delete/retention, interrupted capture recovery, image bounds, Incognito/Scratchpad restrictions | Pending |
+| Incognito, credentials and endpoint safeguards | No history/retained audio, late results invalidated, volatile cleanup after failure/crash, no secret output or redirect credential leakage | Pending |
+| Installation, migration and package ownership | Existing names/paths/config/SQLite/JSON/audio/model stores retained; user files preserved, rollback and matching app/widget versions | Pending |
+| Final Python removal | Maintained source/test/build/install tree and clean installed package have no Python code, interpreter dependency, bridge or compatibility worker | Pending |
+| Performance | Same-host/provider/model/content startup, RSS, idle CPU, interaction/capture/processing measurements; no unsupported speed claims | Pending |
+
+## Current state
+
+30 September 2026: PRs #66/#67 and release packaging #68 merged; 1.6.0 published with checksum-verified source and editor assets. The local app/widget upgrade passed settings, history, editor and desktop-preservation checks. Created the Rust worktree from remote main and started an unbudgeted Rust-port goal. The reference runtime inventory and acceptance brief are recorded; implementation has not yet begun. Linear search found no existing Mluva Rust-port issue. No delegation or new Linear ticket was created.
+
+## Evidence rules
+
+Use the unchanged 1.6.0 release and its external test boundaries as the comparison oracle. Reference Python may run only from a separate frozen baseline during development and must not ship with or be required by Rust. Preserve synthetic recordings/images and logs privately in `tmp/`; publish only curated evidence with no user content, settings values, application/window names or credentials.
+
+Physical F9/F10, the user's microphone and simultaneous real-microphone recording remain unverified in the reference. A simulated command or synthetic audio cannot establish those checks. These limits do not authorize dropping the corresponding implementation or changing its user experience.
