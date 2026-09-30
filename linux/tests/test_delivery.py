@@ -86,10 +86,14 @@ def test_confirmed_native_insertion_precedes_keyboard_fallback(monkeypatch: pyte
 @pytest.mark.parametrize(
     ("application_identifier", "chord"),
     [
-        ("/usr/bin/foot", ["-M", "shift", "-k", "Insert", "-m", "shift"]),
-        ("/usr/bin/alacritty", ["-M", "shift", "-k", "Insert", "-m", "shift"]),
-        ("/opt/ghostty/bin/ghostty", ["-M", "shift", "-k", "Insert", "-m", "shift"]),
-        ("process:foot", ["-M", "shift", "-k", "Insert", "-m", "shift"]),
+        ("/usr/bin/foot", ["-M", "ctrl", "-M", "shift", "v", "-m", "shift", "-m", "ctrl"]),
+        ("/usr/bin/alacritty", ["-M", "ctrl", "-M", "shift", "v", "-m", "shift", "-m", "ctrl"]),
+        ("/usr/bin/footclient", ["-M", "ctrl", "-M", "shift", "v", "-m", "shift", "-m", "ctrl"]),
+        ("/opt/ghostty/bin/ghostty", ["-M", "ctrl", "-M", "shift", "v", "-m", "shift", "-m", "ctrl"]),
+        ("/usr/bin/kitty", ["-M", "ctrl", "-M", "shift", "v", "-m", "shift", "-m", "ctrl"]),
+        ("/usr/bin/wezterm", ["-M", "ctrl", "-M", "shift", "v", "-m", "shift", "-m", "ctrl"]),
+        ("/usr/bin/wezterm-gui", ["-M", "ctrl", "-M", "shift", "v", "-m", "shift", "-m", "ctrl"]),
+        ("process:foot", ["-M", "ctrl", "-M", "shift", "v", "-m", "shift", "-m", "ctrl"]),
         ("/usr/bin/code", ["-M", "ctrl", "v", "-m", "ctrl"]),
         ("Terminal · foot", ["-M", "ctrl", "v", "-m", "ctrl"]),
         ("/usr/bin/not-foot", ["-M", "ctrl", "v", "-m", "ctrl"]),
@@ -354,7 +358,7 @@ def test_ydotool_only_keeps_ordinary_targets_copy_only(monkeypatch: pytest.Monke
 
 
 @pytest.mark.parametrize(
-    ("application_identifier", "chord"), [("/usr/bin/code", "ctrl+v"), ("/usr/bin/foot", "shift+Insert")]
+    ("application_identifier", "chord"), [("/usr/bin/code", "ctrl+v"), ("/usr/bin/foot", "ctrl+shift+v")]
 )
 def test_x11_prefers_symbolic_paste_over_ydotool_physical_keys(
     monkeypatch: pytest.MonkeyPatch, application_identifier: str, chord: str
@@ -373,6 +377,43 @@ def test_x11_prefers_symbolic_paste_over_ydotool_physical_keys(
         (["/usr/bin/xdotool", "key", "--clearmodifiers", chord], None),
     ]
     assert receipt.paste_dispatched
+
+
+@pytest.mark.parametrize(
+    ("environment", "clipboard", "injector", "chord"),
+    [
+        ({"XDG_SESSION_TYPE": "x11", "DISPLAY": ":99"}, "xclip", "xdotool", ["key", "--clearmodifiers", "ctrl+v"]),
+        ({"DISPLAY": ":99"}, "xclip", "xdotool", ["key", "--clearmodifiers", "ctrl+v"]),
+        (
+            {"XDG_SESSION_TYPE": "wayland", "WAYLAND_DISPLAY": "wayland-1", "DISPLAY": ":0"},
+            "wl-copy",
+            "wtype",
+            ["-M", "ctrl", "v", "-m", "ctrl"],
+        ),
+    ],
+)
+def test_delivery_uses_the_session_backend_when_both_toolkits_are_installed(
+    monkeypatch: pytest.MonkeyPatch,
+    environment: dict[str, str],
+    clipboard: str,
+    injector: str,
+    chord: list[str],
+) -> None:
+    """Keep X11 delivery working on mixed desktops and avoid XWayland-only input on Wayland."""
+    for variable in ("XDG_SESSION_TYPE", "WAYLAND_DISPLAY", "DISPLAY"):
+        monkeypatch.delenv(variable, raising=False)
+    for variable, value in environment.items():
+        monkeypatch.setenv(variable, value)
+    calls = install_fake_desktop(
+        monkeypatch,
+        {name: f"/usr/bin/{name}" for name in ("xclip", "wl-copy", "xdotool", "wtype")},
+    )
+
+    receipt = deliver_text("Příliš žluťoučký", auto_paste=True, confirm_paste=lambda: True)
+
+    clipboard_command = [f"/usr/bin/{clipboard}"] + (["-selection", "clipboard"] if clipboard == "xclip" else [])
+    assert calls == [(clipboard_command, "Příliš žluťoučký"), ([f"/usr/bin/{injector}", *chord], None)]
+    assert receipt.pasted and receipt.history_outcome == "pasted"
 
 
 def test_ydotool_requires_a_live_owner_only_socket(tmp_path: Path) -> None:

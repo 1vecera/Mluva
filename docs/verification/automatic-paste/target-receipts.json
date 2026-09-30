@@ -1,0 +1,165 @@
+{
+  "verified_on": "2026-09-30",
+  "baseline": "113f10f",
+  "scope": "Separate real target processes in private Wayland and X11 sessions; synthetic content only.",
+  "receipts": [
+    {
+      "scenario": "gtk-entry",
+      "target_type": "TextTargetSnapshot",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface.",
+      "target_observed": {
+        "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+        "exact_text_match": true,
+        "caret": 29
+      },
+      "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "platform": "wayland"
+    },
+    {
+      "scenario": "gtk-entry-selection",
+      "target_type": "TextTargetSnapshot",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface.",
+      "target_observed": {
+        "actual_text": "Before Příliš žluťoučký kůň 🐎 after",
+        "exact_text_match": true,
+        "caret": 29
+      },
+      "expected_text": "Before Příliš žluťoučký kůň 🐎 after",
+      "platform": "wayland"
+    },
+    {
+      "scenario": "gtk-textview",
+      "target_type": "TextTargetSnapshot",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface.",
+      "target_observed": {
+        "actual_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+        "exact_text_match": true
+      },
+      "expected_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "platform": "wayland"
+    },
+    {
+      "scenario": "gtk-textview-selection",
+      "target_type": "TextTargetSnapshot",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface.",
+      "target_observed": {
+        "actual_text": "Before Příliš žluťoučký kůň 🐎\nDruhý řádek. after",
+        "exact_text_match": true
+      },
+      "expected_text": "Before Příliš žluťoučký kůň 🐎\nDruhý řádek. after",
+      "platform": "wayland"
+    },
+    {
+      "scenario": "chromium-input",
+      "target_type": "TextTargetSnapshot",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application.",
+      "target_observed": {
+        "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+        "exact_text_match": true
+      },
+      "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "platform": "wayland"
+    },
+    {
+      "scenario": "chromium-textarea",
+      "target_type": "TextTargetSnapshot",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application.",
+      "target_observed": {
+        "actual_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+        "exact_text_match": true
+      },
+      "expected_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "platform": "wayland"
+    },
+    {
+      "scenario": "chromium-contenteditable",
+      "platform": "wayland",
+      "target_type": "TextTargetSnapshot",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application.",
+      "target_observed": {
+        "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+        "exact_text_match": true
+      },
+      "expected_text": "Mluva: Příliš žluťoučký kůň 🐎"
+    },
+    {
+      "scenario": "code",
+      "target_type": "TextTargetSnapshot",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application.",
+      "target_observed": {
+        "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+        "exact_text_match": true
+      },
+      "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "platform": "wayland"
+    },
+    {
+      "scenario": "foot-terminal",
+      "target_type": "TerminalTargetSnapshot",
+      "receipt": "paste-unconfirmed",
+      "paste_dispatched": true,
+      "paste_confirmed": null,
+      "guidance": "Paste was sent once, but this target could not confirm insertion. The complete text remains on the clipboard; inspect the target before any manual retry.",
+      "target_observed": {
+        "actual_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+        "exact_text_match": true,
+        "bracketed_pastes": 1
+      },
+      "expected_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "platform": "wayland"
+    },
+    {
+      "scenario": "ghostty-terminal",
+      "target_type": "TerminalTargetSnapshot",
+      "receipt": "paste-unconfirmed",
+      "paste_dispatched": true,
+      "paste_confirmed": null,
+      "guidance": "Paste was sent once, but this target could not confirm insertion. The complete text remains on the clipboard; inspect the target before any manual retry.",
+      "target_observed": {
+        "actual_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+        "exact_text_match": true,
+        "bracketed_pastes": 1
+      },
+      "expected_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "platform": "wayland"
+    },
+    {
+      "scenario": "chromium-input",
+      "platform": "x11",
+      "target_type": "TextTargetSnapshot",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application.",
+      "target_observed": {
+        "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+        "exact_text_match": true
+      },
+      "expected_text": "Mluva: Příliš žluťoučký kůň 🐎"
+    }
+  ]
+}
