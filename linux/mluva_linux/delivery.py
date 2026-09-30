@@ -51,7 +51,8 @@ def deliver_text(
         raise DeliveryError("Cannot deliver empty text.")
     if confirmation_timeout_seconds < 0:
         raise ValueError("Paste confirmation timeout cannot be negative.")
-    clipboard = shutil.which("wl-copy") or shutil.which("xclip")
+    x11 = _x11_keyboard_injection_available(os.environ)
+    clipboard = shutil.which("xclip" if x11 else "wl-copy")
     if clipboard is None:
         raise DeliveryError("Install wl-clipboard on Wayland or xclip on X11.")
     command = [clipboard] if clipboard.endswith("wl-copy") else [clipboard, "-selection", "clipboard"]
@@ -184,12 +185,13 @@ def _paste_command(
     environment = os.environ if environment is None else environment
     executable_name = Path((application_identifier or "").removeprefix("process:")).name.casefold()
     terminal = executable_name in TERMINAL_EXECUTABLES
-    if executable := shutil.which("wtype"):
+    x11 = _x11_keyboard_injection_available(environment)
+    if not x11 and (executable := shutil.which("wtype")):
         if terminal:
-            return [executable, "-M", "shift", "-k", "Insert", "-m", "shift"]
+            return [executable, "-M", "ctrl", "-M", "shift", "v", "-m", "shift", "-m", "ctrl"]
         return [executable, "-M", "ctrl", "v", "-m", "ctrl"]
-    if (executable := shutil.which("xdotool")) and _x11_keyboard_injection_available(environment):
-        return [executable, "key", "--clearmodifiers", "shift+Insert" if terminal else "ctrl+v"]
+    if x11 and (executable := shutil.which("xdotool")):
+        return [executable, "key", "--clearmodifiers", "ctrl+shift+v" if terminal else "ctrl+v"]
     # ydotool sends physical evdev codes. A seat/physical keyboard's keymap does
     # not establish its virtual device's layout, so never guess the code for V.
     if terminal and (executable := shutil.which("ydotool")) and _ydotool_socket_ready(environment):

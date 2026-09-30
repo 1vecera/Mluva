@@ -2,6 +2,12 @@
 
 This file records user-visible Mluva releases.
 
+## Unreleased
+
+- Fixed automatic paste into Hyprland terminals that expose no accessibility text field. Delivery requires the same focused window and owning terminal process immediately before paste, and never activates another window.
+- Symbolic terminal paste uses Ctrl+Shift+V so it reads the clipboard, including on default Foot where Shift+Insert reads the primary selection.
+- X11 sessions use xclip and xdotool even when Wayland tools are installed. Clipboard recovery and one-attempt delivery remain available when the target changes or insertion cannot be confirmed.
+
 ## 1.5.3 — 2026-09-29
 
 - Fixed keyboard fallback for captured terminal targets: Foot, Alacritty, Ghostty, Kitty and WezTerm use Shift+Insert instead of Ctrl+V.

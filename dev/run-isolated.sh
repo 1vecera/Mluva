@@ -196,6 +196,7 @@ export XDG_STATE_HOME="${session_root}/state"
 export XDG_CACHE_HOME="${session_root}/cache"
 export TMPDIR="${session_root}/tmp"
 export GDK_BACKEND=x11
+export XDG_SESSION_TYPE=x11
 export GIO_USE_VFS=local
 unset DISPLAY WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE AT_SPI_BUS_ADDRESS DBUS_SESSION_BUS_ADDRESS XAUTHORITY
 

@@ -445,10 +445,10 @@ def test_capture_delivery_requires_portal_approval_and_reports_the_actual_trigge
 
     assert delivery.title == "Global paste · button copy"
     assert delivery.subtitle == (
-        "F10 inserts when an accessible text target is captured; the on-screen button always copies"
+        "F10 inserts into a captured text field or supported terminal; the on-screen button always copies"
     )
     assert action_hint.label == (
-        "F10 toggles global capture and can insert into a captured text field · this button always copies"
+        "F10 toggles global capture and can insert into a text field or terminal · this button always copies"
     )
 
     application.recorder.process = object()
@@ -456,7 +456,7 @@ def test_capture_delivery_requires_portal_approval_and_reports_the_actual_trigge
     MluvaApplication._update_capture_status_rows(application)
 
     assert delivery.title == "Copy-only capture"
-    assert delivery.subtitle == "No accessible focused text field was captured"
+    assert delivery.subtitle == "No accessible text field or supported focused terminal was captured"
 
     application.pending_delivery_target = SimpleNamespace(editable_text=object())
     MluvaApplication._update_capture_status_rows(application)

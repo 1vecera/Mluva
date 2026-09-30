@@ -91,6 +91,7 @@ from mluva_linux.segment_cleanup import (
 )
 from mluva_linux.settings_view import SettingsView, WelcomeView
 from mluva_linux.text_target import (
+    DeliveryTargetSnapshot,
     FocusedTextTargetTracker,
     TextSelectionTooLargeError,
     TextTargetSnapshot,
@@ -276,7 +277,7 @@ class MluvaApplication(Adw.Application):
         self.diagnostics_store: DiagnosticsStore
         self.personalization_store: PersonalizationStore
         self.history_page: HistoryPage | None = None
-        self.history_delivery_targets: dict[str, TextTargetSnapshot] = {}
+        self.history_delivery_targets: dict[str, DeliveryTargetSnapshot] = {}
         self.meeting_page: MeetingPage | None = None
         self.personalization_page: PersonalizationPage | None = None
         self.audio_path: Path | None = None
@@ -293,7 +294,7 @@ class MluvaApplication(Adw.Application):
         self.capture_allows_auto_paste = False
         self.editing_scratchpad = False
         self.pending_command_target: TextTargetSnapshot | None = None
-        self.pending_delivery_target: TextTargetSnapshot | None = None
+        self.pending_delivery_target: DeliveryTargetSnapshot | None = None
         self.pending_application_identifier: str | None = None
         self.profile_application_identifier: str | None = None
         self.pending_style_identifier: str | None = None
@@ -1847,7 +1848,7 @@ class MluvaApplication(Adw.Application):
         self.auto_paste_switch = Adw.SwitchRow(title=maturity_title("automatic_paste"))
         if self.focus_tracker is None:
             self.auto_paste_switch.set_subtitle(
-                "Experimental · GNOME accessibility is disabled or unavailable; completed text remains on the clipboard"
+                "Experimental · Target tracking is unavailable; completed text remains on the clipboard"
             )
             self.auto_paste_switch.set_sensitive(False)
         else:
@@ -2085,7 +2086,7 @@ class MluvaApplication(Adw.Application):
         """Refresh the compact idle summary after a visible settings mutation."""
         self._update_capture_status_rows()
 
-    def _pending_target_and_insert_readiness(self) -> tuple[TextTargetSnapshot | None, bool]:
+    def _pending_target_and_insert_readiness(self) -> tuple[DeliveryTargetSnapshot | None, bool]:
         """Return the frozen target and whether one reviewed insertion route is ready."""
         pending_target = getattr(self, "pending_delivery_target", None) or getattr(
             self,
@@ -2155,12 +2156,12 @@ class MluvaApplication(Adw.Application):
             if automatic_paste_armed:
                 self.capture_delivery_status_row.set_title("Automatic paste armed")
                 self.capture_delivery_status_row.set_subtitle(
-                    "This global-key capture can insert into the accessible focused text field"
+                    "This global-key capture can insert into the captured text field or focused terminal"
                 )
             elif capture_active:
                 self.capture_delivery_status_row.set_title("Copy-only capture")
                 if self.capture_allows_auto_paste and pending_target is None:
-                    delivery_explanation = "No accessible focused text field was captured"
+                    delivery_explanation = "No accessible text field or supported focused terminal was captured"
                 elif self.capture_allows_auto_paste and not target_can_insert:
                     delivery_explanation = "The target needs a keyboard paste helper, but none is ready"
                 else:
@@ -2169,7 +2170,7 @@ class MluvaApplication(Adw.Application):
             elif automatic_paste_ready:
                 self.capture_delivery_status_row.set_title("Global paste · button copy")
                 self.capture_delivery_status_row.set_subtitle(
-                    f"{approved_recording_trigger} inserts when an accessible text target is captured; "
+                    f"{approved_recording_trigger} inserts into a captured text field or supported terminal; "
                     "the on-screen button always copies"
                 )
             else:
@@ -2177,7 +2178,7 @@ class MluvaApplication(Adw.Application):
                 if not self.config.auto_paste:
                     delivery_explanation = "Automatic paste is turned off"
                 elif self.focus_tracker is None:
-                    delivery_explanation = "GNOME accessibility is disabled or target tracking is unavailable"
+                    delivery_explanation = "Target tracking is unavailable"
                 elif self.shortcut_service is None:
                     delivery_explanation = "The global shortcut service is disabled or unavailable"
                 else:
@@ -2209,8 +2210,8 @@ class MluvaApplication(Adw.Application):
                 action_hint = "Use the on-screen button for copy-only capture"
             elif automatic_paste_available:
                 action_hint = (
-                    f"{approved_recording_trigger} toggles global capture and can insert into a captured text field · "
-                    "this button always copies"
+                    f"{approved_recording_trigger} toggles global capture and can insert into a text field or terminal "
+                    "· this button always copies"
                 )
             elif self.config.auto_paste:
                 action_hint = f"{approved_recording_trigger} toggles global capture · automatic paste is unavailable"
@@ -4856,7 +4857,7 @@ class MluvaApplication(Adw.Application):
     def _remember_history_delivery_target(
         self,
         identifier: str,
-        target: TextTargetSnapshot,
+        target: DeliveryTargetSnapshot,
         limit: int = MAX_IN_MEMORY_HISTORY_TARGETS,
     ) -> None:
         """Keep a bounded session-only target cache for explicit History paste actions."""

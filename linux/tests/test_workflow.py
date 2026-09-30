@@ -1380,7 +1380,7 @@ def test_dictation_uses_captured_terminal_identity_instead_of_personalization_sc
 
     assert calls == [
         (["/bin/wl-copy"], "Příliš žluťoučký."),
-        (["/bin/wtype", "-M", "shift", "-k", "Insert", "-m", "shift"], None),
+        (["/bin/wtype", "-M", "ctrl", "-M", "shift", "v", "-m", "shift", "-m", "ctrl"], None),
     ]
     assert target.restore_calls == 2
     assert result.delivery.paste_dispatched and not result.delivery.pasted

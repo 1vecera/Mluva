@@ -22,6 +22,13 @@ PASSWORD = "password"
 TEXT = "text"
 
 
+@pytest.fixture(autouse=True)
+def isolate_terminal_capture(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep accessibility tests independent of any live Hyprland session."""
+    monkeypatch.setattr("mluva_linux.text_target.capture_hyprland_terminal_target", lambda: None)
+    monkeypatch.setattr("mluva_linux.text_target.hyprland_terminal_tracking_available", lambda: False)
+
+
 @dataclass(frozen=True, slots=True)
 class FakeRange:
     """Represent one AT-SPI selection range."""

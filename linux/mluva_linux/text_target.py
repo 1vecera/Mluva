@@ -11,6 +11,12 @@ from typing import Protocol
 
 import gi
 
+from mluva_linux.terminal_target import (
+    TerminalTargetSnapshot,
+    capture_hyprland_terminal_target,
+    hyprland_terminal_tracking_available,
+)
+
 gi.require_version("Atspi", "2.0")
 from gi.repository import Atspi, Gio, GLib  # noqa: E402
 
@@ -313,7 +319,7 @@ class SystemAtspiRuntime:
 
 
 class FocusedTextTargetTracker:
-    """Track the latest global focus event because AT-SPI states are only per application."""
+    """Track authoritative AT-SPI focus and exact Hyprland terminal identities for delivery."""
 
     event_type = "object:state-changed:focused"
 
@@ -324,17 +330,20 @@ class FocusedTextTargetTracker:
     ) -> None:
         """Register one fail-closed focus listener for the lifetime of the application."""
         if runtime is None:
-            if not system_accessibility_enabled():
+            if system_accessibility_enabled():
+                runtime = SystemAtspiRuntime.load()
+            elif not hyprland_terminal_tracking_available():
                 raise RuntimeError("Desktop accessibility is disabled")
-            runtime = SystemAtspiRuntime.load()
         self.runtime = runtime
         self.own_process_id = os.getpid() if own_process_id is None else own_process_id
         self._lock = Lock()
         self._focused: AccessibleNode | None = None
-        self._listener: AccessibilityEventListener | None = self.runtime.create_event_listener(self._focus_changed)
-        if not self._listener.register(self.event_type):
-            self._listener = None
-            raise RuntimeError("AT-SPI rejected global focus-event registration")
+        self._listener: AccessibilityEventListener | None = None
+        if self.runtime is not None:
+            self._listener = self.runtime.create_event_listener(self._focus_changed)
+            if not self._listener.register(self.event_type):
+                self._listener = None
+                raise RuntimeError("AT-SPI rejected global focus-event registration")
 
     def _focus_changed(self, event: AccessibilityEvent, _user_data: object | None = None) -> None:
         """Retain only the newest focused external object and clear on focus loss or self-focus."""
@@ -351,9 +360,11 @@ class FocusedTextTargetTracker:
                 return
             self._focused = source if source_process_id != self.own_process_id else None
 
-    def capture_delivery_target(self) -> TextTargetSnapshot | None:
-        """Capture content-free delivery metadata from the latest authoritative focus event."""
-        return self._capture(include_selected_text=False, maximum_selected_characters=0)
+    def capture_delivery_target(self) -> DeliveryTargetSnapshot | None:
+        """Capture a content-free terminal identity or the latest authoritative text focus."""
+        return capture_hyprland_terminal_target() or self._capture(
+            include_selected_text=False, maximum_selected_characters=0
+        )
 
     def capture_text_target(
         self,
@@ -368,7 +379,7 @@ class FocusedTextTargetTracker:
     def capture_application_identifier(self) -> str | None:
         """Return the current external process identity without reading its text."""
         focused = self._current()
-        if focused is None:
+        if focused is None or self.runtime is None:
             return None
         try:
             if focused.get_role() == self.runtime.password_text_role:
@@ -383,6 +394,8 @@ class FocusedTextTargetTracker:
         maximum_selected_characters: int,
     ) -> TextTargetSnapshot | None:
         """Freeze the current event source through the shared disclosure boundary."""
+        if self.runtime is None:
+            return None
         return _capture_focused_target(
             runtime=self.runtime,
             own_process_id=self.own_process_id,
@@ -507,6 +520,9 @@ class TextTargetSnapshot:
             return True
         except Exception:
             return False
+
+
+DeliveryTargetSnapshot = TextTargetSnapshot | TerminalTargetSnapshot
 
 
 def capture_focused_text_target(
