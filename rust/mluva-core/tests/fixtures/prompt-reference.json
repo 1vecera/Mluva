@@ -1,0 +1,10 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "files": {
+    "linux/mluva_linux/prompts.py": "12c9ab110fc4373e474de196cad4cb98c16c9b58b499de3cc475b03136929609",
+    "linux/mluva_linux/prompt_defaults.py": "2fdf23766603ec9e0f24ee1a43d562f3dd57f44c0706223822e9c740961ff5e8",
+    "linux/mluva_linux/personalization.py": "d3b1f36fe5fdf77e3d278823c30b706c3e4630ad3ccaa59a8099b0226ef1c691",
+    "linux/mluva_linux/conversation_titles.py": "2969c932307c4c4d40675729f0c83a9cfbaed209891400655e6f49beca5a2e12",
+    "linux/mluva_linux/scratchpad.py": "7a808fbb02f455cba44171196fe3353154205e465d25a9f8fedc7cd40a681f26"
+  }
+}

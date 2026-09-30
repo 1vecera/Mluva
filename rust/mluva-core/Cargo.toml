@@ -1,0 +1,24 @@
+[package]
+name = "mluva-core"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Native Mluva settings, persistence and workflow contracts"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+regex.workspace = true
+url.workspace = true
+tempfile.workspace = true
+rusqlite.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+caseless.workspace = true
+base64.workspace = true
+crc32fast.workspace = true
+libc.workspace = true

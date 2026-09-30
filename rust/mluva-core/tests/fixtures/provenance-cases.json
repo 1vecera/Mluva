@@ -1,0 +1,1767 @@
+[
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_model_identifier": "synthetic-model"
+    },
+    "accepted": false,
+    "error": "Enhancement metadata requires a provider ID"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_provider_id": "unreviewed-provider"
+    },
+    "accepted": false,
+    "error": "Unsupported enhancement provider: unreviewed-provider"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_provider_id": "codex-app-server",
+      "enhancement_model_identifier": "synthetic-model",
+      "enhancement_outcome": "completed"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": "codex-app-server",
+      "enhancement_model_identifier": "synthetic-model",
+      "enhancement_context_sources": [],
+      "enhancement_outcome": "completed",
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_provider_id": "litellm",
+      "enhancement_model_identifier": "provider/model",
+      "enhancement_context_sources": [
+        "screenshots",
+        "selected-text"
+      ],
+      "enhancement_outcome": "safe-fallback"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": "litellm",
+      "enhancement_model_identifier": "provider/model",
+      "enhancement_context_sources": [
+        "screenshots",
+        "selected-text"
+      ],
+      "enhancement_outcome": "safe-fallback",
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_provider_id": "codex-app-server",
+      "enhancement_model_identifier": " model",
+      "enhancement_outcome": "completed"
+    },
+    "accepted": false,
+    "error": "Enhancement model must be one bounded concrete identifier"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_provider_id": "codex-app-server",
+      "enhancement_model_identifier": "model\nother",
+      "enhancement_outcome": "completed"
+    },
+    "accepted": false,
+    "error": "Enhancement model must be one bounded concrete identifier"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_provider_id": "codex-app-server",
+      "enhancement_model_identifier": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂",
+      "enhancement_outcome": "completed"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": "codex-app-server",
+      "enhancement_model_identifier": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂",
+      "enhancement_context_sources": [],
+      "enhancement_outcome": "completed",
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_provider_id": "codex-app-server",
+      "enhancement_model_identifier": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂",
+      "enhancement_outcome": "completed"
+    },
+    "accepted": false,
+    "error": "Enhancement model must be one bounded concrete identifier"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_provider_id": "codex-app-server",
+      "enhancement_model_identifier": "model",
+      "enhancement_context_sources": [
+        "selected-text",
+        "selected-text"
+      ],
+      "enhancement_outcome": "completed"
+    },
+    "accepted": false,
+    "error": "Enhancement context sources must be unique reviewed values"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_provider_id": "codex-app-server",
+      "enhancement_model_identifier": "model",
+      "enhancement_context_sources": [
+        "window-title"
+      ],
+      "enhancement_outcome": "completed"
+    },
+    "accepted": false,
+    "error": "Enhancement context sources must be unique reviewed values"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_provider_id": "codex-app-server",
+      "enhancement_model_identifier": "model",
+      "enhancement_outcome": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Enhancement outcome must be one reviewed terminal value"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": null
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": null,
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": null,
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": null,
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": null,
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition fallback reason: provider-error-body"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-realtime"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "scribe-v2-realtime",
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-realtime",
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-realtime",
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-realtime",
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-realtime",
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition fallback reason: provider-error-body"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-batch"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "scribe-v2-batch",
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-batch",
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "scribe-v2-batch",
+      "recognition_fallback_reason": "realtime-unavailable",
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-batch",
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "scribe-v2-batch",
+      "recognition_fallback_reason": "realtime-startup-failed",
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-batch",
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "scribe-v2-batch",
+      "recognition_fallback_reason": "realtime-stream-failed",
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-batch",
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition fallback reason: provider-error-body"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-batch-retry"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "scribe-v2-batch-retry",
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-batch-retry",
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-batch-retry",
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-batch-retry",
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "scribe-v2-batch-retry",
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition fallback reason: provider-error-body"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "litellm-batch"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "litellm-batch",
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "litellm-batch",
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "litellm-batch",
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "litellm-batch",
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "litellm-batch",
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition fallback reason: provider-error-body"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "managed-local"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "managed-local",
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "managed-local",
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "managed-local",
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "managed-local",
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "managed-local",
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition fallback reason: provider-error-body"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "managed-local-retry"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "managed-local-retry",
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "managed-local-retry",
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "managed-local-retry",
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "managed-local-retry",
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "managed-local-retry",
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition fallback reason: provider-error-body"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "voxtype-local"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "voxtype-local",
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "voxtype-local",
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "voxtype-local",
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "voxtype-local",
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "voxtype-local",
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition fallback reason: provider-error-body"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "litellm-batch-retry"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "litellm-batch-retry",
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "litellm-batch-retry",
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "litellm-batch-retry",
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "litellm-batch-retry",
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "litellm-batch-retry",
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition fallback reason: provider-error-body"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "voxtype-local-retry"
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": "voxtype-local-retry",
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "voxtype-local-retry",
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "voxtype-local-retry",
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "voxtype-local-retry",
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": false,
+    "error": "A realtime fallback reason requires the Scribe v2 batch route"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "voxtype-local-retry",
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition fallback reason: provider-error-body"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "unreviewed-provider"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition route: unreviewed-provider"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "unreviewed-provider",
+      "recognition_fallback_reason": "realtime-unavailable"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition route: unreviewed-provider"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "unreviewed-provider",
+      "recognition_fallback_reason": "realtime-startup-failed"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition route: unreviewed-provider"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "unreviewed-provider",
+      "recognition_fallback_reason": "realtime-stream-failed"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition route: unreviewed-provider"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_route": "unreviewed-provider",
+      "recognition_fallback_reason": "provider-error-body"
+    },
+    "accepted": false,
+    "error": "Unsupported recognition route: unreviewed-provider"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_ms": null
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_ms": 0
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": 0,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_ms": 86400000
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": 86400000,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_ms": -1
+    },
+    "accepted": false,
+    "error": "recognition_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_ms": true
+    },
+    "accepted": false,
+    "error": "recognition_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_ms": 1.5
+    },
+    "accepted": false,
+    "error": "recognition_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "recognition_ms": 86400001
+    },
+    "accepted": false,
+    "error": "recognition_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_ms": null
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_ms": 0
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": 0,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_ms": 86400000
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": 86400000,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_ms": -1
+    },
+    "accepted": false,
+    "error": "enhancement_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_ms": true
+    },
+    "accepted": false,
+    "error": "enhancement_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_ms": 1.5
+    },
+    "accepted": false,
+    "error": "enhancement_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "enhancement_ms": 86400001
+    },
+    "accepted": false,
+    "error": "enhancement_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "delivery_ms": null
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": null
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "delivery_ms": 0
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": 0
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "delivery_ms": 86400000
+    },
+    "accepted": true,
+    "expected": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "title": null,
+      "retained_audio_path": null,
+      "audio_retention_policy": null,
+      "application_identifier": null,
+      "correction_source_text": null,
+      "recognition_route": null,
+      "recognition_fallback_reason": null,
+      "enhancement_provider_id": null,
+      "enhancement_model_identifier": null,
+      "enhancement_context_sources": [],
+      "enhancement_outcome": null,
+      "recognition_ms": null,
+      "enhancement_ms": null,
+      "delivery_ms": 86400000
+    }
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "delivery_ms": -1
+    },
+    "accepted": false,
+    "error": "delivery_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "delivery_ms": true
+    },
+    "accepted": false,
+    "error": "delivery_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "delivery_ms": 1.5
+    },
+    "accepted": false,
+    "error": "delivery_ms must be an integer from zero through 24 hours"
+  },
+  {
+    "input": {
+      "raw_text": "Synthetic recognition",
+      "delivered_text": "Synthetic result",
+      "mode": "dictation",
+      "language_code": "eng",
+      "transcription_id": null,
+      "delivery_outcome": "copied",
+      "delivery_ms": 86400001
+    },
+    "accepted": false,
+    "error": "delivery_ms must be an integer from zero through 24 hours"
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "data": "",
+    "text": "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only.",
+    "error": "cleanup.md: The prompt cannot be empty. Using the baseline until repaired.",
+    "overridden": true
+  },
+  {
+    "data": "//4=",
+    "text": "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only.",
+    "error": "cleanup.md: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte. Using the baseline until repaired.",
+    "overridden": true
+  },
+  {
+    "data": "wK4=",
+    "text": "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only.",
+    "error": "cleanup.md: 'utf-8' codec can't decode byte 0xc0 in position 0: invalid start byte. Using the baseline until repaired.",
+    "overridden": true
+  },
+  {
+    "data": "4oA=",
+    "text": "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only.",
+    "error": "cleanup.md: 'utf-8' codec can't decode bytes in position 0-1: unexpected end of data. Using the baseline until repaired.",
+    "overridden": true
+  },
+  {
+    "data": "YYBi",
+    "text": "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only.",
+    "error": "cleanup.md: 'utf-8' codec can't decode byte 0x80 in position 1: invalid start byte. Using the baseline until repaired.",
+    "overridden": true
+  },
+  {
+    "data": "4iih",
+    "text": "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only.",
+    "error": "cleanup.md: 'utf-8' codec can't decode byte 0xe2 in position 0: invalid continuation byte. Using the baseline until repaired.",
+    "overridden": true
+  },
+  {
+    "data": "7aCA",
+    "text": "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only.",
+    "error": "cleanup.md: 'utf-8' codec can't decode byte 0xed in position 0: invalid continuation byte. Using the baseline until repaired.",
+    "overridden": true
+  },
+  {
+    "data": "4oL/",
+    "text": "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only.",
+    "error": "cleanup.md: 'utf-8' codec can't decode bytes in position 0-1: invalid continuation byte. Using the baseline until repaired.",
+    "overridden": true
+  },
+  {
+    "data": "YmFkAHRleHQ=",
+    "text": "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only.",
+    "error": "cleanup.md: Remove control characters. Using the baseline until repaired.",
+    "overridden": true
+  },
+  {
+    "data": "xZhlxaEgcMWZZXNuxJsuDQo=",
+    "text": "Řeš přesně.\r\n",
+    "error": "",
+    "overridden": true
+  }
+]

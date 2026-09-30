@@ -1,0 +1,412 @@
+[
+  {
+    "label": "valid",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmCC",
+    "error": null
+  },
+  {
+    "label": "not-png",
+    "data": "aGVsbG8=",
+    "error": "Screenshot is not a PNG image."
+  },
+  {
+    "label": "header-only",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjd",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "extra-trailer",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmCCb3RoZXI=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-0",
+    "data": "",
+    "error": "Screenshot is not a PNG image."
+  },
+  {
+    "label": "truncated-1",
+    "data": "iQ==",
+    "error": "Screenshot is not a PNG image."
+  },
+  {
+    "label": "truncated-2",
+    "data": "iVA=",
+    "error": "Screenshot is not a PNG image."
+  },
+  {
+    "label": "truncated-3",
+    "data": "iVBO",
+    "error": "Screenshot is not a PNG image."
+  },
+  {
+    "label": "truncated-4",
+    "data": "iVBORw==",
+    "error": "Screenshot is not a PNG image."
+  },
+  {
+    "label": "truncated-5",
+    "data": "iVBORw0=",
+    "error": "Screenshot is not a PNG image."
+  },
+  {
+    "label": "truncated-6",
+    "data": "iVBORw0K",
+    "error": "Screenshot is not a PNG image."
+  },
+  {
+    "label": "truncated-7",
+    "data": "iVBORw0KGg==",
+    "error": "Screenshot is not a PNG image."
+  },
+  {
+    "label": "truncated-8",
+    "data": "iVBORw0KGgo=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-9",
+    "data": "iVBORw0KGgoA",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-10",
+    "data": "iVBORw0KGgoAAA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-11",
+    "data": "iVBORw0KGgoAAAA=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-12",
+    "data": "iVBORw0KGgoAAAAN",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-13",
+    "data": "iVBORw0KGgoAAAANSQ==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-14",
+    "data": "iVBORw0KGgoAAAANSUg=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-15",
+    "data": "iVBORw0KGgoAAAANSUhE",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-16",
+    "data": "iVBORw0KGgoAAAANSUhEUg==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-17",
+    "data": "iVBORw0KGgoAAAANSUhEUgA=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-18",
+    "data": "iVBORw0KGgoAAAANSUhEUgAA",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-19",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-20",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAI=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-21",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIA",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-22",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-23",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAA=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-24",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAAB",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-25",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-26",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAI=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-27",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIA",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-28",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-29",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAA=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-30",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-31",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-32",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOg=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-33",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjd",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-34",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-35",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAA=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-36",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAA",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-37",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAADw==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-38",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0k=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-39",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lE",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-40",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQQ==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-41",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVQ=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-42",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-43",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-44",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGM=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-45",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQ",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-46",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQSw==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-47",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7k=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-48",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nz",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-49",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoQ==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-50",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUk=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-51",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkO",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-52",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-53",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAo=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-54",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoR",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-55",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAg==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-56",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-57",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8y",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-58",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-59",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJY=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-60",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYr",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-61",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-62",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAA=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-63",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAA",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-64",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAA==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-65",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAEk=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-66",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElF",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-67",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTg==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-68",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkQ=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-69",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSu",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-70",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQg==",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "truncated-71",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmA=",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "damaged-crc",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAABD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmCC",
+    "error": "Screenshot is incomplete. Save it in the editor and try again."
+  },
+  {
+    "label": "dimensions-0-1",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAAAAAABCAIAAAB/tTjgAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmCC",
+    "error": "Screenshot exceeds the image size limit."
+  },
+  {
+    "label": "dimensions-1-0",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAAACAIAAABbK4B7AAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmCC",
+    "error": "Screenshot exceeds the image size limit."
+  },
+  {
+    "label": "dimensions-10000-4000",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAJxAAAA+gCAIAAADTtJH+AAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmCC",
+    "error": null
+  },
+  {
+    "label": "dimensions-10000-4001",
+    "data": "iVBORw0KGgoAAAANSUhEUgAAJxAAAA+hCAIAAAAY6EJbAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmCC",
+    "error": "Screenshot exceeds the image size limit."
+  },
+  {
+    "label": "dimensions-4294967295-4294967295",
+    "data": "iVBORw0KGgoAAAANSUhEUv//////////CAIAAABdlLlpAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmCC",
+    "error": "Screenshot exceeds the image size limit."
+  }
+]

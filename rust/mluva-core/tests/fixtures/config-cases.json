@@ -1,0 +1,2588 @@
+[
+  {
+    "label": "existing-empty",
+    "json": "{}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "unknown-field",
+    "json": "{\"unknown\":true}",
+    "accepted": false,
+    "error": "AppConfig.__init__() got an unexpected keyword argument 'unknown'"
+  },
+  {
+    "label": "not-object",
+    "json": "[]",
+    "accepted": false,
+    "error": "Mluva config must be a JSON object"
+  },
+  {
+    "label": "damaged-json",
+    "json": "{",
+    "accepted": false,
+    "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+  },
+  {
+    "label": "voxtype-migration",
+    "json": "{\"voxtype_model\": \"tiny\", \"transcription_provider\": \"voxtype\", \"welcome_completed\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_provider": "local"
+    }
+  },
+  {
+    "label": "turbo-migration",
+    "json": "{\"local_model\": \"whisper-turbo\", \"welcome_completed\": true}",
+    "accepted": true,
+    "expected_changes": {}
+  },
+  {
+    "label": "both-migrations",
+    "json": "{\"transcription_provider\": \"voxtype\", \"local_model\": \"whisper-turbo\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_provider": "local"
+    }
+  },
+  {
+    "label": "legacy-retention-None",
+    "json": "{\"retain_audio_on_failure\": null}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "explicit-retention-None",
+    "json": "{\"retain_audio_on_failure\": null, \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "legacy-retention-False",
+    "json": "{\"retain_audio_on_failure\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "never"
+    }
+  },
+  {
+    "label": "explicit-retention-False",
+    "json": "{\"retain_audio_on_failure\": false, \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "legacy-retention-True",
+    "json": "{\"retain_audio_on_failure\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "explicit-retention-True",
+    "json": "{\"retain_audio_on_failure\": true, \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "legacy-retention-0",
+    "json": "{\"retain_audio_on_failure\": 0}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "never"
+    }
+  },
+  {
+    "label": "explicit-retention-0",
+    "json": "{\"retain_audio_on_failure\": 0, \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "legacy-retention-1",
+    "json": "{\"retain_audio_on_failure\": 1}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "explicit-retention-1",
+    "json": "{\"retain_audio_on_failure\": 1, \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "legacy-retention-''",
+    "json": "{\"retain_audio_on_failure\": \"\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "never"
+    }
+  },
+  {
+    "label": "explicit-retention-''",
+    "json": "{\"retain_audio_on_failure\": \"\", \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "legacy-retention-'no'",
+    "json": "{\"retain_audio_on_failure\": \"no\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "explicit-retention-'no'",
+    "json": "{\"retain_audio_on_failure\": \"no\", \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "legacy-retention-[]",
+    "json": "{\"retain_audio_on_failure\": []}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "never"
+    }
+  },
+  {
+    "label": "explicit-retention-[]",
+    "json": "{\"retain_audio_on_failure\": [], \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "legacy-retention-[1]",
+    "json": "{\"retain_audio_on_failure\": [1]}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "explicit-retention-[1]",
+    "json": "{\"retain_audio_on_failure\": [1], \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "legacy-retention-{}",
+    "json": "{\"retain_audio_on_failure\": {}}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "never"
+    }
+  },
+  {
+    "label": "explicit-retention-{}",
+    "json": "{\"retain_audio_on_failure\": {}, \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "legacy-retention-{'a': 1}",
+    "json": "{\"retain_audio_on_failure\": {\"a\": 1}}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "explicit-retention-{'a': 1}",
+    "json": "{\"retain_audio_on_failure\": {\"a\": 1}, \"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "language_code-0",
+    "json": "{\"language_code\": \"auto\"}",
+    "accepted": true,
+    "expected_changes": {
+      "language_code": "auto",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "language_code-1",
+    "json": "{\"language_code\": \"ces\"}",
+    "accepted": true,
+    "expected_changes": {
+      "language_code": "ces",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "language_code-2",
+    "json": "{\"language_code\": \"en\"}",
+    "accepted": true,
+    "expected_changes": {
+      "language_code": "en",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "language_code-3",
+    "json": "{\"language_code\": \"\"}",
+    "accepted": false,
+    "error": "language_code must be 'auto' or a lowercase ISO-639-1/3 code"
+  },
+  {
+    "label": "language_code-4",
+    "json": "{\"language_code\": \"English\"}",
+    "accepted": false,
+    "error": "language_code must be 'auto' or a lowercase ISO-639-1/3 code"
+  },
+  {
+    "label": "language_code-5",
+    "json": "{\"language_code\": \"ENG\"}",
+    "accepted": false,
+    "error": "language_code must be 'auto' or a lowercase ISO-639-1/3 code"
+  },
+  {
+    "label": "language_code-6",
+    "json": "{\"language_code\": 1}",
+    "accepted": false,
+    "error": "language_code must be 'auto' or a lowercase ISO-639-1/3 code"
+  },
+  {
+    "label": "language_code-7",
+    "json": "{\"language_code\": null}",
+    "accepted": false,
+    "error": "language_code must be 'auto' or a lowercase ISO-639-1/3 code"
+  },
+  {
+    "label": "transcription_model-0",
+    "json": "{\"transcription_model\": \"scribe_v2\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_model-1",
+    "json": "{\"transcription_model\": \"scribe_v1\"}",
+    "accepted": false,
+    "error": "transcription_model must be 'scribe_v2'"
+  },
+  {
+    "label": "transcription_model-2",
+    "json": "{\"transcription_model\": null}",
+    "accepted": false,
+    "error": "transcription_model must be 'scribe_v2'"
+  },
+  {
+    "label": "codex_model-0",
+    "json": "{\"codex_model\": null}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "codex_model-1",
+    "json": "{\"codex_model\": \"model-1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "codex_model": "model-1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "codex_model-2",
+    "json": "{\"codex_model\": \"český/model\"}",
+    "accepted": true,
+    "expected_changes": {
+      "codex_model": "český/model",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "codex_model-3",
+    "json": "{\"codex_model\": \"🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂\"}",
+    "accepted": true,
+    "expected_changes": {
+      "codex_model": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "codex_model-4",
+    "json": "{\"codex_model\": \"🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂\"}",
+    "accepted": false,
+    "error": "codex_model must be a bounded single-line model identifier"
+  },
+  {
+    "label": "codex_model-5",
+    "json": "{\"codex_model\": \"\"}",
+    "accepted": false,
+    "error": "codex_model must be a bounded single-line model identifier"
+  },
+  {
+    "label": "codex_model-6",
+    "json": "{\"codex_model\": \" model\"}",
+    "accepted": false,
+    "error": "codex_model must be a bounded single-line model identifier"
+  },
+  {
+    "label": "codex_model-7",
+    "json": "{\"codex_model\": \"model\\nsecret\"}",
+    "accepted": false,
+    "error": "codex_model must be a bounded single-line model identifier"
+  },
+  {
+    "label": "codex_model-8",
+    "json": "{\"codex_model\": 42}",
+    "accepted": false,
+    "error": "codex_model must be text or null"
+  },
+  {
+    "label": "codex_model-9",
+    "json": "{\"codex_model\": \"\\u001cmodel\"}",
+    "accepted": false,
+    "error": "codex_model must be a bounded single-line model identifier"
+  },
+  {
+    "label": "rewrite_model-0",
+    "json": "{\"rewrite_model\": null}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_model-1",
+    "json": "{\"rewrite_model\": \"model-1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "rewrite_model": "model-1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_model-2",
+    "json": "{\"rewrite_model\": \"\"}",
+    "accepted": false,
+    "error": "codex_model must be a bounded single-line model identifier"
+  },
+  {
+    "label": "rewrite_model-3",
+    "json": "{\"rewrite_model\": \"a\\u0000b\"}",
+    "accepted": false,
+    "error": "codex_model must be a bounded single-line model identifier"
+  },
+  {
+    "label": "litellm_model-0",
+    "json": "{\"litellm_model\": null}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_model-1",
+    "json": "{\"litellm_model\": \"provider/model\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_model": "provider/model",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_model-2",
+    "json": "{\"litellm_model\": \"model \"}",
+    "accepted": false,
+    "error": "codex_model must be a bounded single-line model identifier"
+  },
+  {
+    "label": "transcription_remote_model-0",
+    "json": "{\"transcription_remote_model\": null}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_remote_model": null,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_remote_model-1",
+    "json": "{\"transcription_remote_model\": \"whisper\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_remote_model-2",
+    "json": "{\"transcription_remote_model\": \"scribe_v2\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_remote_model": "scribe_v2",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_remote_model-3",
+    "json": "{\"transcription_remote_model\": \"\"}",
+    "accepted": false,
+    "error": "codex_model must be a bounded single-line model identifier"
+  },
+  {
+    "label": "transcription_remote_model-4",
+    "json": "{\"transcription_remote_model\": 1}",
+    "accepted": false,
+    "error": "codex_model must be text or null"
+  },
+  {
+    "label": "rewrite_reasoning_effort-0",
+    "json": "{\"rewrite_reasoning_effort\": null}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_reasoning_effort-1",
+    "json": "{\"rewrite_reasoning_effort\": \"xhigh\"}",
+    "accepted": true,
+    "expected_changes": {
+      "rewrite_reasoning_effort": "xhigh",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_reasoning_effort-2",
+    "json": "{\"rewrite_reasoning_effort\": \"minimal\"}",
+    "accepted": true,
+    "expected_changes": {
+      "rewrite_reasoning_effort": "minimal",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_reasoning_effort-3",
+    "json": "{\"rewrite_reasoning_effort\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+    "accepted": true,
+    "expected_changes": {
+      "rewrite_reasoning_effort": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_reasoning_effort-4",
+    "json": "{\"rewrite_reasoning_effort\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+    "accepted": false,
+    "error": "Thinking level must be null or a bounded provider effort identifier"
+  },
+  {
+    "label": "rewrite_reasoning_effort-5",
+    "json": "{\"rewrite_reasoning_effort\": \"high-effort_1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "rewrite_reasoning_effort": "high-effort_1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_reasoning_effort-6",
+    "json": "{\"rewrite_reasoning_effort\": \"\"}",
+    "accepted": false,
+    "error": "Thinking level must be null or a bounded provider effort identifier"
+  },
+  {
+    "label": "rewrite_reasoning_effort-7",
+    "json": "{\"rewrite_reasoning_effort\": \"High\"}",
+    "accepted": false,
+    "error": "Thinking level must be null or a bounded provider effort identifier"
+  },
+  {
+    "label": "rewrite_reasoning_effort-8",
+    "json": "{\"rewrite_reasoning_effort\": \"1high\"}",
+    "accepted": false,
+    "error": "Thinking level must be null or a bounded provider effort identifier"
+  },
+  {
+    "label": "rewrite_reasoning_effort-9",
+    "json": "{\"rewrite_reasoning_effort\": 3}",
+    "accepted": false,
+    "error": "Thinking level must be null or a bounded provider effort identifier"
+  },
+  {
+    "label": "litellm_reasoning_effort-0",
+    "json": "{\"litellm_reasoning_effort\": null}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_reasoning_effort-1",
+    "json": "{\"litellm_reasoning_effort\": \"medium\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_reasoning_effort": "medium",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_reasoning_effort-2",
+    "json": "{\"litellm_reasoning_effort\": \"Bad\"}",
+    "accepted": false,
+    "error": "Thinking level must be null or a bounded provider effort identifier"
+  },
+  {
+    "label": "litellm_reasoning_effort-3",
+    "json": "{\"litellm_reasoning_effort\": \"a\\nb\"}",
+    "accepted": false,
+    "error": "Thinking level must be null or a bounded provider effort identifier"
+  },
+  {
+    "label": "rewrite_provider-0",
+    "json": "{\"rewrite_provider\": \"codex\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_provider-1",
+    "json": "{\"rewrite_provider\": \"litellm\"}",
+    "accepted": true,
+    "expected_changes": {
+      "rewrite_provider": "litellm",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_provider-2",
+    "json": "{\"rewrite_provider\": \"none\"}",
+    "accepted": true,
+    "expected_changes": {
+      "rewrite_provider": "none",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_provider-3",
+    "json": "{\"rewrite_provider\": \"other\"}",
+    "accepted": false,
+    "error": "rewrite_provider must be codex, litellm or none"
+  },
+  {
+    "label": "transcription_provider-0",
+    "json": "{\"transcription_provider\": \"elevenlabs\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_provider-1",
+    "json": "{\"transcription_provider\": \"litellm\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_provider": "litellm",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_provider-2",
+    "json": "{\"transcription_provider\": \"local\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_provider": "local",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_provider-3",
+    "json": "{\"transcription_provider\": \"other\"}",
+    "accepted": false,
+    "error": "transcription_provider must be elevenlabs, litellm or local"
+  },
+  {
+    "label": "local_model-0",
+    "json": "{\"local_model\": \"whisper-tiny\"}",
+    "accepted": true,
+    "expected_changes": {
+      "local_model": "whisper-tiny",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "local_model-1",
+    "json": "{\"local_model\": \"whisper-base\"}",
+    "accepted": true,
+    "expected_changes": {
+      "local_model": "whisper-base",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "local_model-2",
+    "json": "{\"local_model\": \"whisper-small\"}",
+    "accepted": true,
+    "expected_changes": {
+      "local_model": "whisper-small",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "local_model-3",
+    "json": "{\"local_model\": \"parakeet-v3\"}",
+    "accepted": true,
+    "expected_changes": {
+      "local_model": "parakeet-v3",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "local_model-4",
+    "json": "{\"local_model\": \"qwen3-1.7b\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "local_model-5",
+    "json": "{\"local_model\": \"other\"}",
+    "accepted": false,
+    "error": "Choose a supported local speech model"
+  },
+  {
+    "label": "local_device-0",
+    "json": "{\"local_device\": \"cpu\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "local_device-1",
+    "json": "{\"local_device\": \"cuda\"}",
+    "accepted": true,
+    "expected_changes": {
+      "local_device": "cuda",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "local_device-2",
+    "json": "{\"local_device\": \"gpu\"}",
+    "accepted": false,
+    "error": "local_device must be cpu or cuda"
+  },
+  {
+    "label": "litellm_api_key_env-0",
+    "json": "{\"litellm_api_key_env\": \"KEY\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_api_key_env": "KEY",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_api_key_env-1",
+    "json": "{\"litellm_api_key_env\": \"_key9\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_api_key_env": "_key9",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_api_key_env-2",
+    "json": "{\"litellm_api_key_env\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_api_key_env": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_api_key_env-3",
+    "json": "{\"litellm_api_key_env\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}",
+    "accepted": false,
+    "error": "API key settings must name an environment variable, never contain a key"
+  },
+  {
+    "label": "litellm_api_key_env-4",
+    "json": "{\"litellm_api_key_env\": \"\"}",
+    "accepted": false,
+    "error": "API key settings must name an environment variable, never contain a key"
+  },
+  {
+    "label": "litellm_api_key_env-5",
+    "json": "{\"litellm_api_key_env\": \"9KEY\"}",
+    "accepted": false,
+    "error": "API key settings must name an environment variable, never contain a key"
+  },
+  {
+    "label": "litellm_api_key_env-6",
+    "json": "{\"litellm_api_key_env\": \"value-with-secret\"}",
+    "accepted": false,
+    "error": "API key settings must name an environment variable, never contain a key"
+  },
+  {
+    "label": "litellm_api_key_env-7",
+    "json": "{\"litellm_api_key_env\": \" KEY\"}",
+    "accepted": false,
+    "error": "API key settings must name an environment variable, never contain a key"
+  },
+  {
+    "label": "litellm_api_key_env-8",
+    "json": "{\"litellm_api_key_env\": null}",
+    "accepted": false,
+    "error": "API key settings must name an environment variable, never contain a key"
+  },
+  {
+    "label": "transcription_api_key_env-0",
+    "json": "{\"transcription_api_key_env\": \"KEY\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_api_key_env": "KEY",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_api_key_env-1",
+    "json": "{\"transcription_api_key_env\": \"DAS_KEY\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_api_key_env": "DAS_KEY",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_api_key_env-2",
+    "json": "{\"transcription_api_key_env\": \"bad-env\"}",
+    "accepted": false,
+    "error": "API key settings must name an environment variable, never contain a key"
+  },
+  {
+    "label": "transcription_api_key_env-3",
+    "json": "{\"transcription_api_key_env\": 3}",
+    "accepted": false,
+    "error": "API key settings must name an environment variable, never contain a key"
+  },
+  {
+    "label": "widget_position-0",
+    "json": "{\"widget_position\": \"bottom-left\"}",
+    "accepted": true,
+    "expected_changes": {
+      "widget_position": "bottom-left",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "widget_position-1",
+    "json": "{\"widget_position\": \"bottom-center\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "widget_position-2",
+    "json": "{\"widget_position\": \"bottom-right\"}",
+    "accepted": true,
+    "expected_changes": {
+      "widget_position": "bottom-right",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "widget_position-3",
+    "json": "{\"widget_position\": \"top-center\"}",
+    "accepted": false,
+    "error": "Unsupported widget position"
+  },
+  {
+    "label": "time_format-0",
+    "json": "{\"time_format\": \"24h\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "time_format-1",
+    "json": "{\"time_format\": \"12h\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "time_format": "12h"
+    }
+  },
+  {
+    "label": "time_format-2",
+    "json": "{\"time_format\": \"iso\"}",
+    "accepted": false,
+    "error": "Unsupported time format"
+  },
+  {
+    "label": "live_rewrite_template-0",
+    "json": "{\"live_rewrite_template\": \"grilling\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "live_rewrite_template-1",
+    "json": "{\"live_rewrite_template\": \"task-spec\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_template": "task-spec"
+    }
+  },
+  {
+    "label": "live_rewrite_template-2",
+    "json": "{\"live_rewrite_template\": \"structured-note\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_template": "structured-note"
+    }
+  },
+  {
+    "label": "live_rewrite_template-3",
+    "json": "{\"live_rewrite_template\": \"polish\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_template": "polish"
+    }
+  },
+  {
+    "label": "live_rewrite_template-4",
+    "json": "{\"live_rewrite_template\": \"custom\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_template": "custom"
+    }
+  },
+  {
+    "label": "live_rewrite_template-5",
+    "json": "{\"live_rewrite_template\": \"other\"}",
+    "accepted": false,
+    "error": "Unsupported live rewrite template"
+  },
+  {
+    "label": "live_rewrite_custom_instructions-0",
+    "json": "{\"live_rewrite_custom_instructions\": \"\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "live_rewrite_custom_instructions-1",
+    "json": "{\"live_rewrite_custom_instructions\": \"Keep Czech names.\\nAsk one question.\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_custom_instructions": "Keep Czech names.\nAsk one question."
+    }
+  },
+  {
+    "label": "live_rewrite_custom_instructions-2",
+    "json": "{\"live_rewrite_custom_instructions\": \"🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_custom_instructions": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+    }
+  },
+  {
+    "label": "live_rewrite_custom_instructions-3",
+    "json": "{\"live_rewrite_custom_instructions\": \"🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂\"}",
+    "accepted": false,
+    "error": "Custom live instructions must contain at most 8000 characters"
+  },
+  {
+    "label": "live_rewrite_custom_instructions-4",
+    "json": "{\"live_rewrite_custom_instructions\": null}",
+    "accepted": false,
+    "error": "Custom live instructions must contain at most 8000 characters"
+  },
+  {
+    "label": "microphone_target-0",
+    "json": "{\"microphone_target\": null}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "microphone_target-1",
+    "json": "{\"microphone_target\": \"alsa_input.usb_test\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "microphone_target": "alsa_input.usb_test"
+    }
+  },
+  {
+    "label": "microphone_target-2",
+    "json": "{\"microphone_target\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "microphone_target": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  {
+    "label": "microphone_target-3",
+    "json": "{\"microphone_target\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+    "accepted": false,
+    "error": "microphone_target must be a bounded single-line PipeWire node name"
+  },
+  {
+    "label": "microphone_target-4",
+    "json": "{\"microphone_target\": \"\"}",
+    "accepted": false,
+    "error": "microphone_target must be a bounded single-line PipeWire node name"
+  },
+  {
+    "label": "microphone_target-5",
+    "json": "{\"microphone_target\": \" target\"}",
+    "accepted": false,
+    "error": "microphone_target must be a bounded single-line PipeWire node name"
+  },
+  {
+    "label": "microphone_target-6",
+    "json": "{\"microphone_target\": \"target\\nnext\"}",
+    "accepted": false,
+    "error": "microphone_target must be a bounded single-line PipeWire node name"
+  },
+  {
+    "label": "microphone_target-7",
+    "json": "{\"microphone_target\": 3}",
+    "accepted": false,
+    "error": "microphone_target must be text or null"
+  },
+  {
+    "label": "system_audio_target-0",
+    "json": "{\"system_audio_target\": null}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "system_audio_target-1",
+    "json": "{\"system_audio_target\": \"alsa_output.test.monitor\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "system_audio_target": "alsa_output.test.monitor"
+    }
+  },
+  {
+    "label": "system_audio_target-2",
+    "json": "{\"system_audio_target\": \" target\"}",
+    "accepted": false,
+    "error": "system_audio_target must be a bounded single-line PipeWire node name"
+  },
+  {
+    "label": "system_audio_target-3",
+    "json": "{\"system_audio_target\": \"target\\u001f\"}",
+    "accepted": false,
+    "error": "system_audio_target must be a bounded single-line PipeWire node name"
+  },
+  {
+    "label": "default_mode-0",
+    "json": "{\"default_mode\": \"dictation\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "default_mode-1",
+    "json": "{\"default_mode\": \"command\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "default_mode": "command"
+    }
+  },
+  {
+    "label": "default_mode-2",
+    "json": "{\"default_mode\": \"scratchpad\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "default_mode": "scratchpad"
+    }
+  },
+  {
+    "label": "default_mode-3",
+    "json": "{\"default_mode\": \"meeting\"}",
+    "accepted": false,
+    "error": "Unsupported default capture mode: meeting"
+  },
+  {
+    "label": "default_mode-4",
+    "json": "{\"default_mode\": null}",
+    "accepted": false,
+    "error": "Unsupported default capture mode: None"
+  },
+  {
+    "label": "global_recording_key-0",
+    "json": "{\"global_recording_key\": \"F1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "global_recording_key": "F1"
+    }
+  },
+  {
+    "label": "global_recording_key-1",
+    "json": "{\"global_recording_key\": \"F9\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "global_recording_key-2",
+    "json": "{\"global_recording_key\": \"F10\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "global_recording_key": "F10"
+    }
+  },
+  {
+    "label": "global_recording_key-3",
+    "json": "{\"global_recording_key\": \"F11\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "global_recording_key": "F11"
+    }
+  },
+  {
+    "label": "global_recording_key-4",
+    "json": "{\"global_recording_key\": \"F24\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "global_recording_key": "F24"
+    }
+  },
+  {
+    "label": "global_recording_key-5",
+    "json": "{\"global_recording_key\": \"F0\"}",
+    "accepted": false,
+    "error": "global_recording_key must be one of F1 through F24"
+  },
+  {
+    "label": "global_recording_key-6",
+    "json": "{\"global_recording_key\": \"F25\"}",
+    "accepted": false,
+    "error": "global_recording_key must be one of F1 through F24"
+  },
+  {
+    "label": "global_recording_key-7",
+    "json": "{\"global_recording_key\": \"f9\"}",
+    "accepted": false,
+    "error": "global_recording_key must be one of F1 through F24"
+  },
+  {
+    "label": "global_recording_key-8",
+    "json": "{\"global_recording_key\": \"CTRL+F9\"}",
+    "accepted": false,
+    "error": "global_recording_key must be one of F1 through F24"
+  },
+  {
+    "label": "global_recording_key-9",
+    "json": "{\"global_recording_key\": 9}",
+    "accepted": false,
+    "error": "global_recording_key must be text"
+  },
+  {
+    "label": "audio_retention_policy-0",
+    "json": "{\"audio_retention_policy\": \"never\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "never"
+    }
+  },
+  {
+    "label": "audio_retention_policy-1",
+    "json": "{\"audio_retention_policy\": \"failures\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "audio_retention_policy-2",
+    "json": "{\"audio_retention_policy\": \"always\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "audio_retention_policy": "always"
+    }
+  },
+  {
+    "label": "audio_retention_policy-3",
+    "json": "{\"audio_retention_policy\": \"bad\"}",
+    "accepted": false,
+    "error": "'bad' is not a valid AudioRetentionPolicy"
+  },
+  {
+    "label": "audio_retention_policy-4",
+    "json": "{\"audio_retention_policy\": null}",
+    "accepted": false,
+    "error": "None is not a valid AudioRetentionPolicy"
+  },
+  {
+    "label": "audio_retention_policy-5",
+    "json": "{\"audio_retention_policy\": 1}",
+    "accepted": false,
+    "error": "1 is not a valid AudioRetentionPolicy"
+  },
+  {
+    "label": "history_retention_days-0",
+    "json": "{\"history_retention_days\": 0}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "history_retention_days-1",
+    "json": "{\"history_retention_days\": 1}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "history_retention_days": 1
+    }
+  },
+  {
+    "label": "history_retention_days-2",
+    "json": "{\"history_retention_days\": 365}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "history_retention_days": 365
+    }
+  },
+  {
+    "label": "history_retention_days-3",
+    "json": "{\"history_retention_days\": 1000000000000000000000000000000000000000000000000000000000000}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "history_retention_days": 1000000000000000000000000000000000000000000000000000000000000
+    }
+  },
+  {
+    "label": "history_retention_days-4",
+    "json": "{\"history_retention_days\": -1}",
+    "accepted": false,
+    "error": "history_retention_days cannot be negative"
+  },
+  {
+    "label": "history_retention_days-5",
+    "json": "{\"history_retention_days\": true}",
+    "accepted": false,
+    "error": "history_retention_days must be an integer"
+  },
+  {
+    "label": "history_retention_days-6",
+    "json": "{\"history_retention_days\": 1.5}",
+    "accepted": false,
+    "error": "history_retention_days must be an integer"
+  },
+  {
+    "label": "history_retention_days-7",
+    "json": "{\"history_retention_days\": \"30\"}",
+    "accepted": false,
+    "error": "history_retention_days must be an integer"
+  },
+  {
+    "label": "history_retention_days-8",
+    "json": "{\"history_retention_days\": null}",
+    "accepted": false,
+    "error": "history_retention_days must be an integer"
+  },
+  {
+    "label": "rewrite_fast_mode-boolean-0",
+    "json": "{\"rewrite_fast_mode\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "rewrite_fast_mode": true,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_fast_mode-boolean-1",
+    "json": "{\"rewrite_fast_mode\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "rewrite_fast_mode-boolean-2",
+    "json": "{\"rewrite_fast_mode\": 1}",
+    "accepted": false,
+    "error": "rewrite_fast_mode must be a boolean"
+  },
+  {
+    "label": "rewrite_fast_mode-boolean-3",
+    "json": "{\"rewrite_fast_mode\": \"false\"}",
+    "accepted": false,
+    "error": "rewrite_fast_mode must be a boolean"
+  },
+  {
+    "label": "rewrite_fast_mode-boolean-4",
+    "json": "{\"rewrite_fast_mode\": null}",
+    "accepted": false,
+    "error": "rewrite_fast_mode must be a boolean"
+  },
+  {
+    "label": "auto_copy_dictation-boolean-0",
+    "json": "{\"auto_copy_dictation\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "auto_copy_dictation-boolean-1",
+    "json": "{\"auto_copy_dictation\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "auto_copy_dictation": false,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "auto_copy_dictation-boolean-2",
+    "json": "{\"auto_copy_dictation\": 1}",
+    "accepted": false,
+    "error": "auto_copy_dictation must be a boolean"
+  },
+  {
+    "label": "auto_copy_dictation-boolean-3",
+    "json": "{\"auto_copy_dictation\": \"false\"}",
+    "accepted": false,
+    "error": "auto_copy_dictation must be a boolean"
+  },
+  {
+    "label": "auto_copy_dictation-boolean-4",
+    "json": "{\"auto_copy_dictation\": null}",
+    "accepted": false,
+    "error": "auto_copy_dictation must be a boolean"
+  },
+  {
+    "label": "auto_copy_rewrite-boolean-0",
+    "json": "{\"auto_copy_rewrite\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "auto_copy_rewrite-boolean-1",
+    "json": "{\"auto_copy_rewrite\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "auto_copy_rewrite": false,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "auto_copy_rewrite-boolean-2",
+    "json": "{\"auto_copy_rewrite\": 1}",
+    "accepted": false,
+    "error": "auto_copy_rewrite must be a boolean"
+  },
+  {
+    "label": "auto_copy_rewrite-boolean-3",
+    "json": "{\"auto_copy_rewrite\": \"false\"}",
+    "accepted": false,
+    "error": "auto_copy_rewrite must be a boolean"
+  },
+  {
+    "label": "auto_copy_rewrite-boolean-4",
+    "json": "{\"auto_copy_rewrite\": null}",
+    "accepted": false,
+    "error": "auto_copy_rewrite must be a boolean"
+  },
+  {
+    "label": "show_copy_action-boolean-0",
+    "json": "{\"show_copy_action\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "show_copy_action-boolean-1",
+    "json": "{\"show_copy_action\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "show_copy_action": false,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "show_copy_action-boolean-2",
+    "json": "{\"show_copy_action\": 1}",
+    "accepted": false,
+    "error": "show_copy_action must be a boolean"
+  },
+  {
+    "label": "show_copy_action-boolean-3",
+    "json": "{\"show_copy_action\": \"false\"}",
+    "accepted": false,
+    "error": "show_copy_action must be a boolean"
+  },
+  {
+    "label": "show_copy_action-boolean-4",
+    "json": "{\"show_copy_action\": null}",
+    "accepted": false,
+    "error": "show_copy_action must be a boolean"
+  },
+  {
+    "label": "show_save_action-boolean-0",
+    "json": "{\"show_save_action\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "show_save_action-boolean-1",
+    "json": "{\"show_save_action\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "show_save_action": false,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "show_save_action-boolean-2",
+    "json": "{\"show_save_action\": 1}",
+    "accepted": false,
+    "error": "show_save_action must be a boolean"
+  },
+  {
+    "label": "show_save_action-boolean-3",
+    "json": "{\"show_save_action\": \"false\"}",
+    "accepted": false,
+    "error": "show_save_action must be a boolean"
+  },
+  {
+    "label": "show_save_action-boolean-4",
+    "json": "{\"show_save_action\": null}",
+    "accepted": false,
+    "error": "show_save_action must be a boolean"
+  },
+  {
+    "label": "smooth_scrolling-boolean-0",
+    "json": "{\"smooth_scrolling\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "smooth_scrolling-boolean-1",
+    "json": "{\"smooth_scrolling\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "smooth_scrolling": false,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "smooth_scrolling-boolean-2",
+    "json": "{\"smooth_scrolling\": 1}",
+    "accepted": false,
+    "error": "smooth_scrolling must be a boolean"
+  },
+  {
+    "label": "smooth_scrolling-boolean-3",
+    "json": "{\"smooth_scrolling\": \"false\"}",
+    "accepted": false,
+    "error": "smooth_scrolling must be a boolean"
+  },
+  {
+    "label": "smooth_scrolling-boolean-4",
+    "json": "{\"smooth_scrolling\": null}",
+    "accepted": false,
+    "error": "smooth_scrolling must be a boolean"
+  },
+  {
+    "label": "history_sidebar_visible-boolean-0",
+    "json": "{\"history_sidebar_visible\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "history_sidebar_visible": true,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "history_sidebar_visible-boolean-1",
+    "json": "{\"history_sidebar_visible\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "history_sidebar_visible-boolean-2",
+    "json": "{\"history_sidebar_visible\": 1}",
+    "accepted": false,
+    "error": "history_sidebar_visible must be a boolean"
+  },
+  {
+    "label": "history_sidebar_visible-boolean-3",
+    "json": "{\"history_sidebar_visible\": \"false\"}",
+    "accepted": false,
+    "error": "history_sidebar_visible must be a boolean"
+  },
+  {
+    "label": "history_sidebar_visible-boolean-4",
+    "json": "{\"history_sidebar_visible\": null}",
+    "accepted": false,
+    "error": "history_sidebar_visible must be a boolean"
+  },
+  {
+    "label": "welcome_completed-boolean-0",
+    "json": "{\"welcome_completed\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "welcome_completed-boolean-1",
+    "json": "{\"welcome_completed\": false}",
+    "accepted": true,
+    "expected_changes": {}
+  },
+  {
+    "label": "welcome_completed-boolean-2",
+    "json": "{\"welcome_completed\": 1}",
+    "accepted": false,
+    "error": "welcome_completed must be a boolean"
+  },
+  {
+    "label": "welcome_completed-boolean-3",
+    "json": "{\"welcome_completed\": \"false\"}",
+    "accepted": false,
+    "error": "welcome_completed must be a boolean"
+  },
+  {
+    "label": "welcome_completed-boolean-4",
+    "json": "{\"welcome_completed\": null}",
+    "accepted": false,
+    "error": "welcome_completed must be a boolean"
+  },
+  {
+    "label": "live_rewrite_enabled-boolean-0",
+    "json": "{\"live_rewrite_enabled\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_enabled": true
+    }
+  },
+  {
+    "label": "live_rewrite_enabled-boolean-1",
+    "json": "{\"live_rewrite_enabled\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "live_rewrite_enabled-boolean-2",
+    "json": "{\"live_rewrite_enabled\": 1}",
+    "accepted": false,
+    "error": "live_rewrite_enabled must be a boolean"
+  },
+  {
+    "label": "live_rewrite_enabled-boolean-3",
+    "json": "{\"live_rewrite_enabled\": \"false\"}",
+    "accepted": false,
+    "error": "live_rewrite_enabled must be a boolean"
+  },
+  {
+    "label": "live_rewrite_enabled-boolean-4",
+    "json": "{\"live_rewrite_enabled\": null}",
+    "accepted": false,
+    "error": "live_rewrite_enabled must be a boolean"
+  },
+  {
+    "label": "live_rewrite_continuous-boolean-0",
+    "json": "{\"live_rewrite_continuous\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "live_rewrite_continuous-boolean-1",
+    "json": "{\"live_rewrite_continuous\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_continuous": false
+    }
+  },
+  {
+    "label": "live_rewrite_continuous-boolean-2",
+    "json": "{\"live_rewrite_continuous\": 1}",
+    "accepted": false,
+    "error": "live_rewrite_continuous must be a boolean"
+  },
+  {
+    "label": "live_rewrite_continuous-boolean-3",
+    "json": "{\"live_rewrite_continuous\": \"false\"}",
+    "accepted": false,
+    "error": "live_rewrite_continuous must be a boolean"
+  },
+  {
+    "label": "live_rewrite_continuous-boolean-4",
+    "json": "{\"live_rewrite_continuous\": null}",
+    "accepted": false,
+    "error": "live_rewrite_continuous must be a boolean"
+  },
+  {
+    "label": "auto_paste-boolean-0",
+    "json": "{\"auto_paste\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "auto_paste": true
+    }
+  },
+  {
+    "label": "auto_paste-boolean-1",
+    "json": "{\"auto_paste\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "auto_paste-boolean-2",
+    "json": "{\"auto_paste\": 1}",
+    "accepted": false,
+    "error": "auto_paste must be a boolean"
+  },
+  {
+    "label": "auto_paste-boolean-3",
+    "json": "{\"auto_paste\": \"false\"}",
+    "accepted": false,
+    "error": "auto_paste must be a boolean"
+  },
+  {
+    "label": "auto_paste-boolean-4",
+    "json": "{\"auto_paste\": null}",
+    "accepted": false,
+    "error": "auto_paste must be a boolean"
+  },
+  {
+    "label": "automatic_titles-boolean-0",
+    "json": "{\"automatic_titles\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "automatic_titles-boolean-1",
+    "json": "{\"automatic_titles\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "automatic_titles": false
+    }
+  },
+  {
+    "label": "automatic_titles-boolean-2",
+    "json": "{\"automatic_titles\": 1}",
+    "accepted": false,
+    "error": "automatic_titles must be a boolean"
+  },
+  {
+    "label": "automatic_titles-boolean-3",
+    "json": "{\"automatic_titles\": \"false\"}",
+    "accepted": false,
+    "error": "automatic_titles must be a boolean"
+  },
+  {
+    "label": "automatic_titles-boolean-4",
+    "json": "{\"automatic_titles\": null}",
+    "accepted": false,
+    "error": "automatic_titles must be a boolean"
+  },
+  {
+    "label": "spoken_commands_enabled-boolean-0",
+    "json": "{\"spoken_commands_enabled\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "spoken_commands_enabled-boolean-1",
+    "json": "{\"spoken_commands_enabled\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "spoken_commands_enabled": false
+    }
+  },
+  {
+    "label": "spoken_commands_enabled-boolean-2",
+    "json": "{\"spoken_commands_enabled\": 1}",
+    "accepted": false,
+    "error": "spoken_commands_enabled must be a boolean"
+  },
+  {
+    "label": "spoken_commands_enabled-boolean-3",
+    "json": "{\"spoken_commands_enabled\": \"false\"}",
+    "accepted": false,
+    "error": "spoken_commands_enabled must be a boolean"
+  },
+  {
+    "label": "spoken_commands_enabled-boolean-4",
+    "json": "{\"spoken_commands_enabled\": null}",
+    "accepted": false,
+    "error": "spoken_commands_enabled must be a boolean"
+  },
+  {
+    "label": "remember_per_application-boolean-0",
+    "json": "{\"remember_per_application\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "remember_per_application": true
+    }
+  },
+  {
+    "label": "remember_per_application-boolean-1",
+    "json": "{\"remember_per_application\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "remember_per_application-boolean-2",
+    "json": "{\"remember_per_application\": 1}",
+    "accepted": false,
+    "error": "remember_per_application must be a boolean"
+  },
+  {
+    "label": "remember_per_application-boolean-3",
+    "json": "{\"remember_per_application\": \"false\"}",
+    "accepted": false,
+    "error": "remember_per_application must be a boolean"
+  },
+  {
+    "label": "remember_per_application-boolean-4",
+    "json": "{\"remember_per_application\": null}",
+    "accepted": false,
+    "error": "remember_per_application must be a boolean"
+  },
+  {
+    "label": "incognito_mode-boolean-0",
+    "json": "{\"incognito_mode\": true}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "incognito_mode": true
+    }
+  },
+  {
+    "label": "incognito_mode-boolean-1",
+    "json": "{\"incognito_mode\": false}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "incognito_mode-boolean-2",
+    "json": "{\"incognito_mode\": 1}",
+    "accepted": false,
+    "error": "incognito_mode must be a boolean"
+  },
+  {
+    "label": "incognito_mode-boolean-3",
+    "json": "{\"incognito_mode\": \"false\"}",
+    "accepted": false,
+    "error": "incognito_mode must be a boolean"
+  },
+  {
+    "label": "incognito_mode-boolean-4",
+    "json": "{\"incognito_mode\": null}",
+    "accepted": false,
+    "error": "incognito_mode must be a boolean"
+  },
+  {
+    "label": "widget_lines-bound-0",
+    "json": "{\"widget_lines\": 1}",
+    "accepted": true,
+    "expected_changes": {
+      "widget_lines": 1,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "widget_lines-bound-1",
+    "json": "{\"widget_lines\": 10}",
+    "accepted": true,
+    "expected_changes": {
+      "widget_lines": 10,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "widget_lines-bound-2",
+    "json": "{\"widget_lines\": 0}",
+    "accepted": false,
+    "error": "widget_lines must be an integer from 1 to 10"
+  },
+  {
+    "label": "widget_lines-bound-3",
+    "json": "{\"widget_lines\": 11}",
+    "accepted": false,
+    "error": "widget_lines must be an integer from 1 to 10"
+  },
+  {
+    "label": "widget_lines-bound-4",
+    "json": "{\"widget_lines\": true}",
+    "accepted": false,
+    "error": "widget_lines must be an integer from 1 to 10"
+  },
+  {
+    "label": "widget_lines-bound-5",
+    "json": "{\"widget_lines\": 1.0}",
+    "accepted": false,
+    "error": "widget_lines must be an integer from 1 to 10"
+  },
+  {
+    "label": "widget_lines-bound-6",
+    "json": "{\"widget_lines\": null}",
+    "accepted": false,
+    "error": "widget_lines must be an integer from 1 to 10"
+  },
+  {
+    "label": "widget_opacity-bound-0",
+    "json": "{\"widget_opacity\": 10}",
+    "accepted": true,
+    "expected_changes": {
+      "widget_opacity": 10,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "widget_opacity-bound-1",
+    "json": "{\"widget_opacity\": 100}",
+    "accepted": true,
+    "expected_changes": {
+      "widget_opacity": 100,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "widget_opacity-bound-2",
+    "json": "{\"widget_opacity\": 9}",
+    "accepted": false,
+    "error": "widget_opacity must be an integer from 10 to 100"
+  },
+  {
+    "label": "widget_opacity-bound-3",
+    "json": "{\"widget_opacity\": 101}",
+    "accepted": false,
+    "error": "widget_opacity must be an integer from 10 to 100"
+  },
+  {
+    "label": "widget_opacity-bound-4",
+    "json": "{\"widget_opacity\": true}",
+    "accepted": false,
+    "error": "widget_opacity must be an integer from 10 to 100"
+  },
+  {
+    "label": "widget_opacity-bound-5",
+    "json": "{\"widget_opacity\": 1.0}",
+    "accepted": false,
+    "error": "widget_opacity must be an integer from 10 to 100"
+  },
+  {
+    "label": "widget_opacity-bound-6",
+    "json": "{\"widget_opacity\": null}",
+    "accepted": false,
+    "error": "widget_opacity must be an integer from 10 to 100"
+  },
+  {
+    "label": "review_timeout_seconds-bound-0",
+    "json": "{\"review_timeout_seconds\": 1}",
+    "accepted": true,
+    "expected_changes": {
+      "review_timeout_seconds": 1,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "review_timeout_seconds-bound-1",
+    "json": "{\"review_timeout_seconds\": 60}",
+    "accepted": true,
+    "expected_changes": {
+      "review_timeout_seconds": 60,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "review_timeout_seconds-bound-2",
+    "json": "{\"review_timeout_seconds\": 0}",
+    "accepted": false,
+    "error": "review_timeout_seconds must be an integer from 1 to 60"
+  },
+  {
+    "label": "review_timeout_seconds-bound-3",
+    "json": "{\"review_timeout_seconds\": 61}",
+    "accepted": false,
+    "error": "review_timeout_seconds must be an integer from 1 to 60"
+  },
+  {
+    "label": "review_timeout_seconds-bound-4",
+    "json": "{\"review_timeout_seconds\": true}",
+    "accepted": false,
+    "error": "review_timeout_seconds must be an integer from 1 to 60"
+  },
+  {
+    "label": "review_timeout_seconds-bound-5",
+    "json": "{\"review_timeout_seconds\": 1.0}",
+    "accepted": false,
+    "error": "review_timeout_seconds must be an integer from 1 to 60"
+  },
+  {
+    "label": "review_timeout_seconds-bound-6",
+    "json": "{\"review_timeout_seconds\": null}",
+    "accepted": false,
+    "error": "review_timeout_seconds must be an integer from 1 to 60"
+  },
+  {
+    "label": "scroll_duration_ms-bound-0",
+    "json": "{\"scroll_duration_ms\": 0}",
+    "accepted": true,
+    "expected_changes": {
+      "scroll_duration_ms": 0,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "scroll_duration_ms-bound-1",
+    "json": "{\"scroll_duration_ms\": 2000}",
+    "accepted": true,
+    "expected_changes": {
+      "scroll_duration_ms": 2000,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "scroll_duration_ms-bound-2",
+    "json": "{\"scroll_duration_ms\": -1}",
+    "accepted": false,
+    "error": "scroll_duration_ms must be an integer from 0 to 2000"
+  },
+  {
+    "label": "scroll_duration_ms-bound-3",
+    "json": "{\"scroll_duration_ms\": 2001}",
+    "accepted": false,
+    "error": "scroll_duration_ms must be an integer from 0 to 2000"
+  },
+  {
+    "label": "scroll_duration_ms-bound-4",
+    "json": "{\"scroll_duration_ms\": true}",
+    "accepted": false,
+    "error": "scroll_duration_ms must be an integer from 0 to 2000"
+  },
+  {
+    "label": "scroll_duration_ms-bound-5",
+    "json": "{\"scroll_duration_ms\": 1.0}",
+    "accepted": false,
+    "error": "scroll_duration_ms must be an integer from 0 to 2000"
+  },
+  {
+    "label": "scroll_duration_ms-bound-6",
+    "json": "{\"scroll_duration_ms\": null}",
+    "accepted": false,
+    "error": "scroll_duration_ms must be an integer from 0 to 2000"
+  },
+  {
+    "label": "scroll_lookahead_lines-bound-0",
+    "json": "{\"scroll_lookahead_lines\": 0}",
+    "accepted": true,
+    "expected_changes": {
+      "scroll_lookahead_lines": 0,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "scroll_lookahead_lines-bound-1",
+    "json": "{\"scroll_lookahead_lines\": 6}",
+    "accepted": true,
+    "expected_changes": {
+      "scroll_lookahead_lines": 6,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "scroll_lookahead_lines-bound-2",
+    "json": "{\"scroll_lookahead_lines\": -1}",
+    "accepted": false,
+    "error": "scroll_lookahead_lines must be an integer from 0 to 6"
+  },
+  {
+    "label": "scroll_lookahead_lines-bound-3",
+    "json": "{\"scroll_lookahead_lines\": 7}",
+    "accepted": false,
+    "error": "scroll_lookahead_lines must be an integer from 0 to 6"
+  },
+  {
+    "label": "scroll_lookahead_lines-bound-4",
+    "json": "{\"scroll_lookahead_lines\": true}",
+    "accepted": false,
+    "error": "scroll_lookahead_lines must be an integer from 0 to 6"
+  },
+  {
+    "label": "scroll_lookahead_lines-bound-5",
+    "json": "{\"scroll_lookahead_lines\": 1.0}",
+    "accepted": false,
+    "error": "scroll_lookahead_lines must be an integer from 0 to 6"
+  },
+  {
+    "label": "scroll_lookahead_lines-bound-6",
+    "json": "{\"scroll_lookahead_lines\": null}",
+    "accepted": false,
+    "error": "scroll_lookahead_lines must be an integer from 0 to 6"
+  },
+  {
+    "label": "transcription_chunk_seconds-bound-0",
+    "json": "{\"transcription_chunk_seconds\": 3}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_chunk_seconds": 3,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_chunk_seconds-bound-1",
+    "json": "{\"transcription_chunk_seconds\": 30}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_chunk_seconds": 30,
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_chunk_seconds-bound-2",
+    "json": "{\"transcription_chunk_seconds\": 2}",
+    "accepted": false,
+    "error": "transcription_chunk_seconds must be an integer from 3 to 30"
+  },
+  {
+    "label": "transcription_chunk_seconds-bound-3",
+    "json": "{\"transcription_chunk_seconds\": 31}",
+    "accepted": false,
+    "error": "transcription_chunk_seconds must be an integer from 3 to 30"
+  },
+  {
+    "label": "transcription_chunk_seconds-bound-4",
+    "json": "{\"transcription_chunk_seconds\": true}",
+    "accepted": false,
+    "error": "transcription_chunk_seconds must be an integer from 3 to 30"
+  },
+  {
+    "label": "transcription_chunk_seconds-bound-5",
+    "json": "{\"transcription_chunk_seconds\": 1.0}",
+    "accepted": false,
+    "error": "transcription_chunk_seconds must be an integer from 3 to 30"
+  },
+  {
+    "label": "transcription_chunk_seconds-bound-6",
+    "json": "{\"transcription_chunk_seconds\": null}",
+    "accepted": false,
+    "error": "transcription_chunk_seconds must be an integer from 3 to 30"
+  },
+  {
+    "label": "live_rewrite_min_characters-bound-0",
+    "json": "{\"live_rewrite_min_characters\": 40}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_min_characters": 40
+    }
+  },
+  {
+    "label": "live_rewrite_min_characters-bound-1",
+    "json": "{\"live_rewrite_min_characters\": 4000}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_min_characters": 4000
+    }
+  },
+  {
+    "label": "live_rewrite_min_characters-bound-2",
+    "json": "{\"live_rewrite_min_characters\": 39}",
+    "accepted": false,
+    "error": "live_rewrite_min_characters must be an integer from 40 to 4000"
+  },
+  {
+    "label": "live_rewrite_min_characters-bound-3",
+    "json": "{\"live_rewrite_min_characters\": 4001}",
+    "accepted": false,
+    "error": "live_rewrite_min_characters must be an integer from 40 to 4000"
+  },
+  {
+    "label": "live_rewrite_min_characters-bound-4",
+    "json": "{\"live_rewrite_min_characters\": true}",
+    "accepted": false,
+    "error": "live_rewrite_min_characters must be an integer from 40 to 4000"
+  },
+  {
+    "label": "live_rewrite_min_characters-bound-5",
+    "json": "{\"live_rewrite_min_characters\": 1.0}",
+    "accepted": false,
+    "error": "live_rewrite_min_characters must be an integer from 40 to 4000"
+  },
+  {
+    "label": "live_rewrite_min_characters-bound-6",
+    "json": "{\"live_rewrite_min_characters\": null}",
+    "accepted": false,
+    "error": "live_rewrite_min_characters must be an integer from 40 to 4000"
+  },
+  {
+    "label": "live_rewrite_interval_seconds-bound-0",
+    "json": "{\"live_rewrite_interval_seconds\": 2}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_interval_seconds": 2
+    }
+  },
+  {
+    "label": "live_rewrite_interval_seconds-bound-1",
+    "json": "{\"live_rewrite_interval_seconds\": 60}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true,
+      "live_rewrite_interval_seconds": 60
+    }
+  },
+  {
+    "label": "live_rewrite_interval_seconds-bound-2",
+    "json": "{\"live_rewrite_interval_seconds\": 1}",
+    "accepted": false,
+    "error": "live_rewrite_interval_seconds must be an integer from 2 to 60"
+  },
+  {
+    "label": "live_rewrite_interval_seconds-bound-3",
+    "json": "{\"live_rewrite_interval_seconds\": 61}",
+    "accepted": false,
+    "error": "live_rewrite_interval_seconds must be an integer from 2 to 60"
+  },
+  {
+    "label": "live_rewrite_interval_seconds-bound-4",
+    "json": "{\"live_rewrite_interval_seconds\": true}",
+    "accepted": false,
+    "error": "live_rewrite_interval_seconds must be an integer from 2 to 60"
+  },
+  {
+    "label": "live_rewrite_interval_seconds-bound-5",
+    "json": "{\"live_rewrite_interval_seconds\": 1.0}",
+    "accepted": false,
+    "error": "live_rewrite_interval_seconds must be an integer from 2 to 60"
+  },
+  {
+    "label": "live_rewrite_interval_seconds-bound-6",
+    "json": "{\"live_rewrite_interval_seconds\": null}",
+    "accepted": false,
+    "error": "live_rewrite_interval_seconds must be an integer from 2 to 60"
+  },
+  {
+    "label": "litellm_base_url-url-0",
+    "json": "{\"litellm_base_url\": \"https:speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-1",
+    "json": "{\"litellm_base_url\": \"https:/speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-2",
+    "json": "{\"litellm_base_url\": \"https:////speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-3",
+    "json": "{\"litellm_base_url\": \"https://speech.example/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_base_url": "https://speech.example/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_base_url-url-4",
+    "json": "{\"litellm_base_url\": \"https://speech.example:8443/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_base_url": "https://speech.example:8443/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_base_url-url-5",
+    "json": "{\"litellm_base_url\": \"http://localhost:4000/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_base_url-url-6",
+    "json": "{\"litellm_base_url\": \"http://LOCALHOST/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_base_url": "http://LOCALHOST/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_base_url-url-7",
+    "json": "{\"litellm_base_url\": \"http://127.0.0.1/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_base_url": "http://127.0.0.1/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_base_url-url-8",
+    "json": "{\"litellm_base_url\": \"http://[::1]:4000/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_base_url": "http://[::1]:4000/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_base_url-url-9",
+    "json": "{\"litellm_base_url\": \"https://řeč.example/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_base_url": "https://řeč.example/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_base_url-url-10",
+    "json": "{\"litellm_base_url\": \"https://speech.example/v1?\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_base_url": "https://speech.example/v1?",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_base_url-url-11",
+    "json": "{\"litellm_base_url\": \"https://speech.example/v1#\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_base_url": "https://speech.example/v1#",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_base_url-url-12",
+    "json": "{\"litellm_base_url\": \"https://speech.example:\"}",
+    "accepted": true,
+    "expected_changes": {
+      "litellm_base_url": "https://speech.example:",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "litellm_base_url-url-13",
+    "json": "{\"litellm_base_url\": \"http://127.1/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-14",
+    "json": "{\"litellm_base_url\": \"http://2130706433/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-15",
+    "json": "{\"litellm_base_url\": \"http://0x7f000001/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-16",
+    "json": "{\"litellm_base_url\": \"http://speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-17",
+    "json": "{\"litellm_base_url\": \"https://user:secret@speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-18",
+    "json": "{\"litellm_base_url\": \"https://@speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-19",
+    "json": "{\"litellm_base_url\": \"https://speech.example/v1?key=synthetic\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-20",
+    "json": "{\"litellm_base_url\": \"https://speech.example/v1#synthetic\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-21",
+    "json": "{\"litellm_base_url\": \"https://speech.example:65536/v1\"}",
+    "accepted": false,
+    "error": "Port out of range 0-65535"
+  },
+  {
+    "label": "litellm_base_url-url-22",
+    "json": "{\"litellm_base_url\": \"https://speech.example:bad/v1\"}",
+    "accepted": false,
+    "error": "Port could not be cast to integer value as 'bad'"
+  },
+  {
+    "label": "litellm_base_url-url-23",
+    "json": "{\"litellm_base_url\": \"//speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-24",
+    "json": "{\"litellm_base_url\": \" https://speech.example\"}",
+    "accepted": false,
+    "error": "Provider URL must be a plain HTTP(S) base URL"
+  },
+  {
+    "label": "litellm_base_url-url-25",
+    "json": "{\"litellm_base_url\": \"https://speech.example\\n\"}",
+    "accepted": false,
+    "error": "Provider URL must be a plain HTTP(S) base URL"
+  },
+  {
+    "label": "litellm_base_url-url-26",
+    "json": "{\"litellm_base_url\": \"ftp://speech.example\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-27",
+    "json": "{\"litellm_base_url\": \"\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "litellm_base_url-url-28",
+    "json": "{\"litellm_base_url\": null}",
+    "accepted": false,
+    "error": "Provider URL must be a plain HTTP(S) base URL"
+  },
+  {
+    "label": "transcription_base_url-url-0",
+    "json": "{\"transcription_base_url\": \"https:speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-1",
+    "json": "{\"transcription_base_url\": \"https:/speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-2",
+    "json": "{\"transcription_base_url\": \"https:////speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-3",
+    "json": "{\"transcription_base_url\": \"https://speech.example/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_base_url": "https://speech.example/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_base_url-url-4",
+    "json": "{\"transcription_base_url\": \"https://speech.example:8443/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_base_url": "https://speech.example:8443/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_base_url-url-5",
+    "json": "{\"transcription_base_url\": \"http://localhost:4000/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_base_url-url-6",
+    "json": "{\"transcription_base_url\": \"http://LOCALHOST/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_base_url": "http://LOCALHOST/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_base_url-url-7",
+    "json": "{\"transcription_base_url\": \"http://127.0.0.1/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_base_url": "http://127.0.0.1/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_base_url-url-8",
+    "json": "{\"transcription_base_url\": \"http://[::1]:4000/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_base_url": "http://[::1]:4000/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_base_url-url-9",
+    "json": "{\"transcription_base_url\": \"https://řeč.example/v1\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_base_url": "https://řeč.example/v1",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_base_url-url-10",
+    "json": "{\"transcription_base_url\": \"https://speech.example/v1?\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_base_url": "https://speech.example/v1?",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_base_url-url-11",
+    "json": "{\"transcription_base_url\": \"https://speech.example/v1#\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_base_url": "https://speech.example/v1#",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_base_url-url-12",
+    "json": "{\"transcription_base_url\": \"https://speech.example:\"}",
+    "accepted": true,
+    "expected_changes": {
+      "transcription_base_url": "https://speech.example:",
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "transcription_base_url-url-13",
+    "json": "{\"transcription_base_url\": \"http://127.1/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-14",
+    "json": "{\"transcription_base_url\": \"http://2130706433/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-15",
+    "json": "{\"transcription_base_url\": \"http://0x7f000001/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-16",
+    "json": "{\"transcription_base_url\": \"http://speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-17",
+    "json": "{\"transcription_base_url\": \"https://user:secret@speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-18",
+    "json": "{\"transcription_base_url\": \"https://@speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-19",
+    "json": "{\"transcription_base_url\": \"https://speech.example/v1?key=synthetic\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-20",
+    "json": "{\"transcription_base_url\": \"https://speech.example/v1#synthetic\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-21",
+    "json": "{\"transcription_base_url\": \"https://speech.example:65536/v1\"}",
+    "accepted": false,
+    "error": "Port out of range 0-65535"
+  },
+  {
+    "label": "transcription_base_url-url-22",
+    "json": "{\"transcription_base_url\": \"https://speech.example:bad/v1\"}",
+    "accepted": false,
+    "error": "Port could not be cast to integer value as 'bad'"
+  },
+  {
+    "label": "transcription_base_url-url-23",
+    "json": "{\"transcription_base_url\": \"//speech.example/v1\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-24",
+    "json": "{\"transcription_base_url\": \" https://speech.example\"}",
+    "accepted": false,
+    "error": "Provider URL must be a plain HTTP(S) base URL"
+  },
+  {
+    "label": "transcription_base_url-url-25",
+    "json": "{\"transcription_base_url\": \"https://speech.example\\n\"}",
+    "accepted": false,
+    "error": "Provider URL must be a plain HTTP(S) base URL"
+  },
+  {
+    "label": "transcription_base_url-url-26",
+    "json": "{\"transcription_base_url\": \"ftp://speech.example\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-27",
+    "json": "{\"transcription_base_url\": \"\"}",
+    "accepted": false,
+    "error": "Use HTTPS (or loopback HTTP) without credentials, query parameters or fragments"
+  },
+  {
+    "label": "transcription_base_url-url-28",
+    "json": "{\"transcription_base_url\": null}",
+    "accepted": false,
+    "error": "Provider URL must be a plain HTTP(S) base URL"
+  },
+  {
+    "label": "negative-zero",
+    "json": "{\"history_retention_days\":-0}",
+    "accepted": true,
+    "expected_changes": {
+      "welcome_completed": true
+    }
+  },
+  {
+    "label": "negative-zero-float",
+    "json": "{\"history_retention_days\":-0.0}",
+    "accepted": false,
+    "error": "history_retention_days must be an integer"
+  }
+]
