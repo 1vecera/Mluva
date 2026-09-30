@@ -95,13 +95,14 @@ def test_owner_loss_clears_state_and_ignores_queued_old_signals() -> None:
     watch.close()
 
 
-def test_control_is_allowlisted_and_never_autostarts() -> None:
+@pytest.mark.parametrize("action", ["record", "global-record", "cancel"])
+def test_control_is_allowlisted_and_never_autostarts(action: str) -> None:
     """Keep shell controls deliberate and directed to the resolved unique process."""
     connection = FakeConnection()
-    activate(connection, ":1.5", "cancel")
+    activate(connection, ":1.5", action)
     call = connection.calls[-1]
     assert call[0] == ":1.5"
-    assert call[4].unpack() == ("cancel", [], {})
+    assert call[4].unpack() == (action, [], {})
     assert call[6] == Gio.DBusCallFlags.NO_AUTO_START
     assert call[7] == 1500
     with pytest.raises(ValueError):

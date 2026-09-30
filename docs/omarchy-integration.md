@@ -49,6 +49,17 @@ Remove the plugin before uninstalling the native app with `mluva-uninstall`. Set
 
 The bar’s left click starts or stops clipboard-only dictation. Right click cancels capture; middle click opens the latest conversation. These commands address the existing application and never start it implicitly. F9 remains the configured dictation shortcut.
 
+For a Hyprland keyboard binding, use `mluva-shell global-record`. It captures the focused text field or supported terminal at Start and honors Settings → Automatic paste at Stop. `mluva-shell record` is the bar/button action and always starts copy-only capture. Stopping from a different control preserves the original delivery choice.
+
+In `~/.config/hypr/bindings.lua`, replace an existing Mluva F9 binding with:
+
+```lua
+hl.unbind("F9")
+o.bind("F9", "Mluva start/stop", os.getenv("HOME") .. "/.local/bin/mluva-shell global-record")
+```
+
+When using compositor bindings, launch Mluva with `MLUVA_DISABLE_GLOBAL_SHORTCUT=1` to avoid a second portal binding for the same keys. The keyboard action addresses the running application without opening its window; keep Mluva running in the background. The installer preserves custom Hyprland bindings, so an older `mluva-shell record` binding needs this one-time change.
+
 `mluva-shell watch` emits only capture phase and elapsed seconds. The plugin opts into `watch --overlay`, which carries audio level, up to 4,096 characters of volatile text, its character offset, and bounded conversation/style identifiers and labels. The offset lets the widget keep the same wrapping as older words leave the bounded preview, including text containing emoji. Saved instructions, credentials, device names, and target application names are excluded. The production plugin does not log or persist this stream; do not redirect it into persistent logs. Review commands pass only action, conversation ID, and style ID through the existing GApplication action group.
 
 ## Verification

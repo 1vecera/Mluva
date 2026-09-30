@@ -1,0 +1,571 @@
+{
+  "baseline-dispatch-confirmed": {
+    "scenario": "foot-terminal",
+    "platform": "wayland",
+    "target_type": "TerminalTargetSnapshot",
+    "action": "record",
+    "captured": {
+      "allows_auto_paste": false,
+      "target_type": "NoneType",
+      "automatic_paste_armed": false
+    },
+    "receipt": {
+      "allows_auto_paste": false,
+      "output_text": "Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "receipt": "copied",
+      "paste_dispatched": false,
+      "paste_confirmed": null,
+      "guidance": "Copied. Paste in the target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: ",
+      "exact_text_match": false,
+      "bracketed_pastes": 0
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek."
+  },
+  "fixed-gtk-dispatch": {
+    "scenario": "gtk-entry",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "automatic_paste_armed": true
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "caret": 29
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎"
+  },
+  "fixed-gtk-textview": {
+    "scenario": "gtk-textview-selection",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/bin/python3.14",
+      "automatic_paste_armed": true,
+      "target_name": "",
+      "target_text": "Before replace after"
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Before Příliš žluťoučký kůň 🐎\nDruhý řádek. after",
+      "exact_text_match": true
+    },
+    "expected_text": "Before Příliš žluťoučký kůň 🐎\nDruhý řádek. after"
+  },
+  "fixed-chromium": {
+    "scenario": "chromium-input",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "automatic_paste_armed": true
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎"
+  },
+  "fixed-chromium-textarea": {
+    "scenario": "chromium-textarea",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/lib/chromium/chromium",
+      "automatic_paste_armed": true
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "exact_text_match": true
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek."
+  },
+  "fixed-chromium-rich": {
+    "scenario": "chromium-contenteditable",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/lib/chromium/chromium",
+      "automatic_paste_armed": true
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎"
+  },
+  "fixed-code-confirmed": {
+    "scenario": "code",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/share/code/code",
+      "automatic_paste_armed": true,
+      "target_name": "paste-target.txt",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "document_changes": 1
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎"
+  },
+  "fixed-foot-dispatch": {
+    "scenario": "foot-terminal",
+    "platform": "wayland",
+    "target_type": "TerminalTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TerminalTargetSnapshot",
+      "automatic_paste_armed": true
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "receipt": "paste-unconfirmed",
+      "paste_dispatched": true,
+      "paste_confirmed": null,
+      "guidance": "Paste was sent once, but this target could not confirm insertion. The complete text remains on the clipboard; inspect the target before any manual retry. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "exact_text_match": true,
+      "bracketed_pastes": 1
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek."
+  },
+  "fixed-ghostty-final": {
+    "scenario": "ghostty-terminal",
+    "platform": "wayland",
+    "target_type": "TerminalTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TerminalTargetSnapshot",
+      "application": "/usr/bin/ghostty",
+      "automatic_paste_armed": true
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "receipt": "paste-unconfirmed",
+      "paste_dispatched": true,
+      "paste_confirmed": null,
+      "guidance": "Paste was sent once, but this target could not confirm insertion. The complete text remains on the clipboard; inspect the target before any manual retry. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "exact_text_match": true,
+      "bracketed_pastes": 1
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek."
+  },
+  "production_modules_sha256": {
+    "app.py": "f45a67a929dcca218158c076fd32e319589bb34519c3b1582111d755dbb95ef0",
+    "shell_bridge.py": "a36187fac9d00c20a71e0b9b3b97efa9be7f4f64f6e68a3633e62af7611c7caa",
+    "text_target.py": "a916b65519d33b3401ebfee910c392560b86d5e70d6131aa3e6702394fef02c7"
+  },
+  "firefox-silent-edit-baseline": {
+    "scenario": "firefox-input",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/lib/firefox/firefox",
+      "automatic_paste_armed": true,
+      "target_name": "Mluva private paste target",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: ",
+      "exact_text_match": false,
+      "input_events": 0
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": false
+  },
+  "cold-start-baseline": {
+    "scenario": "firefox-input",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "NoneType",
+      "application": null,
+      "automatic_paste_armed": false,
+      "target_name": null,
+      "target_text": null
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "copied",
+      "paste_dispatched": false,
+      "paste_confirmed": null,
+      "guidance": "Copied. Paste in the target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2. The captured text target could not be restored, so no paste was attempted."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: ",
+      "exact_text_match": false,
+      "input_events": 0
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": false
+  },
+  "installed-final-firefox-input": {
+    "scenario": "firefox-input",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/lib/firefox/firefox",
+      "automatic_paste_armed": true,
+      "target_name": "Mluva private paste target",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "input_events": 1
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": false
+  },
+  "installed-final-firefox-textarea": {
+    "scenario": "firefox-textarea",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/lib/firefox/firefox",
+      "automatic_paste_armed": true,
+      "target_name": "Mluva private paste target",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "exact_text_match": true,
+      "input_events": 1
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+    "patch_overlay": false
+  },
+  "installed-final-firefox-rich": {
+    "scenario": "firefox-contenteditable",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/lib/firefox/firefox",
+      "automatic_paste_armed": true,
+      "target_name": "Mluva private paste target",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "input_events": 1
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": false
+  },
+  "installed-final-gtk": {
+    "scenario": "gtk-entry",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/bin/python3.14",
+      "automatic_paste_armed": true,
+      "target_name": "",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "caret": 29
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": false
+  },
+  "installed-final-chromium": {
+    "scenario": "chromium-textarea",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/lib/chromium/chromium",
+      "automatic_paste_armed": true,
+      "target_name": "Mluva private paste target",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+      "exact_text_match": true,
+      "input_events": 1
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎\nDruhý řádek.",
+    "patch_overlay": false
+  },
+  "fixed-cold-start-firefox": {
+    "scenario": "firefox-input",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/lib/firefox/firefox",
+      "automatic_paste_armed": true,
+      "target_name": "Mluva private paste target",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "input_events": 1
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": true
+  },
+  "fixed-cold-start-gtk": {
+    "scenario": "gtk-entry",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/bin/python3.14",
+      "automatic_paste_armed": true,
+      "target_name": "",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "caret": 29
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": true
+  },
+  "local_installation": {
+    "app_version": "1.5.4",
+    "widget_version": "1.5.4",
+    "settings_preserved": true,
+    "background_restart": true,
+    "focus_preserved": true,
+    "global_action_registered": true,
+    "hyprland_errors": "",
+    "modules": {
+      "app.py": "f45a67a929dcca218158c076fd32e319589bb34519c3b1582111d755dbb95ef0",
+      "shell_bridge.py": "a36187fac9d00c20a71e0b9b3b97efa9be7f4f64f6e68a3633e62af7611c7caa",
+      "text_target.py": "a916b65519d33b3401ebfee910c392560b86d5e70d6131aa3e6702394fef02c7"
+    },
+    "startup_patch_installed": true
+  },
+  "installed-startup-firefox": {
+    "scenario": "firefox-input",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/lib/firefox/firefox",
+      "automatic_paste_armed": true,
+      "target_name": "Mluva private paste target",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "input_events": 1
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": false
+  },
+  "installed-startup-gtk": {
+    "scenario": "gtk-entry",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/bin/python3.14",
+      "automatic_paste_armed": true,
+      "target_name": "",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "caret": 29
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": false
+  }
+}

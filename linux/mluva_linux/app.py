@@ -363,6 +363,7 @@ class MluvaApplication(Adw.Application):
         for name, callback in (
             ("latest", self._open_latest_conversation),
             ("record", self._shell_record),
+            ("global-record", self._shortcut_toggled),
             ("cancel", self._shortcut_cancelled),
             ("status", self._replay_overlay_status),
             ("history", self._open_history),

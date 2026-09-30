@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 
 import pytest
 
 from mluva_linux.text_target import (
     FocusedTextTargetTracker,
+    SystemAtspiRuntime,
     TextSelectionTooLargeError,
     capture_focused_application_identifier,
     capture_focused_delivery_target,
@@ -273,6 +275,48 @@ def test_focus_tracker_rejects_a_disabled_system_accessibility_bus(monkeypatch: 
         FocusedTextTargetTracker()
 
 
+@pytest.mark.parametrize("executable", ["/usr/lib/firefox/firefox", "/usr/bin/python"])
+def test_native_target_avoids_firefox_silent_editing_success(executable: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Use guarded keyboard delivery when Firefox's editable interface silently does nothing."""
+    listener = FakeEventListener()
+    target = FakeNode(20, focused=True, text=FakeText("before", caret_offset=6))
+    monkeypatch.setattr("mluva_linux.text_target.os.readlink", lambda _path: executable)
+    atspi = SimpleNamespace(
+        Text=SimpleNamespace(
+            get_caret_offset=lambda node: node.text.get_caret_offset(),
+            get_n_selections=lambda node: node.text.get_n_selections(),
+            set_caret_offset=lambda node, offset: node.text.set_caret_offset(offset),
+        ),
+        EditableText=SimpleNamespace(
+            insert_text=lambda node, position, text, length: (
+                True if executable.endswith("firefox") else node.text.insert_text(position, text, length)
+            ),
+        ),
+        EventListener=SimpleNamespace(new=lambda callback: setattr(listener, "callback", callback) or listener),
+    )
+    runtime = SystemAtspiRuntime(atspi, ACTIVE, EDITABLE, FOCUSED, PASSWORD)
+    tracker = FocusedTextTargetTracker(runtime, own_process_id=10)
+    listener.emit(target)
+    snapshot = tracker.capture_delivery_target()
+    assert snapshot is not None
+
+    if executable.endswith("firefox"):
+        assert snapshot.insert_text(" narrated") is None
+        assert snapshot.restore()
+        listener.emit(FakeNode(30, focused=True, text=FakeText("other", caret_offset=5)))
+        assert not snapshot.restore()
+        assert target.text.value == "before"
+        target.text.caret_offset = 8
+        assert snapshot.confirm_insertion("🐎")
+        target.text.caret_offset = 7
+        assert not snapshot.confirm_insertion("🐎")
+    else:
+        assert snapshot.insert_text(" narrated 🐎") is True
+        assert target.text.value == "before narrated 🐎"
+        assert snapshot.confirm_insertion(" narrated 🐎")
+    tracker.close()
+
+
 def test_capture_and_restore_explicit_selection() -> None:
     """Freeze selected text and later restore the same target range before replacement."""
     target_text = FakeText("prefix selected suffix", FakeRange(7, 15), caret_offset=15)
@@ -515,6 +559,37 @@ def test_focus_tracker_uses_latest_event_instead_of_ambiguous_tree_state() -> No
 
     tracker.close()
     assert runtime.listener.deregistrations == ["object:state-changed:focused"]
+
+
+def test_focus_tracker_seeds_an_existing_active_field_but_does_not_resurrect_lost_focus() -> None:
+    """Allow the first dictation after a background restart without needing a new focus event."""
+    target = FakeNode(20, focused=True, editable=False, text=FakeText("before", caret_offset=6))
+    root = FakeNode(0, children=[FakeNode(20, children=[FakeNode(20, active=True, children=[target])])])
+    runtime = FakeRuntime(root)
+    tracker = FocusedTextTargetTracker(runtime, own_process_id=10)
+
+    snapshot = tracker.capture_delivery_target()
+    assert snapshot is not None
+    assert snapshot.accessible is target
+    assert snapshot.restore()
+    runtime.listener.emit(target, focused=False)
+    assert tracker.capture_delivery_target() is None
+    assert not snapshot.restore()
+    tracker.close()
+
+
+@pytest.mark.parametrize("state", ["inactive", "two_active", "self_active"])
+def test_focus_tracker_does_not_seed_inactive_or_ambiguous_windows(state: str) -> None:
+    """Require one external active window when no authoritative focus event has arrived yet."""
+    target = FakeNode(20, focused=True, text=FakeText("before", caret_offset=6))
+    applications = [FakeNode(20, children=[FakeNode(20, active=state != "inactive", children=[target])])]
+    if state != "inactive":
+        pid = 10 if state == "self_active" else 30
+        applications.append(FakeNode(pid, children=[FakeNode(pid, active=True)]))
+    tracker = FocusedTextTargetTracker(FakeRuntime(FakeNode(0, children=applications)), own_process_id=10)
+
+    assert tracker.capture_delivery_target() is None
+    tracker.close()
 
 
 def test_focus_tracker_clears_focus_loss_from_an_equivalent_proxy() -> None:
