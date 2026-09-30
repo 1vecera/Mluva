@@ -16,6 +16,10 @@ GTK, Libadwaita, PyGObject, WebKitGTK, AT-SPI, PipeWire, `wl-copy`, and the XDG 
 
 Review this inventory whenever the lockfile changes. The resolved packages remain the authoritative source for their complete license and notice files.
 
+## Optional narrated screenshot editor
+
+The optional Tensaku 0.29.0 editor is distributed under MPL-2.0. Its upstream [license](linux/integrations/tensaku/LICENSE), [authorship notice](linux/integrations/tensaku/NOTICE), exact source pin and complete modification patch are included in the repository and editor release archive. The prebuilt archive also includes the resolved Rust dependency inventory and available upstream license/notice files. GTK, Libadwaita and the other native libraries remain distribution-managed dependencies. Keep these notices and the corresponding source patch when redistributing the editor.
+
 ## Bundled diagram renderer
 
 Mermaid 12.0.0 is bundled for local diagram rendering in `linux/resources/mermaid/mermaid.min.js`. It is distributed under the [MIT license](linux/resources/mermaid/LICENSE). The [bundle provenance](linux/resources/mermaid/README.md) records its upstream package and SHA-256 checksum; retain these files when redistributing the renderer.

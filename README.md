@@ -4,7 +4,7 @@
 
 Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.5.4)**
+**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.6.0)**
 
 ## Meet Mluva
 
@@ -21,6 +21,7 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 | A note that needs shape | Select **Live rewrite** once or continuously across recordings. Grilling keeps useful questions above evolving notes; task spec, structured note and custom templates remain available. |
 | A draft worth keeping | Edit originals and rewrites, save with **Ctrl+S**, and keep raw recognition available separately. |
 | Work to return to | Search the sidebar, click a title to rename it, or use the conversation menu to merge or delete chats. Reuse saved prompts and export Markdown or JSON. |
+| Something on screen | Attach an Omarchy region screenshot with F10, then use **Add narration** in the optional upgraded Tensaku editor to place a spoken text box. Supported rewrite models can use the image as context. |
 
 **A calm place to work.** Stable Live panes, restrained recording motion and subtle Markdown keep long notes readable. **Ctrl+P** finds actions; **Ctrl+Enter** sends a rewrite. Copy and scrolling preferences are yours to change.
 
@@ -56,6 +57,8 @@ them. Tell me how to launch Mluva and approve its recording shortcuts.
 ```
 
 **Other install paths:** `bash install.sh --app-only` installs the native app without changing plugins. Fedora GNOME uses the same setup command, with the compatibility limits below. For a staged install or preinstalled dependencies, see the [Linux guide](linux/README.md#install-for-the-current-user).
+
+**Narrated screenshots:** the release includes an optional prebuilt Tensaku editor for Omarchy x86_64. Verify and extract it, then run `bash linux/install-narrated-editor.sh --prebuilt-dir /absolute/path/to/mluva-1.6.0-tensaku-omarchy-x86_64` from the Mluva checkout or extracted source package. A source build remains available. Configure F10 as described in the [screenshot setup](docs/omarchy-integration.md#screenshot-context). Screenshot context is Experimental.
 
 **Upgrading:** quit Mluva, update the checkout with `git pull --ff-only`, and rerun `bash install.sh`. Existing plugin customizations are preserved; setup checks for conflicting changes before installing. If a later plugin operation fails, the native app remains installed and setup reports how to retry. Upgrades from 0.x migrate the old product identities and retain a private backup of settings, conversations, drafts and audio. See the [migration guide](docs/identity-migration.md) for customized installations.
 
