@@ -1,5 +1,6 @@
 """Minimal subprocess implementing the app-server frames used by contract tests."""
 
+import base64
 import json
 import os
 import sys
@@ -94,6 +95,20 @@ def main() -> None:
             if "--unexpected-request" in sys.argv:
                 send({"id": message["id"], "method": "item/permissions/requestApproval", "params": {}})
             assert message["params"]["input"][0]["type"] == "text"
+            if "--expect-image" in sys.argv:
+                expected = [
+                    Path(sys.argv[index + 1]).read_bytes()
+                    for index, value in enumerate(sys.argv)
+                    if value == "--expect-image"
+                ]
+                inputs = message["params"]["input"]
+                assert inputs[1:] == [
+                    {"type": "image", "url": "data:image/png;base64," + base64.b64encode(data).decode()}
+                    for data in expected
+                ]
+                assert '"captured_after_seconds":' in inputs[0]["text"]
+                if "--expect-offset" in sys.argv:
+                    assert '"captured_after_seconds": 12.5' in inputs[0]["text"]
             if "--expect-high" in sys.argv:
                 assert message["params"]["effort"] == "high"
             if "--expect-fast" in sys.argv or "--expect-standard" in sys.argv:

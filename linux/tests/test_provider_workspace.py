@@ -57,6 +57,26 @@ def service():
         yield f"http://127.0.0.1:{server.server_port}/v1", requests, options
 
 
+def test_screenshot_bytes_reach_the_compatible_provider_with_narration_order(service, tmp_path):
+    """Inspect real HTTP image parts rather than accepting a path mentioned only in the text prompt."""
+    import base64
+
+    from screenshot_fixture import png
+
+    from mluva_linux.screenshots import ImageInput
+
+    url, requests, _options = service
+    client = LiteLLMClient(url, "MLUVA_TEST_KEY", "local-editor")
+    assert client.transform("Describe this", tmp_path, images=(ImageInput(png(), 12.5),)) == "Hotový zápis."
+    content = json.loads(requests[-1][2])["messages"][0]["content"]
+    assert content[0]["type"] == "text"
+    assert '"captured_after_seconds": 12.5' in content[0]["text"]
+    assert content[1] == {
+        "type": "image_url",
+        "image_url": {"url": "data:image/png;base64," + base64.b64encode(png()).decode()},
+    }
+
+
 def test_remote_catalog_stream_and_audio(service, tmp_path, monkeypatch):
     """Exercise model selection, Unicode SSE and multipart language mapping over real HTTP."""
     url, requests, _options = service

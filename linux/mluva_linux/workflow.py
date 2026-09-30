@@ -18,6 +18,7 @@ from mluva_linux.diagnostics import (
 )
 from mluva_linux.elevenlabs import TranscriptionResult
 from mluva_linux.history import (
+    ENHANCEMENT_CONTEXT_SCREENSHOTS,
     ENHANCEMENT_CONTEXT_SELECTED_TEXT,
     ENHANCEMENT_CONTEXT_STYLE_INSTRUCTIONS,
     ENHANCEMENT_PROVIDER_CODEX_APP_SERVER,
@@ -40,6 +41,7 @@ from mluva_linux.personalization import (
     snippet_variables,
 )
 from mluva_linux.prompt_defaults import CLEANUP
+from mluva_linux.screenshots import ImageInput, validate_images
 from mluva_linux.segment_cleanup import (
     MAX_RESPONSE_CHARACTERS,
     MAX_SEGMENT_CHARACTERS,
@@ -106,7 +108,9 @@ class TextTransformationClient(Protocol):
         """Return the concrete model identifier selected before provider work begins."""
         ...
 
-    def transform(self, prompt: str, cwd: Path, model: str | None = None) -> str:
+    def transform(
+        self, prompt: str, cwd: Path, model: str | None = None, *, images: tuple[ImageInput, ...] = ()
+    ) -> str:
         """Return one replacement string through the frozen model."""
         ...
 
@@ -245,8 +249,12 @@ class DictationWorkflow:
         frozen_style: SavedStyle | None = None,
         style_is_frozen: bool = False,
         defer_delivery: bool = False,
+        images: tuple[ImageInput, ...] = (),
     ) -> WorkflowResult:
         """Complete one finalized recording from committed realtime text or one batch upload."""
+        validate_images(images)
+        if incognito and images:
+            raise ValueError("Screenshots are unavailable in Incognito.")
         session_identifier = session_identifier or str(uuid.uuid4())
         if mode == "command" or not use_saved_style:
             style = None
@@ -262,6 +270,8 @@ class DictationWorkflow:
             )
         codex_requested = mode == "command" or use_codex_cleanup or style is not None
         enhancement_context_sources = _enhancement_context_sources(mode, selected_text, style)
+        if images and codex_requested:
+            enhancement_context_sources += (ENHANCEMENT_CONTEXT_SCREENSHOTS,)
         if transcript_preparation is None:
             transcript_preparation = self.freeze_transcript_preparation(mode, application_identifier)
         elif transcript_preparation.mode != mode:
@@ -358,7 +368,7 @@ class DictationWorkflow:
         protected_vocabulary = transcript_preparation.protected_vocabulary
         enhancement_started_at = time.monotonic()
         try:
-            if segment_cleanup is not None:
+            if segment_cleanup is not None and not images:
                 _validate_segment_cleanup(
                     segment_cleanup,
                     transcription,
@@ -407,6 +417,7 @@ class DictationWorkflow:
                     protected_vocabulary,
                     codex_model_identifier,
                     enhancement_context_sources,
+                    images,
                 )
         except Exception as error:
             enhancement_seconds = (
@@ -754,6 +765,7 @@ class DictationWorkflow:
         protected_vocabulary: tuple[str, ...],
         codex_model_identifier: str | None,
         enhancement_context_sources: tuple[str, ...],
+        images: tuple[ImageInput, ...] = (),
     ) -> TransformationResult:
         """Route explicit Command, cleanup, and style requests through bounded Codex turns."""
         if (mode == "command" or use_codex_cleanup or style is not None) and codex_model_identifier is None:
@@ -781,7 +793,8 @@ class DictationWorkflow:
                 f"or surrounding context.\n\nCOMMAND INPUT JSON:\n{command_input}"
             )
             try:
-                candidate = self.codex.transform(prompt, cwd=self.cwd, model=codex_model_identifier)
+                visual = {"images": images} if images else {}
+                candidate = self.codex.transform(prompt, cwd=self.cwd, model=codex_model_identifier, **visual)
             except Exception as error:
                 raise EnhancementProviderFailure("Codex Command processing failed.") from error
             candidate = candidate.strip()
@@ -807,6 +820,7 @@ class DictationWorkflow:
                 protected_vocabulary,
                 codex_model_identifier,
                 raw_text,
+                images,
             )
             if warning is None:
                 applied_transformations += 1
@@ -833,6 +847,7 @@ class DictationWorkflow:
                 protected_vocabulary,
                 codex_model_identifier,
                 output_text,
+                images,
             )
             if warning is None:
                 applied_transformations += 1
@@ -855,12 +870,14 @@ class DictationWorkflow:
         protected_vocabulary: tuple[str, ...],
         codex_model_identifier: str | None,
         fallback_text: str,
+        images: tuple[ImageInput, ...] = (),
     ) -> tuple[str, str | None]:
         """Apply one optional rewrite or keep the last validated local form on failure."""
         if len(source) > MAX_SEGMENT_CHARACTERS:
             return fallback_text, f"{label} input exceeded the bounded provider request; kept prior safe text."
         try:
-            candidate = self.codex.transform(prompt, cwd=self.cwd, model=codex_model_identifier)
+            visual = {"images": images} if images else {}
+            candidate = self.codex.transform(prompt, cwd=self.cwd, model=codex_model_identifier, **visual)
         except Exception:
             return fallback_text, f"{label} failed; kept the last immutable or validated text."
         if not candidate.strip() or len(candidate.strip()) > MAX_RESPONSE_CHARACTERS:

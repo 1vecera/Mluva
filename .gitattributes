@@ -1,2 +1,6 @@
 linux/resources/mermaid/mermaid.min.js linguist-vendored linguist-generated whitespace=-blank-at-eol
 linux/resources/mermaid/mermaid.min.js.LEGAL.txt linguist-vendored linguist-generated whitespace=-blank-at-eol
+linux/integrations/tensaku/LICENSE linguist-vendored
+# Preserve upstream's title underline and raw diff context lines verbatim.
+linux/integrations/tensaku/NOTICE linguist-vendored conflict-marker-size=32
+linux/integrations/tensaku/narration.patch linguist-vendored whitespace=-blank-at-eol

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# mluva:managed-screenshot-editor
+set -euo pipefail
+if (( $# != 1 )); then
+    echo "Usage: mluva-screenshot-editor image.png" >&2
+    exit 2
+fi
+editor="@EDITOR_DIR@/tensaku"
+if [[ -x "${editor}" ]]; then
+    exec "${editor}" \
+        --filename "$1" --output-filename "$1" \
+        --narration-command "@BIN_DIR@/mluva-narrate" \
+        --actions-on-enter save-to-clipboard --save-after-copy --copy-command wl-copy
+fi
+exec /usr/bin/tensaku-edit "$1"

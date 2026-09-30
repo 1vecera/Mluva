@@ -15,6 +15,8 @@ from mluva_linux.markdown_view import MarkdownTextView
 from mluva_linux.mermaid_view import MermaidPreview
 from mluva_linux.prompt_editor import prompt_control
 from mluva_linux.recording_control import RecordingLight
+from mluva_linux.screenshot_view import ScreenshotShelf
+from mluva_linux.screenshots import ScreenshotStore
 from mluva_linux.scroll_forecast import SpeechScrollForecast
 from mluva_linux.ui import SPACE_1, SPACE_2, SPACE_4, brand_mark, document_scroll, set_margins
 
@@ -266,10 +268,21 @@ class ConversationWorkspace(Gtk.Box):
         rename_conversation: Callable[[str, str], bool],
         delete_conversation: Callable[[str], bool],
         merge_conversations: Callable[[str, str], bool],
+        capture_screenshot: Callable[[], None] | None = None,
+        edit_screenshot: Callable[[str], None] | None = None,
+        remove_screenshot: Callable[[str], None] | None = None,
     ) -> None:
         """Bind user intentions while leaving recording and provider work to the application."""
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.store = store
+        self.screenshot_store = ScreenshotStore(store.history.path)
+        self.live_screenshot_capture: str | None = None
+        self.live_screenshot_conversation: str | None = None
+        self.capture_screenshot = capture_screenshot
+        self.screenshot_shelf = ScreenshotShelf(
+            edit_screenshot or (lambda _id: None), remove_screenshot or (lambda _id: None)
+        )
+        self.screenshot_buttons: list[Gtk.Button] = []
         self.config = AppConfig()
         self.edit_drafts: dict[tuple[str, int | None], str] = {}
         self.editors: dict[tuple[str, int | None], DocumentEditor] = {}
@@ -405,6 +418,7 @@ class ConversationWorkspace(Gtk.Box):
             "clicked", lambda _button: self.continue_recording(self.entry.identifier) if self.entry else None
         )
         self.heading.append(self.continue_button)
+        self.heading.append(self._screenshot_button())
         self.live_header = Gtk.Box(spacing=SPACE_2, valign=Gtk.Align.CENTER, visible=False)
         self.live_light = RecordingLight()
         self.live_header.append(self.live_light)
@@ -422,6 +436,7 @@ class ConversationWorkspace(Gtk.Box):
         self.live_cancel_slot.set_visible(False)
         self.live_header.append(self.live_cancel_slot)
         self.live_header.append(self.live_title)
+        self.live_header.append(self._screenshot_button())
         self.pane_buttons = {}
         for side, label, shortcut in (("source", "Original", "Ctrl+1"), ("draft", "Live draft", "Ctrl+2")):
             button = Gtk.ToggleButton(label=label, active=True, has_frame=False)
@@ -431,6 +446,7 @@ class ConversationWorkspace(Gtk.Box):
             self.live_header.append(button)
         self.heading_column = self.heading
         content.append(self.heading_column)
+        content.append(self.screenshot_shelf)
         self.messages = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
         set_margins(self.messages, SPACE_4)
         self.messages.set_margin_top(0)
@@ -596,6 +612,7 @@ class ConversationWorkspace(Gtk.Box):
             self.live_cancel.set_label("Cancel")
         self.actions.set_halign(Gtk.Align.FILL if compact else Gtk.Align.START)
         self.live_header.set_spacing(SPACE_1 if compact else SPACE_2)
+        self.pane_buttons["draft"].set_label("Draft" if compact else "Live draft")
 
     def _pane_orientation_changed(self, *_args: object) -> None:
         """Keep the divider between panes when the narrow layout stacks them."""
@@ -788,6 +805,7 @@ class ConversationWorkspace(Gtk.Box):
         self.copy_buttons.clear()
         self.save_buttons.clear()
         self.entry = entry
+        self.refresh_screenshots()
         self.title_label = None
         self.conversation_title.set_label("New conversation")
         self.conversation_title.set_tooltip_text(None)
@@ -1186,6 +1204,8 @@ class ConversationWorkspace(Gtk.Box):
 
     def _update_actions(self) -> None:
         """Make privacy and in-flight work authoritative for all rewrite entry points."""
+        for button in self.screenshot_buttons:
+            button.set_sensitive(self.capture_screenshot is not None and not self.private and not self.busy)
         self.title_button.set_sensitive(self.entry is not None and not self.private)
         self.title_save.set_sensitive(not self.private)
         for menu in self.row_menus.values():
@@ -1216,10 +1236,35 @@ class ConversationWorkspace(Gtk.Box):
         """Prevent rewrite and prompt persistence in Incognito."""
         self.private = private
         if private:
+            self.screenshot_shelf.show_images([])
             self._cancel_title()
             self.drafts.clear()
             self.clear_rewrite_preview()
         self._update_actions()
+
+    def _screenshot_button(self) -> Gtk.Button:
+        """Offer the same capture action from a saved conversation and an active narration."""
+        button = Gtk.Button(icon_name="camera-photo-symbolic", tooltip_text="Add screenshot · F10 · Experimental")
+        button.update_property([Gtk.AccessibleProperty.LABEL], ["Add screenshot"])
+        button.connect("clicked", lambda _button: self.capture_screenshot() if self.capture_screenshot else None)
+        button.set_sensitive(self.capture_screenshot is not None)
+        self.screenshot_buttons.append(button)
+        return button
+
+    def refresh_screenshots(self) -> None:
+        """Keep image context aligned with history navigation, even while another narration is recording."""
+        images = []
+        if not self.private:
+            try:
+                if self.viewing_live and self.live_screenshot_capture is not None:
+                    if self.live_screenshot_conversation is not None:
+                        images.extend(self.screenshot_store.recent(self.live_screenshot_conversation))
+                    images.extend(self.screenshot_store.recent(self.live_screenshot_capture, capture=True))
+                elif self.entry is not None:
+                    images = self.screenshot_store.recent(self.entry.identifier)
+            except (ValueError, OSError):
+                images = []
+        self.screenshot_shelf.show_images(images)
 
     def set_live(self, phase: str, text: str, *, recording: bool = True) -> None:
         """Show every live word separately from committed, copyable messages."""
@@ -1247,6 +1292,7 @@ class ConversationWorkspace(Gtk.Box):
     def _set_live_visibility(self, visible: bool) -> None:
         """Navigate independently of capture so incoming words never steal a history selection."""
         self.viewing_live = visible
+        self.refresh_screenshots()
         for widget in (self.live_box, self.live_column, self.live_header, self.live_header_column):
             widget.set_visible(visible)
         for widget in (self.scroll, self.composer, self.composer_column, self.heading_column):

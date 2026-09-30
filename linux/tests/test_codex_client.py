@@ -9,6 +9,24 @@ import pytest
 from mluva_linux.codex_client import CodexAppServerClient, CodexAppServerError, CodexModel, select_model
 
 
+def test_screenshot_bytes_reach_the_app_server_as_image_input(tmp_path: Path) -> None:
+    """Send a real inline image while the independent server still enforces disabled tools and MCP."""
+    from screenshot_fixture import png
+
+    from mluva_linux.screenshots import ImageInput
+
+    expected = tmp_path / "expected.png"
+    expected.write_bytes(png())
+    server = Path(__file__).with_name("fake_app_server.py")
+    client = CodexAppServerClient(
+        command=(sys.executable, str(server), "--expect-image", str(expected), "--expect-offset")
+    )
+    try:
+        assert client.transform("Describe this", tmp_path, images=(ImageInput(png(), 12.5),)) == "Clean text."
+    finally:
+        client.close()
+
+
 def test_transform_uses_current_app_server_protocol() -> None:
     """Prove the client handshake and turn lifecycle against an independent process."""
     fake_server = Path(__file__).with_name("fake_app_server.py")

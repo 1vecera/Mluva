@@ -20,6 +20,7 @@ from mluva_linux.codex_policy import (
     child_environment,
     mask_global_instructions,
 )
+from mluva_linux.screenshots import ImageInput, image_context, validate_images
 
 _SERVER_EXITED_METHOD = "_mluva/serverExited"
 _UNEXPECTED_REQUEST_METHOD = "_mluva/unexpectedRequest"
@@ -218,8 +219,10 @@ class CodexAppServerClient:
         on_delta: Callable[[str], None] | None = None,
         effort: str | None = None,
         service_tier: str | None = None,
+        images: tuple[ImageInput, ...] = (),
     ) -> str:
         """Stream optional validated text deltas and return the complete successful transformation."""
+        validate_images(images)
         resolved_model = model or self.resolve_model(None)
         self.start()
         self.last_model_identifier = None
@@ -247,7 +250,7 @@ class CodexAppServerClient:
             "baseInstructions": (
                 "You transform dictated text. Follow the user's requested operation exactly. "
                 "Return only replacement text, without commentary, quotes, or Markdown fences. "
-                "Never use tools or infer facts absent from the supplied text."
+                "Never use tools or infer facts absent from the supplied text or explicitly attached images."
             ),
         }
         thread_result = self._request("thread/start", thread_params)
@@ -271,7 +274,9 @@ class CodexAppServerClient:
         ):
             self.close()
             raise CodexAppServerError("Codex exposed external capabilities during text-only setup.")
-        turn_params: dict[str, object] = {"threadId": thread_id, "input": [{"type": "text", "text": prompt}]}
+        inputs = [{"type": "text", "text": image_context(prompt, images)}]
+        inputs.extend({"type": "image", "url": image.data_url} for image in images)
+        turn_params: dict[str, object] = {"threadId": thread_id, "input": inputs}
         if effort is not None:
             turn_params["effort"] = effort
         if service_tier is not None:
