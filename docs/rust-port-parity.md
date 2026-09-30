@@ -50,6 +50,8 @@ Prompt overrides, retained custom Live/style baselines, bounded local/generated 
 
 The reviewed core milestone passes 38 native Rust tests, locked dependency resolution, formatting and Clippy with warnings denied. Logs remain private under `tmp/final-core-*`. A read-only check confirms the installed app digest and widget version still match the verified 1.6.0 release. The Rust core has no interpreter dependency; the full repository's Python removal, native application integration, GUI parity and whole-app performance checks remain pending.
 
+The milestone is recorded at commit `687e709f6b1d3cc3878494ce32cb792fb0c02ca6` on public branch `feat/rust-port`, with [draft PR #69](https://github.com/1vecera/Mluva/pull/69), authored through account `1vecera`. The task-branch push and draft are within Daniel's preparation authorization. The repository's CI is manual-only; no hosted checks were run or paid for, and the branch does not deploy GitHub Pages. No installed-app update, Rust merge or Rust release has been performed. The full Rust-port goal remains active.
+
 ## Evidence rules
 
 Use the unchanged 1.6.0 release and its external test boundaries as the comparison oracle. Reference Python may run only from a separate frozen baseline during development and must not ship with or be required by Rust. Preserve synthetic recordings/images and logs privately in `tmp/`; publish only curated evidence with no user content, settings values, application/window names or credentials.
