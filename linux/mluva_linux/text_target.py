@@ -24,6 +24,12 @@ MAX_SELECTED_TEXT_CHARACTERS = 2_000
 MAX_ACCESSIBLE_NODES = 20_000
 
 
+def _is_firefox_process(application_identifier: str | None) -> bool:
+    """Identify Gecko's native text behavior from the captured executable only."""
+    executable = Path((application_identifier or "").removeprefix("process:")).name.casefold()
+    return executable in {"firefox", "firefox-bin", "firefox-esr"}
+
+
 def system_accessibility_enabled() -> bool:
     """Read GNOME's live AT-SPI status without starting a disabled service."""
     try:
@@ -308,6 +314,10 @@ class SystemAtspiRuntime:
         """Wrap a supported EditableText interface so mutation calls use the intended API."""
         if not node.get_state_set().contains(self.editable_state) or node.get_editable_text_iface() is None:
             return None
+        # Firefox's ATK mutation callbacks can report success without editing.
+        # Keep its focused target on the guarded clipboard/keyboard path instead.
+        if _is_firefox_process(self.application_identifier(node)):
+            return None
         return SystemAccessibleEditableText(node, self.atspi)
 
     def create_event_listener(
@@ -338,12 +348,22 @@ class FocusedTextTargetTracker:
         self.own_process_id = os.getpid() if own_process_id is None else own_process_id
         self._lock = Lock()
         self._focused: AccessibleNode | None = None
+        self._focus_event_received = False
         self._listener: AccessibilityEventListener | None = None
         if self.runtime is not None:
             self._listener = self.runtime.create_event_listener(self._focus_changed)
             if not self._listener.register(self.event_type):
                 self._listener = None
                 raise RuntimeError("AT-SPI rejected global focus-event registration")
+            try:
+                initial_focus = _find_focused_text_node(
+                    self.runtime, self.runtime.desktop(), self.own_process_id, require_active_window=True
+                )
+            except Exception:
+                initial_focus = None
+            with self._lock:
+                if not self._focus_event_received:
+                    self._focused = initial_focus
 
     def _focus_changed(self, event: AccessibilityEvent, _user_data: object | None = None) -> None:
         """Retain only the newest focused external object and clear on focus loss or self-focus."""
@@ -354,6 +374,7 @@ class FocusedTextTargetTracker:
             source = None
             source_process_id = self.own_process_id
         with self._lock:
+            self._focus_event_received = True
             if not event.detail1:
                 if source is None or source == self._focused:
                     self._focused = None
@@ -494,7 +515,13 @@ class TextTargetSnapshot:
         """Confirm the expected post-paste caret without reading any target text."""
         try:
             insertion_start = self.selection_start if self.selection_start is not None else self.caret_offset
-            return self.text.get_caret_offset() == insertion_start + len(inserted_text)
+            # Gecko's native caret uses UTF-16 code units, including surrogate pairs.
+            offset_length = (
+                len(inserted_text.encode("utf-16-le")) // 2
+                if _is_firefox_process(self.application_identifier)
+                else len(inserted_text)
+            )
+            return self.text.get_caret_offset() == insertion_start + offset_length
         except Exception:
             return None
 
@@ -641,6 +668,8 @@ def _find_focused_text_node(
     runtime: AtspiRuntime,
     root: AccessibleNode,
     own_process_id: int,
+    *,
+    require_active_window: bool = False,
 ) -> AccessibleNode | None:
     """Prefer focused text inside an active top-level window and ignore stale focus flags."""
     active_roots: list[AccessibleNode] = []
@@ -651,7 +680,10 @@ def _find_focused_text_node(
     for application_index in range(application_count):
         try:
             application = root.get_child_at_index(application_index)
-            if application is None or application.get_process_id() == own_process_id:
+            if application is None:
+                continue
+            own_application = application.get_process_id() == own_process_id
+            if own_application and not require_active_window:
                 continue
             top_level_count = application.get_child_count()
         except Exception:
@@ -660,9 +692,13 @@ def _find_focused_text_node(
             try:
                 top_level = application.get_child_at_index(top_level_index)
                 if top_level is not None and top_level.get_state_set().contains(runtime.active_state):
+                    if own_application:
+                        return None
                     active_roots.append(top_level)
             except Exception:
                 continue
+    if require_active_window and len(active_roots) != 1:
+        return None
     if active_roots:
         return _find_focused_text_in_roots(runtime, active_roots, own_process_id)
     return _find_focused_text_in_roots(runtime, [root], own_process_id)
@@ -702,4 +738,4 @@ def _find_focused_text_in_roots(
                 continue
             if child is not None:
                 stack.append(child)
-    return candidates[0] if len(candidates) == 1 else None
+    return candidates[0] if len(candidates) == 1 and not stack else None
