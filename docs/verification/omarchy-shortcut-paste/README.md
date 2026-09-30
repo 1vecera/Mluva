@@ -35,7 +35,7 @@ Hyprland dispatched the configured command through its native Lua execution API;
 
 Terminal receipts remain unconfirmed because Mluva does not read terminal contents. The independent synthetic observer establishes the result only for these acceptance cases. Other applications, terminal tabs/panes/input modes, actual microphone/provider operation and a physical key remain separate limits.
 
-The local app and Omarchy widget remain version 1.5.4 with a task-branch hotfix; this patch is not yet a published release. F9 invokes `mluva-shell global-record`, portal shortcuts are disabled for the compositor binding, and Hyprland reports no configuration errors. The Firefox correction is installed. The final startup correction is staged until the latest active recording ends; physical user acceptance remains pending.
+The local app and Omarchy widget remain version 1.5.4 with a task-branch hotfix; this patch is not yet a published release. F9 invokes `mluva-shell global-record`, portal shortcuts are disabled for the compositor binding, and Hyprland reports no configuration errors. All corrections are installed and running. The final installed files, without any overlay, also pass the restarted-tracker cases in Firefox and GTK. Physical user acceptance remains pending.
 
 Regressions failed against the previous action map, Firefox routing and initial-focus behavior, then passed with the patch. `make linux-test` passes 615 tests, feature-document consistency, Ruff lint and formatting. Hosted CI is configured for manual invocation only and was not started.
 

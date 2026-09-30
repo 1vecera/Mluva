@@ -506,8 +506,66 @@
     "modules": {
       "app.py": "f45a67a929dcca218158c076fd32e319589bb34519c3b1582111d755dbb95ef0",
       "shell_bridge.py": "a36187fac9d00c20a71e0b9b3b97efa9be7f4f64f6e68a3633e62af7611c7caa",
-      "text_target.py": "40444447f469477e7ea2c9098d21b5fb208f2fc5eaf2741f5c2bd9e26a2eab9d"
+      "text_target.py": "a916b65519d33b3401ebfee910c392560b86d5e70d6131aa3e6702394fef02c7"
     },
-    "startup_patch_installed": false
+    "startup_patch_installed": true
+  },
+  "installed-startup-firefox": {
+    "scenario": "firefox-input",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/lib/firefox/firefox",
+      "automatic_paste_armed": true,
+      "target_name": "Mluva private paste target",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target application. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "input_events": 1
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": false
+  },
+  "installed-startup-gtk": {
+    "scenario": "gtk-entry",
+    "platform": "wayland",
+    "target_type": "TextTargetSnapshot",
+    "action": "global-record",
+    "captured": {
+      "allows_auto_paste": true,
+      "target_type": "TextTargetSnapshot",
+      "application": "/usr/bin/python3.14",
+      "automatic_paste_armed": true,
+      "target_name": "",
+      "target_text": "Mluva: "
+    },
+    "receipt": {
+      "allows_auto_paste": true,
+      "output_text": "Příliš žluťoučký kůň 🐎",
+      "receipt": "pasted",
+      "paste_dispatched": true,
+      "paste_confirmed": true,
+      "guidance": "Inserted once into the restored target through its accessibility editing interface. Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
+    },
+    "target_observed": {
+      "actual_text": "Mluva: Příliš žluťoučký kůň 🐎",
+      "exact_text_match": true,
+      "caret": 29
+    },
+    "expected_text": "Mluva: Příliš žluťoučký kůň 🐎",
+    "patch_overlay": false
   }
 }
