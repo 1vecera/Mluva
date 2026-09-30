@@ -1,6 +1,6 @@
 # Automatic paste verification
 
-Verified on 30 September 2026 against remote `main` at `113f10f`. This change fixes missing terminal capture on Hyprland, clipboard-versus-primary-selection terminal bindings, and X11 delivery when Wayland tools are also installed. It is a draft change; no merge, release or application installation was performed.
+Verified on 30 September 2026 against remote `main` at `113f10f`. This change fixes missing terminal capture on Hyprland, clipboard-versus-primary-selection terminal bindings, and X11 delivery when Wayland tools are also installed. These checks ran before merge, release or application installation.
 
 ## Real target acceptance
 

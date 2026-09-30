@@ -37,8 +37,8 @@ Omarchy's current plugin manager uses a full Git clone, including this project's
 `bash install.sh` installs both parts. Installer tests cover fresh installs, upgrades, clean legacy Git migration without network access, protected local edits and rollback after shell failures. Validate a clean checkout or source archive with `omarchy plugin validate <repository>` and the staged widget with the same command. Use a clean tree because Omarchy rejects symlinks, including those in a development virtual environment. Run `make linux-test` and the isolated widget check before releasing. To build the package from a reviewed tag:
 
 ```sh
-git archive --format=tar.gz --prefix=mluva-1.5.3/ \
-  --output=tmp/mluva-1.5.3-source.tar.gz v1.5.3
+git archive --format=tar.gz --prefix=mluva-1.5.4/ \
+  --output=tmp/mluva-1.5.4-source.tar.gz v1.5.4
 ```
 
 Publish that archive and its SHA-256 checksum together on the main Mluva release. Re-running setup from the new archive updates app and widget together.
