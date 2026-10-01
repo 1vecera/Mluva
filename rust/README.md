@@ -4,6 +4,8 @@ This workspace is the in-progress replacement for the released 1.6.0 application
 
 The authorized native model lineup is Whisper Tiny, Parakeet v3 and Qwen3-ASR 1.7B, with Qwen as the default. Existing Whisper Base/Small/Turbo selections migrate to Qwen and reopen setup; loading preserves the settings file and all existing model caches. Retained artifact metadata and the frozen release fixtures stay unchanged.
 
+An explicitly executed [real Qwen inference check](mluva-providers/tests/fixtures/qwen-inference-evidence.md) now matches released CPU/NVIDIA Vulkan recognition, provisional callbacks, restart and cancellation on public English/Chinese clips, including multiple 25-second blocks. It uses disposable model/runtime/shader stores and observes actual child arguments, private key modes and cleanup through `/proc`. It requires FFmpeg, public asset downloads and compatible NVIDIA Vulkan hardware; ordinary Cargo tests ignore it. Native Whisper/Parakeet and full provider/application integration remain pending.
+
 Build with Rust 1.95 and the platform development libraries for SQLite, OpenSSL, GTK 4.12 or later, Libadwaita 1.5 or later and Fontconfig. The private input comparison example also needs X11 and Xtst. From the repository root:
 
 ```sh

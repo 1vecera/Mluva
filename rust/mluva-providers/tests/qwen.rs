@@ -86,6 +86,36 @@ fn unhex(value: &str) -> Vec<u8> {
         .collect()
 }
 
+fn driver_command(root: &Path) -> Command {
+    let mut command = Command::new(env!("CARGO_BIN_EXE_qwen-fixture-peer"));
+    command
+        .env_clear()
+        .env("HOME", root.join("home"))
+        .env("XDG_DATA_HOME", root.join("xdg-data"))
+        .env("PATH", "/usr/bin:/bin")
+        .env("LANG", "C.UTF-8")
+        .env("TMPDIR", root.join("tmp"))
+        .env("QWEN_FIXTURE_ROOT", root);
+    for name in [
+        "HTTP_PROXY",
+        "HTTPS_PROXY",
+        "ALL_PROXY",
+        "http_proxy",
+        "https_proxy",
+    ] {
+        command.env(name, "http://127.0.0.1:9");
+    }
+    for name in ["OPENAI_API_KEY", "BASH_ENV"] {
+        command.env(name, "fixture-env-canary");
+    }
+    command
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .kill_on_drop(true);
+    command
+}
+
 #[tokio::test]
 async fn native_qwen_client_processes_and_loopback_requests_match_release() {
     let fixture: Value = serde_json::from_str(include_str!("fixtures/released-qwen.json")).unwrap();
@@ -109,33 +139,7 @@ async fn native_qwen_client_processes_and_loopback_requests_match_release() {
             .unwrap();
         let root = directory.path();
         setup(root, &case["spec"]);
-        let mut command = Command::new(env!("CARGO_BIN_EXE_qwen-fixture-peer"));
-        command
-            .env_clear()
-            .env("HOME", root.join("home"))
-            .env("XDG_DATA_HOME", root.join("xdg-data"))
-            .env("PATH", "/usr/bin:/bin")
-            .env("LANG", "C.UTF-8")
-            .env("TMPDIR", root.join("tmp"))
-            .env("QWEN_FIXTURE_ROOT", root);
-        for name in [
-            "HTTP_PROXY",
-            "HTTPS_PROXY",
-            "ALL_PROXY",
-            "http_proxy",
-            "https_proxy",
-        ] {
-            command.env(name, "http://127.0.0.1:9");
-        }
-        for name in ["OPENAI_API_KEY", "BASH_ENV"] {
-            command.env(name, "fixture-env-canary");
-        }
-        command
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .kill_on_drop(true);
-        let mut driver = command.spawn().unwrap();
+        let mut driver = driver_command(root).spawn().unwrap();
         let mut stdin = driver.stdin.take().unwrap();
         stdin
             .write_all(&serde_json::to_vec(&case["spec"]).unwrap())
@@ -170,3 +174,5 @@ async fn native_qwen_client_processes_and_loopback_requests_match_release() {
         }
     }
 }
+
+mod inference;
