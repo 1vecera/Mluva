@@ -80,6 +80,18 @@ pub fn decimal(character: char) -> bool {
     in_ranges(character, &CASE_PROPERTIES.decimal)
 }
 
+pub(crate) fn decimal_value(character: char) -> Option<u32> {
+    let code = u32::from(character);
+    let index = CASE_PROPERTIES
+        .decimal
+        .partition_point(|(_, last)| *last < code);
+    CASE_PROPERTIES
+        .decimal
+        .get(index)
+        .filter(|(first, last)| (*first..=*last).contains(&code))
+        .map(|(first, _)| (code - first) % 10)
+}
+
 pub(crate) fn decimal_expression() -> String {
     let mut result = String::from("[");
     for &(first, last) in &CASE_PROPERTIES.decimal {

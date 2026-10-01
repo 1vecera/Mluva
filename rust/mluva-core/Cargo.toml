@@ -23,3 +23,9 @@ base64.workspace = true
 crc32fast.workspace = true
 libc.workspace = true
 unicode-normalization.workspace = true
+
+[[bin]]
+name = "delivery-fixture-peer"
+path = "tests/support/delivery_peer.rs"
+test = false
+doc = false
