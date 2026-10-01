@@ -25,9 +25,10 @@
     "settings": 8,
     "catalog": 30,
     "palette": 25,
-    "window": 36
+    "window": 36,
+    "binding": 3
   },
-  "totalObservations": 99,
+  "totalObservations": 102,
   "commandsPerCatalog": 51,
   "registeredActions": {
     "cancel": null,
@@ -67,14 +68,14 @@
   "nativeSources": {
     "rust/mluva-gtk/src/application_shell.rs": "9bacb6780dd146bbd4f327355ac8ffc6d80ee4ee36d12a0e9e748843e9024194",
     "rust/mluva-gtk/src/command_palette.rs": "bc95d358617b98e0bf1063f65c199f8ce798ab6f10b2265d217b46730322b2f9",
-    "rust/mluva-gtk/src/commands.rs": "b10fd3ef1456a9407fab34dedff946dc30782e464400ae607f9e5340902366ab",
+    "rust/mluva-gtk/src/commands.rs": "caff4b39fa73178b429f960ff78c2cf607e90be745cb5d0ff77de949baa14471",
     "rust/mluva-gtk/src/settings_view.rs": "8c9931aef9c61e1c5d1fb4ce898594031c1ed10602391a63e9609affe78d038b",
     "rust/mluva-gtk/src/editor_pages.rs": "72b72e2b030f8f5c7010ad813b6ef5ade17e863876956d5883a19fbdc4cd8e0e",
     "rust/mluva-gtk/src/prompt_editor.rs": "786e735886e186a001e157c30dbb118ae082919e886c0ef23cf011d50d0cb7ac",
     "rust/mluva-gtk/src/personalization.rs": "4d727467ae43b8c1f6c237ccb2b4b85b464b1833459990d8fe25500dc3a5413e",
     "rust/mluva-gtk/src/theme.rs": "c0fb68e10a538fe088ec97e1ab0212f78d13fbcf94dfd43116a3b9abd26d2a84",
     "rust/mluva-gtk/examples/private_input.rs": "e55e7242274475ecbd11a85ac2a04693b2e75f650e7578b5e4bcdb2aa4235734",
-    "rust/mluva-gtk/tests/application_shell.rs": "a14021ecfa190193b538466cc51624299a640380a13abc5b80e60140745fbcfb",
+    "rust/mluva-gtk/tests/application_shell.rs": "a24c2a4f365ee8b694e6237057fbdbfa63d23d3c823eca619538b750ab8efc2e",
     "Cargo.lock": "2d53fdf660295d760a3925d3bc434b8cfabb7523634e7259a966d6d2f64acfdc"
   },
   "renderedStates": [
@@ -198,7 +199,7 @@
   "demonstrated": [
     "Unchanged command identities and availability across document/editor/session/privacy changes",
     "Unicode search, disabled rows, keyboard navigation and dismissal before guarded dispatch",
-    "Actual preference page selection and nested-row focus",
+    "Actual preference page selection and nested-row focus, including retained command destinations after row refresh",
     "Window sizing, adaptive capture controls, navigation, modal guards and resident hide/reopen",
     "Shared prompt editor opening inside the native window",
     "Public action names/types and two cross-process private-bus action receipts"

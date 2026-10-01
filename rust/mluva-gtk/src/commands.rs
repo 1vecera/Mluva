@@ -398,9 +398,11 @@ pub fn settings_commands(
                     )
                 })
                 .unwrap_or_else(|| "preferences configure".into());
-            let settings = Rc::downgrade(settings);
-            let page = page.downgrade();
-            let row = row.downgrade();
+            // The panel owns these bindings until dismissal, including rows refreshed out of the UI.
+            // These commands are not installed on the original widgets, so retaining them creates no widget cycle.
+            let settings = settings.clone();
+            let page = page.clone();
+            let row = row.clone();
             let invoke = invoke.clone();
             output.push(Command {
                 title,
@@ -410,11 +412,7 @@ pub fn settings_commands(
                 enabled: Rc::new(|| true),
                 run: Rc::new(move || {
                     invoke(CommandAction::Settings);
-                    if let (Some(settings), Some(page), Some(row)) =
-                        (settings.upgrade(), page.upgrade(), row.upgrade())
-                    {
-                        settings.focus_row(&page, &row);
-                    }
+                    settings.focus_row(&page, &row);
                 }),
             });
         }

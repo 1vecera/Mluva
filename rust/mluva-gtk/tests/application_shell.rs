@@ -19,7 +19,9 @@ use mluva_gtk::application_shell::{
     register_actions,
 };
 use mluva_gtk::command_palette::{Command, CommandPalette};
-use mluva_gtk::commands::{CommandAction, CommandContext, CommandState, application_commands};
+use mluva_gtk::commands::{
+    CommandAction, CommandContext, CommandState, application_commands, settings_commands,
+};
 use mluva_gtk::editor_pages::EditorPages;
 use mluva_gtk::settings_view::SettingsView;
 use mluva_gtk::theme::ThemeController;
@@ -428,7 +430,75 @@ fn native_commands_and_settings_match_the_released_widgets() {
     window.destroy();
     settle();
     root_window_contract(&root, &data);
+    settings_binding_contract();
     drop(theme);
+}
+
+fn settings_binding_contract() {
+    let reference: Value =
+        serde_json::from_str(include_str!("fixtures/settings-command-binding.json")).unwrap();
+    let settings = SettingsView::new(Rc::new(|| {}));
+    let first = adw::PreferencesPage::builder()
+        .name("first")
+        .title("First")
+        .build();
+    let group = adw::PreferencesGroup::builder()
+        .title("Mutable choices")
+        .build();
+    let row = adw::ActionRow::builder()
+        .title("Refreshable setting")
+        .subtitle("Deferred navigation must retain its destination.")
+        .build();
+    group.add(&row);
+    first.add(&group);
+    settings.add(&first);
+    let second = adw::PreferencesPage::builder()
+        .name("second")
+        .title("Second")
+        .build();
+    settings.add(&second);
+    let window = adw::Window::builder()
+        .title("Mluva")
+        .content(&settings.widget)
+        .default_width(1060)
+        .default_height(780)
+        .build();
+    window.present();
+    let messages = Rc::new(RefCell::new(Vec::<String>::new()));
+    let target = messages.clone();
+    let command = settings_commands(
+        &settings,
+        Rc::new(move |_| target.borrow_mut().push("settings".into())),
+    )
+    .into_iter()
+    .find(|command| command.title.ends_with("Refreshable setting"))
+    .unwrap();
+    let original = row.downgrade();
+    let observe = || {
+        let row = original.upgrade();
+        json!({"page":settings.visible_page_name().map(|name|name.to_string()),"original_alive":row.is_some(),
+            "original_parented":row.as_ref().map(|row|row.parent().is_some()),"original_focusable":row.map(|row|row.is_focusable()),"messages":*messages.borrow()})
+    };
+    settle();
+    assert_eq!(observe(), reference["observations"][0]);
+    settings.set_visible_page_name("second");
+    group.remove(&row);
+    drop(row);
+    settle();
+    assert_eq!(
+        observe(),
+        reference["observations"][1],
+        "a deferred command must retain the original settings binding"
+    );
+    (command.run)();
+    settle();
+    assert_eq!(
+        observe(),
+        reference["observations"][2],
+        "refreshed rows must not lose their original destination"
+    );
+    window.destroy();
+    settle();
 }
 
 fn root_window_contract(root: &std::path::Path, data: &std::path::Path) {
