@@ -1,0 +1,149 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "scope": "Shared prompt/style components in a comparison shell; complete application acceptance remains pending",
+  "environment": {
+    "gtk": [
+      4,
+      22,
+      4
+    ],
+    "libadwaita": "1.9.3",
+    "pango": "1.58.2",
+    "display": "private X11",
+    "renderer": "cairo",
+    "scale": 1,
+    "animations": false,
+    "cursor_blink": false,
+    "pointer": "parked outside the application on the private display before captures",
+    "session_bus": "private",
+    "accessibility_registry": "private",
+    "input": "external AT-SPI and private native XTest",
+    "run_order": [
+      "reference",
+      "native"
+    ],
+    "saved_checkpoint": "after the visible toast disappears"
+  },
+  "native_sources": {
+    "rust/mluva-gtk/src/prompt_editor.rs": "786e735886e186a001e157c30dbb118ae082919e886c0ef23cf011d50d0cb7ac",
+    "rust/mluva-gtk/src/editor_pages.rs": "72b72e2b030f8f5c7010ad813b6ef5ade17e863876956d5883a19fbdc4cd8e0e",
+    "rust/mluva-gtk/src/personalization.rs": "4d727467ae43b8c1f6c237ccb2b4b85b464b1833459990d8fe25500dc3a5413e",
+    "rust/mluva-gtk/examples/prompt_editors.rs": "7f62bd1ab0805a8dac25db5fbfd1b3d12c3e5b7baebb86915ee1a557a9460484",
+    "rust/mluva-gtk/examples/private_input.rs": "a191ae7ffc9e79854ecb965bc976de009c73ea21b911999def8e24ee1f5b1493",
+    "rust/mluva-core/src/prompts.rs": "2ca8ea9239e2437daf5ff83df4af59b60402adcb2c9174f9659371c77dc7cc08"
+  },
+  "observations": [
+    {
+      "state": "catalog",
+      "different_pixels": 16,
+      "maximum_channel_difference": 1,
+      "difference_bounds": [
+        983,
+        28,
+        990,
+        35
+      ],
+      "reference_rgba8_sha256": "fa47af71582f2dfb6f11c048d725ce0cec2827f1796eadbe00983c413dc953a2",
+      "native_rgba8_sha256": "8ab32923bee4d1e2b77b6ff6e858c068bda5de79a48b4c77c4e75b3e5d56ab0d",
+      "accessibility_nodes": 191,
+      "accessibility_sha256": "df878fd9aa005f057b55ed4d73d9723506babe668def5fd0de829494952e22bc"
+    },
+    {
+      "state": "override-open",
+      "different_pixels": 0,
+      "maximum_channel_difference": 0,
+      "difference_bounds": null,
+      "reference_rgba8_sha256": "12c7f4426f22cc4b04d2493782e226115dc92c8a33c4e08890b552be29d03dfb",
+      "native_rgba8_sha256": "12c7f4426f22cc4b04d2493782e226115dc92c8a33c4e08890b552be29d03dfb",
+      "accessibility_nodes": 228,
+      "accessibility_sha256": "4b64d7f9d643d8975509e46909c5f43816b28c31ff06016b87f013bbe9b36b08"
+    },
+    {
+      "state": "draft-edited",
+      "different_pixels": 0,
+      "maximum_channel_difference": 0,
+      "difference_bounds": null,
+      "reference_rgba8_sha256": "3786a8c498ec046cafdc3a5087877d6970d2d86ef22e13620cf65b83c997ab38",
+      "native_rgba8_sha256": "3786a8c498ec046cafdc3a5087877d6970d2d86ef22e13620cf65b83c997ab38",
+      "accessibility_nodes": 229,
+      "accessibility_sha256": "2f9834621d3cd50910fa181bfeb67632ee2ac09940d7f0f0bc392707c8f434a4"
+    },
+    {
+      "state": "discard-confirmation",
+      "different_pixels": 0,
+      "maximum_channel_difference": 0,
+      "difference_bounds": null,
+      "reference_rgba8_sha256": "1e3c700982d0c94b2d503a0dd761a8de2c74399774e79e9603845acc1891adce",
+      "native_rgba8_sha256": "1e3c700982d0c94b2d503a0dd761a8de2c74399774e79e9603845acc1891adce",
+      "accessibility_nodes": 249,
+      "accessibility_sha256": "8e1fdb452b08d139cfd0890bca8106b3fc1bb2fd25a67a92d3f67df7167577ac"
+    },
+    {
+      "state": "draft-kept",
+      "different_pixels": 0,
+      "maximum_channel_difference": 0,
+      "difference_bounds": null,
+      "reference_rgba8_sha256": "3786a8c498ec046cafdc3a5087877d6970d2d86ef22e13620cf65b83c997ab38",
+      "native_rgba8_sha256": "3786a8c498ec046cafdc3a5087877d6970d2d86ef22e13620cf65b83c997ab38",
+      "accessibility_nodes": 229,
+      "accessibility_sha256": "2f9834621d3cd50910fa181bfeb67632ee2ac09940d7f0f0bc392707c8f434a4"
+    },
+    {
+      "state": "conflict",
+      "different_pixels": 0,
+      "maximum_channel_difference": 0,
+      "difference_bounds": null,
+      "reference_rgba8_sha256": "d11a7b864e1b97269db03dcb8c881c9eede4005b29cfd42cec75b0b9e9d451af",
+      "native_rgba8_sha256": "d11a7b864e1b97269db03dcb8c881c9eede4005b29cfd42cec75b0b9e9d451af",
+      "accessibility_nodes": 229,
+      "accessibility_sha256": "dd71b98642b9874e82dc5d14aa19932b891d2e6895ad9b1f6a09fe335687f0b6"
+    },
+    {
+      "state": "default-staged",
+      "different_pixels": 0,
+      "maximum_channel_difference": 0,
+      "difference_bounds": null,
+      "reference_rgba8_sha256": "ab90ce652d9b0e48ac9a427d6f2730abe28c87c255b728a231de620f869f9ee8",
+      "native_rgba8_sha256": "ab90ce652d9b0e48ac9a427d6f2730abe28c87c255b728a231de620f869f9ee8",
+      "accessibility_nodes": 229,
+      "accessibility_sha256": "a0ee578da240a10223aed16026d4a98037530c50d73bdb04209351485ee50b64"
+    },
+    {
+      "state": "default-restored",
+      "different_pixels": 0,
+      "maximum_channel_difference": 0,
+      "difference_bounds": null,
+      "reference_rgba8_sha256": "8ab32923bee4d1e2b77b6ff6e858c068bda5de79a48b4c77c4e75b3e5d56ab0d",
+      "native_rgba8_sha256": "8ab32923bee4d1e2b77b6ff6e858c068bda5de79a48b4c77c4e75b3e5d56ab0d",
+      "accessibility_nodes": 191,
+      "accessibility_sha256": "df878fd9aa005f057b55ed4d73d9723506babe668def5fd0de829494952e22bc"
+    },
+    {
+      "state": "style-prompt-open",
+      "different_pixels": 0,
+      "maximum_channel_difference": 0,
+      "difference_bounds": null,
+      "reference_rgba8_sha256": "c5a16a549564035d5bfa2c7a2eff05302ed24f3e9942b3b4abb296432eb18ef0",
+      "native_rgba8_sha256": "c5a16a549564035d5bfa2c7a2eff05302ed24f3e9942b3b4abb296432eb18ef0",
+      "accessibility_nodes": 1161,
+      "accessibility_sha256": "781f05d60772e38049dee141a20bdbecf2e38188353a5a216a22bbfb45b5f9bc"
+    },
+    {
+      "state": "style-applied",
+      "different_pixels": 0,
+      "maximum_channel_difference": 0,
+      "difference_bounds": null,
+      "reference_rgba8_sha256": "cae0b60dce20623b4c1b62611e3680a4c1a9079709b5be54d4da57cede78557a",
+      "native_rgba8_sha256": "cae0b60dce20623b4c1b62611e3680a4c1a9079709b5be54d4da57cede78557a",
+      "accessibility_nodes": 1211,
+      "accessibility_sha256": "459f0eb7660a4efe164791c95c8f758b329a35a48af70f41771af333b62855d2"
+    }
+  ],
+  "saved_result": {
+    "style_text": "Edited style žluťoučký 😀 instructions.\n  ",
+    "file_mode": "0600",
+    "personalization_unchanged": true,
+    "history_items": 0
+  },
+  "limitation": "Nine rendered states match byte-for-byte at RGBA8. The initial catalog differs by one channel unit on 16 pixels in the standard maximize icon; this remains recorded rather than treated as an exact pixel match. Animation timing, complete app integration and other scales remain pending."
+}

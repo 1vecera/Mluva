@@ -9,6 +9,8 @@ use mluva_core::personalization::{DictionaryCaseBehavior, PersonalizationStore};
 use mluva_core::prompt_catalog::SavedStyle;
 use mluva_core::vocabulary::{self, VocabularySuggestion};
 
+use crate::prompt_editor::reveal_prompt_button;
+
 type Message = Rc<dyn Fn(&str)>;
 pub type EditPrompt = Rc<dyn Fn(&str)>;
 
@@ -830,30 +832,4 @@ fn style_editor() -> StyleEditor {
         save,
         cancel,
     }
-}
-fn reveal_prompt_button(row: &adw::ExpanderRow, button: &gtk::Button) {
-    let motion = gtk::EventControllerMotion::new();
-    let focus = gtk::EventControllerFocus::new();
-    let weak_button = button.downgrade();
-    let weak_motion = motion.downgrade();
-    let weak_focus = focus.downgrade();
-    let update: Rc<dyn Fn()> = Rc::new(move || {
-        if let (Some(button), Some(motion), Some(focus)) = (
-            weak_button.upgrade(),
-            weak_motion.upgrade(),
-            weak_focus.upgrade(),
-        ) {
-            button.set_opacity(if motion.contains_pointer() || focus.contains_focus() {
-                1.0
-            } else {
-                0.0
-            });
-        }
-    });
-    let changed = update.clone();
-    motion.connect_contains_pointer_notify(move |_| changed());
-    focus.connect_contains_focus_notify(move |_| update());
-    row.add_controller(motion);
-    row.add_controller(focus);
-    button.set_opacity(0.0);
 }
