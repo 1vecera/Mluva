@@ -19,6 +19,7 @@ rustfft = "=6.4.1"
 ort = { version = "=2.0.0-rc.13", default-features = false, features = ["std", "load-dynamic", "api-26", "cuda"] }
 
 [dev-dependencies]
+mluva-providers = { path = "../mluva-providers" }
 tempfile.workspace = true
 tokio.workspace = true
 flate2 = "1.1.10"

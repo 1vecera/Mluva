@@ -64,3 +64,9 @@ name = "qwen-fixture-peer"
 path = "tests/support/qwen_peer.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "local-asr-fixture-peer"
+path = "tests/support/local_asr_peer.rs"
+test = false
+doc = false
