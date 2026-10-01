@@ -797,6 +797,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "mluva-audio"
+version = "1.6.0"
+dependencies = [
+ "caseless",
+ "libc",
+ "mluva-core",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "mluva-core"
 version = "1.6.0"
 dependencies = [

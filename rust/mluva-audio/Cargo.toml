@@ -1,0 +1,30 @@
+[package]
+name = "mluva-audio"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Native private PipeWire recording, meeting mixing and crash cleanup"
+
+[dependencies]
+mluva-core = { path = "../mluva-core" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tempfile.workspace = true
+caseless.workspace = true
+libc.workspace = true
+
+[[bin]]
+name = "mluva-audio-cleanup"
+path = "src/bin/cleanup.rs"
+
+# A native, synthetic subprocess used only by integration checks. Distribution
+# selects the production binaries explicitly and never installs this peer.
+[[bin]]
+name = "audio-fixture-peer"
+path = "tests/support/peer.rs"
+test = false
+doc = false
