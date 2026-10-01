@@ -1,4 +1,4 @@
-//! Opt-in actual pinned CPU recognition. Asset preparation never touches the installed app.
+//! Opt-in actual pinned CPU/CUDA recognition. Never touches the installed app.
 use flate2::read::GzDecoder;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -76,6 +76,18 @@ fn public_pcm(language: &str) -> Vec<u8> {
 async fn actual_cpu_whisper_and_parakeet_match_released_recognition() {
     let reference: Value =
         serde_json::from_str(include_str!("fixtures/released-onnx-inference.json")).unwrap();
+    actual_recognition(&reference, "cpu").await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore = "requires a physical NVIDIA GPU and explicitly prepared native-only public runtime/model assets"]
+async fn actual_cuda_whisper_and_parakeet_match_released_recognition() {
+    let reference: Value =
+        serde_json::from_str(include_str!("fixtures/released-onnx-cuda-inference.json")).unwrap();
+    actual_recognition(&reference, "cuda").await;
+}
+
+async fn actual_recognition(reference: &Value, device: &str) {
     let assets = std::env::var_os("MLUVA_ONNX_ASSETS")
         .expect("prepare pinned public ONNX assets separately");
     let assets = Path::new(&assets);
@@ -87,21 +99,68 @@ async fn actual_cpu_whisper_and_parakeet_match_released_recognition() {
     for folder in ["home", "data", "config", "cache", "tmp", "runtime"] {
         private_directory(&root.join(folder));
     }
-    for spec in reference["runtime"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .filter(|file| file["archive"] == "cpu")
-    {
-        let name = Path::new(spec["member"].as_str().unwrap())
-            .file_name()
-            .unwrap();
-        verified_copy(
-            &assets.join("runtime-cpu").join(name),
-            &root.join("runtime").join(name),
-            spec,
+    let library = if device == "cuda" {
+        let runtime = assets.join("native-runtime/xdg-data/mluva/gpu-runtime");
+        let mut expected = std::collections::BTreeSet::from([".native-ready".to_owned()]);
+        for spec in reference["runtime"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .flat_map(|archive| archive["members"].as_array().unwrap())
+        {
+            let name = spec["path"].as_str().unwrap();
+            expected.insert(name.to_owned());
+            verified_copy(&runtime.join(name), &root.join("runtime").join(name), spec);
+        }
+        fn files(root: &Path, path: &Path, names: &mut std::collections::BTreeSet<String>) {
+            for entry in fs::read_dir(path).unwrap().map(Result::unwrap) {
+                let path = entry.path();
+                let metadata = path.symlink_metadata().unwrap();
+                assert!(
+                    !metadata.is_symlink(),
+                    "native-only runtime contains no links"
+                );
+                if metadata.is_dir() {
+                    files(root, &path, names);
+                } else {
+                    assert!(metadata.is_file());
+                    names.insert(
+                        path.strip_prefix(root)
+                            .unwrap()
+                            .to_str()
+                            .unwrap()
+                            .to_owned(),
+                    );
+                }
+            }
+        }
+        let mut actual = std::collections::BTreeSet::new();
+        files(&runtime, &runtime, &mut actual);
+        assert_eq!(
+            actual, expected,
+            "only pinned native libraries/notices and completion marker are installed"
         );
-    }
+        root.join("runtime/lib/libonnxruntime.so.1.26.0")
+    } else {
+        for spec in reference["runtime"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|file| file["archive"] == "cpu")
+        {
+            let name = Path::new(spec["member"].as_str().unwrap())
+                .file_name()
+                .unwrap();
+            verified_copy(
+                &assets
+                    .join("native-runtime/xdg-data/mluva/onnx-runtime/cpu/lib")
+                    .join(name),
+                &root.join("runtime").join(name),
+                spec,
+            );
+        }
+        root.join("runtime/libonnxruntime.so.1.30.0")
+    };
     for (language, name) in [("en", "asr-en.wav"), ("zh", "asr-zh.wav")] {
         let pcm = public_pcm(language);
         fs::write(root.join(name), mluva_audio::wav::pcm16_wav(&pcm).unwrap()).unwrap();
@@ -138,10 +197,10 @@ async fn actual_cpu_whisper_and_parakeet_match_released_recognition() {
         }
         let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_mluva-asr-worker"));
         command
-            .arg(root.join("runtime/libonnxruntime.so.1.30.0"))
+            .arg(&library)
             .arg(id)
             .arg(&model_root)
-            .arg("cpu")
+            .arg(device)
             .env_clear()
             .env("PATH", "/usr/bin:/bin")
             .env("LANG", "C.UTF-8")
@@ -152,6 +211,8 @@ async fn actual_cpu_whisper_and_parakeet_match_released_recognition() {
             .env("TMPDIR", root.join("tmp"))
             .env("OMP_NUM_THREADS", "1")
             .env("OPENBLAS_NUM_THREADS", "1")
+            .env("LD_LIBRARY_PATH", root.join("runtime/lib"))
+            .env("CUDA_CACHE_PATH", root.join("cache/cuda"))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
@@ -177,6 +238,19 @@ async fn actual_cpu_whisper_and_parakeet_match_released_recognition() {
                 let expected = json!({"text_sha256":action["text_sha256"],"text_characters":action["text_characters"]});
                 if observed != expected { return Err(format!("{id}/{}: {observed} != {expected}", action["name"])); }
                 eprintln!("{id}/{} matches released recognition", action["name"]);
+                if device == "cuda" && action["name"] == "english-auto" {
+                    let mut probe = tokio::process::Command::new("/usr/bin/nvidia-smi");
+                    probe.args(["--query-compute-apps=pid,used_memory", "--format=csv,noheader,nounits"])
+                        .env_clear().env("PATH", "/usr/bin:/bin").stdin(Stdio::null()).stderr(Stdio::null()).kill_on_drop(true);
+                    let telemetry = tokio::time::timeout(Duration::from_secs(2), probe.output()).await
+                        .map_err(|_| "GPU telemetry deadline exceeded".to_owned())?.map_err(|_| "GPU telemetry failed".to_owned())?;
+                    if !telemetry.status.success() { return Err("GPU telemetry failed".to_owned()); }
+                    let telemetry = String::from_utf8(telemetry.stdout).map_err(|_| "GPU telemetry malformed".to_owned())?;
+                    let memory = telemetry.lines().filter_map(|row|row.split_once(',')).find(|(owner,_)|owner.trim().parse::<u32>().ok()==Some(pid))
+                        .and_then(|(_,memory)|memory.trim().parse::<u64>().ok()).ok_or("native worker has no observed NVIDIA compute context")?;
+                    if memory == 0 || case["gpu"]["owned_context"] != true { return Err("model has no observed NVIDIA memory".to_owned()); }
+                    eprintln!("{id}: independently observed owned NVIDIA compute context ({memory} MiB)");
+                }
             }
             Ok(())
         }.await;

@@ -9,9 +9,9 @@ use std::ffi::CString;
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 use std::os::unix::ffi::OsStrExt;
-use std::os::unix::fs::{DirBuilderExt, PermissionsExt};
+use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 use tokio_util::sync::CancellationToken;
 
@@ -205,13 +205,13 @@ impl AssetStore {
         }
         Ok(ModelDownload {
             store: self.clone(),
-            _lock: lock,
+            _lock: Arc::new(lock),
         })
     }
 }
 pub struct ModelDownload {
     store: AssetStore,
-    _lock: File,
+    _lock: Arc<File>,
 }
 struct DownloadPolicy<'a> {
     size: u64,
@@ -230,12 +230,29 @@ impl Drop for Cleanup {
         }
     }
 }
+struct ExtractionOwner {
+    // Field drop order removes staging before releasing the cross-process lock.
+    cleanup: Cleanup,
+    _lock: Arc<File>,
+}
+struct ExtractionCancellation(CancellationToken);
+impl Drop for ExtractionCancellation {
+    fn drop(&mut self) {
+        self.0.cancel();
+    }
+}
 impl ModelDownload {
     fn owned_bytes(&self) -> u64 {
-        ["models", "gpu-runtime", "qwen-runtime", "qwen-cache"]
-            .iter()
-            .map(|name| disk_usage(&self.store.data_dir.join(name)))
-            .sum()
+        [
+            "models",
+            "gpu-runtime",
+            "qwen-runtime",
+            "qwen-cache",
+            "onnx-runtime",
+        ]
+        .iter()
+        .map(|name| disk_usage(&self.store.data_dir.join(name)))
+        .sum()
     }
     /// Install pinned weights after the caller prepares the selected inference runtime.
     /// Keep this download guard alive across both phases to exclude other processes.
@@ -350,6 +367,152 @@ impl ModelDownload {
         let _ = fs::remove_dir_all(&installed);
         fs::rename(&stage, &installed).map_err(|_| ProviderError::message(IO_FAILURE))?;
         cleanup.armed = false;
+        Ok(())
+    }
+    /// Prepare native ONNX libraries before weights while retaining this model-download lock.
+    pub async fn install_onnx_runtime(
+        &mut self,
+        manifest: &crate::onnx_runtime::OnnxManifest,
+        device: &str,
+        cancelled: &CancellationToken,
+    ) -> Result<()> {
+        use crate::onnx_runtime::{CPU_RUNTIME_BUDGET, GPU_RUNTIME_BUDGET, check_gpu_storage};
+        if manifest.ready(&self.store.data_dir, device) {
+            // Recover a crash after promotion, under the same exclusive download lock.
+            let installed = manifest.root(&self.store.data_dir, device);
+            let _ = fs::remove_dir_all(installed.with_extension("partial"));
+            let _ = fs::remove_dir_all(installed.with_extension("previous"));
+            return Ok(());
+        }
+        if std::env::consts::ARCH != "x86_64" {
+            return Err(ProviderError::message(
+                "This native ONNX runtime requires Linux x86-64.",
+            ));
+        }
+        if device == "cuda" && crate::onnx_runtime::gpu_name().await.is_empty() {
+            return Err(ProviderError::message(
+                "No supported NVIDIA GPU found. Use CPU on this computer.",
+            ));
+        }
+        let archives = manifest.archives(device)?;
+        let installed = manifest.root(&self.store.data_dir, device);
+        let parent = installed.parent().unwrap();
+        private_directory(parent)?;
+        let budget = if device == "cuda" {
+            GPU_RUNTIME_BUDGET
+        } else {
+            CPU_RUNTIME_BUDGET
+        };
+        let budget_failure = if device == "cuda" {
+            "GPU runtime exceeds the storage budget. Use CPU."
+        } else {
+            "Runtime exceeds its storage budget."
+        };
+        let selected = archives
+            .iter()
+            .flat_map(|archive| &archive.members)
+            .try_fold(0_u64, |total, member| total.checked_add(member.size))
+            .ok_or_else(|| ProviderError::message(budget_failure))?;
+        if selected > budget {
+            return Err(ProviderError::message(budget_failure));
+        }
+        if archives.is_empty() || archives.iter().any(|archive| archive.members.is_empty()) {
+            return Err(ProviderError::message(
+                "Runtime verification failed. Download again.",
+            ));
+        }
+        if device == "cuda" {
+            let used = ["models", "qwen-runtime", "qwen-cache", "onnx-runtime"]
+                .iter()
+                .map(|name| disk_usage(&self.store.data_dir.join(name)))
+                .sum();
+            check_gpu_storage(used, free_space(parent)?)?;
+        } else if self.owned_bytes().saturating_add(budget) > STORAGE_LIMIT
+            || free_space(parent)? < budget
+        {
+            return Err(ProviderError::message(
+                "Not enough local model storage. Remove unused downloads before continuing.",
+            ));
+        }
+        let stage = installed.with_extension("partial");
+        let _ = fs::remove_dir_all(&stage);
+        private_directory(&stage)?;
+        let mut cleanup = Cleanup {
+            path: stage.clone(),
+            armed: true,
+        };
+        for asset in archives {
+            let archive = stage.join("native-runtime.whl");
+            self.download(
+                &asset.url,
+                &archive,
+                DownloadPolicy {
+                    size: asset.size,
+                    checksum: Some(&asset.sha256),
+                    too_large: "Runtime exceeds its declared size.",
+                    invalid: "Runtime verification failed. Download again.",
+                },
+                cancelled,
+                &mut |_| {},
+            )
+            .await?;
+            let extraction_root = stage.clone();
+            let extraction_archive = archive.clone();
+            let members = asset.members.clone();
+            let cancellation = cancelled.child_token();
+            let extraction_cancel = ExtractionCancellation(cancellation.clone());
+            let owner = ExtractionOwner {
+                cleanup,
+                _lock: self._lock.clone(),
+            };
+            let extraction = tokio::task::spawn_blocking(move || {
+                let result = crate::onnx_runtime::extract(
+                    &extraction_archive,
+                    &extraction_root,
+                    &members,
+                    &cancellation,
+                );
+                (result, owner)
+            });
+            // A dropped future cancels extraction; its owner keeps staging and the lock until it stops.
+            let (result, owner) = extraction
+                .await
+                .map_err(|_| ProviderError::message(IO_FAILURE))?;
+            cleanup = owner.cleanup;
+            drop(extraction_cancel);
+            result?;
+            fs::remove_file(&archive).map_err(|_| ProviderError::message(IO_FAILURE))?;
+        }
+        if cancelled.is_cancelled() {
+            return Err(ProviderError::message("Download cancelled."));
+        }
+        let stamp = manifest.stamp(device)?;
+        OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .mode(0o600)
+            .open(stage.join(".native-ready"))
+            .and_then(|mut file| file.write_all(stamp.as_bytes()))
+            .map_err(|_| ProviderError::message(IO_FAILURE))?;
+        // Keep an existing managed runtime until the replacement has been fully verified.
+        let previous = installed.with_extension("previous");
+        let _ = fs::remove_dir_all(&previous);
+        let replacing = installed
+            .try_exists()
+            .map_err(|_| ProviderError::message(IO_FAILURE))?;
+        if replacing {
+            fs::rename(&installed, &previous).map_err(|_| ProviderError::message(IO_FAILURE))?;
+        }
+        if fs::rename(&stage, &installed).is_err() {
+            if replacing {
+                let _ = fs::rename(&previous, &installed);
+            }
+            return Err(ProviderError::message(IO_FAILURE));
+        }
+        cleanup.armed = false;
+        if replacing {
+            let _ = fs::remove_dir_all(previous);
+        }
         Ok(())
     }
     async fn download(

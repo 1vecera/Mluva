@@ -2,6 +2,7 @@
 use mluva_providers::{
     ProviderError,
     local_assets::{AssetStore, ModelSpec, QwenManifest, disk_usage, unpack_runtime},
+    onnx_runtime::OnnxManifest,
 };
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -153,6 +154,102 @@ async fn main() {
                     }
                 }
             }
+        }
+        "onnx-runtime" => {
+            let manifest: OnnxManifest = serde_json::from_value(spec["manifest"].clone()).unwrap();
+            let store = AssetStore::new(&data).unwrap();
+            match store.begin_download() {
+                Err(error) => results.push(observed(Err(error))),
+                Ok(mut download) => {
+                    for call in spec["calls"].as_array().unwrap() {
+                        let cancellation = CancellationToken::new();
+                        if call["cancel"] == true {
+                            cancellation.cancel();
+                        }
+                        let timer = call["cancel_after_ms"].as_u64().map(|delay| {
+                            let token = cancellation.clone();
+                            tokio::spawn(async move {
+                                tokio::time::sleep(std::time::Duration::from_millis(delay)).await;
+                                token.cancel();
+                            })
+                        });
+                        let device = call["device"].as_str().unwrap();
+                        if call["post_promotion_crash"] == true {
+                            let installed = manifest.root(&data, device);
+                            assert!(manifest.ready(&data, device));
+                            for extension in ["partial", "previous"] {
+                                let leftover = installed.with_extension(extension);
+                                std::fs::create_dir_all(&leftover).unwrap();
+                                std::fs::write(leftover.join("owned-leftover"), b"crash fixture")
+                                    .unwrap();
+                            }
+                        }
+                        results.push(observed(
+                            download
+                                .install_onnx_runtime(&manifest, device, &cancellation)
+                                .await,
+                        ));
+                        if let Some(timer) = timer {
+                            timer.abort();
+                            let _ = timer.await;
+                        }
+                        ready.push(manifest.ready(&data, device));
+                    }
+                }
+            }
+        }
+        "onnx-probe" => {
+            results.push(json!({"gpu":mluva_providers::onnx_runtime::gpu_name().await}));
+            results.push(json!({"gpu":mluva_providers::onnx_runtime::gpu_name().await}));
+        }
+        "onnx-drop" => {
+            let manifest: OnnxManifest = serde_json::from_value(spec["manifest"].clone()).unwrap();
+            let device = spec["device"].as_str().unwrap().to_owned();
+            let stage = manifest.root(&data, &device).with_extension("partial");
+            let watched = stage.join(spec["member"].as_str().unwrap());
+            let store = AssetStore::new(&data).unwrap();
+            let mut download = store.begin_download().unwrap();
+            let task_manifest = manifest.clone();
+            let task_device = device.clone();
+            let task = tokio::spawn(async move {
+                download
+                    .install_onnx_runtime(&task_manifest, &task_device, &CancellationToken::new())
+                    .await
+            });
+            tokio::time::timeout(std::time::Duration::from_secs(5), async {
+                while !watched.exists() {
+                    assert!(
+                        !task.is_finished(),
+                        "extractor is observed before owner abort"
+                    );
+                    tokio::time::sleep(std::time::Duration::from_millis(1)).await;
+                }
+            })
+            .await
+            .unwrap();
+            task.abort();
+            assert!(task.await.unwrap_err().is_cancelled());
+            tokio::time::timeout(std::time::Duration::from_secs(5), async {
+                loop {
+                    match store.begin_download() {
+                        Ok(guard) => {
+                            assert!(
+                                !stage.exists(),
+                                "lock stays held until extractor staging cleanup"
+                            );
+                            drop(guard);
+                            break;
+                        }
+                        Err(_) => tokio::time::sleep(std::time::Duration::from_millis(1)).await,
+                    }
+                }
+            })
+            .await
+            .unwrap();
+            results.push(
+                json!({"aborted":true,"member_observed":true,"lock_release_after_cleanup":true}),
+            );
+            ready.push(manifest.ready(&data, &device));
         }
         "extract" => {
             let destination = data.join("unpacked");

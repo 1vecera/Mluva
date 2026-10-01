@@ -9,6 +9,7 @@ pub mod languages;
 pub mod local_assets;
 pub mod models;
 pub mod multipart;
+pub mod onnx_runtime;
 pub mod qwen;
 pub mod realtime;
 pub mod rewriting;
