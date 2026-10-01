@@ -1,0 +1,36 @@
+[package]
+name = "mluva-providers"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Native speech and rewrite provider connections"
+
+[dependencies]
+mluva-core = { path = "../mluva-core" }
+mluva-audio = { path = "../mluva-audio" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+base64.workspace = true
+url.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+reqwest.workspace = true
+tokio-tungstenite.workspace = true
+futures-util.workspace = true
+libc.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+native-tls = "0.2"
+tokio-native-tls = "0.3"
+
+[[bin]]
+name = "provider-fixture-peer"
+path = "tests/support/peer.rs"
+test = false
+doc = false
