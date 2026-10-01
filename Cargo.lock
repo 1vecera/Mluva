@@ -1175,6 +1175,7 @@ name = "mluva-providers"
 version = "1.6.0"
 dependencies = [
  "base64 0.22.1",
+ "caseless",
  "futures-util",
  "libc",
  "mluva-audio",

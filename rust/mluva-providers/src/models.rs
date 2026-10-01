@@ -16,6 +16,95 @@ pub struct Model {
     pub reasoning_efforts: Vec<String>,
 }
 
+impl Model {
+    pub fn from_codex_catalog(row: &Value) -> Result<Self> {
+        let invalid =
+            || ProviderError::message("Codex app-server returned a malformed model catalog.");
+        let string = |key: &str| {
+            row.get(key)
+                .and_then(Value::as_str)
+                .map(str::to_owned)
+                .ok_or_else(invalid)
+        };
+        let efforts = match row.get("supportedReasoningEfforts") {
+            None => vec![],
+            Some(value) => value
+                .as_array()
+                .ok_or_else(invalid)?
+                .iter()
+                .map(|effort| {
+                    effort
+                        .get("reasoningEffort")
+                        .and_then(Value::as_str)
+                        .map(str::to_owned)
+                        .ok_or_else(invalid)
+                })
+                .collect::<Result<Vec<_>>>()?,
+        };
+        let mut fast_tier = None;
+        if let Some(tiers) = row.get("serviceTiers") {
+            for tier in tiers.as_array().ok_or_else(invalid)? {
+                let name = tier
+                    .get("name")
+                    .and_then(Value::as_str)
+                    .ok_or_else(invalid)?;
+                let id = tier.get("id").and_then(Value::as_str).ok_or_else(invalid)?;
+                if caseless::default_case_fold_str(name) == "fast"
+                    || matches!(id, "fast" | "priority")
+                {
+                    fast_tier = Some(id.into());
+                    break;
+                }
+            }
+        }
+        if fast_tier.is_none()
+            && row
+                .get("additionalSpeedTiers")
+                .and_then(Value::as_array)
+                .is_some_and(|tiers| tiers.iter().any(|tier| tier == "fast"))
+        {
+            fast_tier = Some("fast".into());
+        }
+        let identifier = string("model")?;
+        Ok(Self {
+            id: string("id")?,
+            name: row.get("displayName").map_or_else(
+                || Ok(identifier.clone()),
+                |value| value.as_str().map(str::to_owned).ok_or_else(invalid),
+            )?,
+            identifier,
+            is_default: row.get("isDefault").map(truthy).ok_or_else(invalid)?,
+            hidden: row.get("hidden").is_some_and(truthy),
+            rewrite_effort: if efforts.iter().any(|effort| effort == "low") {
+                Some("low".into())
+            } else {
+                row.get("defaultReasoningEffort")
+                    .and_then(Value::as_str)
+                    .map(str::to_owned)
+            },
+            fast_tier,
+            reasoning_efforts: efforts,
+        })
+    }
+}
+
+pub fn select_codex_model<'a>(models: &'a [Model], requested: Option<&str>) -> Result<&'a Model> {
+    if let Some(requested) = requested {
+        return models
+            .iter()
+            .find(|model| model.id == requested || model.identifier == requested)
+            .ok_or_else(|| ProviderError::message("The configured Codex model is unavailable."));
+    }
+    let mut defaults = models.iter().filter(|model| model.is_default);
+    let first = defaults.next();
+    if defaults.next().is_some() || first.is_none() {
+        return Err(ProviderError::message(
+            "Codex app-server did not expose exactly one default model.",
+        ));
+    }
+    Ok(first.unwrap())
+}
+
 static PRINTABLE: LazyLock<Vec<(u32, u32)>> = LazyLock::new(|| {
     serde_json::from_str(include_str!("../resources/printable-ranges.json"))
         .expect("frozen printable properties")

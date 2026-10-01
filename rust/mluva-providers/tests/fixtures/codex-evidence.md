@@ -1,0 +1,29 @@
+# Native Codex evidence
+
+The behavior reference remains v1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. Ignored collectors verify imported module bytes against that commit before collecting results. Native maintained tests use saved observations and actual Rust peers; no Python helper, interpreter or compatibility fallback is required by this implementation. The [official app-server documentation](https://learn.chatgpt.com/docs/app-server) describes the JSONL handshake, request correlation and turn completion contract. Local schemas were generated from installed Codex 0.158.0 to verify the current protocol surface; they remain scratch evidence.
+
+| Fixture | Independent observations | SHA-256 |
+| --- | --- | --- |
+| `released-codex.json` | 170 catalog rows, 49 alias/default selections, 96 rewrite decisions, exact capability overrides and environment filtering | `4b8ba60238716135f710cb99f90d040b45fc11180ec34b228b49ec9cded6ea6f` |
+| `released-codex-wire.json` | 50 real JSONL child-process sessions through the independent native server | `61cf806a5d553adface81a17eca14bf02c62c21b81ab8e5b16496038fb79f062` |
+| `released-installed-codex.json` | Two real installed-CLI sessions through a private loopback Responses provider | `75a2b5c35a4f14bbbc264c00ded4508d3614b67ce33507c6820d5e124d7bbdfa` |
+
+The native process comparison checks exact ASCII JSONL frames, request IDs, pagination, explicit and hidden aliases, default selection, current model reporting, images/offsets, effort/tier, partial deltas and completion. Only random workspace and specification paths are normalized. It checks argument overrides, environment names, 0700 workspaces, removal and child reaping. Standard error is discarded even under large diagnostic output. Natural exit/restart preserves request numbering; cancellation cannot restart a client, while `spawn` creates an independent lifecycle. Short request and turn budgets produce the released controlled errors without provider bodies or private paths.
+
+The transport confirms empty environments, ephemeral threads and no instruction sources, disables each inherited MCP server by name, checks its capability inventory and refuses server-initiated requests with JSON-RPC `-32601`. Exposed tools, resources, paginated inventories, model changes, unknown tool items/methods, malformed or oversized deltas and incomplete turns cannot produce replacement text. The peer observes the refusal before completing the pending RPC; shutdown cannot race that observation. Trace lines are encoded and appended in one write so termination cannot create misleading partial evidence.
+
+The process comparison exposed an initial Rust temporary-directory mode of 0755 under the current umask. The production builder now requests 0700 before launching any child. Cleanup drops queued notification content after cancellation and reaps the child before deleting its workspace. Tests additionally exercise a child that ignores SIGTERM and requires the bounded SIGKILL path, missing executables, cancellation during a turn, disabled routes and a compatible route that freezes its alias and ignores Codex-only speed settings. Executable lookup is shared with the already-verified audio services and checks actual access rights, including the system fallback when PATH is absent.
+
+Global instruction files are masked with actual bubblewrap mounts in a private child namespace; the parent files are unchanged. The installed-CLI check uses isolated HOME/CODEX_HOME, disables remote catalogs and WebSockets, supplies only synthetic input to loopback HTTP and never reads a real credential or invokes remote inference. Every captured model request has an empty tool catalog; canary MCP and command markers remain absent, and private instruction canaries never enter the requests.
+
+Codex 0.158.0 refuses an unsolicited backend `exec_command` internally and makes a second model request without exposing an operation item to Mluva. Both the unchanged release and native client accept the subsequent successful text result. The fixture records this actual behavior; it does not assert that Mluva received or rejected an event the CLI never exposed. The released legacy smoke script's stronger expectation of an outside-text-only error does not hold on this CLI version. Direct exposed-operation refusals remain covered by the 50 process cases.
+
+The shared factory snapshots settings, routes disabled/compatible/Codex requests, preserves short catalog/title budgets and uses the released 40,000-character document rewrite bound. Codex's standalone transform default remains 8,000. A 9,000-character factory rewrite is independently compared with the release so document support cannot accidentally inherit the smaller bound. Frozen rewrite cases also preserve separate unsupported-speed and unsupported-thinking errors: the released controller gives the former an actionable message and handles the latter through its generic failure path. Native controllers can preserve that behavior without matching error text.
+
+Five ordinary native Codex tests pass. The installed-CLI test is ignored by default because it requires the pinned CLI and working bubblewrap; it was explicitly run successfully after review:
+
+```sh
+cargo test --locked -p mluva-providers --test codex installed_codex -- --ignored
+```
+
+The ordinary workspace passes 95 tests, with three private GTK tests and this CLI test excluded from the default run. The three GTK tests retain their earlier explicitly executed evidence and were not rerun for this provider change. Formatting and Clippy with warnings denied pass. Real account entitlement/inference, keyring integration, managed local CPU/GPU models, complete application controllers and workflows, distribution, final Python removal and performance measurements remain pending. The installed app/widget remain 1.6.0. All synthetic peer binaries must be excluded from installation.

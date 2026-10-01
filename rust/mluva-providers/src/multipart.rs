@@ -24,7 +24,12 @@ pub fn encode(fields: &[(&str, &str)], path: &Path, boundary: &str) -> Result<Ve
 
 /// Keep the released request spacing and ASCII escaping without an interpreter.
 pub(crate) fn json_body(value: &Value) -> Vec<u8> {
-    let plain = mluva_core::json::spaced(value);
+    ascii_json(&mluva_core::json::spaced(value))
+}
+pub(crate) fn json_compact(value: &Value) -> Vec<u8> {
+    ascii_json(&serde_json::to_string(value).unwrap())
+}
+fn ascii_json(plain: &str) -> Vec<u8> {
     let mut encoded = String::with_capacity(plain.len());
     for character in plain.chars() {
         if character < '\u{7f}' {

@@ -1,11 +1,14 @@
 //! Provider sessions freeze route choices and never return provisional or cancelled text.
 
+pub mod codex;
+pub mod codex_policy;
 pub mod compatible;
 pub mod elevenlabs;
 pub mod languages;
 pub mod models;
 pub mod multipart;
 pub mod realtime;
+pub mod rewriting;
 mod transport;
 
 use serde::{Deserialize, Serialize};

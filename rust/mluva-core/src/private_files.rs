@@ -7,7 +7,7 @@ use std::path::Path;
 use std::path::{Component, PathBuf};
 
 /// Resolve links and parent components even when the final recovery file no longer exists.
-pub(crate) fn resolve_path(path: &Path) -> io::Result<PathBuf> {
+pub fn resolve_path(path: &Path) -> io::Result<PathBuf> {
     fn resolve(path: &Path, links: usize) -> io::Result<PathBuf> {
         if links == 0 {
             return Err(io::Error::new(

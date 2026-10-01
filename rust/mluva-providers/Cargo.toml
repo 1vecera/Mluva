@@ -23,14 +23,21 @@ reqwest.workspace = true
 tokio-tungstenite.workspace = true
 futures-util.workspace = true
 libc.workspace = true
+tempfile.workspace = true
+caseless.workspace = true
 
 [dev-dependencies]
-tempfile.workspace = true
 native-tls = "0.2"
 tokio-native-tls = "0.3"
 
 [[bin]]
 name = "provider-fixture-peer"
 path = "tests/support/peer.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "codex-fixture-peer"
+path = "tests/support/codex_peer.rs"
 test = false
 doc = false
