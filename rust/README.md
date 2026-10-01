@@ -31,7 +31,8 @@ env OFFSCREEN_ENABLE_ATSPI=1 OFFSCREEN_DISPLAY_NUMBER=173 \
   XDG_CURRENT_DESKTOP=offscreen GDK_SCALE=1 GDK_DPI_SCALE=1 \
   GTK_A11Y=atspi GDK_DEBUG=no-portals \
   dev/run-isolated.sh tmp/native-document-widget -- \
-  cargo test --locked -p mluva-gtk --tests -- \
+  cargo test --locked -p mluva-gtk --test document_widget \
+  --test prompt_editor --test application_shell --test text_target -- \
   --ignored --test-threads=1
 ```
 
@@ -41,4 +42,15 @@ The prompt editor test also pins Libadwaita 1.9.3. Its 81 native observations co
 
 The application shell test adds 102 independent observations of command availability, search/keyboard dispatch, preference navigation, adaptive window sizing, modal guards, hide/reopen and prompt opening inside the window. It also checks 13 public action names/types and two actual cross-process action receipts on its private session bus. Capture, welcome, meeting, history and Workspace/Capture preference contents are synthetic boundaries in this component comparison; their complete workflows remain pending. Four of eight rendered window states match RGBA8 exactly; the others differ at 3–23 pixels by at most two channel units. The [curated evidence](mluva-gtk/tests/fixtures/application-shell-desktop-evidence.json) retains these differences. There is no complete runnable native app or installed Rust replacement yet.
 
-The explicitly executed [text-target comparison](mluva-gtk/tests/fixtures/text-target-evidence.md) matches thirty released cases through the real libatspi transport and a separate GTK target. Its first case captures an already-focused field before the client first initializes accessibility. Independent target observations verify actual Unicode edits, selection/caret restoration, current-focus keyboard guards, password exclusion, retained snapshots and process exit. Twenty-nine readiness-gated bus monitors find text reads only at the four explicit Command selection ranges. An embedded-NUL case failed before repair of the C-string prefix behavior. Actual browser/editor targets, Firefox UTF-16/keyboard routing, ambiguous trees, Wayland clipboard/terminal insertion and full controller assembly remain required. The target example is unshipped comparison support; native checks require no interpreter.
+The explicitly executed [text-target comparison](mluva-gtk/tests/fixtures/text-target-evidence.md) matches thirty released cases through the real libatspi transport and a separate GTK target. Its first case captures an already-focused field before the client first initializes accessibility. Independent target observations verify actual Unicode edits, selection/caret restoration, current-focus keyboard guards, password exclusion, retained snapshots and process exit. Twenty-nine readiness-gated bus monitors find text reads only at the four explicit Command selection ranges. An embedded-NUL case failed before repair of the C-string prefix behavior. Broader browser/editor targets, ambiguous trees, Wayland clipboard/terminal insertion and full controller assembly remain required. The target example is unshipped comparison support; native checks require no interpreter.
+
+The separate [Firefox comparison](mluva-gtk/tests/fixtures/firefox-target-evidence.md) connects the native tracker to production clipboard/key delivery in 21 real browser cases. A separate DOM observer verifies exact final text, UTF-16 carets/selections and paste/input events; actual xclip reads verify full clipboard bytes. Cold capture, moved selections, changed/own focus, late keyboard revalidation, password/read-only fields, refused paste, NUL truncation, rich text and Command selection limits match the unchanged release. Firefox 154.0/build 20260818182641 is pinned. The supported AT-SPI debug setting disables direct peer connections so three explicit Command reads provide positive monitor controls; the privacy observation is scoped to that transport. Build the browser peer and run it only inside the additional private network/PID/device boundaries, with Firefox, Openbox, xclip, xdotool, bubblewrap and the normal GUI dependencies installed:
+
+```sh
+cargo build --locked -p mluva-gtk --example firefox_text_peer
+bash dev/run-isolated-browser.sh tmp/native-browser -- \
+  cargo test --locked -p mluva-gtk --test browser_target -- \
+  --ignored --test-threads=1
+```
+
+The browser runner clears inherited credentials, uses a fresh home/profile, hides device nodes, blocks external networking and session-service auto-activation, and starts its own display, buses and window manager. Software EGL selection avoids an NVIDIA initialization crash when real GPU devices are hidden. Default direct-connection behavior, broader browsers/editors, Wayland and complete recording/preview/retry workflows still require acceptance. The browser peer and HTML target are development support and must not ship.
