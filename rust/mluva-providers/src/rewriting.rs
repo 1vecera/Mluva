@@ -130,6 +130,38 @@ impl RewriteClient {
             Route::Codex(client) => client.list_models().await,
         }
     }
+    /// Capture freezes a model before recognition. Document rewrite speed and
+    /// thinking settings belong to `transform`, not to these capture turns.
+    pub async fn resolve_model(&self, requested: Option<&str>) -> Result<String> {
+        match &self.route {
+            Route::None => Err(ProviderError::message(
+                "Choose a rewriting provider in Settings first.",
+            )),
+            Route::Compatible(client) => Ok(client.resolve_model(requested)?.into()),
+            Route::Codex(client) => client.resolve_model(requested).await,
+        }
+    }
+
+    pub async fn transform_capture(
+        &self,
+        prompt: &str,
+        cwd: &Path,
+        model: &str,
+        images: &[ImageInput],
+    ) -> Result<String> {
+        let options = RewriteOptions {
+            model: Some(model),
+            images,
+            ..Default::default()
+        };
+        match &self.route {
+            Route::None => Err(ProviderError::message(
+                "Choose a rewriting provider in Settings first.",
+            )),
+            Route::Compatible(client) => client.transform(prompt, cwd, options, None).await,
+            Route::Codex(client) => client.transform(prompt, cwd, options, None).await,
+        }
+    }
     pub async fn transform(
         &self,
         prompt: &str,

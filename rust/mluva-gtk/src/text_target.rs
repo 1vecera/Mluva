@@ -331,6 +331,23 @@ pub enum DeliveryTargetSnapshot {
     Text(TextTargetSnapshot),
     Terminal(TerminalTargetSnapshot),
 }
+impl mluva_workflows::dictation::DeliveryTarget for DeliveryTargetSnapshot {
+    fn application_identifier(&self) -> Option<&str> {
+        self.application_identifier()
+    }
+    fn restore(&self) -> mluva_core::delivery::TargetResult<bool> {
+        Ok(self.restore())
+    }
+    fn insert_text(&self, inserted: &str) -> mluva_core::delivery::TargetResult<Option<bool>> {
+        Ok(self.insert_text(inserted))
+    }
+    fn confirm_insertion(
+        &self,
+        inserted: &str,
+    ) -> mluva_core::delivery::TargetResult<Option<bool>> {
+        Ok(self.confirm_insertion(inserted))
+    }
+}
 impl DeliveryTargetSnapshot {
     pub fn application_identifier(&self) -> Option<&str> {
         match self {

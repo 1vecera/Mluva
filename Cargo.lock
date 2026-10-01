@@ -1287,6 +1287,7 @@ dependencies = [
 name = "mluva-gtk"
 version = "1.6.0"
 dependencies = [
+ "base64 0.22.1",
  "caseless",
  "gio",
  "glib",
@@ -1294,9 +1295,12 @@ dependencies = [
  "libadwaita",
  "libc",
  "mluva-core",
+ "mluva-providers",
+ "mluva-workflows",
  "serde",
  "serde_json",
  "tempfile",
+ "tokio",
  "toml 0.9.12+spec-1.1.0",
 ]
 
@@ -1327,6 +1331,22 @@ dependencies = [
  "url",
  "uuid",
  "zip",
+]
+
+[[package]]
+name = "mluva-workflows"
+version = "1.6.0"
+dependencies = [
+ "base64 0.22.1",
+ "mluva-core",
+ "mluva-providers",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]

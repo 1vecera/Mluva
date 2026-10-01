@@ -4,6 +4,7 @@ pub mod config;
 pub mod conversation;
 pub mod database;
 pub mod delivery;
+pub mod diagnostics;
 pub mod executables;
 pub mod history;
 pub mod json;

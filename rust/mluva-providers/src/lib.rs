@@ -15,6 +15,7 @@ pub mod onnx_runtime;
 pub mod qwen;
 pub mod realtime;
 pub mod rewriting;
+pub mod speech;
 mod transport;
 
 use serde::{Deserialize, Serialize};
