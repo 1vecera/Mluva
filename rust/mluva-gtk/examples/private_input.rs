@@ -19,6 +19,8 @@ unsafe extern "C" {
         mask: *mut libc::c_uint,
     ) -> libc::c_int;
     fn XSync(display: *mut libc::c_void, discard: libc::c_int) -> libc::c_int;
+    fn XStringToKeysym(name: *const libc::c_char) -> libc::c_ulong;
+    fn XKeysymToKeycode(display: *mut libc::c_void, key: libc::c_ulong) -> u8;
 }
 #[link(name = "Xtst")]
 unsafe extern "C" {
@@ -32,6 +34,12 @@ unsafe extern "C" {
     fn XTestFakeButtonEvent(
         display: *mut libc::c_void,
         button: libc::c_uint,
+        pressed: libc::c_int,
+        delay: libc::c_ulong,
+    ) -> libc::c_int;
+    fn XTestFakeKeyEvent(
+        display: *mut libc::c_void,
+        keycode: libc::c_uint,
         pressed: libc::c_int,
         delay: libc::c_ulong,
     ) -> libc::c_int;
@@ -66,6 +74,60 @@ fn main() {
         .expect("private Xvfb authority required");
     assert!(authority.is_file() && authority.canonicalize().unwrap().starts_with(&root));
     let args = std::env::args().skip(1).collect::<Vec<_>>();
+    if args.first().map(String::as_str) == Some("key") {
+        assert_eq!(args.len(), 2);
+        let names = args[1].split('+').collect::<Vec<_>>();
+        assert!(!names.is_empty() && names.len() <= 4);
+        assert!(names.iter().all(|name| matches!(
+            *name,
+            "Control_L"
+                | "Shift_L"
+                | "Alt_L"
+                | "Return"
+                | "KP_Enter"
+                | "Escape"
+                | "Up"
+                | "Down"
+                | "Tab"
+                | "p"
+                | "P"
+                | "c"
+                | "s"
+                | "l"
+                | "r"
+                | "b"
+                | "h"
+                | "comma"
+                | "1"
+                | "2"
+        )));
+        // SAFETY: authority and all desktop endpoints above belong to this disposable session.
+        unsafe {
+            let display = XOpenDisplay(std::ptr::null());
+            assert!(!display.is_null());
+            let codes = names
+                .iter()
+                .map(|name| {
+                    let name = std::ffi::CString::new(*name).unwrap();
+                    let key = XStringToKeysym(name.as_ptr());
+                    let code = XKeysymToKeycode(display, key);
+                    assert_ne!(key, 0);
+                    assert_ne!(code, 0);
+                    code
+                })
+                .collect::<Vec<_>>();
+            for code in &codes {
+                assert_ne!(XTestFakeKeyEvent(display, (*code).into(), 1, 0), 0);
+            }
+            for code in codes.iter().rev() {
+                assert_ne!(XTestFakeKeyEvent(display, (*code).into(), 0, 0), 0);
+            }
+            XSync(display, 0);
+            XCloseDisplay(display);
+        }
+        println!("{{\"private_key_sent\":true}}");
+        return;
+    }
     assert_eq!(args.len(), 2);
     let x: i32 = args[0].parse().unwrap();
     let y: i32 = args[1].parse().unwrap();
