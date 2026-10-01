@@ -3,6 +3,7 @@
 pub mod codex;
 pub mod codex_policy;
 pub mod compatible;
+pub mod credentials;
 pub mod elevenlabs;
 pub mod languages;
 pub mod models;
