@@ -1,0 +1,81 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "scope": "Native personalization component with shared header/toast/theme shell; no full application parity claim",
+  "environment": {
+    "gtk": [
+      4,
+      22,
+      4
+    ],
+    "pango": "1.58.2",
+    "display": "private X11",
+    "renderer": "cairo",
+    "scale": 1,
+    "session_bus": "private",
+    "accessibility_registry": "private",
+    "input": "external AT-SPI and private native XTest",
+    "run_order": [
+      "reference",
+      "native"
+    ],
+    "saved_checkpoint": "after the visible toast disappears"
+  },
+  "native_sources": {
+    "rust/mluva-gtk/src/markdown_view.rs": "436a97870ab687b4889dd6eb7d394677a2fe09657e2e8839605a8b6738700b8e",
+    "rust/mluva-gtk/src/personalization.rs": "79b0edda8713da26b26db5de06395ef0926f8a4578d2d36f4c17c47e17a81e3e",
+    "rust/mluva-gtk/src/theme.rs": "c0fb68e10a538fe088ec97e1ab0212f78d13fbcf94dfd43116a3b9abd26d2a84",
+    "rust/mluva-gtk/examples/personalization.rs": "7f9a7710b15b7490fd7f484554742ed3ae1db5eb50a0e8a2406c2773127cd6a6",
+    "rust/mluva-gtk/examples/private_input.rs": "a191ae7ffc9e79854ecb965bc976de009c73ea21b911999def8e24ee1f5b1493",
+    "rust/mluva-core/src/personalization.rs": "501dbb28bef7c1ae2b3bf440b70e61ed4ecaae29359e477f6d437a6ad1c7e157",
+    "rust/mluva-core/src/vocabulary.rs": "ccee09f473cee619877825cc92e6670638315a59d5257c078604a7918ead2e11",
+    "rust/mluva-core/src/markdown.rs": "5780584982c92fd77eab5eb5e619369ad1298c423bddba176e9079fefc367739",
+    "rust/mluva-core/src/text.rs": "8ff4007d3fb436e582ef5d75d20aeec0348f986bce9b36fcf356d135b232b951",
+    "rust/mluva-core/src/text_diff.rs": "221d8a8745479172438d58f6197ffdb5513aacaaa58f97113734fb08b93bdb1b"
+  },
+  "observations": [
+    {
+      "state": "initial",
+      "different_pixels": 0,
+      "rgba8_sha256": "882fba7bcb7b8f42c3597b9ba5f81ea9d3e99634abcf8e7aea3bb6f45fdbf493",
+      "accessibility_nodes": 99,
+      "accessibility_sha256": "a8dd3aff52547cbf71a62cd1bca4414d53480d413b9240413dd107e60ace6b76"
+    },
+    {
+      "state": "dictionary-saved",
+      "different_pixels": 0,
+      "rgba8_sha256": "dac077dcd261d7c6c2a92e0b1911f30c09dee5c20d82251f781840da5dde96fd",
+      "accessibility_nodes": 102,
+      "accessibility_sha256": "491bff0d04955cfed074fa112e22aa8a453440219f412ca96f1a60c3cc080205"
+    },
+    {
+      "state": "snippet-saved",
+      "different_pixels": 0,
+      "rgba8_sha256": "8283598d62150d3406af17219119cf06c0efb38c274a2a4d7e2fe01754412b64",
+      "accessibility_nodes": 176,
+      "accessibility_sha256": "5eb1a308a3170101152b34511fc301c46575cd6cae717dda80122d1e8e80e07a"
+    },
+    {
+      "state": "style-saved",
+      "different_pixels": 0,
+      "rgba8_sha256": "59783f243316a27b658ab2ec60b9c9b724ac4c527f06cc87c64f047abce4e790",
+      "accessibility_nodes": 500,
+      "accessibility_sha256": "9521066e13f5333e3ccaba790e314022fa6cd510b9da7358457b0edd8a75a684"
+    }
+  ],
+  "persistence": {
+    "normalization": "generated row UUIDs only",
+    "normalized_json_sha256": "9e4394d8dfd62967165ec8156012a377f89083a72e45ffee603e62d10e51a346",
+    "file_modes": [
+      "0600",
+      "0600"
+    ]
+  },
+  "pending": [
+    "Complete app and prompt integration",
+    "Other sizes and scales",
+    "Remaining failure states",
+    "Full application accessibility",
+    "Audio, providers, local CPU/GPU models and target delivery",
+    "Final Python removal and same-host performance"
+  ]
+}

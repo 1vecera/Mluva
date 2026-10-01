@@ -8,3 +8,7 @@ linux/integrations/tensaku/narration.patch linguist-vendored whitespace=-blank-a
 rust/mluva-core/tests/fixtures/*.json linguist-generated
 rust/mluva-core/tests/fixtures/*.sql linguist-generated
 rust/mluva-core/resources/word-ranges.json linguist-generated
+rust/mluva-core/resources/case-properties.json linguist-generated
+rust/mluva-gtk/tests/fixtures/*.json linguist-generated
+rust/mluva-gtk/resources/fonts/*.ttf linguist-vendored
+rust/mluva-gtk/resources/fonts/OFL.txt linguist-vendored

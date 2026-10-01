@@ -1,8 +1,8 @@
 # Native Rust implementation
 
-This workspace is the in-progress replacement for the released 1.6.0 application. `mluva-core` implements settings and migrations, deterministic spoken commands, SQLite history/conversations, retention and exports, screenshot ownership and frozen visual input, prompt/style overrides, bounded titles and unresolved Scratchpad recovery. The complete native UI, capture/providers, local inference, delivery and distribution remain tracked in [the acceptance matrix](../docs/rust-port-parity.md).
+This workspace is the in-progress replacement for the released 1.6.0 application. `mluva-core` implements settings and migrations, deterministic spoken commands, SQLite history/conversations, retention and exports, screenshot ownership and frozen visual input, prompt/style overrides, bounded titles, unresolved Scratchpad recovery, personalization, vocabulary suggestions, Markdown parsing and source-preserving word edits. `mluva-gtk` provides the native document widget, personalization page and theme controller. The complete application, capture/providers, local inference, delivery and distribution remain tracked in [the acceptance matrix](../docs/rust-port-parity.md).
 
-Build with Rust 1.95 and the platform SQLite development library. From the repository root:
+Build with Rust 1.95 and the platform development libraries for SQLite, GTK 4.12 or later, Libadwaita 1.5 or later and Fontconfig. The private input comparison example also needs X11 and Xtst. From the repository root:
 
 ```sh
 cargo test --locked --workspace
@@ -10,4 +10,17 @@ cargo clippy --locked --workspace --all-targets -- -D warnings
 cargo fmt --all -- --check
 ```
 
-The checks operate on synthetic fixtures and temporary files. For task-local scratch storage, create `tmp/native-tests` and set `TMPDIR` to its absolute path when running tests. Cargo tests use the [frozen released outputs](mluva-core/tests/fixtures/README.md) without invoking an interpreter or importing the reference application. The installed 1.6.0 application remains the usable reference while parity is established.
+The checks operate on synthetic fixtures and temporary files. For task-local scratch storage, create `tmp/native-tests` and set `TMPDIR` to its absolute path when running tests. Cargo tests use the [frozen released core outputs](mluva-core/tests/fixtures/README.md) and [native widget observations](mluva-gtk/tests/fixtures/README.md) without invoking an interpreter or importing the reference application. The installed 1.6.0 application remains the usable reference while parity is established.
+
+The desktop test is ignored by ordinary Cargo runs because it must have an isolated display, session bus, accessibility registry and data directories. With the dependencies checked by `dev/run-isolated.sh`, run it on an unused private display:
+
+```sh
+test ! -e /tmp/.X11-unix/X173
+env OFFSCREEN_ENABLE_ATSPI=1 OFFSCREEN_DISPLAY_NUMBER=173 \
+  XDG_CURRENT_DESKTOP=offscreen GDK_SCALE=1 GDK_DPI_SCALE=1 \
+  dev/run-isolated.sh tmp/native-document-widget -- \
+  cargo test --locked -p mluva-gtk --test document_widget -- \
+  --ignored --test-threads=1
+```
+
+Serialize desktop comparisons. Run the released reference and native surface sequentially inside one private session; automatic Xvfb display selection can race between concurrent helpers. The fixture records GTK 4.22.4 and Pango 1.58.2, and the test explicitly refuses changed renderer versions until new observations are collected from the unchanged release. Mixed CR/LF input currently triggers the same Pango cursor warning in both implementations; the recorded source, text, tags, layout and selection observations still match. This component evidence does not establish complete application parity or a performance improvement.
