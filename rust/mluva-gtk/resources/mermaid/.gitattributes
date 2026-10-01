@@ -1,0 +1,3 @@
+# Keep released third-party bundles and notices byte-identical, including literal whitespace.
+mermaid.min.js -whitespace
+mermaid.min.js.LEGAL.txt -whitespace

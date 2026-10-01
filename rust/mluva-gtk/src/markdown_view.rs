@@ -18,6 +18,7 @@ mod imp {
     #[derive(Default)]
     pub struct MarkdownTextView {
         pub markdown: Cell<bool>,
+        pub document: Cell<bool>,
         pub replacing: Cell<bool>,
         pub formatting_limited: Cell<bool>,
         pub spans: RefCell<Vec<MarkdownSpan>>,
@@ -116,9 +117,23 @@ mod imp {
         }
     }
     impl WidgetImpl for MarkdownTextView {
+        fn request_mode(&self) -> gtk::SizeRequestMode {
+            if self.document.get() {
+                gtk::SizeRequestMode::HeightForWidth
+            } else {
+                self.parent_request_mode()
+            }
+        }
         fn measure(&self, orientation: gtk::Orientation, for_size: i32) -> (i32, i32, i32, i32) {
             if orientation == gtk::Orientation::Horizontal {
-                (0, 0, -1, -1)
+                (0, if self.document.get() { 300 } else { 0 }, -1, -1)
+            } else if self.document.get() {
+                let obj = self.obj();
+                let height = obj.document_height(if for_size > 0 { for_size } else { 300 })
+                    + obj.top_margin()
+                    + obj.bottom_margin()
+                    + 8;
+                (height, height, -1, -1)
             } else {
                 self.parent_measure(orientation, for_size)
             }
@@ -140,6 +155,19 @@ pub fn heading_scale(level: usize) -> f64 {
 }
 
 impl MarkdownTextView {
+    /// Size the whole document inside one shared outer scrolling viewport.
+    pub fn document(source: &str, markdown: bool, editable: bool) -> Self {
+        let obj = Self::new(source, markdown, editable);
+        obj.imp().document.set(true);
+        obj.set_vexpand(false);
+        obj.queue_resize();
+        obj
+    }
+
+    pub fn is_markdown(&self) -> bool {
+        self.imp().markdown.get()
+    }
+
     pub fn new(source: &str, markdown: bool, editable: bool) -> Self {
         let obj: Self = glib::Object::builder()
             .property("editable", editable)
