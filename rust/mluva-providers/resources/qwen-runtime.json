@@ -1,0 +1,15 @@
+{
+  "version": "b11011",
+  "assets": {
+    "cpu": {
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11011/llama-b11011-bin-ubuntu-x64.tar.gz",
+      "size": 16855444,
+      "sha256": "e060290d1950469f465092230726b94464a9c2d0f56f1434cc61c7b9d5227527"
+    },
+    "cuda": {
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11011/llama-b11011-bin-ubuntu-vulkan-x64.tar.gz",
+      "size": 30217811,
+      "sha256": "0ed8eb969fb52acfa06fd960d683e7365dfca962ae8ec214b504875c93de8a72"
+    }
+  }
+}

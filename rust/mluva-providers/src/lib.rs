@@ -6,6 +6,7 @@ pub mod compatible;
 pub mod credentials;
 pub mod elevenlabs;
 pub mod languages;
+pub mod local_assets;
 pub mod models;
 pub mod multipart;
 pub mod realtime;

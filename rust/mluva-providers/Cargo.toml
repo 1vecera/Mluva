@@ -25,6 +25,9 @@ futures-util.workspace = true
 libc.workspace = true
 tempfile.workspace = true
 caseless.workspace = true
+sha2 = "0.11.0"
+tar = "0.4.46"
+flate2 = "1.1.10"
 
 [dev-dependencies]
 native-tls = "0.2"
@@ -45,5 +48,11 @@ doc = false
 [[bin]]
 name = "credential-fixture-peer"
 path = "tests/support/credential_peer.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "asset-fixture-peer"
+path = "tests/support/asset_peer.rs"
 test = false
 doc = false
