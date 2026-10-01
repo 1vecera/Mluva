@@ -4,10 +4,12 @@
 
 Replace the Python application with a native Rust application that preserves the complete Mluva 1.6.0 user experience. Better startup, memory use and responsiveness are goals to measure; UX equivalence is required. This is a full replacement rather than a Rust wrapper around Python or a smaller application with missing features.
 
+Scope change authorized by Daniel on 1 October 2026: support three managed local models, Whisper Tiny, Parakeet v3 and Qwen3-ASR 1.7B. Keep Qwen 1.7B as the default. Retire Whisper Base/Small/Turbo choices through a settings migration without deleting cached files or other user data. This is the explicit exception to model-choice parity; the frozen 1.6.0 reference remains unchanged.
+
 ## Definition of Done
 
 - [ ] Every row in [the parity matrix](../docs/rust-port-parity.md) has independent evidence against the immutable 1.6.0 reference, including the native UI and failure/cancellation paths.
-- [ ] All currently available speech/rewrite routes, app-managed local model families and GPU choices work through native implementations without Python workers or a paid fallback.
+- [ ] All existing speech/rewrite routes, the three retained app-managed local models and their GPU choices work through native implementations without Python workers or a paid fallback.
 - [ ] The native GTK/Libadwaita workspace, recording display, editor interactions, shortcuts, theme, window sizes and accessibility match the reference. Existing QML and other non-Python assets can remain.
 - [ ] Existing configuration, personalization, prompts, SQLite history, recordings, screenshots and recovery state open without losing data or changing user choices. Installation preserves managed credentials and desktop integration.
 - [ ] The maintained source, tests, build/install tooling and distributed package contain no Python implementation, helper, worker, compatibility fallback or Python runtime requirement. Development comparison material remains outside the final tree; Git history is preserved.

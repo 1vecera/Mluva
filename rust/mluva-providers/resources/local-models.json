@@ -36,78 +36,6 @@
     "ram_mb": 500
   },
   {
-    "id": "whisper-base",
-    "label": "Whisper Base",
-    "repo": "onnx-community/whisper-base",
-    "revision": "1846881b6b3a3024392c1eea3ad983695bc23925",
-    "quantization": "quantized",
-    "engine": "whisper",
-    "files": [
-      {
-        "name": "config.json",
-        "size": 2243,
-        "sha256": "f4d0608f7d918166da7edb3e188de5ef1bfe70d9802e785d271fd88111e9cf4b"
-      },
-      {
-        "name": "vocab.json",
-        "size": 1036584,
-        "sha256": "50d6a919f0a0601d56a04eb583c780d18553aa388254ba3158eb6a00f13e2c1a"
-      },
-      {
-        "name": "added_tokens.json",
-        "size": 34604,
-        "sha256": "9715fd2243b6f06a5858b5e32950d2853f73dd5bc201aafcf76f5082a2d8acd1"
-      },
-      {
-        "name": "onnx/encoder_model_quantized.onnx",
-        "size": 23201314,
-        "sha256": "5862993336bf33acd23736071aae2b32261d3b1b2f37780194460d4ef974dd46"
-      },
-      {
-        "name": "onnx/decoder_model_merged_quantized.onnx",
-        "size": 53693315,
-        "sha256": "fa3ef9902734ce5ae6f9ef2bdb2ba9a6c4b5785b09f4f420ce036573dc9d090b"
-      }
-    ],
-    "ram_mb": 750
-  },
-  {
-    "id": "whisper-small",
-    "label": "Whisper Small",
-    "repo": "onnx-community/whisper-small",
-    "revision": "36050c46d777d46dc4b5f43f6d90574fc38f8732",
-    "quantization": "quantized",
-    "engine": "whisper",
-    "files": [
-      {
-        "name": "config.json",
-        "size": 2227,
-        "sha256": "457854d452f17661e197d74aee12b8e74fb75ba30ebfaa7426d0d61ea1e08a18"
-      },
-      {
-        "name": "vocab.json",
-        "size": 1036584,
-        "sha256": "50d6a919f0a0601d56a04eb583c780d18553aa388254ba3158eb6a00f13e2c1a"
-      },
-      {
-        "name": "added_tokens.json",
-        "size": 34604,
-        "sha256": "9715fd2243b6f06a5858b5e32950d2853f73dd5bc201aafcf76f5082a2d8acd1"
-      },
-      {
-        "name": "onnx/encoder_model_quantized.onnx",
-        "size": 92326160,
-        "sha256": "a43a83f3c5361cd591cfa7c36f14b43cf7cb22f47a415cc14a8d557be800fa92"
-      },
-      {
-        "name": "onnx/decoder_model_merged_quantized.onnx",
-        "size": 156750845,
-        "sha256": "ec07c3cbb64172c39791e26ee870a65ac22b458c36722bfe2776b3dbf741e0c9"
-      }
-    ],
-    "ram_mb": 1500
-  },
-  {
     "id": "parakeet-v3",
     "label": "Parakeet v3",
     "repo": "istupakov/parakeet-tdt-0.6b-v3-onnx",
@@ -139,45 +67,8 @@
     "ram_mb": 2000
   },
   {
-    "id": "whisper-turbo",
-    "label": "Whisper Large v3 Turbo",
-    "repo": "onnx-community/whisper-large-v3-turbo",
-    "revision": "360ebcde2559d60bb474678be3c1de9ef347d01a",
-    "quantization": "quantized",
-    "engine": "whisper",
-    "files": [
-      {
-        "name": "config.json",
-        "size": 1332,
-        "sha256": "35cd83669f75bc2867f3b3a4461850392d5e308cd6ea951c3700539883c28df1"
-      },
-      {
-        "name": "vocab.json",
-        "size": 1036558,
-        "sha256": "e2aa043ef015641d363d8288e7c241c85e36a5c761fb303598e0710233344387"
-      },
-      {
-        "name": "added_tokens.json",
-        "size": 34648,
-        "sha256": "3c51f66c4c21f9e126970078f11ae77a78c74aee8df606ee9daba86e467108e0"
-      },
-      {
-        "name": "onnx/encoder_model_quantized.onnx",
-        "size": 644822195,
-        "sha256": "d2f853dc3254fdc0079f55dd4433ea716ac98ec5574d3b475f288f2a77cebba9"
-      },
-      {
-        "name": "onnx/decoder_model_merged_quantized.onnx",
-        "size": 439936716,
-        "sha256": "61481bd3be3a445d5a4b9070e8f8b2c6cc4fbbbbdc9f0e7ed048a132b8b84e0d"
-      }
-    ],
-    "ram_mb": 3000,
-    "offered": false
-  },
-  {
     "id": "qwen3-1.7b",
-    "label": "Qwen3-ASR 1.7B \u00b7 recommended",
+    "label": "Qwen3-ASR 1.7B · recommended",
     "repo": "getonit/Qwen3-ASR-1.7B-Q4_0-GGUF",
     "revision": "bdff9f9b31f387d6eb797a8d827c08904048c57c",
     "engine": "qwen3-asr",

@@ -1221,6 +1221,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror",
+ "uuid",
 ]
 
 [[package]]
@@ -1268,6 +1269,7 @@ dependencies = [
  "caseless",
  "flate2",
  "futures-util",
+ "getrandom 0.4.3",
  "libc",
  "mluva-audio",
  "mluva-core",

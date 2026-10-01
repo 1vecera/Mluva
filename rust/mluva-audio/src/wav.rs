@@ -10,6 +10,31 @@ fn invalid(message: &'static str) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, message)
 }
 
+/// A malformed WAV format, distinct from operating-system and chunk-boundary failures.
+#[derive(Debug)]
+pub struct WaveFormatError(String);
+impl std::fmt::Display for WaveFormatError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.0)
+    }
+}
+impl std::error::Error for WaveFormatError {}
+fn format_error(message: impl Into<String>) -> io::Error {
+    io::Error::new(io::ErrorKind::InvalidData, WaveFormatError(message.into()))
+}
+fn unexpected_eof() -> io::Error {
+    io::Error::new(io::ErrorKind::UnexpectedEof, "")
+}
+fn read_wave_fields(file: &mut File, fields: &mut [u8]) -> io::Result<()> {
+    file.read_exact(fields).map_err(|error| {
+        if error.kind() == io::ErrorKind::UnexpectedEof {
+            unexpected_eof()
+        } else {
+            error
+        }
+    })
+}
+
 #[derive(Debug)]
 struct RiffBoundaryError;
 impl std::fmt::Display for RiffBoundaryError {
@@ -80,6 +105,18 @@ fn header(bytes: u32) -> [u8; 44] {
     header
 }
 
+/// Encode a bounded speech block in memory; Incognito audio never needs disk staging.
+pub fn pcm16_wav(frames: &[u8]) -> io::Result<Vec<u8>> {
+    let bytes = u32::try_from(frames.len())
+        .ok()
+        .filter(|bytes| *bytes <= u32::MAX - 36)
+        .ok_or_else(|| invalid("WAV exceeds the RIFF size limit."))?;
+    let mut wave = Vec::with_capacity(44 + frames.len());
+    wave.extend_from_slice(&header(bytes));
+    wave.extend_from_slice(frames);
+    Ok(wave)
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct WaveMetadata {
     pub channels: u16,
@@ -98,30 +135,43 @@ impl WaveReader {
     pub fn open(path: &Path) -> io::Result<Self> {
         let mut file = File::open(path)?;
         let mut riff = [0; 12];
-        file.read_exact(&mut riff).map_err(|error| {
-            if error.kind() == io::ErrorKind::UnexpectedEof {
-                io::Error::new(io::ErrorKind::UnexpectedEof, "")
-            } else {
-                error
-            }
-        })?;
-        if &riff[..4] != b"RIFF" || &riff[8..] != b"WAVE" {
-            return Err(invalid("Not a RIFF/WAVE recording."));
+        read_wave_fields(&mut file, &mut riff[..8])?;
+        if &riff[..4] != b"RIFF" {
+            return Err(format_error("file does not start with RIFF id"));
         }
         let end = 8 + u64::from(u32::from_le_bytes(riff[4..8].try_into().unwrap()));
+        if end < 12 {
+            return Err(format_error("not a WAVE file"));
+        }
+        if let Err(error) = read_wave_fields(&mut file, &mut riff[8..]) {
+            return Err(if error.kind() == io::ErrorKind::UnexpectedEof {
+                format_error("not a WAVE file")
+            } else {
+                error
+            });
+        }
+        if &riff[8..] != b"WAVE" {
+            return Err(format_error("not a WAVE file"));
+        }
         let mut format = None;
         loop {
             let position = file.stream_position()?;
             if position + 8 > end {
-                return Err(invalid("WAV format or data chunk is missing."));
+                return Err(format_error("fmt chunk and/or data chunk missing"));
             }
             let mut chunk = [0; 8];
-            file.read_exact(&mut chunk)?;
+            if let Err(error) = read_wave_fields(&mut file, &mut chunk) {
+                return Err(if error.kind() == io::ErrorKind::UnexpectedEof {
+                    format_error("fmt chunk and/or data chunk missing")
+                } else {
+                    error
+                });
+            }
             let size = u32::from_le_bytes(chunk[4..].try_into().unwrap());
             let body = position + 8;
             if &chunk[..4] == b"data" {
                 let (channels, sample_width, sample_rate) =
-                    format.ok_or_else(|| invalid("WAV data precedes its format."))?;
+                    format.ok_or_else(|| format_error("data chunk before fmt chunk"))?;
                 return Ok(Self {
                     file,
                     remaining: u64::from(size).min(end.saturating_sub(body)),
@@ -134,29 +184,40 @@ impl WaveReader {
                 });
             }
             if &chunk[..4] == b"fmt " {
-                if size < 16 || body + 16 > end {
-                    return Err(invalid("WAV format is truncated."));
+                if size < 14 || body + 14 > end {
+                    return Err(unexpected_eof());
                 }
                 let mut fields = [0; 16];
-                file.read_exact(&mut fields)?;
+                read_wave_fields(&mut file, &mut fields[..14])?;
                 let tag = u16::from_le_bytes(fields[..2].try_into().unwrap());
+                if !matches!(tag, 1 | 0xfffe) {
+                    return Err(format_error(format!("unknown format: {tag}")));
+                }
+                if size < 16 || body + 16 > end {
+                    return Err(unexpected_eof());
+                }
+                read_wave_fields(&mut file, &mut fields[14..])?;
                 let channels = u16::from_le_bytes(fields[2..4].try_into().unwrap());
                 let sample_rate = u32::from_le_bytes(fields[4..8].try_into().unwrap());
                 let bits = u16::from_le_bytes(fields[14..].try_into().unwrap());
                 let width = bits.div_ceil(8);
-                if width == 0 || channels == 0 || !matches!(tag, 1 | 0xfffe) {
-                    return Err(invalid("WAV is not uncompressed PCM."));
-                }
                 if tag == 0xfffe {
                     if size < 40 || body + 40 > end {
-                        return Err(invalid("Extended WAV format is truncated."));
+                        return Err(unexpected_eof());
                     }
                     let mut extension = [0; 24];
-                    file.read_exact(&mut extension)?;
+                    read_wave_fields(&mut file, &mut extension)?;
                     if extension[8..] != [1, 0, 0, 0, 0, 0, 16, 0, 128, 0, 0, 170, 0, 56, 155, 113]
                     {
-                        return Err(invalid("Extended WAV format is not PCM."));
+                        let guid = uuid::Uuid::from_bytes_le(extension[8..].try_into().unwrap());
+                        return Err(format_error(format!("unknown extended format: {guid}")));
                     }
+                }
+                if width == 0 {
+                    return Err(format_error("bad sample width"));
+                }
+                if channels == 0 {
+                    return Err(format_error("bad # of channels"));
                 }
                 format = Some((channels, width, sample_rate));
             }

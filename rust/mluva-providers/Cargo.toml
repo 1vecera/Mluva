@@ -28,6 +28,7 @@ caseless.workspace = true
 sha2 = "0.11.0"
 tar = "0.4.46"
 flate2 = "1.1.10"
+getrandom = "0.4.3"
 
 [dev-dependencies]
 native-tls = "0.2"
@@ -54,5 +55,11 @@ doc = false
 [[bin]]
 name = "asset-fixture-peer"
 path = "tests/support/asset_peer.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "qwen-fixture-peer"
+path = "tests/support/qwen_peer.rs"
 test = false
 doc = false

@@ -19,7 +19,7 @@ struct ConfigCase {
 }
 
 #[test]
-fn defaults_and_every_persisted_migration_match_the_released_settings() {
+fn defaults_and_persisted_migrations_match_release_with_authorized_model_retirement() {
     let defaults: Value =
         serde_json::from_str(include_str!("fixtures/config-defaults.json")).unwrap();
     assert_eq!(
@@ -45,12 +45,70 @@ fn defaults_and_every_persisted_migration_match_the_released_settings() {
                 .as_object_mut()
                 .unwrap()
                 .extend(case.expected_changes);
+            // Daniel reduced the native lineup on 1 October 2026. Keep the
+            // original oracle and apply only this explicitly authorized delta.
+            let persisted: Value = serde_json::from_str(&case.json).unwrap();
+            if matches!(
+                persisted["local_model"].as_str(),
+                Some("whisper-base" | "whisper-small")
+            ) {
+                expected["local_model"] = Value::String("qwen3-1.7b".into());
+                expected["welcome_completed"] = Value::Bool(false);
+            }
             if serde_json::to_value(config).unwrap() != expected {
                 differences.push(format!("{}: settings changed", case.label));
             }
         }
     }
     assert!(differences.is_empty(), "{}", differences.join("\n"));
+}
+
+#[test]
+fn retired_models_load_and_save_without_losing_other_settings() {
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("config.json");
+    for retired in ["whisper-base", "whisper-small", "whisper-turbo"] {
+        let original = serde_json::to_vec(&serde_json::json!({
+            "local_model": retired,
+            "transcription_provider": "local",
+            "local_device": "cuda",
+            "language_code": "ces",
+            "incognito_mode": true,
+            "auto_paste": true,
+            "welcome_completed": true
+        }))
+        .unwrap();
+        fs::write(&path, &original).unwrap();
+        let loaded = AppConfig::load(&path).unwrap();
+        let expected = AppConfig {
+            transcription_provider: "local".into(),
+            local_device: "cuda".into(),
+            language_code: "ces".into(),
+            incognito_mode: true,
+            auto_paste: true,
+            ..AppConfig::default()
+        };
+        assert_eq!(loaded, expected, "migration of {retired}");
+        assert_eq!(
+            fs::read(&path).unwrap(),
+            original,
+            "load never rewrites settings"
+        );
+        loaded.save(&path).unwrap();
+        assert_eq!(AppConfig::load(&path).unwrap(), expected);
+        assert_eq!(
+            fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
+        let rejected = AppConfig {
+            local_model: retired.into(),
+            ..expected
+        };
+        assert_eq!(
+            rejected.validate().unwrap_err().to_string(),
+            "Choose a supported local speech model"
+        );
+    }
 }
 
 #[derive(Deserialize)]

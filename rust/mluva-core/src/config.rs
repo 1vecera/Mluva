@@ -24,14 +24,7 @@ pub const LIVE_TEMPLATES: [&str; 5] = [
     "polish",
     "custom",
 ];
-pub const LOCAL_MODELS: [&str; 6] = [
-    "whisper-tiny",
-    "whisper-base",
-    "whisper-small",
-    "parakeet-v3",
-    "whisper-turbo",
-    "qwen3-1.7b",
-];
+pub const LOCAL_MODELS: [&str; 3] = ["whisper-tiny", "parakeet-v3", "qwen3-1.7b"];
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
@@ -177,7 +170,7 @@ impl Default for AppConfig {
 }
 
 impl AppConfig {
-    /// Keep persisted routes and privacy choices inside the same vocabulary and bounds as 1.6.0.
+    /// Preserve released routes/privacy bounds with the authorized three-model native lineup.
     pub fn validate(&self) -> Result<(), ConfigError> {
         if self.language_code != "auto"
             && (!(2..=3).contains(&self.language_code.len())
@@ -390,7 +383,10 @@ impl AppConfig {
             );
             payload.insert("welcome_completed".into(), Value::Bool(false));
         }
-        if payload.get("local_model").and_then(Value::as_str) == Some("whisper-turbo") {
+        if matches!(
+            payload.get("local_model").and_then(Value::as_str),
+            Some("whisper-base" | "whisper-small" | "whisper-turbo")
+        ) {
             payload.insert("local_model".into(), Value::String("qwen3-1.7b".into()));
             payload.insert("welcome_completed".into(), Value::Bool(false));
         }
