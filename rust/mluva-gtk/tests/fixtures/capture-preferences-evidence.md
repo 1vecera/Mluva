@@ -1,0 +1,28 @@
+# Capture preferences and application settings ownership
+
+The immutable reference is released v1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. The external observer opens the unchanged application's actual local stores, Capture/settings/setup widgets and preference handlers; every imported application module is checked byte-for-byte against that commit. Native checks read [the frozen observations](released-capture-preferences.json), SHA-256 `b5eb6ec9c79238c6714250e885d9b2cff1a7f817da51d551195235b985b20715`, without an interpreter.
+
+The explicitly executed private comparison matches seventeen transactions and 132 GTK/store states. It compares Capture mode/language, custom ISO choices, function keys, local application modes/styles, cleanup, title/spoken-structure/paste preferences, Incognito, audio/history retention, device labels/routes, metadata refresh, disconnected targets, status messages and all settings navigation identities. Config and personalization write failures use actual directory/file conflicts. The reference's busy shortcut and audio-refresh guards are exercised without starting capture. An owned native metadata process supplies actual `pw-dump --no-colors` graphs, invalid data and nonzero exits; neither implementation opens an audio stream.
+
+ApplicationSettings owns the actual Workspace/provider/Capture/audio/privacy/maturity/diagnostics/Prompts graph and welcome page. It applies the real ApplicationServices save policy, reopens current page drafts and finishes welcome through the same persisted setup flag. No-op saves return without notifying reconfiguration. Joined prompt edits update the actual selected style; a newly created custom style keeps its original saved instructions after editing, reopening and Restore original. This verifies synchronizing the shared prompt catalog and personalization reader without converting an override into a new recovery baseline. Generated custom-style UUIDs are normalized by their observed style identity; other values remain unchanged.
+
+Incognito and automatic titles retain the released session-only choice after failed persistence. Other failed saves preserve the previous config; language and function-key controls revert. Privacy effects explicitly identify whether saving succeeded, so the parent can preserve the separate Meeting behavior while cancelling privacy-sensitive work. The comparison uses the actual local stores but controlled navigation/toast/management/export/shortcut-service boundaries. It does not establish active provider/Meeting/title/review reconfiguration or actual export-dialog delivery. Private accessibility status comes from a separate owned native GTK peer; this does not establish host desktop approval or target insertion.
+
+The unchanged reference does not complete an unwritable-audio-route fault: its failed save rebuilds combo-box models during selection notification and repeatedly re-enters `_populate_audio_device_rows`. The original 30-second reference trace remains in ignored scratch. The first native fault attempt also crashed after reentrant model replacement; its extracted core places the failure in `g_object_notify_by_pspec` after the route selection call, with no OOM evidence. The native repair preserves the current models, restores their saved selections and ignores a deferred no-op notification. The explicitly executed extra native fault now returns with unchanged config, restored microphone/system choices and an error status. This is an intentional bounded failure fix, not matched terminal reference behavior. The extracted core was deleted; failure and success logs remain local.
+
+The twenty-two released capability rows and semantic badges also match independently observed GTK rows. These labels describe the released application's human acceptance and do not promote the Rust replacement. Toolkit/scale scope remains the recorded Linux environment, scale 1 and reduced motion. These checks compare actual controls and stores; they do not establish pixels, animation, full accessibility or other sizes/platforms.
+
+Reproduce only inside the private runner, with native peers built first:
+
+```sh
+cargo build --locked -p mluva-audio --bin audio-fixture-peer
+cargo build --locked -p mluva-gtk --example text_target_peer
+bash dev/run-isolated-browser.sh tmp/native-capture-preferences -- bash -c '
+  export PATH="$OFFSCREEN_SESSION_ROOT/preferences-tools:$PATH"
+  exec cargo test --locked -p mluva-gtk --test capture_preferences -- --ignored --test-threads=1 --nocapture
+'
+```
+
+The runner isolates display, session/accessibility buses, HOME/XDG, network/PID/mount namespaces and input/audio/GPU device nodes. It uses no host focus/input/clipboard, real microphone, account, managed credential or content upload. Temporary reference collectors and raw logs remain ignored scratch; the development peers must not ship.
+
+Settings ownership is now assembled; complete native application/window ownership, active capture/review/Live/Meeting/provider lifecycle and shutdown remain required. Meeting/archive, real screenshot/Tensaku and portals/keys/widget, broader targets/scales/platforms, successful page-driven model provisioning, packaging/Python removal and whole-app performance remain pending. There is still no complete runnable native app. All complete-workflow acceptance rows remain Pending, the installed app/widget remain verified 1.6.0 and the full Rust goal stays active.

@@ -96,6 +96,15 @@ pub enum SettingsKind {
     Providers,
 }
 
+/// Inline controls historically retain these privacy/title choices for the
+/// running session even when their settings document cannot be written.
+#[derive(Clone, Copy)]
+pub enum InlineSavePolicy {
+    Persistent,
+    SessionIncognito,
+    SessionTitles,
+}
+
 #[derive(Clone, Debug)]
 pub struct SettingsUpdate {
     pub config: AppConfig,
@@ -210,6 +219,48 @@ impl ApplicationServices {
 
     pub fn config(&self) -> AppConfig {
         self.config.borrow().clone()
+    }
+
+    /// Refresh catalog identities from stored styles, retaining their immutable
+    /// recovery instructions rather than turning prompt overrides into defaults.
+    pub fn synchronize_style_prompts(&self) -> StoreResult<()> {
+        let styles: Vec<_> = mluva_core::prompt_catalog::DEFAULTS
+            .styles
+            .iter()
+            .chain(&self.personalization.borrow().state().custom_styles)
+            .cloned()
+            .collect();
+        let prompts = {
+            let mut prompts = self.prompts.borrow_mut();
+            prompts.sync_styles(&styles)?;
+            prompts.clone()
+        };
+        self.personalization.borrow_mut().prompt_store = Some(prompts);
+        Ok(())
+    }
+
+    pub fn save_inline_config(
+        &self,
+        proposed: AppConfig,
+        policy: InlineSavePolicy,
+    ) -> Result<(), ConfigError> {
+        proposed.validate()?;
+        let saved = proposed.save(&self.paths.config.join("config.json"));
+        if saved.is_ok() {
+            self.config.replace(proposed);
+        } else {
+            let mut current = self.config.borrow_mut();
+            match policy {
+                InlineSavePolicy::Persistent => {}
+                InlineSavePolicy::SessionIncognito => {
+                    current.incognito_mode = proposed.incognito_mode
+                }
+                InlineSavePolicy::SessionTitles => {
+                    current.automatic_titles = proposed.automatic_titles
+                }
+            }
+        }
+        saved
     }
 
     pub fn recover_scratchpad(&self) -> StoreResult<ScratchpadRecovery> {

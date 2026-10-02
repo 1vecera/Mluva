@@ -6,6 +6,7 @@ pub mod database;
 pub mod delivery;
 pub mod diagnostics;
 pub mod executables;
+pub mod feature_maturity;
 pub mod history;
 pub mod json;
 pub mod live;

@@ -392,6 +392,10 @@ impl PromptsPage {
         Ok(page)
     }
 
+    pub fn set_load_error(&self, message: &str) {
+        self.group.set_description(Some(message));
+    }
+
     pub fn refresh(&self) -> StoreResult<()> {
         // Resolve before changing the displayed catalog so failed reads do not erase discovery.
         let contents = {
