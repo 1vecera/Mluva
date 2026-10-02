@@ -142,6 +142,17 @@ fn server(spec: &Value) {
                 if scenario == "turn-stall" {
                     continue;
                 }
+                let prepared = message["params"]["input"][0]["text"]
+                    .as_str()
+                    .unwrap()
+                    .rsplit_once("DICTATION:\n")
+                    .map(|(_, text)| text);
+                let control = prepared.and_then(|text| spec["segment_controls"].get(text));
+                if let Some(gate) = control.and_then(|value| value["gate"].as_str()) {
+                    while !Path::new(gate).exists() {
+                        std::thread::sleep(Duration::from_millis(2));
+                    }
+                }
                 if scenario.starts_with("tool-") {
                     send(text(
                         "item/started",
@@ -162,8 +173,9 @@ fn server(spec: &Value) {
                     "item/agentMessage/delta",
                     json!({"threadId":"thread-test","turnId":"wrong-turn","delta":"IGNORE"}),
                 ));
-                let deltas = spec
-                    .get("deltas")
+                let deltas = control
+                    .and_then(|value| value.get("deltas"))
+                    .or_else(|| spec.get("deltas"))
                     .cloned()
                     .unwrap_or_else(|| match scenario {
                         "oversized" => json!(["x".repeat(8001)]),

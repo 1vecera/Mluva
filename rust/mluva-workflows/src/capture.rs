@@ -6,6 +6,10 @@ use crate::{
         WorkflowOutcome, WorkflowResult,
     },
     preparation::TranscriptPreparationSnapshot,
+    segment_cleanup::{
+        CodexSegmentCleanupAttempt, SegmentAttemptFactory, SegmentCleanupConfiguration,
+        SegmentCleanupSession,
+    },
 };
 use mluva_audio::{
     capture::{CaptureRecorder, CaptureStorage},
@@ -20,7 +24,10 @@ use mluva_core::{
 use mluva_providers::{
     batch_preview::{BatchPreviewClient, BatchPreviewSession},
     local_preview::LocalPreviewClient,
-    realtime::{ElevenLabsRealtimeClient, RealtimePreview, RealtimeSession, RealtimeSessionResult},
+    realtime::{
+        CommittedCallback, ElevenLabsRealtimeClient, RealtimePreview, RealtimeSession,
+        RealtimeSessionResult,
+    },
 };
 use std::{
     path::PathBuf,
@@ -134,10 +141,11 @@ impl CaptureRecognitionClient {
         language: &str,
         directory: Option<PathBuf>,
         enabled: bool,
+        committed: Option<CommittedCallback>,
     ) -> mluva_providers::Result<RecognitionSession> {
         match self {
             Self::ElevenLabs(client) => client
-                .start(language, None, None)
+                .start(language, None, committed)
                 .await
                 .map(RecognitionSession::Realtime),
             Self::Batch(client) => {
@@ -219,6 +227,7 @@ impl RecognitionSession {
 struct State {
     audio_path: Option<PathBuf>,
     realtime: Option<Arc<RecognitionSession>>,
+    cleanup: Option<Arc<SegmentCleanupSession>>,
     fallback_reason: Option<String>,
     model_identifier: Option<String>,
     started: Option<Instant>,
@@ -311,6 +320,7 @@ impl CaptureSession {
             state: Mutex::new(State {
                 audio_path: None,
                 realtime: None,
+                cleanup: None,
                 fallback_reason: None,
                 model_identifier: None,
                 started: None,
@@ -439,6 +449,43 @@ impl CaptureSession {
                 format!("Codex preparation failed before microphone capture: {error}")
             })?);
         }
+        if self.options.use_cleanup
+            && self.options.mode != "command"
+            && self.workflow.config.rewrite_provider == "codex"
+            && self.workflow.config.transcription_provider == "elevenlabs"
+        {
+            let parent = Arc::new(
+                self.workflow
+                    .rewrite
+                    .spawn_codex()
+                    .ok_or("Codex segment cleanup requires an isolated app-server client.")?,
+            );
+            let model = state
+                .model_identifier
+                .clone()
+                .ok_or("Codex segment cleanup could not be prepared.")?;
+            let preparing = self.preparation.clone();
+            let cwd = self.workflow.cwd.clone();
+            let instructions = self.workflow.cleanup_instructions.clone();
+            let attempt_model = model.clone();
+            let factory: SegmentAttemptFactory = Arc::new(move || {
+                Ok(Arc::new(CodexSegmentCleanupAttempt {
+                    client: parent.spawn(),
+                    cwd: cwd.clone(),
+                    model_identifier: attempt_model.clone(),
+                    instructions: instructions.clone(),
+                }))
+            });
+            state.cleanup = Some(Arc::new(SegmentCleanupSession::new(
+                self.identifier.clone(),
+                "codex-app-server".into(),
+                model,
+                Arc::new(move |raw| Ok(preparing.process(raw))),
+                self.preparation.protected_vocabulary.clone(),
+                factory,
+                SegmentCleanupConfiguration::default(),
+            )?));
+        }
         let started = Instant::now();
         state.fallback_reason = match &self.realtime_client {
             None => Some("realtime-unavailable".into()),
@@ -449,6 +496,12 @@ impl CaptureSession {
                         &self.workflow.config.language_code,
                         self.options.incognito.then(|| state.audio_path.as_ref().expect("prepared destination").parent().expect("capture directory").join("speech-previews")),
                         self.options.mode == "dictation" && self.preview_enabled.load(Ordering::Acquire),
+                        state.cleanup.as_ref().map(|session| {
+                            let session = session.clone();
+                            Box::new(move |segment: mluva_providers::realtime::RealtimeCommittedSegment| {
+                                session.accept_stable_segment(&segment.identifier, &segment.text); Ok(())
+                            }) as CommittedCallback
+                        }),
                     ) => opened,
                 };
                 match opened {
@@ -581,12 +634,19 @@ impl CaptureSession {
             );
         }
         let realtime = state.realtime.take();
+        let cleanup = state.cleanup.take();
+        if let Some(cleanup) = &cleanup {
+            cleanup.cancel();
+        }
         if let Some(realtime) = &realtime {
             realtime.cancel();
         }
         let _ = self.recorder.cancel().await;
         if let Some(realtime) = &realtime {
             realtime.cancel_and_wait().await;
+        }
+        if let Some(cleanup) = &cleanup {
+            cleanup.wait_closed().await;
         }
         let cancelled = CaptureCancelled {
             before_ready,
@@ -673,6 +733,9 @@ impl CaptureSession {
         if let Some(realtime) = state.realtime.take() {
             realtime.cancel_and_wait().await;
         }
+        if let Some(cleanup) = state.cleanup.take() {
+            cleanup.cancel();
+        }
         let _ = self.recorder.close().await;
         self.set_phase(if result.is_ok() {
             CapturePhase::Completed
@@ -718,9 +781,24 @@ impl CaptureSession {
         };
         let mut transcription = None;
         let mut recognition_seconds = None;
+        let mut segment_cleanup = None;
         if let Some(realtime) = &state.realtime {
             match realtime.finish().await {
                 Ok(result) => {
+                    if let Some(cleanup) = &state.cleanup {
+                        let candidate = tokio::select! { biased;
+                            _ = self.cancellation.cancelled() => {
+                                cleanup.cancel_and_wait().await;
+                                return Err(WorkflowError::Invalid("Capture stopped because Mluva is closing.".into()));
+                            },
+                            candidate = cleanup.stop_and_drain() => candidate,
+                        };
+                        if candidate.raw_text() == result.transcription.text {
+                            segment_cleanup = Some(candidate);
+                        } else {
+                            cleanup.cancel();
+                        }
+                    }
                     transcription = Some(result.transcription);
                     recognition_seconds = Some(result.finalization_seconds);
                 }
@@ -730,10 +808,16 @@ impl CaptureSession {
                 }
             }
         }
+        if transcription.is_none()
+            && let Some(cleanup) = &state.cleanup
+        {
+            cleanup.cancel();
+        }
         let completion = self.workflow.complete(
             &audio_path,
             Completion {
                 mode: self.options.mode.clone(),
+                segment_cleanup,
                 use_codex_cleanup: self.options.use_cleanup,
                 allow_auto_paste: self.options.allow_auto_paste,
                 incognito: self.options.incognito,
@@ -754,7 +838,6 @@ impl CaptureSession {
                 style_is_frozen: true,
                 defer_delivery: self.options.defer_delivery,
                 images,
-                ..Default::default()
             },
         );
         tokio::select! { biased;

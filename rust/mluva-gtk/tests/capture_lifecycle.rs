@@ -38,7 +38,7 @@ use serde_json::{Value, json};
 use std::{
     cell::{Cell, RefCell},
     fs,
-    os::unix::fs::symlink,
+    os::unix::fs::{PermissionsExt, symlink},
     path::{Path, PathBuf},
     process::Command,
     rc::Rc,
@@ -97,6 +97,11 @@ fn realtime_peer(runtime: &Rc<DesktopRuntime>, scenario: &str) -> RealtimePeer {
                 let value: Value = serde_json::from_str(&message).unwrap();
                 wire.push(value.clone());
                 if !value["audio_base_64"].as_str().unwrap().is_empty() {
+                    if scenario.starts_with("segments") {
+                        for text in ["Keep 12 files.", "Keep 34 folders."] {
+                            socket.send(Message::Text(json!({"message_type":"committed_transcript","text":text,"language_code":"eng"}).to_string().into())).await.unwrap();
+                        }
+                    }
                     let preview = if scenario == "stream-failed" {
                         json!({"message_type":"auth_error","error":"synthetic private error"})
                     } else {
@@ -106,7 +111,12 @@ fn realtime_peer(runtime: &Rc<DesktopRuntime>, scenario: &str) -> RealtimePeer {
                 }
                 if value["commit"] == true {
                     tokio::time::sleep(Duration::from_millis(200)).await;
-                    socket.send(Message::Text(json!({"message_type":"committed_transcript","text":"cue wen new line 12 files.","language_code":"eng"}).to_string().into())).await.unwrap();
+                    let committed = if scenario == "segments-stream-failed" {
+                        json!({"message_type":"auth_error","error":"synthetic private error"})
+                    } else {
+                        json!({"message_type":"committed_transcript","text":if scenario.starts_with("segments") {"Keep 56 notes."} else {"cue wen new line 12 files."},"language_code":"eng"})
+                    };
+                    socket.send(Message::Text(committed.to_string().into())).await.unwrap();
                 }
             }
             *received.lock().unwrap() = Some(wire);
@@ -289,6 +299,51 @@ fn native_binary(name: &str) -> PathBuf {
     );
     path.canonicalize().unwrap()
 }
+fn records(path: &Path) -> Vec<Value> {
+    let raw = fs::read_to_string(path).unwrap_or_default();
+    let Some(end) = raw.rfind('\n') else {
+        return vec![];
+    };
+    raw[..end]
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect()
+}
+fn codex_prompts(evidence: &Path) -> Vec<String> {
+    let mut prompts = records(&evidence.join("requests.jsonl"))
+        .iter()
+        .filter(|event| event["message"]["method"] == "turn/start")
+        .map(|event| {
+            event["message"]["params"]["input"][0]["text"]
+                .as_str()
+                .unwrap()
+                .to_owned()
+        })
+        .collect::<Vec<_>>();
+    prompts.sort();
+    prompts
+}
+fn codex_tools(root: &Path) {
+    let tools = root.join("codex-peer-tools");
+    assert!(
+        std::env::split_paths(&std::env::var_os("PATH").unwrap()).next() == Some(tools.clone()),
+        "Start the isolated test with OFFSCREEN_SESSION_ROOT/codex-peer-tools prepended to PATH"
+    );
+    fs::create_dir(&tools).unwrap();
+    fs::set_permissions(&tools, fs::Permissions::from_mode(0o700)).unwrap();
+    let quote = |path: &Path| format!("'{}'", path.to_str().unwrap().replace('\'', "'\\''"));
+    let executable = tools.join("codex");
+    fs::write(
+        &executable,
+        format!(
+            "#!/bin/sh\nexec {} serve {} \"$@\"\n",
+            quote(&native_binary("codex-fixture-peer")),
+            quote(&root.join("codex-fixture.json"))
+        ),
+    )
+    .unwrap();
+    fs::set_permissions(executable, fs::Permissions::from_mode(0o700)).unwrap();
+}
 fn memory_entries() -> Vec<PathBuf> {
     let mut entries = fs::read_dir("/dev/shm")
         .unwrap()
@@ -319,7 +374,9 @@ fn incognito_notes_and_exit(
     cleanup: &Path,
 ) {
     use std::io::Write;
-    for notes in [true, false] {
+    for operation in ["incognito-notes", "http-exit", "cleanup-exit"] {
+        let notes = operation == "incognito-notes";
+        let segments = operation == "cleanup-exit";
         let directory = tempfile::tempdir_in(root).unwrap();
         let endpoint = directory.path().join("endpoint");
         fs::create_dir(&endpoint).unwrap();
@@ -327,14 +384,19 @@ fn incognito_notes_and_exit(
         symlink(audio_peer, &executable).unwrap();
         fs::write(
             endpoint.join("test-config.json"),
-            serde_json::to_vec(&json!({"pcm_hex":"e80318fc","wait":true})).unwrap(),
+            serde_json::to_vec(&json!({"pcm_hex":if segments {"e80318fc".repeat(800)} else {"e80318fc".into()},"wait":true})).unwrap(),
         )
         .unwrap();
-        let mut peer = http::Peer::new(&[
-            json!({"route":"speech","status":200,"delay_ms":350,"allow_disconnect":!notes,"payload":{"text":"Private notes 12 files.","language_code":"eng"}}),
-        ]);
+        let responses = if segments {
+            vec![]
+        } else {
+            vec![
+                json!({"route":"speech","status":200,"delay_ms":350,"allow_disconnect":!notes,"payload":{"text":"Private notes 12 files.","language_code":"eng"}}),
+            ]
+        };
+        let mut peer = http::Peer::new(&responses);
         let config = AppConfig {
-            rewrite_provider: "none".into(),
+            rewrite_provider: if segments { "codex" } else { "none" }.into(),
             incognito_mode: notes,
             auto_copy_dictation: !notes,
             automatic_titles: false,
@@ -356,6 +418,37 @@ fn incognito_notes_and_exit(
             history.clone(),
             directory.path().into(),
         ));
+        let evidence = directory.path().join("codex-evidence");
+        let ws = segments.then(|| realtime_peer(runtime, "segments"));
+        let recognition = if segments {
+            fs::create_dir(&evidence).unwrap();
+            fs::write(
+                root.join("codex-fixture.json"),
+                serde_json::to_vec(&json!({
+                    "scenario":"clean", "evidence":evidence, "segment_controls":{
+                        "Keep 12 files.":{"gate":directory.path().join("never-alpha.release")},
+                        "Keep 34 folders.":{"gate":directory.path().join("never-beta.release")},
+                        "Keep 56 notes.":{"deltas":["Keep 56 notes."]}
+                    }
+                }))
+                .unwrap(),
+            )
+            .unwrap();
+            Some(CaptureRecognitionClient::ElevenLabs(Rc::new(
+                ElevenLabsRealtimeClient::new(
+                    Secret::new("synthetic-key"),
+                    &ws.as_ref().unwrap().address,
+                    RealtimeOptions {
+                        session_timeout: Duration::from_secs(1),
+                        finalization_timeout: Duration::from_secs(1),
+                        ..Default::default()
+                    },
+                )
+                .unwrap(),
+            )))
+        } else {
+            None
+        };
         if notes {
             let session = CaptureSession::new(
                 workflow.clone(),
@@ -444,8 +537,11 @@ fn incognito_notes_and_exit(
                             capture_workflow.clone(),
                             PipeWireRecorder::new(&executable, None),
                             CaptureStorage::Persistent(recordings.clone()),
-                            None,
-                            CaptureOptions::default(),
+                            recognition.clone(),
+                            CaptureOptions {
+                                use_cleanup: segments,
+                                ..Default::default()
+                            },
                         )?,
                         delivery_target: None,
                     })
@@ -467,8 +563,16 @@ fn incognito_notes_and_exit(
                 controller.phase() == Some(CapturePhase::Recording)
                     && endpoint.join("raw.ready.json").exists()
             });
+            if segments {
+                until(|| codex_prompts(&evidence).len() == 2);
+            }
             page.record_button.emit_clicked();
-            until(|| peer.observed.lock().unwrap().len() == 1);
+            if segments {
+                until(|| ws.as_ref().unwrap().events.lock().unwrap().is_some());
+                settle();
+            } else {
+                until(|| peer.observed.lock().unwrap().len() == 1);
+            }
             window.close();
             drop(controller);
             let end = Instant::now() + Duration::from_millis(600);
@@ -490,9 +594,26 @@ fn incognito_notes_and_exit(
                 .unwrap();
             assert!(clipboard.status.success());
             assert_eq!(clipboard.stdout, b"exit clipboard canary");
-            println!("native_controller_exit_suppresses_late_delivery PASS");
+            if segments {
+                let processes = records(&evidence.join("process.jsonl"));
+                assert_eq!(processes.len(), 3);
+                assert!(
+                    processes.iter().all(|process| !Path::new(&format!(
+                        "/proc/{}",
+                        process["pid"]
+                    ))
+                    .exists()
+                        && !Path::new(process["cwd"].as_str().unwrap()).exists()),
+                    "Controller exit left active segment cleanup children or private workspaces"
+                );
+                println!(
+                    "native_controller_exit_interrupts_segment_drain_and_suppresses_delivery PASS"
+                );
+            } else {
+                println!("native_controller_exit_suppresses_late_delivery PASS");
+            }
         }
-        assert_eq!(peer.finish().len(), 1);
+        assert_eq!(peer.finish().len(), if segments { 0 } else { 1 });
     }
 }
 
@@ -504,6 +625,8 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         serde_json::from_str(include_str!("fixtures/released-capture-lifecycle.json")).unwrap();
     let previews: Value =
         serde_json::from_str(include_str!("fixtures/released-capture-previews.json")).unwrap();
+    let segments: Value =
+        serde_json::from_str(include_str!("fixtures/released-capture-segments.json")).unwrap();
     assert_eq!(
         fixture["reference_commit"],
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"
@@ -521,6 +644,9 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
     assert_eq!(previews["reference_commit"], fixture["reference_commit"]);
     assert_eq!(previews["gtk"], fixture["gtk"]);
     assert_eq!(previews["pango"], fixture["pango"]);
+    for key in ["reference_commit", "gtk", "pango"] {
+        assert_eq!(segments[key], fixture[key]);
+    }
     gtk::Settings::default()
         .unwrap()
         .set_gtk_enable_animations(false);
@@ -541,6 +667,7 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
     let cleanup = native_binary("mluva-audio-cleanup");
     let qwen_peer = native_binary("qwen-fixture-peer");
     let onnx_peer = native_binary("local-asr-fixture-peer");
+    codex_tools(&root);
     let owner = thread::current().id();
     let mut observations = 0;
     for case in fixture["cases"]
@@ -548,6 +675,7 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         .unwrap()
         .iter()
         .chain(previews["cases"].as_array().unwrap())
+        .chain(segments["cases"].as_array().unwrap())
     {
         let name = case["name"].as_str().unwrap();
         let memory_before = memory_entries();
@@ -591,6 +719,27 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         });
         let mut config: AppConfig = serde_json::from_value(case["config"].clone()).unwrap();
         config.transcription_base_url = peer.address.clone();
+        let codex_evidence = case.get("codex_controls").map(|original| {
+            let evidence = directory.path().join("codex-evidence");
+            fs::create_dir(&evidence).unwrap();
+            let mut controls = original.clone();
+            for (index, control) in controls.as_object_mut().unwrap().values_mut().enumerate() {
+                if control["hold"] == true {
+                    control["gate"] = json!(directory.path().join(format!("{index}.release")));
+                }
+                control.as_object_mut().unwrap().remove("hold");
+            }
+            fs::write(
+                root.join("codex-fixture.json"),
+                serde_json::to_vec(&json!({
+                    "scenario":"clean", "evidence":evidence, "segment_controls":controls,
+                    "deltas":["Keep 12 files. Keep 34 folders. Keep 56 notes."]
+                }))
+                .unwrap(),
+            )
+            .unwrap();
+            evidence
+        });
         let local_options = case
             .get("local")
             .map(|spec| local_models::setup(directory.path(), spec, &qwen_peer, &onnx_peer));
@@ -680,6 +829,7 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         );
         let completed = outcome.clone();
         let failed = failure.clone();
+        let cleanup_enabled = case["cleanup"] == true;
         let controller = CaptureController::attach(
             page.clone(),
             runtime.clone(),
@@ -699,6 +849,7 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
                     storage,
                     recognition.clone(),
                     CaptureOptions {
+                        use_cleanup: cleanup_enabled,
                         incognito: creating_config.incognito_mode,
                         audio_retention: creating_config.audio_retention_policy,
                         preview_enabled: creating_config.live_rewrite_enabled,
@@ -776,6 +927,11 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
                     thread::sleep(Duration::from_millis(2));
                 }
             }
+            if let Some(evidence) = &codex_evidence
+                && !config.incognito_mode
+            {
+                until(|| codex_prompts(evidence).len() == 2);
+            }
             pid = Some(
                 serde_json::from_slice::<Value>(
                     &fs::read(endpoint.join("raw.ready.json")).unwrap(),
@@ -788,8 +944,10 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
             if case["edit"] == true {
                 PersonalizationStore::new(&personalization_path)
                     .save_dictionary_replacement(
-                        "cue wen",
-                        "EditedAfterStart",
+                        case["edit_source"].as_str().unwrap_or("cue wen"),
+                        case["edit_replacement"]
+                            .as_str()
+                            .unwrap_or("EditedAfterStart"),
                         None,
                         DictionaryCaseBehavior::Fixed,
                     )
@@ -859,6 +1017,43 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
             &case["history"],
         );
         check(&root, name, "wire", json!(peer.finish()), &case["wires"]);
+        if let Some(evidence) = &codex_evidence {
+            // The shared readiness client stays cached during capture. Close it
+            // separately; segment workers must also reap their own children.
+            let closing = workflow.clone();
+            let acknowledged = Rc::new(Cell::new(false));
+            let changed = acknowledged.clone();
+            runtime.spawn(async move {
+                closing.rewrite.close().await;
+                changed.set(true);
+            });
+            until(|| acknowledged.get());
+            until(|| {
+                records(&evidence.join("process.jsonl"))
+                    .iter()
+                    .all(|process| {
+                        !Path::new(&format!("/proc/{}", process["pid"])).exists()
+                            && !Path::new(process["cwd"].as_str().unwrap()).exists()
+                    })
+            });
+            let processes = records(&evidence.join("process.jsonl"));
+            assert!(processes.iter().all(|process| process["mode"] == 0o700
+                && process["instructions"] == json!([null, null])));
+            check(
+                &root,
+                name,
+                "codex-prompts",
+                json!(codex_prompts(evidence)),
+                &case["codex_prompts"],
+            );
+            check(
+                &root,
+                name,
+                "codex-processes",
+                json!(processes.len()),
+                &case["codex_processes"],
+            );
+        }
         if case.get("local_processes").is_some() {
             let trace = local_models::trace(directory.path());
             let starts = trace
@@ -980,8 +1175,8 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         println!("native_capture {name} PASS");
     }
     incognito_notes_and_exit(&runtime, &root, &resources, &audio_peer, &cleanup);
-    assert_eq!(observations, 184);
+    assert_eq!(observations, 218);
     println!(
-        "NATIVE_COMPLETE 39 transactions, {observations} released states, exact PCM upload and native process reaping"
+        "NATIVE_COMPLETE 46 transactions, {observations} released states, exact PCM upload and native process reaping"
     );
 }

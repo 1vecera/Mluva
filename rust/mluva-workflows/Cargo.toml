@@ -23,3 +23,9 @@ tokio-util.workspace = true
 tempfile.workspace = true
 rusqlite.workspace = true
 base64.workspace = true
+
+[[bin]]
+name = "segment-cleanup-fixture-peer"
+path = "tests/support/segment_peer.rs"
+test = false
+bench = false

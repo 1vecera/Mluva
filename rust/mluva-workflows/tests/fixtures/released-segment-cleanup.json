@@ -1,0 +1,3407 @@
+{
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_hashes": {
+    "segment_cleanup.py": "6e3c2664c4879693f9a73a13a2aa47405f23599776f3c14fe012d7d525c2e087",
+    "codex_client.py": "6d778cd340cd4abce488af4abc9553da3291f79bac3ff4fe03059249afd79a97",
+    "personalization.py": "d3b1f36fe5fdf77e3d278823c30b706c3e4630ad3ccaa59a8099b0226ef1c691",
+    "prompt_defaults.py": "2fdf23766603ec9e0f24ee1a43d562f3dd57f44c0706223822e9c740961ff5e8"
+  },
+  "boundaries": [
+    "actual released segment session and Codex attempts",
+    "independently gated native JSONL child peers",
+    "synthetic text, private instructions and device/network/PID isolation"
+  ],
+  "cases": [
+    {
+      "name": "ordered-prefix-and-queue",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "accept": {
+            "identifier": "b",
+            "raw": "beta"
+          }
+        },
+        {
+          "accept": {
+            "identifier": "c",
+            "raw": "gamma"
+          }
+        },
+        {
+          "wait_requests": 2
+        },
+        {
+          "release": "beta"
+        },
+        {
+          "wait_requests": 3
+        },
+        {
+          "wait_states": [
+            "rewriting",
+            "waiting",
+            "rewriting"
+          ],
+          "observe": true
+        },
+        {
+          "release": "alpha"
+        },
+        {
+          "wait_states": [
+            "cleaned",
+            "cleaned",
+            "rewriting"
+          ],
+          "observe": true
+        },
+        {
+          "release": "gamma"
+        },
+        {
+          "wait_states": [
+            "cleaned",
+            "cleaned",
+            "cleaned"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha cleaned."
+          ],
+          "hold": true
+        },
+        "beta": {
+          "deltas": [
+            "beta cleaned."
+          ],
+          "hold": true
+        },
+        "gamma": {
+          "deltas": [
+            "gamma cleaned."
+          ],
+          "hold": true
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true,
+        true,
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "rewriting",
+              "failure": null
+            },
+            {
+              "identifier": "b",
+              "sequence": 1,
+              "raw_text": "beta",
+              "revised_text": "beta cleaned.",
+              "state": "waiting",
+              "failure": null
+            },
+            {
+              "identifier": "c",
+              "sequence": 2,
+              "raw_text": "gamma",
+              "revised_text": null,
+              "state": "rewriting",
+              "failure": null
+            }
+          ],
+          "has_stable_segments": true
+        },
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": "alpha cleaned.",
+              "state": "cleaned",
+              "failure": null
+            },
+            {
+              "identifier": "b",
+              "sequence": 1,
+              "raw_text": "beta",
+              "revised_text": "beta cleaned.",
+              "state": "cleaned",
+              "failure": null
+            },
+            {
+              "identifier": "c",
+              "sequence": 2,
+              "raw_text": "gamma",
+              "revised_text": null,
+              "state": "rewriting",
+              "failure": null
+            }
+          ],
+          "has_stable_segments": true
+        },
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": "alpha cleaned.",
+              "state": "cleaned",
+              "failure": null
+            },
+            {
+              "identifier": "b",
+              "sequence": 1,
+              "raw_text": "beta",
+              "revised_text": "beta cleaned.",
+              "state": "cleaned",
+              "failure": null
+            },
+            {
+              "identifier": "c",
+              "sequence": 2,
+              "raw_text": "gamma",
+              "revised_text": "gamma cleaned.",
+              "state": "cleaned",
+              "failure": null
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha cleaned.",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta cleaned.",
+            "failure": null
+          },
+          {
+            "identifier": "c",
+            "sequence": 2,
+            "raw_text": "gamma",
+            "selected_text": "gamma cleaned.",
+            "failure": null
+          }
+        ],
+        "raw_text": "alpha beta gamma",
+        "selected_text": "alpha cleaned. beta cleaned. gamma cleaned.",
+        "successful_segments": 3,
+        "failed_segments": 0,
+        "enhancement_outcome": "completed"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": "alpha cleaned.",
+            "state": "cleaned",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": "beta cleaned.",
+            "state": "cleaned",
+            "failure": null
+          },
+          {
+            "identifier": "c",
+            "sequence": 2,
+            "raw_text": "gamma",
+            "revised_text": "gamma cleaned.",
+            "state": "cleaned",
+            "failure": null
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha cleaned.",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta cleaned.",
+            "failure": null
+          },
+          {
+            "identifier": "c",
+            "sequence": 2,
+            "raw_text": "gamma",
+            "selected_text": "gamma cleaned.",
+            "failure": null
+          }
+        ],
+        "raw_text": "alpha beta gamma",
+        "selected_text": "alpha cleaned. beta cleaned. gamma cleaned.",
+        "successful_segments": 3,
+        "failed_segments": 0,
+        "enhancement_outcome": "completed"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": "alpha cleaned.",
+            "state": "cleaned",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": "beta cleaned.",
+            "state": "cleaned",
+            "failure": null
+          },
+          {
+            "identifier": "c",
+            "sequence": 2,
+            "raw_text": "gamma",
+            "revised_text": "gamma cleaned.",
+            "state": "cleaned",
+            "failure": null
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha",
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nbeta",
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\ngamma"
+      ],
+      "factory_calls": 3,
+      "processes": 3
+    },
+    {
+      "name": "empty-duplicate-and-stop",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "blank",
+            "raw": " \t\n"
+          }
+        },
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": " alpha "
+          }
+        },
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "must never send"
+          }
+        },
+        {
+          "wait_requests": 1
+        },
+        {
+          "release": "alpha"
+        },
+        {
+          "wait_states": [
+            "cleaned"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha cleaned."
+          ],
+          "hold": true
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        false,
+        true,
+        false
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": "alpha cleaned.",
+              "state": "cleaned",
+              "failure": null
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha cleaned.",
+            "failure": null
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha cleaned.",
+        "successful_segments": 1,
+        "failed_segments": 0,
+        "enhancement_outcome": "completed"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": "alpha cleaned.",
+            "state": "cleaned",
+            "failure": null
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha cleaned.",
+            "failure": null
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha cleaned.",
+        "successful_segments": 1,
+        "failed_segments": 0,
+        "enhancement_outcome": "completed"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": "alpha cleaned.",
+            "state": "cleaned",
+            "failure": null
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "capacity-raw-fallback",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_requests": 1
+        },
+        {
+          "accept": {
+            "identifier": "b",
+            "raw": "beta"
+          }
+        },
+        {
+          "wait_states": [
+            "rewriting",
+            "waiting"
+          ],
+          "observe": true
+        },
+        {
+          "release": "alpha"
+        },
+        {
+          "wait_states": [
+            "cleaned",
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha cleaned."
+          ],
+          "hold": true
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 1,
+        "pending_capacity": 0,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true,
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "rewriting",
+              "failure": null
+            },
+            {
+              "identifier": "b",
+              "sequence": 1,
+              "raw_text": "beta",
+              "revised_text": null,
+              "state": "waiting",
+              "failure": "skipped-capacity"
+            }
+          ],
+          "has_stable_segments": true
+        },
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": "alpha cleaned.",
+              "state": "cleaned",
+              "failure": null
+            },
+            {
+              "identifier": "b",
+              "sequence": 1,
+              "raw_text": "beta",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "skipped-capacity"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha cleaned.",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta",
+            "failure": "skipped-capacity"
+          }
+        ],
+        "raw_text": "alpha beta",
+        "selected_text": "alpha cleaned. beta",
+        "successful_segments": 1,
+        "failed_segments": 1,
+        "enhancement_outcome": "safe-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": "alpha cleaned.",
+            "state": "cleaned",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "skipped-capacity"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha cleaned.",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta",
+            "failure": "skipped-capacity"
+          }
+        ],
+        "raw_text": "alpha beta",
+        "selected_text": "alpha cleaned. beta",
+        "successful_segments": 1,
+        "failed_segments": 1,
+        "enhancement_outcome": "safe-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": "alpha cleaned.",
+            "state": "cleaned",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "skipped-capacity"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "stop-cancels-queued",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_requests": 1
+        },
+        {
+          "accept": {
+            "identifier": "b",
+            "raw": "beta"
+          }
+        },
+        {
+          "accept": {
+            "identifier": "c",
+            "raw": "gamma"
+          }
+        },
+        {
+          "drain_release": "alpha"
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha cleaned."
+          ],
+          "hold": true
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 1,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true,
+        true,
+        true
+      ],
+      "observations": [],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha cleaned.",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta",
+            "failure": "cancelled"
+          },
+          {
+            "identifier": "c",
+            "sequence": 2,
+            "raw_text": "gamma",
+            "selected_text": "gamma",
+            "failure": "cancelled"
+          }
+        ],
+        "raw_text": "alpha beta gamma",
+        "selected_text": "alpha cleaned. beta gamma",
+        "successful_segments": 1,
+        "failed_segments": 2,
+        "enhancement_outcome": "safe-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": "alpha cleaned.",
+            "state": "cleaned",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "cancelled"
+          },
+          {
+            "identifier": "c",
+            "sequence": 2,
+            "raw_text": "gamma",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "cancelled"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha cleaned.",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta",
+            "failure": "cancelled"
+          },
+          {
+            "identifier": "c",
+            "sequence": 2,
+            "raw_text": "gamma",
+            "selected_text": "gamma",
+            "failure": "cancelled"
+          }
+        ],
+        "raw_text": "alpha beta gamma",
+        "selected_text": "alpha cleaned. beta gamma",
+        "successful_segments": 1,
+        "failed_segments": 2,
+        "enhancement_outcome": "safe-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": "alpha cleaned.",
+            "state": "cleaned",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "cancelled"
+          },
+          {
+            "identifier": "c",
+            "sequence": 2,
+            "raw_text": "gamma",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "cancelled"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "stop-fixed-bound",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_requests": 1
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha cleaned."
+          ],
+          "hold": true
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "cancelled"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "cancelled"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "cancelled"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "cancelled"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "active-timeout-releases-capacity",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_requests": 1
+        },
+        {
+          "accept": {
+            "identifier": "b",
+            "raw": "beta"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback",
+            "cleaned"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha cleaned."
+          ],
+          "hold": true
+        },
+        "beta": {
+          "deltas": [
+            "beta cleaned."
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 1,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 0.15,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true,
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "timeout"
+            },
+            {
+              "identifier": "b",
+              "sequence": 1,
+              "raw_text": "beta",
+              "revised_text": "beta cleaned.",
+              "state": "cleaned",
+              "failure": null
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "timeout"
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta cleaned.",
+            "failure": null
+          }
+        ],
+        "raw_text": "alpha beta",
+        "selected_text": "alpha beta cleaned.",
+        "successful_segments": 1,
+        "failed_segments": 1,
+        "enhancement_outcome": "safe-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "timeout"
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": "beta cleaned.",
+            "state": "cleaned",
+            "failure": null
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "timeout"
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta cleaned.",
+            "failure": null
+          }
+        ],
+        "raw_text": "alpha beta",
+        "selected_text": "alpha beta cleaned.",
+        "successful_segments": 1,
+        "failed_segments": 1,
+        "enhancement_outcome": "safe-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "timeout"
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": "beta cleaned.",
+            "state": "cleaned",
+            "failure": null
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha",
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nbeta"
+      ],
+      "factory_calls": 2,
+      "processes": 2
+    },
+    {
+      "name": "cancel-keeps-cleaned-prefix",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "accept": {
+            "identifier": "b",
+            "raw": "beta"
+          }
+        },
+        {
+          "wait_requests": 2
+        },
+        {
+          "release": "alpha"
+        },
+        {
+          "wait_states": [
+            "cleaned",
+            "rewriting"
+          ],
+          "observe": true
+        },
+        {
+          "cancel": true,
+          "observe": true
+        },
+        {
+          "accept": {
+            "identifier": "c",
+            "raw": "gamma"
+          }
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha cleaned."
+          ],
+          "hold": true
+        },
+        "beta": {
+          "deltas": [
+            "beta cleaned."
+          ],
+          "hold": true
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true,
+        true,
+        false
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": "alpha cleaned.",
+              "state": "cleaned",
+              "failure": null
+            },
+            {
+              "identifier": "b",
+              "sequence": 1,
+              "raw_text": "beta",
+              "revised_text": null,
+              "state": "rewriting",
+              "failure": null
+            }
+          ],
+          "has_stable_segments": true
+        },
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": "alpha cleaned.",
+              "state": "cleaned",
+              "failure": null
+            },
+            {
+              "identifier": "b",
+              "sequence": 1,
+              "raw_text": "beta",
+              "revised_text": null,
+              "state": "cancelled",
+              "failure": "cancelled"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha cleaned.",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta",
+            "failure": "cancelled"
+          }
+        ],
+        "raw_text": "alpha beta",
+        "selected_text": "alpha cleaned. beta",
+        "successful_segments": 1,
+        "failed_segments": 1,
+        "enhancement_outcome": "safe-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": "alpha cleaned.",
+            "state": "cleaned",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": null,
+            "state": "cancelled",
+            "failure": "cancelled"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha cleaned.",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta",
+            "failure": "cancelled"
+          }
+        ],
+        "raw_text": "alpha beta",
+        "selected_text": "alpha cleaned. beta",
+        "successful_segments": 1,
+        "failed_segments": 1,
+        "enhancement_outcome": "safe-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": "alpha cleaned.",
+            "state": "cleaned",
+            "failure": null
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": null,
+            "state": "cancelled",
+            "failure": "cancelled"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha",
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nbeta"
+      ],
+      "factory_calls": 2,
+      "processes": 2
+    },
+    {
+      "name": "cancel-discards-unpublished-candidate",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "accept": {
+            "identifier": "b",
+            "raw": "beta"
+          }
+        },
+        {
+          "wait_requests": 2
+        },
+        {
+          "release": "beta"
+        },
+        {
+          "wait_states": [
+            "rewriting",
+            "waiting"
+          ],
+          "observe": true
+        },
+        {
+          "cancel": true,
+          "observe": true
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha cleaned."
+          ],
+          "hold": true
+        },
+        "beta": {
+          "deltas": [
+            "beta cleaned."
+          ],
+          "hold": true
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true,
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "rewriting",
+              "failure": null
+            },
+            {
+              "identifier": "b",
+              "sequence": 1,
+              "raw_text": "beta",
+              "revised_text": "beta cleaned.",
+              "state": "waiting",
+              "failure": null
+            }
+          ],
+          "has_stable_segments": true
+        },
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "cancelled",
+              "failure": "cancelled"
+            },
+            {
+              "identifier": "b",
+              "sequence": 1,
+              "raw_text": "beta",
+              "revised_text": null,
+              "state": "cancelled",
+              "failure": "cancelled"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "cancelled"
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta",
+            "failure": "cancelled"
+          }
+        ],
+        "raw_text": "alpha beta",
+        "selected_text": "alpha beta",
+        "successful_segments": 0,
+        "failed_segments": 2,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "cancelled",
+            "failure": "cancelled"
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": null,
+            "state": "cancelled",
+            "failure": "cancelled"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "cancelled"
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "selected_text": "beta",
+            "failure": "cancelled"
+          }
+        ],
+        "raw_text": "alpha beta",
+        "selected_text": "alpha beta",
+        "successful_segments": 0,
+        "failed_segments": 2,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "cancelled",
+            "failure": "cancelled"
+          },
+          {
+            "identifier": "b",
+            "sequence": 1,
+            "raw_text": "beta",
+            "revised_text": null,
+            "state": "cancelled",
+            "failure": "cancelled"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha",
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nbeta"
+      ],
+      "factory_calls": 2,
+      "processes": 2
+    },
+    {
+      "name": "blank-output",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            " \t\n"
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "provider"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "provider"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "provider"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "provider"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "provider"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "response-bound",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha xxxxxxxxxxxxxxxxxxxx"
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 12
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "output-too-large"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "output-too-large"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "output-too-large"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "output-too-large"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "output-too-large"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "raw-input-bound",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "unused"
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 3,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "input-too-large"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "input-too-large"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "input-too-large"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "input-too-large"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "input-too-large"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [],
+      "factory_calls": 0,
+      "processes": 0
+    },
+    {
+      "name": "unsafe-number",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "keep 12 files"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "keep 12 files": {
+          "deltas": [
+            "keep 13 files"
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "keep 12 files",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "safety"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "keep 12 files",
+            "selected_text": "keep 12 files",
+            "failure": "safety"
+          }
+        ],
+        "raw_text": "keep 12 files",
+        "selected_text": "keep 12 files",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "keep 12 files",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "safety"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "keep 12 files",
+            "selected_text": "keep 12 files",
+            "failure": "safety"
+          }
+        ],
+        "raw_text": "keep 12 files",
+        "selected_text": "keep 12 files",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "keep 12 files",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "safety"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nkeep 12 files"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "unsafe-negation-url",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "Do not deploy https://example.com now"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "Do not deploy https://example.com now": {
+          "deltas": [
+            "Deploy now"
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "Do not deploy https://example.com now",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "safety"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Do not deploy https://example.com now",
+            "selected_text": "Do not deploy https://example.com now",
+            "failure": "safety"
+          }
+        ],
+        "raw_text": "Do not deploy https://example.com now",
+        "selected_text": "Do not deploy https://example.com now",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Do not deploy https://example.com now",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "safety"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Do not deploy https://example.com now",
+            "selected_text": "Do not deploy https://example.com now",
+            "failure": "safety"
+          }
+        ],
+        "raw_text": "Do not deploy https://example.com now",
+        "selected_text": "Do not deploy https://example.com now",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Do not deploy https://example.com now",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "safety"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nDo not deploy https://example.com now"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "protected-vocabulary",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "Use Qwen3 here"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "Use Qwen3 here": {
+          "deltas": [
+            "Use another model here"
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [
+        "Qwen3"
+      ],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "Use Qwen3 here",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "safety"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Use Qwen3 here",
+            "selected_text": "Use Qwen3 here",
+            "failure": "safety"
+          }
+        ],
+        "raw_text": "Use Qwen3 here",
+        "selected_text": "Use Qwen3 here",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Use Qwen3 here",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "safety"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Use Qwen3 here",
+            "selected_text": "Use Qwen3 here",
+            "failure": "safety"
+          }
+        ],
+        "raw_text": "Use Qwen3 here",
+        "selected_text": "Use Qwen3 here",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Use Qwen3 here",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "safety"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nUse Qwen3 here"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "unicode-and-trim",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "\u001fStraße 🙂　"
+          }
+        },
+        {
+          "wait_states": [
+            "cleaned"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "Straße 🙂": {
+          "deltas": [
+            "Straße 🙂 cleaned."
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "Straße 🙂",
+              "revised_text": "Straße 🙂 cleaned.",
+              "state": "cleaned",
+              "failure": null
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Straße 🙂",
+            "selected_text": "Straße 🙂 cleaned.",
+            "failure": null
+          }
+        ],
+        "raw_text": "Straße 🙂",
+        "selected_text": "Straße 🙂 cleaned.",
+        "successful_segments": 1,
+        "failed_segments": 0,
+        "enhancement_outcome": "completed"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Straße 🙂",
+            "revised_text": "Straße 🙂 cleaned.",
+            "state": "cleaned",
+            "failure": null
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Straße 🙂",
+            "selected_text": "Straße 🙂 cleaned.",
+            "failure": null
+          }
+        ],
+        "raw_text": "Straße 🙂",
+        "selected_text": "Straße 🙂 cleaned.",
+        "successful_segments": 1,
+        "failed_segments": 0,
+        "enhancement_outcome": "completed"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "Straße 🙂",
+            "revised_text": "Straße 🙂 cleaned.",
+            "state": "cleaned",
+            "failure": null
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nStraße 🙂"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "provider-exit",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "unused"
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "scenario": "exit-during-turn",
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "provider"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "provider"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "provider"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "provider"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "provider"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nalpha"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    },
+    {
+      "name": "factory-failure",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {},
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "factory_error": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "provider"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "provider"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "provider"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "provider"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "provider"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [],
+      "factory_calls": 1,
+      "processes": 0
+    },
+    {
+      "name": "preparation-empty",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {},
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "empty",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "processing"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "processing"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "processing"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "processing"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "processing"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [],
+      "factory_calls": 0,
+      "processes": 0
+    },
+    {
+      "name": "preparation-error",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {},
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "error",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "processing"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "processing"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "processing"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "processing"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "processing"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [],
+      "factory_calls": 0,
+      "processes": 0
+    },
+    {
+      "name": "preparation-oversize",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {},
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8,
+        "response_character_limit": 8000
+      },
+      "preparation": "oversize",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "input-too-large"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "input-too-large"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "input-too-large"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "input-too-large"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "input-too-large"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [],
+      "factory_calls": 0,
+      "processes": 0
+    },
+    {
+      "name": "timeout-during-preparation",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        },
+        {
+          "release": "preparation"
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha cleaned."
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 0.1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "blocked": "preparation",
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "timeout"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "timeout"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "timeout"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "timeout"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "timeout"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [],
+      "factory_calls": 1,
+      "processes": 0
+    },
+    {
+      "name": "timeout-during-factory",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "alpha"
+          }
+        },
+        {
+          "wait_states": [
+            "fallback"
+          ],
+          "observe": true
+        },
+        {
+          "release": "factory"
+        }
+      ],
+      "controls": {
+        "alpha": {
+          "deltas": [
+            "alpha cleaned."
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 0.1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "identity",
+      "vocabulary": [],
+      "finish": true,
+      "blocked": "factory",
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "alpha",
+              "revised_text": null,
+              "state": "fallback",
+              "failure": "timeout"
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "timeout"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "timeout"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "selected_text": "alpha",
+            "failure": "timeout"
+          }
+        ],
+        "raw_text": "alpha",
+        "selected_text": "alpha",
+        "successful_segments": 0,
+        "failed_segments": 1,
+        "enhancement_outcome": "raw-fallback"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "alpha",
+            "revised_text": null,
+            "state": "fallback",
+            "failure": "timeout"
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [],
+      "factory_calls": 1,
+      "processes": 0
+    },
+    {
+      "name": "uppercase-expansion",
+      "actions": [
+        {
+          "accept": {
+            "identifier": "a",
+            "raw": "straße 12"
+          }
+        },
+        {
+          "wait_states": [
+            "cleaned"
+          ],
+          "observe": true
+        }
+      ],
+      "controls": {
+        "STRASSE 12": {
+          "deltas": [
+            "STRASSE 12 cleaned."
+          ],
+          "hold": false
+        }
+      },
+      "configuration": {
+        "concurrency_limit": 2,
+        "pending_capacity": 8,
+        "attempt_timeout_seconds": 1,
+        "stop_drain_timeout_seconds": 0.1,
+        "segment_character_limit": 8000,
+        "response_character_limit": 8000
+      },
+      "preparation": "uppercase",
+      "vocabulary": [],
+      "finish": true,
+      "accepted": [
+        true
+      ],
+      "observations": [
+        {
+          "projection": [
+            {
+              "identifier": "a",
+              "sequence": 0,
+              "raw_text": "straße 12",
+              "revised_text": "STRASSE 12 cleaned.",
+              "state": "cleaned",
+              "failure": null
+            }
+          ],
+          "has_stable_segments": true
+        }
+      ],
+      "terminal": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "straße 12",
+            "selected_text": "STRASSE 12 cleaned.",
+            "failure": null
+          }
+        ],
+        "raw_text": "straße 12",
+        "selected_text": "STRASSE 12 cleaned.",
+        "successful_segments": 1,
+        "failed_segments": 0,
+        "enhancement_outcome": "completed"
+      },
+      "finished": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "straße 12",
+            "revised_text": "STRASSE 12 cleaned.",
+            "state": "cleaned",
+            "failure": null
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "after_stop": false,
+      "second": {
+        "session_identifier": "capture-session",
+        "provider_identifier": "codex-app-server",
+        "model_identifier": "fixture-model",
+        "segments": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "straße 12",
+            "selected_text": "STRASSE 12 cleaned.",
+            "failure": null
+          }
+        ],
+        "raw_text": "straße 12",
+        "selected_text": "STRASSE 12 cleaned.",
+        "successful_segments": 1,
+        "failed_segments": 0,
+        "enhancement_outcome": "completed"
+      },
+      "closed": {
+        "projection": [
+          {
+            "identifier": "a",
+            "sequence": 0,
+            "raw_text": "straße 12",
+            "revised_text": "STRASSE 12 cleaned.",
+            "state": "cleaned",
+            "failure": null
+          }
+        ],
+        "has_stable_segments": true
+      },
+      "prompts": [
+        "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only. Preserve every fact, number, name, URL, path, identifier, command, and negation. Return only the cleaned text.\n\nDICTATION:\nSTRASSE 12"
+      ],
+      "factory_calls": 1,
+      "processes": 1
+    }
+  ]
+}

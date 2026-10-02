@@ -142,6 +142,15 @@ impl RewriteClient {
         }
     }
 
+    /// Segment cleanup owns independent Codex attempts with the parent's frozen
+    /// command and deadlines, never its active connection.
+    pub fn spawn_codex(&self) -> Option<CodexAppServerClient> {
+        match &self.route {
+            Route::Codex(client) => Some(client.spawn()),
+            _ => None,
+        }
+    }
+
     pub async fn transform_capture(
         &self,
         prompt: &str,
