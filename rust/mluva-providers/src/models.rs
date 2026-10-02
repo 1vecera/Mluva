@@ -123,6 +123,18 @@ pub fn valid_identifier(value: &str) -> bool {
         })
 }
 
+pub fn valid_catalog_name(value: &str) -> bool {
+    !value.is_empty()
+        && value.chars().count() <= 200
+        && value.chars().all(|character| {
+            let code = u32::from(character);
+            let index = PRINTABLE.partition_point(|(_, last)| *last < code);
+            PRINTABLE
+                .get(index)
+                .is_some_and(|(first, last)| (*first..=*last).contains(&code))
+        })
+}
+
 pub(crate) fn truthy(value: &Value) -> bool {
     match value {
         Value::Null => false,

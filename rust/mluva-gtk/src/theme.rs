@@ -25,6 +25,14 @@ static DEFAULTS: LazyLock<DefaultPalettes> = LazyLock::new(|| {
         .expect("reviewed semantic palettes")
 });
 
+pub fn default_palette(dark: bool) -> Palette {
+    if dark {
+        DEFAULTS.dark.clone()
+    } else {
+        DEFAULTS.light.clone()
+    }
+}
+
 fn color(value: &str) -> Option<[u8; 3]> {
     if value.len() != 7
         || !value.starts_with('#')

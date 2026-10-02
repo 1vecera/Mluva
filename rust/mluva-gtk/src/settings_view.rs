@@ -4,6 +4,27 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use adw::prelude::*;
+use mluva_core::config::{AppConfig, ConfigError};
+use serde_json::{Map, Value};
+
+pub type SaveSettings = Rc<dyn Fn(&Map<String, Value>) -> bool>;
+
+pub(crate) fn proposed_config(
+    config: &AppConfig,
+    changes: &Map<String, Value>,
+) -> Result<AppConfig, ConfigError> {
+    let mut document = serde_json::to_value(config).expect("serializable settings");
+    let fields = document.as_object_mut().unwrap();
+    for (name, value) in changes {
+        if !fields.contains_key(name) {
+            return Err(ConfigError::Fields);
+        }
+        fields.insert(name.clone(), value.clone());
+    }
+    let config: AppConfig = serde_json::from_value(document).map_err(|_| ConfigError::Fields)?;
+    config.validate()?;
+    Ok(config)
+}
 
 pub struct SettingsView {
     pub widget: gtk::Box,

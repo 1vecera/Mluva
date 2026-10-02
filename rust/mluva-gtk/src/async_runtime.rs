@@ -42,6 +42,19 @@ impl DesktopRuntime {
             .await
         })
     }
+
+    /// Owned downloads and hashing run away from the GTK context; their task
+    /// retains cleanup even after the corresponding page is gone.
+    pub fn spawn_background<F>(&self, future: F) -> tokio::task::JoinHandle<F::Output>
+    where
+        F: Future + Send + 'static,
+        F::Output: Send + 'static,
+    {
+        self.runtime
+            .as_ref()
+            .expect("live desktop runtime")
+            .spawn(future)
+    }
 }
 impl Drop for DesktopRuntime {
     fn drop(&mut self) {

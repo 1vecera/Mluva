@@ -14,6 +14,7 @@ mluva-workflows = { path = "../mluva-workflows" }
 mluva-providers = { path = "../mluva-providers" }
 mluva-audio = { path = "../mluva-audio" }
 gtk.workspace = true
+pangocairo = "0.21"
 adw.workspace = true
 glib.workspace = true
 gio.workspace = true
@@ -28,6 +29,7 @@ base64.workspace = true
 webkit6 = "0.5"
 roxmltree = "0.21"
 tokio.workspace = true
+tokio-util.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

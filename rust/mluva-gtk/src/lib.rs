@@ -1,5 +1,6 @@
 //! Native desktop widgets; keep stored source and desktop presentation separate.
 
+pub mod appearance_settings;
 pub mod application_shell;
 pub mod async_runtime;
 mod atspi;
@@ -8,14 +9,18 @@ pub mod capture_view;
 pub mod command_palette;
 pub mod commands;
 pub mod conversation_view;
+pub mod direct_choices;
 pub mod document_layout;
 pub mod editor_pages;
+pub mod language_picker;
 pub mod live_controller;
+pub mod local_model_settings;
 pub mod markdown_view;
 pub mod mermaid;
 pub mod overlay_state;
 pub mod personalization;
 pub mod prompt_editor;
+pub mod provider_settings;
 pub mod recording_light;
 pub mod review_controller;
 pub mod rewrite_settings;
@@ -24,3 +29,5 @@ pub mod settings_view;
 pub mod text_target;
 pub mod theme;
 pub mod title_jobs;
+pub mod welcome_view;
+pub mod workspace_settings;
