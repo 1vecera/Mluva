@@ -1,0 +1,632 @@
+{
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_sha256": "4967f87db5da340a9bbc261a7bb7d3654a310ca6de96bb427a6ee16fb22474cb",
+  "boundaries": [
+    "synthetic PCM",
+    "actual released batch session",
+    "real loopback compatible HTTP"
+  ],
+  "cases": [
+    {
+      "name": "below-threshold-final-only",
+      "actions": [
+        {
+          "submit": 32000
+        }
+      ],
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "authoritative full",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "factory_calls": 1,
+      "wire": [
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "643f8a8dc8bd9c19225afffad2becfec5426180b3749cb208abdf1a6c8354efc",
+          "file_bytes": 32044
+        }
+      ]
+    },
+    {
+      "name": "completed-preview-is-provisional",
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview 0"
+        }
+      ],
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "preview 0",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        },
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "authoritative full",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview 0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "factory_calls": 2,
+      "wire": [
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "file_bytes": 96044
+        },
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "file_bytes": 96044
+        }
+      ]
+    },
+    {
+      "name": "sequential-coalesced-chunks",
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview 0"
+        },
+        {
+          "submit": 192000,
+          "wait": "preview 0 preview 1"
+        }
+      ],
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "preview 0",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        },
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "preview 1",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        },
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "authoritative full",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview 0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000
+        },
+        {
+          "preview": {
+            "committed_text": "preview 0 preview 1",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 288000
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "factory_calls": 3,
+      "wire": [
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "file_bytes": 96044
+        },
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "47b589098cc9e4b92774cd5b6a57ccca0713c02396bf755b2318f7e81cdc534e",
+          "file_bytes": 192044
+        },
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "d474d8c871f70642150a2089158eefe6266e19a1dddcc91b13acb4b631cfdb3b",
+          "file_bytes": 288044
+        }
+      ]
+    },
+    {
+      "name": "pause-resume-keeps-all-audio",
+      "enabled": false,
+      "actions": [
+        {
+          "submit": 192000
+        },
+        {
+          "enabled": true,
+          "wait": "preview 0"
+        },
+        {
+          "enabled": false
+        },
+        {
+          "submit": 96000
+        },
+        {
+          "enabled": true,
+          "wait": "preview 0 preview 1"
+        }
+      ],
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "preview 0",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        },
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "preview 1",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        },
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "authoritative full",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0
+        },
+        {
+          "preview": {
+            "committed_text": "preview 0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 192000
+        },
+        {
+          "preview": {
+            "committed_text": "preview 0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 192000
+        },
+        {
+          "preview": {
+            "committed_text": "preview 0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 192000
+        },
+        {
+          "preview": {
+            "committed_text": "preview 0 preview 1",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 288000
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "factory_calls": 3,
+      "wire": [
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "47b589098cc9e4b92774cd5b6a57ccca0713c02396bf755b2318f7e81cdc534e",
+          "file_bytes": 192044
+        },
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "file_bytes": 96044
+        },
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "d474d8c871f70642150a2089158eefe6266e19a1dddcc91b13acb4b631cfdb3b",
+          "file_bytes": 288044
+        }
+      ]
+    },
+    {
+      "name": "failed-preview-falls-back",
+      "actions": [
+        {
+          "submit": 96000
+        },
+        {
+          "wait_unhealthy": true
+        }
+      ],
+      "responses": [
+        {
+          "route": "speech",
+          "status": 500,
+          "payload": {
+            "text": "cue wen comma send 12 files new line snippet my signature",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000
+        }
+      ],
+      "terminal": {
+        "error": "Preview unavailable; use the finalized recording."
+      },
+      "factory_calls": 1,
+      "wire": [
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "file_bytes": 96044
+        }
+      ]
+    },
+    {
+      "name": "cancel-and-toggle-after-preview",
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview 0"
+        },
+        {
+          "cancel": true
+        },
+        {
+          "enabled": true
+        }
+      ],
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "preview 0",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        }
+      ],
+      "no_finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview 0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000
+        }
+      ],
+      "terminal": null,
+      "factory_calls": 1,
+      "wire": [
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "file_bytes": 96044
+        }
+      ]
+    },
+    {
+      "name": "empty-finalization",
+      "actions": [],
+      "responses": [],
+      "observations": [],
+      "terminal": {
+        "error": "Preview unavailable; use the finalized recording."
+      },
+      "factory_calls": 0,
+      "wire": []
+    },
+    {
+      "name": "odd-pcm-finalization",
+      "actions": [
+        {
+          "submit": 3
+        }
+      ],
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "odd full",
+            "language_code": "eng",
+            "language_probability": 0.98,
+            "transcription_id": "synthetic-id"
+          }
+        }
+      ],
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "odd full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "factory_calls": 1,
+      "wire": [
+        {
+          "path": "/audio/transcriptions",
+          "fields": {
+            "model": "synthetic-speech",
+            "response_format": "json"
+          },
+          "file_sha256": "5f0a461c204b51e702c51127cc7a42335ab9600dd91958cd848f4c0296b5dec9",
+          "file_bytes": 47
+        }
+      ]
+    },
+    {
+      "name": "exact-memory-bound",
+      "enabled": false,
+      "actions": [
+        {
+          "submit": 57600000
+        },
+        {
+          "cancel": true
+        }
+      ],
+      "responses": [],
+      "no_finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 0
+        }
+      ],
+      "terminal": null,
+      "factory_calls": 0,
+      "wire": []
+    },
+    {
+      "name": "memory-overflow-falls-back",
+      "enabled": false,
+      "actions": [
+        {
+          "submit": 57600000
+        },
+        {
+          "submit": 2
+        }
+      ],
+      "responses": [],
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 0
+        }
+      ],
+      "terminal": {
+        "error": "Preview unavailable; use the finalized recording."
+      },
+      "factory_calls": 0,
+      "wire": []
+    }
+  ]
+}

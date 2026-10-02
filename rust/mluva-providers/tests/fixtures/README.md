@@ -1,5 +1,7 @@
 # Released provider observations
 
+[Batch preview evidence](batch-preview-evidence.md) compares ten actual released compatible-provider preview sessions, nineteen public state observations and twelve complete multipart/WAV uploads, including pause/resume, authoritative full-audio finalization, cancellation/failure and memory bounds. Two further native faults verify private staging erasure after active-preview cancellation and dropped final requests. Capture integration, the separate local preview subclass and Live controllers remain pending.
+
 The immutable reference is Mluva v1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. Reference collectors compare imported module bytes against that commit before executing them. Collection uses synthetic credentials, text, images and audio in private scratch files and real loopback services. The maintained tests, fixture peers and production library are native Rust; collectors are ignored scratch and are not shipped.
 
 `released-providers.json` contains 4,820 independent observations from Python 3.14.7 with Unicode 16.0.0. SHA-256: `5d521f86b5472094157efae4e6a449fd949d9b21bec290ee696cb34bcf4a8170`.
