@@ -23,6 +23,7 @@ struct CaseProperties {
     case_ignorable: Vec<(u32, u32)>,
     decimal: Vec<(u32, u32)>,
     upper_mapping: BTreeMap<u32, String>,
+    title_mapping: BTreeMap<u32, String>,
     lower_mapping: BTreeMap<u32, String>,
     ignore_case_groups: Vec<String>,
 }
@@ -115,6 +116,15 @@ pub fn upper(value: &str) -> String {
 }
 
 pub fn lower(value: &str) -> String {
+    lower_or_title(value, false)
+}
+
+/// Released title casing starts a word after each uncased character, including `_`.
+pub fn title(value: &str) -> String {
+    lower_or_title(value, true)
+}
+
+fn lower_or_title(value: &str, title: bool) -> String {
     let characters: Vec<_> = value.chars().collect();
     // Compute both contexts in linear time, including long combining-mark sequences.
     let mut following_cased = vec![false; characters.len()];
@@ -126,9 +136,16 @@ pub fn lower(value: &str) -> String {
         }
     }
     let mut preceding_cased = false;
+    let mut previous_cased = false;
     let mut result = String::with_capacity(value.len());
     for (index, &character) in characters.iter().enumerate() {
-        if character == 'Σ' {
+        if title && !previous_cased {
+            if let Some(mapped) = CASE_PROPERTIES.title_mapping.get(&u32::from(character)) {
+                result.push_str(mapped);
+            } else {
+                result.push(character);
+            }
+        } else if character == 'Σ' {
             result.push(if preceding_cased && !following_cased[index] {
                 'ς'
             } else {
@@ -142,6 +159,7 @@ pub fn lower(value: &str) -> String {
         if !in_ranges(character, &CASE_PROPERTIES.case_ignorable) {
             preceding_cased = in_ranges(character, &CASE_PROPERTIES.cased);
         }
+        previous_cased = in_ranges(character, &CASE_PROPERTIES.cased);
     }
     result
 }
