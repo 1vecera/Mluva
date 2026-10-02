@@ -11,6 +11,7 @@ description = "Native Mluva desktop widgets and application surfaces"
 [dependencies]
 mluva-core = { path = "../mluva-core" }
 mluva-workflows = { path = "../mluva-workflows" }
+mluva-providers = { path = "../mluva-providers" }
 gtk.workspace = true
 adw.workspace = true
 glib.workspace = true
@@ -30,4 +31,3 @@ roxmltree = "0.21"
 tempfile.workspace = true
 rusqlite.workspace = true
 tokio.workspace = true
-mluva-providers = { path = "../mluva-providers" }
