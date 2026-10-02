@@ -19,6 +19,7 @@ uuid.workspace = true
 tokio.workspace = true
 tokio-util.workspace = true
 chrono.workspace = true
+libc.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
@@ -29,4 +30,20 @@ base64.workspace = true
 name = "segment-cleanup-fixture-peer"
 path = "tests/support/segment_peer.rs"
 test = false
+bench = false
+
+# Reuse the owned synthetic audio peer and native memory cleanup implementation;
+# these test endpoints are never selected by distribution tooling.
+[[bin]]
+name = "meeting-audio-fixture-peer"
+path = "../mluva-audio/tests/support/peer.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "meeting-cleanup-fixture-peer"
+path = "../mluva-audio/src/bin/cleanup.rs"
+test = false
+doc = false
 bench = false

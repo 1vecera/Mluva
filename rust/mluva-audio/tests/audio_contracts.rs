@@ -10,6 +10,204 @@ use serde_json::json;
 use std::fs;
 use support::{assert_level, hex, mode, reference, unhex};
 
+#[tokio::test]
+async fn meeting_owner_matches_released_mixing_and_preserves_transferred_audio() {
+    use mluva_audio::{
+        capture::CaptureStorage, meeting::PipeWireMeetingRecorder, meeting_capture::MeetingRecorder,
+    };
+    for case in reference()["meetings"].as_array().unwrap() {
+        let peer = support::Peer::new(&case["config"]);
+        let recorder = MeetingRecorder::new(PipeWireMeetingRecorder::new(
+            &peer.executable,
+            Some("configured.microphone".into()),
+            Some("configured.output".into()),
+        ))
+        .unwrap();
+        let output = recorder
+            .prepare_destination(
+                CaptureStorage::Persistent(peer.path().to_owned()),
+                "meeting.wav".into(),
+            )
+            .await
+            .unwrap();
+        recorder.start(output.clone()).await.unwrap();
+        let mut pids = vec![];
+        for name in ["microphone", "system"] {
+            let ready = peer.ready(name);
+            pids.push(ready["pid"].as_u64().unwrap());
+            let mut arguments = ready["argv"].as_array().unwrap().clone();
+            *arguments.last_mut().unwrap() = json!("<source.wav>");
+            assert_eq!(json!(arguments), case["argv"][name]);
+        }
+        let actual = match recorder.stop().await {
+            Ok(result) => {
+                json!({"ok":{"path":result.path.file_name().unwrap().to_str().unwrap(),"audio_sources":result.audio_sources,"warnings":result.warnings,"duration_seconds":result.duration_seconds}})
+            }
+            Err(error) => json!({"error":error.to_string()}),
+        };
+        assert_eq!(actual, case["result"], "{}", case["name"]);
+        assert!(!recorder.active());
+        if let Some(bytes) = case["wav_hex"].as_str() {
+            assert_eq!(fs::read(&output).unwrap(), unhex(bytes));
+            assert_eq!(mode(&output), 0o600);
+            recorder.retain_audio().await.unwrap();
+        } else {
+            assert!(recorder.retain_audio().await.is_err());
+        }
+        recorder.close().await.unwrap();
+        recorder.close().await.unwrap();
+        for pid in pids {
+            assert!(!std::path::Path::new(&format!("/proc/{pid}")).exists());
+        }
+        assert!(
+            !peer
+                .path()
+                .join(".meeting.wav.microphone.part.wav")
+                .exists()
+        );
+        assert!(!peer.path().join(".meeting.wav.system.part.wav").exists());
+        if let Some(bytes) = case["wav_hex"].as_str() {
+            assert_eq!(fs::read(output).unwrap(), unhex(bytes));
+        } else {
+            assert!(!output.exists());
+        }
+    }
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn dropped_meeting_stop_keeps_timers_running_and_erases_untransferred_audio() {
+    use mluva_audio::{
+        capture::CaptureStorage, meeting::PipeWireMeetingRecorder, meeting_capture::MeetingRecorder,
+    };
+    use std::{
+        sync::{
+            Arc,
+            atomic::{AtomicBool, Ordering},
+        },
+        time::Duration,
+    };
+    let mut config = reference()["meetings"][0]["config"].clone();
+    config["microphone"]["finalize_delay_ms"] = json!(250);
+    config["system"]["finalize_delay_ms"] = json!(250);
+    let peer = support::Peer::new(&config);
+    let recorder = Arc::new(
+        MeetingRecorder::new(PipeWireMeetingRecorder::new(&peer.executable, None, None)).unwrap(),
+    );
+    let output = recorder
+        .prepare_destination(
+            CaptureStorage::Persistent(peer.path().to_owned()),
+            "meeting.wav".into(),
+        )
+        .await
+        .unwrap();
+    recorder.start(output.clone()).await.unwrap();
+    let pids = [
+        peer.ready("microphone")["pid"].as_u64().unwrap(),
+        peer.ready("system")["pid"].as_u64().unwrap(),
+    ];
+    let worker = recorder.clone();
+    let stopped = tokio::spawn(async move { worker.stop().await });
+    tokio::time::sleep(Duration::from_millis(20)).await;
+    stopped.abort();
+    assert!(stopped.await.unwrap_err().is_cancelled());
+    let finished = AtomicBool::new(false);
+    let closing = async {
+        recorder.close().await.unwrap();
+        finished.store(true, Ordering::Release);
+    };
+    let heartbeat = async {
+        let mut ticks = 0;
+        while !finished.load(Ordering::Acquire) {
+            tokio::time::sleep(Duration::from_millis(10)).await;
+            ticks += 1;
+        }
+        ticks
+    };
+    let (_, ticks) = tokio::join!(closing, heartbeat);
+    assert!(ticks >= 20, "Meeting finalization blocked its async caller");
+    assert!(!output.exists());
+    assert!(!recorder.active());
+    for pid in pids {
+        assert!(!std::path::Path::new(&format!("/proc/{pid}")).exists());
+    }
+    assert!(
+        !peer
+            .path()
+            .join(".meeting.wav.microphone.part.wav")
+            .exists()
+    );
+    assert!(!peer.path().join(".meeting.wav.system.part.wav").exists());
+}
+
+#[tokio::test]
+async fn meeting_owner_keeps_unowned_collisions_and_erases_incognito_staging() {
+    use mluva_audio::{
+        capture::CaptureStorage, meeting::PipeWireMeetingRecorder,
+        meeting_capture::MeetingRecorder, volatile::memory_backed,
+    };
+    let config = reference()["meetings"][0]["config"].clone();
+    let peer = support::Peer::new(&config);
+    let recorder =
+        MeetingRecorder::new(PipeWireMeetingRecorder::new(&peer.executable, None, None)).unwrap();
+    assert!(
+        recorder
+            .prepare_destination(
+                CaptureStorage::Persistent(peer.path().to_owned()),
+                "../outside.wav".into()
+            )
+            .await
+            .is_err()
+    );
+    let output = recorder
+        .prepare_destination(
+            CaptureStorage::Persistent(peer.path().to_owned()),
+            "preserved.wav".into(),
+        )
+        .await
+        .unwrap();
+    fs::write(&output, b"preserved synthetic recording").unwrap();
+    assert!(recorder.start(output.clone()).await.is_err());
+    recorder.close().await.unwrap();
+    assert_eq!(fs::read(output).unwrap(), b"preserved synthetic recording");
+    let peer = support::Peer::new(&config);
+    let recorder =
+        MeetingRecorder::new(PipeWireMeetingRecorder::new(&peer.executable, None, None)).unwrap();
+    let output = recorder
+        .prepare_destination(
+            CaptureStorage::Incognito {
+                cleanup_executable: env!("CARGO_BIN_EXE_mluva-audio-cleanup").into(),
+                memory_root: None,
+            },
+            "meeting.wav".into(),
+        )
+        .await
+        .unwrap();
+    let root = output
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .to_owned();
+    assert!(memory_backed(&root));
+    recorder.start(output.clone()).await.unwrap();
+    let pids = [
+        peer.ready("microphone")["pid"].as_u64().unwrap(),
+        peer.ready("system")["pid"].as_u64().unwrap(),
+    ];
+    let result = recorder.stop().await.unwrap();
+    assert_eq!(result.path, output);
+    assert!(output.exists());
+    assert_eq!(mode(&output), 0o600);
+    assert!(recorder.retain_audio().await.is_err());
+    recorder.close().await.unwrap();
+    assert!(!root.exists());
+    for pid in pids {
+        assert!(!std::path::Path::new(&format!("/proc/{pid}")).exists());
+    }
+}
+
 #[tokio::test(flavor = "current_thread")]
 async fn asynchronous_owner_keeps_timers_running_and_reaps_a_slow_audio_consumer() {
     use mluva_audio::{

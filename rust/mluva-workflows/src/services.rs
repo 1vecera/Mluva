@@ -447,6 +447,31 @@ impl ApplicationServices {
             prompts: self.prompts.clone(),
         })
     }
+
+    /// Meeting readiness is independent of the selected dictation provider. A
+    /// missing key disables only explicit Meeting upload, leaving local review.
+    pub async fn meeting_services(
+        &self,
+        binaries: &NativeBinaries,
+    ) -> WorkflowOutcome<Arc<crate::meeting_services::MeetingServices>> {
+        let executable =
+            mluva_core::executables::find_executable("pw-record").ok_or_else(|| {
+                WorkflowError::Invalid(
+                    "pw-record is required. Install PipeWire tools for your distribution.".into(),
+                )
+            })?;
+        let key = self.credentials.elevenlabs_api_key().await?;
+        Ok(Arc::new(
+            crate::meeting_services::MeetingServices::new(
+                key,
+                mluva_providers::elevenlabs::SCRIBE_ENDPOINT.into(),
+                executable,
+                binaries.audio_cleanup.clone(),
+                self.meetings.clone(),
+            )
+            .with_diagnostics(self.diagnostics.clone()),
+        ))
+    }
 }
 
 /// Distribution supplies paths to its own native workers, never an interpreter.

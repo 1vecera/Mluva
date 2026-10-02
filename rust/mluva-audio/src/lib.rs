@@ -3,6 +3,7 @@
 pub mod capture;
 pub mod catalog;
 pub mod meeting;
+pub mod meeting_capture;
 mod process;
 pub mod recorder;
 pub mod volatile;

@@ -1,6 +1,8 @@
 # Released recording workflow observations
 
-[Meeting workflow evidence](../../../mluva-gtk/tests/fixtures/meeting-evidence.md) adds fifteen actual Scribe diarization/archive/retry workflows/23 states against unchanged release observations. Incognito erasure, failed private index saves, missing recordings and preserved retry identities match. A separate native in-flight request-drop fault erases owned finalized audio without a late archive write. Meeting capture/application lifecycle remains pending.
+[Meeting recording and desktop ownership](../../../mluva-gtk/tests/fixtures/meeting-owner-evidence.md) adds fourteen actual released recorder-to-HTTP/archive transactions and nine application Meeting workflows/47 GTK states. The native recorder/session/readiness/retry and GTK owner now join real audio staging, archives and capture preferences. Additional cancellation/close faults protect untransferred audio and late publication. Complete root assembly and Meeting acceptance remain Pending.
+
+[Earlier Meeting workflow evidence](../../../mluva-gtk/tests/fixtures/meeting-evidence.md) adds fifteen actual Scribe diarization/archive/retry workflows/23 states against unchanged release observations. Incognito erasure, failed private index saves, missing recordings and preserved retry identities match. A separate native in-flight request-drop fault erases owned finalized audio without a late archive write. Complete application lifecycle remains pending.
 
 The immutable reference is Mluva 1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. Temporary comparison programs import the checksum-verified release archive outside maintained Rust sources and compare every imported workflow module with that commit. The frozen expected outputs come from the released application. Native tests neither import nor invoke Python.
 

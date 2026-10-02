@@ -46,6 +46,9 @@ fn pause_until_signal(config: &Value) {
             thread::sleep(Duration::from_millis(5));
         }
     }
+    if let Some(delay) = config["finalize_delay_ms"].as_u64() {
+        thread::sleep(Duration::from_millis(delay));
+    }
 }
 
 fn owner(arguments: &[String], config: &Value) {

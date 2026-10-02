@@ -18,6 +18,7 @@ pub mod language_picker;
 pub mod live_controller;
 pub mod local_model_settings;
 pub mod markdown_view;
+pub mod meeting_controller;
 pub mod meeting_view;
 pub mod mermaid;
 pub mod overlay_state;
