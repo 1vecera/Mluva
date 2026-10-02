@@ -1,5 +1,7 @@
 # Released recording workflow observations
 
+[Meeting workflow evidence](../../../mluva-gtk/tests/fixtures/meeting-evidence.md) adds fifteen actual Scribe diarization/archive/retry workflows/23 states against unchanged release observations. Incognito erasure, failed private index saves, missing recordings and preserved retry identities match. A separate native in-flight request-drop fault erases owned finalized audio without a late archive write. Meeting capture/application lifecycle remains pending.
+
 The immutable reference is Mluva 1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. Temporary comparison programs import the checksum-verified release archive outside maintained Rust sources and compare every imported workflow module with that commit. The frozen expected outputs come from the released application. Native tests neither import nor invoke Python.
 
 `released-recording-workflows.json` contains 70 complete recording observations and the imported module digests. Its SHA-256 is `13c33ab98eb9f3816e2872878a8b7cc794f9e3d5dbcd5f129b5cf0ac15fec0dc`; the reference workflow digest is `e539145a529a1be6b0ba8a95c4108f470e5d5c2dafe44f14ec5e2457259bc44f`. Both implementations use real synthetic loopback multipart/SSE providers, native SQLite files and a real private X11 clipboard. The observer checks exact provider JSON and multipart fields/audio bytes, Raw Text versus prepared output, delivery receipts, complete persisted History rows, diagnostics, clipboard content and retained-file existence.

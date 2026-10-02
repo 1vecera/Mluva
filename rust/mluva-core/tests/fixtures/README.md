@@ -1,5 +1,7 @@
 # Frozen 1.6.0 outputs
 
+[Meeting archive/workflow observations](../../../mluva-gtk/tests/fixtures/meeting-evidence.md) add eleven portable models, twenty-eight rejected rows, fourteen literal insight texts, eight actual archive transactions/59 states and nine load boundaries. Native file permissions, JSON/Markdown, overflow and atomic failure behavior match the unchanged release. The same fixture supplies fifteen actual HTTP recognition/retry workflows in `mluva-workflows`.
+
 These files contain synthetic inputs and outputs obtained by importing the unchanged, checksum-verified public 1.6.0 source archive outside the maintained Rust source tree. Each imported source file was compared byte-for-byte with Git commit `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`; `core-reference.json` records those source digests. The expected results come from the released implementation, rather than a second implementation of its algorithms.
 
 `released-diagnostics.json` adds the released content-free event schema, bounded retention, exact recorded rounding, invalid-input rejection, safe chronological export and file permissions. It is also exercised by the [joined recording workflow comparison](../../../mluva-workflows/tests/fixtures/README.md).

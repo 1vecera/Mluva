@@ -12,6 +12,7 @@ use mluva_core::{
     database::{StoreError, StoreResult},
     diagnostics::DiagnosticsStore,
     history::{HistoryInput, HistoryStore},
+    meeting::MeetingStore,
     personalization::PersonalizationStore,
     prompts::PromptStore,
     scratchpad::{ScratchpadDraft, ScratchpadDraftStore},
@@ -35,7 +36,7 @@ use std::{
     os::unix::fs::PermissionsExt,
     path::PathBuf,
     rc::Rc,
-    sync::Arc,
+    sync::{Arc, Mutex},
 };
 
 const PRESENTATION: &[&str] = &[
@@ -132,8 +133,8 @@ impl ScratchpadRecovery {
     }
 }
 
-/// These stores open before capture credentials. Meeting and desktop owners
-/// attach their separate archives and surfaces to the same paths later.
+/// These stores, including the separate Meeting archive, open before capture
+/// credentials. Desktop owners attach their surfaces to the same local stores.
 pub struct ApplicationServices {
     pub paths: AppPaths,
     pub cwd: PathBuf,
@@ -144,6 +145,7 @@ pub struct ApplicationServices {
     pub history: HistoryStore,
     pub conversations: ConversationStore,
     pub screenshots: ScreenshotStore,
+    pub meetings: Arc<Mutex<MeetingStore>>,
     pub scratchpad: Rc<RefCell<ScratchpadDraftStore>>,
     pub diagnostics: DiagnosticsStore,
     pub credentials: Arc<CredentialStore>,
@@ -197,6 +199,7 @@ impl ApplicationServices {
         let conversations = ConversationStore::new(history.clone());
         conversations.initialize()?;
         let scratchpad = ScratchpadDraftStore::new(paths.data.join("scratchpad-draft.json"));
+        let meetings = MeetingStore::new(paths.data.join("meetings/meetings.json"), None);
         let diagnostics = DiagnosticsStore::new(paths.data.join("diagnostics.sqlite3"), 5_000)?;
         diagnostics.initialize()?;
         let services = Rc::new(Self {
@@ -209,6 +212,7 @@ impl ApplicationServices {
             history,
             conversations,
             screenshots,
+            meetings: Arc::new(Mutex::new(meetings)),
             scratchpad: Rc::new(RefCell::new(scratchpad)),
             diagnostics,
             credentials: Arc::new(CredentialStore::new()),

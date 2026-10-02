@@ -11,6 +11,7 @@ pub mod history;
 pub mod json;
 pub mod live;
 pub mod markdown;
+pub mod meeting;
 pub mod personalization;
 pub mod private_files;
 pub mod prompt_catalog;
