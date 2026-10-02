@@ -8,12 +8,10 @@ use mluva_core::{
 };
 use mluva_gtk::{
     async_runtime::DesktopRuntime,
-    capture_preferences::{CapturePreferenceCallbacks, CapturePreferences, PreferenceActivity},
-    capture_view::{CaptureCallbacks, CapturePage},
-    conversation_view::{ConversationCallbacks, ConversationWorkspace},
+    capture_preferences::{CapturePreferences, PreferenceActivity},
+    capture_view::CapturePage,
     document_layout::DocumentResources,
     meeting_controller::{MeetingController, MeetingControllerCallbacks},
-    rewrite_settings::RewriteSettings,
     theme::ThemeController,
 };
 use mluva_providers::Secret;
@@ -56,72 +54,9 @@ fn descendants(widget: &impl IsA<gtk::Widget>) -> Vec<gtk::Widget> {
     walk(widget.as_ref().clone(), &mut out);
     out
 }
-fn graph(
-    services: Rc<ApplicationServices>,
-    resources: DocumentResources,
-) -> (Rc<CapturePage>, Rc<CapturePreferences>) {
-    let workspace = ConversationWorkspace::new(
-        services.conversations.clone(),
-        ConversationCallbacks {
-            copy: Rc::new(|_| {}),
-            rewrite: Rc::new(|_| {}),
-            paste: Rc::new(|_| {}),
-            open_archive: Rc::new(|| {}),
-            save_prompt: Rc::new(|_| {}),
-            cancel_rewrite: Rc::new(|| {}),
-            rename: Rc::new(|_, _| false),
-            delete: Rc::new(|_| false),
-            merge: Rc::new(|_, _| false),
-            continue_recording: Rc::new(|_| {}),
-            capture_screenshot: None,
-            edit_screenshot: Rc::new(|_| {}),
-            remove_screenshot: Rc::new(|_| {}),
-            edit_prompt: Rc::new(|_| {}),
-        },
-        resources,
-    )
-    .unwrap();
-    let config = services.config();
-    workspace.set_config(config.clone()).unwrap();
-    let rewrite = RewriteSettings::new(config.clone(), Rc::new(|| {}), Rc::new(|_, _, _| {}));
-    let page = CapturePage::new(
-        workspace,
-        rewrite,
-        config,
-        CaptureCallbacks {
-            toggle_recording: Rc::new(|| {}),
-            apply_live_settings: Rc::new(|_| false),
-            toast: Rc::new(|_| {}),
-            open_prompt: Rc::new(|_| {}),
-            retry_initialization: Rc::new(|| {}),
-            accept_command: Rc::new(|| {}),
-            discard_command: Rc::new(|| {}),
-            copy_scratchpad: Rc::new(|| {}),
-            delete_scratchpad: Rc::new(|| {}),
-            output_changed: Rc::new(|_| {}),
-            live_draft_edited: Rc::new(|| {}),
-            announce: Rc::new(|_| {}),
-        },
-    )
-    .unwrap();
-    let preferences = CapturePreferences::new(
-        services,
-        PipeWireDeviceCatalog::default(),
-        None,
-        false,
-        CapturePreferenceCallbacks {
-            changed: Rc::new(|_| {}),
-            summary_changed: Rc::new(|| {}),
-            routes_changed: Rc::new(|_, _| {}),
-            history_changed: Rc::new(|| {}),
-            status: Rc::new(|_| {}),
-            toast: Rc::new(|_| {}),
-            manage_styles: Rc::new(|| {}),
-            export_diagnostics: Rc::new(|| {}),
-        },
-    );
-    (page, preferences)
-}
+#[path = "support/capture_graph.rs"]
+mod capture_graph;
+use capture_graph::graph;
 fn normalize(value: Value, root: &Path) -> Value {
     match value {
         Value::String(value) => {

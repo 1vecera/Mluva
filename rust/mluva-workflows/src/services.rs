@@ -508,9 +508,8 @@ pub struct CaptureServices {
     prompts: Rc<RefCell<PromptStore>>,
 }
 impl CaptureServices {
-    pub fn launch(&self, options: CaptureOptions) -> WorkflowOutcome<Rc<CaptureSession>> {
-        let recorder = PipeWireRecorder::from_system(self.config.microphone_target.clone())
-            .map_err(|error| WorkflowError::Invalid(error.to_string()))?;
+    /// Recovery and recording each own fresh clients and the current local rules.
+    pub fn workflow(&self) -> WorkflowOutcome<Rc<DictationWorkflow>> {
         let speech =
             SpeechClient::from_config(&self.config, self.local.clone(), self.speech_key.clone())?;
         let rewrite = RewriteClient::new(&self.config, None, None)?;
@@ -524,6 +523,13 @@ impl CaptureServices {
         workflow.personalization = Some(self.personalization.borrow().clone());
         workflow.diagnostics = Some(self.diagnostics.clone());
         workflow.cleanup_instructions = self.prompts.borrow().read("cleanup")?.text;
+        Ok(Rc::new(workflow))
+    }
+
+    pub fn launch(&self, options: CaptureOptions) -> WorkflowOutcome<Rc<CaptureSession>> {
+        let recorder = PipeWireRecorder::from_system(self.config.microphone_target.clone())
+            .map_err(|error| WorkflowError::Invalid(error.to_string()))?;
+        let workflow = self.workflow()?;
         let previews = self
             .cwd
             .parent()
@@ -566,12 +572,6 @@ impl CaptureServices {
         } else {
             CaptureStorage::Persistent(self.data.join("recordings"))
         };
-        CaptureSession::new(
-            Rc::new(workflow),
-            recorder,
-            storage,
-            Some(recognition),
-            options,
-        )
+        CaptureSession::new(workflow, recorder, storage, Some(recognition), options)
     }
 }

@@ -14,6 +14,7 @@ pub mod conversation_view;
 pub mod direct_choices;
 pub mod document_layout;
 pub mod editor_pages;
+pub mod history_controller;
 pub mod history_view;
 pub mod language_picker;
 pub mod live_controller;

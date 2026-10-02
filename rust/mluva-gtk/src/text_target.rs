@@ -349,6 +349,12 @@ impl mluva_workflows::dictation::DeliveryTarget for DeliveryTargetSnapshot {
     }
 }
 impl DeliveryTargetSnapshot {
+    pub fn without_selected_text(&self) -> Self {
+        match self {
+            Self::Text(target) => Self::Text(target.without_selected_text()),
+            Self::Terminal(target) => Self::Terminal(target.clone()),
+        }
+    }
     pub fn application_identifier(&self) -> Option<&str> {
         match self {
             Self::Text(target) => target.application_identifier(),

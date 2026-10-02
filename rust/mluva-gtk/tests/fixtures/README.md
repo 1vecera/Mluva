@@ -1,6 +1,6 @@
 # Released native desktop observations
 
-The [History archive page evidence](history-page-evidence.md) adds nine unchanged-release pages/64 GTK and SQLite states. Actual edits, grouping, focus, exports and delete dialogs match; parent recovery services and complete application acceptance remain pending.
+The [History recovery owner evidence](history-owner-evidence.md) adds fifteen unchanged-release workflows/59 GTK and store states through actual HTTP, clipboard and separate editor processes. It covers retry/reprocess/delete guards, draft recovery, exact retained targets, cache eviction and owned shutdown. The [archive page evidence](history-page-evidence.md) separately records nine pages/64 states for edits, grouping, focus, exports and delete dialogs. Complete root integration and full application acceptance remain pending.
 
 [Meeting recording and desktop ownership](meeting-owner-evidence.md) adds fourteen joined released recorder/HTTP/archive transactions and nine actual application Meeting workflows/47 GTK states. The real native owner now binds MeetingPage to capture/preferences, with owned background finalization, retained retry, selective locks, diagnostics, cancellation and shutdown. The root application and full Meeting acceptance remain Pending.
 

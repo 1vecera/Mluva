@@ -1,6 +1,8 @@
 # Native Rust implementation
 
-The native [History archive page](mluva-gtk/tests/fixtures/history-page-evidence.md) now matches nine released pages/64 GTK and SQLite states: titles/corrections, raw restoration, grouped recordings, focus, provenance, exact exports and confirmed deletion. Parent recognition/delivery recovery and complete application assembly remain pending.
+The native [History recovery owner](mluva-gtk/tests/fixtures/history-owner-evidence.md) connects the archive to recording/preferences and shared stores, matching fifteen released workflows/59 GTK and store states. Actual HTTP retries, raw reprocessing, draft guards, deletion, clipboard recovery and exact-target insertion match; a delayed-response shutdown fault preserves audio and rejects late publication. Complete application assembly and full History acceptance remain pending.
+
+The [History archive page](mluva-gtk/tests/fixtures/history-page-evidence.md) separately matches nine released pages/64 GTK and SQLite states: titles/corrections, raw restoration, grouped recordings, focus, provenance, exact exports and confirmed deletion.
 
 The native [Meeting recording and desktop owner](mluva-gtk/tests/fixtures/meeting-owner-evidence.md) now join audio processes/staging, finalized recognition and archives to the actual Meeting/capture/preferences widgets. Fourteen released recorder-to-HTTP/archive transactions and nine application workflows/47 GTK states match. Selective locks, privacy, retained retry, diagnostics, manual transcript recovery, cancellation and shutdown are owned; extra faults reap processes and reject late publication. Complete root assembly, physical recording and full Meeting acceptance remain Pending.
 
