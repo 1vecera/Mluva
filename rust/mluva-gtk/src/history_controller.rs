@@ -351,6 +351,9 @@ impl HistoryController {
             done: Notify::new(),
         });
         self.retry.replace(Some(retry.clone()));
+        let mut retry_activity = activity;
+        retry_activity.retrying = true;
+        self.preferences.set_activity(retry_activity);
         self.capture.record_button.set_sensitive(false);
         self.preferences.language.set_sensitive(false);
         self.preferences.microphone.set_sensitive(false);
@@ -406,8 +409,9 @@ impl HistoryController {
             "Transcription retry failed: {message}. History and retained audio remain recoverable."
         ));
     }
-    fn reset(&self) {
+    pub(crate) fn reset(&self) {
         let activity = (self.callbacks.activity)();
+        self.preferences.set_activity(activity.clone());
         let available = !activity.pending_review
             && !activity.meeting_processing
             && !activity.meeting_retrying

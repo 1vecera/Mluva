@@ -1,5 +1,7 @@
 # Native Rust implementation
 
+The native [Command and Notes owner](mluva-gtk/tests/fixtures/pending-review-evidence.md) now matches nineteen released workflows/71 GTK, store and target states. Actual selection/caret acceptance, safe copying after target exit, explicit discard, durable Notes edits/recovery/deletion, retention and incomplete acceptance match. Closing an unresolved owner preserves its recovery state. Complete root assembly and full application acceptance remain pending.
+
 The native [History recovery owner](mluva-gtk/tests/fixtures/history-owner-evidence.md) connects the archive to recording/preferences and shared stores, matching fifteen released workflows/59 GTK and store states. Actual HTTP retries, raw reprocessing, draft guards, deletion, clipboard recovery and exact-target insertion match; a delayed-response shutdown fault preserves audio and rejects late publication. Complete application assembly and full History acceptance remain pending.
 
 The [History archive page](mluva-gtk/tests/fixtures/history-page-evidence.md) separately matches nine released pages/64 GTK and SQLite states: titles/corrections, raw restoration, grouped recordings, focus, provenance, exact exports and confirmed deletion.

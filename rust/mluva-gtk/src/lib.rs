@@ -24,6 +24,7 @@ pub mod meeting_controller;
 pub mod meeting_view;
 pub mod mermaid;
 pub mod overlay_state;
+pub mod pending_review;
 pub mod personalization;
 pub mod prompt_editor;
 pub mod provider_settings;

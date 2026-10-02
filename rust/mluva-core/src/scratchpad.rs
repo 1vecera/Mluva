@@ -44,12 +44,9 @@ impl ScratchpadDraftStore {
             persistence_error: None,
         };
         match fs::read(&store.path) {
-            Ok(bytes) => match serde_json::from_slice(&bytes) {
+            Ok(bytes) => match load_draft(&bytes) {
                 Ok(draft) => store.draft = Some(draft),
-                Err(_) => {
-                    store.persistence_error =
-                        Some("Scratchpad recovery document needs repair.".into())
-                }
+                Err(error) => store.persistence_error = Some(error),
             },
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
             Err(error) => store.persistence_error = Some(error.to_string()),
@@ -106,6 +103,42 @@ impl ScratchpadDraftStore {
         remove_if_present(&self.path.with_extension("tmp"))?;
         Ok(())
     }
+}
+
+fn load_draft(bytes: &[u8]) -> Result<ScratchpadDraft, String> {
+    // Decode the complete document before its fields, as the released recovery
+    // store does. A syntax error must not be obscured by an earlier unknown key.
+    let value: serde_json::Value =
+        serde_json::from_slice(bytes).map_err(|error| recovery_parse_error(bytes, &error))?;
+    if !value.is_object() {
+        return Err("Scratchpad recovery document must be a JSON object.".into());
+    }
+    serde_json::from_value(value).map_err(|error| error.to_string())
+}
+
+fn recovery_parse_error(bytes: &[u8], error: &serde_json::Error) -> String {
+    let message = error.to_string();
+    if !message.starts_with("key must be a string at line ") {
+        return message;
+    }
+    let Ok(source) = std::str::from_utf8(bytes) else {
+        return message;
+    };
+    let line_start = source
+        .split_inclusive('\n')
+        .take(error.line().saturating_sub(1))
+        .map(str::len)
+        .sum::<usize>();
+    let mut byte = (line_start + error.column().saturating_sub(1)).min(source.len());
+    while !source.is_char_boundary(byte) {
+        byte = byte.saturating_sub(1);
+    }
+    let position = source[..byte].chars().count();
+    let column = source[line_start..byte].chars().count() + 1;
+    format!(
+        "Expecting property name enclosed in double quotes: line {} column {column} (char {position})",
+        error.line()
+    )
 }
 
 fn remove_if_present(path: &Path) -> StoreResult<()> {

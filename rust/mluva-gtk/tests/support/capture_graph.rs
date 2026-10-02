@@ -13,6 +13,30 @@ pub fn graph(
     services: Rc<ApplicationServices>,
     resources: DocumentResources,
 ) -> (Rc<CapturePage>, Rc<CapturePreferences>) {
+    graph_with_callbacks(
+        services,
+        resources,
+        CaptureCallbacks {
+            toggle_recording: Rc::new(|| {}),
+            apply_live_settings: Rc::new(|_| false),
+            toast: Rc::new(|_| {}),
+            open_prompt: Rc::new(|_| {}),
+            retry_initialization: Rc::new(|| {}),
+            accept_command: Rc::new(|| {}),
+            discard_command: Rc::new(|| {}),
+            copy_scratchpad: Rc::new(|| {}),
+            delete_scratchpad: Rc::new(|| {}),
+            output_changed: Rc::new(|_| {}),
+            live_draft_edited: Rc::new(|| {}),
+            announce: Rc::new(|_| {}),
+        },
+    )
+}
+pub fn graph_with_callbacks(
+    services: Rc<ApplicationServices>,
+    resources: DocumentResources,
+    callbacks: CaptureCallbacks,
+) -> (Rc<CapturePage>, Rc<CapturePreferences>) {
     let workspace = ConversationWorkspace::new(
         services.conversations.clone(),
         ConversationCallbacks {
@@ -37,26 +61,7 @@ pub fn graph(
     let config = services.config();
     workspace.set_config(config.clone()).unwrap();
     let rewrite = RewriteSettings::new(config.clone(), Rc::new(|| {}), Rc::new(|_, _, _| {}));
-    let page = CapturePage::new(
-        workspace,
-        rewrite,
-        config,
-        CaptureCallbacks {
-            toggle_recording: Rc::new(|| {}),
-            apply_live_settings: Rc::new(|_| false),
-            toast: Rc::new(|_| {}),
-            open_prompt: Rc::new(|_| {}),
-            retry_initialization: Rc::new(|| {}),
-            accept_command: Rc::new(|| {}),
-            discard_command: Rc::new(|| {}),
-            copy_scratchpad: Rc::new(|| {}),
-            delete_scratchpad: Rc::new(|| {}),
-            output_changed: Rc::new(|_| {}),
-            live_draft_edited: Rc::new(|| {}),
-            announce: Rc::new(|_| {}),
-        },
-    )
-    .unwrap();
+    let page = CapturePage::new(workspace, rewrite, config, callbacks).unwrap();
     let preferences = CapturePreferences::new(
         services,
         PipeWireDeviceCatalog::default(),
