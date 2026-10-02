@@ -102,6 +102,11 @@ fn server(spec: &Value) {
         let answer = match method {
             "initialize" => json!({"userAgent":"synthetic-codex/1.0"}),
             "model/list" => {
+                if let Some(gate) = spec["model_gate"].as_str() {
+                    while !Path::new(gate).exists() {
+                        std::thread::sleep(Duration::from_millis(2));
+                    }
+                }
                 let catalog=spec.get("catalog").cloned().unwrap_or_else(||json!([{"id":"fixture-default","model":"fixture-model","displayName":"Fixture","isDefault":true,"supportedReasoningEfforts":[{"reasoningEffort":"low"},{"reasoningEffort":"high"}],"serviceTiers":[{"id":"priority","name":"Fast"}]},{"id":"fixture-explicit","model":"second-model","displayName":"Second","isDefault":false,"defaultReasoningEffort":"medium","supportedReasoningEfforts":[{"reasoningEffort":"low"}],"hidden":true}]));
                 pages += 1;
                 let total = spec["pages"].as_u64().unwrap_or(1);
@@ -176,6 +181,18 @@ fn server(spec: &Value) {
                         live_key
                             .as_ref()
                             .and_then(|key| spec["live_controls"].get(key))
+                    })
+                    .or_else(|| {
+                        let prompt = message["params"]["input"][0]["text"].as_str()?;
+                        let (header, context) = prompt.split_once('\n')?;
+                        if !header.starts_with("You are a writing editor.") {
+                            return None;
+                        }
+                        let context: Value = serde_json::Deserializer::from_str(context)
+                            .into_iter()
+                            .next()?
+                            .ok()?;
+                        spec["document_controls"].get(context["next_instruction"].as_str()?)
                     });
                 if let Some(gate) = control.and_then(|value| value["gate"].as_str()) {
                     while !Path::new(gate).exists() {
@@ -218,6 +235,15 @@ fn server(spec: &Value) {
                         "item/agentMessage/delta",
                         json!({"threadId":"thread-test","turnId":"turn-test","itemId":"item-test","delta":delta}),
                     ));
+                    if let Some(delay) = control.and_then(|value| value["delta_delay_ms"].as_u64())
+                    {
+                        std::thread::sleep(Duration::from_millis(delay));
+                    }
+                }
+                if let Some(gate) = control.and_then(|value| value["completion_gate"].as_str()) {
+                    while !Path::new(gate).exists() {
+                        std::thread::sleep(Duration::from_millis(2));
+                    }
                 }
                 let mut turn = json!({"id":"turn-test","status":spec.get("status").cloned().unwrap_or_else(||json!("completed"))});
                 if scenario == "completed-tool" {

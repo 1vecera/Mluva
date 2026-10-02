@@ -105,6 +105,12 @@ impl LiveController {
             .as_ref()
             .is_some_and(|session| session.final_entry.is_some())
     }
+    pub fn final_entry(&self) -> Option<String> {
+        self.session
+            .borrow()
+            .as_ref()
+            .and_then(|session| session.final_entry.clone())
+    }
     pub fn owns(&self, identifier: &str) -> bool {
         self.session
             .borrow()
