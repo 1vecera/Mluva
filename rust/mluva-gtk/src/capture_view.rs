@@ -81,6 +81,7 @@ pub struct CapturePage {
     pending_mode: RefCell<String>,
     syncing_live: Cell<bool>,
     callbacks: CaptureCallbacks,
+    recording_action: RefCell<Rc<dyn Fn()>>,
 }
 
 fn button_content(button: &gtk::Button, icon: &str, label: &str) {
@@ -311,6 +312,7 @@ impl CapturePage {
             shortcuts: RefCell::new(CaptureShortcutState::default()),
             pending_mode: RefCell::new("dictation".into()),
             syncing_live: Cell::new(false),
+            recording_action: RefCell::new(callbacks.toggle_recording.clone()),
             callbacks,
         });
         page.bind();
@@ -319,8 +321,13 @@ impl CapturePage {
     }
 
     fn bind(self: &Rc<Self>) {
-        let toggle = self.callbacks.toggle_recording.clone();
-        self.record_button.connect_clicked(move |_| toggle());
+        let weak = Rc::downgrade(self);
+        self.record_button.connect_clicked(move |_| {
+            if let Some(page) = weak.upgrade() {
+                let action = page.recording_action.borrow().clone();
+                action();
+            }
+        });
         let weak = Rc::downgrade(self);
         self.setup_button.connect_clicked(move |_| {
             if let Some(page) = weak.upgrade() {
@@ -390,6 +397,13 @@ impl CapturePage {
 
     pub fn config(&self) -> AppConfig {
         self.config.borrow().clone()
+    }
+
+    pub fn set_recording_action(&self, action: Rc<dyn Fn()>) {
+        self.recording_action.replace(action);
+    }
+    pub fn view_state(&self) -> CaptureViewState {
+        self.state.borrow().clone()
     }
 
     pub fn set_config(self: &Rc<Self>, config: AppConfig) -> StoreResult<()> {

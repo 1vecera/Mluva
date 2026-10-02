@@ -1283,6 +1283,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "thiserror",
+ "tokio",
  "uuid",
 ]
 
@@ -1313,11 +1314,13 @@ dependencies = [
  "base64 0.22.1",
  "caseless",
  "chrono",
+ "futures-util",
  "gio",
  "glib",
  "gtk4",
  "libadwaita",
  "libc",
+ "mluva-audio",
  "mluva-core",
  "mluva-providers",
  "mluva-workflows",
@@ -1328,6 +1331,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokio",
+ "tokio-tungstenite",
  "toml 0.9.12+spec-1.1.0",
  "webkit6",
 ]
@@ -1366,6 +1370,7 @@ name = "mluva-workflows"
 version = "1.6.0"
 dependencies = [
  "base64 0.22.1",
+ "mluva-audio",
  "mluva-core",
  "mluva-providers",
  "rusqlite",
@@ -1374,6 +1379,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "tokio",
+ "tokio-util",
  "uuid",
 ]
 

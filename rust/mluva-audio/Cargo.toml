@@ -17,6 +17,7 @@ tempfile.workspace = true
 caseless.workspace = true
 libc.workspace = true
 uuid.workspace = true
+tokio.workspace = true
 
 [[bin]]
 name = "mluva-audio-cleanup"

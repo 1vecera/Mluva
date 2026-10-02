@@ -1,0 +1,31 @@
+# Native capture transactions
+
+The reference is unchanged Mluva 1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. A temporary collector imports the external frozen release, verifies all imported application modules against that commit and invokes its actual application constructor, service initialization, capture/settings builders and preparation, ready, stop, cancel, completion and failure callbacks. [Released observations](released-capture-lifecycle.json) have SHA-256 `7b08d123d1d30a02e0d59711b18facfb3d2fe24eb5bf2e1ffc889fbbdfb1da97`.
+
+The native comparison constructs the production `CapturePage`, `CaptureController`, `DesktopRuntime`, `CaptureSession`, `PipeWireRecorder`, speech clients and compatible SQLite stores. The microphone executable alone is replaced by a separate synthetic PCM process. Real loopback HTTP and WebSocket peers independently observe exact WAV uploads, multipart fields and audio/commit frames. Public GTK widgets and terminal callbacks expose results; no production test hook or interpreter is needed by the native test.
+
+| Independently released transaction | Checked result |
+| --- | --- |
+| Batch success, blank speech and provider failure | Preparation/recording/processing/terminal UI, deterministic rules, stored fallback title, full workflow result and success/failure audio retention |
+| Preparation cancellation and recording Escape | No microphone before readiness, erased local audio, exact cancellation message, one terminal callback and owned process reaping |
+| Repeated stop and rules edited during capture | No second dispatch, Escape refused during processing and frozen transcript preparation retained |
+| Incognito success, failure and Escape | No History or diagnostics, memory-only staging erased and no retained audio |
+| Realtime committed speech | Volatile partial text remains preview-only; final committed speech, exact PCM/commit messages and complete workflow result match |
+| Realtime startup/stream failure | Explicit batch fallback route/reason, exact uploaded WAV and terminal UI match |
+| Realtime recording cancellation | Already-sent audio is acknowledged, local audio is erased and socket workers and microphone are reaped |
+
+Seventeen transactions provide 81 actual GTK observations. Every observed status/title/callout/tooltip, record label/icon/style/sensitivity, live preview, output and conversation identity matches the release. Full results and SQLite rows match after normalizing only generated identifiers, paths, timestamps and measured durations. Retention and protocol bytes are compared separately. Ten-millisecond GLib pulses continue during delayed HTTP/WebSocket processing, and callbacks and delivery remain on the owning GTK thread.
+
+The comparison caught two native integration failures before repair. Completed Dictation did not save the released local fallback title, and Escape attached to the capture page missed an Incognito recording with focus at the window root. The controller now applies the existing generated-title compare-and-set and binds its key controller to the actual root while respecting visible dialogs and child handlers. The final owner passes all 17 transactions and 81 observations.
+
+Two additional native fault transactions exercise cleanup rather than adding released UI comparisons. Incognito Notes preserves its acceptance text while erasing memory-backed audio, retaining no audio path or History and reaping its native janitor. Closing the controller while an actual HTTP request is pending synchronously invalidates completion: no callback, History row or late clipboard write occurs. Cancellation disables realtime submission before microphone draining and accounts for sent bytes after the transport workers finish. A separate ordinary audio test delays a real EOF consumer and verifies that cancellation keeps the async timer running, erases the private WAV and reaps the exact PCM process. Concurrent realtime cancellation callers both await transport cleanup. A further actual WebSocket fault test drops finalization after the peer receives Close while a real preview consumer is still pending. It failed with a stranded cleanup acknowledgement before repair; runtime-owned cleanup now outlives that request and both later cancellation callers finish.
+
+The private runner creates separate display, session/accessibility buses, HOME/XDG, network/PID/mount namespaces and memory-backed `/dev/shm`; input, audio and GPU devices are masked. GTK 4.22.4 and Pango 1.58.2 are recorded and checked. Escape and clipboard canaries use private X11 helpers only. No real microphone, host input, visible desktop, provider account, managed credential or user content is touched. Temporary reference collectors, raw logs and failed comparisons remain under ignored `tmp/`.
+
+```sh
+bash dev/run-isolated-browser.sh tmp/native-capture-session -- env TZ=UTC \
+  cargo test --locked -p mluva-gtk --test capture_lifecycle \
+  -- --ignored --test-threads=1 --nocapture
+```
+
+This proves the joined batch/ElevenLabs realtime capture transaction through synthetic PCM and real local transports. Production provider/service factory assembly, local batch preview, realtime segment cleanup, Live scheduling/revision/final reconciliation, picker waiting, review/continuation/meeting/archive owners, complete settings/welcome, global keys/widget, actual microphone and other-platform acceptance remain pending. Page pixels/scales, packaging, final Python removal and whole-app performance are not established. Every complete-workflow acceptance row remains Pending; the installed app/widget remain 1.6.0 and the full Rust goal stays active.

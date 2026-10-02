@@ -1805,6 +1805,10 @@ impl ConversationWorkspace {
             }
         }
     }
+
+    pub fn is_viewing_live(&self) -> bool {
+        self.state.borrow().viewing_live
+    }
     fn set_live_visibility(&self, visible: bool) {
         self.state.borrow_mut().viewing_live = visible;
         self.refresh_screenshots();

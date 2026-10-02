@@ -10,6 +10,60 @@ use serde_json::json;
 use std::fs;
 use support::{assert_level, hex, mode, reference, unhex};
 
+#[tokio::test(flavor = "current_thread")]
+async fn asynchronous_owner_keeps_timers_running_and_reaps_a_slow_audio_consumer() {
+    use mluva_audio::{
+        capture::{CaptureRecorder, CaptureStorage},
+        recorder::PipeWireRecorder,
+    };
+    use std::{
+        sync::atomic::{AtomicBool, Ordering},
+        time::Duration,
+    };
+    let peer = support::Peer::new(&json!({"pcm_hex":"e80318fc","wait":true}));
+    let output = peer.path().join("recordings");
+    let recorder = CaptureRecorder::new(PipeWireRecorder::new(&peer.executable, None)).unwrap();
+    let audio = recorder
+        .prepare_destination(CaptureStorage::Persistent(output), "capture.wav".into())
+        .await
+        .unwrap();
+    recorder
+        .start(
+            audio.clone(),
+            Some(Box::new(|_, _| {
+                // A real drain callback stalls on EOF while cancellation joins it.
+                std::thread::sleep(Duration::from_millis(250));
+                Ok(())
+            })),
+        )
+        .await
+        .unwrap();
+    let pid = peer.ready("raw")["pid"].as_u64().unwrap();
+    assert!(recorder.active());
+    assert_eq!(mode(&audio), 0o600);
+    let finished = AtomicBool::new(false);
+    let cancelling = async {
+        recorder.cancel().await.unwrap();
+        finished.store(true, Ordering::Release);
+    };
+    let heartbeat = async {
+        let mut ticks = 0;
+        while !finished.load(Ordering::Acquire) {
+            tokio::time::sleep(Duration::from_millis(10)).await;
+            ticks += 1;
+        }
+        ticks
+    };
+    let (_, ticks) = tokio::join!(cancelling, heartbeat);
+    assert!(ticks >= 10, "Audio-drain cleanup blocked the async owner");
+    assert!(!audio.exists());
+    assert!(!std::path::Path::new(&format!("/proc/{pid}")).exists());
+    assert!(!recorder.active());
+    assert_eq!(recorder.audio_level(), 0.0);
+    recorder.close().await.unwrap();
+    recorder.close().await.unwrap();
+}
+
 #[test]
 fn normalized_rms_matches_released_pcm_outputs() {
     for case in reference()["levels"].as_array().unwrap() {

@@ -884,7 +884,7 @@ impl DictationWorkflow {
         (fallback.into(), Some(warning))
     }
 
-    fn selected_style(
+    pub(crate) fn selected_style(
         &self,
         application: Option<&str>,
         explicit: Option<&str>,

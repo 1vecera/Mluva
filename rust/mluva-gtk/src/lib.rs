@@ -1,7 +1,9 @@
 //! Native desktop widgets; keep stored source and desktop presentation separate.
 
 pub mod application_shell;
+pub mod async_runtime;
 mod atspi;
+pub mod capture_controller;
 pub mod capture_view;
 pub mod command_palette;
 pub mod commands;

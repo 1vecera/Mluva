@@ -231,6 +231,7 @@ struct Shared {
     policy: Mutex<Policy>,
     changed: Notify,
     close: CancellationToken,
+    closed: CancellationToken,
     language: String,
     identifier: String,
     preview: Mutex<Option<PreviewCallback>>,
@@ -413,6 +414,7 @@ impl RealtimeSession {
             policy: Mutex::new(Policy::default()),
             changed: Notify::new(),
             close: CancellationToken::new(),
+            closed: CancellationToken::new(),
             language,
             identifier,
             preview: Mutex::new(on_preview),
@@ -566,7 +568,8 @@ impl RealtimeSession {
             transcription,
             finalization_seconds: started.elapsed().as_secs_f64(),
         };
-        close_workers(self.shared.clone(), self.workers.clone()).await;
+        self.request_close();
+        self.shared.closed.cancelled().await;
         Ok(result)
     }
 
@@ -598,6 +601,25 @@ impl RealtimeSession {
     }
 
     pub fn cancel(&self) {
+        self.request_cancel();
+        self.request_close();
+    }
+
+    fn request_close(&self) {
+        // Cleanup outlives a dropped finishing future. Only the runtime-owned
+        // closer may take the transport tasks and acknowledge their completion.
+        self.runtime
+            .spawn(close_workers(self.shared.clone(), self.workers.clone()));
+    }
+
+    /// Capture owners await this before releasing a cancelled session. The
+    /// nonblocking `cancel` entry point remains available to Drop and callbacks.
+    pub async fn cancel_and_wait(&self) {
+        self.cancel();
+        self.shared.closed.cancelled().await;
+    }
+
+    fn request_cancel(&self) {
         {
             let mut state = self.shared.policy.lock().unwrap();
             state.cancelled = true;
@@ -608,8 +630,6 @@ impl RealtimeSession {
         self.shared.committed.lock().unwrap().take();
         self.shared.changed.notify_waiters();
         self.shared.close.cancel();
-        self.runtime
-            .spawn(close_workers(self.shared.clone(), self.workers.clone()));
     }
 }
 
@@ -714,15 +734,21 @@ async fn close_workers(shared: Arc<Shared>, workers: Arc<Mutex<Option<Workers>>>
             Ok(Ok(mut sender)) => {
                 let _ = tokio::time::timeout(Duration::from_secs(2), sender.close()).await;
             }
-            _ => handles.sender.abort(),
+            Ok(Err(_)) => {}
+            Err(_) => {
+                handles.sender.abort();
+                let _ = handles.sender.await;
+            }
         }
         if tokio::time::timeout(Duration::from_secs(2), &mut handles.receiver)
             .await
             .is_err()
         {
             handles.receiver.abort();
+            let _ = handles.receiver.await;
         }
     }
+    shared.closed.cancel();
 }
 
 pub fn audio_event(frames: &[u8], commit: bool) -> String {

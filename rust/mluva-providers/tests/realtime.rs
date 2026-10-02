@@ -116,7 +116,11 @@ async fn real_websocket_commits_results_and_callbacks_match_released_sessions() 
         let mut expected = row["result"].clone();
         expected.as_object_mut().unwrap().remove("exception");
         assert_eq!(observed(result), expected, "{name}");
-        session.cancel();
+        tokio::time::timeout(Duration::from_secs(3), async {
+            tokio::join!(session.cancel_and_wait(), session.cancel_and_wait());
+        })
+        .await
+        .expect("Concurrent session cleanup did not finish");
         let events = tokio::time::timeout(Duration::from_secs(3), server)
             .await
             .unwrap()
@@ -124,6 +128,76 @@ async fn real_websocket_commits_results_and_callbacks_match_released_sessions() 
         assert_eq!(json!(events), row["events"], "{name}");
         assert_eq!(json!(*segments.lock().unwrap()), row["segments"], "{name}");
     }
+}
+
+#[tokio::test]
+async fn dropping_a_finalizer_does_not_abandon_owned_transport_cleanup() {
+    let (closing_tx, closing_rx) = oneshot::channel();
+    let (url, handshake, server) = support::websocket(move |mut socket| async move {
+        socket.send(started()).await.unwrap();
+        while let Some(Ok(message)) = socket.next().await {
+            match message {
+                Message::Text(value) => {
+                    let value: Value = serde_json::from_str(&value).unwrap();
+                    if value["commit"] == true {
+                        socket
+                            .send(send(
+                                json!({"message_type":"committed_transcript","text":"owned final"}),
+                            ))
+                            .await
+                            .unwrap();
+                    }
+                }
+                Message::Close(_) => {
+                    closing_tx.send(()).unwrap();
+                    let _ = socket.close(None).await;
+                    return;
+                }
+                _ => {}
+            }
+        }
+        panic!("The owned client did not send its close frame");
+    })
+    .await;
+    let (preview_tx, preview_rx) = oneshot::channel();
+    let (release, released) = std::sync::mpsc::channel();
+    let mut preview_tx = Some(preview_tx);
+    let session = client(&url)
+        .start(
+            "auto",
+            Some(Box::new(move |preview| {
+                if preview.committed_text == "owned final" {
+                    preview_tx.take().unwrap().send(()).unwrap();
+                    released.recv_timeout(Duration::from_secs(3)).unwrap();
+                }
+                Ok(())
+            })),
+            None,
+        )
+        .await
+        .unwrap();
+    handshake.await.unwrap();
+    session.submit_audio(&[0; 4]).unwrap();
+    // Actual peer receipt of Close proves cleanup has started; the real preview
+    // consumer keeps the receive task alive until this finishing future is dropped.
+    tokio::time::timeout(Duration::from_secs(2), async {
+        tokio::select! {
+            ready = async { preview_rx.await.unwrap(); closing_rx.await.unwrap(); } => ready,
+            result = session.finish() => panic!("Finalization escaped its live consumer: {result:?}"),
+        }
+    })
+    .await
+    .unwrap();
+    release.send(()).unwrap();
+    tokio::time::timeout(Duration::from_secs(2), async {
+        tokio::join!(session.cancel_and_wait(), session.cancel_and_wait());
+    })
+    .await
+    .expect("Dropped finalization stranded its cleanup acknowledgement");
+    tokio::time::timeout(Duration::from_secs(1), server)
+        .await
+        .unwrap()
+        .unwrap();
 }
 
 #[tokio::test]

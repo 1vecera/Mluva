@@ -15,7 +15,7 @@ use std::{
 pub struct Peer {
     pub address: String,
     remaining: Arc<Mutex<VecDeque<Value>>>,
-    observed: Arc<Mutex<Vec<Value>>>,
+    pub observed: Arc<Mutex<Vec<Value>>>,
     failures: Arc<Mutex<Vec<String>>>,
     stop: Arc<AtomicBool>,
     thread: Option<thread::JoinHandle<()>>,
@@ -161,18 +161,32 @@ fn exchange(
     } else {
         format!("data: {}\n\ndata: [DONE]\n\n", json!({"choices": [{"index":0,"delta":{"content":response["text"].as_str().unwrap_or("")},"finish_reason":"stop"}]})).into_bytes()
     };
-    write!(
-        stream,
-        "HTTP/1.1 {} Fixture\r\nContent-Length: {}\r\nContent-Type: {}\r\nConnection: close\r\n\r\n",
-        response["status"].as_u64().unwrap(),
-        body.len(),
-        if speech {
-            "application/json"
-        } else {
-            "text/event-stream"
-        }
-    )?;
-    stream.write_all(&body)?;
+    if let Some(delay) = response["delay_ms"].as_u64() {
+        thread::sleep(Duration::from_millis(delay));
+    }
+    let sent = (|| -> std::io::Result<()> {
+        write!(
+            stream,
+            "HTTP/1.1 {} Fixture\r\nContent-Length: {}\r\nContent-Type: {}\r\nConnection: close\r\n\r\n",
+            response["status"].as_u64().unwrap(),
+            body.len(),
+            if speech {
+                "application/json"
+            } else {
+                "text/event-stream"
+            }
+        )?;
+        stream.write_all(&body)
+    })();
+    if let Err(error) = sent
+        && (response["allow_disconnect"] != true
+            || !matches!(
+                error.kind(),
+                std::io::ErrorKind::BrokenPipe | std::io::ErrorKind::ConnectionReset
+            ))
+    {
+        return Err(error.into());
+    }
     Ok(())
 }
 

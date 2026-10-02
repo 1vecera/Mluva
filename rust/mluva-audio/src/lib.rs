@@ -1,5 +1,6 @@
 //! Linux capture services. No device is enumerated or opened during construction.
 
+pub mod capture;
 pub mod catalog;
 pub mod meeting;
 mod process;
