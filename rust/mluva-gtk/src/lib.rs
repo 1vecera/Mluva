@@ -23,3 +23,4 @@ pub mod screenshot_shelf;
 pub mod settings_view;
 pub mod text_target;
 pub mod theme;
+pub mod title_jobs;

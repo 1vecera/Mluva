@@ -138,7 +138,7 @@ fn exchange(
         .unwrap()
         .pop_front()
         .ok_or("unexpected provider request")?;
-    let speech = path == "/speech-to-text" || path == "/audio/transcriptions";
+    let speech = path == "/speech-to-text" || path.ends_with("/audio/transcriptions");
     if speech != (response["route"] == "speech") {
         return Err("provider request order differs".into());
     }

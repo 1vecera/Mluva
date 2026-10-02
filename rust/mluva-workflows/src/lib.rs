@@ -7,3 +7,4 @@ pub mod capture;
 pub mod dictation;
 pub mod preparation;
 pub mod segment_cleanup;
+pub mod services;

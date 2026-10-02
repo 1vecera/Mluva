@@ -193,6 +193,15 @@ fn server(spec: &Value) {
                             .next()?
                             .ok()?;
                         spec["document_controls"].get(context["next_instruction"].as_str()?)
+                    })
+                    .or_else(|| {
+                        let prompt = message["params"]["input"][0]["text"].as_str()?;
+                        let (_, context) = prompt.split_once('\n')?;
+                        let context: Value = serde_json::Deserializer::from_str(context)
+                            .into_iter()
+                            .next()?
+                            .ok()?;
+                        spec["title_controls"].get(context["transcript_excerpt"].as_str()?)
                     });
                 if let Some(gate) = control.and_then(|value| value["gate"].as_str()) {
                     while !Path::new(gate).exists() {

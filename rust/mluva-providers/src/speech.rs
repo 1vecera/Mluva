@@ -1,7 +1,7 @@
 //! Select only the requested speech transport; local capture needs no cloud credential.
 
 use crate::{
-    Result, TranscriptionResult,
+    ProviderError, Result, Secret, TranscriptionResult,
     compatible::CompatibleClient,
     credentials::CredentialStore,
     elevenlabs::{ElevenLabsClient, SCRIBE_ENDPOINT},
@@ -23,6 +23,21 @@ impl SpeechClient {
         local_options: OnnxOptions,
         credentials: &CredentialStore,
     ) -> Result<Self> {
+        let key = if config.transcription_provider == "elevenlabs" {
+            Some(credentials.elevenlabs_api_key().await?)
+        } else {
+            None
+        };
+        Self::from_config(config, local_options, key)
+    }
+
+    /// Application readiness resolves the key once; each capture still owns its
+    /// own transport and immutable route. Local and compatible routes need no keyring.
+    pub fn from_config(
+        config: &AppConfig,
+        local_options: OnnxOptions,
+        speech_key: Option<Secret>,
+    ) -> Result<Self> {
         match config.transcription_provider.as_str() {
             "local" => {
                 let mut options = local_options;
@@ -37,7 +52,8 @@ impl SpeechClient {
                 Duration::from_secs(300),
             )?)),
             _ => Ok(Self::ElevenLabs(ElevenLabsClient::new(
-                credentials.elevenlabs_api_key().await?,
+                speech_key
+                    .ok_or_else(|| ProviderError("An ElevenLabs API key is required.".into()))?,
                 SCRIBE_ENDPOINT,
                 Duration::from_secs(300),
             )?)),

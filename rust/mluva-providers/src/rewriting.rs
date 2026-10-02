@@ -158,8 +158,27 @@ impl RewriteClient {
         model: &str,
         images: &[ImageInput],
     ) -> Result<String> {
+        self.transform_bounded(prompt, cwd, model, images, 8_000)
+            .await
+    }
+
+    /// Titles use the frozen capture/default model, without rewrite speed or
+    /// thinking overrides, and reject verbose output at the transport boundary.
+    pub async fn transform_title(&self, prompt: &str, cwd: &Path, model: &str) -> Result<String> {
+        self.transform_bounded(prompt, cwd, model, &[], 128).await
+    }
+
+    async fn transform_bounded(
+        &self,
+        prompt: &str,
+        cwd: &Path,
+        model: &str,
+        images: &[ImageInput],
+        maximum: usize,
+    ) -> Result<String> {
         let options = RewriteOptions {
             model: Some(model),
+            max_output_characters: maximum,
             images,
             ..Default::default()
         };
