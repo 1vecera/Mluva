@@ -25,8 +25,8 @@ use mluva_providers::{
     batch_preview::{BatchPreviewClient, BatchPreviewSession},
     local_preview::LocalPreviewClient,
     realtime::{
-        CommittedCallback, ElevenLabsRealtimeClient, RealtimePreview, RealtimeSession,
-        RealtimeSessionResult,
+        CommittedCallback, ElevenLabsRealtimeClient, PreviewCallback, RealtimePreview,
+        RealtimeSession, RealtimeSessionResult,
     },
 };
 use std::{
@@ -141,11 +141,12 @@ impl CaptureRecognitionClient {
         language: &str,
         directory: Option<PathBuf>,
         enabled: bool,
+        preview: Option<PreviewCallback>,
         committed: Option<CommittedCallback>,
     ) -> mluva_providers::Result<RecognitionSession> {
         match self {
             Self::ElevenLabs(client) => client
-                .start(language, None, committed)
+                .start(language, preview, committed)
                 .await
                 .map(RecognitionSession::Realtime),
             Self::Batch(client) => {
@@ -248,6 +249,7 @@ pub struct CaptureSession {
     storage: Mutex<Option<CaptureStorage>>,
     realtime_client: Option<CaptureRecognitionClient>,
     preview_enabled: AtomicBool,
+    preview_callback: std::sync::Mutex<Option<PreviewCallback>>,
     phase: AtomicU8,
     cancellation: CancellationToken,
     state: Mutex<State>,
@@ -308,6 +310,7 @@ impl CaptureSession {
         Ok(Rc::new(Self {
             identifier: Uuid::new_v4().to_string(),
             preview_enabled: AtomicBool::new(options.preview_enabled),
+            preview_callback: std::sync::Mutex::new(None),
             options,
             preparation,
             frozen_style,
@@ -361,6 +364,14 @@ impl CaptureSession {
             .realtime
             .as_ref()
             .map(|session| session.snapshot())
+    }
+    pub fn config(&self) -> &mluva_core::config::AppConfig {
+        &self.workflow.config
+    }
+    /// Install the owner-thread bridge before provider readiness. As in the
+    /// release, compatible/local previews are polled; realtime also notifies.
+    pub fn set_preview_callback(&self, callback: PreviewCallback) {
+        *self.preview_callback.lock().unwrap() = Some(callback);
     }
     pub fn realtime_healthy(&self) -> bool {
         self.state.try_lock().is_ok_and(|state| {
@@ -490,12 +501,14 @@ impl CaptureSession {
         state.fallback_reason = match &self.realtime_client {
             None => Some("realtime-unavailable".into()),
             Some(client) => {
+                let preview = self.preview_callback.lock().unwrap().take();
                 let opened = tokio::select! { biased;
                     _ = self.cancellation.cancelled() => return Err(String::new()),
                     opened = client.start(
                         &self.workflow.config.language_code,
                         self.options.incognito.then(|| state.audio_path.as_ref().expect("prepared destination").parent().expect("capture directory").join("speech-previews")),
                         self.options.mode == "dictation" && self.preview_enabled.load(Ordering::Acquire),
+                        preview,
                         state.cleanup.as_ref().map(|session| {
                             let session = session.clone();
                             Box::new(move |segment: mluva_providers::realtime::RealtimeCommittedSegment| {

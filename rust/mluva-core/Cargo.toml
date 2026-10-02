@@ -24,6 +24,9 @@ crc32fast.workspace = true
 libc.workspace = true
 unicode-normalization.workspace = true
 
+[dev-dependencies]
+sha2 = "0.11.0"
+
 [[bin]]
 name = "delivery-fixture-peer"
 path = "tests/support/delivery_peer.rs"

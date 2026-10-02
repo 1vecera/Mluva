@@ -147,7 +147,36 @@ fn server(spec: &Value) {
                     .unwrap()
                     .rsplit_once("DICTATION:\n")
                     .map(|(_, text)| text);
-                let control = prepared.and_then(|text| spec["segment_controls"].get(text));
+                let live_key = message["params"]["input"][0]["text"]
+                    .as_str()
+                    .and_then(|prompt| {
+                        let (header, context) = prompt.split_once('\n')?;
+                        if !header
+                            .starts_with("You are an editor updating a draft as someone dictates.")
+                        {
+                            return None;
+                        }
+                        let context: Value = serde_json::Deserializer::from_str(context)
+                            .into_iter()
+                            .next()?
+                            .ok()?;
+                        Some(format!(
+                            "{}|{}",
+                            if context["transcript_status"] == "final committed recognition" {
+                                "final"
+                            } else {
+                                "preview"
+                            },
+                            context["transcript"].as_str()?
+                        ))
+                    });
+                let control = prepared
+                    .and_then(|text| spec["segment_controls"].get(text))
+                    .or_else(|| {
+                        live_key
+                            .as_ref()
+                            .and_then(|key| spec["live_controls"].get(key))
+                    });
                 if let Some(gate) = control.and_then(|value| value["gate"].as_str()) {
                     while !Path::new(gate).exists() {
                         std::thread::sleep(Duration::from_millis(2));

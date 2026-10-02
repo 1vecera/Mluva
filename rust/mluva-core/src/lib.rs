@@ -8,6 +8,7 @@ pub mod diagnostics;
 pub mod executables;
 pub mod history;
 pub mod json;
+pub mod live;
 pub mod markdown;
 pub mod personalization;
 pub mod private_files;

@@ -7,7 +7,7 @@ use mluva_core::{
     config::AppConfig,
     conversation::ConversationStore,
     diagnostics::DiagnosticsStore,
-    history::{HistoryEntry, HistoryStore},
+    history::HistoryStore,
     personalization::{DictionaryCaseBehavior, PersonalizationStore},
 };
 use mluva_gtk::{
@@ -51,10 +51,13 @@ use tokio_tungstenite::tungstenite::{
     handshake::server::{ErrorResponse, Request, Response},
 };
 
+#[path = "support/capture_ui.rs"]
+mod capture_ui;
 #[path = "../../mluva-workflows/tests/support/http.rs"]
 mod http;
 #[path = "../../mluva-providers/tests/support/local_models.rs"]
 mod local_models;
+use capture_ui::{entry, observe};
 
 struct RealtimePeer {
     address: String,
@@ -151,42 +154,6 @@ fn settle() {
         thread::sleep(Duration::from_millis(2));
     }
 }
-fn widgets(widget: &impl IsA<gtk::Widget>) -> Vec<gtk::Widget> {
-    fn append(widget: gtk::Widget, result: &mut Vec<gtk::Widget>) {
-        result.push(widget.clone());
-        let mut child = widget.first_child();
-        while let Some(current) = child {
-            append(current.clone(), result);
-            child = current.next_sibling();
-        }
-    }
-    let mut result = vec![];
-    append(widget.as_ref().clone(), &mut result);
-    result
-}
-fn buffer(view: &impl IsA<gtk::TextView>) -> String {
-    let buffer = view.as_ref().buffer();
-    buffer
-        .text(&buffer.start_iter(), &buffer.end_iter(), true)
-        .into()
-}
-fn entry(entry: Option<&HistoryEntry>) -> Value {
-    let Some(entry) = entry else {
-        return Value::Null;
-    };
-    let mut value = serde_json::to_value(entry).unwrap();
-    value["identifier"] = json!("generated");
-    value["created_at"] = json!("generated");
-    if !value["retained_audio_path"].is_null() {
-        value["retained_audio_path"] = json!("$AUDIO");
-    }
-    for key in ["recognition_ms", "enhancement_ms", "delivery_ms"] {
-        if !value[key].is_null() {
-            value[key] = json!("recorded");
-        }
-    }
-    value
-}
 fn result(result: WorkflowResult) -> Value {
     json!({"kind":"completed", "transcription":result.transcription,"output_text":result.output_text,
         "delivery":{"copied":result.delivery.copied,"pasted":result.delivery.pasted,"guidance":result.delivery.guidance,"paste_dispatched":result.delivery.paste_dispatched,"paste_confirmed":result.delivery.paste_confirmed},
@@ -194,23 +161,6 @@ fn result(result: WorkflowResult) -> Value {
         "requires_acceptance":result.requires_acceptance,"incognito":result.incognito,"mode":result.mode,
         "recognition_ms":"recorded","enhancement_ms":"recorded","delivery_ms":"recorded","session_identifier":"generated",
         "recognition_fallback":result.recognition_fallback,"recognition_route":result.recognition_route,"recognition_fallback_reason":result.recognition_fallback_reason})
-}
-fn observe(page: &CapturePage, audio: Option<&Path>) -> Value {
-    let normalize = |value: Option<glib::GString>| {
-        value.map(|value| match audio {
-            Some(audio) => value.replace(audio.to_str().unwrap(), "$AUDIO"),
-            None => value.into(),
-        })
-    };
-    let record = widgets(&page.record_button);
-    json!({"status":page.status.label().to_string(),"tooltip":normalize(page.status.tooltip_text()),"title":page.status_title.label().to_string(),
-        "record":{"labels":record.iter().filter_map(|widget|widget.downcast_ref::<gtk::Label>().map(|label|label.label().to_string())).collect::<Vec<_>>(),
-            "icons":record.iter().filter_map(|widget|widget.downcast_ref::<gtk::Image>().and_then(|image|image.icon_name()).map(String::from)).collect::<Vec<_>>(),
-            "sensitive":page.record_button.get_sensitive(),"suggested":page.record_button.has_css_class("suggested-action"),"destructive":page.record_button.has_css_class("destructive-action")},
-        "live":{"visible":page.workspace.live_box.get_visible(),"phase":page.workspace.live_title.label().to_string(),"text":buffer(&page.workspace.live_text)},
-        "output":{"visible":page.output_section.get_visible(),"text":buffer(&page.output_view)},
-        "entry":page.workspace.entry().map(|entry|json!({"raw":entry.raw_text,"output":entry.delivered_text})),
-        "callout":{"revealed":page.setup_callout.reveals_child(),"title":page.setup_title.label().to_string(),"body":page.setup_body.label().to_string(),"tooltip":normalize(page.setup_body.tooltip_text())}})
 }
 fn page(
     history: HistoryStore,
@@ -547,6 +497,7 @@ fn incognito_notes_and_exit(
                     })
                 }),
                 CaptureControllerCallbacks {
+                    live_config_changed: Rc::new(|_| true),
                     images: Rc::new(|_| Ok(vec![])),
                     completed: Rc::new(move |_| completed.set(true)),
                     failed: Rc::new(move |_| failed.set(true)),
@@ -864,6 +815,7 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
                 })
             }),
             CaptureControllerCallbacks {
+                live_config_changed: Rc::new(|_| true),
                 images: Rc::new(|_| Ok(vec![])),
                 completed: Rc::new(move |capture| {
                     assert_eq!(thread::current().id(), owner);

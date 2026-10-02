@@ -974,6 +974,18 @@ impl ConversationWorkspace {
         true
     }
 
+    pub fn save_conversation_edits(self: &Rc<Self>, identifier: &str) -> bool {
+        let keys = self
+            .state
+            .borrow()
+            .edit_drafts
+            .keys()
+            .filter(|key| key.0 == identifier)
+            .cloned()
+            .collect::<Vec<_>>();
+        keys.iter().all(|key| self.save_edits(Some(key)))
+    }
+
     pub fn can_copy_current_output(&self) -> bool {
         !self.state.borrow().documents.is_empty() && !self.live_box.get_visible()
     }
@@ -998,6 +1010,10 @@ impl ConversationWorkspace {
     }
     pub fn live_draft(&self) -> String {
         self.state.borrow().live_questions_source.clone() + &self.live_draft_text.text()
+    }
+    pub fn set_live_draft_available(&self, available: bool) {
+        self.state.borrow_mut().live_draft_available = available;
+        self.sync_live_panes();
     }
 
     pub fn show_live_draft(self: &Rc<Self>, source: &str, status: &str) {

@@ -402,6 +402,9 @@ impl CapturePage {
     pub fn set_recording_action(&self, action: Rc<dyn Fn()>) {
         self.recording_action.replace(action);
     }
+    pub fn toast(&self, message: &str) {
+        (self.callbacks.toast)(message);
+    }
     pub fn view_state(&self) -> CaptureViewState {
         self.state.borrow().clone()
     }

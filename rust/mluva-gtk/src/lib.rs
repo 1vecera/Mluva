@@ -10,6 +10,7 @@ pub mod commands;
 pub mod conversation_view;
 pub mod document_layout;
 pub mod editor_pages;
+pub mod live_controller;
 pub mod markdown_view;
 pub mod mermaid;
 pub mod personalization;
