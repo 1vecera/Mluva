@@ -10,6 +10,7 @@ pub mod languages;
 pub mod local;
 pub mod local_asr;
 pub mod local_assets;
+pub mod local_preview;
 pub mod models;
 pub mod multipart;
 pub mod onnx_runtime;

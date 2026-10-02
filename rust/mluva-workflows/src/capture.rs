@@ -17,13 +17,17 @@ use mluva_core::{
     prompt_catalog::SavedStyle,
     screenshots::ImageInput,
 };
-use mluva_providers::realtime::{ElevenLabsRealtimeClient, RealtimePreview, RealtimeSession};
+use mluva_providers::{
+    batch_preview::{BatchPreviewClient, BatchPreviewSession},
+    local_preview::LocalPreviewClient,
+    realtime::{ElevenLabsRealtimeClient, RealtimePreview, RealtimeSession, RealtimeSessionResult},
+};
 use std::{
     path::PathBuf,
     rc::Rc,
     sync::{
         Arc,
-        atomic::{AtomicU8, Ordering},
+        atomic::{AtomicBool, AtomicU8, Ordering},
     },
     time::Instant,
 };
@@ -55,6 +59,9 @@ pub struct CaptureOptions {
     pub style_identifier: Option<String>,
     pub use_saved_style: bool,
     pub defer_delivery: bool,
+    /// The Live owner enables compatible-provider previews only for its active session.
+    /// Local speech previews remain independent of optional text rewriting.
+    pub preview_enabled: bool,
 }
 impl Default for CaptureOptions {
     fn default() -> Self {
@@ -69,6 +76,7 @@ impl Default for CaptureOptions {
             style_identifier: None,
             use_saved_style: true,
             defer_delivery: false,
+            preview_enabled: false,
         }
     }
 }
@@ -113,9 +121,104 @@ pub enum CaptureError {
     Cancelled(CaptureCancelled),
 }
 
+#[derive(Clone)]
+pub enum CaptureRecognitionClient {
+    ElevenLabs(Rc<ElevenLabsRealtimeClient>),
+    Batch(Rc<BatchPreviewClient>),
+    Local(Rc<LocalPreviewClient>),
+}
+
+impl CaptureRecognitionClient {
+    async fn start(
+        &self,
+        language: &str,
+        directory: Option<PathBuf>,
+        enabled: bool,
+    ) -> mluva_providers::Result<RecognitionSession> {
+        match self {
+            Self::ElevenLabs(client) => client
+                .start(language, None, None)
+                .await
+                .map(RecognitionSession::Realtime),
+            Self::Batch(client) => {
+                let mut client = client.as_ref().clone();
+                if let Some(directory) = directory {
+                    client.directory = directory;
+                }
+                client.preview_enabled = enabled;
+                Ok(RecognitionSession::Batch(client.start(language)))
+            }
+            Self::Local(client) => {
+                let mut client = client.as_ref().clone();
+                if let Some(directory) = directory {
+                    client.directory = directory;
+                }
+                Ok(RecognitionSession::Batch(client.start(language)))
+            }
+        }
+    }
+}
+
+enum RecognitionSession {
+    Realtime(RealtimeSession),
+    Batch(BatchPreviewSession),
+}
+impl RecognitionSession {
+    fn snapshot(&self) -> RealtimePreview {
+        match self {
+            Self::Realtime(session) => session.snapshot(),
+            Self::Batch(session) => session.snapshot(),
+        }
+    }
+    fn is_healthy(&self) -> bool {
+        match self {
+            Self::Realtime(session) => session.is_healthy(),
+            Self::Batch(session) => session.is_healthy(),
+        }
+    }
+    fn bytes_sent(&self) -> usize {
+        match self {
+            Self::Realtime(session) => session.bytes_sent(),
+            Self::Batch(session) => session.bytes_sent(),
+        }
+    }
+    fn submit_audio(&self, frames: &[u8]) -> mluva_providers::Result<()> {
+        match self {
+            Self::Realtime(session) => session.submit_audio(frames).map(|_| ()),
+            Self::Batch(session) => {
+                session.submit_audio(frames);
+                Ok(())
+            }
+        }
+    }
+    fn cancel(&self) {
+        match self {
+            Self::Realtime(session) => session.cancel(),
+            Self::Batch(session) => session.cancel(),
+        }
+    }
+    async fn cancel_and_wait(&self) {
+        match self {
+            Self::Realtime(session) => session.cancel_and_wait().await,
+            Self::Batch(session) => session.cancel_and_wait().await,
+        }
+    }
+    async fn finish(&self) -> mluva_providers::Result<RealtimeSessionResult> {
+        match self {
+            Self::Realtime(session) => session.finish().await,
+            Self::Batch(session) => session.finish().await,
+        }
+    }
+    fn set_preview_enabled(&self, enabled: bool) {
+        if let Self::Batch(session) = self {
+            session.set_preview_enabled(enabled);
+        }
+    }
+}
+
 struct State {
     audio_path: Option<PathBuf>,
-    realtime: Option<Arc<RealtimeSession>>,
+    realtime: Option<Arc<RecognitionSession>>,
     fallback_reason: Option<String>,
     model_identifier: Option<String>,
     started: Option<Instant>,
@@ -134,7 +237,8 @@ pub struct CaptureSession {
     workflow: Rc<DictationWorkflow>,
     recorder: CaptureRecorder,
     storage: Mutex<Option<CaptureStorage>>,
-    realtime_client: Option<Rc<ElevenLabsRealtimeClient>>,
+    realtime_client: Option<CaptureRecognitionClient>,
+    preview_enabled: AtomicBool,
     phase: AtomicU8,
     cancellation: CancellationToken,
     state: Mutex<State>,
@@ -145,7 +249,7 @@ impl CaptureSession {
         workflow: Rc<DictationWorkflow>,
         recorder: PipeWireRecorder,
         storage: CaptureStorage,
-        realtime_client: Option<Rc<ElevenLabsRealtimeClient>>,
+        realtime_client: Option<CaptureRecognitionClient>,
         mut options: CaptureOptions,
     ) -> WorkflowOutcome<Rc<Self>> {
         if !["dictation", "command", "scratchpad"].contains(&options.mode.as_str()) {
@@ -194,6 +298,7 @@ impl CaptureSession {
             .map_err(|error| WorkflowError::Invalid(error.to_string()))?;
         Ok(Rc::new(Self {
             identifier: Uuid::new_v4().to_string(),
+            preview_enabled: AtomicBool::new(options.preview_enabled),
             options,
             preparation,
             frozen_style,
@@ -254,6 +359,15 @@ impl CaptureSession {
                 .as_ref()
                 .is_some_and(|session| session.is_healthy())
         })
+    }
+
+    pub fn set_preview_enabled(&self, enabled: bool) {
+        self.preview_enabled.store(enabled, Ordering::Release);
+        if let Ok(state) = self.state.try_lock()
+            && let Some(session) = &state.realtime
+        {
+            session.set_preview_enabled(enabled && self.options.mode == "dictation");
+        }
     }
 
     pub async fn prepare_and_start(&self) -> Result<CaptureReady, CaptureError> {
@@ -331,7 +445,11 @@ impl CaptureSession {
             Some(client) => {
                 let opened = tokio::select! { biased;
                     _ = self.cancellation.cancelled() => return Err(String::new()),
-                    opened = client.start(&self.workflow.config.language_code, None, None) => opened,
+                    opened = client.start(
+                        &self.workflow.config.language_code,
+                        self.options.incognito.then(|| state.audio_path.as_ref().expect("prepared destination").parent().expect("capture directory").join("speech-previews")),
+                        self.options.mode == "dictation" && self.preview_enabled.load(Ordering::Acquire),
+                    ) => opened,
                 };
                 match opened {
                     Ok(session) => {
@@ -384,6 +502,11 @@ impl CaptureSession {
             started.elapsed().as_secs_f64(),
         );
         recorded.map_err(|error| error.to_string())?;
+        if let Some(session) = &state.realtime {
+            session.set_preview_enabled(
+                self.options.mode == "dictation" && self.preview_enabled.load(Ordering::Acquire),
+            );
+        }
         if self.cancellation.is_cancelled() {
             return Err(String::new());
         }

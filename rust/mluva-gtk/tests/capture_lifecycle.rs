@@ -21,13 +21,17 @@ use mluva_gtk::{
 };
 use mluva_providers::{
     Secret,
+    batch_preview::{BatchPreviewClient, PreviewSpeechFactory},
+    compatible::CompatibleClient,
     elevenlabs::ElevenLabsClient,
+    local::LocalSpeechClient,
+    local_preview::LocalPreviewClient,
     realtime::{ElevenLabsRealtimeClient, RealtimeOptions},
     rewriting::RewriteClient,
     speech::SpeechClient,
 };
 use mluva_workflows::{
-    capture::{CaptureOptions, CapturePhase, CaptureSession},
+    capture::{CaptureOptions, CapturePhase, CaptureRecognitionClient, CaptureSession},
     dictation::{DictationWorkflow, WorkflowError, WorkflowResult},
 };
 use serde_json::{Value, json};
@@ -49,6 +53,8 @@ use tokio_tungstenite::tungstenite::{
 
 #[path = "../../mluva-workflows/tests/support/http.rs"]
 mod http;
+#[path = "../../mluva-providers/tests/support/local_models.rs"]
+mod local_models;
 
 struct RealtimePeer {
     address: String,
@@ -279,9 +285,17 @@ fn native_binary(name: &str) -> PathBuf {
     let path = target.join("debug").join(name);
     assert!(
         path.is_file(),
-        "Build the synthetic audio peer and native cleanup binary first"
+        "Build the native audio/model peers and cleanup binary first"
     );
     path.canonicalize().unwrap()
+}
+fn memory_entries() -> Vec<PathBuf> {
+    let mut entries = fs::read_dir("/dev/shm")
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name().into())
+        .collect::<Vec<_>>();
+    entries.sort();
+    entries
 }
 fn check(root: &Path, case: &str, stage: &str, actual: Value, expected: &Value) {
     if &actual != expected {
@@ -488,6 +502,8 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
     let root = isolated();
     let fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-capture-lifecycle.json")).unwrap();
+    let previews: Value =
+        serde_json::from_str(include_str!("fixtures/released-capture-previews.json")).unwrap();
     assert_eq!(
         fixture["reference_commit"],
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"
@@ -502,6 +518,9 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         ])
     );
     assert_eq!(fixture["pango"], gtk::pango::version_string().as_str());
+    assert_eq!(previews["reference_commit"], fixture["reference_commit"]);
+    assert_eq!(previews["gtk"], fixture["gtk"]);
+    assert_eq!(previews["pango"], fixture["pango"]);
     gtk::Settings::default()
         .unwrap()
         .set_gtk_enable_animations(false);
@@ -520,10 +539,18 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
     let runtime = DesktopRuntime::new().unwrap();
     let audio_peer = native_binary("audio-fixture-peer");
     let cleanup = native_binary("mluva-audio-cleanup");
+    let qwen_peer = native_binary("qwen-fixture-peer");
+    let onnx_peer = native_binary("local-asr-fixture-peer");
     let owner = thread::current().id();
     let mut observations = 0;
-    for case in fixture["cases"].as_array().unwrap() {
+    for case in fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .chain(previews["cases"].as_array().unwrap())
+    {
         let name = case["name"].as_str().unwrap();
+        let memory_before = memory_entries();
         let directory = tempfile::tempdir_in(&root).unwrap();
         let endpoint = directory.path().join("endpoint");
         fs::create_dir(&endpoint).unwrap();
@@ -562,7 +589,39 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
                 .unwrap(),
             )
         });
-        let config: AppConfig = serde_json::from_value(case["config"].clone()).unwrap();
+        let mut config: AppConfig = serde_json::from_value(case["config"].clone()).unwrap();
+        config.transcription_base_url = peer.address.clone();
+        let local_options = case
+            .get("local")
+            .map(|spec| local_models::setup(directory.path(), spec, &qwen_peer, &onnx_peer));
+        let recognition = if let Some(options) = &local_options {
+            Some(CaptureRecognitionClient::Local(Rc::new(
+                LocalPreviewClient::new(options.clone(), directory.path().join("previews")),
+            )))
+        } else if config.transcription_provider == "litellm" {
+            let creating_config = config.clone();
+            let factory: PreviewSpeechFactory = Arc::new(move || {
+                let config = creating_config.clone();
+                Box::pin(async move {
+                    Ok(Arc::new(SpeechClient::Compatible(CompatibleClient::new(
+                        &config.transcription_base_url,
+                        config.transcription_api_key_env,
+                        config.transcription_remote_model,
+                        Duration::from_secs(3),
+                    )?)))
+                })
+            });
+            Some(CaptureRecognitionClient::Batch(Rc::new(
+                BatchPreviewClient {
+                    factory,
+                    directory: directory.path().join("previews"),
+                    chunk_seconds: config.transcription_chunk_seconds.try_into().unwrap(),
+                    preview_enabled: config.live_rewrite_enabled,
+                },
+            )))
+        } else {
+            realtime.map(CaptureRecognitionClient::ElevenLabs)
+        };
         let data = directory.path().join("data");
         let recordings = data.join("recordings");
         let history = HistoryStore::new(data.join("history.sqlite3"));
@@ -570,8 +629,19 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         let diagnostics = DiagnosticsStore::new(data.join("diagnostics.sqlite3"), 5000).unwrap();
         diagnostics.initialize().unwrap();
         let personalization_path = directory.path().join("personalization.json");
-        let mut workflow = DictationWorkflow::new(
-            config.clone(),
+        let speech = if let Some(options) = local_options {
+            SpeechClient::Local(LocalSpeechClient::new(options).unwrap())
+        } else if config.transcription_provider == "litellm" {
+            SpeechClient::Compatible(
+                CompatibleClient::new(
+                    &peer.address,
+                    config.transcription_api_key_env.clone(),
+                    config.transcription_remote_model.clone(),
+                    Duration::from_secs(3),
+                )
+                .unwrap(),
+            )
+        } else {
             SpeechClient::ElevenLabs(
                 ElevenLabsClient::new(
                     Secret::new("synthetic-key"),
@@ -579,7 +649,11 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
                     Duration::from_secs(3),
                 )
                 .unwrap(),
-            ),
+            )
+        };
+        let mut workflow = DictationWorkflow::new(
+            config.clone(),
+            speech,
             RewriteClient::new(&config, None, None).unwrap(),
             history.clone(),
             directory.path().into(),
@@ -623,10 +697,11 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
                     creating_workflow.clone(),
                     PipeWireRecorder::new(&executable, None),
                     storage,
-                    realtime.clone(),
+                    recognition.clone(),
                     CaptureOptions {
                         incognito: creating_config.incognito_mode,
                         audio_retention: creating_config.audio_retention_policy,
+                        preview_enabled: creating_config.live_rewrite_enabled,
                         ..Default::default()
                     },
                 )?;
@@ -784,6 +859,72 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
             &case["history"],
         );
         check(&root, name, "wire", json!(peer.finish()), &case["wires"]);
+        if case.get("local_processes").is_some() {
+            let trace = local_models::trace(directory.path());
+            let starts = trace
+                .iter()
+                .filter(|event| event["kind"] == "start")
+                .collect::<Vec<_>>();
+            check(
+                &root,
+                name,
+                "local-processes",
+                json!(starts.len()),
+                &case["local_processes"],
+            );
+            for event in starts {
+                assert!(
+                    !Path::new(&format!("/proc/{}", event["pid"])).exists(),
+                    "{name}: resident model survived Stop/Cancel"
+                );
+                if let Some(key) = event["key_path"].as_str() {
+                    assert!(
+                        !Path::new(key).exists(),
+                        "{name}: model credential survived Stop/Cancel"
+                    );
+                }
+            }
+            let requests = trace
+                .iter()
+                .filter(|event| event["kind"] == "request")
+                .map(|event| {
+                    if config.local_model == "qwen3-1.7b" {
+                        event["payload"].clone()
+                    } else {
+                        json!({"path":"$AUDIO", "language":event["payload"]["language"]})
+                    }
+                })
+                .collect::<Vec<_>>();
+            let audio = trace
+                .iter()
+                .filter(|event| event["kind"] == "wav")
+                .map(|event| {
+                    let mut event = event.clone();
+                    event.as_object_mut().unwrap().remove("kind");
+                    event
+                })
+                .collect::<Vec<_>>();
+            check(
+                &root,
+                name,
+                "local-requests",
+                json!(requests),
+                &case["local_requests"],
+            );
+            check(
+                &root,
+                name,
+                "local-audio",
+                json!(audio),
+                &case["local_audio"],
+            );
+            assert!(
+                fs::read_dir(directory.path().join("previews"))
+                    .map(|mut entries| entries.next().is_none())
+                    .unwrap_or(true),
+                "{name}: private preview WAV survived cleanup"
+            );
+        }
         let realtime_events = if let Some(ws) = ws {
             until(|| ws.events.lock().unwrap().is_some());
             json!(ws.events.lock().unwrap().take().unwrap())
@@ -816,6 +957,11 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
             );
         }
         if config.incognito_mode {
+            assert_eq!(
+                memory_entries(),
+                memory_before,
+                "{name}: memory-backed audio survived terminal cleanup"
+            );
             assert!(history.recent(1).unwrap().is_empty());
             assert_eq!(
                 workflow
@@ -834,8 +980,8 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         println!("native_capture {name} PASS");
     }
     incognito_notes_and_exit(&runtime, &root, &resources, &audio_peer, &cleanup);
-    assert_eq!(observations, 81);
+    assert_eq!(observations, 184);
     println!(
-        "NATIVE_COMPLETE 17 transactions, {observations} released states, exact PCM upload and native process reaping"
+        "NATIVE_COMPLETE 39 transactions, {observations} released states, exact PCM upload and native process reaping"
     );
 }

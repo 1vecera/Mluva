@@ -57,10 +57,8 @@ fn state(root: &Path) -> Value {
 }
 
 async fn runtime(args: &[String]) {
-    assert_eq!(
-        unsafe { libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL) },
-        0
-    );
+    // Ownership belongs to the recording, not its creating preview thread.
+    // PDEATHSIG would erase the resident worker when that thread ends at Stop.
     let legacy = args.first().is_some_and(|v| v == "-m");
     let config: Value = serde_json::from_slice(
         &fs::read(
@@ -141,6 +139,15 @@ async fn runtime(args: &[String]) {
             .unwrap()
             .replace(root.to_str().unwrap(), "$ROOT");
         let payload: Value = serde_json::from_slice(normalized.as_bytes()).unwrap();
+        if config["observe_wav"] == true {
+            let raw: Value = serde_json::from_slice(&raw).unwrap();
+            let path = PathBuf::from(raw["path"].as_str().unwrap());
+            let bytes = fs::read(&path).unwrap();
+            append(
+                &root,
+                json!({"kind":"wav","bytes":bytes.len(),"sha256":hash(&bytes),"mode":fs::metadata(&path).unwrap().permissions().mode()&0o777,"directory_mode":fs::metadata(path.parent().unwrap()).unwrap().permissions().mode()&0o777}),
+            );
+        }
         append(
             &root,
             json!({"kind":"request","payload":payload,"body_sha256":hash(normalized.as_bytes()),"body_bytes":normalized.len()}),

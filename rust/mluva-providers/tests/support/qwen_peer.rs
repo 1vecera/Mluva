@@ -74,10 +74,9 @@ fn body(value: &Value) -> Vec<u8> {
     bytes
 }
 async fn runtime(arguments: &[String]) {
-    assert_eq!(
-        unsafe { libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL) },
-        0
-    );
+    // A resident model outlives the thread that created it. PDEATHSIG follows
+    // that thread on Linux, so it would kill the fixture at preview Stop even
+    // while the recording's actual owner still needs final recognition.
     let executable = std::env::current_exe().unwrap();
     let config: Value =
         serde_json::from_slice(&fs::read(executable.with_file_name("fixture.json")).unwrap())
@@ -114,6 +113,10 @@ async fn runtime(arguments: &[String]) {
     let key = PathBuf::from(argument("--api-key-file"));
     let token = fs::read_to_string(&key).unwrap();
     let port = argument("--port");
+    let first_process = !fs::read_to_string(&trace)
+        .unwrap_or_default()
+        .lines()
+        .any(|line| serde_json::from_str::<Value>(line).unwrap()["kind"] == "start");
     append(
         &trace,
         json!({"kind":"start","pid":std::process::id(),"key_path":key,"arguments":arguments.iter().map(|value|normalized(value,&root,&key,&port)).collect::<Vec<_>>(),"environment":std::env::vars().map(|(key,value)|(key,value.replace(root.to_str().unwrap(),"$ROOT"))).collect::<std::collections::BTreeMap<_,_>>(),"token_length":token.len(),"token_urlsafe":token.bytes().all(|byte|byte.is_ascii_alphanumeric()||b"-_".contains(&byte)),"key_mode":fs::metadata(&key).unwrap().permissions().mode()&0o777,"temporary_mode":fs::metadata(key.parent().unwrap()).unwrap().permissions().mode()&0o777,"stdin_eof":std::io::stdin().read(&mut[0]).unwrap()==0,"stdout_null":fs::read_link("/proc/self/fd/1").unwrap()==Path::new("/dev/null"),"stderr_null":fs::read_link("/proc/self/fd/2").unwrap()==Path::new("/dev/null")}),
@@ -135,6 +138,7 @@ async fn runtime(arguments: &[String]) {
         let (mut socket, _) = listener.accept().await.unwrap();
         let request = support::request(&mut socket).await;
         let mut response = support::Response::ok(Vec::<u8>::new());
+        let mut fragment_delay = Duration::ZERO;
         if request.path == "/health" {
             let status = config["health"]
                 .as_array()
@@ -165,9 +169,14 @@ async fn runtime(arguments: &[String]) {
             let specification = &config["responses"]
                 [requests.min(config["responses"].as_array().unwrap().len() - 1)];
             requests += 1;
+            if first_process && specification["hold_first_process"] == true {
+                std::future::pending::<()>().await;
+            }
             response.status = specification["status"].as_u64().unwrap_or(200) as u16;
             response.body = body(specification);
             response.fragment = specification["fragment"].as_u64().unwrap_or(8191) as usize;
+            fragment_delay =
+                Duration::from_millis(specification["fragment_delay_ms"].as_u64().unwrap_or(0));
             if let Some(redirect) = specification["redirect"].as_str() {
                 response
                     .headers
@@ -194,11 +203,20 @@ async fn runtime(arguments: &[String]) {
         if socket.write_all(head.as_bytes()).await.is_err() {
             continue;
         }
-        for chunk in response.body.chunks(response.fragment.max(1)) {
+        for (index, chunk) in response.body.chunks(response.fragment.max(1)).enumerate() {
             if socket.write_all(chunk).await.is_err() {
                 break;
             }
+            if config["observe_fragments"] == true {
+                append(
+                    &trace,
+                    json!({"kind":"fragment","request":requests,"index":index,"bytes":chunk.len()}),
+                );
+            }
             tokio::task::yield_now().await;
+            if !fragment_delay.is_zero() {
+                tokio::time::sleep(fragment_delay).await;
+            }
         }
         let _ = socket.shutdown().await;
     }

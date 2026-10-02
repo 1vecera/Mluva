@@ -2,6 +2,8 @@
 
 use crate::{
     ProviderError, Result,
+    local::LocalSpeechClient,
+    local_asr::OnnxOptions,
     realtime::{RealtimePreview, RealtimeSessionResult},
     speech::SpeechClient,
 };
@@ -35,19 +37,60 @@ pub struct BatchPreviewClient {
 impl BatchPreviewClient {
     /// Starting a session creates no provider, model, file or microphone.
     pub fn start(&self, language: &str) -> BatchPreviewSession {
+        BatchPreviewSession::start(
+            PreviewBackend::Batch(self.factory.clone()),
+            self.directory.clone(),
+            self.chunk_seconds,
+            self.preview_enabled,
+            language,
+        )
+    }
+}
+
+enum PreviewBackend {
+    Batch(PreviewSpeechFactory),
+    Local(OnnxOptions),
+}
+
+impl BatchPreviewSession {
+    pub(crate) fn start_local(
+        mut options: OnnxOptions,
+        directory: PathBuf,
+        chunk_seconds: u32,
+        language: &str,
+    ) -> Self {
+        options.keep_alive = true;
+        Self::start(
+            PreviewBackend::Local(options),
+            directory,
+            chunk_seconds,
+            true,
+            language,
+        )
+    }
+
+    fn start(
+        backend: PreviewBackend,
+        directory: PathBuf,
+        chunk_seconds: u32,
+        enabled: bool,
+        language: &str,
+    ) -> Self {
         let shared = Arc::new(Shared {
-            factory: self.factory.clone(),
-            directory: self.directory.clone(),
+            backend,
+            directory,
             language: language.into(),
-            chunk_bytes: self.chunk_seconds as usize * BYTES_PER_SECOND,
+            chunk_bytes: chunk_seconds as usize * BYTES_PER_SECOND,
             state: Mutex::new(State {
                 audio: vec![],
                 offset: 0,
                 text: String::new(),
+                streaming_text: String::new(),
                 healthy: true,
                 finishing: false,
-                enabled: self.preview_enabled,
+                enabled,
                 active: None,
+                resident: None,
             }),
             ready: Notify::new(),
             cancelled: CancellationToken::new(),
@@ -70,13 +113,15 @@ struct State {
     audio: Vec<u8>,
     offset: usize,
     text: String,
+    streaming_text: String,
     healthy: bool,
     finishing: bool,
     enabled: bool,
     active: Option<Arc<SpeechClient>>,
+    resident: Option<Arc<SpeechClient>>,
 }
 struct Shared {
-    factory: PreviewSpeechFactory,
+    backend: PreviewBackend,
     directory: PathBuf,
     language: String,
     chunk_bytes: usize,
@@ -105,8 +150,13 @@ impl BatchPreviewSession {
         self.shared.state.lock().unwrap().healthy && !self.shared.cancelled.is_cancelled()
     }
     pub fn snapshot(&self) -> RealtimePreview {
+        let state = self.shared.state.lock().unwrap();
         RealtimePreview {
-            committed_text: self.shared.state.lock().unwrap().text.clone(),
+            committed_text: if state.streaming_text.is_empty() {
+                state.text.clone()
+            } else {
+                state.streaming_text.clone()
+            },
             volatile_text: String::new(),
         }
     }
@@ -129,6 +179,7 @@ impl BatchPreviewSession {
         }
     }
     pub fn set_preview_enabled(&self, enabled: bool) {
+        let enabled = enabled || self.shared.local();
         let mut state = self.shared.state.lock().unwrap();
         state.enabled = enabled;
         if enabled && state.audio.len().saturating_sub(state.offset) >= self.shared.chunk_bytes {
@@ -155,6 +206,11 @@ impl BatchPreviewSession {
         self.shared.ready.notify_one();
         let active = self.shared.state.lock().unwrap().active.clone();
         if let Some(active) = active {
+            // Source finalization cancels an in-flight local client. Its final
+            // request needs a fresh client; an idle resident can keep its weights.
+            if self.shared.local() {
+                self.shared.state.lock().unwrap().resident.take();
+            }
             active.cancel().await;
         }
         self.shared.reap_worker().await;
@@ -166,6 +222,7 @@ impl BatchPreviewSession {
         } else {
             transcribe(self.shared.clone(), frames, false).await
         };
+        self.shared.close_resident().await;
         guard.complete = true;
         result.map(|transcription| RealtimeSessionResult {
             transcription,
@@ -188,6 +245,41 @@ impl Drop for BatchPreviewSession {
 }
 
 impl Shared {
+    fn local(&self) -> bool {
+        matches!(self.backend, PreviewBackend::Local(_))
+    }
+
+    async fn client(&self) -> Result<Arc<SpeechClient>> {
+        match &self.backend {
+            PreviewBackend::Batch(factory) => factory().await,
+            PreviewBackend::Local(options) => {
+                let mut state = self.state.lock().unwrap();
+                if let Some(client) = &state.resident {
+                    return Ok(client.clone());
+                }
+                let client = Arc::new(SpeechClient::Local(LocalSpeechClient::new(
+                    options.clone(),
+                )?));
+                state.resident = Some(client.clone());
+                Ok(client)
+            }
+        }
+    }
+
+    async fn close_resident(&self) {
+        let client = self.state.lock().unwrap().resident.take();
+        if let Some(client) = client {
+            client.close().await;
+        }
+    }
+
+    fn partial(&self, partial: &str) {
+        let mut state = self.state.lock().unwrap();
+        if !state.finishing && !self.cancelled.is_cancelled() {
+            state.streaming_text = text::trim(&format!("{} {partial}", state.text)).into();
+        }
+    }
+
     fn cancel(self: &Arc<Self>) {
         self.cancelled.cancel();
         self.stop_preview.cancel();
@@ -195,6 +287,7 @@ impl Shared {
             let mut state = self.state.lock().unwrap();
             state.audio = vec![];
             state.text.clear();
+            state.streaming_text.clear();
         }
         self.ready.notify_one();
         if !self.closing.swap(true, Ordering::AcqRel) {
@@ -211,6 +304,7 @@ impl Shared {
                     active.cancel().await;
                 }
                 shared.wait_requests().await;
+                shared.close_resident().await;
                 shared.closed.cancel();
             });
         }
@@ -262,6 +356,14 @@ impl Drop for WorkerDone {
 }
 
 async fn preview(shared: Arc<Shared>, _finished: WorkerDone) {
+    preview_loop(shared.clone()).await;
+    let finishing = shared.state.lock().unwrap().finishing;
+    if !finishing {
+        shared.close_resident().await;
+    }
+}
+
+async fn preview_loop(shared: Arc<Shared>) {
     loop {
         tokio::select! { biased;
             _ = shared.stop_preview.cancelled() => return,
@@ -364,14 +466,31 @@ async fn transcribe_owned(
     };
     let client = tokio::select! { biased;
         _ = stop.cancelled() => return Err(ProviderError::message("Transcription cancelled.")),
-        client = (shared.factory)() => client?,
+        client = shared.client() => client?,
     };
     shared.state.lock().unwrap().active = Some(client.clone());
+    let partial_owner = shared.clone();
+    let mut partial = move |value: String| partial_owner.partial(&value);
+    let recognition = async {
+        match client.as_ref() {
+            SpeechClient::Local(local) => {
+                local
+                    .transcribe(&path, &shared.language, Some(&mut partial))
+                    .await
+            }
+            client => client.transcribe(&path, &shared.language, "").await,
+        }
+    };
     let result = tokio::select! { biased;
         _ = stop.cancelled() => Err(ProviderError::message("Transcription cancelled.")),
-        result = client.transcribe(&path, &shared.language, "") => result,
+        result = recognition => result,
     };
-    client.close().await;
+    if !shared.local() || !preview || result.is_err() {
+        client.close().await;
+        if shared.local() {
+            shared.state.lock().unwrap().resident.take();
+        }
+    }
     shared.state.lock().unwrap().active = None;
     drop(temporary);
     if shared.cancelled.is_cancelled() {
