@@ -4,7 +4,7 @@
 
 The source and copied bundle must match their versioned SHA-256 inventory, exact relative aliases, file modes and native ELF architecture before any payload executes. Actual main-binary help loads linked dependencies without resolving managed credentials or initializing application stores. Each replacement uses a private same-filesystem backup and guarded rename. Failure restores the app, launchers, desktop files, scoped profile and changed directory modes. HUP/INT/TERM stop the owned child group and roll back before commit. Concurrent replacements are preserved, with previous objects retained in private recovery directories. This establishes process-failure recovery, not power-loss recovery or immunity to adversarial filesystem races.
 
-The installer now incorporates [native VoiceScribe migration](legacy-evidence.md), including profiles under custom `DAS_CONF_DIR`, within the same transaction. Conflicting or foreign state is refused without mutation. Final source/download installation entry points remain unfinished; there is no Python fallback. The maintained root installer still belongs to the working 1.6.0 release. Daniel's installation has not been replaced.
+The installer now incorporates [native VoiceScribe migration](legacy-evidence.md), including profiles under custom `DAS_CONF_DIR`, within the same transaction. Conflicting or foreign state is refused without mutation. Maintained [app-only source commands](source-entry-evidence.md) now build a native bundle and invoke the same transaction without a Python fallback. Root source dependency/widget provisioning and final download/distribution acceptance remain unfinished. Daniel's installation has not been replaced.
 
 ## Independent observations
 

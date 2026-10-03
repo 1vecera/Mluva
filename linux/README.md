@@ -1,6 +1,6 @@
 # Mluva for Linux
 
-Mluva is a native Python, GTK 4 and Libadwaita application with PipeWire audio. **Omarchy is the primary platform**, with the dictation, rewrite and widget workflow tested end to end and used daily. Fedora GNOME compatibility is retained but has not been tested for several releases.
+Released Mluva 1.6.0 uses Python, GTK 4, Libadwaita and PipeWire. This development branch contains its [native Rust replacement](../rust/README.md); app-only source installation now builds Rust, while the remaining development commands and root widget setup still use Python. Full Rust application acceptance remains pending. **Omarchy is the primary platform** for the released daily workflow. Fedora GNOME compatibility is retained but has not been tested for several releases.
 
 For the shortest path, use the [combined installer or agent prompt](../README.md#install). The [Omarchy guide](../docs/omarchy-integration.md) explains the widget; the [platform profile](../docs/linux-platform-profile.md) describes desktop differences.
 
@@ -19,13 +19,13 @@ After a completed dictation, **Continue** in the widget or **Continue recording*
 | Requirement | Omarchy | Fedora GNOME compatibility |
 | --- | --- | --- |
 | Desktop | Omarchy Quattro with Hyprland 0.55+ and Quickshell 0.3+ | Last accepted on Fedora 44 / GNOME 50; recent releases unverified |
-| Native UI | GTK 4, Libadwaita, distribution PyGObject and Cairo bindings | Same |
+| Native UI | GTK 4, Libadwaita; released Python development also needs distribution PyGObject and Cairo bindings | Same |
 | Audio | PipeWire, `pw-record`, `pw-dump` | Same |
 | Shortcuts | Hyprland compositor binding or XDG Global Shortcuts portal | XDG Global Shortcuts portal and the desktop backend |
 | Clipboard | `wl-copy` on Wayland | Same |
-| Python | Distribution Python 3.12+ and `uv` | Same |
+| Remaining Python development/root setup | Distribution Python 3.12+ and `uv`; neither is used by the native app-only bundle | Same |
 
-`bash install.sh` at the repository root installs the required packages, native app and, on Omarchy, the plugin. `--app-only` skips plugin changes. For manual package management:
+The released `bash install.sh` at the repository root installs runtime packages, the app and, on Omarchy, the plugin. `--app-only` skips plugin changes. On this Rust development branch, that root setup still needs conversion of widget provisioning and native build prerequisites. Prepare the [native source build dependencies](../CONTRIBUTING.md#local-setup) separately before using source app-only installation. The remaining Python development environment uses these runtime packages:
 
 ```sh
 # Omarchy
@@ -43,13 +43,13 @@ Omarchy setup includes `wtype` for optional keyboard paste. Existing installatio
 
 ## Install for the current user
 
-With dependencies already present, install only the native app:
+With the [native build prerequisites](../CONTRIBUTING.md#local-setup) and runtime commands (`pw-record`, `pw-dump`, `wl-copy`) already present, build and install only the native app:
 
 ```sh
 make linux-install
 ```
 
-Application files go under `~/.local/share/mluva/app`, commands under `~/.local/bin`, and the desktop entry under the XDG applications directory. The installer uses distribution GTK bindings and the locked Python dependencies. It refuses an active app or unrecognized installation, preserves the previous app until setup succeeds, and rolls back on failure. [Upgrades from 0.x](../docs/identity-migration.md) preserve settings and saved work.
+Application files go under `~/.local/share/mluva/app`, commands under `~/.local/bin`, and the desktop entry under the XDG applications directory. Source installation builds an optimized Rust bundle with locked dependencies before changing the user prefix, then invokes its native installer. Prepared native bundles invoke that installer directly and need no compiler or Python. It refuses an active app or unrecognized installation, preserves the previous app until setup succeeds, and rolls back on failure. [Upgrades from 0.x](../docs/identity-migration.md) preserve settings and saved work.
 
 The app requests approval for recording, cancellation and opening the latest conversation on first launch. Settings shows the keys actually approved by the desktop. The default recording key is F9; alternatives range from F1 to F24. Changing a key replaces the portal session. Right Alt/AltGr remains available to the keyboard layout.
 
@@ -63,7 +63,7 @@ MLUVA_INSTALL_HOME="$PWD/tmp/staged-home" bash linux/install.sh
 
 Staged mode skips live desktop, systemd and credential integration. Use the [isolated runner](../dev/README.md) for any GUI launch from that prefix.
 
-Run `mluva-uninstall` to remove the native app and owned launch integrations. Settings, history, recordings and migration backups remain. On Omarchy, remove the bundled widget with `omarchy plugin remove mluva.dictation` before uninstalling the app.
+Run installed `mluva-uninstall` to remove the native app and owned launch integrations without building anything. Source `make linux-uninstall` builds the native remover and requires the development prerequisites. Settings, history, recordings and migration backups remain. On Omarchy, remove the bundled widget with `omarchy plugin remove mluva.dictation` before uninstalling the app.
 
 ## Provider setup
 
@@ -71,7 +71,7 @@ Speech recognition and rewriting are selected independently in **Settings → Pr
 
 Supply credentials to the app process through your secret manager or desktop launch environment. Settings stores key-variable names, never key values. Restart Mluva after changing that environment. A cloud route may send audio or text off the device; local recognition alone does not make rewrites or generated titles local.
 
-The launcher also supports an existing managed credential profile. When the managed local snapshot is enabled, the launcher reads only `ELEVEN_LABS_STT_TOKEN` from it before considering legacy network profiles. `MLUVA_AGENT_SECRET_NAME` can select another supported credential name in that snapshot. This avoids retired profile references blocking startup after credential rotation. That optional integration is implemented in `resources/mluva.in` and `configure-secret-profile.sh`; ordinary installations do not require it.
+The launcher also supports an existing managed credential profile. When the managed local snapshot is enabled, the launcher requests only `ELEVEN_LABS_STT_TOKEN` from it before considering legacy network profiles. `MLUVA_AGENT_SECRET_NAME` can select another supported credential name in that snapshot. This avoids retired profile references blocking startup after credential rotation. The [native launcher](../rust/mluva-gtk/tests/fixtures/launcher-evidence.md) owns this optional route; `configure-secret-profile.sh` remains available for manual profile setup. Ordinary installations do not require it.
 
 ## Optional desktop integrations
 
@@ -97,4 +97,4 @@ If capture fails, check the input and provider status in Settings. If the widget
 
 ## Development
 
-`make linux-setup` creates the locked environment with system GTK bindings. `make linux-run` starts the app from source; use it only when you intend to open the UI. `make linux-test` runs the deterministic suite, lint, formatting and feature-matrix check. The [contributor guide](../CONTRIBUTING.md#verification) lists focused and isolated integration checks.
+During the port, `make linux-setup` creates the remaining Python development environment with system GTK bindings, and `make linux-run` still starts that implementation; use it only when you intend to open the UI. `make linux-test` runs its deterministic suite, lint, formatting and the native feature-matrix check. The [contributor guide](../CONTRIBUTING.md#verification) lists focused and isolated integration checks; the [Rust guide](../rust/README.md) documents native builds and acceptance evidence.

@@ -607,7 +607,18 @@ fn released_process_actions_residency_and_headless_dispatch() {
             settle();
             let visible = visible(process.0.id());
             let (names, items) = if visible {
-                accessibility.visible_content()
+                // X11 mapping and AT-SPI registration are asynchronous. A
+                // mapped window alone does not make its accessibility tree
+                // observable; wait for content, then compare the full snapshot.
+                let mut content = accessibility.visible_content();
+                if content.0.is_empty() {
+                    eprintln!("{name}: {stage}: awaiting visible accessibility content");
+                    until(|| {
+                        content = accessibility.visible_content();
+                        !content.0.is_empty()
+                    });
+                }
+                content
             } else {
                 (vec![], vec![])
             };

@@ -31,6 +31,8 @@ Live rewrite is opt-in and Experimental. It marks missing information, preserves
 
 ## Install
 
+This development branch is the [Rust port](rust/README.md), with complete application acceptance still pending. Its app-only source installer now builds Rust and requires the [native development prerequisites](CONTRIBUTING.md#local-setup). The root source setup's widget provisioning and build-dependency conversion remain unfinished; use the published 1.6.0 release for the established installation below.
+
 Run the setup from a source checkout or extracted [release archive](https://github.com/1vecera/Mluva/releases/latest). On **Omarchy Quattro**, it installs the desktop dependencies, native application and bundled shell widget together. Both parts share one repository, version and package. It shows the installation plan first; system packages may request your sudo password.
 
 ```sh
@@ -111,7 +113,7 @@ See the [product contract](docs/product-contract.md) for retention, recovery and
 
 ## Development
 
-Mluva uses **Python, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. Start with the [code map and focused checks](CONTRIBUTING.md#code-map) or [Linux guide](linux/README.md).
+Released Mluva uses **Python, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. This branch's [native Rust implementation](rust/README.md) preserves that interface and is undergoing acceptance checks; the app-only source installer already uses it. Start with the [code map and focused checks](CONTRIBUTING.md#code-map) or [Linux guide](linux/README.md).
 
 ```sh
 make linux-test linux-shortcut-test

@@ -320,6 +320,27 @@ fn logs(root: &Path, result: &Output) {
     assert!(!String::from_utf8_lossy(&result.stderr).contains("synthetic-value-do-not-echo"));
 }
 
+fn build_environment(command: &mut Command, root: &Path) {
+    command
+        .env("CARGO", env!("CARGO"))
+        .env("CARGO_NET_OFFLINE", "true")
+        .env("CARGO_BUILD_JOBS", "2")
+        .env(
+            "PATH",
+            format!(
+                "{}:{}:/usr/bin:/bin",
+                root.join("fake-bin").display(),
+                Path::new(env!("CARGO")).parent().unwrap().display()
+            ),
+        );
+    for name in ["CARGO_HOME", "RUSTUP_HOME", "CARGO_TARGET_DIR"] {
+        command.env(
+            name,
+            env::var_os(name).expect("native build environment required"),
+        );
+    }
+}
+
 #[test]
 #[ignore = "requires a guarded disposable Linux session"]
 fn modern_install_matches_released_public_outcomes() {
@@ -637,6 +658,172 @@ fn actual_bundle_installs_upgrades_and_starts_from_its_public_launcher() {
     )
     .unwrap();
     eprintln!("Complete installed native bundle at {}", app.display());
+}
+
+#[test]
+#[ignore = "builds actual optimized production binaries in a guarded disposable Linux session"]
+fn source_checkout_installs_upgrades_and_removes_without_python() {
+    let run = private("install-source");
+    let root = run.join("owned");
+    let layout = setup(&root, "owned");
+    positive_trap(&root, &layout, "owned");
+    let home = Path::new(layout["home"].as_str().unwrap());
+    let note = home.join("personal-note");
+    fs::write(&note, b"preserve this user's unrelated bytes\n").unwrap();
+    fs::set_permissions(&note, fs::Permissions::from_mode(0o640)).unwrap();
+    let app = data(&root, &layout).join("mluva/app");
+    let invoke = |program: &Path| {
+        let mut child = command(&root, &layout, "owned", program, true);
+        build_environment(&mut child, &root);
+        child
+    };
+    let source_install = repository().join("linux/install.sh");
+    for attempt in ["install", "upgrade"] {
+        let before = (attempt == "upgrade").then(|| snapshot(&root, &layout, false));
+        let result = invoke(&source_install).output().unwrap();
+        fs::write(
+            root.join(format!("source-{attempt}.stdout")),
+            &result.stdout,
+        )
+        .unwrap();
+        fs::write(
+            root.join(format!("source-{attempt}.stderr")),
+            &result.stderr,
+        )
+        .unwrap();
+        assert!(
+            result.status.success(),
+            "Source {attempt} failed with {:?}: {}",
+            result.status.code(),
+            String::from_utf8_lossy(&result.stderr)
+        );
+        assert!(!root.join("peer/python-used").exists());
+        let receipt: Value =
+            serde_json::from_slice(&fs::read(app.join(".mluva-native.json")).unwrap()).unwrap();
+        assert_eq!(receipt["implementation"], "rust");
+        assert!(!app.join("pyproject.toml").exists());
+        assert!(!app.join(".venv").exists());
+        assert_eq!(
+            fs::read_link(home.join(".local/bin/mluva")).unwrap(),
+            app.join("bin/mluva")
+        );
+        if let Some(before) = before {
+            assert_eq!(snapshot(&root, &layout, false), before);
+        }
+    }
+    let help = invoke(&home.join(".local/bin/mluva"))
+        .arg("--help")
+        .output()
+        .unwrap();
+    let released: Value = serde_json::from_str(include_str!(
+        "../../mluva-gtk/tests/fixtures/released-bootstrap.json"
+    ))
+    .unwrap();
+    assert!(help.status.success());
+    assert_eq!(
+        String::from_utf8(help.stdout).unwrap(),
+        released["cli"][0]["stdout"]
+    );
+    assert!(help.stderr.is_empty());
+
+    // A compiler failure must leave the already installed app and all user
+    // bytes unchanged. It must not fall back to the former Python installer.
+    let before = snapshot(&root, &layout, false);
+    let cargo = root.join("fake-bin/cargo");
+    fs::write(&cargo, b"#!/bin/sh\nexit 73\n").unwrap();
+    fs::set_permissions(&cargo, fs::Permissions::from_mode(0o755)).unwrap();
+    let failed = invoke(&source_install).output().unwrap();
+    assert_eq!(failed.status.code(), Some(73));
+    assert_eq!(snapshot(&root, &layout, false), before);
+
+    // The external compiler peer blocks at a real process boundary. A launcher
+    // witness records the public command's PID before exec, so cancellation does
+    // not depend on any private source-command name or implementation hook.
+    fs::write(
+        &cargo,
+        b"#!/bin/sh\nprintf '%s\\n' \"$$\" > \"$MLUVA_INSTALL_PEER/compiler-pid\"\nexec /usr/bin/sleep 30\n",
+    )
+    .unwrap();
+    let mut cancelled = invoke(Path::new("/usr/bin/bash"))
+        .arg("-c")
+        .arg("printf '%s\\n' \"$$\" > \"$MLUVA_INSTALL_PEER/source-pid\"; exec \"$1\"")
+        .arg("source-command-check")
+        .arg(&source_install)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(20);
+    while !root.join("peer/compiler-pid").exists() {
+        assert!(
+            Instant::now() < deadline,
+            "Compiler did not reach the cancellation boundary"
+        );
+        assert!(cancelled.try_wait().unwrap().is_none());
+        thread::sleep(Duration::from_millis(20));
+    }
+    let pid = |name: &str| {
+        fs::read_to_string(root.join("peer").join(name))
+            .unwrap()
+            .trim()
+            .parse::<libc::pid_t>()
+            .unwrap()
+    };
+    let compiler = pid("compiler-pid");
+    assert_eq!(unsafe { libc::kill(pid("source-pid"), libc::SIGTERM) }, 0);
+    let status = loop {
+        if let Some(status) = cancelled.try_wait().unwrap() {
+            break status;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "Source command did not acknowledge cancellation"
+        );
+        thread::sleep(Duration::from_millis(20));
+    };
+    assert_eq!(status.code(), Some(143));
+    assert!(
+        !Path::new(&format!("/proc/{compiler}")).exists(),
+        "Compiler survived cancellation"
+    );
+    assert_eq!(snapshot(&root, &layout, false), before);
+    fs::remove_file(cargo).unwrap();
+
+    // Retain the source-built installed payload for subsequent resident checks;
+    // removal below still operates on the actual user prefix, not this copy.
+    let saved = run.join("native-runtime");
+    assert!(
+        Command::new("/usr/bin/cp")
+            .args(["-a", "--"])
+            .arg(&app)
+            .arg(&saved)
+            .status()
+            .unwrap()
+            .success()
+    );
+    fs::write(
+        run.join("source-built-bundle"),
+        saved.as_os_str().as_encoded_bytes(),
+    )
+    .unwrap();
+    let removed = invoke(&repository().join("linux/uninstall.sh"))
+        .output()
+        .unwrap();
+    fs::write(root.join("source-uninstall.stdout"), &removed.stdout).unwrap();
+    fs::write(root.join("source-uninstall.stderr"), &removed.stderr).unwrap();
+    assert!(
+        removed.status.success(),
+        "{}",
+        String::from_utf8_lossy(&removed.stderr)
+    );
+    assert!(!app.exists());
+    assert!(!home.join(".local/bin/mluva").exists());
+    assert_eq!(
+        fs::read(note).unwrap(),
+        b"preserve this user's unrelated bytes\n"
+    );
+    assert!(!root.join("peer/python-used").exists());
+    eprintln!("Source build/install/upgrade/help/failure/cancel/removal passed without Python");
 }
 
 #[test]

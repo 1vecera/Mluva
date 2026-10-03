@@ -8,13 +8,25 @@ Contributions submitted to this repository are accepted under the repository's [
 
 Follow the [Linux guide](linux/README.md) for runtime dependencies and provider setup. Tests use local protocol servers, fake audio and desktop boundaries, and generated content; they must not open a microphone, inspect the live accessibility tree, alter the clipboard, inject input, or open a shortcut approval dialog.
 
-Run `make linux-setup` to prepare the locked Python environment with distribution PyGObject access. GUI checks use the isolated runners below.
+This branch contains the in-progress [native Rust implementation](rust/README.md). Its app-only source installation and removal already use Rust; `make linux-setup`, `make linux-run` and the remaining Python checks still exercise the released implementation. GUI checks use the isolated runners below. Complete application acceptance and final Python removal remain pending.
 
-The in-progress [native Rust implementation](rust/README.md) uses the repository-pinned Rust 1.95 toolchain. `make linux-feature-maturity` and `make linux-feature-maturity-check` already use its development-only generator and need Cargo, a C compiler, pkg-config and SQLite development files. These targets preserve the released capability labels; they do not imply native acceptance. Other source entry points remain on the released implementation until the port's remaining gates pass.
+Native source builds require the repository-pinned Rust 1.95 toolchain, a C compiler, pkg-config, and development libraries for GTK 4.14+, Libadwaita 1.5+, libatspi, Fontconfig, SQLite and OpenSSL. Bash, coreutils and util-linux provide the build coordinator's filesystem/process commands. The optional WebKitGTK 6.0 renderer is loaded at runtime; its headers are unnecessary. See [native verification](rust/README.md) for additional test dependencies.
+
+Build a prepared native bundle without installing or launching it:
+
+```sh
+bash linux/build-native.sh "$PWD/tmp/native-bundle"
+```
+
+The output must not exist. This builds the production executables with locked dependencies and optimization, then packages their runtime resources and verified dependency notices. Build products default to `tmp/native-build`; `CARGO_TARGET_DIR`, `CARGO_HOME` and `RUSTUP_HOME` are respected, including caller-relative paths. Cargo selects its configured target directory; the package builder uses the executables beside itself. First builds need the pinned toolchain and dependency downloads, while an already populated cache supports offline builds.
+
+With build and [runtime dependencies](linux/README.md#supported-desktop-contract) present, `make linux-install` builds a fresh private bundle and installs it through the same transaction as a prepared package. `MLUVA_INSTALL_HOME="$PWD/tmp/staged-home" bash linux/install.sh` uses a disposable prefix. Source removal, `make linux-uninstall`, also builds the native command; installed `mluva-uninstall` needs no compiler. Failed or interrupted builds preserve the existing installation. The [source-entry comparison](rust/mluva-install/tests/fixtures/source-entry-evidence.md) covers these commands and terminal authentication during legacy service migration.
+
+The app-only source commands do not install system packages. Root `install.sh` still uses Python widget provisioning and the released runtime package list; conversion of its native build prerequisites and the remaining Make/development entry points is pending. `make linux-feature-maturity` and `make linux-feature-maturity-check` already use the native development-only generator, requiring Cargo, a C compiler, pkg-config and SQLite development files. They preserve the released capability labels and do not imply native acceptance.
 
 ## Code map
 
-Bare Python filenames refer to [linux/mluva_linux](linux/mluva_linux). Tooling paths start at the repository root. Start at the feature's logic, then follow its calls into `app.py` for lifecycle wiring. GTK callbacks stay on the main thread; provider and audio work runs outside it.
+The table below maps the remaining Python implementation in [linux/mluva_linux](linux/mluva_linux); the [Rust overview](rust/README.md) maps its native replacement and comparison evidence. Tooling paths start at the repository root. Start at the feature's logic, then follow its calls into `app.py` for lifecycle wiring. GTK callbacks stay on the main thread; provider and audio work runs outside it.
 
 | Change | Linux owner |
 | --- | --- |
@@ -28,7 +40,7 @@ Bare Python filenames refer to [linux/mluva_linux](linux/mluva_linux). Tooling p
 | Sidebar rename, merge and delete | `conversation_view.py` owns menus and inline titles; `conversation.py` joins saved chats atomically; `app.py` saves pending edits and checks active operations; `make linux-conversation-management-test` exercises the native controls at three window sizes |
 | Native UI and theme | `conversation_view.py`, `markdown_view.py`, `ui.py`, `theme.py`; settings/page views are siblings; `app.py` composes them |
 | Desktop integration | `global_shortcuts.py` owns portal sessions; `text_target.py` captures/restores accessible text; `terminal_target.py` revalidates exact Hyprland terminal identities; `delivery.py` inserts/copies; `shell_bridge.py` and `overlay_state.py` connect the GNOME/QML surfaces |
-| Installation and development tooling | `install.sh` coordinates dependencies, the native app and the Omarchy plugin; `linux/install.sh` and `linux/resources/mluva.in` own the app installation; `dev/run-isolated.sh` owns isolated GUI checks |
+| Installation and development tooling | `linux/build-native.sh` prepares the native bundle; `linux/install.sh` and `linux/uninstall.sh` invoke `rust/mluva-install`; `rust/mluva-workflows/src/launch.rs` owns managed startup; root `install.sh` still coordinates the remaining Python widget setup; `dev/run-isolated.sh` owns isolated GUI checks |
 
 Raw recognition is immutable. Editor drafts, processed text and delivery results are separate. Live provisional text must never become final delivery; late provider output must pass session, privacy and manual-edit revision gates. A command opened on one document must not act on a newly selected document or replacement editor. Keep these guards beside the affected callbacks instead of introducing a shared state framework.
 
@@ -51,7 +63,8 @@ For a quick text/editing change, run `make linux-test-fast` from the root. It co
 | Conversation layout | `make linux-compact-workspace-test` (minimum, narrow, wide and 360-pixel tiles at 2× scaling; checks visible control bounds in saved, empty, rewrite and recording states) |
 | Grilling, live navigation or Mermaid | `make linux-fluid-workspace-test` (mid-recording controls, paused draft recovery, questions, offline diagrams and responsive layouts; requires WebKitGTK 6.0) |
 | Omarchy widget | `make linux-omarchy-test` (production QML and bridge on a private display/bus) |
-| Installed launch or shortcut registration | `(cd linux && uv run --locked pytest -q tests/test_launcher.py tests/test_global_shortcuts.py)` followed by `make linux-shortcut-test` |
+| Native installation or installed launch | [Source/build/transaction comparisons](rust/mluva-install/tests/fixtures/source-entry-evidence.md) and [managed-launcher comparison](rust/mluva-gtk/tests/fixtures/launcher-evidence.md), through the guarded private runner |
+| Remaining Python shortcut or manual credential helper | `(cd linux && uv run --locked pytest -q tests/test_launcher.py tests/test_global_shortcuts.py)` followed by `make linux-shortcut-test` |
 
 Rewrite policy and title jobs also run without GTK on a non-Linux development host:
 

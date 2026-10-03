@@ -1,7 +1,98 @@
 //! Public identity upgrades against separately captured, unmodified v1.6.0.
 use super::*;
 use rusqlite::{Connection, types::ValueRef};
+use std::io::Write;
 use std::os::unix::fs::MetadataExt;
+
+#[test]
+#[ignore = "builds the native source installer and requires guarded private PTYs/system mounts"]
+fn source_upgrade_keeps_the_authentication_terminal() {
+    let run = private("source-authentication");
+    let root = run.join("service-active");
+    let layout = setup(&root, "service-active");
+    let sudo = root.join("fake-bin/sudo");
+    let peer = fs::read_to_string(&sudo).unwrap();
+    // This controlled privilege endpoint requires a real foreground terminal
+    // read. Every subsequent service request retains the existing mount guard.
+    let original = "-v) [[ \"$MLUVA_INSTALL_CASE\" != service-auth-failure ]] || exit 21 ;;";
+    assert!(peer.contains(original));
+    let authentication = r#"-v)
+                [[ -t 0 ]] || exit 65
+                read -r approval </dev/tty || exit 66
+                [[ "$approval" == source-terminal-approved ]] || exit 67
+                printf 'accepted\n' > "$MLUVA_INSTALL_PEER/terminal-authentication"
+                ;;"#;
+    fs::write(&sudo, peer.replace(original, authentication)).unwrap();
+    let trap = command(
+        &root,
+        &layout,
+        "service-active",
+        Path::new("/usr/bin/python3"),
+    )
+    .output()
+    .unwrap();
+    assert_eq!(trap.status.code(), Some(99));
+    fs::remove_file(root.join("peer/python-used")).unwrap();
+    let mut invocation = command(
+        &root,
+        &layout,
+        "service-active",
+        Path::new("/usr/bin/timeout"),
+    );
+    build_environment(&mut invocation, &root);
+    let mut child = invocation
+        .args([
+            "120",
+            "/usr/bin/script",
+            "--quiet",
+            "--return",
+            "--echo",
+            "never",
+            "--command",
+            "exec /usr/bin/bash \"$MLUVA_SOURCE_INSTALL\"",
+            "/dev/null",
+        ])
+        .env(
+            "MLUVA_SOURCE_INSTALL",
+            repository().join("linux/install.sh"),
+        )
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(b"source-terminal-approved\n")
+        .unwrap();
+    let result = child.wait_with_output().unwrap();
+    logs(&root, &result);
+    assert!(
+        result.status.success(),
+        "Source authentication failed with {:?}: {} {}",
+        result.status.code(),
+        String::from_utf8_lossy(&result.stdout),
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert_eq!(
+        fs::read(root.join("peer/terminal-authentication")).unwrap(),
+        b"accepted\n"
+    );
+    let installed = data(&root, &layout).join("mluva/app");
+    assert!(installed.join(".mluva-native.json").is_file());
+    assert!(!data(&root, &layout).join("voice-scribe").exists());
+    assert!(!root.join("units/voice-scribe-input@.service").exists());
+    assert!(root.join("units/mluva-input@.service").is_file());
+    let state: Value =
+        serde_json::from_slice(&fs::read(root.join("peer/service.json")).unwrap()).unwrap();
+    assert_eq!(
+        state,
+        json!({"old_enabled":false,"old_active":false,"new_enabled":true,"new_active":true})
+    );
+    eprintln!("Actual source migration retained private terminal authentication and service state");
+}
 
 fn setup(root: &Path, name: &str) -> Value {
     assert!(

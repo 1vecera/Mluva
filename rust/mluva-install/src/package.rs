@@ -31,23 +31,34 @@ fn main() -> ExitCode {
     if archive {
         args.remove(0);
     }
-    let usage = "Usage: mluva-package [--archive] SOURCE_DIRECTORY BINARY_DIRECTORY OUTPUT_PATH";
+    let usage = "Usage: mluva-package [--archive] SOURCE_DIRECTORY [BINARY_DIRECTORY] OUTPUT_PATH";
     if args.len() == 1 && matches!(args[0].to_str(), Some("-h" | "--help")) {
         println!(
-            "{usage}\n\nAssemble a native runtime directory, or a reproducible tar.gz with --archive.\nUses the source lockfile and cached crate archives for dependency notices.\nThe output must not exist; no application is installed or started."
+            "{usage}\n\nAssemble a native runtime directory, or a reproducible tar.gz with --archive.\nBinaries default to the directory containing this package builder.\nUses the source lockfile and cached crate archives for dependency notices.\nThe output must not exist; no application is installed or started."
         );
         return ExitCode::SUCCESS;
     }
-    if args.len() != 3 {
+    if !matches!(args.len(), 2 | 3) {
         eprintln!("{usage}");
         return ExitCode::from(2);
     }
-    match package(
-        Path::new(&args[0]),
-        Path::new(&args[1]),
-        Path::new(&args[2]),
-        archive,
-    ) {
+    let result: Result<()> = (|| {
+        let binaries = if args.len() == 3 {
+            PathBuf::from(&args[1])
+        } else {
+            env::current_exe()?
+                .parent()
+                .ok_or("The built executable directory is unavailable.")?
+                .to_owned()
+        };
+        package(
+            Path::new(&args[0]),
+            &binaries,
+            Path::new(args.last().expect("output argument was checked")),
+            archive,
+        )
+    })();
+    match result {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("Mluva package: {error}");
