@@ -20,6 +20,7 @@ const BINARIES: &[&str] = &[
     "mluva-audio-cleanup",
     "mluva-install-widget",
     "mluva-screenshot-editor",
+    "mluva-uninstall",
 ];
 
 fn main() -> ExitCode {
@@ -267,6 +268,7 @@ fn package(source: &Path, binaries: &Path, output: &Path) -> Result<()> {
     for name in ["mluva-shell", "mluva-narrate", "mluva-screenshot-editor"] {
         symlink(PathBuf::from("bin").join(name), bundle.join(name))?;
     }
+    symlink("bin/mluva-uninstall", bundle.join("uninstall.sh"))?;
     let content_hashes = hashes(&bundle)?;
     let mut inventory = fs::File::create(bundle.join(".mluva-native.json"))?;
     inventory.set_permissions(fs::Permissions::from_mode(0o644))?;
@@ -275,7 +277,7 @@ fn package(source: &Path, binaries: &Path, output: &Path) -> Result<()> {
         &json!({
             "schema":1,"application":"com.mluva.Linux","implementation":"rust",
             "version":env!("CARGO_PKG_VERSION"),"sha256":content_hashes,
-            "links":{"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor"}
+            "links":{"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall"}
         }),
     )?;
     inventory.write_all(b"\n")?;

@@ -30,6 +30,10 @@ name = "mluva-screenshot-editor"
 path = "src/editor.rs"
 
 [[bin]]
+name = "mluva-uninstall"
+path = "src/uninstall.rs"
+
+[[bin]]
 name = "editor-launcher-fixture-peer"
 path = "tests/support/editor_peer.rs"
 test = false

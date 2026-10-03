@@ -24,6 +24,7 @@ const PRODUCTION: &[&str] = &[
     "mluva-audio-cleanup",
     "mluva-install-widget",
     "mluva-screenshot-editor",
+    "mluva-uninstall",
 ];
 
 fn copy_tree(source: &Path, target: &Path) {
