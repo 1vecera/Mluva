@@ -1,5 +1,7 @@
 # Native Rust implementation
 
+The first [optimized startup/idle comparison](../docs/verification/rust-startup/README.md) observes 440 → 251 ms median first-window latency and 258.5 → 234.9 MiB median RSS across six interleaved starts per version on this host. Idle CPU ranges overlap. These warm-cache, empty-workspace measurements do not establish recording/inference throughput or complete performance acceptance; the optimized bundle separately passes resident startup and diagram comparisons.
+
 The [optional WebKitGTK renderer](mluva-gtk/tests/fixtures/optional-webkit-evidence.md) now loads only when a diagram needs it. The app starts without that library and preserves the released editable-source notice. Three missing-library GTK states match; all six normal rendering states and five PNG hashes remain unchanged. Actual package installation/self-upgrade and resident startup also pass with WebKit unavailable.
 
 The prepared native bundle now supports [combined Bash setup](mluva-install/tests/fixtures/setup-evidence.md): `bash install.sh` provisions runtime dependencies, installs the app and enables the Omarchy widget; `--app-only` skips the widget. App-only/staged setup and removal use `bash linux/install.sh` and `bash linux/uninstall.sh`. Thirty released setup comparisons and five actual bundle workflows preserve confirmation, preflight ordering and partial-failure recovery without Python. Maintained source entry points and final distribution/acceptance remain pending.
