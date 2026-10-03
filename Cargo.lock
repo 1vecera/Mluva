@@ -1340,6 +1340,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "mluva-install"
+version = "1.6.0"
+dependencies = [
+ "regex",
+ "serde_json",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "mluva-providers"
 version = "1.6.0"
 dependencies = [
