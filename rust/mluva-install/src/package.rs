@@ -351,8 +351,12 @@ fn package(source: &Path, binaries: &Path, output: &Path, compressed: bool) -> R
         symlink(PathBuf::from("bin").join(name), bundle.join(name))?;
     }
     symlink("bin/mluva-uninstall", bundle.join("uninstall.sh"))?;
+    copy_file(
+        &source.join("install.sh"),
+        &bundle.join("install.sh"),
+        0o755,
+    )?;
     for (source_name, target) in [
-        ("setup.sh", "install.sh"),
         ("app-install.sh", "linux/install.sh"),
         ("app-uninstall.sh", "linux/uninstall.sh"),
     ] {

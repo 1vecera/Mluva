@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Share the prepared runtime's installer/remover with a development checkout.
+# Share native app and widget installation commands with a development checkout.
 set -euo pipefail
 
 source_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 case "${1:-}" in
-    install|uninstall) operation=$1; shift ;;
-    *) echo "Expected a native install or uninstall command." >&2; exit 2 ;;
+    install|uninstall) executable="mluva-$1"; build_options=(); shift ;;
+    widget) executable=mluva-install-widget; build_options=(--widget-only); shift ;;
+    *) echo "Expected a native install, uninstall or widget command." >&2; exit 2 ;;
 esac
 umask 077
 mkdir -p -- "$source_root/tmp"
@@ -47,5 +48,5 @@ run_owned() {
     child_pid=""
     return "$status"
 }
-run_owned group bash "$source_root/linux/build-native.sh" "$build_root/app"
-run_owned process "$build_root/app/bin/mluva-$operation" "$@"
+run_owned group bash "$source_root/linux/build-native.sh" "${build_options[@]}" "$build_root/app"
+run_owned process "$build_root/app/bin/$executable" "$@"

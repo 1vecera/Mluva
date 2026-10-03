@@ -41,6 +41,12 @@ done
     || fail "For an isolated staged install, use MLUVA_INSTALL_HOME with bash linux/install.sh."
 [[ -f "${source_root}/linux/install.sh" ]] || fail "Run this script from a complete Mluva source checkout."
 
+source_build=false
+widget_command=("${source_root}/bin/mluva-install-widget")
+if [[ -f "${source_root}/Cargo.toml" ]]; then
+    source_build=true
+    widget_command=(bash "${source_root}/linux/install-widget.sh")
+fi
 install_plugin=false
 
 if command -v omarchy >/dev/null 2>&1; then
@@ -49,7 +55,7 @@ if command -v omarchy >/dev/null 2>&1; then
         omarchy plugin enable --help >/dev/null 2>&1 \
             || fail "The widget needs Omarchy Quattro's plugin manager. Use --app-only for the native app."
         install_plugin=true
-        python3 "${source_root}/linux/install_widget.py" --check
+        "${widget_command[@]}" --check
     fi
 elif command -v dnf >/dev/null 2>&1; then
     platform=fedora
@@ -73,17 +79,24 @@ if [[ "${assume_yes}" == false ]]; then
 fi
 
 if [[ "${platform}" == omarchy ]]; then
-    omarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita \
-        at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap
+    packages=(git gtk4 libadwaita at-spi2-core dbus pipewire pipewire-audio
+        wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap openssl sqlite)
+    if [[ "$source_build" == true ]]; then packages+=(gcc pkgconf); fi
+    omarchy pkg add "${packages[@]}"
 else
-    sudo dnf install -y git uv python3-gobject gtk4 libadwaita at-spi2-core \
-        gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng webkitgtk6.0 bubblewrap
+    packages=(git gtk4 libadwaita at-spi2-core dbus-daemon pipewire-utils
+        wl-clipboard procps-ng webkitgtk6.0 bubblewrap openssl-libs sqlite-libs)
+    if [[ "$source_build" == true ]]; then
+        packages+=(gcc pkgconf-pkg-config gtk4-devel libadwaita-devel at-spi2-core-devel
+            fontconfig-devel openssl-devel sqlite-devel)
+    fi
+    sudo dnf install -y "${packages[@]}"
 fi
 
 bash "${source_root}/linux/install.sh"
 
 if [[ "${install_plugin}" == true ]]; then
-    if python3 "${source_root}/linux/install_widget.py"; then
+    if "${widget_command[@]}"; then
         echo "Omarchy widget is ready."
     else
         plugin_status=$?

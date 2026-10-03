@@ -14,7 +14,7 @@ case "$name" in
         printf 'sudo %s\n' "$*" >> "$MLUVA_SETUP_LOG"
         exit "${MLUVA_SETUP_PACKAGE_STATUS:-0}" ;;
     dnf) exit 0 ;;
-    python3|mluva-install-widget)
+    python3|mluva-install-widget|install-widget.sh)
         if [[ "$name" == python3 ]]; then
             [[ "${MLUVA_SETUP_NATIVE:-0}" == 0 ]] || { touch "$MLUVA_SETUP_LOG.python-used"; exit 99; }
             [[ "$1" == */linux/install_widget.py ]] || exit 97

@@ -8,13 +8,18 @@ license.workspace = true
 repository.workspace = true
 description = "Native installation and upgrade ownership for Mluva"
 
+# Widget preflight runs before the application's development libraries exist.
+[features]
+default = ["application"]
+application = ["dep:rusqlite", "dep:glib"]
+
 [dependencies]
 serde_json.workspace = true
 tempfile.workspace = true
 sha2 = "0.11.0"
 libc.workspace = true
-rusqlite.workspace = true
-glib.workspace = true
+rusqlite = { workspace = true, optional = true }
+glib = { workspace = true, optional = true }
 regex.workspace = true
 toml.workspace = true
 tar = "0.4.46"
@@ -27,22 +32,27 @@ path = "src/widget.rs"
 [[bin]]
 name = "mluva-package"
 path = "src/package.rs"
+required-features = ["application"]
 
 [[bin]]
 name = "mluva-screenshot-editor"
 path = "src/editor.rs"
+required-features = ["application"]
 
 [[bin]]
 name = "mluva-uninstall"
 path = "src/uninstall.rs"
+required-features = ["application"]
 
 [[bin]]
 name = "mluva-install"
 path = "src/install.rs"
+required-features = ["application"]
 
 [[bin]]
 name = "editor-launcher-fixture-peer"
 path = "tests/support/editor_peer.rs"
+required-features = ["application"]
 test = false
 doc = false
 bench = false
@@ -50,6 +60,23 @@ bench = false
 [[bin]]
 name = "install-dependency-fixture-peer"
 path = "tests/support/install_peer.rs"
+required-features = ["application"]
 test = false
 doc = false
 bench = false
+
+[[test]]
+name = "install"
+required-features = ["application"]
+
+[[test]]
+name = "uninstall"
+required-features = ["application"]
+
+[[test]]
+name = "editor"
+required-features = ["application"]
+
+[[test]]
+name = "package"
+required-features = ["application"]

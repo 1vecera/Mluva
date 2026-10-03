@@ -50,6 +50,7 @@ fn source(root: &Path, repository: &Path) -> PathBuf {
         "Cargo.toml",
         "Cargo.lock",
         "rust-toolchain.toml",
+        "install.sh",
         "linux/configure-input-helper.sh",
         "linux/configure-recording-overlay.sh",
         "linux/install-narrated-editor.sh",

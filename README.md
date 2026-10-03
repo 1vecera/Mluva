@@ -31,7 +31,7 @@ Live rewrite is opt-in and Experimental. It marks missing information, preserves
 
 ## Install
 
-This development branch is the [Rust port](rust/README.md), with complete application acceptance still pending. Its app-only source installer now builds Rust and requires the [native development prerequisites](CONTRIBUTING.md#local-setup). The root source setup's widget provisioning and build-dependency conversion remain unfinished; use the published 1.6.0 release for the established installation below.
+This development branch is the [Rust port](rust/README.md), with complete application acceptance still pending. Its combined source installer now builds the app and widget in Rust. Install the pinned Rust toolchain and a C compiler first; setup then provisions the remaining [native development prerequisites](CONTRIBUTING.md#local-setup). Prepared native bundles need neither a compiler nor Python. Use the published 1.6.0 release for the established installation below until native acceptance is complete.
 
 Run the setup from a source checkout or extracted [release archive](https://github.com/1vecera/Mluva/releases/latest). On **Omarchy Quattro**, it installs the desktop dependencies, native application and bundled shell widget together. Both parts share one repository, version and package. It shows the installation plan first; system packages may request your sudo password.
 

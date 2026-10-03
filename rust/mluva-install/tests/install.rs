@@ -193,8 +193,9 @@ fn fixture_bundle(root: &Path) -> PathBuf {
         symlink(target.as_str().unwrap(), bundle.join(name)).unwrap();
     }
     fs::create_dir(bundle.join("linux")).unwrap();
+    fs::copy(repository().join("install.sh"), bundle.join("install.sh")).unwrap();
+    fs::set_permissions(bundle.join("install.sh"), fs::Permissions::from_mode(0o755)).unwrap();
     for (source, target) in [
-        ("setup.sh", "install.sh"),
         ("app-install.sh", "linux/install.sh"),
         ("app-uninstall.sh", "linux/uninstall.sh"),
     ] {

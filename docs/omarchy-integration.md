@@ -18,17 +18,19 @@ The recording and review surfaces accept pointer input. Neither requests focus w
 
 Use the [combined installation command or agent prompt](../README.md#install). From a complete Mluva checkout, `bash install.sh` installs system dependencies, the native app and the bundled Omarchy widget together from the same release. Start Mluva from the application menu after setup. This integration needs Omarchy Quattro's existing shell and plugin manager, Quickshell 0.3+ and Hyprland 0.55+.
 
-For a Git-managed plugin installation, use the [plugin-manager commands](../README.md#install-through-omarchys-plugin-manager). The root manifest points at `linux/quickshell/mluva.dictation/Widget.qml`; the native app, widget, releases and website remain in this repository. Omarchy clones and enables QML but does not run installation hooks or install Python, GTK, PipeWire, provider clients or models. Run `bash "$HOME/.config/omarchy/plugins/mluva.dictation/install.sh" --app-only` to install the matching native app and required system packages. Optional providers and models remain separate choices in Settings.
+For a Git-managed plugin installation, use the [plugin-manager commands](../README.md#install-through-omarchys-plugin-manager). The root manifest points at `linux/quickshell/mluva.dictation/Widget.qml`; the native app, widget, releases and website remain in this repository. Omarchy clones and enables QML but does not run installation hooks or install build tools, GTK, PipeWire, provider clients or models. On the Rust development branch, prepare the pinned Rust toolchain and a C compiler, then run `bash "$HOME/.config/omarchy/plugins/mluva.dictation/install.sh" --app-only` to install the matching native app and remaining system packages. Optional providers and models remain separate choices in Settings; complete Rust acceptance is still pending.
 
 Git-managed widgets update with `omarchy plugin update mluva.dictation`, followed by the same `--app-only` command while Mluva is closed. Updating only the plugin leaves the native app unchanged. The combined installer protects Git-managed checkouts from replacement; use `--app-only` inside the existing plugin checkout. Conversely, bundled installations keep using the combined setup below. Do not add a second copy with the same plugin ID. To switch routes, back up any custom widget files outside the plugin directory, remove the existing widget with `omarchy plugin remove mluva.dictation`, then follow the chosen installation path.
 
 The plugin registers a Lua rule for its own window before showing it and reapplies that rule after a compositor configuration reload. It does not edit desktop configuration files.
 
-If the matching native app is already installed and you only need the widget, run this from the same Mluva checkout or extracted release archive:
+If the matching native app is already installed and you only need the widget, run this from the Rust source checkout, with the [source prerequisites](../CONTRIBUTING.md#local-setup) prepared:
 
 ```sh
-python3 linux/install_widget.py
+bash linux/install-widget.sh
 ```
+
+From a prepared native runtime bundle, use `bin/mluva-install-widget` directly; it needs no compiler or Python. Published 1.6.0 archives retain their own bundled instructions.
 
 The plugin invokes the native app's `mluva-shell` bridge. If the shell cannot find it, set the widget's **Mluva shell executable** setting to the full path of `~/.local/bin/mluva-shell`, expanded to your actual home directory.
 
@@ -39,8 +41,8 @@ The installer validates the widget, uses a content-specific QML entry-point path
 For bundled plugin-only maintenance:
 
 ```sh
-# Update from the matching Mluva release:
-python3 linux/install_widget.py
+# Update from the matching prepared native bundle:
+bin/mluva-install-widget
 omarchy plugin disable mluva.dictation
 omarchy plugin remove mluva.dictation
 ```

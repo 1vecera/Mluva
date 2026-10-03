@@ -1,6 +1,6 @@
 # Mluva for Linux
 
-Released Mluva 1.6.0 uses Python, GTK 4, Libadwaita and PipeWire. This development branch contains its [native Rust replacement](../rust/README.md); app-only source installation now builds Rust, while the remaining development commands and root widget setup still use Python. Full Rust application acceptance remains pending. **Omarchy is the primary platform** for the released daily workflow. Fedora GNOME compatibility is retained but has not been tested for several releases.
+Released Mluva 1.6.0 uses Python, GTK 4, Libadwaita and PipeWire. This development branch contains its [native Rust replacement](../rust/README.md); combined app/widget setup, app-only installation and removal now use Rust, while remaining development commands still use Python. Full Rust application acceptance remains pending. **Omarchy is the primary platform** for the released daily workflow. Fedora GNOME compatibility is retained but has not been tested for several releases.
 
 For the shortest path, use the [combined installer or agent prompt](../README.md#install). The [Omarchy guide](../docs/omarchy-integration.md) explains the widget; the [platform profile](../docs/linux-platform-profile.md) describes desktop differences.
 
@@ -23,19 +23,21 @@ After a completed dictation, **Continue** in the widget or **Continue recording*
 | Audio | PipeWire, `pw-record`, `pw-dump` | Same |
 | Shortcuts | Hyprland compositor binding or XDG Global Shortcuts portal | XDG Global Shortcuts portal and the desktop backend |
 | Clipboard | `wl-copy` on Wayland | Same |
-| Remaining Python development/root setup | Distribution Python 3.12+ and `uv`; neither is used by the native app-only bundle | Same |
+| Remaining Python development | Distribution Python 3.12+ and `uv`; neither is used by native installation or runtime bundles | Same |
 
-The released `bash install.sh` at the repository root installs runtime packages, the app and, on Omarchy, the plugin. `--app-only` skips plugin changes. On this Rust development branch, that root setup still needs conversion of widget provisioning and native build prerequisites. Prepare the [native source build dependencies](../CONTRIBUTING.md#local-setup) separately before using source app-only installation. The remaining Python development environment uses these runtime packages:
+`bash install.sh` installs runtime packages, the app and, on Omarchy, the plugin. `--app-only` skips plugin changes. On this Rust branch, source setup requires the pinned Rust toolchain and a C compiler before starting; it checks widget ownership before provisioning the remaining [native build dependencies](../CONTRIBUTING.md#local-setup). Prepared native bundles need neither compiler nor Python. App-only `bash linux/install.sh` requires all build/runtime dependencies already present. Runtime package requests are:
 
 ```sh
 # Omarchy
-omarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita \
-  at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap
+omarchy pkg add git gtk4 libadwaita at-spi2-core dbus pipewire pipewire-audio \
+  wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap openssl sqlite
 
 # Fedora GNOME compatibility
-sudo dnf install git uv python3-gobject gtk4 libadwaita at-spi2-core \
-  gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng webkitgtk6.0 bubblewrap
+sudo dnf install git gtk4 libadwaita at-spi2-core dbus-daemon pipewire-utils \
+  wl-clipboard procps-ng webkitgtk6.0 bubblewrap openssl-libs sqlite-libs
 ```
+
+Source setup additionally requests `gcc pkgconf` on Omarchy, or `gcc pkgconf-pkg-config gtk4-devel libadwaita-devel at-spi2-core-devel fontconfig-devel openssl-devel sqlite-devel` on Fedora. The remaining Python development commands separately need `uv`, distribution Python, GI/Cairo bindings and GObject introspection; native setup does not install them.
 
 X11 clipboard delivery needs `xclip`; its optional keyboard fallback needs `xdotool`. The Omarchy widget requires the existing Omarchy shell and plugin manager; setup does not install an operating system or replace desktop configuration.
 
