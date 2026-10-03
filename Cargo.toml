@@ -1,5 +1,5 @@
 [workspace]
-members = ["rust/mluva-core", "rust/mluva-gtk", "rust/mluva-audio", "rust/mluva-providers", "rust/mluva-asr", "rust/mluva-workflows"]
+members = ["rust/mluva-core", "rust/mluva-gtk", "rust/mluva-audio", "rust/mluva-providers", "rust/mluva-asr", "rust/mluva-workflows", "rust/mluva-shell"]
 resolver = "3"
 
 [workspace.package]

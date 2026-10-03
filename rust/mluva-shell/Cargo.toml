@@ -1,0 +1,15 @@
+[package]
+name = "mluva-shell"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Content-free desktop status and explicit Mluva session-bus actions"
+
+[dependencies]
+mluva-core = { path = "../mluva-core" }
+gio.workspace = true
+glib.workspace = true
+serde_json.workspace = true
