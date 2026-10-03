@@ -46,6 +46,12 @@ fn pause_until_signal(config: &Value) {
             thread::sleep(Duration::from_millis(5));
         }
     }
+    if let Some(path) = config["signal_receipt"].as_str() {
+        private_write(
+            Path::new(path),
+            SIGNAL.load(Ordering::Relaxed).to_string().as_bytes(),
+        );
+    }
     if let Some(delay) = config["finalize_delay_ms"].as_u64() {
         thread::sleep(Duration::from_millis(delay));
     }

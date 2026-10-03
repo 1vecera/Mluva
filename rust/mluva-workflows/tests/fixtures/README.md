@@ -1,6 +1,8 @@
 # Released recording workflow observations
 
-[Native screenshot capture](screenshot-capture-evidence.md) adds 24 actual released picker/process/file workflows, including the real 180-second deadline. Four additional faults cover dropped callers/owners, stubborn descendants and a nonregular output file. Application attachment/editor ownership and stopping audio before awaiting the picker remain pending.
+[Native annotation evidence](narration-evidence.md) adds 24 actual released CLI processes and three native cancellation/initialization faults. The independent comparison checks stdout/stderr/status, exact WAV uploads, frozen rules/settings, Incognito, input bounds and memory/child cleanup. A real Tensaku comparison also matches saved pixels, OCR, Escape, Undo/Redo, clipboard and the one explicit upload through the native helper. Full installed-app, Wayland and physical/provider acceptance remains pending.
+
+[Native screenshot capture](screenshot-capture-evidence.md) adds 24 actual released picker/process/file workflows, including the real 180-second deadline. Four additional faults cover dropped callers/owners, stubborn descendants and a nonregular output file. The [application screenshot owner](../../../mluva-gtk/tests/fixtures/application-screenshots-evidence.md) now connects attachment/editor ownership and stops audio before awaiting the picker; complete integration acceptance remains pending.
 
 [Meeting recording and desktop ownership](../../../mluva-gtk/tests/fixtures/meeting-owner-evidence.md) adds fourteen actual released recorder-to-HTTP/archive transactions and nine application Meeting workflows/47 GTK states. The native recorder/session/readiness/retry and GTK owner now join real audio staging, archives and capture preferences. Additional cancellation/close faults protect untransferred audio and late publication. Complete root assembly and Meeting acceptance remain Pending.
 

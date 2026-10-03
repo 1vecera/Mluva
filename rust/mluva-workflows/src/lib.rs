@@ -8,6 +8,7 @@ pub mod dictation;
 pub mod meeting;
 pub mod meeting_services;
 pub mod meeting_session;
+pub mod narration;
 pub mod preparation;
 pub mod screenshot_capture;
 pub mod segment_cleanup;
