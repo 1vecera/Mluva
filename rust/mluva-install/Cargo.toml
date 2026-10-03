@@ -12,6 +12,7 @@ description = "Native installation and upgrade ownership for Mluva"
 serde_json.workspace = true
 tempfile.workspace = true
 sha2 = "0.11.0"
+libc.workspace = true
 
 [dev-dependencies]
 regex.workspace = true
@@ -19,3 +20,18 @@ regex.workspace = true
 [[bin]]
 name = "mluva-install-widget"
 path = "src/widget.rs"
+
+[[bin]]
+name = "mluva-package"
+path = "src/package.rs"
+
+[[bin]]
+name = "mluva-screenshot-editor"
+path = "src/editor.rs"
+
+[[bin]]
+name = "editor-launcher-fixture-peer"
+path = "tests/support/editor_peer.rs"
+test = false
+doc = false
+bench = false

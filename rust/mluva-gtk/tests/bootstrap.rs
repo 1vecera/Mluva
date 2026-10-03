@@ -179,7 +179,9 @@ fn copy_tree(source: &Path, target: &Path) {
     for entry in fs::read_dir(source).unwrap() {
         let entry = entry.unwrap();
         let destination = target.join(entry.file_name());
-        if entry.file_type().unwrap().is_dir() {
+        if entry.file_type().unwrap().is_symlink() {
+            std::os::unix::fs::symlink(fs::read_link(entry.path()).unwrap(), destination).unwrap();
+        } else if entry.file_type().unwrap().is_dir() {
             copy_tree(&entry.path(), &destination);
         } else {
             fs::copy(entry.path(), destination).unwrap();
@@ -493,18 +495,22 @@ fn released_process_actions_residency_and_headless_dispatch() {
     let root = private.join("native-bootstrap");
     let bundle = root.join("relocated");
     fs::create_dir_all(bundle.join("bin")).unwrap();
-    let executable = Path::new(env!("CARGO_BIN_EXE_mluva"));
     let binary = bundle.join("bin/mluva");
-    fs::copy(executable, &binary).unwrap();
-    fs::copy(
-        executable.with_file_name("mluva-audio-cleanup"),
-        bundle.join("bin/mluva-audio-cleanup"),
-    )
-    .unwrap();
-    copy_tree(
-        &Path::new(env!("CARGO_MANIFEST_DIR")).join("resources"),
-        &bundle.join("resources"),
-    );
+    if let Some(packaged) = std::env::var_os("MLUVA_TEST_NATIVE_BUNDLE") {
+        copy_tree(Path::new(&packaged), &bundle);
+    } else {
+        let executable = Path::new(env!("CARGO_BIN_EXE_mluva"));
+        fs::copy(executable, &binary).unwrap();
+        fs::copy(
+            executable.with_file_name("mluva-audio-cleanup"),
+            bundle.join("bin/mluva-audio-cleanup"),
+        )
+        .unwrap();
+        copy_tree(
+            &Path::new(env!("CARGO_MANIFEST_DIR")).join("resources"),
+            &bundle.join("resources"),
+        );
+    }
     let bus = Bus(gio::bus_get_sync(gio::BusType::Session, gio::Cancellable::NONE).unwrap());
     assert!(bus.owner().is_none());
     let accessibility = Accessibility::open();

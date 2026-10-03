@@ -1,0 +1,82 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "helper_sha256": "5ebaa94ac878b29089f597bc86caaea6374d6ae0c33f93e30ab5ed89ad3c1839",
+  "cases": [
+    {
+      "name": "same",
+      "code": 0,
+      "stdout": "Mluva keyboard paste helper removed for user 12345.\n",
+      "stderr": "",
+      "commands": "systemctl disable --now mluva-input@12345.service\nrm -f -- /etc/systemd/system/mluva-input@.service\nsystemctl daemon-reload\nsystemctl reset-failed mluva-input@12345.service\n",
+      "unit": null
+    },
+    {
+      "name": "changed",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Refusing to remove a modified or unrelated system input service.\n",
+      "commands": "",
+      "unit": {
+        "sha256": "55d58bbef2f7a9c8b6247c57490c14e9ed31e8f4d712546795551a64715606a2"
+      }
+    },
+    {
+      "name": "newline",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Refusing to remove a modified or unrelated system input service.\n",
+      "commands": "",
+      "unit": {
+        "sha256": "a6ae37bc2d7c179c1d36f2e1460e33159fd87dba4714403af38f87343916b18c"
+      }
+    },
+    {
+      "name": "nul",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Refusing to remove a modified or unrelated system input service.\n",
+      "commands": "",
+      "unit": {
+        "sha256": "0fa29e530d74b95f9097d33b3a3be2533910645d2370b375b51c84cd287bfbd2"
+      }
+    },
+    {
+      "name": "link",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Refusing to remove a modified or unrelated system input service.\n",
+      "commands": "",
+      "unit": {
+        "link": "$CASE/app/resources/mluva-input@.service"
+      }
+    },
+    {
+      "name": "dangling",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Refusing to remove a modified or unrelated system input service.\n",
+      "commands": "",
+      "unit": {
+        "link": "$CASE/missing"
+      }
+    },
+    {
+      "name": "directory",
+      "code": 1,
+      "stdout": "",
+      "stderr": "Refusing to remove a modified or unrelated system input service.\n",
+      "commands": "",
+      "unit": {
+        "directory": true
+      }
+    },
+    {
+      "name": "absent",
+      "code": 0,
+      "stdout": "Mluva keyboard paste helper removed for user 12345.\n",
+      "stderr": "",
+      "commands": "systemctl disable --now mluva-input@12345.service\nrm -f -- /etc/systemd/system/mluva-input@.service\nsystemctl daemon-reload\nsystemctl reset-failed mluva-input@12345.service\n",
+      "unit": null
+    }
+  ]
+}
