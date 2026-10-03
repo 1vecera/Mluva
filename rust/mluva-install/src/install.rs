@@ -1,9 +1,10 @@
 //! Install a prepared native bundle without changing user stores or enabling
-//! desktop permissions. Legacy VoiceScribe migration is a separate prerequisite.
+//! desktop permissions. Identity migration and publication share one transaction.
 mod install_bundle;
 mod install_paths;
 mod install_process;
 mod install_transaction;
+mod legacy;
 use install_paths::{InstallPaths, Result, native_owner, regular, running};
 use install_process::{checkpoint, run};
 use install_transaction::{Snapshot, Transaction};
@@ -42,52 +43,7 @@ fn available(name: &str) -> bool {
     })
 }
 
-fn preflight(paths: &InstallPaths) -> Result<()> {
-    // Never partially migrate a historical installation or invoke its Python
-    // migration fallback. This candidate cannot yet replace VoiceScribe.
-    let managed = if paths.staged {
-        paths.config.join("daniel-ai-skills")
-    } else {
-        secret_root(paths)
-    };
-    for path in [
-        paths.data.join("voice-scribe"),
-        paths.config.join("voice-scribe"),
-        managed.join("env/voice-scribe.env"),
-        paths
-            .data
-            .join("applications/com.voicescribe.Linux.desktop"),
-        paths
-            .data
-            .join("icons/hicolor/scalable/apps/com.voicescribe.Linux.svg"),
-        paths.config.join("autostart/com.voicescribe.Linux.desktop"),
-        paths
-            .data
-            .join("gnome-shell/extensions/recording-status@voicescribe.local"),
-        paths
-            .data
-            .join("gnome-shell/extensions/right-alt@voicescribe.local"),
-        paths.config.join("omarchy/plugins/voice-scribe.dictation"),
-    ]
-    .into_iter()
-    .chain(
-        [
-            "voice-scribe",
-            "voice-scribe-input-helper",
-            "voice-scribe-overlay",
-            "voice-scribe-uninstall",
-        ]
-        .map(|name| paths.bin.join(name)),
-    ) {
-        if present(&path) {
-            return Err("This native candidate cannot yet migrate VoiceScribe. The existing installation was left unchanged.".into());
-        }
-    }
-    if !paths.staged && present(Path::new("/etc/systemd/system/voice-scribe-input@.service")) {
-        return Err(
-            "This native candidate cannot yet migrate the VoiceScribe system helper.".into(),
-        );
-    }
+fn preflight(paths: &InstallPaths, migrating: bool) -> Result<()> {
     for path in [&paths.app, &paths.data.join("mluva")] {
         if let Ok(meta) = path.symlink_metadata()
             && !meta.is_dir()
@@ -103,9 +59,10 @@ fn preflight(paths: &InstallPaths) -> Result<()> {
     if present(&paths.app)
         && !native_owner(&paths.app)
         && !(regular(&marker)
-            && text(&marker)
-                .split('\n')
-                .any(|line| line == "name = \"mluva-linux\""))
+            && text(&marker).split('\n').any(|line| {
+                line == "name = \"mluva-linux\""
+                    || (migrating && line == "name = \"voice-scribe-linux\"")
+            }))
     {
         return Err(format!(
             "Refusing to replace an unrecognized application directory: {}",
@@ -305,11 +262,14 @@ fn hints(paths: &InstallPaths) -> Result<()> {
     Ok(())
 }
 
-fn install(source: &Path) -> Result<()> {
-    let paths = InstallPaths::from_environment("install")?;
-    preflight(&paths)?;
-    install_bundle::validate(source)?;
-    let scoped = profile(&paths)?;
+fn prepare_payload(
+    source: &Path,
+    paths: &InstallPaths,
+    transaction: &mut Transaction,
+    migrating: bool,
+) -> Result<bool> {
+    preflight(paths, migrating)?;
+    let scoped = profile(paths)?;
     let desktop = paths.data.join("applications/com.mluva.Linux.desktop");
     let icon = paths
         .data
@@ -323,7 +283,6 @@ fn install(source: &Path) -> Result<()> {
         .iter()
         .map(|path| Snapshot::read(path).map(|snapshot| (path.clone(), snapshot)))
         .collect::<Result<Vec<_>>>()?;
-    let mut transaction = Transaction::default();
     transaction.directory(paths.app.parent().ok_or("Missing app parent")?, 0o700, true)?;
     for directory in [
         &paths.bin,
@@ -376,12 +335,30 @@ fn install(source: &Path) -> Result<()> {
             .arg(desktop.parent().ok_or("Missing desktop parent")?)
             .stdin(Stdio::null()))?;
     }
-    transaction.commit()?;
-    if scoped.is_some() {
+    Ok(scoped.is_some())
+}
+
+fn announce(paths: &InstallPaths, scoped: bool) -> Result<()> {
+    if scoped {
         println!("Configured the scoped Mluva secret profile.");
     }
-    hints(&paths)?;
+    hints(paths)?;
     checkpoint()
+}
+
+fn install(source: &Path) -> Result<()> {
+    let paths = InstallPaths::from_environment("install")?;
+    install_bundle::validate(source)?;
+    if legacy::upgrade(source, &paths, |transaction| {
+        let scoped = prepare_payload(source, &paths, transaction, true)?;
+        announce(&paths, scoped)
+    })? {
+        return Ok(());
+    }
+    let mut transaction = Transaction::default();
+    let scoped = prepare_payload(source, &paths, &mut transaction, false)?;
+    transaction.commit()?;
+    announce(&paths, scoped)
 }
 
 fn main() -> ExitCode {

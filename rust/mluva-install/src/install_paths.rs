@@ -157,7 +157,7 @@ pub fn running(app: &Path) -> Result<bool> {
             if args.len() >= 3
                 && args[0] == legacy.as_os_str().as_encoded_bytes()
                 && args[1] == b"-m"
-                && args[2] == b"mluva_linux.app"
+                && matches!(args[2], b"mluva_linux.app" | b"voice_scribe_linux.app")
             {
                 return Ok(true);
             }

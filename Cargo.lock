@@ -1343,8 +1343,10 @@ dependencies = [
 name = "mluva-install"
 version = "1.6.0"
 dependencies = [
+ "glib",
  "libc",
  "regex",
+ "rusqlite",
  "serde_json",
  "sha2",
  "tempfile",

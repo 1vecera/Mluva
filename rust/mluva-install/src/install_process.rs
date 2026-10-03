@@ -4,14 +4,56 @@ use std::{
     fmt,
     os::unix::process::{CommandExt, ExitStatusExt},
     process::Command,
-    sync::atomic::{AtomicI32, Ordering},
+    sync::atomic::{AtomicBool, AtomicI32, Ordering},
     thread,
     time::{Duration, Instant},
 };
 
 static SIGNAL: AtomicI32 = AtomicI32::new(0);
+static RESTORING: AtomicBool = AtomicBool::new(false);
 extern "C" fn interrupted(signal: libc::c_int) {
+    if RESTORING.load(Ordering::Relaxed) {
+        return;
+    }
     let _ = SIGNAL.compare_exchange(0, signal, Ordering::Relaxed, Ordering::Relaxed);
+}
+
+pub struct Rollback(i32);
+impl Rollback {
+    pub fn begin() -> Self {
+        RESTORING.store(true, Ordering::Relaxed);
+        Self(SIGNAL.swap(0, Ordering::Relaxed))
+    }
+}
+impl Drop for Rollback {
+    fn drop(&mut self) {
+        SIGNAL.store(self.0, Ordering::Relaxed);
+        RESTORING.store(false, Ordering::Relaxed);
+    }
+}
+
+pub fn output(command: &mut Command) -> Result<(u8, String)> {
+    use std::io::{Read, Seek};
+    let mut output = tempfile::tempfile()?;
+    let result = run(command
+        .stdin(std::process::Stdio::null())
+        .stdout(output.try_clone()?)
+        .stderr(std::process::Stdio::null()));
+    checkpoint()?;
+    let status = match result {
+        Ok(()) => 0,
+        Err(error) => match error.downcast_ref::<Failed>() {
+            Some(failure) => failure.0,
+            None => return Err(error),
+        },
+    };
+    output.rewind()?;
+    let mut text = String::new();
+    output
+        .take(1024 * 1024)
+        .read_to_string(&mut text)
+        .map_err(|_| "A desktop command returned invalid text.")?;
+    Ok((status, text))
 }
 
 pub fn watch_signals() -> Result<()> {
@@ -44,8 +86,21 @@ pub fn checkpoint() -> Result<()> {
 }
 
 pub fn run(command: &mut Command) -> Result<()> {
+    execute(command, true)
+}
+
+/// sudo's authentication prompt must keep the caller's terminal foreground
+/// group. Cancellation signals only that owned child, never the parent group.
+pub fn authenticate(command: &mut Command) -> Result<()> {
+    execute(command, false)
+}
+
+fn execute(command: &mut Command, group: bool) -> Result<()> {
     checkpoint()?;
-    let mut child = command.process_group(0).spawn().map_err(|error| {
+    if group {
+        command.process_group(0);
+    }
+    let mut child = command.spawn().map_err(|error| {
         Failed(if error.kind() == std::io::ErrorKind::NotFound {
             127
         } else {
@@ -54,12 +109,17 @@ pub fn run(command: &mut Command) -> Result<()> {
     })?;
     loop {
         if let Err(error) = checkpoint() {
-            unsafe { libc::kill(-(child.id() as i32), libc::SIGTERM) };
+            let target = if group {
+                -(child.id() as i32)
+            } else {
+                child.id() as i32
+            };
+            unsafe { libc::kill(target, libc::SIGTERM) };
             let deadline = Instant::now() + Duration::from_secs(2);
             while child.try_wait()?.is_none() && Instant::now() < deadline {
                 thread::sleep(Duration::from_millis(10));
             }
-            unsafe { libc::kill(-(child.id() as i32), libc::SIGKILL) };
+            unsafe { libc::kill(target, libc::SIGKILL) };
             child.wait()?;
             return Err(error);
         }

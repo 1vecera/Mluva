@@ -12,6 +12,9 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[path = "support/legacy.rs"]
+mod legacy;
+
 fn repository() -> &'static Path {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -189,28 +192,35 @@ fn fixture_bundle(root: &Path) -> PathBuf {
     for (name, target) in links.as_object().unwrap() {
         symlink(target.as_str().unwrap(), bundle.join(name)).unwrap();
     }
-    let mut files = BTreeMap::new();
-    for directory in [
-        &bundle,
-        bundle.join("bin").as_path(),
-        bundle.join("resources").as_path(),
-    ] {
-        for entry in fs::read_dir(directory).unwrap() {
+    assert!(
+        Command::new("cp")
+            .arg("-a")
+            .arg(repository().join("linux/gnome-extension"))
+            .arg(bundle.join("gnome-extension"))
+            .status()
+            .unwrap()
+            .success()
+    );
+    fn hashes(root: &Path, path: &Path, files: &mut BTreeMap<String, String>) {
+        for entry in fs::read_dir(path).unwrap() {
             let entry = entry.unwrap();
-            if entry.file_type().unwrap().is_file() {
+            let path = entry.path();
+            if entry.file_type().unwrap().is_dir() {
+                hashes(root, &path, files);
+            } else if entry.file_type().unwrap().is_file() {
                 files.insert(
-                    entry
-                        .path()
-                        .strip_prefix(&bundle)
+                    path.strip_prefix(root)
                         .unwrap()
                         .to_str()
                         .unwrap()
                         .to_owned(),
-                    digest(&fs::read(entry.path()).unwrap()),
+                    digest(&fs::read(path).unwrap()),
                 );
             }
         }
     }
+    let mut files = BTreeMap::new();
+    hashes(&bundle, &bundle, &mut files);
     fs::write(bundle.join(".mluva-native.json"),serde_json::to_vec(&json!({"schema":1,"application":"com.mluva.Linux","implementation":"rust","version":"1.6.0","sha256":files,"links":links})).unwrap()).unwrap();
     bundle
 }
@@ -614,7 +624,6 @@ fn native_installer_rejects_damaged_bundles_and_running_apps_before_publication(
         "version",
         "architecture",
         "running",
-        "live-legacy-custom",
     ] {
         let root = run.join(name);
         let layout = setup(&root, name);
@@ -661,24 +670,13 @@ fn native_installer_rejects_damaged_bundles_and_running_apps_before_publication(
                         .unwrap(),
                 );
             }
-            "live-legacy-custom" => {
-                let profile = root.join("home/.config/other-managed/env/voice-scribe.env");
-                fs::create_dir_all(profile.parent().unwrap()).unwrap();
-                fs::write(
-                    profile,
-                    "ELEVENLABS_API_KEY=op://synthetic/legacy/credential\n",
-                )
-                .unwrap();
-            }
             _ => unreachable!(),
         }
         let before = snapshot(&root, &layout, false);
         positive_trap(&root, &layout, name);
-        let mut candidate = command(&root, &layout, name, &bundle.join("install.sh"), true);
-        if name == "live-legacy-custom" {
-            candidate.env("DAS_CONF_DIR", root.join("home/.config/other-managed"));
-        }
-        let result = candidate.output().unwrap();
+        let result = command(&root, &layout, name, &bundle.join("install.sh"), true)
+            .output()
+            .unwrap();
         if let Some(mut child) = child {
             child.kill().unwrap();
             child.wait().unwrap();
@@ -688,7 +686,6 @@ fn native_installer_rejects_damaged_bundles_and_running_apps_before_publication(
         let error = String::from_utf8_lossy(&result.stderr);
         let expected = match name {
             "running" => "Mluva is running",
-            "live-legacy-custom" => "cannot yet migrate VoiceScribe",
             "version" => "does not match",
             "receipt" => "inventory is invalid",
             "architecture" => "architecture",

@@ -30,9 +30,9 @@ impl Snapshot {
                     meta.dev(),
                     meta.ino(),
                     meta.mode(),
-                    meta.len(),
-                    meta.mtime(),
-                    meta.mtime_nsec(),
+                    if meta.is_dir() { 0 } else { meta.len() },
+                    if meta.is_dir() { 0 } else { meta.mtime() },
+                    if meta.is_dir() { 0 } else { meta.mtime_nsec() },
                 ),
             );
             if meta.is_dir() {
@@ -90,14 +90,57 @@ struct Directory {
     previous_mode: Option<u32>,
     installed_mode: u32,
 }
+struct Relocation {
+    from: PathBuf,
+    to: PathBuf,
+    original: Snapshot,
+}
 #[derive(Default)]
 pub struct Transaction {
     changes: Vec<Change>,
     directories: Vec<Directory>,
+    relocations: Vec<Relocation>,
     committed: bool,
 }
 
 impl Transaction {
+    /// State roots move before their owned descendants are edited. Child undo
+    /// restores each original inode before this relocation is reversed.
+    pub fn relocate(&mut self, from: &Path, to: &Path) -> Result<()> {
+        checkpoint()?;
+        let original = Snapshot::read(from)?;
+        rename(from, to)?;
+        self.relocations.push(Relocation {
+            from: from.to_owned(),
+            to: to.to_owned(),
+            original,
+        });
+        Ok(())
+    }
+
+    pub fn retire(&mut self, path: &Path) -> Result<()> {
+        checkpoint()?;
+        let expected = Snapshot::read(path)?;
+        if expected.0.is_empty() {
+            return Ok(());
+        }
+        self.prepare(path)?;
+        let change = self.changes.last_mut().ok_or("Missing retirement backup")?;
+        if !expected.unchanged(path)? {
+            return Err("A migration path changed during preparation.".into());
+        }
+        rename(
+            path,
+            &change
+                .temporary
+                .as_ref()
+                .ok_or("Missing retirement backup")?
+                .path()
+                .join("previous"),
+        )?;
+        change.previous = true;
+        Ok(())
+    }
     pub fn directory(&mut self, path: &Path, mode: u32, enforce_mode: bool) -> Result<()> {
         if self.directories.iter().any(|entry| entry.path == path) {
             return Ok(());
@@ -162,6 +205,7 @@ impl Transaction {
         let change = self
             .changes
             .iter_mut()
+            .rev()
             .find(|change| change.target == path)
             .ok_or("Unprepared installation path")?;
         if !expected.unchanged(path)? {
@@ -195,7 +239,7 @@ impl Transaction {
         Ok(())
     }
 
-    pub fn commit(mut self) -> Result<()> {
+    pub fn commit(&mut self) -> Result<()> {
         checkpoint()?;
         self.committed = true;
         for change in &mut self.changes {
@@ -254,6 +298,20 @@ impl Drop for Transaction {
                 } else {
                     let _ = fs::remove_dir(&directory.path);
                 }
+            }
+        }
+        for relocation in self.relocations.iter().rev() {
+            if !relocation
+                .original
+                .unchanged(&relocation.to)
+                .unwrap_or(false)
+                || rename(&relocation.to, &relocation.from).is_err()
+            {
+                eprintln!(
+                    "Preserved changed migrated state at {}. Use the retained migration backup to recover {}.",
+                    relocation.to.display(),
+                    relocation.from.display()
+                );
             }
         }
     }
