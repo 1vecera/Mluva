@@ -26,7 +26,7 @@ XML
     export MLUVA_PRIVATE_WM_PID
     trap 'kill "$MLUVA_PRIVATE_WM_PID" 2>/dev/null || true; wait "$MLUVA_PRIVATE_WM_PID" 2>/dev/null || true' EXIT
     MLUVA_TASK_WM_READY=0
-    for MLUVA_TASK_ATTEMPT in {1..100}; do
+    for _mluva_task_attempt in {1..100}; do
         kill -0 "$MLUVA_PRIVATE_WM_PID"
         if xprop -root _NET_SUPPORTING_WM_CHECK | rg -q 'window id'; then
             MLUVA_TASK_WM_READY=1

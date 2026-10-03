@@ -10,6 +10,8 @@ Follow the [Linux guide](linux/README.md) for runtime dependencies and provider 
 
 Run `make linux-setup` to prepare the locked Python environment with distribution PyGObject access. GUI checks use the isolated runners below.
 
+The in-progress [native Rust implementation](rust/README.md) uses the repository-pinned Rust 1.95 toolchain. `make linux-feature-maturity` and `make linux-feature-maturity-check` already use its development-only generator and need Cargo, a C compiler, pkg-config and SQLite development files. These targets preserve the released capability labels; they do not imply native acceptance. Other source entry points remain on the released implementation until the port's remaining gates pass.
+
 ## Code map
 
 Bare Python filenames refer to [linux/mluva_linux](linux/mluva_linux). Tooling paths start at the repository root. Start at the feature's logic, then follow its calls into `app.py` for lifecycle wiring. GTK callbacks stay on the main thread; provider and audio work runs outside it.

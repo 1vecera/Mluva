@@ -16,7 +16,7 @@ linux-setup:
 	cd linux && uv sync --locked
 
 linux-test: linux-setup
-	cd linux && uv run --locked python ../scripts/render_feature_maturity.py --check
+	$(MAKE) linux-feature-maturity-check
 	cd linux && uv run --locked pytest -q
 	cd linux && uv run --locked ruff check .
 	cd linux && uv run --locked ruff format --check .
@@ -61,11 +61,11 @@ linux-omarchy-test: linux-setup
 		env PYTHONPATH=linux GTK_A11Y=none GSK_RENDERER=cairo \
 		uv run --project linux --locked python linux/tests/shell_overlay_smoke.py
 
-linux-feature-maturity: linux-setup
-	cd linux && uv run --locked python ../scripts/render_feature_maturity.py --write
+linux-feature-maturity:
+	cargo run --locked -q -p mluva-core --bin mluva-feature-maturity -- --write
 
-linux-feature-maturity-check: linux-setup
-	cd linux && uv run --locked python ../scripts/render_feature_maturity.py --check
+linux-feature-maturity-check:
+	cargo run --locked -q -p mluva-core --bin mluva-feature-maturity -- --check
 
 linux-shortcut-test: linux-setup
 	bash linux/tests/run_global_shortcut_portal_smoke.sh
