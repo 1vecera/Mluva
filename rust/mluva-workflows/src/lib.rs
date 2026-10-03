@@ -5,6 +5,7 @@
 
 pub mod capture;
 pub mod dictation;
+pub mod launch;
 pub mod meeting;
 pub mod meeting_services;
 pub mod meeting_session;

@@ -1,4 +1,8 @@
 fn main() -> glib::ExitCode {
+    if let Err(code) = mluva_workflows::launch::inherit_managed_profile(std::env::args_os()) {
+        eprintln!("{}", mluva_workflows::launch::START_ERROR);
+        return glib::ExitCode::from(code);
+    }
     let arguments: Vec<_> = std::env::args().collect();
     if arguments.len() == 2 && arguments[1] == "--narrate" {
         let runtime = match tokio::runtime::Builder::new_current_thread()

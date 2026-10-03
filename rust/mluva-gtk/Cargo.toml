@@ -36,3 +36,9 @@ tempfile.workspace = true
 rusqlite.workspace = true
 tokio-tungstenite.workspace = true
 futures-util.workspace = true
+
+[[bin]]
+name = "managed-launcher-fixture-peer"
+path = "tests/support/managed_launcher_peer.rs"
+test = false
+doc = false
