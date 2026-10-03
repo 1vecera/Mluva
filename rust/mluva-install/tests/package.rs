@@ -49,6 +49,8 @@ fn source(root: &Path, repository: &Path) -> PathBuf {
         "manifest.json",
         "linux/configure-input-helper.sh",
         "linux/configure-recording-overlay.sh",
+        "linux/install-narrated-editor.sh",
+        "linux/build-narrated-editor.sh",
         "rust/mluva-install/resources/setup.sh",
         "rust/mluva-install/resources/app-install.sh",
         "rust/mluva-install/resources/app-uninstall.sh",
@@ -62,6 +64,7 @@ fn source(root: &Path, repository: &Path) -> PathBuf {
         "linux/quickshell",
         "linux/gnome-extension",
         "linux/resources",
+        "linux/integrations/tensaku",
     ] {
         copy_tree(&repository.join(directory), &source.join(directory));
     }
