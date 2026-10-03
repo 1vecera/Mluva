@@ -16,7 +16,13 @@ use mluva_workflows::{
     capture::{CaptureError, CapturePhase, CaptureSession},
     dictation::{DeliveryTarget, WorkflowError, WorkflowOutcome, WorkflowResult},
 };
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{
+    cell::{Cell, RefCell},
+    future::Future,
+    pin::Pin,
+    rc::Rc,
+    time::Duration,
+};
 
 #[derive(Clone, Debug)]
 pub enum CaptureOrigin {
@@ -32,6 +38,9 @@ pub struct CaptureLaunch {
 
 pub type PrepareCapture = Rc<dyn Fn(CaptureOrigin) -> WorkflowOutcome<CaptureLaunch>>;
 pub type CaptureImages = Rc<dyn Fn(&str) -> WorkflowOutcome<Vec<ImageInput>>>;
+pub type WaitForCaptureImages =
+    Rc<dyn Fn(&str) -> Pin<Box<dyn Future<Output = WorkflowOutcome<()>>>>>;
+pub type PrepareCaptureResult = Rc<dyn Fn(&CaptureSession, &mut WorkflowOutcome<WorkflowResult>)>;
 
 pub struct CaptureCompletion {
     pub result: WorkflowResult,
@@ -40,6 +49,7 @@ pub struct CaptureCompletion {
     pub delivery_target: Option<Rc<dyn DeliveryTarget>>,
 }
 pub struct CaptureFailure {
+    pub phase: CapturePhase,
     pub error: WorkflowError,
     pub session_identifier: String,
     pub delivery_target: Option<Rc<dyn DeliveryTarget>>,
@@ -49,6 +59,8 @@ pub struct CaptureFailure {
 /// waiting and retained-target caches. They receive one terminal result here.
 pub struct CaptureControllerCallbacks {
     pub images: CaptureImages,
+    pub wait_for_images: WaitForCaptureImages,
+    pub prepare_result: PrepareCaptureResult,
     pub queue_title: Rc<dyn Fn(&mluva_core::history::HistoryEntry)>,
     pub completed: Rc<dyn Fn(CaptureCompletion)>,
     pub failed: Rc<dyn Fn(CaptureFailure)>,
@@ -421,6 +433,7 @@ impl CaptureController {
                     }
                     (controller.callbacks.phase_changed)(CapturePhase::Failed);
                     (controller.callbacks.failed)(CaptureFailure {
+                        phase: CapturePhase::Preparing,
                         error: WorkflowError::Invalid(message),
                         session_identifier: session.identifier.clone(),
                         delivery_target: None,
@@ -524,21 +537,26 @@ impl CaptureController {
         });
         self.page.workspace.set_live_status("Processing…", false);
         (self.callbacks.phase_changed)(CapturePhase::Processing);
-        let images = (self.callbacks.images)(&session.identifier);
+        let waiting = (self.callbacks.wait_for_images)(&session.identifier);
+        let snapshot = self.callbacks.images.clone();
         let weak = Rc::downgrade(self);
         self.runtime.spawn(async move {
-            let mut visual_warning = false;
-            let images = images.unwrap_or_else(|_| {
-                visual_warning = true;
-                vec![]
-            });
-            let mut result = session.complete(target.as_deref(), images).await;
+            let visual_warning = Cell::new(false);
+            let images = async {
+                waiting.await?;
+                Ok(snapshot(&session.identifier).unwrap_or_else(|_| {
+                    visual_warning.set(true);
+                    vec![]
+                }))
+            };
+            let mut result = session.complete_with_images(target.as_deref(), images).await;
             let Some(controller) = weak
                 .upgrade()
                 .filter(|controller| controller.owns(&session.identifier))
             else {
                 return;
             };
+            (controller.callbacks.prepare_result)(&session, &mut result);
             let viewing_live = controller.page.workspace.is_viewing_live();
             let live = controller.live.borrow().clone();
             let continuation = controller.continuation.borrow().clone();
@@ -578,12 +596,12 @@ impl CaptureController {
             if !finishing_live && let Some(live) = &live { live.cancel(); }
             match result {
                 Ok(mut result) => {
-                    if visual_warning {
+                    if visual_warning.get() {
                         result.delivery.guidance.push_str(" Screenshot was not ready. Save it in the editor, then rewrite with its context.");
                     }
                     controller.page.output_view.buffer().set_text(&result.output_text);
                     controller.page.refresh_output_visibility();
-                    if result.mode == "dictation" && !text::trim(&result.transcription.text).is_empty() {
+                    if result.mode == "dictation" && (!text::trim(&result.transcription.text).is_empty() || result.history_entry.is_some()) {
                         let displayed = if let Some(entry) = result.history_entry.clone() {
                             controller.page.workspace.refresh_history().and_then(|()| {
                                 if viewing_live && text::trim(&controller.page.workspace.prompt_text()).is_empty() {
@@ -653,6 +671,7 @@ impl CaptureController {
                     }
                     (controller.callbacks.phase_changed)(CapturePhase::Failed);
                     (controller.callbacks.failed)(CaptureFailure {
+                        phase: CapturePhase::Processing,
                         error,
                         session_identifier: session.identifier.clone(),
                         delivery_target: target,

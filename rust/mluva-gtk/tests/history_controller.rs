@@ -284,7 +284,10 @@ fn released_history_recovery_and_owned_shutdown() {
                 },
                 close_screenshot: {
                     let events = events.clone();
-                    Rc::new(move |id| events.borrow_mut().push(json!(["close-image", id])))
+                    Rc::new(move |id| {
+                        events.borrow_mut().push(json!(["close-image", id]));
+                        Ok(())
+                    })
                 },
                 copy: Rc::new(|_| {}),
             },

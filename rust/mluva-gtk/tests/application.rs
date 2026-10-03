@@ -317,8 +317,8 @@ fn released_assembled_application_and_shutdown() {
         let runtime = DesktopRuntime::new().unwrap();
         let platform_closed = Rc::new(Cell::new(false));
         let closing = platform_closed.clone();
-        // These compositor/picker operations are outside this assembled-graph comparison.
-        // Unexpected use fails; recording completion is observed separately in the stores.
+        // Compositor presentation/bootstrap remain distribution boundaries.
+        // Screenshot workflows have their own assembled-application comparison.
         let owner = ApplicationDesktop::new(
             &application,
             services.clone(),
@@ -327,14 +327,10 @@ fn released_assembled_application_and_shutdown() {
             NativeBinaries {
                 asr_worker: target.join("mluva-asr-worker"),
                 audio_cleanup: target.join("mluva-audio-cleanup"),
+                screenshot_editor: target.join("mluva-screenshot-editor"),
             },
             ApplicationPlatform {
-                screenshot: Rc::new(|| panic!("unexpected screenshot")),
-                edit_screenshot: Rc::new(|_| panic!("unexpected screenshot edit")),
-                close_screenshot: Rc::new(|_| panic!("unexpected screenshot close")),
-                finish_screenshots: Rc::new(|_, _| {}),
                 compact_recording: Rc::new(|_| {}),
-                privacy_changed: Rc::new(|_| panic!("unexpected privacy change")),
                 close: Rc::new(move || closing.set(true)),
             },
         )

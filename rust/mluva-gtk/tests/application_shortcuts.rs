@@ -137,12 +137,7 @@ fn snapshot(
 
 fn platform() -> ApplicationPlatform {
     ApplicationPlatform {
-        screenshot: Rc::new(|| panic!("unexpected screenshot")),
-        edit_screenshot: Rc::new(|_| panic!("unexpected screenshot edit")),
-        close_screenshot: Rc::new(|_| panic!("unexpected screenshot close")),
-        finish_screenshots: Rc::new(|_, _| {}),
         compact_recording: Rc::new(|_| {}),
-        privacy_changed: Rc::new(|_| panic!("unexpected privacy change")),
         close: Rc::new(|| {}),
     }
 }
@@ -202,6 +197,7 @@ fn key_changed_while_readiness_is_pending(
         NativeBinaries {
             asr_worker: target.join("mluva-asr-worker"),
             audio_cleanup: target.join("mluva-audio-cleanup"),
+            screenshot_editor: target.join("mluva-screenshot-editor"),
         },
         platform(),
     )
@@ -354,6 +350,7 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             NativeBinaries {
                 asr_worker: target.join("mluva-asr-worker"),
                 audio_cleanup: target.join("mluva-audio-cleanup"),
+                screenshot_editor: target.join("mluva-screenshot-editor"),
             },
             platform(),
         )

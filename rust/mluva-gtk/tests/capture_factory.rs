@@ -144,6 +144,7 @@ fn released_application_capture_factory() {
     let binaries = NativeBinaries {
         asr_worker: target.join("mluva-asr-worker"),
         audio_cleanup: target.join("mluva-audio-cleanup"),
+        screenshot_editor: target.join("mluva-screenshot-editor"),
     };
     gtk::init().unwrap();
     adw::init().unwrap();
@@ -255,6 +256,8 @@ fn released_application_capture_factory() {
                     })
                 }),
                 CaptureControllerCallbacks {
+                    wait_for_images: Rc::new(|_| Box::pin(async { Ok(()) })),
+                    prepare_result: Rc::new(|_, _| {}),
                     queue_title: capture_ui::titles(&page, &runtime, &services.cwd),
                     images: Rc::new(|_| Ok(vec![])),
                     completed: Rc::new(move |completion| {

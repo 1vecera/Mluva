@@ -40,19 +40,12 @@ use std::{
 
 mod actions;
 mod lifecycle;
+mod screenshots;
 mod shortcuts;
 
-pub type FinishScreenshots = Rc<dyn Fn(&str, Option<&str>)>;
-
-/// The picker/editor layer attaches to the same root through these owned
-/// actions. No default implementation silently drops a desktop action.
+/// Distribution-owned compositor/bootstrap operations outside the shared graph.
 pub struct ApplicationPlatform {
-    pub screenshot: Rc<dyn Fn()>,
-    pub edit_screenshot: Rc<dyn Fn(&str)>,
-    pub close_screenshot: Rc<dyn Fn(&str)>,
-    pub finish_screenshots: FinishScreenshots,
     pub compact_recording: Rc<dyn Fn(bool)>,
-    pub privacy_changed: Rc<dyn Fn(bool)>,
     pub close: Rc<dyn Fn()>,
 }
 
@@ -92,6 +85,7 @@ pub struct ApplicationDesktop {
     initialization_failed: Cell<bool>,
     catalog: RefCell<Option<Rc<RewriteClient>>>,
     current: RefCell<Option<CaptureContext>>,
+    screenshots: screenshots::ScreenshotOwners,
     overlay: RefCell<Option<OverlayPublisher>>,
     overlay_timer: RefCell<Option<glib::SourceId>>,
     closed: Cell<bool>,
@@ -137,8 +131,8 @@ impl ApplicationDesktop {
                 merge: bind!(link, |app, source, target| app
                     .merge_conversations(source, target)),
                 continue_recording: bind!(link, |app, id| app.continue_recording(id)),
-                capture_screenshot: Some(platform.screenshot.clone()),
-                edit_screenshot: platform.edit_screenshot.clone(),
+                capture_screenshot: Some(bind!(link, |app| app.request_screenshot())),
+                edit_screenshot: bind!(link, |app, id| app.edit_screenshot(id)),
                 remove_screenshot: bind!(link, |app, id| app.remove_screenshot(id)),
                 edit_prompt: bind!(link, |app, id| app.settings.open_prompt(id)),
             },
@@ -207,7 +201,14 @@ impl ApplicationDesktop {
                 changed: bind!(link, |app| app.history_changed()),
                 idle: bind!(link, |app| app.idle()),
                 queue_title: bind!(link, |app, entry| app.titles.enqueue(entry)),
-                close_screenshot: platform.close_screenshot.clone(),
+                close_screenshot: {
+                    let link = link.clone();
+                    Rc::new(move |id| {
+                        link.borrow()
+                            .upgrade()
+                            .map_or(Ok(()), |app| app.close_screenshot_editor(id))
+                    })
+                },
                 copy: bind!(link, |app, text| app.copy_text(text)),
             },
         )?;
@@ -288,6 +289,17 @@ impl ApplicationDesktop {
                 })
             },
             CaptureControllerCallbacks {
+                wait_for_images: {
+                    let link = link.clone();
+                    Rc::new(move |id| match link.borrow().upgrade() {
+                        Some(app) => app.wait_for_screenshot(id),
+                        None => Box::pin(async {
+                            Err(WorkflowError::Invalid("The application is closed.".into()))
+                        }),
+                    })
+                },
+                prepare_result: bind!(link, |app, session, result| app
+                    .prepare_screenshot_result(session, result)),
                 queue_title: bind!(link, |app, entry| app.titles.enqueue(entry)),
                 images: {
                     let link = link.clone();
@@ -391,6 +403,7 @@ impl ApplicationDesktop {
             initialization_failed: Cell::new(false),
             catalog: RefCell::new(None),
             current: RefCell::new(None),
+            screenshots: screenshots::ScreenshotOwners::default(),
             overlay: RefCell::new(application.dbus_connection().map(OverlayPublisher::new)),
             overlay_timer: RefCell::new(None),
             closed: Cell::new(false),

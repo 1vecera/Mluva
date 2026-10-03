@@ -24,7 +24,7 @@ impl ApplicationDesktop {
             ApplicationAction::GlobalRecord => {
                 self.toggle_recording(CaptureOrigin::ApprovedShortcut)
             }
-            ApplicationAction::Screenshot => (self.platform.screenshot)(),
+            ApplicationAction::Screenshot => self.request_screenshot(),
             ApplicationAction::Cancel => {
                 self.cancel();
             }
@@ -232,8 +232,11 @@ impl ApplicationDesktop {
         if self.closed.get() {
             return;
         }
-        (self.platform.close_screenshot)(id);
-        if self.services.screenshots.delete(id).is_err() {
+        if self
+            .close_screenshot_editor(id)
+            .and_then(|()| self.services.screenshots.delete(id))
+            .is_err()
+        {
             self.shell.show_message("Could not remove the screenshot.");
         }
         self.workspace().refresh_screenshots();

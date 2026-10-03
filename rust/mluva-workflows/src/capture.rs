@@ -695,6 +695,20 @@ impl CaptureSession {
         target: Option<&dyn DeliveryTarget>,
         images: Vec<ImageInput>,
     ) -> WorkflowOutcome<WorkflowResult> {
+        self.complete_with_images(target, std::future::ready(Ok(images)))
+            .await
+    }
+
+    /// Finalize audio and recognition before waiting for an open picker. The
+    /// caller then freezes its attached images on their owning desktop context.
+    pub async fn complete_with_images<F>(
+        &self,
+        target: Option<&dyn DeliveryTarget>,
+        images: F,
+    ) -> WorkflowOutcome<WorkflowResult>
+    where
+        F: std::future::Future<Output = WorkflowOutcome<Vec<ImageInput>>>,
+    {
         let mut state = self.state.lock().await;
         if self.phase() == CapturePhase::Recording {
             self.begin_stop();
@@ -758,12 +772,15 @@ impl CaptureSession {
         result
     }
 
-    async fn complete_locked(
+    async fn complete_locked<F>(
         &self,
         state: &mut State,
         target: Option<&dyn DeliveryTarget>,
-        images: Vec<ImageInput>,
-    ) -> WorkflowOutcome<WorkflowResult> {
+        images: F,
+    ) -> WorkflowOutcome<WorkflowResult>
+    where
+        F: std::future::Future<Output = WorkflowOutcome<Vec<ImageInput>>>,
+    {
         let audio_path = match self.recorder.stop().await {
             Ok(path) => path,
             Err(error) => {
@@ -826,6 +843,10 @@ impl CaptureSession {
         {
             cleanup.cancel();
         }
+        let images = tokio::select! { biased;
+            _ = self.cancellation.cancelled() => return Err(WorkflowError::Invalid("Capture stopped because Mluva is closing.".into())),
+            images = images => images?,
+        };
         let completion = self.workflow.complete(
             &audio_path,
             Completion {

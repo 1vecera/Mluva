@@ -383,7 +383,7 @@ fn released_command_and_notes_decisions() {
                     Rc::new(move || events.borrow_mut().push(json!(["idle"])))
                 },
                 queue_title: Rc::new(|_| {}),
-                close_screenshot: Rc::new(|_| {}),
+                close_screenshot: Rc::new(|_| Ok(())),
                 copy: Rc::new(|_| {}),
             },
         )

@@ -240,7 +240,9 @@ impl ApplicationDesktop {
                     self.review.dismiss();
                     self.live.cancel();
                 }
-                (self.platform.privacy_changed)(config.incognito_mode);
+                if config.incognito_mode {
+                    self.cancel_screenshot_picker();
+                }
                 self.workspace().set_private(config.incognito_mode);
                 self.meeting.sync_config(persisted);
             }
@@ -561,7 +563,11 @@ impl ApplicationDesktop {
             .history_entry
             .as_ref()
             .map(|entry| entry.identifier.clone());
-        (self.platform.finish_screenshots)(&completion.session.identifier, id.as_deref());
+        self.finish_result_screenshots(
+            &completion.session.identifier,
+            id.as_deref(),
+            result.incognito,
+        );
         if let Some(context) = context.as_ref()
             && let Some(entry) = result.history_entry.as_ref()
             && let Some(target) = context.target.as_ref()
@@ -612,15 +618,23 @@ impl ApplicationDesktop {
         if self.closed.get() {
             return;
         }
+        if failure.phase == CapturePhase::Preparing {
+            self.preserve_interrupted_screenshots(&failure.session_identifier);
+        }
         let context = self.current.borrow_mut().take();
         let entry = match &failure.error {
             WorkflowError::Failure(failure) => failure.history_entry.as_ref(),
             _ => None,
         };
-        (self.platform.finish_screenshots)(
-            &failure.session_identifier,
-            entry.map(|entry| entry.identifier.as_str()),
-        );
+        if failure.phase != CapturePhase::Preparing {
+            self.finish_result_screenshots(
+                &failure.session_identifier,
+                entry.map(|entry| entry.identifier.as_str()),
+                context
+                    .as_ref()
+                    .is_some_and(|context| context.options.incognito),
+            );
+        }
         if let Some(entry) = entry
             && let Some(target) = context.as_ref().and_then(|context| context.target.as_ref())
         {
@@ -636,7 +650,7 @@ impl ApplicationDesktop {
             return;
         }
         self.current.borrow_mut().take();
-        (self.platform.finish_screenshots)(id, None);
+        self.discard_screenshots(id);
         self.idle();
         self.clear_overlay();
     }
@@ -812,6 +826,11 @@ impl ApplicationDesktop {
     pub fn shutdown(self: &Rc<Self>) -> glib::JoinHandle<()> {
         let hold = self.application.hold();
         self.closed.set(true);
+        self.close_screenshot_monitoring();
+        let capture_identifier = self.capture.session_identifier();
+        if let Some(identifier) = capture_identifier {
+            self.preserve_interrupted_screenshots(&identifier);
+        }
         self.initialization_pending.set(false);
         self.readiness_generation
             .set(self.readiness_generation.get() + 1);

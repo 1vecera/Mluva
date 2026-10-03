@@ -138,6 +138,24 @@ fn exchange(
         .unwrap()
         .pop_front()
         .ok_or("unexpected provider request")?;
+    // An independent endpoint can hold a request before observing its body.
+    // This exposes ordering against actual picker/editor processes, without
+    // changing an application callback or its clocks.
+    if let Some(gate) = response["wait_for_file"].as_str() {
+        std::fs::write(
+            response["incoming_file"]
+                .as_str()
+                .ok_or("missing gate receipt")?,
+            b"arrived",
+        )?;
+        let deadline = std::time::Instant::now() + Duration::from_secs(8);
+        while !std::path::Path::new(gate).exists() {
+            if std::time::Instant::now() >= deadline {
+                return Err("provider gate expired".into());
+            }
+            thread::sleep(Duration::from_millis(2));
+        }
+    }
     let speech = path == "/speech-to-text" || path.ends_with("/audio/transcriptions");
     if speech != (response["route"] == "speech") {
         return Err("provider request order differs".into());

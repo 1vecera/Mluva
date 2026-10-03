@@ -215,6 +215,14 @@ impl LiveController {
         }
         Ok(())
     }
+    /// A newly attached image changes context even when the transcript has not
+    /// changed. The next normal Live offer must include it.
+    pub fn visual_context_changed(&self) {
+        if let Some(session) = self.session.borrow_mut().as_mut() {
+            session.schedule.last_text.clear();
+            session.schedule.last_final = false;
+        }
+    }
     pub fn offer(self: &Rc<Self>, source: &str, final_snapshot: bool) {
         if self.shutting_down.get() || self.config.borrow().incognito_mode {
             return;

@@ -30,13 +30,14 @@ use tokio::sync::Notify;
 use tokio_util::sync::CancellationToken;
 
 pub type HistoryWorkflowFactory = Rc<dyn Fn() -> WorkflowOutcome<Rc<DictationWorkflow>>>;
+pub type CloseScreenshot = Rc<dyn Fn(&str) -> StoreResult<()>>;
 pub struct HistoryControllerCallbacks {
     pub activity: Rc<dyn Fn() -> PreferenceActivity>,
     pub pending_command: Rc<dyn Fn() -> Option<String>>,
     pub changed: Rc<dyn Fn()>,
     pub idle: Rc<dyn Fn()>,
     pub queue_title: HistoryAction,
-    pub close_screenshot: Message,
+    pub close_screenshot: CloseScreenshot,
     pub copy: Message,
 }
 struct Retry {
@@ -465,7 +466,7 @@ impl HistoryController {
             );
             for id in identifiers {
                 for image in self.services.screenshots.recent(&id, false)? {
-                    (self.callbacks.close_screenshot)(&image.identifier);
+                    (self.callbacks.close_screenshot)(&image.identifier)?;
                 }
             }
             let draft = self

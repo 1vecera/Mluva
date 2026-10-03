@@ -27,7 +27,9 @@ fn main() {
         }
     }
     let directory = PathBuf::from(std::env::var_os("OMARCHY_SCREENSHOT_DIR").unwrap());
-    assert_eq!(directory.parent().unwrap(), root.join("runtime"));
+    let runtime = root.join(spec["runtime_directory"].as_str().unwrap_or("runtime"));
+    assert!(runtime.starts_with(&root));
+    assert_eq!(directory.parent().unwrap(), runtime);
     if spec["ignore_term"] == true {
         unsafe {
             libc::signal(libc::SIGTERM, libc::SIG_IGN);
