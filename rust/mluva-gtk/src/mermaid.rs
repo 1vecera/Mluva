@@ -1,6 +1,8 @@
 //! Offline, ephemeral Mermaid rendering with lossless native source editing.
 
-use crate::{document_layout::DocumentResources, markdown_view::MarkdownTextView};
+use crate::{
+    document_layout::DocumentResources, markdown_view::MarkdownTextView, optional_webkit::WebView,
+};
 use adw::prelude::*;
 use base64::{Engine, engine::general_purpose::STANDARD};
 use regex::Regex;
@@ -8,7 +10,6 @@ use serde::Deserialize;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::sync::LazyLock;
-use webkit6::prelude::*;
 
 pub const MAX_DIAGRAMS: usize = 3;
 pub const MAX_DIAGRAM_CHARACTERS: usize = 12_000;
@@ -134,7 +135,7 @@ struct RenderedImage {
 
 #[derive(Default)]
 struct RenderState {
-    web: Option<webkit6::WebView>,
+    web: Option<WebView>,
     loaded: bool,
     in_flight: bool,
     revision: u64,
@@ -285,84 +286,51 @@ impl MermaidPreview {
             }
         }
         if !self.resources.mermaid.join("mermaid.min.js").is_file() {
-            self.notice.set_label(
-                "Mermaid preview needs WebKitGTK 6.0. The editable sketch source is kept above.",
-            );
-            self.notice.set_visible(true);
+            self.unavailable();
             return;
         }
         if self.state.borrow().web.is_none() {
-            let manager = webkit6::UserContentManager::new();
-            manager.register_script_message_handler("rendered", None);
+            let Some(web) = WebView::new() else {
+                self.unavailable();
+                return;
+            };
             let weak = Rc::downgrade(self);
-            manager.connect_script_message_received(Some("rendered"), move |_, value| {
+            web.connect_rendered(move |text| {
                 if let Some(p) = weak.upgrade() {
-                    p.rendered(value.to_string().as_str());
+                    p.rendered(text);
                 }
             });
-            let web = webkit6::WebView::builder()
-                .network_session(&webkit6::NetworkSession::new_ephemeral())
-                .user_content_manager(&manager)
-                .build();
-            web.set_background_color(&gtk::gdk::RGBA::new(0.0, 0.0, 0.0, 0.0));
-            web.set_size_request(-1, 1);
-            web.set_opacity(0.0);
-            web.set_can_target(false);
-            web.set_focusable(false);
-            if let Some(settings) = webkit6::prelude::WebViewExt::settings(&web) {
-                settings.set_enable_html5_local_storage(false);
-                settings.set_enable_page_cache(false);
-            }
+            web.widget.set_size_request(-1, 1);
+            web.widget.set_opacity(0.0);
+            web.widget.set_can_target(false);
+            web.widget.set_focusable(false);
             let base = gio::File::for_path(&self.resources.mermaid)
                 .uri()
                 .to_string()
                 + "/";
-            let allowed = base.clone();
-            web.connect_decide_policy(move |_, decision, kind| {
-                if matches!(
-                    kind,
-                    webkit6::PolicyDecisionType::NavigationAction
-                        | webkit6::PolicyDecisionType::NewWindowAction
-                ) {
-                    let uri = decision
-                        .downcast_ref::<webkit6::NavigationPolicyDecision>()
-                        .and_then(|d| d.navigation_action())
-                        .and_then(|mut a| a.request())
-                        .and_then(|r| r.uri());
-                    if !uri
-                        .as_ref()
-                        .is_some_and(|u| u == "about:blank" || u.as_str() == allowed)
-                    {
-                        decision.ignore();
-                        return true;
-                    }
-                }
-                false
-            });
+            web.restrict_navigation(base.clone());
             let weak = Rc::downgrade(self);
-            web.connect_load_changed(move |_, event| {
-                if event == webkit6::LoadEvent::Finished
-                    && let Some(p) = weak.upgrade()
-                {
+            web.connect_loaded(move || {
+                if let Some(p) = weak.upgrade() {
                     p.state.borrow_mut().loaded = true;
                     p.render();
                 }
             });
             let weak = Rc::downgrade(self);
-            web.connect_web_process_terminated(move |_, _| {
+            web.connect_terminated(move || {
                 if let Some(p) = weak.upgrade() {
                     p.failed();
                 }
             });
             self.state.borrow_mut().web = Some(web.clone());
-            self.widget.append(&web);
+            self.widget.append(&web.widget);
             let Ok(font) = std::fs::read(&self.resources.font) else {
                 self.failed();
                 return;
             };
             let html = include_str!("../resources/mermaid/preview.html")
                 .replace("__FONT_DATA__", &STANDARD.encode(font));
-            web.load_html(&html, Some(&base));
+            web.load_html(&html, &base);
         }
         let mut s = self.state.borrow_mut();
         if !s.loaded {
@@ -390,13 +358,7 @@ impl MermaidPreview {
         ]);
         let web = s.web.clone().unwrap();
         drop(s);
-        web.evaluate_javascript(
-            &format!("draw(...{payload})"),
-            None,
-            None,
-            gio::Cancellable::NONE,
-            |_| {},
-        );
+        web.evaluate(&format!("draw(...{payload})"));
         self.clear_watchdog();
         let weak = Rc::downgrade(self);
         self.watchdog.replace(Some(glib::timeout_add_local_once(
@@ -406,11 +368,18 @@ impl MermaidPreview {
                     p.watchdog.borrow_mut().take();
                     let web = p.state.borrow().web.clone();
                     if let Some(web) = web {
-                        web.terminate_web_process();
+                        web.terminate();
                     }
                 }
             },
         )));
+    }
+
+    fn unavailable(&self) {
+        self.notice.set_label(
+            "Mermaid preview needs WebKitGTK 6.0. The editable sketch source is kept above.",
+        );
+        self.notice.set_visible(true);
     }
 
     fn rendered(self: &Rc<Self>, message: &str) {
@@ -486,7 +455,7 @@ impl MermaidPreview {
             .set_label("Sketch preview unavailable. The editable Mermaid source is kept above.");
         self.notice.set_visible(true);
         if let Some(web) = web {
-            self.widget.remove(&web);
+            self.widget.remove(&web.widget);
         }
     }
 }
@@ -499,7 +468,7 @@ impl Drop for MermaidPreview {
             adw::StyleManager::default().disconnect(handler);
         }
         if let Some(web) = self.state.get_mut().web.take() {
-            web.terminate_web_process();
+            web.terminate();
         }
     }
 }

@@ -26,6 +26,7 @@ pub mod markdown_view;
 pub mod meeting_controller;
 pub mod meeting_view;
 pub mod mermaid;
+mod optional_webkit;
 pub mod overlay_state;
 pub mod pending_review;
 pub mod personalization;
