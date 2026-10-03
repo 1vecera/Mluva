@@ -49,6 +49,9 @@ fn source(root: &Path, repository: &Path) -> PathBuf {
         "manifest.json",
         "linux/configure-input-helper.sh",
         "linux/configure-recording-overlay.sh",
+        "rust/mluva-install/resources/setup.sh",
+        "rust/mluva-install/resources/app-install.sh",
+        "rust/mluva-install/resources/app-uninstall.sh",
     ] {
         let target = source.join(file);
         fs::create_dir_all(target.parent().unwrap()).unwrap();

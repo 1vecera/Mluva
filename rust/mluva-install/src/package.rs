@@ -270,7 +270,19 @@ fn package(source: &Path, binaries: &Path, output: &Path) -> Result<()> {
         symlink(PathBuf::from("bin").join(name), bundle.join(name))?;
     }
     symlink("bin/mluva-uninstall", bundle.join("uninstall.sh"))?;
-    symlink("bin/mluva-install", bundle.join("install.sh"))?;
+    for (source_name, target) in [
+        ("setup.sh", "install.sh"),
+        ("app-install.sh", "linux/install.sh"),
+        ("app-uninstall.sh", "linux/uninstall.sh"),
+    ] {
+        copy_file(
+            &source
+                .join("rust/mluva-install/resources")
+                .join(source_name),
+            &bundle.join(target),
+            0o755,
+        )?;
+    }
     let content_hashes = hashes(&bundle)?;
     let mut inventory = fs::File::create(bundle.join(".mluva-native.json"))?;
     inventory.set_permissions(fs::Permissions::from_mode(0o644))?;
@@ -279,7 +291,7 @@ fn package(source: &Path, binaries: &Path, output: &Path) -> Result<()> {
         &json!({
             "schema":1,"application":"com.mluva.Linux","implementation":"rust",
             "version":env!("CARGO_PKG_VERSION"),"sha256":content_hashes,
-            "links":{"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall","install.sh":"bin/mluva-install"}
+            "links":{"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall"}
         }),
     )?;
     inventory.write_all(b"\n")?;

@@ -1,0 +1,444 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "setup_sha256": "4053fc7d3f192319978992e05d947b6c4b0ca9cbe7d9abcbde596e54292c2b58",
+  "cases": [
+    {
+      "name": "help",
+      "args": [
+        "--help"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Usage: bash install.sh [--yes] [--app-only]\n\nInstalls desktop dependencies and Mluva for the current user. On Omarchy\nQuattro, also installs or updates and enables the Mluva shell plugin.\nFedora GNOME compatibility is retained but has not been tested recently.\n\n  --yes       Accept the installation plan without an interactive prompt.\n  --app-only  Install the native app without changing shell plugins.\n\nProvider accounts, credentials and optional local models are configured\nin Mluva after installation. Run as your normal user; packages may need sudo.\n",
+        "stderr": "",
+        "commands": ""
+      }
+    },
+    {
+      "name": "short-help",
+      "args": [
+        "-h"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Usage: bash install.sh [--yes] [--app-only]\n\nInstalls desktop dependencies and Mluva for the current user. On Omarchy\nQuattro, also installs or updates and enables the Mluva shell plugin.\nFedora GNOME compatibility is retained but has not been tested recently.\n\n  --yes       Accept the installation plan without an interactive prompt.\n  --app-only  Install the native app without changing shell plugins.\n\nProvider accounts, credentials and optional local models are configured\nin Mluva after installation. Run as your normal user; packages may need sudo.\n",
+        "stderr": "",
+        "commands": ""
+      }
+    },
+    {
+      "name": "help-first",
+      "args": [
+        "--help",
+        "--unknown"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Usage: bash install.sh [--yes] [--app-only]\n\nInstalls desktop dependencies and Mluva for the current user. On Omarchy\nQuattro, also installs or updates and enables the Mluva shell plugin.\nFedora GNOME compatibility is retained but has not been tested recently.\n\n  --yes       Accept the installation plan without an interactive prompt.\n  --app-only  Install the native app without changing shell plugins.\n\nProvider accounts, credentials and optional local models are configured\nin Mluva after installation. Run as your normal user; packages may need sudo.\n",
+        "stderr": "",
+        "commands": ""
+      }
+    },
+    {
+      "name": "unknown",
+      "args": [
+        "--unknown"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Mluva setup: Unknown option: --unknown. Use --help.\n",
+        "commands": ""
+      }
+    },
+    {
+      "name": "unknown-first",
+      "args": [
+        "--unknown",
+        "--help"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Mluva setup: Unknown option: --unknown. Use --help.\n",
+        "commands": ""
+      }
+    },
+    {
+      "name": "omarchy",
+      "args": [
+        "--yes"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\nOmarchy widget is ready.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\nomarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\nwidget-install\n"
+      }
+    },
+    {
+      "name": "short-yes",
+      "args": [
+        "-y"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\nOmarchy widget is ready.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\nomarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\nwidget-install\n"
+      }
+    },
+    {
+      "name": "app-only",
+      "args": [
+        "--app-only",
+        "--yes"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "omarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\n"
+      }
+    },
+    {
+      "name": "repeated",
+      "args": [
+        "--yes",
+        "--app-only",
+        "--yes",
+        "--app-only"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "omarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\n"
+      }
+    },
+    {
+      "name": "fedora",
+      "args": [
+        "--yes"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nFedora GNOME compatibility has not been tested in recent releases.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "sudo dnf install -y git uv python3-gobject gtk4 libadwaita at-spi2-core gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng webkitgtk6.0 bubblewrap\nnative\n"
+      }
+    },
+    {
+      "name": "fedora-app-only",
+      "args": [
+        "--yes",
+        "--app-only"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nFedora GNOME compatibility has not been tested in recent releases.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "sudo dnf install -y git uv python3-gobject gtk4 libadwaita at-spi2-core gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng webkitgtk6.0 bubblewrap\nnative\n"
+      }
+    },
+    {
+      "name": "unknown-platform",
+      "args": [
+        "--yes"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Mluva setup: Automatic dependency setup is available for Omarchy and Fedora GNOME. See linux/README.md for the runtime requirements.\n",
+        "commands": ""
+      }
+    },
+    {
+      "name": "unconfirmed",
+      "args": [],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 1,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\n",
+        "stderr": "Mluva setup: Run in a terminal to review the plan, or pass --yes.\n",
+        "commands": "omarchy plugin enable --help\nwidget-check\n"
+      }
+    },
+    {
+      "name": "incomplete",
+      "args": [
+        "--yes"
+      ],
+      "environment": {},
+      "tty": null,
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Mluva setup: Run this script from a complete Mluva source checkout.\n",
+        "commands": ""
+      }
+    },
+    {
+      "name": "root",
+      "args": [
+        "--yes"
+      ],
+      "environment": {
+        "MLUVA_SETUP_UID": "0"
+      },
+      "tty": null,
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Mluva setup: Run without sudo; only system package installation needs privileges.\n",
+        "commands": ""
+      }
+    },
+    {
+      "name": "staged",
+      "args": [
+        "--yes"
+      ],
+      "environment": {
+        "MLUVA_INSTALL_HOME": "$CASE/home/staged"
+      },
+      "tty": null,
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Mluva setup: For an isolated staged install, use MLUVA_INSTALL_HOME with bash linux/install.sh.\n",
+        "commands": ""
+      }
+    },
+    {
+      "name": "live-prefix",
+      "args": [
+        "--yes"
+      ],
+      "environment": {
+        "MLUVA_INSTALL_HOME": "$CASE/home"
+      },
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\nOmarchy widget is ready.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\nomarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\nwidget-install\n"
+      }
+    },
+    {
+      "name": "old-manager",
+      "args": [
+        "--yes"
+      ],
+      "environment": {
+        "MLUVA_SETUP_MANAGER_STATUS": "7"
+      },
+      "tty": null,
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Mluva setup: The widget needs Omarchy Quattro's plugin manager. Use --app-only for the native app.\n",
+        "commands": "omarchy plugin enable --help\n"
+      }
+    },
+    {
+      "name": "old-manager-app-only",
+      "args": [
+        "--yes",
+        "--app-only"
+      ],
+      "environment": {
+        "MLUVA_SETUP_MANAGER_STATUS": "7"
+      },
+      "tty": null,
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "omarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\n"
+      }
+    },
+    {
+      "name": "preflight-failure",
+      "args": [
+        "--yes"
+      ],
+      "environment": {
+        "MLUVA_SETUP_PREFLIGHT_STATUS": "7"
+      },
+      "tty": null,
+      "result": {
+        "code": 7,
+        "stdout": "",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\n"
+      }
+    },
+    {
+      "name": "package-failure",
+      "args": [
+        "--yes"
+      ],
+      "environment": {
+        "MLUVA_SETUP_PACKAGE_STATUS": "7"
+      },
+      "tty": null,
+      "result": {
+        "code": 7,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\n",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\nomarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\n"
+      }
+    },
+    {
+      "name": "app-failure",
+      "args": [
+        "--yes"
+      ],
+      "environment": {
+        "MLUVA_SETUP_NATIVE_STATUS": "7"
+      },
+      "tty": null,
+      "result": {
+        "code": 7,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\n",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\nomarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\n"
+      }
+    },
+    {
+      "name": "widget-failure",
+      "args": [
+        "--yes"
+      ],
+      "environment": {
+        "MLUVA_SETUP_PLUGIN_STATUS": "7"
+      },
+      "tty": null,
+      "result": {
+        "code": 7,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\n",
+        "stderr": "Mluva's native app is installed, but widget setup failed. The app can be used on its own.\nResolve the plugin error above, then rerun bash install.sh. Settings and conversations are preserved.\n",
+        "commands": "omarchy plugin enable --help\nwidget-check\nomarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\nwidget-install\n"
+      }
+    },
+    {
+      "name": "fedora-package-failure",
+      "args": [
+        "--yes"
+      ],
+      "environment": {
+        "MLUVA_SETUP_PACKAGE_STATUS": "7"
+      },
+      "tty": null,
+      "result": {
+        "code": 7,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nFedora GNOME compatibility has not been tested in recent releases.\n",
+        "stderr": "",
+        "commands": "sudo dnf install -y git uv python3-gobject gtk4 libadwaita at-spi2-core gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng webkitgtk6.0 bubblewrap\n"
+      }
+    },
+    {
+      "name": "fedora-app-failure",
+      "args": [
+        "--yes"
+      ],
+      "environment": {
+        "MLUVA_SETUP_NATIVE_STATUS": "7"
+      },
+      "tty": null,
+      "result": {
+        "code": 7,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nFedora GNOME compatibility has not been tested in recent releases.\n",
+        "stderr": "",
+        "commands": "sudo dnf install -y git uv python3-gobject gtk4 libadwaita at-spi2-core gobject-introspection dbus-daemon pipewire-utils wl-clipboard procps-ng webkitgtk6.0 bubblewrap\nnative\n"
+      }
+    },
+    {
+      "name": "terminal-accept",
+      "args": [],
+      "environment": {},
+      "tty": "y\n",
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\nContinue? [Y/n] Omarchy widget is ready.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\nomarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\nwidget-install\n"
+      }
+    },
+    {
+      "name": "terminal-accept-word",
+      "args": [],
+      "environment": {},
+      "tty": "YES\n",
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\nContinue? [Y/n] Omarchy widget is ready.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\nomarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\nwidget-install\n"
+      }
+    },
+    {
+      "name": "terminal-default",
+      "args": [],
+      "environment": {},
+      "tty": "\n",
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\nContinue? [Y/n] Omarchy widget is ready.\nSetup complete. Launch $CASE/home/.local/bin/mluva or use the application menu.\nIn Settings → Providers, choose speech and rewriting and connect the accounts or local models you want to use.\n",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\nomarchy pkg add git uv python python-gobject python-cairo gtk4 libadwaita at-spi2-core gobject-introspection dbus pipewire pipewire-audio wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap\nnative\nwidget-install\n"
+      }
+    },
+    {
+      "name": "terminal-decline",
+      "args": [],
+      "environment": {},
+      "tty": "n\n",
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\nContinue? [Y/n] Installation cancelled.\n",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\n"
+      }
+    },
+    {
+      "name": "terminal-decline-word",
+      "args": [],
+      "environment": {},
+      "tty": "No\n",
+      "result": {
+        "code": 0,
+        "stdout": "Install desktop dependencies and the native Mluva app for test-user.\nInstall or update and enable the Omarchy plugin: mluva.dictation.\nContinue? [Y/n] Installation cancelled.\n",
+        "stderr": "",
+        "commands": "omarchy plugin enable --help\nwidget-check\n"
+      }
+    }
+  ]
+}

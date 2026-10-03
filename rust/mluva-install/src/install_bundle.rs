@@ -123,7 +123,7 @@ pub fn validate(root: &Path) -> Result<()> {
     }
     let (mut files, mut links) = (BTreeMap::new(), BTreeMap::new());
     inventory(root, root, &mut files, &mut links)?;
-    let expected_links = json!({"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall","install.sh":"bin/mluva-install"});
+    let expected_links = json!({"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall"});
     if receipt["sha256"] != json!(files)
         || receipt["links"] != json!(links)
         || receipt["links"] != expected_links

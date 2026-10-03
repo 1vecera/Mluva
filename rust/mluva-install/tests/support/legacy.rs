@@ -293,7 +293,7 @@ fn native_legacy_upgrade_matches_released_outcomes() {
         let before = snapshot(&root, &layout, false);
         let bundle = fixture_bundle(&root);
         positive_trap(&root, &layout, name);
-        let result = command(&root, &layout, name, &bundle.join("install.sh"))
+        let result = command(&root, &layout, name, &bundle.join("linux/install.sh"))
             .output()
             .unwrap();
         logs(&root, &result);
@@ -370,7 +370,7 @@ fn native_legacy_service_interruption_and_concurrent_owner() {
         let service = fs::read(root.join("peer/service.json")).unwrap();
         let bundle = fixture_bundle(&root);
         positive_trap(&root, &layout, name);
-        let mut invocation = command(&root, &layout, name, &bundle.join("install.sh"));
+        let mut invocation = command(&root, &layout, name, &bundle.join("linux/install.sh"));
         let result = if name.ends_with("signal") {
             let mut child = invocation
                 .stdout(Stdio::piped())
@@ -393,7 +393,12 @@ fn native_legacy_service_interruption_and_concurrent_owner() {
                     let pid = entry.file_name().to_str()?.parse().ok()?;
                     let args = fs::read(entry.path().join("cmdline")).ok()?;
                     (args.split(|byte| *byte == 0).next()
-                        == Some(bundle.join("install.sh").as_os_str().as_encoded_bytes()))
+                        == Some(
+                            bundle
+                                .join("bin/mluva-install")
+                                .as_os_str()
+                                .as_encoded_bytes(),
+                        ))
                     .then_some(pid)
                 })
                 .collect();
@@ -480,9 +485,14 @@ fn actual_native_bundle_migrates_legacy_state_and_starts() {
     let source =
         PathBuf::from(env::var_os("MLUVA_TEST_NATIVE_BUNDLE").expect("actual bundle required"));
     positive_trap(&root, &layout, "legacy-full");
-    let result = command(&root, &layout, "legacy-full", &source.join("install.sh"))
-        .output()
-        .unwrap();
+    let result = command(
+        &root,
+        &layout,
+        "legacy-full",
+        &source.join("linux/install.sh"),
+    )
+    .output()
+    .unwrap();
     logs(&root, &result);
     assert!(
         result.status.success(),

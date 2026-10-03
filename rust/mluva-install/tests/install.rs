@@ -188,9 +188,24 @@ fn fixture_bundle(root: &Path) -> PathBuf {
     ] {
         fs::copy(repository().join("linux").join(name), bundle.join(name)).unwrap();
     }
-    let links = json!({"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall","install.sh":"bin/mluva-install"});
+    let links = json!({"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall"});
     for (name, target) in links.as_object().unwrap() {
         symlink(target.as_str().unwrap(), bundle.join(name)).unwrap();
+    }
+    fs::create_dir(bundle.join("linux")).unwrap();
+    for (source, target) in [
+        ("setup.sh", "install.sh"),
+        ("app-install.sh", "linux/install.sh"),
+        ("app-uninstall.sh", "linux/uninstall.sh"),
+    ] {
+        fs::copy(
+            repository()
+                .join("rust/mluva-install/resources")
+                .join(source),
+            bundle.join(target),
+        )
+        .unwrap();
+        fs::set_permissions(bundle.join(target), fs::Permissions::from_mode(0o755)).unwrap();
     }
     assert!(
         Command::new("cp")
@@ -318,7 +333,7 @@ fn modern_install_matches_released_public_outcomes() {
         let before = snapshot(&root, &layout, false);
         let bundle = fixture_bundle(&root);
         positive_trap(&root, &layout, name);
-        let result = command(&root, &layout, name, &bundle.join("install.sh"), true)
+        let result = command(&root, &layout, name, &bundle.join("linux/install.sh"), true)
             .output()
             .unwrap();
         logs(&root, &result);
@@ -404,7 +419,7 @@ fn modern_install_rolls_back_all_public_paths() {
         let program = reference
             .clone()
             .map(PathBuf::from)
-            .unwrap_or_else(|| bundle.join("install.sh"));
+            .unwrap_or_else(|| bundle.join("linux/install.sh"));
         if reference.is_none() {
             positive_trap(&root, &layout, name);
         }
@@ -440,7 +455,7 @@ fn native_install_cancellation_and_concurrent_owner_are_preserved() {
             // bwrap's default process arrangement preserves the invoked PID;
             // record the installer's actual PID from /proc rather than guessing.
             let log = fs::File::create(root.join("interrupt.log")).unwrap();
-            let mut child = command(&root, &layout, name, &bundle.join("install.sh"), true)
+            let mut child = command(&root, &layout, name, &bundle.join("linux/install.sh"), true)
                 .stdout(log.try_clone().unwrap())
                 .stderr(log)
                 .spawn()
@@ -459,7 +474,12 @@ fn native_install_cancellation_and_concurrent_owner_are_preserved() {
                     let pid = entry.file_name().to_str()?.parse::<i32>().ok()?;
                     let args = fs::read(entry.path().join("cmdline")).ok()?;
                     if args.split(|byte| *byte == 0).next()
-                        == Some(bundle.join("install.sh").as_os_str().as_encoded_bytes())
+                        == Some(
+                            bundle
+                                .join("bin/mluva-install")
+                                .as_os_str()
+                                .as_encoded_bytes(),
+                        )
                         || fs::read_link(entry.path().join("exe"))
                             .is_ok_and(|path| path == executable)
                     {
@@ -496,7 +516,7 @@ fn native_install_cancellation_and_concurrent_owner_are_preserved() {
             None
         } else {
             Some(
-                command(&root, &layout, name, &bundle.join("install.sh"), true)
+                command(&root, &layout, name, &bundle.join("linux/install.sh"), true)
                     .output()
                     .unwrap(),
             )
@@ -554,9 +574,15 @@ fn actual_bundle_installs_upgrades_and_starts_from_its_public_launcher() {
     positive_trap(&root, &layout, "owned");
     // Exercise the real desktop cache tool on the disposable applications dir.
     fs::remove_file(root.join("fake-bin/update-desktop-database")).unwrap();
-    let result = command(&root, &layout, "owned", &source.join("install.sh"), true)
-        .output()
-        .unwrap();
+    let result = command(
+        &root,
+        &layout,
+        "owned",
+        &source.join("linux/install.sh"),
+        true,
+    )
+    .output()
+    .unwrap();
     logs(&root, &result);
     assert!(
         result.status.success(),
@@ -592,7 +618,7 @@ fn actual_bundle_installs_upgrades_and_starts_from_its_public_launcher() {
     assert!(help.stderr.is_empty());
     // Reinstall from the installed copy itself; moving the old app must neither
     // invalidate its executable nor recursively consume the staging directory.
-    let result = command(&root, &layout, "owned", &app.join("install.sh"), true)
+    let result = command(&root, &layout, "owned", &app.join("linux/install.sh"), true)
         .output()
         .unwrap();
     logs(&root, &result);
@@ -674,7 +700,7 @@ fn native_installer_rejects_damaged_bundles_and_running_apps_before_publication(
         }
         let before = snapshot(&root, &layout, false);
         positive_trap(&root, &layout, name);
-        let result = command(&root, &layout, name, &bundle.join("install.sh"), true)
+        let result = command(&root, &layout, name, &bundle.join("linux/install.sh"), true)
             .output()
             .unwrap();
         if let Some(mut child) = child {
