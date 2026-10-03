@@ -1,6 +1,7 @@
 //! Native desktop widgets; keep stored source and desktop presentation separate.
 
 pub mod appearance_settings;
+pub mod application;
 pub mod application_settings;
 pub mod application_shell;
 pub mod async_runtime;

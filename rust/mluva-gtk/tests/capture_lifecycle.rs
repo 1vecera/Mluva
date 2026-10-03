@@ -497,6 +497,7 @@ fn incognito_notes_and_exit(
                     })
                 }),
                 CaptureControllerCallbacks {
+                    queue_title: capture_ui::titles(&page, runtime, directory.path()),
                     live_config_changed: Rc::new(|_| true),
                     images: Rc::new(|_| Ok(vec![])),
                     completed: Rc::new(move |_| completed.set(true)),
@@ -815,6 +816,7 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
                 })
             }),
             CaptureControllerCallbacks {
+                queue_title: capture_ui::titles(&page, &runtime, directory.path()),
                 live_config_changed: Rc::new(|_| true),
                 images: Rc::new(|_| Ok(vec![])),
                 completed: Rc::new(move |capture| {

@@ -97,13 +97,14 @@ pub enum SettingsKind {
     Providers,
 }
 
-/// Inline controls historically retain these privacy/title choices for the
+/// Inline controls historically retain these privacy/title/Once choices for the
 /// running session even when their settings document cannot be written.
 #[derive(Clone, Copy)]
 pub enum InlineSavePolicy {
     Persistent,
     SessionIncognito,
     SessionTitles,
+    SessionLiveOnce,
 }
 
 #[derive(Clone, Debug)]
@@ -261,6 +262,9 @@ impl ApplicationServices {
                 }
                 InlineSavePolicy::SessionTitles => {
                     current.automatic_titles = proposed.automatic_titles
+                }
+                InlineSavePolicy::SessionLiveOnce => {
+                    current.live_rewrite_enabled = proposed.live_rewrite_enabled
                 }
             }
         }
@@ -495,6 +499,7 @@ impl NativeBinaries {
 
 /// One immutable readiness configuration. Every recording creates its own
 /// transport pair and snapshots current personalization/prompts before capture.
+#[derive(Clone)]
 pub struct CaptureServices {
     pub config: AppConfig,
     speech_key: Option<Secret>,

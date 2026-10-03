@@ -49,6 +49,7 @@ pub struct CaptureFailure {
 /// waiting and retained-target caches. They receive one terminal result here.
 pub struct CaptureControllerCallbacks {
     pub images: CaptureImages,
+    pub queue_title: Rc<dyn Fn(&mluva_core::history::HistoryEntry)>,
     pub completed: Rc<dyn Fn(CaptureCompletion)>,
     pub failed: Rc<dyn Fn(CaptureFailure)>,
     pub cancelled: Rc<dyn Fn(&str)>,
@@ -260,7 +261,7 @@ impl CaptureController {
 
     fn start(self: &Rc<Self>, origin: CaptureOrigin) {
         let view = self.page.view_state();
-        if view.initialization_failed || view.review_active || view.meeting_busy {
+        if view.review_active || view.meeting_busy {
             return;
         }
         let manual = matches!(
@@ -402,8 +403,8 @@ impl CaptureController {
                         ..Default::default()
                     });
                     controller.page.set_status(ready.status());
-                    (controller.callbacks.phase_changed)(CapturePhase::Recording);
                     controller.start_clock();
+                    (controller.callbacks.phase_changed)(CapturePhase::Recording);
                 }
                 Err(CaptureError::Cancelled(cancelled)) => {
                     controller.cancel_finished(&session.identifier, cancelled.status())
@@ -459,6 +460,27 @@ impl CaptureController {
             }
         });
         true
+    }
+
+    /// Release the current identity synchronously, then acknowledge audio and
+    /// provider cleanup before the application exits its main context.
+    pub fn shutdown(&self) -> glib::JoinHandle<()> {
+        self.unbind_keys();
+        self.clear_clock();
+        self.clear_preview();
+        self.consume_live_once();
+        if let Some(live) = self.live.borrow().as_ref() {
+            live.shutdown();
+        }
+        let active = self.active.borrow_mut().take();
+        if let Some(active) = &active {
+            active.session.request_shutdown();
+        }
+        self.runtime.spawn(async move {
+            if let Some(active) = active {
+                active.session.shutdown().await;
+            }
+        })
     }
 
     fn cancel_finished(&self, identifier: &str, status: &str) {
@@ -588,10 +610,7 @@ impl CaptureController {
                         && !controller.page.config().incognito_mode
                         && let Some(entry) = result.history_entry.as_ref().filter(|entry| !text::trim(&entry.raw_text).is_empty())
                     {
-                        let title = mluva_core::titles::fallback_title(&entry.raw_text);
-                        if controller.page.workspace.store.history.save_generated_title(&entry.identifier, &title, None).unwrap_or(false) {
-                            let _ = controller.page.workspace.refresh_title(&entry.identifier);
-                        }
+                        (controller.callbacks.queue_title)(entry);
                     }
                     (controller.callbacks.phase_changed)(CapturePhase::Completed);
                     if finishing_live && let Some(live) = &live {

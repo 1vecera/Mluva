@@ -739,6 +739,7 @@ fn released_capture_live_controls(
                 })
             }),
             CaptureControllerCallbacks {
+                queue_title: capture_ui::titles(&page, runtime, directory.path()),
                 images: Rc::new(|_| Ok(vec![])),
                 completed: Rc::new(|_| {}),
                 failed: Rc::new(|_| {}),

@@ -27,7 +27,7 @@ pub struct PipeWireDevice {
     pub kind: PipeWireDeviceKind,
 }
 
-#[derive(Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PipeWireDeviceCatalog {
     pub microphones: Vec<PipeWireDevice>,
     pub system_outputs: Vec<PipeWireDevice>,

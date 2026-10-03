@@ -4,6 +4,40 @@ use mluva_core::history::HistoryEntry;
 use mluva_gtk::capture_view::CapturePage;
 use serde_json::{Value, json};
 use std::path::Path;
+use std::rc::Rc;
+
+/// Standalone capture comparisons still use the real title owner. The full
+/// application supplies its shared owner and editable PromptStore instead.
+#[allow(dead_code)]
+pub fn titles(
+    page: &Rc<CapturePage>,
+    runtime: &Rc<mluva_gtk::async_runtime::DesktopRuntime>,
+    cwd: &Path,
+) -> Rc<dyn Fn(&HistoryEntry)> {
+    let configured = Rc::downgrade(page);
+    let changed = Rc::downgrade(page);
+    let jobs = mluva_gtk::title_jobs::ConversationTitleJobs::new(
+        page.workspace.store.history.clone(),
+        cwd.to_owned(),
+        runtime.clone(),
+        Rc::new(move || configured.upgrade().expect("live capture page").config()),
+        Rc::new(|| {
+            Ok(mluva_core::prompt_catalog::DEFAULTS
+                .prompts
+                .iter()
+                .find(|prompt| prompt.identifier == "title")
+                .expect("title instructions")
+                .default
+                .clone())
+        }),
+        Rc::new(move |id| {
+            if let Some(page) = changed.upgrade() {
+                let _ = page.workspace.refresh_title(id);
+            }
+        }),
+    );
+    Rc::new(move |entry| jobs.enqueue(entry))
+}
 
 fn widgets(widget: &impl IsA<gtk::Widget>) -> Vec<gtk::Widget> {
     fn append(widget: gtk::Widget, result: &mut Vec<gtk::Widget>) {

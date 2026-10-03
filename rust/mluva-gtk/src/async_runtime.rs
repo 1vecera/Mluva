@@ -8,10 +8,12 @@ use std::{
 
 pub struct DesktopRuntime {
     runtime: Option<tokio::runtime::Runtime>,
+    tasks: tokio_util::task::TaskTracker,
 }
 impl DesktopRuntime {
     pub fn new() -> std::io::Result<Rc<Self>> {
         Ok(Rc::new(Self {
+            tasks: tokio_util::task::TaskTracker::new(),
             runtime: Some(
                 tokio::runtime::Builder::new_multi_thread()
                     .worker_threads(2)
@@ -25,6 +27,13 @@ impl DesktopRuntime {
     /// GTK snapshots and delivery remain on their owner. Enter Tokio separately
     /// for each poll; never keep a runtime guard across an await or block GLib.
     pub fn spawn<F: Future + 'static>(self: &Rc<Self>, future: F) -> glib::JoinHandle<F::Output>
+    where
+        F::Output: 'static,
+    {
+        self.spawn_owner(self.tasks.track_future(future))
+    }
+
+    fn spawn_owner<F: Future + 'static>(self: &Rc<Self>, future: F) -> glib::JoinHandle<F::Output>
     where
         F::Output: 'static,
     {
@@ -53,7 +62,21 @@ impl DesktopRuntime {
         self.runtime
             .as_ref()
             .expect("live desktop runtime")
-            .spawn(future)
+            .spawn(self.tasks.track_future(future))
+    }
+
+    /// Keep GLib and provider I/O alive until every cancelled owner has finished
+    /// its cleanup. The coordinator itself must not count toward the drain.
+    pub fn shutdown<F: Future<Output = ()> + 'static>(
+        self: &Rc<Self>,
+        cleanup: F,
+    ) -> glib::JoinHandle<()> {
+        let tasks = self.tasks.clone();
+        self.spawn_owner(async move {
+            cleanup.await;
+            tasks.close();
+            tasks.wait().await;
+        })
     }
 }
 impl Drop for DesktopRuntime {

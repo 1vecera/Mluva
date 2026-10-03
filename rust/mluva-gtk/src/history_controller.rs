@@ -165,6 +165,10 @@ impl HistoryController {
             .as_ref()
             .map(|retry| retry.identifier.clone())
     }
+
+    pub(crate) fn forget_target(&self, identifier: &str) {
+        self.targets.borrow_mut().retain(|(id, _)| id != identifier);
+    }
     pub fn remember_target(&self, identifier: &str, target: &DeliveryTargetSnapshot) {
         if self.closed.get() {
             return;

@@ -255,6 +255,7 @@ fn released_application_capture_factory() {
                     })
                 }),
                 CaptureControllerCallbacks {
+                    queue_title: capture_ui::titles(&page, &runtime, &services.cwd),
                     images: Rc::new(|_| Ok(vec![])),
                     completed: Rc::new(move |completion| {
                         *captured.borrow_mut() = Some(result(completion.result))

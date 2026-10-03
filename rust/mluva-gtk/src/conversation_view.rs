@@ -946,6 +946,71 @@ impl ConversationWorkspace {
     pub fn documents(&self) -> Vec<MarkdownTextView> {
         self.state.borrow().documents.clone()
     }
+    pub(crate) fn command_state(&self) -> crate::commands::CommandState {
+        let state = self.state.borrow();
+        crate::commands::CommandState {
+            document: state.entry.as_ref().map(|entry| entry.identifier.clone()),
+            editor: state.documents.last().map(|view| view.clone().upcast()),
+            busy: state.busy,
+            private: state.private,
+            live_active: state.live_active,
+            viewing_live: state.viewing_live,
+            live_visible: self.live_box.get_visible(),
+            source_visible: self.live_source_visible.get(),
+            draft_visible: self.live_draft_visible.get(),
+            draft_available: state.live_draft_available,
+            can_copy: self.can_copy_current_output(),
+            polish_sensitive: self.quick_polish.is_sensitive(),
+            send_sensitive: self.send.is_sensitive(),
+            edit_draft: state.entry.as_ref().is_some_and(|entry| {
+                state
+                    .edit_drafts
+                    .keys()
+                    .any(|key| key.0 == entry.identifier)
+            }),
+            ..Default::default()
+        }
+    }
+    pub(crate) fn merge_documents(
+        self: &Rc<Self>,
+        source: &str,
+        target: &str,
+    ) -> StoreResult<bool> {
+        if !self.save_conversation_edits(source) || !self.save_conversation_edits(target) {
+            return Ok(false);
+        }
+        let text = self.prompt_text();
+        let prompt = {
+            let mut state = self.state.borrow_mut();
+            if let Some(id) = state.entry.as_ref().map(|entry| entry.identifier.clone()) {
+                state.drafts.insert(id, text);
+            }
+            [target, source]
+                .iter()
+                .filter_map(|id| state.drafts.get(*id).filter(|value| !value.is_empty()))
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("\n\n")
+        };
+        let entry = self.store.merge(target, source)?;
+        let replies = self.store.replies(&entry.identifier)?;
+        self.show_conversation(Some(entry), &replies, false)?;
+        {
+            let mut state = self.state.borrow_mut();
+            state.drafts.remove(source);
+            state.drafts.insert(target.into(), prompt.clone());
+        }
+        self.prompt.buffer().set_text(&prompt);
+        self.refresh_history()?;
+        Ok(true)
+    }
+    pub(crate) fn forget_documents(&self, identifiers: &std::collections::BTreeSet<String>) {
+        let mut state = self.state.borrow_mut();
+        state.drafts.retain(|id, _| !identifiers.contains(id));
+        state
+            .edit_drafts
+            .retain(|key, _| !identifiers.contains(&key.0));
+    }
     pub fn save_edits(self: &Rc<Self>, key: Option<&EditKey>) -> bool {
         let keys = key.map_or_else(
             || {
