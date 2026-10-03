@@ -48,12 +48,10 @@ impl ApplicationDesktop {
             ApplicationAction::Commands => self.shell.show_commands(),
             ApplicationAction::Meeting => {
                 self.shell.navigate("meeting");
-                self.shell.present();
             }
             ApplicationAction::Personalization => {
                 self.personalization.refresh();
                 self.shell.navigate("personalization");
-                self.shell.present();
             }
             ApplicationAction::Review {
                 operation,
@@ -401,6 +399,7 @@ impl ApplicationDesktop {
         application_commands(
             &context,
             &self.settings.view,
+            &self.settings.command_pages(),
             self.services.prompts.borrow().catalog(),
         )
     }

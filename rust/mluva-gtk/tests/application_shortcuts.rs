@@ -267,14 +267,63 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         assert!(!Path::new(path).exists());
     }
     assert!(std::env::var_os("MLUVA_DISABLE_GLOBAL_SHORTCUT").is_none());
+    let selected = std::env::var("MLUVA_APPLICATION_SHORTCUT_CASE").ok();
+    let fixture: Value =
+        serde_json::from_str(include_str!("fixtures/released-application-shortcuts.json")).unwrap();
+    if selected.is_none() {
+        let cases = fixture["cases"].as_array().unwrap().len();
+        for case in (0..cases)
+            .map(|index| index.to_string())
+            .chain(["readiness".into()])
+        {
+            // libatspi owns a process-global cache even after every tracker is
+            // closed. Each cold application scenario needs a fresh client.
+            let log_path = root.join(format!("shortcut-client-{case}.log"));
+            let log = fs::File::create(&log_path).unwrap();
+            // A clipboard owner can outlive the test client. Its inherited log
+            // descriptor must not keep a stdout pipe's EOF waiter alive.
+            let status = Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "released_application_portal_actions_settings_and_target_delivery",
+                    "--ignored",
+                    "--test-threads=1",
+                    "--nocapture",
+                ])
+                .env("MLUVA_APPLICATION_SHORTCUT_CASE", &case)
+                .stdout(log.try_clone().unwrap())
+                .stderr(log)
+                .status()
+                .unwrap();
+            let output = fs::read_to_string(log_path).unwrap();
+            assert!(status.success(), "case {case}: {output}");
+            assert!(
+                !["WARNING", "CRITICAL"]
+                    .iter()
+                    .any(|word| output.contains(word)),
+                "case {case}: {output}"
+            );
+            print!("{output}");
+        }
+        return;
+    }
+    assert!(
+        selected.as_deref() == Some("readiness")
+            || selected
+                .as_ref()
+                .and_then(|case| case.parse::<usize>().ok())
+                .is_some_and(|index| index < fixture["cases"].as_array().unwrap().len())
+    );
     let tools = root.join("application-shortcut-tools");
     assert_eq!(
         std::env::split_paths(&std::env::var_os("PATH").unwrap()).next(),
         Some(tools.clone())
     );
-    fs::create_dir(&tools).unwrap();
+    fs::create_dir_all(&tools).unwrap();
     let target = PathBuf::from(std::env::var_os("CARGO_TARGET_DIR").unwrap()).join("debug");
-    symlink(target.join("audio-fixture-peer"), tools.join("pw-record")).unwrap();
+    if !tools.join("pw-record").exists() {
+        symlink(target.join("audio-fixture-peer"), tools.join("pw-record")).unwrap();
+    }
     gtk::init().unwrap();
     adw::init().unwrap();
     gtk::Settings::default()
@@ -284,6 +333,16 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         .unwrap()
         .set_gtk_cursor_blink(false);
     adw::StyleManager::default().set_color_scheme(adw::ColorScheme::ForceLight);
+    // Export this process's real GTK accessibility cache before libatspi scans
+    // the desktop. Keep it alive across the tested application owner's exit.
+    let accessibility_window = gtk::Window::builder()
+        .title("Private accessibility lifetime")
+        .default_width(1)
+        .default_height(1)
+        .decorated(false)
+        .build();
+    accessibility_window.present();
+    settle();
     let resources = DocumentResources::from_directory(
         &PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources"),
     );
@@ -293,8 +352,6 @@ fn released_application_portal_actions_settings_and_target_delivery() {
     )
     .unwrap();
     let portal = Portal::new(&target);
-    let fixture: Value =
-        serde_json::from_str(include_str!("fixtures/released-application-shortcuts.json")).unwrap();
     assert_eq!(
         fixture["reference"],
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"
@@ -310,6 +367,9 @@ fn released_application_portal_actions_settings_and_target_delivery() {
     assert_eq!(fixture["pango"], gtk::pango::version_string().as_str());
     let mut count = 0;
     for (index, row) in fixture["cases"].as_array().unwrap().iter().enumerate() {
+        if selected.as_deref() != Some(index.to_string().as_str()) {
+            continue;
+        }
         let params = &row["params"];
         let name = params["name"].as_str().unwrap();
         portal.control("Reset", Some(params["portal"].as_str().unwrap_or("normal")));
@@ -563,9 +623,10 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         peer.stop();
         println!("{name}: {stage_index} application states PASS");
     }
-    key_changed_while_readiness_is_pending(&root, &tools, &target, &resources, &portal);
-    println!(
-        "Compared {} actual application/portal workflows / {count} GTK/target/store states",
-        fixture["cases"].as_array().unwrap().len()
-    );
+    if selected.as_deref() == Some("readiness") {
+        key_changed_while_readiness_is_pending(&root, &tools, &target, &resources, &portal);
+    } else {
+        println!("Compared {count} GTK/target/store states in a fresh application process");
+    }
+    accessibility_window.destroy();
 }

@@ -83,12 +83,14 @@ pub struct ApplicationDesktop {
     readiness_generation: Cell<u64>,
     initialization_pending: Cell<bool>,
     initialization_failed: Cell<bool>,
+    startup_record_requested: Cell<bool>,
     catalog: RefCell<Option<Rc<RewriteClient>>>,
     current: RefCell<Option<CaptureContext>>,
     screenshots: screenshots::ScreenshotOwners,
     overlay: RefCell<Option<OverlayPublisher>>,
     overlay_timer: RefCell<Option<glib::SourceId>>,
     closed: Cell<bool>,
+    shutdown_complete: tokio_util::sync::CancellationToken,
 }
 type Link = Rc<RefCell<Weak<ApplicationDesktop>>>;
 fn linked<R: Default>(link: &Link, call: impl FnOnce(&Rc<ApplicationDesktop>) -> R) -> R {
@@ -401,12 +403,17 @@ impl ApplicationDesktop {
             readiness_generation: Cell::new(0),
             initialization_pending: Cell::new(false),
             initialization_failed: Cell::new(false),
+            startup_record_requested: Cell::new(false),
             catalog: RefCell::new(None),
             current: RefCell::new(None),
             screenshots: screenshots::ScreenshotOwners::default(),
-            overlay: RefCell::new(application.dbus_connection().map(OverlayPublisher::new)),
+            overlay: RefCell::new(application.dbus_connection().and_then(|connection| {
+                let mut publisher = OverlayPublisher::new(connection);
+                publisher.clear().then_some(publisher)
+            })),
             overlay_timer: RefCell::new(None),
             closed: Cell::new(false),
+            shutdown_complete: tokio_util::sync::CancellationToken::new(),
         });
         link.replace(Rc::downgrade(&owner));
         let weak = Rc::downgrade(&owner);

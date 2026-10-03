@@ -46,6 +46,20 @@ pub struct ApplicationSettings {
 }
 
 impl ApplicationSettings {
+    /// The released search index starts with Prompts and excludes informational
+    /// maturity rows. Visible preference navigation retains its separate order.
+    pub(crate) fn command_pages(&self) -> [adw::PreferencesPage; 7] {
+        [
+            self.prompts.widget.clone(),
+            self.workspace.widget.clone(),
+            self.providers.widget.clone(),
+            self.capture.capture.clone(),
+            self.capture.audio.clone(),
+            self.capture.privacy.clone(),
+            self.capture.advanced.clone(),
+        ]
+    }
+
     pub fn new(
         services: Rc<ApplicationServices>,
         runtime: Rc<DesktopRuntime>,

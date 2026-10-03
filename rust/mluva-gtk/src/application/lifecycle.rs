@@ -142,8 +142,12 @@ impl ApplicationDesktop {
                         owner.shell.show_message("Capture services are ready.");
                     }
                     if initializing { owner.start_shortcuts(); }
+                    if owner.startup_record_requested.replace(false) {
+                        owner.toggle_recording(CaptureOrigin::Manual);
+                    }
                 }
                 Err(error) => {
+                    owner.startup_record_requested.set(false);
                     if initializing {
                         owner.initialization_failed.set(true);
                         owner.page().set_initialization_error(&error.to_string());
@@ -333,8 +337,23 @@ impl ApplicationDesktop {
             client.cancel();
         }
     }
+    /// A cold public Record action also opens the application. Preserve that
+    /// first toggle while native credential/readiness work yields to GTK.
+    pub fn record_after_startup(self: &Rc<Self>) {
+        if self.closed.get() {
+            return;
+        }
+        if self.initialization_pending.get() {
+            self.startup_record_requested.set(true);
+        } else {
+            self.toggle_recording(CaptureOrigin::Manual);
+        }
+    }
     pub(super) fn toggle_recording(self: &Rc<Self>, origin: CaptureOrigin) {
         if self.closed.get() {
+            return;
+        }
+        if self.startup_record_requested.replace(false) {
             return;
         }
         if self.capture.phase().is_none() {
@@ -669,6 +688,9 @@ impl ApplicationDesktop {
         if self.closed.get() {
             return false;
         }
+        if self.startup_record_requested.replace(false) {
+            return true;
+        }
         if self.capture.cancel() {
             return true;
         }
@@ -824,14 +846,20 @@ impl ApplicationDesktop {
         }
     }
     pub fn shutdown(self: &Rc<Self>) -> glib::JoinHandle<()> {
+        let complete = self.shutdown_complete.clone();
+        if self.closed.replace(true) {
+            return glib::MainContext::default().spawn_local(async move {
+                complete.cancelled().await;
+            });
+        }
         let hold = self.application.hold();
-        self.closed.set(true);
         self.close_screenshot_monitoring();
         let capture_identifier = self.capture.session_identifier();
         if let Some(identifier) = capture_identifier {
             self.preserve_interrupted_screenshots(&identifier);
         }
         self.initialization_pending.set(false);
+        self.startup_record_requested.set(false);
         self.readiness_generation
             .set(self.readiness_generation.get() + 1);
         self.clear_overlay();
@@ -861,6 +889,7 @@ impl ApplicationDesktop {
         glib::MainContext::default().spawn_local(async move {
             let _ = closed.await;
             drop(hold);
+            complete.cancel();
         })
     }
 }

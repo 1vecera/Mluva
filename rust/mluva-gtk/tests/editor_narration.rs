@@ -3,7 +3,6 @@
 use glib::variant::ToVariant;
 use serde_json::{Value, json};
 use std::{
-    collections::VecDeque,
     fs,
     io::Write,
     os::unix::{fs::symlink, process::CommandExt},
@@ -12,8 +11,12 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+#[path = "support/accessibility.rs"]
+#[allow(dead_code)]
+mod accessibility;
 #[path = "../../mluva-workflows/tests/support/http.rs"]
 mod http;
+use accessibility::Accessibility;
 
 fn command(program: &str, args: &[&str]) -> Vec<u8> {
     let output = Command::new(program).args(args).output().unwrap();
@@ -137,90 +140,7 @@ impl Drop for Editor {
     }
 }
 
-/// Read the public accessibility protocol directly, independently of Mluva's
-/// implementation and the reference observer's libatspi bindings.
-struct Accessibility(gio::DBusConnection);
 impl Accessibility {
-    fn open() -> Self {
-        let address = std::env::var("AT_SPI_BUS_ADDRESS").unwrap();
-        assert!(address.starts_with("unix:abstract=offscreen-atspi-"));
-        Self(
-            gio::DBusConnection::for_address_sync(
-                &address,
-                gio::DBusConnectionFlags::AUTHENTICATION_CLIENT
-                    | gio::DBusConnectionFlags::MESSAGE_BUS_CONNECTION,
-                None,
-                gio::Cancellable::NONE,
-            )
-            .unwrap(),
-        )
-    }
-    fn call(
-        &self,
-        node: &(String, String),
-        interface: &str,
-        method: &str,
-        args: Option<&glib::Variant>,
-    ) -> Option<glib::Variant> {
-        self.0
-            .call_sync(
-                Some(&node.0),
-                &node.1,
-                interface,
-                method,
-                args,
-                None,
-                gio::DBusCallFlags::NONE,
-                1000,
-                gio::Cancellable::NONE,
-            )
-            .ok()
-    }
-    fn button(&self, label: &str) -> Option<(String, String)> {
-        let mut queue = VecDeque::from([(
-            "org.a11y.atspi.Registry".into(),
-            "/org/a11y/atspi/accessible/root".into(),
-        )]);
-        let mut visited = 0;
-        while let Some(node) = queue.pop_front() {
-            visited += 1;
-            assert!(visited < 3000);
-            let name = self
-                .call(
-                    &node,
-                    "org.freedesktop.DBus.Properties",
-                    "Get",
-                    Some(&("org.a11y.atspi.Accessible", "Name").to_variant()),
-                )
-                .and_then(|value| value.child_value(0).as_variant())
-                .and_then(|value| value.str().map(str::to_owned));
-            if name.as_deref() == Some(label)
-                && self
-                    .call(&node, "org.a11y.atspi.Accessible", "GetInterfaces", None)
-                    .and_then(|value| value.child_value(0).get::<Vec<String>>())
-                    .is_some_and(|interfaces| {
-                        interfaces
-                            .iter()
-                            .any(|value| value == "org.a11y.atspi.Action")
-                    })
-            {
-                return Some(node);
-            }
-            if let Some(children) =
-                self.call(&node, "org.a11y.atspi.Accessible", "GetChildren", None)
-            {
-                let children = children.child_value(0);
-                for index in 0..children.n_children() {
-                    let child = children.child_value(index);
-                    queue.push_back((
-                        child.child_value(0).str().unwrap().into(),
-                        child.child_value(1).str().unwrap().into(),
-                    ));
-                }
-            }
-        }
-        None
-    }
     fn click(&self, editor: &mut Editor, label: &str) {
         let mut button = None;
         editor.until(|| {

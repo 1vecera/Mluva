@@ -6,6 +6,7 @@ pub mod application_settings;
 pub mod application_shell;
 pub mod async_runtime;
 mod atspi;
+pub mod bootstrap;
 pub mod capture_controller;
 pub mod capture_preferences;
 pub mod capture_view;

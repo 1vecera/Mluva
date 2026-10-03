@@ -153,6 +153,11 @@ struct Helper {
 impl Helper {
     fn launch(root: &Path, executable: &Path) -> Self {
         let mut child = Command::new(executable)
+            .args(std::env::var_os("MLUVA_TEST_APP_NARRATION").map(|_| "--narrate"))
+            .env_remove("DISPLAY")
+            .env_remove("WAYLAND_DISPLAY")
+            .env_remove("DBUS_SESSION_BUS_ADDRESS")
+            .env_remove("AT_SPI_BUS_ADDRESS")
             .env(
                 "PATH",
                 format!(
@@ -322,6 +327,10 @@ impl Case {
 #[test]
 #[ignore = "requires private network/PID/devices, X11 clipboard and native process peers"]
 fn released_annotation_cli_and_owned_cancellation() {
+    // Exercise the same external protocol through either native entry point.
+    let executable = std::env::var_os("MLUVA_TEST_APP_NARRATION")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from(env!("CARGO_BIN_EXE_mluva-narrate")));
     let fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-annotation-cli.json")).unwrap();
     assert_eq!(
@@ -332,8 +341,7 @@ fn released_annotation_cli_and_owned_cancellation() {
         let params = &row["params"];
         eprintln!("annotation case: {}", params["name"]);
         let mut case = Case::new(row, Fault::None);
-        let mut helper =
-            Helper::launch(case.root(), Path::new(env!("CARGO_BIN_EXE_mluva-narrate")));
+        let mut helper = Helper::launch(case.root(), &executable);
         let (microphone, memory, staged, owned) = if params["no_audio"] == true {
             (Value::Null, Value::Null, BTreeSet::new(), BTreeSet::new())
         } else {
@@ -401,7 +409,7 @@ fn released_annotation_cli_and_owned_cancellation() {
     let mut stop_row = fixture["cases"][0].clone();
     stop_row["responses"] = json!([]);
     let mut case = Case::new(&stop_row, Fault::Finalizing);
-    let mut helper = Helper::launch(case.root(), Path::new(env!("CARGO_BIN_EXE_mluva-narrate")));
+    let mut helper = Helper::launch(case.root(), &executable);
     let (_, _, staged, owned) = case.recording(&mut helper);
     helper.control(b"stop\n", false);
     until(|| case.root().join("microphone-signal").exists());
@@ -429,7 +437,7 @@ fn released_annotation_cli_and_owned_cancellation() {
     // Keep a real provider response pending after observing the uploaded WAV.
     // Cancellation must finish without waiting for the provider's response.
     let mut case = Case::new(&fixture["cases"][0], Fault::Uploading);
-    let mut helper = Helper::launch(case.root(), Path::new(env!("CARGO_BIN_EXE_mluva-narrate")));
+    let mut helper = Helper::launch(case.root(), &executable);
     let (_, _, staged, owned) = case.recording(&mut helper);
     helper.control(b"stop\n", false);
     until(|| case.root().join("provider-incoming").exists());
@@ -451,7 +459,7 @@ fn released_annotation_cli_and_owned_cancellation() {
     // executable from a directory without its adjacent memory janitor.
     let mut case = Case::new(&stop_row, Fault::None);
     let copied = case.root().join("mluva-narrate");
-    fs::copy(env!("CARGO_BIN_EXE_mluva-narrate"), &copied).unwrap();
+    fs::copy(&executable, &copied).unwrap();
     let mut helper = Helper::launch(case.root(), &copied);
     let (exit, stdout, stderr) = helper.finish();
     assert_eq!(exit, 1);

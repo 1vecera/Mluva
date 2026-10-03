@@ -325,7 +325,8 @@ fn native_commands_and_settings_match_the_released_widgets() {
             state: Rc::new(move || command_state(&current.borrow(), &first, &second)),
             invoke: Rc::new(|_| {}),
         });
-        let commands = application_commands(&context, &settings, prompts.catalog());
+        let commands =
+            application_commands(&context, &settings, &settings.pages(), prompts.catalog());
         assert_eq!(
             metadata(&commands),
             case["observations"][0],
@@ -468,6 +469,7 @@ fn settings_binding_contract() {
     let target = messages.clone();
     let command = settings_commands(
         &settings,
+        &settings.pages(),
         Rc::new(move |_| target.borrow_mut().push("settings".into())),
     )
     .into_iter()
@@ -733,7 +735,12 @@ fn root_window_contract(root: &std::path::Path, data: &std::path::Path) {
             invoke,
             toggle_sidebar,
             commands: Rc::new(move || {
-                application_commands(&context, &indexed, prompts.borrow().catalog())
+                application_commands(
+                    &context,
+                    &indexed,
+                    &indexed.pages(),
+                    prompts.borrow().catalog(),
+                )
             }),
             cancel_capture: Rc::new(move || {
                 cancelled.borrow_mut().push("cancel-capture".into());

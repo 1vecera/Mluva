@@ -149,6 +149,7 @@ fn command(
 pub fn application_commands(
     context: &Rc<CommandContext>,
     settings: &Rc<SettingsView>,
+    settings_pages: &[adw::PreferencesPage],
     prompts: &[Prompt],
 ) -> Vec<Command> {
     let snapshot = Rc::new((context.state)());
@@ -354,13 +355,18 @@ pub fn application_commands(
             Availability::Always,
         ));
     }
-    commands.extend(settings_commands(settings, context.invoke.clone()));
+    commands.extend(settings_commands(
+        settings,
+        settings_pages,
+        context.invoke.clone(),
+    ));
     commands
 }
 
-/// Discover actual preference rows, including nested advanced settings, in GTK's visible order.
+/// Discover actual rows within the application's ordered preference index.
 pub fn settings_commands(
     settings: &Rc<SettingsView>,
+    pages: &[adw::PreferencesPage],
     invoke: Rc<dyn Fn(CommandAction)>,
 ) -> Vec<Command> {
     fn visit(
@@ -423,8 +429,8 @@ pub fn settings_commands(
         }
     }
     let mut output = Vec::new();
-    for page in settings.pages() {
-        visit(page.upcast_ref(), &page, "", settings, &invoke, &mut output);
+    for page in pages {
+        visit(page.upcast_ref(), page, "", settings, &invoke, &mut output);
     }
     output
 }
