@@ -34,8 +34,19 @@ name = "mluva-uninstall"
 path = "src/uninstall.rs"
 
 [[bin]]
+name = "mluva-install"
+path = "src/install.rs"
+
+[[bin]]
 name = "editor-launcher-fixture-peer"
 path = "tests/support/editor_peer.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "install-dependency-fixture-peer"
+path = "tests/support/install_peer.rs"
 test = false
 doc = false
 bench = false
