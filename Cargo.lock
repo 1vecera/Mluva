@@ -1320,13 +1320,16 @@ dependencies = [
 name = "mluva-install"
 version = "1.6.0"
 dependencies = [
+ "flate2",
  "glib",
  "libc",
  "regex",
  "rusqlite",
  "serde_json",
  "sha2",
+ "tar",
  "tempfile",
+ "toml 0.9.12+spec-1.1.0",
 ]
 
 [[package]]

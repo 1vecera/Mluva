@@ -1,5 +1,6 @@
 //! Assemble only the reviewed native runtime. Development peers, Python
 //! implementations, model caches and user data are never package inputs.
+mod package_licenses;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
@@ -25,21 +26,27 @@ const BINARIES: &[&str] = &[
 ];
 
 fn main() -> ExitCode {
-    let args: Vec<_> = env::args_os().skip(1).collect();
+    let mut args: Vec<_> = env::args_os().skip(1).collect();
+    let archive = args.first().is_some_and(|value| value == "--archive");
+    if archive {
+        args.remove(0);
+    }
+    let usage = "Usage: mluva-package [--archive] SOURCE_DIRECTORY BINARY_DIRECTORY OUTPUT_PATH";
     if args.len() == 1 && matches!(args[0].to_str(), Some("-h" | "--help")) {
         println!(
-            "Usage: mluva-package SOURCE_DIRECTORY BINARY_DIRECTORY OUTPUT_DIRECTORY\n\nAssemble a native Mluva runtime bundle from this release's assets and built ELF binaries.\nThe output directory must not exist; no application is installed or started."
+            "{usage}\n\nAssemble a native runtime directory, or a reproducible tar.gz with --archive.\nUses the source lockfile and cached crate archives for dependency notices.\nThe output must not exist; no application is installed or started."
         );
         return ExitCode::SUCCESS;
     }
     if args.len() != 3 {
-        eprintln!("Usage: mluva-package SOURCE_DIRECTORY BINARY_DIRECTORY OUTPUT_DIRECTORY");
+        eprintln!("{usage}");
         return ExitCode::from(2);
     }
     match package(
         Path::new(&args[0]),
         Path::new(&args[1]),
         Path::new(&args[2]),
+        archive,
     ) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
@@ -179,7 +186,46 @@ fn hashes(root: &Path) -> Result<BTreeMap<String, String>> {
     Ok(output)
 }
 
-fn package(source: &Path, binaries: &Path, output: &Path) -> Result<()> {
+fn archive(root: &Path, target: &Path) -> Result<()> {
+    fn append<W: Write>(
+        builder: &mut tar::Builder<W>,
+        root: &Path,
+        path: &Path,
+        prefix: &Path,
+    ) -> Result<()> {
+        builder.append_path_with_name(path, prefix.join(path.strip_prefix(root)?))?;
+        if path.symlink_metadata()?.is_dir() {
+            let mut entries = fs::read_dir(path)?.collect::<std::io::Result<Vec<_>>>()?;
+            entries.sort_by_key(|entry| entry.file_name());
+            for entry in entries {
+                append(builder, root, &entry.path(), prefix)?;
+            }
+        }
+        Ok(())
+    }
+    let file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(target)?;
+    let gzip = flate2::GzBuilder::new()
+        .mtime(0)
+        .write(file, flate2::Compression::best());
+    let mut builder = tar::Builder::new(gzip);
+    builder.mode(tar::HeaderMode::Deterministic);
+    builder.follow_symlinks(false);
+    append(
+        &mut builder,
+        root,
+        root,
+        Path::new(&format!("mluva-{}", env!("CARGO_PKG_VERSION"))),
+    )?;
+    let file = builder.into_inner()?.finish()?;
+    file.set_permissions(fs::Permissions::from_mode(0o644))?;
+    file.sync_all()?;
+    Ok(())
+}
+
+fn package(source: &Path, binaries: &Path, output: &Path, compressed: bool) -> Result<()> {
     let source = source.canonicalize()?;
     let binaries = binaries.canonicalize()?;
     let output = std::path::absolute(output)?;
@@ -307,6 +353,7 @@ fn package(source: &Path, binaries: &Path, output: &Path) -> Result<()> {
             0o755,
         )?;
     }
+    package_licenses::stage(&source, &bundle)?;
     let content_hashes = hashes(&bundle)?;
     let mut inventory = fs::File::create(bundle.join(".mluva-native.json"))?;
     inventory.set_permissions(fs::Permissions::from_mode(0o644))?;
@@ -321,8 +368,15 @@ fn package(source: &Path, binaries: &Path, output: &Path) -> Result<()> {
     inventory.write_all(b"\n")?;
     inventory.sync_all()?;
     fs::set_permissions(&bundle, fs::Permissions::from_mode(0o755))?;
+    let publication = if compressed {
+        let path = temporary.path().join("runtime.tar.gz");
+        archive(&bundle, &path)?;
+        path
+    } else {
+        bundle
+    };
     // RENAME_NOREPLACE closes the ownership race between preflight and publication.
-    let from = std::ffi::CString::new(bundle.as_os_str().as_encoded_bytes())?;
+    let from = std::ffi::CString::new(publication.as_os_str().as_encoded_bytes())?;
     let to = std::ffi::CString::new(output.as_os_str().as_encoded_bytes())?;
     if unsafe {
         libc::renameat2(
@@ -337,8 +391,9 @@ fn package(source: &Path, binaries: &Path, output: &Path) -> Result<()> {
         return Err(std::io::Error::last_os_error().into());
     }
     println!(
-        "Native Mluva {} bundle created at {}",
+        "Native Mluva {} {} created at {}",
         env!("CARGO_PKG_VERSION"),
+        if compressed { "archive" } else { "bundle" },
         output.display()
     );
     Ok(())

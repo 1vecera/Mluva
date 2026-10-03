@@ -3,7 +3,7 @@
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     env, fs,
     io::Read,
     os::unix::{
@@ -47,20 +47,20 @@ fn source(root: &Path, repository: &Path) -> PathBuf {
     for file in [
         "LICENSE",
         "manifest.json",
+        "Cargo.toml",
+        "Cargo.lock",
+        "rust-toolchain.toml",
         "linux/configure-input-helper.sh",
         "linux/configure-recording-overlay.sh",
         "linux/install-narrated-editor.sh",
         "linux/build-narrated-editor.sh",
-        "rust/mluva-install/resources/setup.sh",
-        "rust/mluva-install/resources/app-install.sh",
-        "rust/mluva-install/resources/app-uninstall.sh",
     ] {
         let target = source.join(file);
         fs::create_dir_all(target.parent().unwrap()).unwrap();
         fs::copy(repository.join(file), target).unwrap();
     }
     for directory in [
-        "rust/mluva-gtk/resources",
+        "rust",
         "linux/quickshell",
         "linux/gnome-extension",
         "linux/resources",
@@ -86,7 +86,13 @@ fn command(root: &Path, executable: &Path) -> Command {
     }
     command
         .env_clear()
-        .env("PATH", "/usr/bin:/bin")
+        .env(
+            "PATH",
+            format!(
+                "{}:/usr/bin:/bin",
+                Path::new(env!("CARGO")).parent().unwrap().display()
+            ),
+        )
         .env("HOME", root.join("home"))
         .env("XDG_CONFIG_HOME", root.join("home/.config"))
         .env("XDG_DATA_HOME", root.join("home/.local/share"))
@@ -95,6 +101,12 @@ fn command(root: &Path, executable: &Path) -> Command {
         .stdin(Stdio::null());
     if let Some(value) = env::var_os("LD_LIBRARY_PATH") {
         command.env("LD_LIBRARY_PATH", value);
+    }
+    command.env("CARGO", env!("CARGO"));
+    for name in ["CARGO_HOME", "RUSTUP_HOME"] {
+        if let Some(value) = env::var_os(name) {
+            command.env(name, value);
+        }
     }
     command
 }
@@ -274,6 +286,198 @@ fn actual_native_bundle_is_complete_private_and_atomic() {
             "{name}"
         );
     }
+    assert_eq!(
+        fs::read(output.join("third-party-licenses/onnx-asr/LICENSE"))
+            .expect("The native ASR data and derived implementation need their upstream notice"),
+        fs::read(repository.join("rust/mluva-asr/resources/onnx-asr-LICENSE")).unwrap()
+    );
+    let dependency_inventory: Value =
+        serde_json::from_slice(&fs::read(output.join("RUST-DEPENDENCIES.json")).unwrap()).unwrap();
+    assert_eq!(dependency_inventory["schema"], 1);
+    // The statically linked standard library is outside Cargo.lock. Compare its
+    // complete upstream notice payload to the actual pinned compiler installation.
+    let rustc = Path::new(env!("CARGO")).with_file_name("rustc");
+    let sysroot = command(&root, &rustc)
+        .args(["--print", "sysroot"])
+        .output()
+        .unwrap();
+    assert!(sysroot.status.success());
+    let compiler_docs =
+        Path::new(String::from_utf8(sysroot.stdout).unwrap().trim()).join("share/doc/rust");
+    let mut compiler_notices = vec!["COPYRIGHT-library.html".to_owned()];
+    compiler_notices.extend(
+        fs::read_dir(compiler_docs.join("licenses"))
+            .unwrap()
+            .map(|entry| format!("licenses/{}", entry.unwrap().file_name().to_str().unwrap())),
+    );
+    compiler_notices.sort();
+    for name in &compiler_notices {
+        assert_eq!(
+            fs::read(
+                output
+                    .join("third-party-licenses/rust-standard-library")
+                    .join(name)
+            )
+            .expect("The linked Rust standard library needs its upstream notices"),
+            fs::read(compiler_docs.join(name)).unwrap()
+        );
+    }
+    let compiler = &dependency_inventory["toolchain"];
+    assert_eq!(compiler["notices"], json!(compiler_notices));
+    assert_eq!(
+        compiler["notice_directory"],
+        "third-party-licenses/rust-standard-library"
+    );
+    let version = command(&root, &rustc).arg("--version").output().unwrap();
+    assert!(version.status.success());
+    assert_eq!(
+        compiler["rustc"].as_str().unwrap(),
+        String::from_utf8(version.stdout).unwrap().trim()
+    );
+    let dependencies = dependency_inventory["packages"].as_array().unwrap();
+    let identities: BTreeSet<_> = dependencies
+        .iter()
+        .map(|item| {
+            (
+                item["name"].as_str().unwrap().to_owned(),
+                item["version"].as_str().unwrap().to_owned(),
+            )
+        })
+        .collect();
+    assert_eq!(identities.len(), dependencies.len());
+    // Cargo metadata also resolves optional edges that are not active in this
+    // build (for example ort's ndarray feature). Keep their notices, but require
+    // coverage of every dependency in Cargo's independently selected build tree.
+    let tree = command(&root, Path::new(env!("CARGO")))
+        .current_dir(&source)
+        .args([
+            "tree",
+            "--locked",
+            "--offline",
+            "--workspace",
+            "--target",
+            dependency_inventory["target"].as_str().unwrap(),
+            "--edges",
+            "normal,build",
+            "--prefix",
+            "none",
+            "--format",
+            "{p}",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        tree.status.success(),
+        "{}",
+        String::from_utf8_lossy(&tree.stderr)
+    );
+    let expected: BTreeSet<_> = String::from_utf8(tree.stdout)
+        .unwrap()
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .filter_map(|line| {
+            let mut fields = line.split_whitespace();
+            let name = fields.next().unwrap();
+            let version = fields.next().unwrap().strip_prefix('v').unwrap();
+            if fields
+                .next()
+                .is_some_and(|location| location.starts_with("(/"))
+            {
+                None
+            } else {
+                Some((name.to_owned(), version.to_owned()))
+            }
+        })
+        .collect();
+    assert!(
+        expected.is_subset(&identities),
+        "Missing built dependency notices: {:?}",
+        expected.difference(&identities).collect::<Vec<_>>()
+    );
+    let lock: toml::Value =
+        toml::from_str(&fs::read_to_string(source.join("Cargo.lock")).unwrap()).unwrap();
+    for dependency in dependencies {
+        let locked = lock["package"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|item| {
+                item["name"].as_str() == dependency["name"].as_str()
+                    && item["version"].as_str() == dependency["version"].as_str()
+            })
+            .unwrap();
+        assert_eq!(dependency["checksum"].as_str(), locked["checksum"].as_str());
+        assert!(
+            dependency["license"]
+                .as_str()
+                .is_some_and(|license| !license.is_empty())
+        );
+        let notices = dependency["notices"].as_array().unwrap();
+        assert!(!notices.is_empty());
+        for notice in notices {
+            assert!(
+                !fs::read(
+                    output
+                        .join(dependency["notice_directory"].as_str().unwrap())
+                        .join(notice.as_str().unwrap())
+                )
+                .unwrap()
+                .is_empty()
+            );
+        }
+    }
+    // ring's upstream LICENSE explicitly refers to both root notices and these
+    // nested once_cell licenses. A root-only collector would lose them.
+    let ring = dependencies
+        .iter()
+        .find(|item| item["name"] == "ring")
+        .unwrap();
+    let ring_identity = format!("ring-{}", ring["version"].as_str().unwrap());
+    let cache = PathBuf::from(env::var_os("CARGO_HOME").unwrap()).join("registry/cache");
+    let ring_archives: Vec<_> = fs::read_dir(cache)
+        .unwrap()
+        .map(|directory| {
+            directory
+                .unwrap()
+                .path()
+                .join(format!("{ring_identity}.crate"))
+        })
+        .filter(|path| path.is_file())
+        .collect();
+    let ring_archive = ring_archives
+        .iter()
+        .find(|path| hash(path) == ring["checksum"].as_str().unwrap())
+        .unwrap();
+    for notice in [
+        "LICENSE",
+        "LICENSE-BoringSSL",
+        "LICENSE-other-bits",
+        "src/polyfill/once_cell/LICENSE-APACHE",
+        "src/polyfill/once_cell/LICENSE-MIT",
+    ] {
+        assert!(ring["notices"].as_array().unwrap().contains(&json!(notice)));
+        let upstream = Command::new("/usr/bin/tar")
+            .arg("-xzOf")
+            .arg(ring_archive)
+            .arg(format!("{ring_identity}/{notice}"))
+            .output()
+            .unwrap();
+        assert!(
+            upstream.status.success(),
+            "{}",
+            String::from_utf8_lossy(&upstream.stderr)
+        );
+        assert_eq!(
+            fs::read(
+                output
+                    .join(ring["notice_directory"].as_str().unwrap())
+                    .join(notice)
+            )
+            .unwrap(),
+            upstream.stdout
+        );
+    }
+    assert!(output.join("THIRD_PARTY_NOTICES.md").is_file());
     assert_eq!(fs::read_dir(root.join("home")).unwrap().count(), 0);
     let help = command(&root, &output.join("bin/mluva"))
         .arg("--help")
@@ -301,6 +505,36 @@ fn actual_native_bundle_is_complete_private_and_atomic() {
         0,
         "Package validation initialized user stores"
     );
+    no_stages(&root);
+
+    // A bad cached archive must fail before publication. Overlay all matching
+    // cache paths only in this child namespace; the actual cache is unchanged.
+    let damaged = root.join("damaged.crate");
+    fs::write(&damaged, b"corrupt dependency archive\n").unwrap();
+    let rejected_notice = root.join("rejected-notice");
+    let mut blocked = command(&root, Path::new("/usr/bin/bwrap"));
+    blocked.args(["--die-with-parent", "--bind", "/", "/", "--dev", "/dev"]);
+    for path in &ring_archives {
+        blocked.arg("--ro-bind").arg(&damaged).arg(path);
+    }
+    let blocked = blocked
+        .arg("--")
+        .arg(env!("CARGO_BIN_EXE_mluva-package"))
+        .arg(&source)
+        .arg(binaries)
+        .arg(&rejected_notice)
+        .output()
+        .unwrap();
+    assert!(!blocked.status.success());
+    assert!(
+        String::from_utf8_lossy(&blocked.stderr).contains(&format!(
+            "No checksum-verified cached archive for {ring_identity}"
+        )),
+        "{}",
+        String::from_utf8_lossy(&blocked.stderr)
+    );
+    assert!(!rejected_notice.exists());
+    assert_eq!(hash(ring_archive), ring["checksum"].as_str().unwrap());
     no_stages(&root);
 
     // Refusing an occupied or dangling destination must not change its content.
@@ -389,6 +623,80 @@ fn actual_native_bundle_is_complete_private_and_atomic() {
         "preserve\n"
     );
     assert_eq!(fs::read_dir(&collision).unwrap().count(), 1);
+    no_stages(&root);
+    // Cargo's cache can be relative to the caller, while the source checkout is
+    // elsewhere. Both metadata and notice collection must use that same cache.
+    symlink(env::var_os("CARGO_HOME").unwrap(), root.join("cargo-cache")).unwrap();
+    let archive = root.join("runtime.tar.gz");
+    let archived = command(&root, Path::new(env!("CARGO_BIN_EXE_mluva-package")))
+        .current_dir(&root)
+        .env("CARGO_HOME", "cargo-cache")
+        .arg("--archive")
+        .arg(&source)
+        .arg(binaries)
+        .arg(&archive)
+        .output()
+        .unwrap();
+    assert!(
+        archived.status.success(),
+        "{}",
+        String::from_utf8_lossy(&archived.stderr)
+    );
+    assert_eq!(
+        fs::metadata(&archive).unwrap().permissions().mode() & 0o777,
+        0o644
+    );
+    let extracted = root.join("extracted");
+    fs::create_dir(&extracted).unwrap();
+    let unpacked = Command::new("/usr/bin/tar")
+        .args(["-xzf"])
+        .arg(&archive)
+        .arg("-C")
+        .arg(&extracted)
+        .output()
+        .unwrap();
+    assert!(
+        unpacked.status.success(),
+        "{}",
+        String::from_utf8_lossy(&unpacked.stderr)
+    );
+    assert_eq!(fs::read_dir(&extracted).unwrap().count(), 1);
+    let extracted = extracted.join("mluva-1.6.0");
+    let (mut archived_files, archived_links) = inventory(&extracted);
+    archived_files.remove(".mluva-native.json");
+    assert_eq!(archived_files, files);
+    assert_eq!(archived_links, links);
+    assert_eq!(
+        hash(&extracted.join(".mluva-native.json")),
+        hash(&output.join(".mluva-native.json"))
+    );
+    let repeated = root.join("repeated.tar.gz");
+    let result = command(&root, Path::new(env!("CARGO_BIN_EXE_mluva-package")))
+        .arg("--archive")
+        .arg(&source)
+        .arg(binaries)
+        .arg(&repeated)
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert_eq!(
+        hash(&archive),
+        hash(&repeated),
+        "Archive depends on staging time, owner or directory iteration order"
+    );
+    let occupied = command(&root, Path::new(env!("CARGO_BIN_EXE_mluva-package")))
+        .arg("--archive")
+        .arg(&source)
+        .arg(binaries)
+        .arg(&archive)
+        .output()
+        .unwrap();
+    assert!(!occupied.status.success());
+    assert_eq!(hash(&archive), hash(&repeated));
     no_stages(&root);
     eprintln!("Actual native bundle verified at {}", output.display());
 }
