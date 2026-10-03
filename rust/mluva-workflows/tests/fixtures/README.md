@@ -1,5 +1,7 @@
 # Released recording workflow observations
 
+[Native screenshot capture](screenshot-capture-evidence.md) adds 24 actual released picker/process/file workflows, including the real 180-second deadline. Four additional faults cover dropped callers/owners, stubborn descendants and a nonregular output file. Application attachment/editor ownership and stopping audio before awaiting the picker remain pending.
+
 [Meeting recording and desktop ownership](../../../mluva-gtk/tests/fixtures/meeting-owner-evidence.md) adds fourteen actual released recorder-to-HTTP/archive transactions and nine application Meeting workflows/47 GTK states. The native recorder/session/readiness/retry and GTK owner now join real audio staging, archives and capture preferences. Additional cancellation/close faults protect untransferred audio and late publication. Complete root assembly and Meeting acceptance remain Pending.
 
 [Earlier Meeting workflow evidence](../../../mluva-gtk/tests/fixtures/meeting-evidence.md) adds fifteen actual Scribe diarization/archive/retry workflows/23 states against unchanged release observations. Incognito erasure, failed private index saves, missing recordings and preserved retry identities match. A separate native in-flight request-drop fault erases owned finalized audio without a late archive write. Complete application lifecycle remains pending.
