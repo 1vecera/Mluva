@@ -12,6 +12,7 @@ use crate::{
     commands::{CommandContext, CommandState, application_commands},
     conversation_view::{ConversationCallbacks, ConversationWorkspace},
     document_layout::DocumentResources,
+    global_shortcuts::GlobalShortcutService,
     history_controller::{HistoryController, HistoryControllerCallbacks},
     live_controller::{LiveCallbacks, LiveController},
     meeting_controller::{MeetingController, MeetingControllerCallbacks},
@@ -39,17 +40,17 @@ use std::{
 
 mod actions;
 mod lifecycle;
+mod shortcuts;
 
 pub type FinishScreenshots = Rc<dyn Fn(&str, Option<&str>)>;
 
-/// The compositor/picker layer attaches to the same root through these owned
+/// The picker/editor layer attaches to the same root through these owned
 /// actions. No default implementation silently drops a desktop action.
 pub struct ApplicationPlatform {
     pub screenshot: Rc<dyn Fn()>,
     pub edit_screenshot: Rc<dyn Fn(&str)>,
     pub close_screenshot: Rc<dyn Fn(&str)>,
     pub finish_screenshots: FinishScreenshots,
-    pub rebind_shortcuts: Rc<dyn Fn(&AppConfig)>,
     pub compact_recording: Rc<dyn Fn(bool)>,
     pub privacy_changed: Rc<dyn Fn(bool)>,
     pub close: Rc<dyn Fn()>,
@@ -79,10 +80,15 @@ pub struct ApplicationDesktop {
     binaries: NativeBinaries,
     platform: ApplicationPlatform,
     tracker: RefCell<Option<FocusedTextTargetTracker>>,
+    shortcuts: RefCell<Option<Rc<GlobalShortcutService>>>,
+    shortcut_generation: Cell<u64>,
+    approved_recording: RefCell<Option<String>>,
+    approved_rewrite: RefCell<Option<String>>,
     devices: RefCell<PipeWireDeviceCatalog>,
     titles: Rc<ConversationTitleJobs>,
     ready: RefCell<Option<Rc<CaptureServices>>>,
     readiness_generation: Cell<u64>,
+    initialization_pending: Cell<bool>,
     initialization_failed: Cell<bool>,
     catalog: RefCell<Option<Rc<RewriteClient>>>,
     current: RefCell<Option<CaptureContext>>,
@@ -373,10 +379,15 @@ impl ApplicationDesktop {
             binaries,
             platform,
             tracker: RefCell::new(tracker),
+            shortcuts: RefCell::new(None),
+            shortcut_generation: Cell::new(0),
+            approved_recording: RefCell::new(None),
+            approved_rewrite: RefCell::new(None),
             devices: RefCell::new(catalog),
             titles,
             ready: RefCell::new(None),
             readiness_generation: Cell::new(0),
+            initialization_pending: Cell::new(false),
             initialization_failed: Cell::new(false),
             catalog: RefCell::new(None),
             current: RefCell::new(None),

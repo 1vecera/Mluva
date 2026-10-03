@@ -200,6 +200,10 @@ fn isolated() -> PathBuf {
 #[ignore = "requires isolated GTK/session/network/device runner and native PCM/Codex peers"]
 fn released_assembled_application_and_shutdown() {
     let root = isolated();
+    assert!(
+        std::env::var_os("MLUVA_DISABLE_GLOBAL_SHORTCUT").is_some(),
+        "match the released observer's disabled portal environment"
+    );
     let tools = root.join("application-tools");
     fs::create_dir(&tools).unwrap();
     let target = PathBuf::from(std::env::var_os("CARGO_TARGET_DIR").unwrap()).join("debug");
@@ -329,7 +333,6 @@ fn released_assembled_application_and_shutdown() {
                 edit_screenshot: Rc::new(|_| panic!("unexpected screenshot edit")),
                 close_screenshot: Rc::new(|_| panic!("unexpected screenshot close")),
                 finish_screenshots: Rc::new(|_, _| {}),
-                rebind_shortcuts: Rc::new(|_| {}),
                 compact_recording: Rc::new(|_| {}),
                 privacy_changed: Rc::new(|_| panic!("unexpected privacy change")),
                 close: Rc::new(move || closing.set(true)),

@@ -1,7 +1,6 @@
 use super::*;
 use crate::{
     capture_controller::{CaptureCompletion, CaptureFailure, CaptureLaunch},
-    capture_view::CaptureShortcutState,
     overlay_state::OverlayState,
 };
 use mluva_core::{config::AudioRetentionPolicy, screenshots::ImageInput};
@@ -89,69 +88,31 @@ impl ApplicationDesktop {
     pub(super) fn refresh_status(&self) {
         self.page().refresh_output_visibility();
     }
-    pub fn set_shortcuts(
-        &self,
-        recording: Option<String>,
-        rewrite: Option<String>,
-        available: bool,
-    ) {
-        if self.closed.get() {
-            return;
-        }
-        self.settings.capture.set_shortcuts_available(available);
-        self.page().set_shortcuts(CaptureShortcutState {
-            recording_trigger: recording.clone(),
-            rewrite_trigger: rewrite.clone(),
-            shortcut_service_available: available,
-            target_tracking_available: self.tracker.borrow().is_some(),
-        });
-        self.settings
-            .capture
-            .shortcut_status
-            .set_subtitle(&recording.map_or_else(
-                || {
-                    if available {
-                        format!("{} is not currently approved; the on-screen copy-only button remains available", self.services.config().global_recording_key)
-                    } else {
-                        "Disabled for this Mluva process".into()
-                    }
-                },
-                |trigger| {
-                    let preferred = self.services.config().global_recording_key;
-                    if trigger.eq_ignore_ascii_case(&preferred) {
-                        format!("Ready — press {trigger} once to start and again to stop")
-                    } else {
-                        format!("Ready — the desktop assigned {trigger}; the saved preference is {preferred}")
-                    }
-                },
-            ));
-        self.settings
-            .capture
-            .latest_shortcut_status
-            .set_subtitle(&rewrite.map_or_else(
-                || if available {
-                    "Shift+F9 is not approved. Open the latest conversation from the shell menu.".into()
-                } else {
-                    "Shift+F9 needs desktop approval. The shell menu also opens your latest dictation.".into()
-                },
-                |trigger| format!("{trigger} opens the latest conversation"),
-            ));
-    }
     pub(super) fn initialize_services(self: &Rc<Self>, initialization: bool) {
         if self.closed.get() || self.capture.phase().is_some() {
             return;
         }
         let generation = self.readiness_generation.get() + 1;
-        let recovering = initialization && self.initialization_failed.get();
+        // Startup/Retry belongs to the latest readiness generation even when
+        // settings supersede the first asynchronous credential lookup.
+        if initialization {
+            self.initialization_pending.set(true);
+        }
         self.readiness_generation.set(generation);
         self.ready.borrow_mut().take();
         self.history.set_workflow_factory(None);
         self.page().record_button.set_sensitive(false);
+        let shortcuts = if initialization {
+            self.close_shortcuts()
+        } else {
+            None
+        };
         let services = self.services.clone();
         let binaries = self.binaries.clone();
         let expected = services.config();
         let weak = Rc::downgrade(self);
         self.runtime.spawn(async move {
+            if let Some(shortcuts) = shortcuts { shortcuts.await; }
             let result = services.capture_services(binaries.clone()).await;
             let Some(owner) = weak.upgrade().filter(|owner| {
                 !owner.closed.get()
@@ -160,24 +121,30 @@ impl ApplicationDesktop {
             }) else {
                 return;
             };
+            let initializing = owner.initialization_pending.replace(false);
+            let recovering = initializing && owner.initialization_failed.get();
             match result {
                 Ok(ready) => {
                     owner.ready.replace(Some(Rc::new(ready)));
                     owner.install_history_factory();
-                    if initialization {
+                    if initializing {
                         owner.initialization_failed.set(false);
                         owner.page().setup_callout.set_reveal_child(false);
                     }
                     owner.idle();
+                    if recovering || (initializing && !initialization) {
+                        // A setting changed before readiness can leave a stale
+                        // unavailable-service message behind the approved key.
+                        owner.page().set_status("Ready");
+                    }
                     if recovering {
                         owner.review.dismiss();
-                        owner.page().set_status("Ready");
                         owner.shell.show_message("Capture services are ready.");
                     }
-                    (owner.platform.rebind_shortcuts)(&owner.services.config());
+                    if initializing { owner.start_shortcuts(); }
                 }
                 Err(error) => {
-                    if initialization {
+                    if initializing {
                         owner.initialization_failed.set(true);
                         owner.page().set_initialization_error(&error.to_string());
                         owner.meeting.page.record_button.set_sensitive(false);
@@ -278,7 +245,7 @@ impl ApplicationDesktop {
                 self.meeting.sync_config(persisted);
             }
             InlineEffect::Titles if !config.automatic_titles => self.titles.cancel(),
-            InlineEffect::Shortcut => (self.platform.rebind_shortcuts)(&config),
+            InlineEffect::Shortcut => self.rebind_shortcut(),
             InlineEffect::Routing => self.meeting.sync_config(true),
             _ => {}
         }
@@ -845,6 +812,7 @@ impl ApplicationDesktop {
     pub fn shutdown(self: &Rc<Self>) -> glib::JoinHandle<()> {
         let hold = self.application.hold();
         self.closed.set(true);
+        self.initialization_pending.set(false);
         self.readiness_generation
             .set(self.readiness_generation.get() + 1);
         self.clear_overlay();
@@ -853,6 +821,7 @@ impl ApplicationDesktop {
         self.review.shutdown();
         self.live.shutdown();
         self.pending.close();
+        let shortcuts = self.close_shortcuts();
         (self.platform.close)();
         if let Some(mut tracker) = self.tracker.borrow_mut().take() {
             tracker.close();
@@ -863,6 +832,9 @@ impl ApplicationDesktop {
         let meeting = self.meeting.shutdown();
         self.shell.window.destroy();
         let closed = self.runtime.shutdown(async move {
+            if let Some(shortcuts) = shortcuts {
+                shortcuts.await;
+            }
             let _ = capture.await;
             let _ = history.await;
             let _ = meeting.await;
