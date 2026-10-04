@@ -19,6 +19,7 @@ case "$mode" in
     prompt-editor) suites=(prompt_editor) ;;
     images) suites=(application); image_case="${2:-}"; editor="${3:-${MLUVA_TEST_EDITOR:-}}" ;;
     screenshots) suites=(application_screenshots) ;;
+    text-targets) suites=(text_target) ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
 esac
 test_arguments=()
@@ -87,7 +88,9 @@ if [[ "$mode" == images ]]; then
         exit 3
     fi
 fi
-if [[ "$mode" != live-components ]]; then
+if [[ "$mode" == text-targets ]]; then
+    cargo build --locked -p mluva-gtk --example text_target_peer
+elif [[ "$mode" != live-components ]]; then
     cargo build --locked -p mluva-gtk --example private_input \
         -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
         -p mluva-providers --bin codex-fixture-peer --bin credential-fixture-peer

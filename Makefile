@@ -70,11 +70,11 @@ linux-shortcut-test:
 linux-overlay-test:
 	bash linux/tests/run_recording_overlay_smoke.sh
 
-linux-text-target-test: linux-python-setup
-	bash linux/tests/run_native_text_target_smoke.sh
+linux-text-target-test:
+	bash linux/tests/run_application_smoke.sh text-targets
 
 linux-conversation-test: linux-python-setup
-	MLUVA_SMOKE=conversation bash linux/tests/run_native_text_target_smoke.sh tmp/conversation-smoke
+	bash linux/tests/run_conversation_smoke.sh
 
 .PHONY: linux-compact-workspace-test
 linux-compact-workspace-test:

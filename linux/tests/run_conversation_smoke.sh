@@ -86,25 +86,20 @@ run_private_session() {
     fi
 
     cd "${LINUX_ROOT}"
-    if [[ "${MLUVA_SMOKE:-}" == conversation ]]; then
-        local scenario width height scenario_dir
-        for specification in conversation:1060:780 lifecycle:1060:780 rewrite-settings-lifecycle:1060:780 \
-            rewrite-models:420:520 rewrite-models-error:480:640 scrollbars:480:640 scrollbars-dark:1060:780 empty:480:640 \
-            recording:420:520 processing:480:640 rewriting:480:640 error:480:640 incognito:480:640 dark:1060:780; do
-            IFS=: read -r scenario width height <<<"${specification}"
-            scenario_dir="${artifact_dir}/${scenario}"
-            mkdir -p "${scenario_dir}/config" "${scenario_dir}/data"
-            OFFSCREEN_SESSION_ROOT="${artifact_dir}/session" OFFSCREEN_ARTIFACT_DIR="${scenario_dir}" \
-                XDG_CONFIG_HOME="${scenario_dir}/config" XDG_DATA_HOME="${scenario_dir}/data" \
-                PYTHONPATH=. GTK_A11Y=atspi ADW_DISABLE_PORTAL=1 GSK_RENDERER=cairo \
-                MLUVA_DISABLE_GLOBAL_SHORTCUT=1 MLUVA_UI_SCENARIO="${scenario}" \
-                MLUVA_UI_WIDTH="${width}" MLUVA_UI_HEIGHT="${height}" \
-                uv run --locked python tests/conversation_ui_smoke.py
-        done
-    else
-        OFFSCREEN_ARTIFACT_DIR="${artifact_dir}" PYTHONPATH=. GTK_A11Y=atspi \
-            uv run --locked python tests/native_text_target_smoke.py
-    fi
+    local scenario width height scenario_dir
+    for specification in conversation:1060:780 lifecycle:1060:780 rewrite-settings-lifecycle:1060:780 \
+        rewrite-models:420:520 rewrite-models-error:480:640 scrollbars:480:640 scrollbars-dark:1060:780 empty:480:640 \
+        recording:420:520 processing:480:640 rewriting:480:640 error:480:640 incognito:480:640 dark:1060:780; do
+        IFS=: read -r scenario width height <<<"${specification}"
+        scenario_dir="${artifact_dir}/${scenario}"
+        mkdir -p "${scenario_dir}/config" "${scenario_dir}/data"
+        OFFSCREEN_SESSION_ROOT="${artifact_dir}/session" OFFSCREEN_ARTIFACT_DIR="${scenario_dir}" \
+            XDG_CONFIG_HOME="${scenario_dir}/config" XDG_DATA_HOME="${scenario_dir}/data" \
+            PYTHONPATH=. GTK_A11Y=atspi ADW_DISABLE_PORTAL=1 GSK_RENDERER=cairo \
+            MLUVA_DISABLE_GLOBAL_SHORTCUT=1 MLUVA_UI_SCENARIO="${scenario}" \
+            MLUVA_UI_WIDTH="${width}" MLUVA_UI_HEIGHT="${height}" \
+            uv run --locked python tests/conversation_ui_smoke.py
+    done
 
     cleanup_accessibility
     trap - EXIT
@@ -130,7 +125,7 @@ if [[ "${1:-}" == "--private-session" ]]; then
     exit
 fi
 
-output_argument="${1:-${project_root}/tmp/native-text-target-smoke}"
+output_argument="${1:-${project_root}/tmp/conversation-smoke}"
 mkdir -p -- "${output_argument}"
 output_dir="$(realpath -- "${output_argument}")"
 case "${output_dir}" in
@@ -143,7 +138,7 @@ esac
 
 for command_name in dbus-run-session gdbus gsettings import realpath seq uv xvfb-run; do
     command -v "${command_name}" >/dev/null 2>&1 || {
-        echo "Missing native text-target smoke dependency: ${command_name}" >&2
+        echo "Missing conversation smoke dependency: ${command_name}" >&2
         exit 1
     }
 done
@@ -153,14 +148,14 @@ done
 }
 for executable_path in "${ATSPI_LIBEXEC}/at-spi-bus-launcher" "${ATSPI_LIBEXEC}/at-spi2-registryd"; do
     [[ -x "${executable_path}" ]] || {
-        echo "Missing native text-target smoke dependency: ${executable_path}" >&2
+        echo "Missing conversation smoke dependency: ${executable_path}" >&2
         exit 1
     }
 done
 
 artifact_dir="$(mktemp -d "${output_dir}/run.XXXXXX")"
 session_root="${artifact_dir}/session"
-runtime_dir="$(mktemp -d /tmp/mluva-target-runtime.XXXXXX)"
+runtime_dir="$(mktemp -d /tmp/mluva-conversation-runtime.XXXXXX)"
 mkdir -p -- \
     "${session_root}/home" \
     "${session_root}/config" \
@@ -211,7 +206,7 @@ fi
 xvfb-run "${display_args[@]}" -e "${artifact_dir}/xvfb.log" -s "-screen 0 1280x900x24" \
     dbus-run-session -- "${script_path}" --private-session "${artifact_dir}"
 
-printf 'Native text-target smoke passed; evidence: %s\n' "${artifact_dir}"
+printf 'Conversation smoke passed; evidence: %s\n' "${artifact_dir}"
 
 cleanup_runtime
 trap - EXIT
