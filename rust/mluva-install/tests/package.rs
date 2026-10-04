@@ -699,5 +699,96 @@ fn actual_native_bundle_is_complete_private_and_atomic() {
     assert!(!occupied.status.success());
     assert_eq!(hash(&archive), hash(&repeated));
     no_stages(&root);
+
+    // Ordinary tar extraction applies the user's umask. Private source files
+    // remain valid release inputs; installation restores the declared layout.
+    for (mask, file_mode, executable_mode) in [(0o027, 0o640, 0o750), (0o077, 0o600, 0o700)] {
+        let extraction = root.join(format!("extraction-{mask:o}"));
+        fs::create_dir(&extraction).unwrap();
+        let mut unpack = Command::new("/usr/bin/tar");
+        unsafe {
+            unpack.pre_exec(move || {
+                libc::umask(mask);
+                Ok(())
+            });
+        }
+        let unpacked = unpack
+            .args(["-xzf"])
+            .arg(&archive)
+            .arg("-C")
+            .arg(&extraction)
+            .output()
+            .unwrap();
+        assert!(
+            unpacked.status.success(),
+            "{}",
+            String::from_utf8_lossy(&unpacked.stderr)
+        );
+        let payload = extraction.join(format!("mluva-{}", env!("CARGO_PKG_VERSION")));
+        assert_eq!(
+            fs::metadata(payload.join(".mluva-native.json"))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o7777,
+            file_mode
+        );
+        assert_eq!(
+            fs::metadata(payload.join("bin/mluva"))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o7777,
+            executable_mode
+        );
+        let home = root.join(format!("install-{mask:o}"));
+        fs::create_dir(&home).unwrap();
+        let note = home.join("personal-note");
+        fs::write(&note, b"preserve this user's work\n").unwrap();
+        let install = || {
+            command(&root, &payload.join("bin/mluva-install"))
+                .env("MLUVA_INSTALL_HOME", &home)
+                .output()
+                .unwrap()
+        };
+        let result = install();
+        assert!(
+            result.status.success(),
+            "umask {mask:o}: {}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        let app = home.join(".local/share/mluva/app");
+        let mut expected = files.clone();
+        expected.insert(
+            ".mluva-native.json".into(),
+            hash(&output.join(".mluva-native.json")),
+        );
+        assert_eq!(inventory(&app), (expected.clone(), links.clone()));
+        for (relative, bad_mode) in [
+            ("resources/com.mluva.Linux.svg", 0o666),
+            ("bin/mluva-asr-worker", 0o4755),
+            ("resources", 0o777),
+        ] {
+            let path = payload.join(relative);
+            let original = fs::metadata(&path).unwrap().permissions();
+            fs::set_permissions(&path, fs::Permissions::from_mode(bad_mode)).unwrap();
+            let rejected = install();
+            fs::set_permissions(path, original).unwrap();
+            assert!(
+                !rejected.status.success(),
+                "{relative}: unsafe permissions admitted"
+            );
+            assert!(String::from_utf8_lossy(&rejected.stderr).contains("Invalid bundle"));
+            assert_eq!(
+                inventory(&app),
+                (expected.clone(), links.clone()),
+                "{relative}: previous installation changed"
+            );
+            assert_eq!(fs::read(&note).unwrap(), b"preserve this user's work\n");
+        }
+        eprintln!(
+            "Plain tar extraction with umask {mask:o} installs normalized files and retains permission guards"
+        );
+    }
     eprintln!("Actual native bundle verified at {}", output.display());
 }

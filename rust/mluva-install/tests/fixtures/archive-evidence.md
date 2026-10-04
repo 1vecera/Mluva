@@ -1,6 +1,6 @@
 # Native archive and dependency notices
 
-`mluva-package --archive SOURCE_DIRECTORY BINARY_DIRECTORY OUTPUT_PATH` now produces a gzip-compressed tar archive with one `mluva-1.6.0/` root. Directory output remains available without `--archive`. Both forms use the same explicit nine-executable runtime, content receipt, normalized modes and private staging; `RENAME_NOREPLACE` preserves existing or concurrently created destinations. Neither command installs or launches Mluva.
+`mluva-package --archive SOURCE_DIRECTORY BINARY_DIRECTORY OUTPUT_PATH` produces a gzip-compressed tar archive with one `mluva-<version>/` root. Directory output remains available without `--archive`. Both forms use the same explicit nine-executable runtime, content receipt, normalized modes and private staging; `RENAME_NOREPLACE` preserves existing or concurrently created destinations. Neither command installs or launches Mluva.
 
 The archive stores sorted paths with tar's deterministic headers and a zero gzip timestamp. Managed symlinks remain links. Reproducibility here means identical archive bytes from identical compiled executables and resource/notice inputs; it does not establish reproducible compilation across machines or compilers. Build and package with the repository's pinned compiler and populated Cargo cache:
 
@@ -8,6 +8,20 @@ The archive stores sorted paths with tar's deterministic headers and a zero gzip
 cargo build --locked --release --workspace --bins --target-dir tmp/native-build
 tmp/native-build/release/mluva-package --archive . tmp/native-build/release tmp/mluva-native.tar.gz
 ```
+
+## Restrictive extraction permissions
+
+4 October 2026 follow-up: released 2.0.0 rejects an otherwise valid archive after ordinary GNU tar extraction under umask 027 or 077. Its admission requires exact 0755/0644 source modes, whereas the immutable v1.6.0 installer copies with explicit `install -m` modes. The published 2.0.0 instructions retain `tar --same-permissions` as the workaround.
+
+The repair accepts only reduced group/other permission bits at source admission. Owner permissions must remain exact, and group/world writes or special bits are rejected. The staged copy restores 0755 directories/executables and 0644 data, then runs the existing strict destination validation before publication. Content hashes, managed links, native executable architecture and transaction ownership remain enforced.
+
+The existing actual-archive owner now extracts through `/usr/bin/tar -xzf` under both masks, observes the reduced modes and runs each extracted native installer into fresh private state. Its independent inventory checks every installed mode/hash/link. Writable data, a setuid executable and a writable directory each cause refusal without altering the previous installed inventory or an unrelated user file. No new fixture, test-only production seam or duplicate test is introduced.
+
+The extended owner fails on unchanged 2.0.0 at the intended umask-027 install with `Invalid bundle file permissions` in `tmp/native-umask-before.log`. The repaired optimized owner passes both masks and all permission controls in `tmp/native-umask-after.log`. All ten installation/migration/source-entry workflows pass in `tmp/native-umask-install-gates.log`. The final actual `make linux-test` passes 140 tests, zero failures and 68 ignored checks across 98 suites, both strict Clippy configurations, formatting and generated consistency in `tmp/native-umask-full-gate-accepted.log`.
+
+The full gate additionally needs short disk-backed temporary paths outside nested `/tmp` mounts and private device nodes. Earlier scratch-runner attempts exposed socket length, Incognito's disk-versus-memory assertion, inaccessible `/dev/null` and hidden helper paths; their logs remain in `tmp/native-umask-{install-gates,full-gate,full-gate-short-disk,full-gate-final}.log`. The accepted runner binds a task-owned disk directory at `/run/mluva-tests` inside private namespaces. No product behavior or fixture was changed for those failures.
+
+This follow-up is prepared for review; it does not publish a release or replace the installed 2.0.0 app. The [native cutover record](../../../../docs/verification/rust-cutover/README.md) documents delivery and Python removal. Historical archive receipts below retain their original checkpoint and do not establish current complete platform or user-experience acceptance.
 
 ## Notice sources and scope
 

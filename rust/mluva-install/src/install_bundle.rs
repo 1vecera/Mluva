@@ -11,6 +11,18 @@ use std::{
 };
 
 pub fn copy(source: &Path, target: &Path) -> Result<()> {
+    copy_tree(source, source, target)
+}
+
+fn file_mode(relative: &str) -> u32 {
+    if relative.starts_with("bin/") || relative.ends_with(".sh") {
+        0o755
+    } else {
+        0o644
+    }
+}
+
+fn copy_tree(root: &Path, source: &Path, target: &Path) -> Result<()> {
     if !source.symlink_metadata()?.is_dir() {
         return Err("The bundle must be a real directory.".into());
     }
@@ -21,7 +33,7 @@ pub fn copy(source: &Path, target: &Path) -> Result<()> {
         let destination = target.join(entry.file_name());
         let kind = entry.file_type()?;
         if kind.is_dir() {
-            copy(&entry.path(), &destination)?;
+            copy_tree(root, &entry.path(), &destination)?;
         } else if kind.is_symlink() {
             symlink(fs::read_link(entry.path())?, destination)?;
         } else if kind.is_file() {
@@ -34,9 +46,12 @@ pub fn copy(source: &Path, target: &Path) -> Result<()> {
                 .create_new(true)
                 .open(&destination)?;
             std::io::copy(&mut input, &mut output)?;
-            output.set_permissions(fs::Permissions::from_mode(
-                input.metadata()?.permissions().mode() & 0o777,
-            ))?;
+            let path = entry.path();
+            let relative = path
+                .strip_prefix(root)?
+                .to_str()
+                .ok_or("Invalid bundle filename")?;
+            output.set_permissions(fs::Permissions::from_mode(file_mode(relative)))?;
         } else {
             return Err("The bundle contains an unexpected file type.".into());
         }
@@ -45,11 +60,30 @@ pub fn copy(source: &Path, target: &Path) -> Result<()> {
 }
 
 pub fn validate(root: &Path) -> Result<()> {
+    validate_bundle(root, false)
+}
+
+/// A normal archive extraction may clear group/other bits through umask.
+/// Keep owner permissions and reject every permission outside the reviewed mode.
+pub fn validate_source(root: &Path) -> Result<()> {
+    validate_bundle(root, true)
+}
+
+fn valid_mode(actual: u32, reviewed: u32, extracted: bool) -> bool {
+    if extracted {
+        actual & 0o700 == reviewed & 0o700 && actual & !reviewed == 0
+    } else {
+        actual == reviewed
+    }
+}
+
+fn validate_bundle(root: &Path, extracted: bool) -> Result<()> {
     fn inventory(
         root: &Path,
         path: &Path,
         files: &mut BTreeMap<String, String>,
         links: &mut BTreeMap<String, PathBuf>,
+        extracted: bool,
     ) -> Result<()> {
         for entry in fs::read_dir(path)? {
             let entry = entry?;
@@ -61,19 +95,18 @@ pub fn validate(root: &Path) -> Result<()> {
                 .to_owned();
             let meta = path.symlink_metadata()?;
             if meta.is_dir() {
-                if meta.permissions().mode() & 0o777 != 0o755 {
+                if !valid_mode(meta.permissions().mode() & 0o7777, 0o755, extracted) {
                     return Err("Invalid bundle directory permissions.".into());
                 }
-                inventory(root, &path, files, links)?;
+                inventory(root, &path, files, links, extracted)?;
             } else if meta.is_symlink() {
                 links.insert(relative, fs::read_link(path)?);
             } else if meta.is_file() {
-                let mode = if relative.starts_with("bin/") || relative.ends_with(".sh") {
-                    0o755
-                } else {
-                    0o644
-                };
-                if meta.permissions().mode() & 0o7777 != mode {
+                if !valid_mode(
+                    meta.permissions().mode() & 0o7777,
+                    file_mode(&relative),
+                    extracted,
+                ) {
                     return Err("Invalid bundle file permissions.".into());
                 }
                 if relative == ".mluva-native.json" {
@@ -122,7 +155,7 @@ pub fn validate(root: &Path) -> Result<()> {
         return Err("The native release inventory does not match this installer.".into());
     }
     let (mut files, mut links) = (BTreeMap::new(), BTreeMap::new());
-    inventory(root, root, &mut files, &mut links)?;
+    inventory(root, root, &mut files, &mut links, extracted)?;
     let expected_links = json!({"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall"});
     if receipt["sha256"] != json!(files)
         || receipt["links"] != json!(links)
