@@ -60,6 +60,8 @@ Keep a test when it would catch an observable regression: lost text, an incorrec
 
 `make linux-omarchy-test` exercises the native status publisher and bridge with production QML through [independent release observations](rust/mluva-gtk/tests/fixtures/omarchy-widget-evidence.md). It needs the installed Omarchy shell, Quickshell, Xvfb, xdotool, ImageMagick, FFmpeg/ffprobe and the normal Rust/bubblewrap/D-Bus prerequisites. The runner isolates display, HOME/XDG, buses, network/PID namespaces and devices, and uses software Mesa. It preserves review, focus, motion and countdown checks plus the three-event, 60-fps preview-contraction replay. `MLUVA_PANEL_REPLAY=1 make linux-omarchy-test` runs only that replay. No Python setup is needed.
 
+Theme changes use the [native theme comparison](rust/mluva-gtk/tests/fixtures/theme-evidence.md), which includes its guarded command. It preserves open-window symlink switching, applied colors, recovery and cleanup and runs alongside the independent document-widget comparison. It needs no Python.
+
 The following checks still exercise Python during the port. Their Make targets prepare that environment automatically; run `make linux-python-setup` before a direct `uv` command:
 
 | Remaining Python owner | Focused check |

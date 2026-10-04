@@ -201,41 +201,4 @@ fn document_reading_editing_and_revisions_match_released_native_widget_observati
     }
     window.destroy();
     drop(_theme);
-
-    // Exercise the real native theme lifecycle on an isolated synthetic palette.
-    let theme_directory = root.join("state/theme-lifecycle");
-    std::fs::create_dir_all(&theme_directory).unwrap();
-    let palette_path = theme_directory.join("colors.toml");
-    let palette = |mode: &str| {
-        format!(
-            "background=\"#151c1a\"\nforeground=\"#edf5ef\"\naccent=\"#88dabb\"\nmode=\"{mode}\"\n"
-        )
-    };
-    let manager = adw::StyleManager::default();
-    let previous = manager.color_scheme();
-    std::fs::write(&palette_path, palette("dark")).unwrap();
-    let theme = ThemeController::apply(
-        &theme_directory,
-        &PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/fonts"),
-    )
-    .unwrap();
-    assert_eq!(manager.color_scheme(), adw::ColorScheme::ForceDark);
-    let wait_for_scheme = |expected| {
-        let deadline = Instant::now() + Duration::from_secs(4);
-        while manager.color_scheme() != expected && Instant::now() < deadline {
-            settle();
-        }
-        assert_eq!(manager.color_scheme(), expected);
-    };
-    std::fs::write(&palette_path, palette("light")).unwrap();
-    wait_for_scheme(adw::ColorScheme::ForceLight);
-    // The previous scheme is also light; first apply dark to observe removal restoring it.
-    std::fs::write(&palette_path, palette("dark")).unwrap();
-    wait_for_scheme(adw::ColorScheme::ForceDark);
-    std::fs::remove_file(&palette_path).unwrap();
-    wait_for_scheme(previous);
-    std::fs::write(&palette_path, palette("dark")).unwrap();
-    wait_for_scheme(adw::ColorScheme::ForceDark);
-    drop(theme);
-    assert_eq!(manager.color_scheme(), previous);
 }
