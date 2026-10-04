@@ -35,8 +35,8 @@ linux-python-test: linux-python-setup
 	cd linux && uv run --locked ruff format --check .
 
 .PHONY: linux-codex-isolation-test
-linux-codex-isolation-test: linux-python-setup
-	cd linux && PYTHONPATH=. uv run --locked python tests/codex_isolation_smoke.py ../tmp/codex-isolation
+linux-codex-isolation-test:
+	bash linux/tests/run_codex_isolation_smoke.sh
 
 # Fast deterministic config/text/storage/Live feedback; linux-test is the native gate.
 .PHONY: linux-test-fast linux-application-test linux-command-test linux-continuation-test linux-live-workspace-test linux-fluid-workspace-test linux-live-stability-test

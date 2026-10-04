@@ -14,6 +14,8 @@ The evidence must observe results through public/native boundaries rather than i
 
 The [native first-run provisioning check](../rust/mluva-gtk/tests/fixtures/application-onboarding-evidence.md) now passes eighteen assembled application states and nine image comparisons with Python/uv blocked. It downloads the actual pinned Qwen CPU runtime and model into fresh private state, recognizes public PCM, saves setup choices and reopens the wizard. The obsolete 153-line Python setup checker is removed. This closes that checker dependency; separate-process persistence, final Python removal and installed/platform acceptance remain release blockers.
 
+`make linux-codex-isolation-test` also uses its existing [native installed-CLI owner](../rust/mluva-providers/tests/fixtures/codex-evidence.md) with Python/uv blocked. The obsolete 164-line Python checker is removed, retaining both loopback sessions, empty tools, no MCP/command execution and unchanged undisclosed instruction canaries. No new Rust case, fixture or production change is needed.
+
 | User workflow or contract | Required comparison/evidence | Rust status |
 | --- | --- | --- |
 | Cold launch and background restart | Native windows, existing focused field, first recording, no extra focus event required, no window shown for helper invocation | Pending |
