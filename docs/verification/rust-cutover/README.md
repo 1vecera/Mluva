@@ -30,6 +30,14 @@ Physical F9/F10, the actual microphone, simultaneous real-microphone recording a
 
 The previous installed app, settings and History are backed up privately before replacement. The native installer validates the prepared bundle and retains settings, SQLite data, saved drafts, credentials and model caches. The widget and application share version 2.0.0.
 
+## PR #70 local installer follow-up
+
+Daniel explicitly authorized merging [#70](https://github.com/1vecera/Mluva/pull/70) and setting it up locally. The squash merge `87d1b3655b4ba32bc0826c2b2616d6db738aadf0` has the exact reviewed/tested tree of head `f85c40f39d3aa1a63a4ca0d1256e59710d4ae866`. The exact merged-main archive was ordinarily extracted under umask 077, installed first into a disposable prefix and then into the local managed application.
+
+All 520 installed payload hashes, canonical modes and the source receipt match. Compared with published 2.0.0, only `bin/mluva-install` changes; its installed SHA-256 is `817f07e845e901020dbcc747a576102299101773b9ada77469cd45b60355979c`. The app remains byte-identical to the published binary, SHA-256 `7ae478a038e66f52c807783928b590161d72491bb4f8f258af7052c2d0cea080`. Version 2.0.0, the widget and pinned Tensaku 0.29 remain installed; no new release/tag or asset replacement is performed for #70.
+
+Settings/configuration and History file bytes are preserved, the native configuration reader succeeds, SQLite integrity is `ok`, and Qwen3-ASR 1.7B remains the default. Private backups and the delivered record are under `tmp/local-upgrade-pr70/`. The first local attempt correctly refused the passive widget watcher before publishing. Only the exact `mluva-shell watch --overlay` process was gracefully stopped through a bounded PID handle; installation then succeeded and the widget's existing timer reconnected it. No app window or desktop focus, pointer or workspace was manipulated. This delivery does not close physical keys/microphone or complete platform/UX acceptance.
+
 ## Native cutover gate
 
 The actual `make linux-test` gate passes 140 native tests with zero failures and 68 environment-specific checks ignored across 98 suites. Both strict Clippy configurations, formatting, generated feature consistency and ShellCheck pass. The older-History search regression is retained at the native SQLite boundary: it searches an old source/reply behind ninety newer conversations, treats percent/underscore literally and handles case folding. Removing percent escaping caused the intended assertion failure; production bytes were restored and rebuilt, and all fourteen storage lifecycle checks pass.

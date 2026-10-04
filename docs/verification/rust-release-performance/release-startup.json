@@ -1,0 +1,39 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "native_commit": "943d8d4bdf019be52a0e3dfb18f50a3bb1b12d2d",
+  "native_sha256": "7ae478a038e66f52c807783928b590161d72491bb4f8f258af7052c2d0cea080",
+  "scope": "startup/idle only",
+  "native_receipt_sha256": "878241ceea9f62119f528c3149f84f7f0594049634ac21bcd7c3279512d7500b",
+  "verified_native_files": 520,
+  "verified_reference_files": 91,
+  "reference_inputs_sha256": "191441a8feea958939692047b6d4094f1daba4dd99a838247ade0899391b2f0e",
+  "observer_sha256": "2178be97e20fb55c226796b9d7946c63e5c99fe26f881284e3544cf89f80d79e",
+  "kernel": "7.1.9-arch1-2",
+  "native_bundle_path": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/published-release-2.0.0/unpacked/mluva-2.0.0",
+  "native_patch_sha256": null,
+  "python": "3.14.7",
+  "config": {"language_code":"eng","transcription_model":"scribe_v2","codex_model":null,"rewrite_model":null,"rewrite_fast_mode":false,"rewrite_reasoning_effort":null,"litellm_reasoning_effort":null,"rewrite_provider":"none","litellm_base_url":"http://localhost:4000/v1","litellm_model":null,"litellm_api_key_env":"LITELLM_API_KEY","transcription_provider":"litellm","transcription_base_url":"http://127.0.0.1:1/v1","transcription_api_key_env":"BOOTSTRAP_NO_KEY","transcription_remote_model":"whisper","local_model":"qwen3-1.7b","local_device":"cpu","transcription_chunk_seconds":8,"auto_copy_dictation":true,"auto_copy_rewrite":true,"show_copy_action":true,"show_save_action":true,"review_timeout_seconds":4,"smooth_scrolling":true,"scroll_duration_ms":800,"scroll_lookahead_lines":2,"widget_position":"bottom-center","widget_lines":5,"widget_opacity":82,"history_sidebar_visible":false,"welcome_completed":true,"time_format":"24h","live_rewrite_enabled":false,"live_rewrite_continuous":true,"live_rewrite_template":"grilling","live_rewrite_custom_instructions":"","live_rewrite_min_characters":160,"live_rewrite_interval_seconds":4,"microphone_target":null,"system_audio_target":null,"default_mode":"dictation","global_recording_key":"F9","auto_paste":false,"automatic_titles":false,"spoken_commands_enabled":true,"remember_per_application":false,"audio_retention_policy":"failures","incognito_mode":false,"history_retention_days":0},
+  "actions": ["cancel","commands","global-record","history","latest","meeting","personalization","quit","record","review","screenshot","settings","status"],
+  "rows": [
+    {"variant":"python","round":-1,"warmup":true,"bus_ms":927.9227629999696,"visible_ms":1260.4924199999914,"rss_kib":291188,"pss_kib":135845,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":67.83178199975737},
+    {"variant":"rust","round":-1,"warmup":true,"bus_ms":65.99869199999375,"visible_ms":379.3496530001903,"rss_kib":261932,"pss_kib":111974,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":33.94829899980323},
+    {"variant":"python","round":0,"warmup":false,"bus_ms":212.49787900023875,"visible_ms":443.9638960002412,"rss_kib":266768,"pss_kib":111146,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":64.69446500022968},
+    {"variant":"rust","round":0,"warmup":false,"bus_ms":45.87877199992363,"visible_ms":277.51644099998884,"rss_kib":242120,"pss_kib":91738,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":33.48855400008688},
+    {"variant":"rust","round":1,"warmup":false,"bus_ms":38.637776999621565,"visible_ms":259.4343829996433,"rss_kib":242088,"pss_kib":91737,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":34.57709799977238},
+    {"variant":"python","round":1,"warmup":false,"bus_ms":220.55958100008866,"visible_ms":467.1812729998237,"rss_kib":266568,"pss_kib":111128,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":33.114600000317296},
+    {"variant":"python","round":2,"warmup":false,"bus_ms":228.00598399999217,"visible_ms":495.51132099986717,"rss_kib":266524,"pss_kib":111200,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":64.58788700001605},
+    {"variant":"rust","round":2,"warmup":false,"bus_ms":49.54027399980987,"visible_ms":298.1792069999756,"rss_kib":242500,"pss_kib":92084,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":34.13652199969874},
+    {"variant":"rust","round":3,"warmup":false,"bus_ms":40.768303999811906,"visible_ms":246.37011999993774,"rss_kib":242148,"pss_kib":91886,"processes":1,"idle_cpu_percent":0.33313931077778597,"interactions":{},"quit_ms":33.58017499976995},
+    {"variant":"python","round":3,"warmup":false,"bus_ms":193.90703699991718,"visible_ms":426.0644119999597,"rss_kib":266548,"pss_kib":111412,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":64.43977300023107},
+    {"variant":"python","round":4,"warmup":false,"bus_ms":223.42691799985914,"visible_ms":470.29169999996157,"rss_kib":264752,"pss_kib":109522,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":33.25097800006915},
+    {"variant":"rust","round":4,"warmup":false,"bus_ms":39.79307100007645,"visible_ms":244.95859199987535,"rss_kib":242064,"pss_kib":92098,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":33.24099800011027},
+    {"variant":"rust","round":5,"warmup":false,"bus_ms":42.91327800001454,"visible_ms":260.126696000043,"rss_kib":242208,"pss_kib":92089,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":34.37870900006601},
+    {"variant":"python","round":5,"warmup":false,"bus_ms":190.32605099982902,"visible_ms":402.0707049999146,"rss_kib":266768,"pss_kib":111368,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":32.453633999921294}
+  ],
+  "targets": {
+  },
+  "summary": {
+    "python": {"visible_ms":{"median":455.57258450003246,"minimum":402.0707049999146,"maximum":495.51132099986717},"bus_ms":{"median":216.5287300001637,"minimum":190.32605099982902,"maximum":228.00598399999217},"rss_kib":{"median":266558.0,"minimum":264752,"maximum":266768},"pss_kib":{"median":111173.0,"minimum":109522,"maximum":111412},"idle_cpu_percent":{"median":0.0,"minimum":0.0,"maximum":0.0},"quit_ms":{"median":48.84537550015011,"minimum":32.453633999921294,"maximum":64.69446500022968},"interactions":{}},
+    "rust": {"visible_ms":{"median":259.78053949984314,"minimum":244.95859199987535,"maximum":298.1792069999756},"bus_ms":{"median":41.840790999913224,"minimum":38.637776999621565,"maximum":49.54027399980987},"rss_kib":{"median":242134.0,"minimum":242064,"maximum":242500},"pss_kib":{"median":91985.0,"minimum":91737,"maximum":92098},"idle_cpu_percent":{"median":0.0,"minimum":0.0,"maximum":0.33313931077778597},"quit_ms":{"median":33.85834849973435,"minimum":33.24099800011027,"maximum":34.57709799977238},"interactions":{}}
+  }
+}

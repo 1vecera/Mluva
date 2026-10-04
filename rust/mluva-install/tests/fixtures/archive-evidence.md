@@ -21,7 +21,7 @@ The extended owner fails on unchanged 2.0.0 at the intended umask-027 install wi
 
 The full gate additionally needs short disk-backed temporary paths outside nested `/tmp` mounts and private device nodes. Earlier scratch-runner attempts exposed socket length, Incognito's disk-versus-memory assertion, inaccessible `/dev/null` and hidden helper paths; their logs remain in `tmp/native-umask-{install-gates,full-gate,full-gate-short-disk,full-gate-final}.log`. The accepted runner binds a task-owned disk directory at `/run/mluva-tests` inside private namespaces. No product behavior or fixture was changed for those failures.
 
-This follow-up is prepared for review; it does not publish a release or replace the installed 2.0.0 app. The [native cutover record](../../../../docs/verification/rust-cutover/README.md) documents delivery and Python removal. Historical archive receipts below retain their original checkpoint and do not establish current complete platform or user-experience acceptance.
+Daniel subsequently authorized merging [#70](https://github.com/1vecera/Mluva/pull/70) and installing the corrected bundle locally. Merged main `87d1b3655b4ba32bc0826c2b2616d6db738aadf0` passes the disposable-prefix and local umask-077 installs with all 520 payload hashes/canonical modes checked and settings/History preserved. Only the installer differs from published 2.0.0; no new release or published-asset replacement is performed. The [native cutover record](../../../../docs/verification/rust-cutover/README.md) records the exact identities, watcher restart and delivery. Historical archive receipts below retain their original checkpoint and do not establish current complete platform or user-experience acceptance.
 
 ## Notice sources and scope
 
