@@ -323,6 +323,53 @@ async fn actual_qwen_resident_overflow_matches_release_and_reaps_owned_resources
 }
 
 #[tokio::test]
+#[ignore = "observes incomplete response lines for 195 real seconds before public cancellation"]
+async fn actual_qwen_incomplete_stream_cancel_and_fresh_capture_match_release() {
+    let fixture: Value =
+        serde_json::from_str(include_str!("fixtures/released-qwen-interruption.json")).unwrap();
+    let cases = fixture["cases"].as_array().unwrap();
+    assert_eq!(cases.len(), 2);
+    futures_util::future::join_all(cases.iter().map(|case| async move {
+        let directory = tempfile::Builder::new()
+            .prefix("actual-qwen-interruption-")
+            .permissions(fs::Permissions::from_mode(0o700))
+            .tempdir()
+            .unwrap();
+        let root = directory.path();
+        setup(root, &case["spec"]);
+        let (mut actual, elapsed, _) =
+            invoke_driver(root, &case["spec"], Duration::from_secs(215), false).await;
+        let observations = actual
+            .as_object_mut()
+            .unwrap()
+            .shift_remove("stream_observations")
+            .unwrap();
+        let observation = &observations.as_array().unwrap()[0];
+        assert_eq!(observations.as_array().unwrap().len(), 1);
+        assert!(
+            (195.0..=205.0).contains(&observation["seconds_from_first_fragment"].as_f64().unwrap())
+        );
+        assert!((190..=205).contains(&observation["fragments"].as_u64().unwrap()));
+        assert!(observation["cancellation_seconds"].as_f64().unwrap() < 5.0);
+        assert_eq!(observation["temporary_entries_after_cancel"], 0);
+        assert!((195.0..=210.0).contains(&elapsed.as_secs_f64()));
+        assert_eq!(
+            normalize_guard_result(actual),
+            case["result"],
+            "{}: actual incomplete read, cancellation/no output, reaping and new-client recovery",
+            case["name"]
+        );
+        assert_eq!(fs::read_dir(root.join("tmp")).unwrap().count(), 0);
+        eprintln!(
+            "{}",
+            json!({"name":case["name"],"elapsed_seconds":elapsed.as_secs_f64(),
+            "stream_observation":observation,"released_protocol_and_recovery_match":true})
+        );
+    }))
+    .await;
+}
+
+#[tokio::test]
 async fn native_qwen_client_processes_and_loopback_requests_match_release() {
     let fixture: Value = serde_json::from_str(include_str!("fixtures/released-qwen.json")).unwrap();
     let filter = std::env::var("QWEN_CASE_FILTER").ok();
