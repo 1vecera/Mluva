@@ -1535,7 +1535,11 @@
         "visible": true,
         "type": "GtkButton",
         "tooltip": "Show or hide history"
-      }
+      },
+      "keyboard_focus_cycle": [
+        false,
+        true
+      ]
     },
     {
       "name": "grilling-dark",
@@ -1601,7 +1605,11 @@
         "visible": true,
         "type": "GtkButton",
         "tooltip": "Show or hide history"
-      }
+      },
+      "keyboard_focus_cycle": [
+        false,
+        true
+      ]
     },
     {
       "name": "grilling-narrow",
@@ -1667,7 +1675,11 @@
         "visible": true,
         "type": "GtkButton",
         "tooltip": "Conversations"
-      }
+      },
+      "keyboard_focus_cycle": [
+        false,
+        true
+      ]
     }
   ],
   "saved_textures": [

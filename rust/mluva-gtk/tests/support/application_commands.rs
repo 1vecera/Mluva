@@ -7,7 +7,7 @@ use mluva_workflows::{capture::CapturePhase, services::ApplicationServices};
 use serde_json::{Value, json};
 use std::{cell::RefCell, fs, path::Path, process::Command, rc::Rc, time::Duration};
 
-fn key(chord: &str) {
+pub(super) fn key(chord: &str) {
     let program = std::env::current_exe()
         .unwrap()
         .parent()

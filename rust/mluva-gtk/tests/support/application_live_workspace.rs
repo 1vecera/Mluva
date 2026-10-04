@@ -130,6 +130,16 @@ impl Flow<'_> {
                 .success()
         );
         settle();
+        // GTK expires keyboard focus indicators after three seconds. Observe
+        // actual expiry and refresh with real navigation before taking pixels.
+        let focus_cycle = (name != "grilling-wide").then(|| {
+            until(|| !self.owner.shell.window.gets_focus_visible());
+            let before = self.owner.shell.window.gets_focus_visible();
+            application_commands::key("Tab");
+            application_commands::key("Shift_L+Tab");
+            until(|| self.owner.shell.window.gets_focus_visible());
+            [before, self.owner.shell.window.gets_focus_visible()]
+        });
         let focused = gtk::prelude::GtkWindowExt::focus(&self.owner.shell.window).unwrap();
         let focus = json!({"visible":self.owner.shell.window.gets_focus_visible(),"type":focused.type_().name(),"tooltip":focused.tooltip_text().map(String::from)});
         let w = &self.owner.capture.page.workspace;
@@ -148,7 +158,10 @@ impl Flow<'_> {
             })
             .collect::<Vec<_>>();
         let textures=self.textures().iter().enumerate().map(|(i,t)|{let bytes=t.save_to_png_bytes();fs::write(self.root.join(format!("{name}-diagram-{i}.png")),&bytes).unwrap();json!({"width":t.width(),"height":t.height(),"sha256":glib::compute_checksum_for_data(glib::ChecksumType::Sha256,&bytes).unwrap().as_str()})}).collect::<Vec<_>>();
-        let value = json!({"name":name,"window":[self.owner.shell.window.width(),self.owner.shell.window.height()],"controls":controls,"textures":textures,"focus":focus});
+        let mut value = json!({"name":name,"window":[self.owner.shell.window.width(),self.owner.shell.window.height()],"controls":controls,"textures":textures,"focus":focus});
+        if let Some(cycle) = focus_cycle {
+            value["keyboard_focus_cycle"] = json!(cycle);
+        }
         fs::write(
             self.root.join(format!("{name}-layout.json")),
             serde_json::to_vec_pretty(&value).unwrap(),

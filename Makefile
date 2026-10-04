@@ -81,17 +81,8 @@ linux-compact-workspace-test:
 	bash linux/tests/run_application_smoke.sh compact
 
 .PHONY: linux-conversation-management-test
-linux-conversation-management-test: linux-python-setup
-	@mkdir -p tmp/chat-management
-	@set -e; for spec in minimum:420:520 narrow:480:640 wide:1060:780; do \
-		scenario=$${spec%%:*}; dimensions=$${spec#*:}; \
-		OFFSCREEN_SCREEN_SPEC=1600x1000x24 OFFSCREEN_ENABLE_ATSPI=1 \
-		bash dev/run-isolated.sh "tmp/chat-management/$$scenario" -- env \
-			GDK_SCALE=1 GDK_DPI_SCALE=1 PYTHONPATH=linux:linux/tests ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
-			MLUVA_UI_WIDTH="$${dimensions%:*}" MLUVA_UI_HEIGHT="$${dimensions#*:}" \
-			uv run --project linux --locked python linux/tests/conversation_management_smoke.py \
-			> "tmp/chat-management/$$scenario.log" 2>&1; \
-	done
+linux-conversation-management-test:
+	bash linux/tests/run_application_smoke.sh management
 
 linux-live-rewrite-test: linux-live-workspace-test
 	bash linux/tests/run_application_smoke.sh live-controllers
