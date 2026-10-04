@@ -389,7 +389,13 @@
       "documents": [
         "Original speech",
         "# A note\n**Keep** this. Edited."
-      ]
+      ],
+      "notifications": [
+        [
+          "Copied. Paste in the target application."
+        ]
+      ],
+      "escape_keys": []
     },
     {
       "name": "settings-escape",
@@ -404,6 +410,105 @@
       "documents": [
         "Original speech",
         "# A note\n**Keep** this. Edited."
+      ],
+      "notifications": [],
+      "escape_keys": [
+        "pressed",
+        "released"
+      ]
+    },
+    {
+      "name": "settings-back",
+      "page": "capture",
+      "panel": null,
+      "recording": false,
+      "clipboard": "# A note\n**Keep** this. Edited.",
+      "raw": "Original speech",
+      "replies": [
+        "# A note\n**Keep** this. Edited."
+      ],
+      "documents": [
+        "Original speech",
+        "# A note\n**Keep** this. Edited."
+      ],
+      "notifications": [],
+      "escape_keys": [
+        "pressed",
+        "released",
+        "pressed",
+        "released"
+      ]
+    },
+    {
+      "name": "settings-before-expiry",
+      "page": "settings",
+      "panel": null,
+      "recording": false,
+      "clipboard": "# A note\n**Keep** this. Edited.",
+      "raw": "Original speech",
+      "replies": [
+        "# A note\n**Keep** this. Edited."
+      ],
+      "documents": [
+        "Original speech",
+        "# A note\n**Keep** this. Edited."
+      ],
+      "notifications": [
+        [
+          "Copied. Paste in the target application."
+        ]
+      ],
+      "escape_keys": [
+        "pressed",
+        "released",
+        "pressed",
+        "released"
+      ]
+    },
+    {
+      "name": "settings-after-expiry",
+      "page": "settings",
+      "panel": null,
+      "recording": false,
+      "clipboard": "# A note\n**Keep** this. Edited.",
+      "raw": "Original speech",
+      "replies": [
+        "# A note\n**Keep** this. Edited."
+      ],
+      "documents": [
+        "Original speech",
+        "# A note\n**Keep** this. Edited."
+      ],
+      "notifications": [],
+      "escape_keys": [
+        "pressed",
+        "released",
+        "pressed",
+        "released"
+      ]
+    },
+    {
+      "name": "settings-expired-back",
+      "page": "capture",
+      "panel": null,
+      "recording": false,
+      "clipboard": "# A note\n**Keep** this. Edited.",
+      "raw": "Original speech",
+      "replies": [
+        "# A note\n**Keep** this. Edited."
+      ],
+      "documents": [
+        "Original speech",
+        "# A note\n**Keep** this. Edited."
+      ],
+      "notifications": [],
+      "escape_keys": [
+        "pressed",
+        "released",
+        "pressed",
+        "released",
+        "pressed",
+        "released"
       ]
     },
     {

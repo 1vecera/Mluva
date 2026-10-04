@@ -5,7 +5,7 @@ use mluva_core::history::HistoryInput;
 use mluva_gtk::application::ApplicationDesktop;
 use mluva_workflows::{capture::CapturePhase, services::ApplicationServices};
 use serde_json::{Value, json};
-use std::{fs, path::Path, process::Command, rc::Rc, time::Duration};
+use std::{cell::RefCell, fs, path::Path, process::Command, rc::Rc, time::Duration};
 
 fn key(chord: &str) {
     let program = std::env::current_exe()
@@ -136,6 +136,21 @@ struct Flow<'a> {
     root: &'a Path,
     states: Vec<Value>,
     layouts: Vec<Value>,
+    escape_receipts: Rc<RefCell<Vec<&'static str>>>,
+}
+fn notifications(owner: &ApplicationDesktop) -> Vec<Vec<String>> {
+    widgets(&owner.shell.toast_overlay)
+        .into_iter()
+        .filter(|w| w.is_mapped() && w.accessible_role() == gtk::AccessibleRole::Alert)
+        .map(|alert| {
+            widgets(&alert)
+                .into_iter()
+                .filter_map(|w| w.downcast::<gtk::Label>().ok())
+                .filter(|label| label.is_mapped())
+                .map(|label| label.text().to_string())
+                .collect()
+        })
+        .collect()
 }
 impl Flow<'_> {
     fn record(&mut self, name: &str) {
@@ -160,7 +175,11 @@ impl Flow<'_> {
                     .collect::<Vec<_>>()
             })
             .unwrap_or_default();
-        let actual = json!({"name":name,"page":self.owner.shell.stack.visible_child_name().map(String::from),"panel":Panel::current(self.owner).map(|panel| panel.snapshot()),"recording":self.owner.capture.phase()==Some(CapturePhase::Recording),"clipboard":clipboard(),"raw":raw,"replies":replies,"documents":workspace.documents().iter().map(|view|view.text()).collect::<Vec<_>>()});
+        let mut actual = json!({"name":name,"page":self.owner.shell.stack.visible_child_name().map(String::from),"panel":Panel::current(self.owner).map(|panel| panel.snapshot()),"recording":self.owner.capture.phase()==Some(CapturePhase::Recording),"clipboard":clipboard(),"raw":raw,"replies":replies,"documents":workspace.documents().iter().map(|view|view.text()).collect::<Vec<_>>()});
+        if name.starts_with("settings") {
+            actual["notifications"] = json!(notifications(self.owner));
+            actual["escape_keys"] = json!(*self.escape_receipts.borrow());
+        }
         fs::write(
             self.root.join(format!("{name}.json")),
             serde_json::to_vec_pretty(&actual).unwrap(),
@@ -224,6 +243,7 @@ pub fn exercise(
         root: &root,
         states: vec![],
         layouts: vec![],
+        escape_receipts: Rc::new(RefCell::new(vec![])),
     };
     Panel::open(owner);
     flow.record("empty");
@@ -320,11 +340,50 @@ pub fn exercise(
             false,
         )
         .unwrap();
-    Panel::open(owner);
-    choose(owner, "Settings");
+    // Escape first dismisses a visible notification; without one it navigates.
+    // Reach each state through actual Copy and expiry instead of timing a prior toast.
+    until(|| notifications(owner).is_empty());
+    let keys = gtk::EventControllerKey::new();
+    keys.set_propagation_phase(gtk::PropagationPhase::Capture);
+    let received = flow.escape_receipts.clone();
+    keys.connect_key_pressed(move |_, key, _, _| {
+        if key == gtk::gdk::Key::Escape {
+            received.borrow_mut().push("pressed");
+        }
+        glib::Propagation::Proceed
+    });
+    let received = flow.escape_receipts.clone();
+    keys.connect_key_released(move |_, key, _, _| {
+        if key == gtk::gdk::Key::Escape {
+            received.borrow_mut().push("released");
+        }
+    });
+    owner.shell.window.add_controller(keys.clone());
+    let received = flow.escape_receipts.clone();
+    let escape = || {
+        let before = received.borrow().len();
+        key("Escape");
+        until(|| received.borrow().len() == before + 2);
+    };
+    choose_action(owner, "Copy current text");
+    until(|| !notifications(owner).is_empty());
+    choose_action(owner, "Settings");
     flow.record("settings");
-    key("Escape");
+    escape();
+    until(|| notifications(owner).is_empty());
     flow.record("settings-escape");
+    escape();
+    flow.record("settings-back");
+    choose_action(owner, "Copy current text");
+    until(|| !notifications(owner).is_empty());
+    choose_action(owner, "Settings");
+    flow.record("settings-before-expiry");
+    until(|| notifications(owner).is_empty());
+    flow.record("settings-after-expiry");
+    escape();
+    flow.record("settings-expired-back");
+    owner.shell.window.remove_controller(&keys);
+    application.activate_action("settings", None);
     owner.shell.window.set_default_size(480, 680);
     settle();
     let panel = Panel::open(owner);
