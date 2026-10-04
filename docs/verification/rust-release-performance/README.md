@@ -2,6 +2,8 @@
 
 Published 2.0.0 starts sooner and uses less resident memory than immutable 1.6.0 in this same-host warm-cache sample. Five sampled UI endpoints have matching rendered output after restoring the released Capture shortcut guidance; their timing distributions overlap and do not establish a UI-speed improvement. Actual ONNX clients reach their first recognition sooner, while resident ONNX and Qwen measurements establish no general decoder speedup. Paced CPU Dictation now has matching final windows, persisted History and retained audio for all three retained models. Complete parity and broader capture/processing performance remain unfinished.
 
+5 October 2026: the separate [worker lifecycle follow-up](../rust-worker-lifecycle/README.md) verifies active ONNX recognition cancellation/recovery and repairs a real Qwen parent-crash runtime/key leak. Real CPU/GPU Qwen outputs still match their independent oracles. A fresh canonical Qwen application/reference pair preserves final frames, History and WAV bytes after the repair; its timing observations are behavior checks, not a new performance series. First intermediate preview strings differ in that pair, so transient-preview parity is not claimed. Installed/published 2.0.0 and all historical performance measurements below remain unchanged.
+
 ## Published 2.0.0 startup
 
 These observations use the downloaded, checksum-verified published application, SHA-256 `7ae478a038e66f52c807783928b590161d72491bb4f8f258af7052c2d0cea080`, built at `943d8d4bdf019be52a0e3dfb18f50a3bb1b12d2d`. It is byte-identical to the application installed after [PR #70](https://github.com/1vecera/Mluva/pull/70). That installation changes the installer, not the application binary.
