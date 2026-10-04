@@ -66,19 +66,8 @@ linux-continuation-test: linux-python-setup
 		uv run --project linux --locked python linux/tests/continuation_controls_smoke.py
 
 .PHONY: linux-omarchy-test
-linux-omarchy-test: linux-python-setup
-	@bash linux/mluva-shell --help >/dev/null
-	@mkdir -p tmp/omarchy-widget
-	env -i PATH="$$PATH" HOME="$$HOME" USER="$$USER" LANG=C.UTF-8 \
-		CARGO_HOME="$$(realpath -m -- "$${CARGO_HOME:-$$HOME/.cargo}")" \
-		RUSTUP_HOME="$$(realpath -m -- "$${RUSTUP_HOME:-$$HOME/.rustup}")" \
-		CARGO_TARGET_DIR="$$(realpath -m -- "$$CARGO_TARGET_DIR")" CARGO_NET_OFFLINE=true \
-		__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
-		__GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
-		OFFSCREEN_ENABLE_ATSPI=1 OFFSCREEN_DISPLAY_NUMBER="$${OFFSCREEN_DISPLAY_NUMBER:-}" \
-		bash dev/run-isolated.sh "$$(mktemp -d tmp/omarchy-widget/run.XXXXXX)" -- \
-		env PYTHONPATH=linux GTK_A11Y=none GSK_RENDERER=cairo \
-		uv run --project linux --locked python linux/tests/shell_overlay_smoke.py
+linux-omarchy-test:
+	bash linux/tests/run_omarchy_widget_smoke.sh
 
 linux-feature-maturity:
 	cargo run --locked -q -p mluva-core --bin mluva-feature-maturity -- --write

@@ -14,7 +14,7 @@ Native source builds require the repository-pinned Rust 1.95 toolchain, a C comp
 
 `make` or `make linux-setup` compiles and validates an optimized native bundle without installing it; compiler artifacts stay under `tmp/native-build` unless `CARGO_TARGET_DIR` is supplied. `make run` or `make linux-run` prepares a complete private runtime and launches its native app, retaining the bundle until that process exits. Quit removes the temporary runtime. Closing the window keeps the resident app running; these launch commands intentionally open the UI and belong inside the isolated runner during automated verification. [Source Make evidence](rust/mluva-gtk/tests/fixtures/source-make-evidence.md) covers real build, launch, forwarding and cleanup with Python and uv blocked.
 
-`bash linux/mluva-shell ACTION` builds and runs the standalone native desktop bridge, using the same compiler cache conventions. It needs no app resource bundle and does not start the application. Use a private session bus for automated status/action checks; `--help` only describes the command. The [bridge comparison](rust/mluva-shell/tests/fixtures/README.md) covers installed-style and source commands, exact CLI output, process signals, owner replacement and activation privacy. `make linux-omarchy-test` prepares this native command before starting its remaining Python/QML observer and carries only its offline build locations into the private session.
+`bash linux/mluva-shell ACTION` builds and runs the standalone native desktop bridge, using the same compiler cache conventions. It needs no app resource bundle and does not start the application. Use a private session bus for automated status/action checks; `--help` only describes the command. The [bridge comparison](rust/mluva-shell/tests/fixtures/README.md) covers installed-style and source commands, exact CLI output, process signals, owner replacement and activation privacy. `make linux-omarchy-test` prepares this command and the native widget observer before entering its isolated session.
 
 Build a prepared native bundle without installing or launching it:
 
@@ -58,6 +58,8 @@ Keep a test when it would catch an observable regression: lost text, an incorrec
 
 `make linux-shortcut-test` builds its native peer and runs the portal comparison on a private D-Bus with network/PID/device isolation; it needs bubblewrap and dbus-run-session, and opens no display. Native installation and source launch changes use the [combined setup](rust/mluva-install/tests/fixtures/source-setup-evidence.md), [source transactions](rust/mluva-install/tests/fixtures/source-entry-evidence.md), [source Make](rust/mluva-gtk/tests/fixtures/source-make-evidence.md) and [managed startup](rust/mluva-gtk/tests/fixtures/launcher-evidence.md) comparisons.
 
+`make linux-omarchy-test` exercises the native status publisher and bridge with production QML through [independent release observations](rust/mluva-gtk/tests/fixtures/omarchy-widget-evidence.md). It needs the installed Omarchy shell, Quickshell, Xvfb, xdotool, ImageMagick, FFmpeg/ffprobe and the normal Rust/bubblewrap/D-Bus prerequisites. The runner isolates display, HOME/XDG, buses, network/PID namespaces and devices, and uses software Mesa. It preserves review, focus, motion and countdown checks plus the three-event, 60-fps preview-contraction replay. `MLUVA_PANEL_REPLAY=1 make linux-omarchy-test` runs only that replay. No Python setup is needed.
+
 The following checks still exercise Python during the port. Their Make targets prepare that environment automatically; run `make linux-python-setup` before a direct `uv` command:
 
 | Remaining Python owner | Focused check |
@@ -72,7 +74,6 @@ The following checks still exercise Python during the port. Their Make targets p
 | Continue recording, Live activation or thinking controls | `make linux-continuation-test` (real capture lifecycle with fake device/provider boundaries, edits, cancellation, persistence and narrow layout) |
 | Conversation layout | `make linux-compact-workspace-test` (minimum, narrow, wide and 360-pixel tiles at 2× scaling; checks visible control bounds in saved, empty, rewrite and recording states) |
 | Grilling, live navigation or Mermaid | `make linux-fluid-workspace-test` (mid-recording controls, paused draft recovery, questions, offline diagrams and responsive layouts; requires WebKitGTK 6.0) |
-| Omarchy widget | `make linux-omarchy-test` (production QML and bridge on a private display/bus) |
 | Shortcut or manual credential helper | `(cd linux && uv run --locked pytest -q tests/test_launcher.py tests/test_global_shortcuts.py)`; the native portal owner additionally uses `make linux-shortcut-test` |
 
 The remaining Python rewrite-policy and title-job checks also run without GTK on a non-Linux development host:
