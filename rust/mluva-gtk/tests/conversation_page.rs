@@ -21,6 +21,8 @@ use std::thread;
 use std::time::{Duration, Instant};
 #[path = "support/conversation_stability.rs"]
 mod conversation_stability;
+#[path = "support/fixture_states.rs"]
+mod fixture_states;
 
 fn settle() {
     let deadline = Instant::now() + Duration::from_millis(120);
@@ -145,8 +147,11 @@ fn conversation_page_matches_released_editing_navigation_privacy_and_live_observ
     assert_eq!(std::env::var("TZ").unwrap(), "UTC");
     assert!(std::env::var_os("WAYLAND_DISPLAY").is_none());
     assert!(std::env::var_os("HYPRLAND_INSTANCE_SIGNATURE").is_none());
-    let reference: Value =
-        serde_json::from_str(include_str!("fixtures/released-conversation-page.json")).unwrap();
+    let reference = fixture_states::load(
+        include_str!("fixtures/released-conversation-page.json"),
+        &["cases"],
+        "observed",
+    );
     assert_eq!(
         reference["reference_commit"],
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"

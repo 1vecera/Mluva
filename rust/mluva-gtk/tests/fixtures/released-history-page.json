@@ -88,49 +88,32 @@
           "action": {
             "op": "observe"
           },
-          "observed": {
-            "count": "0 shown",
-            "stack": "empty",
-            "focused": null,
-            "rows": [],
-            "records": [],
-            "events": [],
-            "dialog": null,
-            "files": {}
-          }
+          "observed": {}
         },
         {
           "action": {
             "op": "focus",
             "id": "11111111-1111-4111-8111-111111111111"
           },
-          "observed": {
-            "count": "0 shown",
-            "stack": "empty",
-            "focused": null,
-            "rows": [],
-            "records": [],
-            "events": [],
-            "dialog": null,
-            "files": {}
-          }
+          "observed": {}
         },
         {
           "action": {
             "op": "refresh"
           },
-          "observed": {
-            "count": "0 shown",
-            "stack": "empty",
-            "focused": null,
-            "rows": [],
-            "records": [],
-            "events": [],
-            "dialog": null,
-            "files": {}
-          }
+          "observed": {}
         }
-      ]
+      ],
+      "common_observation": {
+        "count": "0 shown",
+        "stack": "empty",
+        "focused": null,
+        "rows": [],
+        "records": [],
+        "events": [],
+        "dialog": null,
+        "files": {}
+      }
     },
     {
       "name": "edits-copy-restore-export-and-delete",
@@ -230,7 +213,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -390,7 +372,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -550,7 +531,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -715,7 +695,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -884,7 +863,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -1058,7 +1036,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -1231,7 +1208,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -1412,7 +1388,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -1592,7 +1567,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -1777,7 +1751,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -1961,7 +1934,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -2152,7 +2124,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -2349,7 +2320,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -2551,7 +2521,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -2760,7 +2729,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -2973,7 +2941,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -3202,7 +3169,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -3432,7 +3398,6 @@
           "observed": {
             "count": "1 shown",
             "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -3661,7 +3626,6 @@
           "observed": {
             "count": "0 shown",
             "stack": "empty",
-            "focused": null,
             "rows": [],
             "records": [],
             "events": [
@@ -3750,7 +3714,10 @@
             }
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "focused": null
+      }
     },
     {
       "name": "failed-recovery-and-metadata",
@@ -3803,9 +3770,6 @@
             "op": "observe"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -3921,37 +3885,8 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "",
-                "delivered_text": "",
-                "mode": "command",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "failed",
-                "title": null,
-                "retained_audio_path": "$ROOT/recordings/failed.wav",
-                "audio_retention_policy": "failures",
-                "application_identifier": "org.example.Editor",
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-batch",
-                "recognition_fallback_reason": "realtime-stream-failed",
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": 120,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [],
-            "dialog": null,
-            "files": {
-              "recordings/failed.wav": "c3ludGhldGljIHJldGFpbmVkIGF1ZGlv"
-            }
+            "dialog": null
           }
         },
         {
@@ -3960,9 +3895,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -4078,37 +4010,8 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "",
-                "delivered_text": "",
-                "mode": "command",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "failed",
-                "title": null,
-                "retained_audio_path": "$ROOT/recordings/failed.wav",
-                "audio_retention_policy": "failures",
-                "application_identifier": "org.example.Editor",
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-batch",
-                "recognition_fallback_reason": "realtime-stream-failed",
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": 120,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [],
-            "dialog": null,
-            "files": {
-              "recordings/failed.wav": "c3ludGhldGljIHJldGFpbmVkIGF1ZGlv"
-            }
+            "dialog": null
           }
         },
         {
@@ -4117,9 +4020,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -4235,37 +4135,8 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "",
-                "delivered_text": "",
-                "mode": "command",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "failed",
-                "title": null,
-                "retained_audio_path": "$ROOT/recordings/failed.wav",
-                "audio_retention_policy": "failures",
-                "application_identifier": "org.example.Editor",
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-batch",
-                "recognition_fallback_reason": "realtime-stream-failed",
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": 120,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [],
-            "dialog": null,
-            "files": {
-              "recordings/failed.wav": "c3ludGhldGljIHJldGFpbmVkIGF1ZGlv"
-            }
+            "dialog": null
           }
         },
         {
@@ -4274,9 +4145,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -4392,42 +4260,13 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "",
-                "delivered_text": "",
-                "mode": "command",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "failed",
-                "title": null,
-                "retained_audio_path": "$ROOT/recordings/failed.wav",
-                "audio_retention_policy": "failures",
-                "application_identifier": "org.example.Editor",
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-batch",
-                "recognition_fallback_reason": "realtime-stream-failed",
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": 120,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [
               [
                 "retry",
                 "11111111-1111-4111-8111-111111111111"
               ]
             ],
-            "dialog": null,
-            "files": {
-              "recordings/failed.wav": "c3ludGhldGljIHJldGFpbmVkIGF1ZGlv"
-            }
+            "dialog": null
           }
         },
         {
@@ -4435,9 +4274,6 @@
             "op": "deny_delete"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -4553,42 +4389,13 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "",
-                "delivered_text": "",
-                "mode": "command",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "failed",
-                "title": null,
-                "retained_audio_path": "$ROOT/recordings/failed.wav",
-                "audio_retention_policy": "failures",
-                "application_identifier": "org.example.Editor",
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-batch",
-                "recognition_fallback_reason": "realtime-stream-failed",
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": 120,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [
               [
                 "retry",
                 "11111111-1111-4111-8111-111111111111"
               ]
             ],
-            "dialog": null,
-            "files": {
-              "recordings/failed.wav": "c3ludGhldGljIHJldGFpbmVkIGF1ZGlv"
-            }
+            "dialog": null
           }
         },
         {
@@ -4597,9 +4404,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -4713,32 +4517,6 @@
                     "destructive": true
                   }
                 ]
-              }
-            ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "",
-                "delivered_text": "",
-                "mode": "command",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "failed",
-                "title": null,
-                "retained_audio_path": "$ROOT/recordings/failed.wav",
-                "audio_retention_policy": "failures",
-                "application_identifier": "org.example.Editor",
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-batch",
-                "recognition_fallback_reason": "realtime-stream-failed",
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": 120,
-                "enhancement_ms": null,
-                "delivery_ms": null
               }
             ],
             "events": [
@@ -4764,9 +4542,6 @@
                   "appearance": 2
                 }
               ]
-            },
-            "files": {
-              "recordings/failed.wav": "c3ludGhldGljIHJldGFpbmVkIGF1ZGlv"
             }
           }
         },
@@ -4775,9 +4550,6 @@
             "op": "confirm"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -4891,32 +4663,6 @@
                     "destructive": true
                   }
                 ]
-              }
-            ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "",
-                "delivered_text": "",
-                "mode": "command",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "failed",
-                "title": null,
-                "retained_audio_path": "$ROOT/recordings/failed.wav",
-                "audio_retention_policy": "failures",
-                "application_identifier": "org.example.Editor",
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-batch",
-                "recognition_fallback_reason": "realtime-stream-failed",
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": 120,
-                "enhancement_ms": null,
-                "delivery_ms": null
               }
             ],
             "events": [
@@ -4946,13 +4692,44 @@
                   "appearance": 2
                 }
               ]
-            },
-            "files": {
-              "recordings/failed.wav": "c3ludGhldGljIHJldGFpbmVkIGF1ZGlv"
             }
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "count": "1 shown",
+        "stack": "entries",
+        "focused": null,
+        "records": [
+          {
+            "identifier": "11111111-1111-4111-8111-111111111111",
+            "created_at": "2026-09-28T12:34:56.123456Z",
+            "raw_text": "",
+            "delivered_text": "",
+            "mode": "command",
+            "language_code": "ces",
+            "transcription_id": "synthetic-transcription",
+            "delivery_outcome": "failed",
+            "title": null,
+            "retained_audio_path": "$ROOT/recordings/failed.wav",
+            "audio_retention_policy": "failures",
+            "application_identifier": "org.example.Editor",
+            "correction_source_text": null,
+            "recognition_route": "scribe-v2-batch",
+            "recognition_fallback_reason": "realtime-stream-failed",
+            "enhancement_provider_id": null,
+            "enhancement_model_identifier": null,
+            "enhancement_context_sources": [],
+            "enhancement_outcome": null,
+            "recognition_ms": 120,
+            "enhancement_ms": null,
+            "delivery_ms": null
+          }
+        ],
+        "files": {
+          "recordings/failed.wav": "c3ludGhldGljIHJldGFpbmVkIGF1ZGlv"
+        }
+      }
     },
     {
       "name": "enhancement-and-language-metadata",
@@ -5005,9 +4782,6 @@
             "op": "observe"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5133,40 +4907,7 @@
                   }
                 ]
               }
-            ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-realtime",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": "codex-app-server",
-                "enhancement_model_identifier": "gpt-5.4-mini",
-                "enhancement_context_sources": [
-                  "selected-text",
-                  "style-instructions",
-                  "screenshots"
-                ],
-                "enhancement_outcome": "safe-fallback",
-                "recognition_ms": null,
-                "enhancement_ms": 25,
-                "delivery_ms": 0
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -5175,9 +4916,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5303,40 +5041,7 @@
                   }
                 ]
               }
-            ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-realtime",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": "codex-app-server",
-                "enhancement_model_identifier": "gpt-5.4-mini",
-                "enhancement_context_sources": [
-                  "selected-text",
-                  "style-instructions",
-                  "screenshots"
-                ],
-                "enhancement_outcome": "safe-fallback",
-                "recognition_ms": null,
-                "enhancement_ms": 25,
-                "delivery_ms": 0
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -5345,9 +5050,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5473,40 +5175,7 @@
                   }
                 ]
               }
-            ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-realtime",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": "codex-app-server",
-                "enhancement_model_identifier": "gpt-5.4-mini",
-                "enhancement_context_sources": [
-                  "selected-text",
-                  "style-instructions",
-                  "screenshots"
-                ],
-                "enhancement_outcome": "safe-fallback",
-                "recognition_ms": null,
-                "enhancement_ms": 25,
-                "delivery_ms": 0
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -5515,9 +5184,6 @@
             "value": "12h"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5643,40 +5309,7 @@
                   }
                 ]
               }
-            ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-realtime",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": "codex-app-server",
-                "enhancement_model_identifier": "gpt-5.4-mini",
-                "enhancement_context_sources": [
-                  "selected-text",
-                  "style-instructions",
-                  "screenshots"
-                ],
-                "enhancement_outcome": "safe-fallback",
-                "recognition_ms": null,
-                "enhancement_ms": 25,
-                "delivery_ms": 0
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -5685,9 +5318,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5813,40 +5443,7 @@
                   }
                 ]
               }
-            ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-realtime",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": "codex-app-server",
-                "enhancement_model_identifier": "gpt-5.4-mini",
-                "enhancement_context_sources": [
-                  "selected-text",
-                  "style-instructions",
-                  "screenshots"
-                ],
-                "enhancement_outcome": "safe-fallback",
-                "recognition_ms": null,
-                "enhancement_ms": 25,
-                "delivery_ms": 0
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -5855,9 +5452,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5983,43 +5577,48 @@
                   }
                 ]
               }
-            ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "scribe-v2-realtime",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": "codex-app-server",
-                "enhancement_model_identifier": "gpt-5.4-mini",
-                "enhancement_context_sources": [
-                  "selected-text",
-                  "style-instructions",
-                  "screenshots"
-                ],
-                "enhancement_outcome": "safe-fallback",
-                "recognition_ms": null,
-                "enhancement_ms": 25,
-                "delivery_ms": 0
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "count": "1 shown",
+        "stack": "entries",
+        "focused": null,
+        "records": [
+          {
+            "identifier": "11111111-1111-4111-8111-111111111111",
+            "created_at": "2026-09-28T12:34:56.123456Z",
+            "raw_text": "Original raw.",
+            "delivered_text": "Edited final.",
+            "mode": "dictation",
+            "language_code": "ces",
+            "transcription_id": "synthetic-transcription",
+            "delivery_outcome": "copied",
+            "title": null,
+            "retained_audio_path": null,
+            "audio_retention_policy": null,
+            "application_identifier": null,
+            "correction_source_text": null,
+            "recognition_route": "scribe-v2-realtime",
+            "recognition_fallback_reason": null,
+            "enhancement_provider_id": "codex-app-server",
+            "enhancement_model_identifier": "gpt-5.4-mini",
+            "enhancement_context_sources": [
+              "selected-text",
+              "style-instructions",
+              "screenshots"
+            ],
+            "enhancement_outcome": "safe-fallback",
+            "recognition_ms": null,
+            "enhancement_ms": 25,
+            "delivery_ms": 0
+          }
+        ],
+        "events": [],
+        "dialog": null,
+        "files": {}
+      }
     },
     {
       "name": "local-route-and-unicode-preview",
@@ -6058,9 +5657,6 @@
             "op": "observe"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -6181,35 +5777,7 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Raw 😀.",
-                "delivered_text": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
-                "mode": "scratchpad",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "voxtype-local",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            "events": []
           }
         },
         {
@@ -6218,9 +5786,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -6341,35 +5906,7 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Raw 😀.",
-                "delivered_text": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
-                "mode": "scratchpad",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "voxtype-local",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            "events": []
           }
         },
         {
@@ -6379,9 +5916,6 @@
             "value": " \u001c "
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -6502,35 +6036,7 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Raw 😀.",
-                "delivered_text": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
-                "mode": "scratchpad",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "voxtype-local",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            "events": []
           }
         },
         {
@@ -6539,9 +6045,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -6662,40 +6165,12 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Raw 😀.",
-                "delivered_text": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
-                "mode": "scratchpad",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "voxtype-local",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [
               [
                 "message",
                 "Correction could not be saved: Corrected text cannot be empty"
               ]
-            ],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -6703,9 +6178,6 @@
             "op": "refresh"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -6826,43 +6298,48 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Raw 😀.",
-                "delivered_text": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
-                "mode": "scratchpad",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": "voxtype-local",
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [
               [
                 "message",
                 "Correction could not be saved: Corrected text cannot be empty"
               ]
-            ],
-            "dialog": null,
-            "files": {}
+            ]
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "count": "1 shown",
+        "stack": "entries",
+        "focused": null,
+        "records": [
+          {
+            "identifier": "11111111-1111-4111-8111-111111111111",
+            "created_at": "2026-09-28T12:34:56.123456Z",
+            "raw_text": "Raw 😀.",
+            "delivered_text": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
+            "mode": "scratchpad",
+            "language_code": "ces",
+            "transcription_id": "synthetic-transcription",
+            "delivery_outcome": "copied",
+            "title": null,
+            "retained_audio_path": null,
+            "audio_retention_policy": null,
+            "application_identifier": null,
+            "correction_source_text": null,
+            "recognition_route": "voxtype-local",
+            "recognition_fallback_reason": null,
+            "enhancement_provider_id": null,
+            "enhancement_model_identifier": null,
+            "enhancement_context_sources": [],
+            "enhancement_outcome": null,
+            "recognition_ms": null,
+            "enhancement_ms": null,
+            "delivery_ms": null
+          }
+        ],
+        "dialog": null,
+        "files": {}
+      }
     },
     {
       "name": "continued-document-and-reply",
@@ -6921,8 +6398,6 @@
             "op": "observe"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
             "focused": null,
             "rows": [
               {
@@ -7190,58 +6665,7 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "22222222-2222-4222-8222-222222222222",
-                "created_at": "2026-09-28T12:34:57.123456Z",
-                "raw_text": "Second raw.",
-                "delivered_text": "Second final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              },
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [],
-            "dialog": null,
             "files": {}
           }
         },
@@ -7251,8 +6675,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
             "focused": null,
             "rows": [
               {
@@ -7520,58 +6942,7 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "22222222-2222-4222-8222-222222222222",
-                "created_at": "2026-09-28T12:34:57.123456Z",
-                "raw_text": "Second raw.",
-                "delivered_text": "Second final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              },
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [],
-            "dialog": null,
             "files": {}
           }
         },
@@ -7581,8 +6952,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
             "focused": null,
             "rows": [
               {
@@ -7850,58 +7219,7 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "22222222-2222-4222-8222-222222222222",
-                "created_at": "2026-09-28T12:34:57.123456Z",
-                "raw_text": "Second raw.",
-                "delivered_text": "Second final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              },
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [],
-            "dialog": null,
             "files": {}
           }
         },
@@ -7911,8 +7229,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
             "focused": null,
             "rows": [
               {
@@ -8180,63 +7496,12 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "22222222-2222-4222-8222-222222222222",
-                "created_at": "2026-09-28T12:34:57.123456Z",
-                "raw_text": "Second raw.",
-                "delivered_text": "Second final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              },
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [
               [
                 "copy",
                 "Latest durable reply."
               ]
             ],
-            "dialog": null,
             "files": {}
           }
         },
@@ -8246,8 +7511,6 @@
             "id": "22222222-2222-4222-8222-222222222222"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
             "focused": "11111111-1111-4111-8111-111111111111",
             "rows": [
               {
@@ -8515,63 +7778,12 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "22222222-2222-4222-8222-222222222222",
-                "created_at": "2026-09-28T12:34:57.123456Z",
-                "raw_text": "Second raw.",
-                "delivered_text": "Second final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              },
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [
               [
                 "copy",
                 "Latest durable reply."
               ]
             ],
-            "dialog": null,
             "files": {}
           }
         },
@@ -8581,8 +7793,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
             "focused": "11111111-1111-4111-8111-111111111111",
             "rows": [
               {
@@ -8848,56 +8058,6 @@
                     "destructive": true
                   }
                 ]
-              }
-            ],
-            "records": [
-              {
-                "identifier": "22222222-2222-4222-8222-222222222222",
-                "created_at": "2026-09-28T12:34:57.123456Z",
-                "raw_text": "Second raw.",
-                "delivered_text": "Second final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              },
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
               }
             ],
             "events": [
@@ -8910,7 +8070,6 @@
                 "Exported to $ROOT/exports/mluva-2026-09-28T123456-11111111.md"
               ]
             ],
-            "dialog": null,
             "files": {
               "exports/mluva-2026-09-28T123456-11111111.md": "IyBNbHV2YSB0cmFuc2NyaXB0CgotIENyZWF0ZWQ6IDIwMjYtMDktMjhUMTI6MzQ6NTYuMTIzNDU2WgotIE1vZGU6IGRpY3RhdGlvbgotIExhbmd1YWdlOiBjZXMKLSBEZWxpdmVyeTogY29waWVkCi0gUmVjb2duaXRpb246IExlZ2FjeS91bmtub3duCi0gUmVjb2duaXRpb24gZmFsbGJhY2s6IE5vbmUKLSBFbmhhbmNlbWVudCBwcm92aWRlcjogTm9uZQotIEVuaGFuY2VtZW50IG1vZGVsOiBOb25lCi0gRW5oYW5jZW1lbnQgY29udGV4dDogTm9uZQotIEVuaGFuY2VtZW50IG91dGNvbWU6IE5vbmUKLSBSZWNvZ25pdGlvbiBsYXRlbmN5OiBOb3QgcmVjb3JkZWQKLSBFbmhhbmNlbWVudCBsYXRlbmN5OiBOb3QgcmVjb3JkZWQKLSBEZWxpdmVyeSBsYXRlbmN5OiBOb3QgcmVjb3JkZWQKLSBBcHBsaWNhdGlvbjogTm90IGNhcHR1cmVkCgojIyBEZWxpdmVyZWQgdGV4dAoKRWRpdGVkIGZpbmFsLgoKIyMgUmF3IHRyYW5zY3JpcHQKCk9yaWdpbmFsIHJhdy4KCiMjIEVkaXRlZCBzb3VyY2UKCk9yaWdpbmFsIHJhdy4KClNlY29uZCByYXcuCgojIyBDb250aW51ZWQgcmVjb3JkaW5nIMK3IDIwMjYtMDktMjhUMTI6MzQ6NTcuMTIzNDU2WgoKU2Vjb25kIHJhdy4KCiMjIFJld3JpdGUgwrcgMjAyNi0wOS0yOFQxMjozNDo1OS4xMjM0NTZaCgojIyMgSW5zdHJ1Y3Rpb24KClJld3JpdGUgaW5zdHJ1Y3Rpb24uCgojIyMgUmVzdWx0CgpMYXRlc3QgZHVyYWJsZSByZXBseS4KCk1vZGVsOiBncHQtNS40LW1pbmkK"
             }
@@ -8922,8 +8081,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
             "focused": "11111111-1111-4111-8111-111111111111",
             "rows": [
               {
@@ -9191,56 +8348,6 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "22222222-2222-4222-8222-222222222222",
-                "created_at": "2026-09-28T12:34:57.123456Z",
-                "raw_text": "Second raw.",
-                "delivered_text": "Second final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              },
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [
               [
                 "copy",
@@ -9255,7 +8362,6 @@
                 "Exported to $ROOT/exports/mluva-2026-09-28T123456-11111111.json"
               ]
             ],
-            "dialog": null,
             "files": {
               "exports/mluva-2026-09-28T123456-11111111.json": "ewogICJpZGVudGlmaWVyIjogIjExMTExMTExLTExMTEtNDExMS04MTExLTExMTExMTExMTExMSIsCiAgImNyZWF0ZWRfYXQiOiAiMjAyNi0wOS0yOFQxMjozNDo1Ni4xMjM0NTZaIiwKICAicmF3X3RleHQiOiAiT3JpZ2luYWwgcmF3LiIsCiAgImRlbGl2ZXJlZF90ZXh0IjogIkVkaXRlZCBmaW5hbC4iLAogICJtb2RlIjogImRpY3RhdGlvbiIsCiAgImxhbmd1YWdlX2NvZGUiOiAiY2VzIiwKICAidHJhbnNjcmlwdGlvbl9pZCI6ICJzeW50aGV0aWMtdHJhbnNjcmlwdGlvbiIsCiAgImRlbGl2ZXJ5X291dGNvbWUiOiAiY29waWVkIiwKICAidGl0bGUiOiBudWxsLAogICJyZXRhaW5lZF9hdWRpb19wYXRoIjogbnVsbCwKICAiYXVkaW9fcmV0ZW50aW9uX3BvbGljeSI6IG51bGwsCiAgImFwcGxpY2F0aW9uX2lkZW50aWZpZXIiOiBudWxsLAogICJjb3JyZWN0aW9uX3NvdXJjZV90ZXh0IjogbnVsbCwKICAicmVjb2duaXRpb25fcm91dGUiOiBudWxsLAogICJyZWNvZ25pdGlvbl9mYWxsYmFja19yZWFzb24iOiBudWxsLAogICJlbmhhbmNlbWVudF9wcm92aWRlcl9pZCI6IG51bGwsCiAgImVuaGFuY2VtZW50X21vZGVsX2lkZW50aWZpZXIiOiBudWxsLAogICJlbmhhbmNlbWVudF9jb250ZXh0X3NvdXJjZXMiOiBbXSwKICAiZW5oYW5jZW1lbnRfb3V0Y29tZSI6IG51bGwsCiAgInJlY29nbml0aW9uX21zIjogbnVsbCwKICAiZW5oYW5jZW1lbnRfbXMiOiBudWxsLAogICJkZWxpdmVyeV9tcyI6IG51bGwsCiAgIndvcmtpbmdfc291cmNlIjogIk9yaWdpbmFsIHJhdy5cblxuU2Vjb25kIHJhdy4iLAogICJyZXdyaXRlcyI6IFsKICAgIHsKICAgICAgImlkZW50aWZpZXIiOiAxLAogICAgICAiaGlzdG9yeV9pZGVudGlmaWVyIjogIjExMTExMTExLTExMTEtNDExMS04MTExLTExMTExMTExMTExMSIsCiAgICAgICJpbnN0cnVjdGlvbiI6ICJSZXdyaXRlIGluc3RydWN0aW9uLiIsCiAgICAgICJ0ZXh0IjogIkxhdGVzdCBkdXJhYmxlIHJlcGx5LiIsCiAgICAgICJtb2RlbCI6ICJncHQtNS40LW1pbmkiLAogICAgICAiY3JlYXRlZF9hdCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU5LjEyMzQ1NloiCiAgICB9CiAgXSwKICAicmVjb3JkaW5nX3NlZ21lbnRzIjogWwogICAgewogICAgICAiaWRlbnRpZmllciI6ICIyMjIyMjIyMi0yMjIyLTQyMjItODIyMi0yMjIyMjIyMjIyMjIiLAogICAgICAiY3JlYXRlZF9hdCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU3LjEyMzQ1NloiLAogICAgICAicmF3X3RleHQiOiAiU2Vjb25kIHJhdy4iLAogICAgICAiZGVsaXZlcmVkX3RleHQiOiAiU2Vjb25kIGZpbmFsLiIsCiAgICAgICJtb2RlIjogImRpY3RhdGlvbiIsCiAgICAgICJsYW5ndWFnZV9jb2RlIjogImNlcyIsCiAgICAgICJ0cmFuc2NyaXB0aW9uX2lkIjogInN5bnRoZXRpYy10cmFuc2NyaXB0aW9uIiwKICAgICAgImRlbGl2ZXJ5X291dGNvbWUiOiAiY29waWVkIiwKICAgICAgInRpdGxlIjogbnVsbCwKICAgICAgInJldGFpbmVkX2F1ZGlvX3BhdGgiOiBudWxsLAogICAgICAiYXVkaW9fcmV0ZW50aW9uX3BvbGljeSI6IG51bGwsCiAgICAgICJhcHBsaWNhdGlvbl9pZGVudGlmaWVyIjogbnVsbCwKICAgICAgImNvcnJlY3Rpb25fc291cmNlX3RleHQiOiBudWxsLAogICAgICAicmVjb2duaXRpb25fcm91dGUiOiBudWxsLAogICAgICAicmVjb2duaXRpb25fZmFsbGJhY2tfcmVhc29uIjogbnVsbCwKICAgICAgImVuaGFuY2VtZW50X3Byb3ZpZGVyX2lkIjogbnVsbCwKICAgICAgImVuaGFuY2VtZW50X21vZGVsX2lkZW50aWZpZXIiOiBudWxsLAogICAgICAiZW5oYW5jZW1lbnRfY29udGV4dF9zb3VyY2VzIjogW10sCiAgICAgICJlbmhhbmNlbWVudF9vdXRjb21lIjogbnVsbCwKICAgICAgInJlY29nbml0aW9uX21zIjogbnVsbCwKICAgICAgImVuaGFuY2VtZW50X21zIjogbnVsbCwKICAgICAgImRlbGl2ZXJ5X21zIjogbnVsbAogICAgfQogIF0KfQo=",
               "exports/mluva-2026-09-28T123456-11111111.md": "IyBNbHV2YSB0cmFuc2NyaXB0CgotIENyZWF0ZWQ6IDIwMjYtMDktMjhUMTI6MzQ6NTYuMTIzNDU2WgotIE1vZGU6IGRpY3RhdGlvbgotIExhbmd1YWdlOiBjZXMKLSBEZWxpdmVyeTogY29waWVkCi0gUmVjb2duaXRpb246IExlZ2FjeS91bmtub3duCi0gUmVjb2duaXRpb24gZmFsbGJhY2s6IE5vbmUKLSBFbmhhbmNlbWVudCBwcm92aWRlcjogTm9uZQotIEVuaGFuY2VtZW50IG1vZGVsOiBOb25lCi0gRW5oYW5jZW1lbnQgY29udGV4dDogTm9uZQotIEVuaGFuY2VtZW50IG91dGNvbWU6IE5vbmUKLSBSZWNvZ25pdGlvbiBsYXRlbmN5OiBOb3QgcmVjb3JkZWQKLSBFbmhhbmNlbWVudCBsYXRlbmN5OiBOb3QgcmVjb3JkZWQKLSBEZWxpdmVyeSBsYXRlbmN5OiBOb3QgcmVjb3JkZWQKLSBBcHBsaWNhdGlvbjogTm90IGNhcHR1cmVkCgojIyBEZWxpdmVyZWQgdGV4dAoKRWRpdGVkIGZpbmFsLgoKIyMgUmF3IHRyYW5zY3JpcHQKCk9yaWdpbmFsIHJhdy4KCiMjIEVkaXRlZCBzb3VyY2UKCk9yaWdpbmFsIHJhdy4KClNlY29uZCByYXcuCgojIyBDb250aW51ZWQgcmVjb3JkaW5nIMK3IDIwMjYtMDktMjhUMTI6MzQ6NTcuMTIzNDU2WgoKU2Vjb25kIHJhdy4KCiMjIFJld3JpdGUgwrcgMjAyNi0wOS0yOFQxMjozNDo1OS4xMjM0NTZaCgojIyMgSW5zdHJ1Y3Rpb24KClJld3JpdGUgaW5zdHJ1Y3Rpb24uCgojIyMgUmVzdWx0CgpMYXRlc3QgZHVyYWJsZSByZXBseS4KCk1vZGVsOiBncHQtNS40LW1pbmkK"
@@ -9267,8 +8373,6 @@
             "op": "refresh"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
             "focused": "11111111-1111-4111-8111-111111111111",
             "rows": [
               {
@@ -9536,56 +8640,6 @@
                 ]
               }
             ],
-            "records": [
-              {
-                "identifier": "22222222-2222-4222-8222-222222222222",
-                "created_at": "2026-09-28T12:34:57.123456Z",
-                "raw_text": "Second raw.",
-                "delivered_text": "Second final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              },
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "dictation",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
             "events": [
               [
                 "copy",
@@ -9600,14 +8654,68 @@
                 "Exported to $ROOT/exports/mluva-2026-09-28T123456-11111111.json"
               ]
             ],
-            "dialog": null,
             "files": {
               "exports/mluva-2026-09-28T123456-11111111.json": "ewogICJpZGVudGlmaWVyIjogIjExMTExMTExLTExMTEtNDExMS04MTExLTExMTExMTExMTExMSIsCiAgImNyZWF0ZWRfYXQiOiAiMjAyNi0wOS0yOFQxMjozNDo1Ni4xMjM0NTZaIiwKICAicmF3X3RleHQiOiAiT3JpZ2luYWwgcmF3LiIsCiAgImRlbGl2ZXJlZF90ZXh0IjogIkVkaXRlZCBmaW5hbC4iLAogICJtb2RlIjogImRpY3RhdGlvbiIsCiAgImxhbmd1YWdlX2NvZGUiOiAiY2VzIiwKICAidHJhbnNjcmlwdGlvbl9pZCI6ICJzeW50aGV0aWMtdHJhbnNjcmlwdGlvbiIsCiAgImRlbGl2ZXJ5X291dGNvbWUiOiAiY29waWVkIiwKICAidGl0bGUiOiBudWxsLAogICJyZXRhaW5lZF9hdWRpb19wYXRoIjogbnVsbCwKICAiYXVkaW9fcmV0ZW50aW9uX3BvbGljeSI6IG51bGwsCiAgImFwcGxpY2F0aW9uX2lkZW50aWZpZXIiOiBudWxsLAogICJjb3JyZWN0aW9uX3NvdXJjZV90ZXh0IjogbnVsbCwKICAicmVjb2duaXRpb25fcm91dGUiOiBudWxsLAogICJyZWNvZ25pdGlvbl9mYWxsYmFja19yZWFzb24iOiBudWxsLAogICJlbmhhbmNlbWVudF9wcm92aWRlcl9pZCI6IG51bGwsCiAgImVuaGFuY2VtZW50X21vZGVsX2lkZW50aWZpZXIiOiBudWxsLAogICJlbmhhbmNlbWVudF9jb250ZXh0X3NvdXJjZXMiOiBbXSwKICAiZW5oYW5jZW1lbnRfb3V0Y29tZSI6IG51bGwsCiAgInJlY29nbml0aW9uX21zIjogbnVsbCwKICAiZW5oYW5jZW1lbnRfbXMiOiBudWxsLAogICJkZWxpdmVyeV9tcyI6IG51bGwsCiAgIndvcmtpbmdfc291cmNlIjogIk9yaWdpbmFsIHJhdy5cblxuU2Vjb25kIHJhdy4iLAogICJyZXdyaXRlcyI6IFsKICAgIHsKICAgICAgImlkZW50aWZpZXIiOiAxLAogICAgICAiaGlzdG9yeV9pZGVudGlmaWVyIjogIjExMTExMTExLTExMTEtNDExMS04MTExLTExMTExMTExMTExMSIsCiAgICAgICJpbnN0cnVjdGlvbiI6ICJSZXdyaXRlIGluc3RydWN0aW9uLiIsCiAgICAgICJ0ZXh0IjogIkxhdGVzdCBkdXJhYmxlIHJlcGx5LiIsCiAgICAgICJtb2RlbCI6ICJncHQtNS40LW1pbmkiLAogICAgICAiY3JlYXRlZF9hdCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU5LjEyMzQ1NloiCiAgICB9CiAgXSwKICAicmVjb3JkaW5nX3NlZ21lbnRzIjogWwogICAgewogICAgICAiaWRlbnRpZmllciI6ICIyMjIyMjIyMi0yMjIyLTQyMjItODIyMi0yMjIyMjIyMjIyMjIiLAogICAgICAiY3JlYXRlZF9hdCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU3LjEyMzQ1NloiLAogICAgICAicmF3X3RleHQiOiAiU2Vjb25kIHJhdy4iLAogICAgICAiZGVsaXZlcmVkX3RleHQiOiAiU2Vjb25kIGZpbmFsLiIsCiAgICAgICJtb2RlIjogImRpY3RhdGlvbiIsCiAgICAgICJsYW5ndWFnZV9jb2RlIjogImNlcyIsCiAgICAgICJ0cmFuc2NyaXB0aW9uX2lkIjogInN5bnRoZXRpYy10cmFuc2NyaXB0aW9uIiwKICAgICAgImRlbGl2ZXJ5X291dGNvbWUiOiAiY29waWVkIiwKICAgICAgInRpdGxlIjogbnVsbCwKICAgICAgInJldGFpbmVkX2F1ZGlvX3BhdGgiOiBudWxsLAogICAgICAiYXVkaW9fcmV0ZW50aW9uX3BvbGljeSI6IG51bGwsCiAgICAgICJhcHBsaWNhdGlvbl9pZGVudGlmaWVyIjogbnVsbCwKICAgICAgImNvcnJlY3Rpb25fc291cmNlX3RleHQiOiBudWxsLAogICAgICAicmVjb2duaXRpb25fcm91dGUiOiBudWxsLAogICAgICAicmVjb2duaXRpb25fZmFsbGJhY2tfcmVhc29uIjogbnVsbCwKICAgICAgImVuaGFuY2VtZW50X3Byb3ZpZGVyX2lkIjogbnVsbCwKICAgICAgImVuaGFuY2VtZW50X21vZGVsX2lkZW50aWZpZXIiOiBudWxsLAogICAgICAiZW5oYW5jZW1lbnRfY29udGV4dF9zb3VyY2VzIjogW10sCiAgICAgICJlbmhhbmNlbWVudF9vdXRjb21lIjogbnVsbCwKICAgICAgInJlY29nbml0aW9uX21zIjogbnVsbCwKICAgICAgImVuaGFuY2VtZW50X21zIjogbnVsbCwKICAgICAgImRlbGl2ZXJ5X21zIjogbnVsbAogICAgfQogIF0KfQo=",
               "exports/mluva-2026-09-28T123456-11111111.md": "IyBNbHV2YSB0cmFuc2NyaXB0CgotIENyZWF0ZWQ6IDIwMjYtMDktMjhUMTI6MzQ6NTYuMTIzNDU2WgotIE1vZGU6IGRpY3RhdGlvbgotIExhbmd1YWdlOiBjZXMKLSBEZWxpdmVyeTogY29waWVkCi0gUmVjb2duaXRpb246IExlZ2FjeS91bmtub3duCi0gUmVjb2duaXRpb24gZmFsbGJhY2s6IE5vbmUKLSBFbmhhbmNlbWVudCBwcm92aWRlcjogTm9uZQotIEVuaGFuY2VtZW50IG1vZGVsOiBOb25lCi0gRW5oYW5jZW1lbnQgY29udGV4dDogTm9uZQotIEVuaGFuY2VtZW50IG91dGNvbWU6IE5vbmUKLSBSZWNvZ25pdGlvbiBsYXRlbmN5OiBOb3QgcmVjb3JkZWQKLSBFbmhhbmNlbWVudCBsYXRlbmN5OiBOb3QgcmVjb3JkZWQKLSBEZWxpdmVyeSBsYXRlbmN5OiBOb3QgcmVjb3JkZWQKLSBBcHBsaWNhdGlvbjogTm90IGNhcHR1cmVkCgojIyBEZWxpdmVyZWQgdGV4dAoKRWRpdGVkIGZpbmFsLgoKIyMgUmF3IHRyYW5zY3JpcHQKCk9yaWdpbmFsIHJhdy4KCiMjIEVkaXRlZCBzb3VyY2UKCk9yaWdpbmFsIHJhdy4KClNlY29uZCByYXcuCgojIyBDb250aW51ZWQgcmVjb3JkaW5nIMK3IDIwMjYtMDktMjhUMTI6MzQ6NTcuMTIzNDU2WgoKU2Vjb25kIHJhdy4KCiMjIFJld3JpdGUgwrcgMjAyNi0wOS0yOFQxMjozNDo1OS4xMjM0NTZaCgojIyMgSW5zdHJ1Y3Rpb24KClJld3JpdGUgaW5zdHJ1Y3Rpb24uCgojIyMgUmVzdWx0CgpMYXRlc3QgZHVyYWJsZSByZXBseS4KCk1vZGVsOiBncHQtNS40LW1pbmkK"
             }
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "count": "1 shown",
+        "stack": "entries",
+        "records": [
+          {
+            "identifier": "22222222-2222-4222-8222-222222222222",
+            "created_at": "2026-09-28T12:34:57.123456Z",
+            "raw_text": "Second raw.",
+            "delivered_text": "Second final.",
+            "mode": "dictation",
+            "language_code": "ces",
+            "transcription_id": "synthetic-transcription",
+            "delivery_outcome": "copied",
+            "title": null,
+            "retained_audio_path": null,
+            "audio_retention_policy": null,
+            "application_identifier": null,
+            "correction_source_text": null,
+            "recognition_route": null,
+            "recognition_fallback_reason": null,
+            "enhancement_provider_id": null,
+            "enhancement_model_identifier": null,
+            "enhancement_context_sources": [],
+            "enhancement_outcome": null,
+            "recognition_ms": null,
+            "enhancement_ms": null,
+            "delivery_ms": null
+          },
+          {
+            "identifier": "11111111-1111-4111-8111-111111111111",
+            "created_at": "2026-09-28T12:34:56.123456Z",
+            "raw_text": "Original raw.",
+            "delivered_text": "Edited final.",
+            "mode": "dictation",
+            "language_code": "ces",
+            "transcription_id": "synthetic-transcription",
+            "delivery_outcome": "copied",
+            "title": null,
+            "retained_audio_path": null,
+            "audio_retention_policy": null,
+            "application_identifier": null,
+            "correction_source_text": null,
+            "recognition_route": null,
+            "recognition_fallback_reason": null,
+            "enhancement_provider_id": null,
+            "enhancement_model_identifier": null,
+            "enhancement_context_sources": [],
+            "enhancement_outcome": null,
+            "recognition_ms": null,
+            "enhancement_ms": null,
+            "delivery_ms": null
+          }
+        ],
+        "dialog": null
+      }
     },
     {
       "name": "automatic-title-does-not-replace-draft",
@@ -9661,9 +8769,6 @@
             "op": "observe"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -9809,10 +8914,7 @@
                 "enhancement_ms": null,
                 "delivery_ms": null
               }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -9821,9 +8923,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -9969,10 +9068,7 @@
                 "enhancement_ms": null,
                 "delivery_ms": null
               }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -9982,9 +9078,6 @@
             "value": "Uncommitted human title"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -10130,10 +9223,7 @@
                 "enhancement_ms": null,
                 "delivery_ms": null
               }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -10143,9 +9233,6 @@
             "value": "Generated title"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -10291,10 +9378,7 @@
                 "enhancement_ms": null,
                 "delivery_ms": null
               }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -10303,9 +9387,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -10451,10 +9532,7 @@
                 "enhancement_ms": null,
                 "delivery_ms": null
               }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -10464,9 +9542,6 @@
             "value": "Generated title"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -10612,10 +9687,7 @@
                 "enhancement_ms": null,
                 "delivery_ms": null
               }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -10625,9 +9697,6 @@
             "value": "Updated title"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -10773,10 +9842,7 @@
                 "enhancement_ms": null,
                 "delivery_ms": null
               }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -10785,9 +9851,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -10933,13 +9996,18 @@
                 "enhancement_ms": null,
                 "delivery_ms": null
               }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "count": "1 shown",
+        "stack": "entries",
+        "focused": null,
+        "events": [],
+        "dialog": null,
+        "files": {}
+      }
     },
     {
       "name": "unicode-legacy-mode",
@@ -10965,9 +10033,6 @@
             "op": "observe"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -11087,36 +10152,7 @@
                   }
                 ]
               }
-            ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "__ß ǅ_İ ΟΣ ᾀ O'NEILL 𝒜x",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         },
         {
@@ -11125,9 +10161,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -11247,39 +10280,44 @@
                   }
                 ]
               }
-            ],
-            "records": [
-              {
-                "identifier": "11111111-1111-4111-8111-111111111111",
-                "created_at": "2026-09-28T12:34:56.123456Z",
-                "raw_text": "Original raw.",
-                "delivered_text": "Edited final.",
-                "mode": "__ß ǅ_İ ΟΣ ᾀ O'NEILL 𝒜x",
-                "language_code": "ces",
-                "transcription_id": "synthetic-transcription",
-                "delivery_outcome": "copied",
-                "title": null,
-                "retained_audio_path": null,
-                "audio_retention_policy": null,
-                "application_identifier": null,
-                "correction_source_text": null,
-                "recognition_route": null,
-                "recognition_fallback_reason": null,
-                "enhancement_provider_id": null,
-                "enhancement_model_identifier": null,
-                "enhancement_context_sources": [],
-                "enhancement_outcome": null,
-                "recognition_ms": null,
-                "enhancement_ms": null,
-                "delivery_ms": null
-              }
-            ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            ]
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "count": "1 shown",
+        "stack": "entries",
+        "focused": null,
+        "records": [
+          {
+            "identifier": "11111111-1111-4111-8111-111111111111",
+            "created_at": "2026-09-28T12:34:56.123456Z",
+            "raw_text": "Original raw.",
+            "delivered_text": "Edited final.",
+            "mode": "__ß ǅ_İ ΟΣ ᾀ O'NEILL 𝒜x",
+            "language_code": "ces",
+            "transcription_id": "synthetic-transcription",
+            "delivery_outcome": "copied",
+            "title": null,
+            "retained_audio_path": null,
+            "audio_retention_policy": null,
+            "application_identifier": null,
+            "correction_source_text": null,
+            "recognition_route": null,
+            "recognition_fallback_reason": null,
+            "enhancement_provider_id": null,
+            "enhancement_model_identifier": null,
+            "enhancement_context_sources": [],
+            "enhancement_outcome": null,
+            "recognition_ms": null,
+            "enhancement_ms": null,
+            "delivery_ms": null
+          }
+        ],
+        "events": [],
+        "dialog": null,
+        "files": {}
+      }
     },
     {
       "name": "legacy-empty-title-and-invalid-date",
@@ -11324,9 +10362,6 @@
             "op": "observe"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -11462,9 +10497,7 @@
                 "delivery_ms": null
               }
             ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            "events": []
           }
         },
         {
@@ -11473,9 +10506,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -11611,9 +10641,7 @@
                 "delivery_ms": null
               }
             ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            "events": []
           }
         },
         {
@@ -11623,9 +10651,6 @@
             "value": "Recovered"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -11761,9 +10786,7 @@
                 "delivery_ms": null
               }
             ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            "events": []
           }
         },
         {
@@ -11772,9 +10795,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -11910,9 +10930,7 @@
                 "delivery_ms": null
               }
             ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            "events": []
           }
         },
         {
@@ -11922,9 +10940,6 @@
             "value": ""
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -12060,9 +11075,7 @@
                 "delivery_ms": null
               }
             ],
-            "events": [],
-            "dialog": null,
-            "files": {}
+            "events": []
           }
         },
         {
@@ -12071,9 +11084,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "count": "1 shown",
-            "stack": "entries",
-            "focused": null,
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -12217,12 +11227,20 @@
               [
                 "changed"
               ]
-            ],
-            "dialog": null,
-            "files": {}
+            ]
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "count": "1 shown",
+        "stack": "entries",
+        "focused": null,
+        "dialog": null,
+        "files": {}
+      }
     }
-  ]
+  ],
+  "common_observations": {
+    "cases": {}
+  }
 }

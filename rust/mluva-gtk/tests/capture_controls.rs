@@ -15,6 +15,8 @@ use mluva_gtk::rewrite_settings::RewriteSettings;
 use mluva_gtk::theme::ThemeController;
 use mluva_providers::models::Model;
 use serde_json::{Value, json};
+#[path = "support/fixture_states.rs"]
+mod fixture_states;
 use std::cell::{Cell, RefCell};
 use std::path::PathBuf;
 use std::rc::{Rc, Weak};
@@ -159,8 +161,11 @@ fn capture_page_and_catalog_controls_match_released_widgets() {
     }
     assert!(std::env::var_os("WAYLAND_DISPLAY").is_none());
     assert!(std::env::var_os("HYPRLAND_INSTANCE_SIGNATURE").is_none());
-    let reference: Value =
-        serde_json::from_str(include_str!("fixtures/released-capture-controls.json")).unwrap();
+    let reference = fixture_states::load(
+        include_str!("fixtures/released-capture-controls.json"),
+        &["settings", "capture"],
+        "observed",
+    );
     assert_eq!(
         reference["reference_commit"],
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"

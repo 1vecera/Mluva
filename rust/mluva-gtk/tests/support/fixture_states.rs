@@ -29,6 +29,11 @@ pub fn load(source: &str, groups: &[&str], observation: &str) -> Value {
     for group in groups {
         let common = shared.as_object_mut().unwrap().remove(*group).unwrap();
         for case in document[*group].as_array_mut().unwrap() {
+            if case.get(observation).is_some() {
+                assert!(case.get("stages").is_none(), "ambiguous observation row");
+                union(&mut case[observation], &common);
+                continue;
+            }
             let mut case_common = case
                 .as_object_mut()
                 .unwrap()

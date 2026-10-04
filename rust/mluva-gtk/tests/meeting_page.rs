@@ -10,6 +10,8 @@ use mluva_gtk::{
     theme::ThemeController,
 };
 use serde_json::{Value, json};
+#[path = "support/fixture_states.rs"]
+mod fixture_states;
 use std::{
     cell::{Cell, RefCell},
     collections::BTreeMap,
@@ -174,8 +176,11 @@ fn released_meeting_archive_widgets_and_actions_match() {
         resources.font.parent().unwrap(),
     )
     .unwrap();
-    let reference: Value =
-        serde_json::from_str(include_str!("fixtures/released-meeting-page.json")).unwrap();
+    let reference = fixture_states::load(
+        include_str!("fixtures/released-meeting-page.json"),
+        &["cases"],
+        "observed",
+    );
     assert_eq!(
         reference["gtk"],
         json!([

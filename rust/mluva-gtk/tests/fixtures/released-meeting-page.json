@@ -122,7 +122,6 @@
           },
           "observed": {
             "status": "Meeting is idle",
-            "status_role": 61,
             "audio": [
               "Audio routes",
               "Default (automatic) + everything playing through Default (automatic)"
@@ -142,14 +141,7 @@
               "suggested": true,
               "destructive": false
             },
-            "count": "0 saved",
-            "stack": "empty",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
-            "rows": [],
-            "dialog": null,
-            "events": [],
-            "records": [],
-            "files": {}
+            "events": []
           }
         },
         {
@@ -159,7 +151,6 @@
           },
           "observed": {
             "status": "Meeting is idle",
-            "status_role": 61,
             "audio": [
               "Audio routes",
               "Default (automatic) + everything playing through Default (automatic)"
@@ -179,14 +170,7 @@
               "suggested": true,
               "destructive": false
             },
-            "count": "0 saved",
-            "stack": "empty",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
-            "rows": [],
-            "dialog": null,
-            "events": [],
-            "records": [],
-            "files": {}
+            "events": []
           }
         },
         {
@@ -197,7 +181,6 @@
           },
           "observed": {
             "status": "Meeting is idle",
-            "status_role": 61,
             "audio": [
               "Audio routes",
               "USB mikrofon + everything playing through Desk speakers"
@@ -217,14 +200,7 @@
               "suggested": true,
               "destructive": false
             },
-            "count": "0 saved",
-            "stack": "empty",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
-            "rows": [],
-            "dialog": null,
-            "events": [],
-            "records": [],
-            "files": {}
+            "events": []
           }
         },
         {
@@ -234,7 +210,6 @@
           },
           "observed": {
             "status": "Recording both routes.",
-            "status_role": 61,
             "audio": [
               "Audio routes",
               "USB mikrofon + everything playing through Desk speakers"
@@ -254,14 +229,7 @@
               "suggested": true,
               "destructive": false
             },
-            "count": "0 saved",
-            "stack": "empty",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
-            "rows": [],
-            "dialog": null,
-            "events": [],
-            "records": [],
-            "files": {}
+            "events": []
           }
         },
         {
@@ -270,7 +238,6 @@
           },
           "observed": {
             "status": "Recording both routes.",
-            "status_role": 61,
             "audio": [
               "Audio routes",
               "USB mikrofon + everything playing through Desk speakers"
@@ -290,14 +257,7 @@
               "suggested": false,
               "destructive": true
             },
-            "count": "0 saved",
-            "stack": "empty",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
-            "rows": [],
-            "dialog": null,
-            "events": [],
-            "records": [],
-            "files": {}
+            "events": []
           }
         },
         {
@@ -306,7 +266,6 @@
           },
           "observed": {
             "status": "Recording both routes.",
-            "status_role": 61,
             "audio": [
               "Audio routes",
               "USB mikrofon + everything playing through Desk speakers"
@@ -326,14 +285,7 @@
               "suggested": false,
               "destructive": false
             },
-            "count": "0 saved",
-            "stack": "empty",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
-            "rows": [],
-            "dialog": null,
-            "events": [],
-            "records": [],
-            "files": {}
+            "events": []
           }
         },
         {
@@ -342,7 +294,6 @@
           },
           "observed": {
             "status": "Recording both routes.",
-            "status_role": 61,
             "audio": [
               "Audio routes",
               "USB mikrofon + everything playing through Desk speakers"
@@ -362,14 +313,7 @@
               "suggested": true,
               "destructive": false
             },
-            "count": "0 saved",
-            "stack": "empty",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
-            "rows": [],
-            "dialog": null,
-            "events": [],
-            "records": [],
-            "files": {}
+            "events": []
           }
         },
         {
@@ -379,7 +323,6 @@
           },
           "observed": {
             "status": "Recording both routes.",
-            "status_role": 61,
             "audio": [
               "Audio routes",
               "USB mikrofon + everything playing through Desk speakers"
@@ -399,14 +342,7 @@
               "suggested": true,
               "destructive": false
             },
-            "count": "0 saved",
-            "stack": "empty",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
-            "rows": [],
-            "dialog": null,
-            "events": [],
-            "records": [],
-            "files": {}
+            "events": []
           }
         },
         {
@@ -415,7 +351,6 @@
           },
           "observed": {
             "status": "Recording both routes.",
-            "status_role": 61,
             "audio": [
               "Audio routes",
               "USB mikrofon + everything playing through Desk speakers"
@@ -435,21 +370,23 @@
               "suggested": true,
               "destructive": false
             },
-            "count": "0 saved",
-            "stack": "empty",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
-            "rows": [],
-            "dialog": null,
             "events": [
               [
                 "toggle"
               ]
-            ],
-            "records": [],
-            "files": {}
+            ]
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "count": "0 saved",
+        "stack": "empty",
+        "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
+        "rows": [],
+        "dialog": null,
+        "records": [],
+        "files": {}
+      }
     },
     {
       "name": "review-exports-and-dialogs",
@@ -545,30 +482,7 @@
             "op": "observe"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -816,30 +730,7 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -1087,30 +978,7 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -1358,30 +1226,7 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -1629,30 +1474,7 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -1905,30 +1727,7 @@
             "id": "22222222-2222-4222-8222-222222222222"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -2186,30 +1985,7 @@
             "value": " \u001c Porada Žluťoučký "
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -2466,30 +2242,7 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -2750,30 +2503,7 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -3039,30 +2769,7 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -3333,30 +3040,7 @@
             "value": "12h"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -3627,30 +3311,7 @@
             "id": "22222222-2222-4222-8222-222222222222"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -3937,30 +3598,7 @@
             "op": "cancel"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -4248,30 +3886,7 @@
             "id": "22222222-2222-4222-8222-222222222222"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "2 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "22222222-2222-4222-8222-222222222222",
@@ -4558,30 +4173,7 @@
             "op": "confirm"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -4755,30 +4347,7 @@
             "op": "refresh"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
             "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -4947,7 +4516,31 @@
             }
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "status": "Meeting is idle",
+        "audio": [
+          "Audio routes",
+          "Default (automatic) + everything playing through Default (automatic)"
+        ],
+        "privacy": [
+          "Private local archive",
+          "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
+        ],
+        "record": {
+          "labels": [
+            "Start Meeting capture"
+          ],
+          "icons": [
+            "system-users-symbolic"
+          ],
+          "sensitive": true,
+          "suggested": true,
+          "destructive": false
+        },
+        "stack": "meetings",
+        "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled."
+      }
     },
     {
       "name": "unicode-previews-and-warnings",
@@ -4997,30 +4590,6 @@
             "op": "observe"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5121,43 +4690,7 @@
                 ]
               }
             ],
-            "dialog": null,
-            "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
-                "speakers": [
-                  {
-                    "speaker": "Speaker 1",
-                    "text": "Ahoj.",
-                    "startedAt": 59.5,
-                    "endedAt": 61.0
-                  }
-                ],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 3600.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": null,
-                "recognitionStatus": "completed",
-                "transcriptionID": null,
-                "warnings": [
-                  "Only microphone.",
-                  "No system audio."
-                ]
-              }
-            ],
-            "files": {
-              "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDM2MDAuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFsKICAgICAgewogICAgICAgICJlbmRlZEF0IjogNjEuMCwKICAgICAgICAic3BlYWtlciI6ICJTcGVha2VyIDEiLAogICAgICAgICJzdGFydGVkQXQiOiA1OS41LAogICAgICAgICJ0ZXh0IjogIkFob2ouIgogICAgICB9CiAgICBdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFsKICAgICAgIk9ubHkgbWljcm9waG9uZS4iLAogICAgICAiTm8gc3lzdGVtIGF1ZGlvLiIKICAgIF0KICB9Cl0K"
-            }
+            "events": []
           }
         },
         {
@@ -5166,30 +4699,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5290,43 +4799,7 @@
                 ]
               }
             ],
-            "dialog": null,
-            "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
-                "speakers": [
-                  {
-                    "speaker": "Speaker 1",
-                    "text": "Ahoj.",
-                    "startedAt": 59.5,
-                    "endedAt": 61.0
-                  }
-                ],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 3600.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": null,
-                "recognitionStatus": "completed",
-                "transcriptionID": null,
-                "warnings": [
-                  "Only microphone.",
-                  "No system audio."
-                ]
-              }
-            ],
-            "files": {
-              "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDM2MDAuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFsKICAgICAgewogICAgICAgICJlbmRlZEF0IjogNjEuMCwKICAgICAgICAic3BlYWtlciI6ICJTcGVha2VyIDEiLAogICAgICAgICJzdGFydGVkQXQiOiA1OS41LAogICAgICAgICJ0ZXh0IjogIkFob2ouIgogICAgICB9CiAgICBdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFsKICAgICAgIk9ubHkgbWljcm9waG9uZS4iLAogICAgICAiTm8gc3lzdGVtIGF1ZGlvLiIKICAgIF0KICB9Cl0K"
-            }
+            "events": []
           }
         },
         {
@@ -5334,30 +4807,6 @@
             "op": "refresh"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5458,43 +4907,7 @@
                 ]
               }
             ],
-            "dialog": null,
-            "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
-                "speakers": [
-                  {
-                    "speaker": "Speaker 1",
-                    "text": "Ahoj.",
-                    "startedAt": 59.5,
-                    "endedAt": 61.0
-                  }
-                ],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 3600.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": null,
-                "recognitionStatus": "completed",
-                "transcriptionID": null,
-                "warnings": [
-                  "Only microphone.",
-                  "No system audio."
-                ]
-              }
-            ],
-            "files": {
-              "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDM2MDAuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFsKICAgICAgewogICAgICAgICJlbmRlZEF0IjogNjEuMCwKICAgICAgICAic3BlYWtlciI6ICJTcGVha2VyIDEiLAogICAgICAgICJzdGFydGVkQXQiOiA1OS41LAogICAgICAgICJ0ZXh0IjogIkFob2ouIgogICAgICB9CiAgICBdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFsKICAgICAgIk9ubHkgbWljcm9waG9uZS4iLAogICAgICAiTm8gc3lzdGVtIGF1ZGlvLiIKICAgIF0KICB9Cl0K"
-            }
+            "events": []
           }
         },
         {
@@ -5504,30 +4917,6 @@
             "value": ""
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5628,43 +5017,7 @@
                 ]
               }
             ],
-            "dialog": null,
-            "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
-                "speakers": [
-                  {
-                    "speaker": "Speaker 1",
-                    "text": "Ahoj.",
-                    "startedAt": 59.5,
-                    "endedAt": 61.0
-                  }
-                ],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 3600.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": null,
-                "recognitionStatus": "completed",
-                "transcriptionID": null,
-                "warnings": [
-                  "Only microphone.",
-                  "No system audio."
-                ]
-              }
-            ],
-            "files": {
-              "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDM2MDAuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFsKICAgICAgewogICAgICAgICJlbmRlZEF0IjogNjEuMCwKICAgICAgICAic3BlYWtlciI6ICJTcGVha2VyIDEiLAogICAgICAgICJzdGFydGVkQXQiOiA1OS41LAogICAgICAgICJ0ZXh0IjogIkFob2ouIgogICAgICB9CiAgICBdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFsKICAgICAgIk9ubHkgbWljcm9waG9uZS4iLAogICAgICAiTm8gc3lzdGVtIGF1ZGlvLiIKICAgIF0KICB9Cl0K"
-            }
+            "events": []
           }
         },
         {
@@ -5673,30 +5026,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5797,51 +5126,76 @@
                 ]
               }
             ],
-            "dialog": null,
             "events": [
               [
                 "message",
                 "Meeting title saved."
               ]
-            ],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
-                "speakers": [
-                  {
-                    "speaker": "Speaker 1",
-                    "text": "Ahoj.",
-                    "startedAt": 59.5,
-                    "endedAt": 61.0
-                  }
-                ],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 3600.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": null,
-                "recognitionStatus": "completed",
-                "transcriptionID": null,
-                "warnings": [
-                  "Only microphone.",
-                  "No system audio."
-                ]
-              }
-            ],
-            "files": {
-              "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDM2MDAuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFsKICAgICAgewogICAgICAgICJlbmRlZEF0IjogNjEuMCwKICAgICAgICAic3BlYWtlciI6ICJTcGVha2VyIDEiLAogICAgICAgICJzdGFydGVkQXQiOiA1OS41LAogICAgICAgICJ0ZXh0IjogIkFob2ouIgogICAgICB9CiAgICBdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFsKICAgICAgIk9ubHkgbWljcm9waG9uZS4iLAogICAgICAiTm8gc3lzdGVtIGF1ZGlvLiIKICAgIF0KICB9Cl0K"
-            }
+            ]
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "status": "Meeting is idle",
+        "audio": [
+          "Audio routes",
+          "Default (automatic) + everything playing through Default (automatic)"
+        ],
+        "privacy": [
+          "Private local archive",
+          "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
+        ],
+        "record": {
+          "labels": [
+            "Start Meeting capture"
+          ],
+          "icons": [
+            "system-users-symbolic"
+          ],
+          "sensitive": true,
+          "suggested": true,
+          "destructive": false
+        },
+        "count": "1 saved",
+        "stack": "meetings",
+        "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
+        "dialog": null,
+        "records": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "title": null,
+            "transcript": "Žluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \nŽluťoučký 😀 \n",
+            "speakers": [
+              {
+                "speaker": "Speaker 1",
+                "text": "Ahoj.",
+                "startedAt": 59.5,
+                "endedAt": 61.0
+              }
+            ],
+            "insights": {
+              "summary": "",
+              "decisions": [],
+              "actionItems": []
+            },
+            "timestamp": "2026-09-28T12:34:56.123456Z",
+            "duration": 3600.5,
+            "provider": "elevenlabsScribeV2",
+            "language": "ces",
+            "audioSources": [],
+            "recordingFilename": null,
+            "recognitionStatus": "completed",
+            "transcriptionID": null,
+            "warnings": [
+              "Only microphone.",
+              "No system audio."
+            ]
+          }
+        ],
+        "files": {
+          "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDM2MDAuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFsKICAgICAgewogICAgICAgICJlbmRlZEF0IjogNjEuMCwKICAgICAgICAic3BlYWtlciI6ICJTcGVha2VyIDEiLAogICAgICAgICJzdGFydGVkQXQiOiA1OS41LAogICAgICAgICJ0ZXh0IjogIkFob2ouIgogICAgICB9CiAgICBdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbsW9bHXFpW91xI1rw70g8J+YgCBcbiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFsKICAgICAgIk9ubHkgbWljcm9waG9uZS4iLAogICAgICAiTm8gc3lzdGVtIGF1ZGlvLiIKICAgIF0KICB9Cl0K"
+        }
+      }
     },
     {
       "name": "failed-without-recording",
@@ -5879,30 +5233,6 @@
             "op": "observe"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -5995,32 +5325,7 @@
               }
             ],
             "dialog": null,
-            "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "",
-                "speakers": [],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 2.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": "missing.wav",
-                "recognitionStatus": "failed",
-                "transcriptionID": null,
-                "warnings": []
-              }
-            ],
-            "files": {
-              "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJmYWlsZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogIm1pc3Npbmcud2F2IiwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
-            }
+            "events": []
           }
         },
         {
@@ -6029,30 +5334,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -6145,32 +5426,7 @@
               }
             ],
             "dialog": null,
-            "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "",
-                "speakers": [],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 2.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": "missing.wav",
-                "recognitionStatus": "failed",
-                "transcriptionID": null,
-                "warnings": []
-              }
-            ],
-            "files": {
-              "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJmYWlsZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogIm1pc3Npbmcud2F2IiwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
-            }
+            "events": []
           }
         },
         {
@@ -6179,30 +5435,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -6312,32 +5544,7 @@
                 }
               ]
             },
-            "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "",
-                "speakers": [],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 2.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": "missing.wav",
-                "recognitionStatus": "failed",
-                "transcriptionID": null,
-                "warnings": []
-              }
-            ],
-            "files": {
-              "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJmYWlsZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogIm1pc3Npbmcud2F2IiwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
-            }
+            "events": []
           }
         },
         {
@@ -6345,30 +5552,6 @@
             "op": "deny_delete"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -6478,32 +5661,7 @@
                 }
               ]
             },
-            "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "",
-                "speakers": [],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 2.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": "missing.wav",
-                "recognitionStatus": "failed",
-                "transcriptionID": null,
-                "warnings": []
-              }
-            ],
-            "files": {
-              "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJmYWlsZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogIm1pc3Npbmcud2F2IiwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
-            }
+            "events": []
           }
         },
         {
@@ -6511,30 +5669,6 @@
             "op": "confirm"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -6649,35 +5783,60 @@
                 "delete",
                 "11111111-1111-4111-8111-111111111111"
               ]
-            ],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "",
-                "speakers": [],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 2.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": "missing.wav",
-                "recognitionStatus": "failed",
-                "transcriptionID": null,
-                "warnings": []
-              }
-            ],
-            "files": {
-              "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJmYWlsZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogIm1pc3Npbmcud2F2IiwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
-            }
+            ]
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "status": "Meeting is idle",
+        "audio": [
+          "Audio routes",
+          "Default (automatic) + everything playing through Default (automatic)"
+        ],
+        "privacy": [
+          "Private local archive",
+          "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
+        ],
+        "record": {
+          "labels": [
+            "Start Meeting capture"
+          ],
+          "icons": [
+            "system-users-symbolic"
+          ],
+          "sensitive": true,
+          "suggested": true,
+          "destructive": false
+        },
+        "count": "1 saved",
+        "stack": "meetings",
+        "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
+        "records": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "title": null,
+            "transcript": "",
+            "speakers": [],
+            "insights": {
+              "summary": "",
+              "decisions": [],
+              "actionItems": []
+            },
+            "timestamp": "2026-09-28T12:34:56.123456Z",
+            "duration": 2.5,
+            "provider": "elevenlabsScribeV2",
+            "language": "ces",
+            "audioSources": [],
+            "recordingFilename": "missing.wav",
+            "recognitionStatus": "failed",
+            "transcriptionID": null,
+            "warnings": []
+          }
+        ],
+        "files": {
+          "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJmYWlsZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogIm1pc3Npbmcud2F2IiwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
+        }
+      }
     },
     {
       "name": "malformed-archive",
@@ -6700,37 +5859,11 @@
             "op": "observe"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
             "privacy": [
               "Private local archive",
               "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
             ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "0 saved",
-            "stack": "error",
-            "error_description": "The existing file was preserved unchanged. Repair it before retaining another Meeting, or use Incognito for a non-persistent session.",
-            "rows": [],
-            "dialog": null,
-            "events": [],
-            "records": [],
-            "files": {
-              "meetings.json": "e2Jyb2tlbiBwcml2YXRlIGFyY2hpdmU="
-            }
+            "events": []
           }
         },
         {
@@ -6739,37 +5872,11 @@
             "value": true
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
             "privacy": [
               "Incognito for the next Meeting",
               "Uploaded to ElevenLabs after Stop; local audio and Meeting metadata are erased"
             ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "0 saved",
-            "stack": "error",
-            "error_description": "The existing file was preserved unchanged. Repair it before retaining another Meeting, or use Incognito for a non-persistent session.",
-            "rows": [],
-            "dialog": null,
-            "events": [],
-            "records": [],
-            "files": {
-              "meetings.json": "e2Jyb2tlbiBwcml2YXRlIGFyY2hpdmU="
-            }
+            "events": []
           }
         },
         {
@@ -6777,41 +5884,15 @@
             "op": "toggle"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
             "privacy": [
               "Incognito for the next Meeting",
               "Uploaded to ElevenLabs after Stop; local audio and Meeting metadata are erased"
             ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "0 saved",
-            "stack": "error",
-            "error_description": "The existing file was preserved unchanged. Repair it before retaining another Meeting, or use Incognito for a non-persistent session.",
-            "rows": [],
-            "dialog": null,
             "events": [
               [
                 "toggle"
               ]
-            ],
-            "records": [],
-            "files": {
-              "meetings.json": "e2Jyb2tlbiBwcml2YXRlIGFyY2hpdmU="
-            }
+            ]
           }
         },
         {
@@ -6819,44 +5900,45 @@
             "op": "refresh"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
             "privacy": [
               "Incognito for the next Meeting",
               "Uploaded to ElevenLabs after Stop; local audio and Meeting metadata are erased"
             ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "0 saved",
-            "stack": "error",
-            "error_description": "The existing file was preserved unchanged. Repair it before retaining another Meeting, or use Incognito for a non-persistent session.",
-            "rows": [],
-            "dialog": null,
             "events": [
               [
                 "toggle"
               ]
-            ],
-            "records": [],
-            "files": {
-              "meetings.json": "e2Jyb2tlbiBwcml2YXRlIGFyY2hpdmU="
-            }
+            ]
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "status": "Meeting is idle",
+        "audio": [
+          "Audio routes",
+          "Default (automatic) + everything playing through Default (automatic)"
+        ],
+        "record": {
+          "labels": [
+            "Start Meeting capture"
+          ],
+          "icons": [
+            "system-users-symbolic"
+          ],
+          "sensitive": true,
+          "suggested": true,
+          "destructive": false
+        },
+        "count": "0 saved",
+        "stack": "error",
+        "error_description": "The existing file was preserved unchanged. Repair it before retaining another Meeting, or use Incognito for a non-persistent session.",
+        "rows": [],
+        "dialog": null,
+        "records": [],
+        "files": {
+          "meetings.json": "e2Jyb2tlbiBwcml2YXRlIGFyY2hpdmU="
+        }
+      }
     },
     {
       "name": "unwritable-title-keeps-record",
@@ -6894,30 +5976,6 @@
             "op": "observe"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -7009,30 +6067,7 @@
                 ]
               }
             ],
-            "dialog": null,
             "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
-                "speakers": [],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 2.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": null,
-                "recognitionStatus": "completed",
-                "transcriptionID": null,
-                "warnings": []
-              }
-            ],
             "files": {
               "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
             }
@@ -7044,30 +6079,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -7159,30 +6170,7 @@
                 ]
               }
             ],
-            "dialog": null,
             "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
-                "speakers": [],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 2.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": null,
-                "recognitionStatus": "completed",
-                "transcriptionID": null,
-                "warnings": []
-              }
-            ],
             "files": {
               "meetings.json": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
             }
@@ -7193,30 +6181,6 @@
             "op": "write_failure"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -7308,30 +6272,7 @@
                 ]
               }
             ],
-            "dialog": null,
             "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
-                "speakers": [],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 2.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": null,
-                "recognitionStatus": "completed",
-                "transcriptionID": null,
-                "warnings": []
-              }
-            ],
             "files": {
               "meetings.json/preserved": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
             }
@@ -7344,30 +6285,6 @@
             "value": "Unpersisted title"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -7459,30 +6376,7 @@
                 ]
               }
             ],
-            "dialog": null,
             "events": [],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
-                "speakers": [],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 2.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": null,
-                "recognitionStatus": "completed",
-                "transcriptionID": null,
-                "warnings": []
-              }
-            ],
             "files": {
               "meetings.json/preserved": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
             }
@@ -7494,30 +6388,6 @@
             "id": "11111111-1111-4111-8111-111111111111"
           },
           "observed": {
-            "status": "Meeting is idle",
-            "status_role": 61,
-            "audio": [
-              "Audio routes",
-              "Default (automatic) + everything playing through Default (automatic)"
-            ],
-            "privacy": [
-              "Private local archive",
-              "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
-            ],
-            "record": {
-              "labels": [
-                "Start Meeting capture"
-              ],
-              "icons": [
-                "system-users-symbolic"
-              ],
-              "sensitive": true,
-              "suggested": true,
-              "destructive": false
-            },
-            "count": "1 saved",
-            "stack": "meetings",
-            "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
             "rows": [
               {
                 "id": "11111111-1111-4111-8111-111111111111",
@@ -7609,41 +6479,71 @@
                 ]
               }
             ],
-            "dialog": null,
             "events": [
               [
                 "message",
                 "Meeting title could not be saved: I/O failure"
               ]
             ],
-            "records": [
-              {
-                "id": "11111111-1111-4111-8111-111111111111",
-                "title": null,
-                "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
-                "speakers": [],
-                "insights": {
-                  "summary": "",
-                  "decisions": [],
-                  "actionItems": []
-                },
-                "timestamp": "2026-09-28T12:34:56.123456Z",
-                "duration": 2.5,
-                "provider": "elevenlabsScribeV2",
-                "language": "ces",
-                "audioSources": [],
-                "recordingFilename": null,
-                "recognitionStatus": "completed",
-                "transcriptionID": null,
-                "warnings": []
-              }
-            ],
             "files": {
               "meetings.json/preserved": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbXSwKICAgICJkdXJhdGlvbiI6IDIuNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbXSwKICAgICAgImRlY2lzaW9ucyI6IFtdLAogICAgICAic3VtbWFyeSI6ICIiCiAgICB9LAogICAgImxhbmd1YWdlIjogImNlcyIsCiAgICAicHJvdmlkZXIiOiAiZWxldmVubGFic1NjcmliZVYyIiwKICAgICJyZWNvZ25pdGlvblN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgInJlY29yZGluZ0ZpbGVuYW1lIjogbnVsbCwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
             }
           }
         }
-      ]
+      ],
+      "common_observation": {
+        "status": "Meeting is idle",
+        "audio": [
+          "Audio routes",
+          "Default (automatic) + everything playing through Default (automatic)"
+        ],
+        "privacy": [
+          "Private local archive",
+          "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
+        ],
+        "record": {
+          "labels": [
+            "Start Meeting capture"
+          ],
+          "icons": [
+            "system-users-symbolic"
+          ],
+          "sensitive": true,
+          "suggested": true,
+          "destructive": false
+        },
+        "count": "1 saved",
+        "stack": "meetings",
+        "error_description": "The malformed archive was preserved; retained Meeting writes remain disabled.",
+        "dialog": null,
+        "records": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "title": null,
+            "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "speakers": [],
+            "insights": {
+              "summary": "",
+              "decisions": [],
+              "actionItems": []
+            },
+            "timestamp": "2026-09-28T12:34:56.123456Z",
+            "duration": 2.5,
+            "provider": "elevenlabsScribeV2",
+            "language": "ces",
+            "audioSources": [],
+            "recordingFilename": null,
+            "recognitionStatus": "completed",
+            "transcriptionID": null,
+            "warnings": []
+          }
+        ]
+      }
     }
-  ]
+  ],
+  "common_observations": {
+    "cases": {
+      "status_role": 61
+    }
+  }
 }

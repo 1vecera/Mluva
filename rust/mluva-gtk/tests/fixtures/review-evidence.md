@@ -1,10 +1,12 @@
 # Native document rewriting and review
 
+Invariant observation fields now use the shared [lossless fixture storage](fixture-storage.md). Native equality and identical canonical hashes preserve every complete original observation, action and source metadata; the existing comparisons and scope below are unchanged.
+
 The immutable comparison is unchanged Mluva v1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. Temporary collectors import the external released application, verify every imported application module byte-for-byte against that commit and invoke its actual service initialization, capture/workspace builders, rewrite worker and review callbacks. Maintained tests read the resulting static fixtures and use native production owners; no interpreter or patched reference supplies their results.
 
 | Independently frozen observations | Scope | SHA-256 |
 | --- | --- | --- |
-| [Document/review controller](released-review-controller.json) | 29 released transactions / 102 actual GTK states, durable replies and exact text/image requests | `2b9935ad3bd01adb68efc84b5b223d1fbf2849113c746f827acea2046e33176c` |
+| [Document/review controller](released-review-controller.json) | 29 released transactions / 102 actual GTK states, durable replies and exact text/image requests | `3e84076983446be587dab873ed4b6e56ad231e891d9857ebbcf2cdc01f253537` |
 | [Recording/review projection](released-overlay-state.json) | 78 bounded projection cases and ten actual private-bus signal receipts | `b789183be925a309d4fa79cdcc0a159cb76c0ab38dac190425e0ddc237e7851a` |
 
 `ReviewController` owns one real rewrite client, frozen copy preference and prompt/image request, a bounded-cadence provisional preview bridge and a weak completion gate. Actual GTK workspace buffers, notices, button sensitivity, selected conversation, typed widget projection, durable SQLite replies, clipboard bytes and exact child/workspace cleanup match the release. The native default factory creates the client; a private first-PATH executable adapter selects separate native Codex protocol children at the external process boundary. Gated discovery/turns and paced deltas make the independently observed request and stream states reproducible without a production hook.

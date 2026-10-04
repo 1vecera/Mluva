@@ -1,6 +1,8 @@
 # Native capture page and rewrite controls
 
-The comparison reference is unchanged Mluva 1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. The temporary collector imports the frozen downloaded release outside the maintained Rust tree and verifies the relevant application, GTK, catalog and document source bytes against that commit. [Released observations](released-capture-controls.json) have SHA-256 `19215f9e0e5fe8d6dbd9837ff8c687376da868c5b181d82f031f7ffa2f4ee989`.
+Invariant observation fields now use the shared [lossless fixture storage](fixture-storage.md). Native equality and identical canonical hashes preserve every complete original observation, action and source metadata; the existing comparisons and scope below are unchanged.
+
+The comparison reference is unchanged Mluva 1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. The temporary collector imports the frozen downloaded release outside the maintained Rust tree and verifies the relevant application, GTK, catalog and document source bytes against that commit. [Released observations](released-capture-controls.json) have SHA-256 `9857a3a11dbff6c27492a5812c19bceb9b0bab0083a5f4a5234ec35448691af8`.
 
 The [assembled Live editor repair](live-editor-evidence.md) removes the duplicate draft-edit callback and its one substituted callback-only case. Revision protection is now checked through the actual Live controller and full application request/save path. The other 77 observations are unchanged and pass in the current rerun; the 78-state count below describes the original checkpoint.
 

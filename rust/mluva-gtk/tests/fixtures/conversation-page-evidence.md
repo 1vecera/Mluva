@@ -1,12 +1,14 @@
 # Native conversation workspace and offline documents
 
+Invariant observation fields now use the shared [lossless fixture storage](fixture-storage.md). Native equality and identical canonical hashes preserve every complete original observation, action and source metadata; the existing comparisons and scope below are unchanged.
+
 The subsequent [Live workspace comparison](live-workspace-evidence.md) adds ten stability observations to this same conversation owner and nine rendering transitions to the same document owner, bringing their totals to 123 page/scroll/stability states and fifteen actual render states. The earlier observations and evidence below remain unchanged. Both owners now run through `make linux-live-workspace-test` alongside the assembled application.
 
 The comparison reference is unchanged Mluva 1.6.0, commit `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. Temporary collectors import the downloaded release outside the maintained Rust tree and compare imported source bytes against that commit. The JSON fixtures record those source digests. Native tests use the production `ConversationWorkspace`, compatible SQLite stores and ordinary GTK widgets without an interpreter, source replacement or a production test seam.
 
 | Frozen reference | Observations | SHA-256 |
 | --- | --- | --- |
-| [Conversation page](released-conversation-page.json) | 86 actual released GTK actions and 16 lossless Questions splits | `283659166867e00a34ff3b6e5dda0cc2e229e6db0abe37cf38d06d55b664cca9` |
+| [Conversation page](released-conversation-page.json) | 86 actual released GTK actions and 16 lossless Questions splits | `8b6b1711bee8833a66e336cdf056466127678c619123f8583a86a857f6ffb382` |
 | [Transcript scrolling](released-conversation-scrolling.json) | 27 actual frame-clock/adjustment states | `71eb20bb1eccdae953d2d62028367077c05944d5c523faa4090c256cba7b30f2` |
 | [Document surfaces](released-document-surfaces.json) | 14 fence parses, 20 XML decisions, 36 forecast samples and six actual diagram renders | `02165ba60fbc479e425ca40297cf3f5215ff8c56952e62f66226a3402090f132` |
 

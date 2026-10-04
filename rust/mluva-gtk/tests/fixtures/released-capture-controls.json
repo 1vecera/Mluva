@@ -118,12 +118,10 @@
       },
       "observed": {
         "caption": "Codex model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": false,
           "selected": 0,
           "labels": [
@@ -131,7 +129,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Refresh models to check supported levels.",
           "visible": true,
           "sensitive": false,
@@ -147,9 +144,6 @@
           "subtitle": "Load models to check availability"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "",
@@ -162,12 +156,10 @@
       },
       "observed": {
         "caption": "Codex model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": false,
           "selected": 0,
           "labels": [
@@ -175,7 +167,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Refresh models to check supported levels.",
           "visible": true,
           "sensitive": false,
@@ -191,9 +182,6 @@
           "subtitle": "Load models to check availability"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": false
         },
         "status": "Loading models…",
@@ -207,12 +195,10 @@
       },
       "observed": {
         "caption": "Codex model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": false,
           "selected": 0,
           "labels": [
@@ -220,7 +206,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Refresh models to check supported levels.",
           "visible": true,
           "sensitive": false,
@@ -236,9 +221,6 @@
           "subtitle": "Load models to check availability"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Could not load models. Check your provider, then refresh.",
@@ -252,12 +234,10 @@
       },
       "observed": {
         "caption": "Large model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Default: Large model",
-          "visible": true,
           "sensitive": true,
           "selected": 0,
           "labels": [
@@ -268,7 +248,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -289,9 +268,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -305,12 +281,10 @@
       },
       "observed": {
         "caption": "Large model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Default: Large model",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -321,7 +295,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -342,9 +315,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -367,12 +337,10 @@
       },
       "observed": {
         "caption": "Large model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -383,7 +351,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -404,9 +371,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -427,12 +391,10 @@
       },
       "observed": {
         "caption": "Large model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -443,7 +405,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -464,9 +425,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -495,12 +453,10 @@
       },
       "observed": {
         "caption": "Large model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -511,7 +467,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -532,9 +487,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -561,12 +513,10 @@
       },
       "observed": {
         "caption": "Large model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -577,7 +527,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -598,9 +547,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -635,12 +581,10 @@
       },
       "observed": {
         "caption": "Large model · Fast",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -651,7 +595,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -672,9 +615,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -707,12 +647,10 @@
       },
       "observed": {
         "caption": "Large model · Fast",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 2,
           "labels": [
@@ -723,7 +661,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -744,9 +681,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -789,12 +723,10 @@
       },
       "observed": {
         "caption": "Small model · Fast",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 2,
           "labels": [
@@ -805,7 +737,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "This model advertises no thinking levels.",
           "visible": true,
           "sensitive": true,
@@ -822,9 +753,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -863,12 +791,10 @@
       },
       "observed": {
         "caption": "Small model · Fast",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 2,
           "labels": [
@@ -879,7 +805,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "This model advertises no thinking levels.",
           "visible": true,
           "sensitive": true,
@@ -896,9 +821,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -943,12 +865,10 @@
       },
       "observed": {
         "caption": "Small model · Fast",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 2,
           "labels": [
@@ -959,7 +879,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "This model advertises no thinking levels.",
           "visible": true,
           "sensitive": true,
@@ -976,9 +895,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -1033,12 +949,10 @@
       },
       "observed": {
         "caption": "Hidden model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 3,
           "labels": [
@@ -1050,7 +964,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -1069,9 +982,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -1126,12 +1036,10 @@
       },
       "observed": {
         "caption": "unknown-model · Fast",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 4,
           "labels": [
@@ -1143,7 +1051,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "This model advertises no thinking levels.",
           "visible": true,
           "sensitive": true,
@@ -1160,9 +1067,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -1213,12 +1117,10 @@
       },
       "observed": {
         "caption": "unknown-model · Fast",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 4,
           "labels": [
@@ -1230,7 +1132,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "This model advertises no thinking levels.",
           "visible": true,
           "sensitive": true,
@@ -1247,9 +1148,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Could not load models. Check your provider, then refresh.",
@@ -1304,12 +1202,10 @@
       },
       "observed": {
         "caption": "Unicode levels",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 3,
           "labels": [
@@ -1320,7 +1216,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -1341,9 +1236,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Could not load models. Check your provider, then refresh.",
@@ -1398,12 +1290,10 @@
       },
       "observed": {
         "caption": "server-alias",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": false,
           "selected": 0,
           "labels": [
@@ -1411,7 +1301,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -1434,9 +1323,6 @@
           "subtitle": "Load models to check availability"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "",
@@ -1486,12 +1372,10 @@
       },
       "observed": {
         "caption": "server-alias",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": false,
           "selected": 0,
           "labels": [
@@ -1499,7 +1383,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -1522,9 +1405,6 @@
           "subtitle": "Load models to check availability"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": false
         },
         "status": "Loading models…",
@@ -1575,12 +1455,10 @@
       },
       "observed": {
         "caption": "server-alias",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": false,
           "selected": 0,
           "labels": [
@@ -1588,7 +1466,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -1611,9 +1488,6 @@
           "subtitle": "Load models to check availability"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Could not load models. Check your provider, then refresh.",
@@ -1664,12 +1538,10 @@
       },
       "observed": {
         "caption": "server-alias",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 2,
           "labels": [
@@ -1679,7 +1551,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -1702,9 +1573,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Select an available deployment. You can also enter its alias in Settings → Providers.",
@@ -1755,12 +1623,10 @@
       },
       "observed": {
         "caption": "server-alias",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -1770,7 +1636,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -1793,9 +1658,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Select an available deployment. You can also enter its alias in Settings → Providers.",
@@ -1855,12 +1717,10 @@
       },
       "observed": {
         "caption": "server-two",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -1869,7 +1729,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -1892,9 +1751,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Select an available deployment. You can also enter its alias in Settings → Providers.",
@@ -1951,12 +1807,10 @@
       },
       "observed": {
         "caption": "server-two",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -1965,7 +1819,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -1988,9 +1841,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Select an available deployment. You can also enter its alias in Settings → Providers.",
@@ -2055,12 +1905,10 @@
       },
       "observed": {
         "caption": "server-two",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -2069,7 +1917,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -2092,9 +1939,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Select an available deployment. You can also enter its alias in Settings → Providers.",
@@ -2159,12 +2003,10 @@
       },
       "observed": {
         "caption": "server-two",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": false,
           "selected": 0,
           "labels": [
@@ -2172,7 +2014,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -2195,9 +2036,6 @@
           "subtitle": "Load models to check availability"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "",
@@ -2260,12 +2098,10 @@
       },
       "observed": {
         "caption": "server-two",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -2274,7 +2110,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -2297,9 +2132,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Select an available deployment. You can also enter its alias in Settings → Providers.",
@@ -2364,12 +2196,10 @@
       },
       "observed": {
         "caption": "server-two",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": false,
           "selected": 0,
           "labels": [
@@ -2377,7 +2207,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -2400,9 +2229,6 @@
           "subtitle": "Load models to check availability"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "",
@@ -2465,12 +2291,10 @@
       },
       "observed": {
         "caption": "server-two",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 1,
           "labels": [
@@ -2479,7 +2303,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -2502,9 +2325,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Select an available deployment. You can also enter its alias in Settings → Providers.",
@@ -2570,12 +2390,10 @@
       },
       "observed": {
         "caption": "missing-alias",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Server model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 2,
           "labels": [
@@ -2585,7 +2403,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Server support varies by model; default sends no override.",
           "visible": true,
           "sensitive": true,
@@ -2609,9 +2426,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Select an available deployment. You can also enter its alias in Settings → Providers.",
@@ -2676,12 +2490,10 @@
       },
       "observed": {
         "caption": "odd-model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": false,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": false,
           "selected": 1,
           "labels": [
@@ -2690,7 +2502,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Refresh models to check supported levels.",
           "visible": false,
           "sensitive": false,
@@ -2706,9 +2517,6 @@
           "subtitle": "Load models to check availability"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "",
@@ -2777,12 +2585,10 @@
       },
       "observed": {
         "caption": "Codex model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": false,
           "selected": 0,
           "labels": [
@@ -2790,7 +2596,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Refresh models to check supported levels.",
           "visible": true,
           "sensitive": false,
@@ -2806,9 +2611,6 @@
           "subtitle": "Load models to check availability"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "",
@@ -2871,12 +2673,10 @@
       },
       "observed": {
         "caption": "Large model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Default: Large model",
-          "visible": true,
           "sensitive": true,
           "selected": 0,
           "labels": [
@@ -2887,7 +2687,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -2908,9 +2707,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -2972,12 +2768,10 @@
       },
       "observed": {
         "caption": "Large model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Default: Large model",
-          "visible": true,
           "sensitive": true,
           "selected": 0,
           "labels": [
@@ -2988,7 +2782,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -3009,9 +2802,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -3076,12 +2866,10 @@
       },
       "observed": {
         "caption": "Large model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Default: Large model",
-          "visible": true,
           "sensitive": true,
           "selected": 0,
           "labels": [
@@ -3092,7 +2880,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -3113,9 +2900,6 @@
           "subtitle": "Uses more Codex credits"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -3187,12 +2971,10 @@
       },
       "observed": {
         "caption": "Hidden model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 3,
           "labels": [
@@ -3204,7 +2986,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -3224,9 +3005,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -3295,12 +3073,10 @@
       },
       "observed": {
         "caption": "Hidden model",
-        "tooltip": "Choose the rewrite model and speed",
         "sensitive": true,
         "model": {
           "title": "Codex model",
           "subtitle": "Applies to rewrites only",
-          "visible": true,
           "sensitive": true,
           "selected": 3,
           "labels": [
@@ -3312,7 +3088,6 @@
           ]
         },
         "thinking": {
-          "title": "Thinking level",
           "subtitle": "Applies to rewrites and Live rewrite.",
           "visible": true,
           "sensitive": true,
@@ -3332,9 +3107,6 @@
           "subtitle": "Unavailable for this model"
         },
         "refresh": {
-          "label": "Refresh models",
-          "tooltip": null,
-          "visible": true,
           "sensitive": true
         },
         "status": "Thinking levels follow the selected model. Auto uses low reasoning when supported.",
@@ -3412,31 +3184,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -3475,31 +3230,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [],
         "hint_label": "Use the on-screen button for copy-only capture"
       }
@@ -3512,31 +3251,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -3575,31 +3297,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -3616,31 +3322,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": true,
           "button": {
             "label": "Live rewrite · 1×",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -3679,31 +3368,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -3727,31 +3400,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": true,
           "button": {
             "label": "Live rewrite · ∞",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -3790,31 +3446,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -3845,31 +3485,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -3908,31 +3531,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -3971,31 +3578,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a task spec draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -4034,31 +3624,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -4103,31 +3677,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -4166,31 +3723,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -4241,31 +3782,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -4304,31 +3828,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -4378,31 +3886,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -4441,31 +3932,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -4527,31 +4002,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -4590,31 +4048,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -4686,31 +4128,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -4749,31 +4174,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -4849,31 +4258,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite · ∞",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": false
           },
           "menu_sensitive": false,
@@ -4912,31 +4304,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -5012,31 +4388,14 @@
         "status": "",
         "status_tooltip": null,
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -5075,31 +4434,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -5171,31 +4514,14 @@
         "status": "A bounded capture state.",
         "status_tooltip": "A bounded capture state.",
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -5234,31 +4560,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -5333,31 +4643,14 @@
         "status": "A bounded capture state.",
         "status_tooltip": "A bounded capture state.",
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -5396,31 +4689,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -5495,31 +4772,14 @@
         "status": "A bounded capture state.",
         "status_tooltip": "A bounded capture state.",
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -5558,31 +4818,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -5657,31 +4901,14 @@
         "status": "A bounded capture state.",
         "status_tooltip": "A bounded capture state.",
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -5720,31 +4947,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -5818,31 +5029,14 @@
         "status": "A bounded capture state.",
         "status_tooltip": "A bounded capture state.",
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -5881,31 +5075,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -5980,31 +5158,14 @@
         "status": "A bounded capture state.",
         "status_tooltip": "A bounded capture state.",
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -6043,31 +5204,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -6141,31 +5286,14 @@
         "status": "A bounded capture state.",
         "status_tooltip": "A bounded capture state.",
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -6204,31 +5332,15 @@
           "body": "",
           "tooltip": null,
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -6300,31 +5412,14 @@
         "status": "A bounded capture state.",
         "status_tooltip": "A bounded capture state.",
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -6363,31 +5458,15 @@
           "body": "Cannot prepare speech",
           "tooltip": "  Cannot prepare speech. Details remain available.  ",
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -6458,31 +5537,14 @@
         "status": "A bounded capture state.",
         "status_tooltip": "A bounded capture state.",
         "status_title": "Ready to dictate",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": true,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": true
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -6521,31 +5583,15 @@
           "body": "Cannot prepare speech",
           "tooltip": "  Cannot prepare speech. Details remain available.  ",
           "button": {
-            "label": "Dismiss",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Dismiss"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -6617,31 +5663,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -6680,31 +5709,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -6775,31 +5788,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -6838,31 +5834,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -6937,31 +5917,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -7000,31 +5963,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -7099,31 +6046,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -7162,31 +6092,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": "Review this output 🐎",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -7265,31 +6179,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -7328,31 +6225,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": "Review this output 🐎",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": true,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -7430,31 +6311,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -7493,31 +6357,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": "Review this output 🐎",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": true,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -7598,31 +6446,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -7661,31 +6492,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": "Review this output 🐎",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": true,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -7770,31 +6585,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -7833,31 +6631,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": " \u001c ",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": true,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -7950,31 +6732,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -8013,31 +6778,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": false,
           "text": " \u001c ",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -8130,31 +6879,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -8193,31 +6925,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": " \u001c ",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": true,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": true
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -8309,31 +7025,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -8372,31 +7071,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": " \u001c ",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": true,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": true
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -8491,31 +7174,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -8554,31 +7220,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": " \u001c ",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": true,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": true
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -8677,31 +7327,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -8740,31 +7373,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": "Edited notes\n\nkept verbatim.",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": true,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": true
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -8871,31 +7488,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -8934,31 +7534,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": "Edited notes\n\nkept verbatim.",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -9065,31 +7649,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -9128,31 +7695,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": false,
           "text": "Edited notes\n\nkept verbatim.",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -9259,31 +7810,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -9322,31 +7856,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": true,
           "text": "Edited notes\n\nkept verbatim.",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -9453,31 +7971,14 @@
         "status": "Set up the missing capture dependency, then retry from the callout.",
         "status_tooltip": "Set up the missing capture dependency, then retry from the callout.",
         "status_title": "Capture unavailable",
-        "status_title_visible": false,
-        "hint": false,
         "record": {
-          "labels": [
-            "Dictate"
-          ],
-          "icons": [
-            "audio-input-microphone-symbolic"
-          ],
-          "sensitive": false,
-          "suggested": true,
-          "destructive": false,
-          "tooltip": "Start or stop dictation · F9"
-        },
-        "dock": {
-          "visible": true,
-          "orientation": "horizontal",
-          "spacing": 12
+          "sensitive": false
         },
         "live": {
           "active": false,
           "button": {
             "label": "Live rewrite",
             "tooltip": "Off → Once → Continuous. Build a grilling draft; reconcile at Stop.",
-            "visible": true,
             "sensitive": true
           },
           "menu_sensitive": true,
@@ -9516,31 +8017,15 @@
           "body": "Missing dependency",
           "tooltip": "Missing dependency. Install it and retry.",
           "button": {
-            "label": "Retry initialization",
-            "tooltip": null,
-            "visible": true,
-            "sensitive": true
+            "label": "Retry initialization"
           }
         },
         "output": {
           "visible": false,
           "text": "",
-          "tooltip": "Recognized text and unresolved Command or Notes output",
-          "editable": true,
-          "source": [
-            "",
-            false
-          ],
           "command": false,
-          "scratchpad": false,
-          "buttons": [
-            "Apply command",
-            "Discard",
-            "Copy and resolve",
-            "Delete draft"
-          ]
+          "scratchpad": false
         },
-        "settings_caption": "Codex model",
         "events": [
           [
             "record"
@@ -9642,5 +8127,68 @@
         "hint_label": "Use the on-screen button for copy-only capture · Shift+F9 opens rewriting"
       }
     }
-  ]
+  ],
+  "common_observations": {
+    "settings": {
+      "tooltip": "Choose the rewrite model and speed",
+      "model": {
+        "visible": true
+      },
+      "thinking": {
+        "title": "Thinking level"
+      },
+      "refresh": {
+        "label": "Refresh models",
+        "tooltip": null,
+        "visible": true
+      }
+    },
+    "capture": {
+      "status_title_visible": false,
+      "hint": false,
+      "record": {
+        "labels": [
+          "Dictate"
+        ],
+        "icons": [
+          "audio-input-microphone-symbolic"
+        ],
+        "suggested": true,
+        "destructive": false,
+        "tooltip": "Start or stop dictation · F9"
+      },
+      "dock": {
+        "visible": true,
+        "orientation": "horizontal",
+        "spacing": 12
+      },
+      "live": {
+        "button": {
+          "visible": true
+        }
+      },
+      "callout": {
+        "button": {
+          "tooltip": null,
+          "visible": true,
+          "sensitive": true
+        }
+      },
+      "output": {
+        "tooltip": "Recognized text and unresolved Command or Notes output",
+        "editable": true,
+        "source": [
+          "",
+          false
+        ],
+        "buttons": [
+          "Apply command",
+          "Discard",
+          "Copy and resolve",
+          "Delete draft"
+        ]
+      },
+      "settings_caption": "Codex model"
+    }
+  }
 }

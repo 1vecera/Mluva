@@ -20,6 +20,8 @@ use mluva_gtk::{
     theme::ThemeController,
 };
 use serde_json::{Value, json};
+#[path = "support/fixture_states.rs"]
+mod fixture_states;
 use std::{
     cell::{Cell, RefCell},
     collections::BTreeMap,
@@ -268,8 +270,11 @@ fn compare(root: &Path, name: &str, actual: &Value, expected: &Value) {
 fn actual_document_rewrites_and_review_actions_match_release() {
     let root = environment();
     adw::init().unwrap();
-    let fixture: Value =
-        serde_json::from_str(include_str!("fixtures/released-review-controller.json")).unwrap();
+    let fixture = fixture_states::load(
+        include_str!("fixtures/released-review-controller.json"),
+        &["cases"],
+        "ui",
+    );
     assert_eq!(
         fixture["reference_commit"],
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"

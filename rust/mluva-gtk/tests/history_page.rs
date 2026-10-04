@@ -12,6 +12,8 @@ use mluva_gtk::{
     theme::ThemeController,
 };
 use serde_json::{Value, json};
+#[path = "support/fixture_states.rs"]
+mod fixture_states;
 use std::{
     cell::{Cell, RefCell},
     fs,
@@ -152,8 +154,11 @@ fn released_history_archive_widgets_actions_and_store_changes_match() {
     );
     let _theme =
         ThemeController::apply(private.join("theme"), resources.font.parent().unwrap()).unwrap();
-    let fixture: Value =
-        serde_json::from_str(include_str!("fixtures/released-history-page.json")).unwrap();
+    let fixture = fixture_states::load(
+        include_str!("fixtures/released-history-page.json"),
+        &["cases"],
+        "observed",
+    );
     let mut states = 0;
     for case in fixture["cases"].as_array().unwrap() {
         let directory = tempfile::tempdir_in(&private).unwrap();

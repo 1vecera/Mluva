@@ -61,52 +61,28 @@
         "notice": "Dictation copies automatically.",
         "send": {
           "label": "Start conversation",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Rename conversation"
+          "sensitive": false
         },
         "screenshots": [
           {
@@ -132,11 +108,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -234,52 +206,28 @@
         "notice": "Dictation copies automatically.",
         "send": {
           "label": "Start conversation",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Rename conversation"
+          "sensitive": false
         },
         "screenshots": [
           {
@@ -305,11 +253,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -406,52 +350,28 @@
         "notice": "Dictation copies automatically.",
         "send": {
           "label": "Start conversation",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Rename conversation"
+          "sensitive": false
         },
         "screenshots": [
           {
@@ -477,11 +397,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -584,52 +500,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -793,11 +685,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -900,52 +788,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -1109,11 +973,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -1217,52 +1077,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -1426,11 +1262,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -1534,52 +1366,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -1743,11 +1551,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -1849,52 +1653,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -2058,11 +1838,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -2169,52 +1945,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -2288,11 +2040,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -2399,52 +2147,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -2518,11 +2242,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -2629,52 +2349,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -2838,11 +2534,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -2948,52 +2640,28 @@
         "notice": "Edits saved",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -3157,11 +2825,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -3267,52 +2931,28 @@
         "notice": "Edits saved",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -3476,11 +3116,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -3590,52 +3226,28 @@
         "notice": "Edits saved",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -3799,11 +3411,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -3913,52 +3521,28 @@
         "notice": "Edits saved",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -4122,11 +3706,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -4241,52 +3821,28 @@
         "notice": "Working",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": null
+          "sensitive": false
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "visible": true
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -4450,11 +4006,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -4568,52 +4120,28 @@
         "notice": "Working",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": null
+          "sensitive": false
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "visible": true
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -4777,11 +4305,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -4896,52 +4420,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -5105,11 +4605,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -5223,52 +4719,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -5432,11 +4904,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -5555,52 +5023,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -5764,11 +5208,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -5887,52 +5327,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -6096,11 +5512,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -6218,52 +5630,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -6427,11 +5815,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -6550,52 +5934,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -6759,11 +6119,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -6881,52 +6237,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -7090,11 +6422,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -7218,52 +6546,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -7337,11 +6641,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -7465,52 +6765,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -7584,11 +6860,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -7712,52 +6984,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -7921,11 +7169,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -8048,52 +7292,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -8257,11 +7477,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -8386,52 +7602,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -8595,11 +7787,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -8725,52 +7913,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -8844,11 +8008,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -8973,52 +8133,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -9092,11 +8228,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -9220,52 +8352,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -9429,11 +8537,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -9558,52 +8662,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -9767,11 +8847,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -9895,52 +8971,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -10104,11 +9156,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -10232,52 +9280,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -10441,11 +9465,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": true,
@@ -10568,52 +9588,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -10777,11 +9773,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": false,
           "draft_visible": true,
@@ -10904,52 +9896,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -11113,11 +10081,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -11241,52 +10205,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -11360,11 +10300,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -11488,52 +10424,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -11607,11 +10519,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -11734,52 +10642,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -11853,11 +10737,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -11981,52 +10861,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -12100,11 +10956,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -12228,52 +11080,28 @@
         "notice": "Working",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": null
+          "sensitive": false
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "visible": true
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -12347,11 +11175,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -12475,52 +11299,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -12594,11 +11394,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -12721,52 +11517,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -12840,11 +11612,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -12967,52 +11735,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -13086,11 +11830,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -13213,52 +11953,28 @@
         "notice": "Ready",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -13332,11 +12048,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -13464,52 +12176,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -13583,11 +12271,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -13715,52 +12399,28 @@
         "notice": "Incognito: no saved conversation. Rewriting is unavailable.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": null
+          "sensitive": false
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Rename conversation"
+          "sensitive": false
         },
         "screenshots": [
           {
@@ -13834,11 +12494,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -13967,52 +12623,28 @@
         "notice": "Incognito: no saved conversation. Rewriting is unavailable.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": null
+          "sensitive": false
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Rename conversation"
+          "sensitive": false
         },
         "screenshots": [
           {
@@ -14086,11 +12718,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -14218,52 +12846,28 @@
         "notice": "Incognito: no saved conversation. Rewriting is unavailable.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -14337,11 +12941,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -14469,52 +13069,28 @@
         "notice": "This conversation is not saved.",
         "send": {
           "label": "Start conversation",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Rename conversation"
+          "sensitive": false
         },
         "screenshots": [
           {
@@ -14633,11 +13209,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -14764,52 +13336,28 @@
         "notice": "This conversation is not saved.",
         "send": {
           "label": "Start conversation",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Rename conversation"
+          "sensitive": false
         },
         "screenshots": [
           {
@@ -14928,11 +13476,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -15064,52 +13608,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -15273,11 +13793,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -15408,52 +13924,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -15617,11 +14109,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -15752,52 +14240,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -15961,11 +14425,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -16100,52 +14560,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": null
+          "sensitive": false
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -16309,11 +14745,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -16448,52 +14880,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": null
+          "sensitive": false
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -16657,11 +15065,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -16800,52 +15204,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -17009,11 +15389,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -17153,52 +15529,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": null,
           "icon": "audio-input-microphone-symbolic",
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -17362,11 +15714,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -17506,52 +15854,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -17715,11 +16039,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -17859,52 +16179,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -18068,11 +16364,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -18200,52 +16492,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -18409,11 +16677,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -18535,52 +16799,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -18744,11 +16984,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -18887,52 +17123,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -19096,11 +17308,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -19242,52 +17450,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -19451,11 +17635,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -19596,52 +17776,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -19805,11 +17961,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -19952,52 +18104,28 @@
         "notice": "Incognito: no saved conversation. Rewriting is unavailable.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": null
+          "sensitive": false
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Save this prompt for later"
+          "sensitive": false
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": false
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": false
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": false,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": false,
-          "tooltip": "Rename conversation"
+          "sensitive": false
         },
         "screenshots": [
           {
@@ -20161,11 +18289,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -20305,52 +18429,28 @@
         "notice": "Incognito: no saved conversation. Rewriting is unavailable.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": false,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": false
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -20514,11 +18614,7 @@
           "visible": true,
           "header": true,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": true,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": true
           },
           "source_visible": true,
           "draft_visible": false,
@@ -20657,52 +18753,28 @@
         "notice": "Incognito: no saved conversation. Rewriting is unavailable.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -20866,11 +18938,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -21012,52 +19080,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -21221,11 +19265,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -21367,52 +19407,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -21576,11 +19592,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -21727,52 +19739,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -21936,11 +19924,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -22082,52 +20066,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -22291,11 +20251,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -22447,52 +20403,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -22656,11 +20588,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -22811,52 +20739,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -23020,11 +20924,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -23176,52 +21076,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -23430,11 +21306,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -23575,52 +21447,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -23829,11 +21677,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -24442,52 +22286,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -24696,11 +22516,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -25334,52 +23150,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -25588,11 +23380,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -25728,52 +23516,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -25982,11 +23746,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -26596,52 +24356,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -26850,11 +24586,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -27464,52 +25196,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -27718,11 +25426,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -28333,52 +26037,28 @@
         "notice": "Edit either document. Save edits or rewrite to keep them.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -28587,11 +26267,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -29200,52 +26876,28 @@
         "notice": "Could not save edits. Keep the document open and try again.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -29454,11 +27106,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -30069,52 +27717,28 @@
         "notice": "Could not save edits. Keep the document open and try again.",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -30323,11 +27947,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -30936,52 +28556,28 @@
         "notice": "Edits saved",
         "send": {
           "label": "Rewrite",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": null
+          "sensitive": true
         },
         "save": {
-          "label": null,
-          "icon": "bookmark-new-symbolic",
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Save this prompt for later"
+          "sensitive": true
         },
         "cancel": {
-          "label": "Cancel",
-          "icon": null,
-          "visible": false,
-          "sensitive": true,
-          "tooltip": null
+          "visible": false
         },
         "polish": {
-          "label": "Polish",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+          "sensitive": true
         },
         "structure": {
-          "label": "Structure",
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "A concise summary followed by organized bullet points"
+          "sensitive": true
         },
         "continuation": {
           "label": "Continue recording",
           "icon": null,
           "visible": true,
-          "sensitive": true,
-          "tooltip": "Continue recording · Add speech to this conversation"
+          "sensitive": true
         },
         "title_button": {
-          "label": null,
-          "icon": null,
-          "visible": true,
-          "sensitive": true,
-          "tooltip": "Rename conversation"
+          "sensitive": true
         },
         "screenshots": [
           {
@@ -31190,11 +28786,7 @@
           "visible": false,
           "header": false,
           "navigation": {
-            "label": "Live conversation",
-            "icon": null,
-            "visible": false,
-            "sensitive": true,
-            "tooltip": "Return to the recording and its live draft"
+            "visible": false
           },
           "source_visible": true,
           "draft_visible": false,
@@ -31900,5 +29492,55 @@
       ]
     }
   ],
-  "image_png": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGNJQ1ABDQABnGk7MgAAAAFzUkdCAK7OHOkAAAANSURBVAiZY+AJMPoPAAKIAY5ZVPfjAAAAAElFTkSuQmCC"
+  "image_png": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAABGNJQ1ABDQABnGk7MgAAAAFzUkdCAK7OHOkAAAANSURBVAiZY+AJMPoPAAKIAY5ZVPfjAAAAAElFTkSuQmCC",
+  "common_observations": {
+    "cases": {
+      "send": {
+        "icon": null,
+        "visible": true,
+        "tooltip": null
+      },
+      "save": {
+        "label": null,
+        "icon": "bookmark-new-symbolic",
+        "visible": true,
+        "tooltip": "Save this prompt for later"
+      },
+      "cancel": {
+        "label": "Cancel",
+        "icon": null,
+        "sensitive": true,
+        "tooltip": null
+      },
+      "polish": {
+        "label": "Polish",
+        "icon": null,
+        "visible": true,
+        "tooltip": "Remove filler words and fix phrasing while keeping your meaning"
+      },
+      "structure": {
+        "label": "Structure",
+        "icon": null,
+        "visible": true,
+        "tooltip": "A concise summary followed by organized bullet points"
+      },
+      "continuation": {
+        "tooltip": "Continue recording · Add speech to this conversation"
+      },
+      "title_button": {
+        "label": null,
+        "icon": null,
+        "visible": true,
+        "tooltip": "Rename conversation"
+      },
+      "live": {
+        "navigation": {
+          "label": "Live conversation",
+          "icon": null,
+          "sensitive": true,
+          "tooltip": "Return to the recording and its live draft"
+        }
+      }
+    }
+  }
 }
