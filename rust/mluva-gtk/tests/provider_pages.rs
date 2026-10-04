@@ -35,6 +35,8 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+#[path = "support/fixture_states.rs"]
+mod fixture_states;
 
 fn drain() {
     while glib::MainContext::default().pending() {
@@ -348,8 +350,11 @@ fn released_provider_welcome_workspace_forms() {
         tools.join("secret-tool"),
     )
     .unwrap();
-    let fixture: Value =
-        serde_json::from_str(include_str!("fixtures/released-provider-pages.json")).unwrap();
+    let fixture = fixture_states::load(
+        include_str!("fixtures/released-provider-pages.json"),
+        &["sections", "pages", "welcome", "workspace", "downloads"],
+        "ui",
+    );
     adw::init().unwrap();
     let settings = gtk::Settings::default().unwrap();
     settings.set_gtk_enable_animations(false);

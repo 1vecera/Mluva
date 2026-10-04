@@ -25,6 +25,8 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[path = "support/fixture_states.rs"]
+mod fixture_states;
 #[path = "support/text_transport.rs"]
 pub mod transport;
 
@@ -339,8 +341,11 @@ fn released_capture_preferences_and_application_settings() {
     .unwrap();
     let _status_peer = transport::Peer::new(root.join("preferences-status"), "text_target_peer");
     assert!(mluva_gtk::text_target::system_accessibility_enabled());
-    let fixture: Value =
-        serde_json::from_str(include_str!("fixtures/released-capture-preferences.json")).unwrap();
+    let fixture = fixture_states::load(
+        include_str!("fixtures/released-capture-preferences.json"),
+        &["cases"],
+        "observed",
+    );
     let mut states = 0;
     for row in fixture["cases"].as_array().unwrap() {
         let name = row["name"].as_str().unwrap();
