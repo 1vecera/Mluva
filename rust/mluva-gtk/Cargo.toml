@@ -36,6 +36,7 @@ tempfile.workspace = true
 rusqlite.workspace = true
 tokio-tungstenite.workspace = true
 futures-util.workspace = true
+native-tls = "0.2"
 
 [[bin]]
 name = "managed-launcher-fixture-peer"

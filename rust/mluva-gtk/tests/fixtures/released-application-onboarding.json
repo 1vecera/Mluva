@@ -1,0 +1,1651 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_sha256": {
+    "linux/mluva_linux/__init__.py": "c242d7dde99d2636421fdca795ddcb0898788a06492ebbea5c770a8e4a506813",
+    "linux/mluva_linux/app.py": "1456c6af104ff95433b1d20ead793f628fada4ef9a67d76b5cf1dc4431885d67",
+    "linux/mluva_linux/appearance_settings.py": "22ff9d044fead9ab8b8b255238d2ad135e723f7d04a3fc7c405d237ff64b2a9c",
+    "linux/mluva_linux/audio.py": "c024477529cdeb33916765a4904a7a3320e595d23245e1c5e2cdad390a96001e",
+    "linux/mluva_linux/batch_preview.py": "4967f87db5da340a9bbc261a7bb7d3654a310ca6de96bb427a6ee16fb22474cb",
+    "linux/mluva_linux/brand.py": "fe29d90483027e03b95652378b1d251d82deeb152f04924706da6eb9773ef6c4",
+    "linux/mluva_linux/brand_assets.py": "e694593770db4a262a591c53a053f595d73d626294029aab8ccc22b60316bdfd",
+    "linux/mluva_linux/codex_client.py": "6d778cd340cd4abce488af4abc9553da3291f79bac3ff4fe03059249afd79a97",
+    "linux/mluva_linux/codex_policy.py": "4ecb7dc4a4b328acf826bf4e0e969902101a412a60f66505210ab9dc44488383",
+    "linux/mluva_linux/command_palette.py": "34461e28dd1a9ed102243dcb100a2000b55fc7c8604e1085bf28ad9ada4f9bbd",
+    "linux/mluva_linux/config.py": "1a1f5244733323b2a2acd7d94c49bcc41b4ec0a79fcef5fec42c36dc0ae77a4f",
+    "linux/mluva_linux/conversation.py": "d05c868b042bc0cd1bde40bfdbabecb49335f251395cd1ad065ed9f3437b7942",
+    "linux/mluva_linux/conversation_titles.py": "2969c932307c4c4d40675729f0c83a9cfbaed209891400655e6f49beca5a2e12",
+    "linux/mluva_linux/conversation_view.py": "5f631eaf25eab9cccf7daee293c5ac579e68420eaa3e0c106df70648827673e6",
+    "linux/mluva_linux/credentials.py": "6e78f1712b9c6696c6e3a5fe2e3ed3809bdf17f303d96517c4062ae49a5eddbc",
+    "linux/mluva_linux/delivery.py": "60ce68b777eee432d5e6b06c556c8bfc5af0b7f3b3926bcf012304e66b10af46",
+    "linux/mluva_linux/diagnostics.py": "bb7d1e58016a24fac3d16c00c9170c274da7bb87659b61141de92ccf76ee283a",
+    "linux/mluva_linux/direct_choices.py": "c32573e31d23aa1821bd705e80ebb4b97bf3ae3cfcd3a277fd9a045c0810a860",
+    "linux/mluva_linux/display_time.py": "da43989c6ef7e3c3a3d23551823410fc33a806bc4c2de517a7cfa07fc3814089",
+    "linux/mluva_linux/elevenlabs.py": "70da93ffc4faeb3ee327213ad9e9dda2eb47380fbc62f301a1cd369c671c7cd2",
+    "linux/mluva_linux/feature_maturity.py": "43749b8e78da937f3fc00d83fbb3acdd4542f42cf3e0eed7494537de433f81c9",
+    "linux/mluva_linux/global_shortcuts.py": "f37f8ade401c1566179765990ce5ffcf00d0b6326034a033a3039940a8405e21",
+    "linux/mluva_linux/history.py": "c8a82d65fe7261e3ea1d69c5fb20f1462fc3fa51e012d3336dec0ad7b6b20d88",
+    "linux/mluva_linux/history_view.py": "1e39b7d8f77e3b4028b67e286c058598c4779a9b372da1bb74f263fd2dd6f1d7",
+    "linux/mluva_linux/language_picker.py": "9d079322db18818248c65ae02b190dc9457f262d368f021b6ea6d02c35ade4a2",
+    "linux/mluva_linux/live_rewrite.py": "b82b950e5210453cba3122de56b4f9164e0116d9abad5598ac04d1c583f30b02",
+    "linux/mluva_linux/local_asr.py": "b6e12ae9e7d2024cb5ff3733a5ee15cbf9d28eca2f6eeb84e6d1c1ad6353a666",
+    "linux/mluva_linux/local_asr_worker.py": "7f8af274c1f9be4bf17ea843199b6f9afeaa065dd981428b20a648f9f91cf88b",
+    "linux/mluva_linux/local_gpu.py": "6fc57ec66d16584d1167b45ea29e56b6213fd5499079a0a34e0a704ae39bee26",
+    "linux/mluva_linux/local_model_settings.py": "634eef25495a54ebc934ac57ed6f5115cae8923556dd691decc6c8112d517b8b",
+    "linux/mluva_linux/local_models.py": "760b3154a0c5ecddadf7d655ef080d827b89e654ee7a5058018a79479ae73f3c",
+    "linux/mluva_linux/local_preview.py": "950c02b44dafb7e683f90bce0c898282eccd2283dafe80d8158bdcdd02e50bea",
+    "linux/mluva_linux/local_qwen.py": "55206f578df5dbeba034cc7cc8fab7ae0a1ccf33a250dd91a953fd8cbf95e353",
+    "linux/mluva_linux/markdown_view.py": "75543cac8200fbfef0b480eac7c93bc0921c8e487ed095de28bf3cedceef55d4",
+    "linux/mluva_linux/meeting.py": "0bc6357f2b074223ed9fa17b42e1efc75fc58100d53f0cfbdc379eeea296efbe",
+    "linux/mluva_linux/meeting_view.py": "8e23488ca455c21db503620b027df1d28e2b0bf188962c569986ae1732533750",
+    "linux/mluva_linux/mermaid_view.py": "226d89b60419012ba4470eeca16a3ada339f0f1a0dc3e37b8fe77d9380bde35c",
+    "linux/mluva_linux/minimal_markdown.py": "edcbb1ab09dc92fd1926d1c1c9b8f480497a81ad60eb93e661375df906d84b28",
+    "linux/mluva_linux/narration.py": "4b0254b8ee859fb9728206ccda0c36500f85ad0c5a11aca4c6dbcd2ee88fc533",
+    "linux/mluva_linux/overlay_state.py": "421dd9783054a4799981f131fcb7440f5ea3aea6d3c71a76117c4df4017918f2",
+    "linux/mluva_linux/personalization.py": "d3b1f36fe5fdf77e3d278823c30b706c3e4630ad3ccaa59a8099b0226ef1c691",
+    "linux/mluva_linux/personalization_view.py": "3cadb940dd96aab4e86595589ac3a3f796b96ba5536253f5012c810655bb13e2",
+    "linux/mluva_linux/pipewire.py": "1a7f5c7e0cfaa0946f7744808c97f1a208e3e8b59e03e5a65267323483840e65",
+    "linux/mluva_linux/polish_preview.py": "dbe3537f1aae10d262958a29acca4c24a8433a50766f598119c93787c0362570",
+    "linux/mluva_linux/private_files.py": "7fe39eac13e1f4bcfd248a8cab514818dc0ab4445f7be10bfa1f79a95a10a905",
+    "linux/mluva_linux/prompt_defaults.py": "2fdf23766603ec9e0f24ee1a43d562f3dd57f44c0706223822e9c740961ff5e8",
+    "linux/mluva_linux/prompt_editor.py": "475d94edc8783022665f653480f23894a0a0e3da35bc7dc9f95b7da1307bc1e6",
+    "linux/mluva_linux/prompts.py": "12c9ab110fc4373e474de196cad4cb98c16c9b58b499de3cc475b03136929609",
+    "linux/mluva_linux/provider_catalog.py": "f29c045c1f29f2453f5d1f3ee575cc9d6cd80e86a294dcd483abdcd750f26f5b",
+    "linux/mluva_linux/provider_settings.py": "7fd396e93c764799a7f3b9b50328295af971c0c5750f93f4061e8c264c51cb28",
+    "linux/mluva_linux/providers.py": "e7f619e2aaf9abe199b381c7b30b7a60454358643a76b107e4476a768e8cee72",
+    "linux/mluva_linux/qwen_asr.py": "6c13709686a4df1e26d206a1e61866e31d0287736f60e79dbd7c635c2ee3abf1",
+    "linux/mluva_linux/realtime.py": "988d98e4856ddacbdaa3ae0ec7be0f803d25f96e548278ab04598215e1ce3546",
+    "linux/mluva_linux/recording_control.py": "b85a2059b8fdd358fc95d2cd96d202173ee84fa623a9c45ee2185090f9864178",
+    "linux/mluva_linux/rewrite_settings.py": "48750b6d6508033f0b284c3ce3f4cc24bc1e13fc301d7d3988f571dca9f412d8",
+    "linux/mluva_linux/rewriting.py": "57a8d7c87429a628f8cf2391551d75375ad53ac7a7d0049baf98b3e1ebff3058",
+    "linux/mluva_linux/scratchpad.py": "7a808fbb02f455cba44171196fe3353154205e465d25a9f8fedc7cd40a681f26",
+    "linux/mluva_linux/screenshot_capture.py": "c77e1e60ab4c8b03b4eea27af7e29ecf9df105433c6f99e558462aa12066c100",
+    "linux/mluva_linux/screenshot_view.py": "21a2d3abb5ed753cc801c28ce4196b8f8aa1e44b2aedb0e401884679158ba588",
+    "linux/mluva_linux/screenshots.py": "db254d499f3c13ff70bdd3cede34205df66af1f2c0807b327657b30dcdcafcdf",
+    "linux/mluva_linux/scroll_forecast.py": "1fee03547d421fefcdbce1284fb5030e95ca91af2a022a3dd1ffcfde42cf2595",
+    "linux/mluva_linux/segment_cleanup.py": "6e3c2664c4879693f9a73a13a2aa47405f23599776f3c14fe012d7d525c2e087",
+    "linux/mluva_linux/settings_view.py": "cea5572eb38126b5580fcfb06aaa2b26539801cd2c2c67ce50169efc7ddb6e87",
+    "linux/mluva_linux/shell_bridge.py": "9dffa08d7996d7510e9132e5ec92aee89092d7bca6e78137dad78a5cb848ae32",
+    "linux/mluva_linux/speech_languages.py": "7c97f002ae82efd14ea87413db2ff1f4ae108ecada11e5f8291564ba9a23b008",
+    "linux/mluva_linux/terminal_target.py": "c0bd12497f4fd95359834a65dfffe61706faeef1334b22163623bc287173ccb5",
+    "linux/mluva_linux/text_diff.py": "e7b0619b0cba58211883a442c3d0d91936877c69e786a1c7c4072319dda80cba",
+    "linux/mluva_linux/text_target.py": "a916b65519d33b3401ebfee910c392560b86d5e70d6131aa3e6702394fef02c7",
+    "linux/mluva_linux/theme.py": "2f240fc62e9ae5b913c42127907f6c063e5585510b6ab04fcf64bf492841f066",
+    "linux/mluva_linux/thinking_settings.py": "ac329516c217714c207e84d75d28246cfdbbe0fecec78b2c5858da2cf7516288",
+    "linux/mluva_linux/title_jobs.py": "051ffdd79cc9ddc8408db55ba0e565f988ee49997f1e347b18abc3175b5cff50",
+    "linux/mluva_linux/transcript.py": "3d072e22ffc59ebc94abdca6948536b6c3a09fbdb71a55a45405f362912b256f",
+    "linux/mluva_linux/ui.py": "f3db4fbf916835e7f5ceb85c340c006474565045b9f79dcb783eea5942fd688b",
+    "linux/mluva_linux/vocabulary.py": "47814ed63b72db83d6986a0be8941f6a638bfc40c406bcfd655236a3260a8dff",
+    "linux/mluva_linux/volatile_audio.py": "627d500a0260799458d49223c23f76c4b6d1d4995dad700e936b0ca62e2afee4",
+    "linux/mluva_linux/workflow.py": "e539145a529a1be6b0ba8a95c4108f470e5d5c2dafe44f14ec5e2457259bc44f",
+    "linux/mluva_linux/workspace_settings.py": "580f640c93aa82b0ef3fc743e1ee811e7b9dbadf56c80932d6a07c7f7db22cf0"
+  },
+  "gtk": [
+    4,
+    22,
+    4
+  ],
+  "pango": "1.58.2",
+  "cases": [
+    {
+      "name": "wide",
+      "params": {
+        "onboarding": true,
+        "width": 1060,
+        "height": 780,
+        "theme": "dark"
+      },
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "codex",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "elevenlabs",
+        "transcription_base_url": "http://localhost:4000/v1",
+        "transcription_api_key_env": "LITELLM_API_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": false,
+        "auto_copy_rewrite": false,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": false,
+        "time_format": "24h",
+        "live_rewrite_enabled": true,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": true,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "never",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "model": {
+        "id": "qwen3-1.7b",
+        "label": "Qwen3-ASR 1.7B · recommended",
+        "repo": "getonit/Qwen3-ASR-1.7B-Q4_0-GGUF",
+        "revision": "bdff9f9b31f387d6eb797a8d827c08904048c57c",
+        "engine": "qwen3-asr",
+        "quantization": "Q4_0",
+        "ram_mb": 3500,
+        "files": [
+          {
+            "name": "Qwen3-ASR-1.7B-Q4_0.gguf",
+            "size": 1229449152,
+            "sha256": "adf2c487fcce3993bb30c9406748f5ef111a3a28b0a6c26f34223185011427c7"
+          },
+          {
+            "name": "mmproj-Qwen3-ASR-1.7B-Q8_0.gguf",
+            "size": 355709344,
+            "sha256": "46c1d533af3f354ceb37ce855dbceff7da7fa7cf1e6a523df3b13440bd164c0d"
+          }
+        ]
+      },
+      "runtime": {
+        "version": "b11011",
+        "assets": {
+          "cpu": {
+            "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11011/llama-b11011-bin-ubuntu-x64.tar.gz",
+            "size": 16855444,
+            "sha256": "e060290d1950469f465092230726b94464a9c2d0f56f1434cc61c7b9d5227527"
+          },
+          "cuda": {
+            "url": "https://github.com/ggml-org/llama.cpp/releases/download/b11011/llama-b11011-bin-ubuntu-vulkan-x64.tar.gz",
+            "size": 30217811,
+            "sha256": "0ed8eb969fb52acfa06fd960d683e7365dfca962ae8ec214b504875c93de8a72"
+          }
+        }
+      },
+      "sample_sha256": "42d8a3fc7163b72ea43e691c592fe4422fb5b5973ba1f23a724eb1219548c94a",
+      "stages": [
+        {
+          "name": "speech",
+          "page": "welcome",
+          "step": 0,
+          "title": "Choose speech recognition",
+          "step_label": "Step 1 of 3 · Speech",
+          "next": {
+            "label": "Continue",
+            "sensitive": true
+          },
+          "back": false,
+          "notice": "",
+          "speech": "elevenlabs",
+          "rewrite": "codex",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": false,
+            "status": "Download required before continuing.",
+            "button_visible": true,
+            "button_sensitive": true,
+            "progress_visible": false,
+            "progress": 0.0,
+            "progress_text": "Not downloaded"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 0,
+          "turns": 0
+        },
+        {
+          "name": "key-save-failed",
+          "page": "welcome",
+          "step": 0,
+          "title": "Choose speech recognition",
+          "step_label": "Step 1 of 3 · Speech",
+          "next": {
+            "label": "Continue",
+            "sensitive": true
+          },
+          "back": false,
+          "notice": "Desktop keyring unavailable. Set ELEVENLABS_API_KEY in your launch environment instead.",
+          "speech": "elevenlabs",
+          "rewrite": "codex",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": false,
+            "status": "Download required before continuing.",
+            "button_visible": true,
+            "button_sensitive": true,
+            "progress_visible": false,
+            "progress": 0.0,
+            "progress_text": "Not downloaded"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 0,
+          "turns": 0
+        },
+        {
+          "name": "key-saved",
+          "page": "welcome",
+          "step": 1,
+          "title": "Optional: polish your words",
+          "step_label": "Step 2 of 3 · Polishing",
+          "next": {
+            "label": "Continue",
+            "sensitive": true
+          },
+          "back": true,
+          "notice": "",
+          "speech": "elevenlabs",
+          "rewrite": "codex",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": false,
+            "status": "Download required before continuing.",
+            "button_visible": true,
+            "button_sensitive": true,
+            "progress_visible": false,
+            "progress": 0.0,
+            "progress_text": "Not downloaded"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 0,
+          "turns": 0
+        },
+        {
+          "name": "local-selected",
+          "page": "welcome",
+          "step": 0,
+          "title": "Choose speech recognition",
+          "step_label": "Step 1 of 3 · Speech",
+          "next": {
+            "label": "Continue",
+            "sensitive": false
+          },
+          "back": false,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "codex",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": false,
+            "status": "Download required before continuing.",
+            "button_visible": true,
+            "button_sensitive": true,
+            "progress_visible": false,
+            "progress": 0.0,
+            "progress_text": "Not downloaded"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 0,
+          "turns": 0
+        },
+        {
+          "name": "download-held",
+          "page": "welcome",
+          "step": 0,
+          "title": "Choose speech recognition",
+          "step_label": "Step 1 of 3 · Speech",
+          "next": {
+            "label": "Continue",
+            "sensitive": false
+          },
+          "back": false,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "codex",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": false,
+            "status": "Downloading and verifying model…",
+            "button_visible": true,
+            "button_sensitive": false,
+            "progress_visible": true,
+            "progress": 0.0,
+            "progress_text": "Not downloaded"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 1,
+          "turns": 0
+        },
+        {
+          "name": "download-progress",
+          "page": "welcome",
+          "step": 0,
+          "title": "Choose speech recognition",
+          "step_label": "Step 1 of 3 · Speech",
+          "next": {
+            "label": "Continue",
+            "sensitive": false
+          },
+          "back": false,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "codex",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": false,
+            "status": "Downloading and verifying model…",
+            "button_visible": true,
+            "button_sensitive": false,
+            "progress_visible": true,
+            "progress": 0.010583935954881322,
+            "progress_text": "1% · verifying before use"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 2,
+          "turns": 0
+        },
+        {
+          "name": "local-ready",
+          "page": "welcome",
+          "step": 0,
+          "title": "Choose speech recognition",
+          "step_label": "Step 1 of 3 · Speech",
+          "next": {
+            "label": "Continue",
+            "sensitive": true
+          },
+          "back": false,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "codex",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "unsupported-language",
+          "page": "welcome",
+          "step": 0,
+          "title": "Choose speech recognition",
+          "step_label": "Step 1 of 3 · Speech",
+          "next": {
+            "label": "Continue",
+            "sensitive": false
+          },
+          "back": false,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "codex",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "slk",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": false,
+            "status": "Choose a supported language above before continuing.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "language-ready",
+          "page": "welcome",
+          "step": 0,
+          "title": "Choose speech recognition",
+          "step_label": "Step 1 of 3 · Speech",
+          "next": {
+            "label": "Continue",
+            "sensitive": true
+          },
+          "back": false,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "codex",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "rewrite-codex",
+          "page": "welcome",
+          "step": 1,
+          "title": "Optional: polish your words",
+          "step_label": "Step 2 of 3 · Polishing",
+          "next": {
+            "label": "Continue",
+            "sensitive": true
+          },
+          "back": true,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "codex",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "rewrite-skipped",
+          "page": "welcome",
+          "step": 1,
+          "title": "Optional: polish your words",
+          "step_label": "Step 2 of 3 · Polishing",
+          "next": {
+            "label": "Continue",
+            "sensitive": true
+          },
+          "back": true,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "none",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-center",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "appearance-three",
+          "page": "welcome",
+          "step": 2,
+          "title": "Make Mluva yours",
+          "step_label": "Step 3 of 3 · Recorder",
+          "next": {
+            "label": "Open Mluva",
+            "sensitive": true
+          },
+          "back": true,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "none",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-left",
+            "widget_lines": 3,
+            "widget_opacity": 40,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "appearance-five",
+          "page": "welcome",
+          "step": 2,
+          "title": "Make Mluva yours",
+          "step_label": "Step 3 of 3 · Recorder",
+          "next": {
+            "label": "Open Mluva",
+            "sensitive": true
+          },
+          "back": true,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "none",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-left",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": false,
+            "transcription_provider": "elevenlabs",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "codex",
+            "live_rewrite_enabled": true,
+            "automatic_titles": true,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-center",
+            "auto_paste": false
+          },
+          "live_sensitive": true,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "completed",
+          "page": "capture",
+          "step": 2,
+          "title": "Make Mluva yours",
+          "step_label": "Step 3 of 3 · Recorder",
+          "next": {
+            "label": "Open Mluva",
+            "sensitive": true
+          },
+          "back": true,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "none",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-left",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": true,
+            "transcription_provider": "local",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "none",
+            "live_rewrite_enabled": false,
+            "automatic_titles": false,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-left",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": true,
+            "transcription_provider": "local",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "none",
+            "live_rewrite_enabled": false,
+            "automatic_titles": false,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-left",
+            "auto_paste": false
+          },
+          "live_sensitive": false,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "recording",
+          "page": "capture",
+          "step": 2,
+          "title": "Make Mluva yours",
+          "step_label": "Step 3 of 3 · Recorder",
+          "next": {
+            "label": "Open Mluva",
+            "sensitive": true
+          },
+          "back": true,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "none",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-left",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": true,
+            "transcription_provider": "local",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "none",
+            "live_rewrite_enabled": false,
+            "automatic_titles": false,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-left",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": true,
+            "transcription_provider": "local",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "none",
+            "live_rewrite_enabled": false,
+            "automatic_titles": false,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-left",
+            "auto_paste": false
+          },
+          "live_sensitive": false,
+          "rewrites": [
+            false,
+            false,
+            true
+          ],
+          "history": [],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "recognized",
+          "page": "capture",
+          "step": 2,
+          "title": "Make Mluva yours",
+          "step_label": "Step 3 of 3 · Recorder",
+          "next": {
+            "label": "Open Mluva",
+            "sensitive": true
+          },
+          "back": true,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "none",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-left",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": true,
+            "transcription_provider": "local",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "none",
+            "live_rewrite_enabled": false,
+            "automatic_titles": false,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-left",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": true,
+            "transcription_provider": "local",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "none",
+            "live_rewrite_enabled": false,
+            "automatic_titles": false,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-left",
+            "auto_paste": false
+          },
+          "live_sensitive": false,
+          "rewrites": [
+            false,
+            false,
+            false
+          ],
+          "history": [
+            {
+              "raw": "Oh yeah, yeah. He wasn't even that big when I started listening to him, but and his solo music didn't do overly well, but he did very well when he started writing for other people.",
+              "text": "Oh yeah, yeah. He wasn't even that big when I started listening to him, but and his solo music didn't do overly well, but he did very well when he started writing for other people."
+            }
+          ],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "settings-navigation",
+          "page": "settings",
+          "step": 2,
+          "title": "Make Mluva yours",
+          "step_label": "Step 3 of 3 · Recorder",
+          "next": {
+            "label": "Open Mluva",
+            "sensitive": true
+          },
+          "back": true,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "none",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-left",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": true,
+            "transcription_provider": "local",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "none",
+            "live_rewrite_enabled": false,
+            "automatic_titles": false,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-left",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": true,
+            "transcription_provider": "local",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "none",
+            "live_rewrite_enabled": false,
+            "automatic_titles": false,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-left",
+            "auto_paste": false
+          },
+          "live_sensitive": false,
+          "rewrites": [
+            false,
+            false,
+            false
+          ],
+          "history": [
+            {
+              "raw": "Oh yeah, yeah. He wasn't even that big when I started listening to him, but and his solo music didn't do overly well, but he did very well when he started writing for other people.",
+              "text": "Oh yeah, yeah. He wasn't even that big when I started listening to him, but and his solo music didn't do overly well, but he did very well when he started writing for other people."
+            }
+          ],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        },
+        {
+          "name": "setup-reopened",
+          "page": "welcome",
+          "step": 0,
+          "title": "Choose speech recognition",
+          "step_label": "Step 1 of 3 · Speech",
+          "next": {
+            "label": "Continue",
+            "sensitive": true
+          },
+          "back": false,
+          "notice": "",
+          "speech": "local",
+          "rewrite": "none",
+          "key_empty": true,
+          "local": {
+            "selected": "qwen3-1.7b",
+            "device": "cpu",
+            "language": "eng",
+            "label": "Qwen3-ASR 1.7B · recommended · 3.5 GB RAM · 1585 MB storage",
+            "ready": true,
+            "status": "Ready to use. Model memory is released after recording.",
+            "button_visible": false,
+            "button_sensitive": false,
+            "progress_visible": false,
+            "progress": 1.0,
+            "progress_text": "Ready"
+          },
+          "appearance": {
+            "widget_position": "bottom-left",
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "auto_paste": false
+          },
+          "saved": {
+            "welcome_completed": true,
+            "transcription_provider": "local",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "none",
+            "live_rewrite_enabled": false,
+            "automatic_titles": false,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-left",
+            "auto_paste": false
+          },
+          "active": {
+            "welcome_completed": true,
+            "transcription_provider": "local",
+            "local_model": "qwen3-1.7b",
+            "local_device": "cpu",
+            "language_code": "eng",
+            "rewrite_provider": "none",
+            "live_rewrite_enabled": false,
+            "automatic_titles": false,
+            "widget_lines": 5,
+            "widget_opacity": 82,
+            "widget_position": "bottom-left",
+            "auto_paste": false
+          },
+          "live_sensitive": false,
+          "rewrites": [
+            false,
+            false,
+            false
+          ],
+          "history": [
+            {
+              "raw": "Oh yeah, yeah. He wasn't even that big when I started listening to him, but and his solo music didn't do overly well, but he did very well when he started writing for other people.",
+              "text": "Oh yeah, yeah. He wasn't even that big when I started listening to him, but and his solo music didn't do overly well, but he did very well when he started writing for other people."
+            }
+          ],
+          "clipboard": "untouched onboarding clipboard",
+          "model_requests": 3,
+          "turns": 0
+        }
+      ],
+      "layouts": [
+        {
+          "name": "speech",
+          "window": [
+            1060,
+            780
+          ],
+          "pixels": "8049e600a31fe274a09f73e4dda94d18473a9694fa527f148cf3fc2ee925f846"
+        },
+        {
+          "name": "download-held",
+          "window": [
+            1060,
+            780
+          ],
+          "pixels": "c6c232e32bbb6fd6532ff8b52f65f58fdf13ca3205b55ac1636591c631e46e26",
+          "image_size": [
+            1070,
+            790
+          ],
+          "retired_model_marks": [
+            [
+              398,
+              374,
+              1,
+              6
+            ],
+            [
+              672,
+              374,
+              1,
+              6
+            ]
+          ],
+          "pixels_without_retired_model_marks": "e99492dcdd810ee5bdfcf685a4aabb7262b6b04b61486add3517b019c045bcff"
+        },
+        {
+          "name": "local-ready",
+          "window": [
+            1060,
+            780
+          ],
+          "pixels": "94a9582a8c1a1614c3dcea4c6a70460bc1131438f1ff0d107c0bff3c75670e6e",
+          "image_size": [
+            1070,
+            790
+          ],
+          "retired_model_marks": [
+            [
+              398,
+              374,
+              1,
+              6
+            ],
+            [
+              672,
+              374,
+              1,
+              6
+            ]
+          ],
+          "pixels_without_retired_model_marks": "e25d50f666c3ab60ff4d8f7098e751baf57370e313f7f75035686ea017247dd7"
+        },
+        {
+          "name": "language-modal",
+          "window": [
+            1060,
+            780
+          ],
+          "pixels": "8ff98462200da4c998d5e2edc6e7e708268294db43f259a1f2580d16df7f483c"
+        },
+        {
+          "name": "rewrite-codex",
+          "window": [
+            1060,
+            780
+          ],
+          "pixels": "21e6c30a229e8d3dcad09884542b901e6bd677048331c1a7ed734bd5dc3b3942"
+        },
+        {
+          "name": "rewrite-skipped",
+          "window": [
+            1060,
+            780
+          ],
+          "pixels": "5e62536263b68dbe849b2017d7d5f50b01069fb0a852f0539ba4eb1b34ef8043"
+        },
+        {
+          "name": "appearance-three",
+          "window": [
+            1060,
+            780
+          ],
+          "pixels": "2f39d1c7640962b0c45ffb0c05475f3c7fe21f20f849093fa5b1322cfbccfba3"
+        },
+        {
+          "name": "appearance-five",
+          "window": [
+            1060,
+            780
+          ],
+          "pixels": "a1ebcfc906c13b190485c039bf9ddb4d9c30a2f689e88cbb5684de636884774a"
+        },
+        {
+          "name": "recognized",
+          "window": [
+            1060,
+            780
+          ],
+          "pixels": "6435aea1c271c0cba0765ca4f88b0827a52cfc981e5a8574e99baf6ac99de423"
+        }
+      ],
+      "transfers": [
+        {
+          "host": "github.com",
+          "uri": "/ggml-org/llama.cpp/releases/download/b11011/llama-b11011-bin-ubuntu-x64.tar.gz",
+          "bytes": 16855444,
+          "complete": true
+        },
+        {
+          "host": "huggingface.co",
+          "uri": "/getonit/Qwen3-ASR-1.7B-Q4_0-GGUF/resolve/bdff9f9b31f387d6eb797a8d827c08904048c57c/Qwen3-ASR-1.7B-Q4_0.gguf",
+          "bytes": 1229449152,
+          "complete": true
+        },
+        {
+          "host": "huggingface.co",
+          "uri": "/getonit/Qwen3-ASR-1.7B-Q4_0-GGUF/resolve/bdff9f9b31f387d6eb797a8d827c08904048c57c/mmproj-Qwen3-ASR-1.7B-Q8_0.gguf",
+          "bytes": 355709344,
+          "complete": true
+        }
+      ],
+      "responses": []
+    }
+  ]
+}

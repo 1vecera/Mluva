@@ -16,6 +16,7 @@ case "$mode" in
     providers) suites=(application); provider_case="${2:-}" ;;
     management) suites=(application); management_case="${2:-}" ;;
     prompts) suites=(application); prompt_case="${2:-}" ;;
+    onboarding) suites=(application); onboarding_case="${2:-wide}"; onboarding_assets="${3:-${MLUVA_TEST_ONBOARDING_ASSETS:-}}" ;;
     prompt-editor) suites=(prompt_editor) ;;
     images) suites=(application); image_case="${2:-}"; editor="${3:-${MLUVA_TEST_EDITOR:-}}" ;;
     screenshots) suites=(application_screenshots) ;;
@@ -39,6 +40,19 @@ if "$inside"; then
     fi
     export PATH="$OFFSCREEN_SESSION_ROOT/application-tools:$PATH"
     export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true
+    if [[ "$mode" == onboarding ]]; then
+        export MLUVA_ONBOARDING_CASE="$onboarding_case" GDK_SCALE=1 GSETTINGS_BACKEND=memory
+        export MLUVA_TEST_ONBOARDING_ASSETS="$onboarding_assets"
+        export CREDENTIAL_FIXTURE_ROOT="$OFFSCREEN_SESSION_ROOT/provider-keyring"
+        export SSL_CERT_FILE="$OFFSCREEN_SESSION_ROOT/artifact-server/cert.pem"
+        mkdir "$OFFSCREEN_SESSION_ROOT/artifact-server"
+        openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=huggingface.co \
+            -addext subjectAltName=DNS:huggingface.co,DNS:github.com \
+            -keyout "$OFFSCREEN_SESSION_ROOT/artifact-server/key.pem" -out "$SSL_CERT_FILE" \
+            > "$OFFSCREEN_SESSION_ROOT/artifact-server/certificate.log" 2>&1
+        export https_proxy=http://127.0.0.1:48118 HTTPS_PROXY=http://127.0.0.1:48118
+        export no_proxy=localhost,127.0.0.1 NO_PROXY=localhost,127.0.0.1
+    fi
     if [[ "$mode" == images ]]; then
         export MLUVA_IMAGE_CASE="$image_case" MLUVA_TEST_EDITOR="$editor" GDK_SCALE=1 GSETTINGS_BACKEND=memory
     fi
@@ -81,6 +95,17 @@ RUSTUP_HOME="$(realpath -m -- "${RUSTUP_HOME:-$HOME/.rustup}")"
 CARGO_TARGET_DIR="$(realpath -m -- "${CARGO_TARGET_DIR:-$project_root/tmp/native-build}")"
 export CARGO_HOME RUSTUP_HOME CARGO_TARGET_DIR
 cd -- "$project_root"
+if [[ "$mode" == onboarding ]]; then
+    command -v openssl >/dev/null || { echo "Missing onboarding HTTPS prerequisite: openssl." >&2; exit 3; }
+    onboarding_assets="$(realpath -m -- "${onboarding_assets:-$project_root/tmp/onboarding-assets}")"
+    for asset in speech.wav llama-b11011-bin-ubuntu-x64.tar.gz Qwen3-ASR-1.7B-Q4_0.gguf mmproj-Qwen3-ASR-1.7B-Q8_0.gguf; do
+        test -f "$onboarding_assets/$asset" || {
+            echo "Missing pinned public onboarding artifact: $asset. Set MLUVA_TEST_ONBOARDING_ASSETS." >&2
+            exit 3
+        }
+    done
+    cargo build --locked -p mluva-gtk --example artifact_https_peer -p mluva-asr --bin mluva-asr-worker
+fi
 if [[ "$mode" == images ]]; then
     editor="$(realpath -m -- "${editor:-$project_root/tmp/narrated-editor/tensaku}")"
     if [[ ! -x "$editor" ]]; then
@@ -102,6 +127,11 @@ fi
 cargo test --locked -p mluva-gtk "${test_arguments[@]}" --no-run
 mkdir -p tmp/application
 evidence="$(mktemp -d "$project_root/tmp/application/run.XXXXXX")"
+if [[ "$mode" == onboarding ]]; then
+    exec bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
+        bash dev/run-isolated-browser.sh "$evidence/$onboarding_case" -- \
+        bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session onboarding "$onboarding_case" "$onboarding_assets"
+fi
 if [[ "$mode" == images ]]; then
     image_cases=(minimum narrow wide preparation-failure)
     if [[ -n "$image_case" ]]; then image_cases=("$image_case"); fi

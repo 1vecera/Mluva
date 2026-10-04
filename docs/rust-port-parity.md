@@ -12,6 +12,8 @@ The [second fixture cleanup](../rust/mluva-gtk/tests/fixtures/fixture-storage.md
 
 The evidence must observe results through public/native boundaries rather than inspecting implementation statements. Compare rendering and interactions with synthetic content on the same isolated desktop and compare protocol/data outputs against independent fixtures. Preserve failures, privacy behavior and recovery as carefully as successful workflows.
 
+The [native first-run provisioning check](../rust/mluva-gtk/tests/fixtures/application-onboarding-evidence.md) now passes eighteen assembled application states and nine image comparisons with Python/uv blocked. It downloads the actual pinned Qwen CPU runtime and model into fresh private state, recognizes public PCM, saves setup choices and reopens the wizard. The obsolete 153-line Python setup checker is removed. This closes that checker dependency; separate-process persistence, final Python removal and installed/platform acceptance remain release blockers.
+
 | User workflow or contract | Required comparison/evidence | Rust status |
 | --- | --- | --- |
 | Cold launch and background restart | Native windows, existing focused field, first recording, no extra focus event required, no window shown for helper invocation | Pending |

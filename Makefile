@@ -91,6 +91,10 @@ linux-live-rewrite-test: linux-live-workspace-test
 linux-provider-settings-test:
 	bash linux/tests/run_application_smoke.sh providers
 
+.PHONY: linux-onboarding-test
+linux-onboarding-test:
+	bash linux/tests/run_application_smoke.sh onboarding
+
 linux-run:
 	bash linux/native-source-command.sh run
 

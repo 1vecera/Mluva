@@ -40,6 +40,8 @@ mod application_live_editor;
 mod application_live_workspace;
 #[path = "support/application_management.rs"]
 mod application_management;
+#[path = "support/application_onboarding.rs"]
+mod application_onboarding;
 #[path = "support/application_prompts.rs"]
 mod application_prompts;
 #[path = "support/application_providers.rs"]
@@ -319,7 +321,9 @@ fn released_assembled_application_and_shutdown() {
     )
     .unwrap();
     fs::set_permissions(tools.join("codex"), fs::Permissions::from_mode(0o700)).unwrap();
-    if std::env::var_os("MLUVA_PROVIDER_CASE").is_some() {
+    if std::env::var_os("MLUVA_PROVIDER_CASE").is_some()
+        || std::env::var_os("MLUVA_ONBOARDING_CASE").is_some()
+    {
         application_providers::prepare_credentials(&root, &tools, &target);
     }
     gtk::init().unwrap();
@@ -404,6 +408,10 @@ fn released_assembled_application_and_shutdown() {
         serde_json::from_str(include_str!("fixtures/released-application-prompts.json")).unwrap();
     let images: Value =
         serde_json::from_str(include_str!("fixtures/released-application-images.json")).unwrap();
+    let onboarding: Value = serde_json::from_str(include_str!(
+        "fixtures/released-application-onboarding.json"
+    ))
+    .unwrap();
     for additional in [
         &commands,
         &continuation,
@@ -414,12 +422,22 @@ fn released_assembled_application_and_shutdown() {
         &management,
         &prompts,
         &images,
+        &onboarding,
     ] {
         for key in ["reference", "gtk", "pango"] {
             assert_eq!(additional[key], fixture[key]);
         }
     }
-    let cases = if let Ok(name) = std::env::var("MLUVA_IMAGE_CASE") {
+    let cases = if let Ok(name) = std::env::var("MLUVA_ONBOARDING_CASE") {
+        let selected = onboarding["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|case| case["name"] == name)
+            .collect::<Vec<_>>();
+        assert_eq!(selected.len(), 1, "select one released onboarding scenario");
+        selected
+    } else if let Ok(name) = std::env::var("MLUVA_IMAGE_CASE") {
         let selected = images["cases"]
             .as_array()
             .unwrap()
@@ -543,12 +561,14 @@ fn released_assembled_application_and_shutdown() {
             http::Peer::new(&responses)
         };
         let mut document = row["config"].clone();
-        if params["providers"] != true {
+        if params["providers"] != true && params["onboarding"] != true {
             document["transcription_base_url"] = json!(format!("{}/v1", peer.address));
         }
         let config: AppConfig = serde_json::from_value(document).unwrap();
         let paths = if params["prompts"] == true {
             application_prompts::paths(&root, reopening)
+        } else if params["onboarding"] == true {
+            application_onboarding::paths(&root)
         } else {
             AppPaths {
                 config: directory.path().join("config/mluva"),
@@ -562,7 +582,7 @@ fn released_assembled_application_and_shutdown() {
                 fs::write(paths.config.join("config.json"), "{malformed configuration").unwrap();
             }
         }
-        if params["prompts"] == true || params["images"] == true {
+        if params["prompts"] == true || params["images"] == true || params["onboarding"] == true {
             adw::StyleManager::default().set_color_scheme(if params["theme"] == "dark" {
                 adw::ColorScheme::ForceDark
             } else {
@@ -572,6 +592,8 @@ fn released_assembled_application_and_shutdown() {
         if params["providers"] == true {
             application_providers::prepare_model(&paths.data);
         }
+        let mut artifacts = (params["onboarding"] == true)
+            .then(|| application_onboarding::Artifacts::prepare(&root, &tools, &target, row));
         let services = ApplicationServices::open(paths.clone()).unwrap();
         let screenshot_editor = if params["images"] == true {
             application_images::prepare(&tools, directory.path(), &target, row)
@@ -617,6 +639,20 @@ fn released_assembled_application_and_shutdown() {
                 || owner.capture.page.view_state().initialization_failed
         });
         settle();
+        if params["onboarding"] == true {
+            let pids =
+                application_onboarding::exercise(&owner, &services, row, &tools, &root, &evidence);
+            shutdown(&owner, &platform_closed, &evidence, &pids);
+            assert!(
+                peer.finish().is_empty(),
+                "local onboarding made an HTTP provider request"
+            );
+            assert_eq!(application_continuation::turns(&evidence), json!([]));
+            artifacts.as_mut().unwrap().finish(&row["transfers"]);
+            count += row["stages"].as_array().unwrap().len();
+            release_application(owner, application);
+            continue;
+        }
         if params["images"] == true {
             let mut flow = application_images::Flow::new(
                 &owner, &services, row, &tools, &root, &evidence, &peer,
