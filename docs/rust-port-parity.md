@@ -46,11 +46,11 @@ The [native first-run provisioning check](../rust/mluva-gtk/tests/fixtures/appli
 | Tensaku narrated text boxes | Chosen area, fresh phrase, saved readable pixels/OCR, normal undo, clipboard preserved, EOF/Escape cancels, no extra History item or Python helper | Pending |
 | Screenshot lifecycle and privacy | Editor saves reach rewrites, remove/delete/retention, interrupted capture recovery, image bounds, Incognito/Scratchpad restrictions | Pending |
 | Incognito, credentials and endpoint safeguards | No history/retained audio, late results invalidated, volatile cleanup after failure/crash, no secret output or redirect credential leakage | Pending |
-| Installation, migration and package ownership | Existing names/paths/config/SQLite/JSON/audio/model stores retained; user files preserved, rollback and matching app/widget versions | Pending |
-| Final Python removal | Maintained source/test/build/install tree and clean installed package have no Python code, interpreter dependency, bridge or compatibility worker | Pending |
+| Installation, migration and package ownership | Existing names/paths/config/SQLite/JSON/audio/model stores retained; user files preserved, rollback and matching app/widget versions | Pending — delivered 2.0.0; [restrictive archive permissions](../rust/mluva-install/tests/fixtures/archive-evidence.md) repaired in the follow-up candidate |
+| Final Python removal | Maintained source/test/build/install tree and clean installed package have no Python code, interpreter dependency, bridge or compatibility worker | Verified — [2.0.0 cutover and clean installed inventory](verification/rust-cutover/README.md); temporary immutable comparison sources remain outside the maintained tree |
 | Performance | Same-host/provider/model/content startup, RSS, idle CPU, interaction/capture/processing measurements; no unsupported speed claims | Pending — optimized startup/idle measured; interaction/capture/processing remain |
 
-## Current state
+## Earlier checkpoints
 
 `make linux-text-target-test` now executes the existing [thirty-case native accessibility owner](../rust/mluva-gtk/tests/fixtures/text-target-evidence.md) with Python and uv blocked. The redundant 190-line Python checker is removed without adding cases or fixtures; the separated conversation launcher retains all fourteen scenarios. The remaining Python gate passes 571 tests and Ruff/formatting for 150 files. Production behavior and the complete-workflow acceptance status are unchanged.
 

@@ -348,7 +348,7 @@ fn announce(paths: &InstallPaths, scoped: bool) -> Result<()> {
 
 fn install(source: &Path) -> Result<()> {
     let paths = InstallPaths::from_environment("install")?;
-    install_bundle::validate(source)?;
+    install_bundle::validate_source(source)?;
     if legacy::upgrade(source, &paths, |transaction| {
         let scoped = prepare_payload(source, &paths, transaction, true)?;
         announce(&paths, scoped)
