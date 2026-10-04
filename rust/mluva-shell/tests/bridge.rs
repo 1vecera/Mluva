@@ -7,7 +7,7 @@ use std::{
     collections::BTreeMap,
     fs,
     io::{BufRead, BufReader},
-    os::unix::process::ExitStatusExt,
+    os::unix::{fs::symlink, process::ExitStatusExt},
     path::{Path, PathBuf},
     process::{Child, Command, ExitStatus, Stdio},
     rc::Rc,
@@ -250,16 +250,44 @@ fn released_shell_commands_and_owner_lifecycle_match_native_process() {
     for path in ["/dev/input", "/dev/uinput", "/dev/snd", "/dev/dri"] {
         assert!(!Path::new(path).exists());
     }
-    let root = root.join("native-shell");
+    let repository = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    for (name, executable, source) in [
+        (
+            "native-shell",
+            Path::new(env!("CARGO_BIN_EXE_mluva-shell")).to_owned(),
+            false,
+        ),
+        ("source-shell", repository.join("linux/mluva-shell"), true),
+    ] {
+        compare_process(root.join(name), &executable, source);
+    }
+}
+
+fn compare_process(root: PathBuf, executable: &Path, source: bool) {
     fs::create_dir(&root).unwrap();
     for directory in ["bin", "home", "config", "data", "state"] {
         fs::create_dir(root.join(directory)).unwrap();
     }
-    fs::copy(
-        env!("CARGO_BIN_EXE_mluva-shell"),
-        root.join("bin/mluva-shell"),
-    )
-    .unwrap();
+    if source {
+        symlink(executable, root.join("bin/mluva-shell")).unwrap();
+        // Prepare the source build before measuring bounded D-Bus calls. The
+        // command itself is still exercised for every CLI, action and watcher.
+        let prepared = command(&root, &["--help"]).output().unwrap();
+        fs::write(root.join("build.stdout"), &prepared.stdout).unwrap();
+        fs::write(root.join("build.stderr"), &prepared.stderr).unwrap();
+        assert!(
+            prepared.status.success(),
+            "source shell build failed: {:?}: {}",
+            prepared.status.code(),
+            String::from_utf8_lossy(&prepared.stderr)
+        );
+    } else {
+        fs::copy(executable, root.join("bin/mluva-shell")).unwrap();
+    }
     let fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-shell.json")).unwrap();
     assert_eq!(
@@ -327,6 +355,14 @@ fn released_shell_commands_and_owner_lifecycle_match_native_process() {
         // Deliberately observe late: startup output must not be lost even when
         // the child writes before the first step begins.
         until(|| !lines(&out).is_empty());
+        assert_eq!(
+            fs::read_link(format!("/proc/{}/exe", process.0.id()))
+                .unwrap()
+                .file_name()
+                .unwrap(),
+            "mluva-shell",
+            "the command must replace its launcher with the native bridge"
+        );
         let mut cursor = 0;
         for step in case["steps"].as_array().unwrap() {
             observe_step(&out, &mut cursor, step, || {
@@ -542,7 +578,7 @@ fn released_shell_commands_and_owner_lifecycle_match_native_process() {
         assert_eq!(fs::read_dir(root.join(directory)).unwrap().count(), 0);
     }
     println!(
-        "Verified {} CLI cases, {} action receipts, {} watcher steps and {} disconnects",
+        "Verified {} CLI cases, {} action receipts, {} watcher steps and {} disconnects through {}",
         fixture["cli"].as_array().unwrap().len(),
         fixture["actions"].as_array().unwrap().len(),
         fixture["watches"]
@@ -551,6 +587,7 @@ fn released_shell_commands_and_owner_lifecycle_match_native_process() {
             .iter()
             .map(|w| w["steps"].as_array().unwrap().len())
             .sum::<usize>(),
-        fixture["disconnects"].as_array().unwrap().len()
+        fixture["disconnects"].as_array().unwrap().len(),
+        executable.display()
     );
 }

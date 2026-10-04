@@ -14,6 +14,8 @@ Native source builds require the repository-pinned Rust 1.95 toolchain, a C comp
 
 `make` or `make linux-setup` compiles and validates an optimized native bundle without installing it; compiler artifacts stay under `tmp/native-build` unless `CARGO_TARGET_DIR` is supplied. `make run` or `make linux-run` prepares a complete private runtime and launches its native app, retaining the bundle until that process exits. Quit removes the temporary runtime. Closing the window keeps the resident app running; these launch commands intentionally open the UI and belong inside the isolated runner during automated verification. [Source Make evidence](rust/mluva-gtk/tests/fixtures/source-make-evidence.md) covers real build, launch, forwarding and cleanup with Python and uv blocked.
 
+`bash linux/mluva-shell ACTION` builds and runs the standalone native desktop bridge, using the same compiler cache conventions. It needs no app resource bundle and does not start the application. Use a private session bus for automated status/action checks; `--help` only describes the command. The [bridge comparison](rust/mluva-shell/tests/fixtures/README.md) covers installed-style and source commands, exact CLI output, process signals, owner replacement and activation privacy. `make linux-omarchy-test` prepares this native command before starting its remaining Python/QML observer and carries only its offline build locations into the private session.
+
 Build a prepared native bundle without installing or launching it:
 
 ```sh
