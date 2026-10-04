@@ -155,6 +155,173 @@ fn driver_command(root: &Path) -> Command {
     command
 }
 
+async fn invoke_driver(
+    root: &Path,
+    spec: &Value,
+    deadline: Duration,
+    observe_memory: bool,
+) -> (Value, Duration, u64) {
+    let mut driver = driver_command(root).spawn().unwrap();
+    let mut stdin = driver.stdin.take().unwrap();
+    stdin
+        .write_all(&serde_json::to_vec(spec).unwrap())
+        .await
+        .unwrap();
+    drop(stdin);
+    let before = std::time::Instant::now();
+    let mut peak = 0;
+    let mut pid = None;
+    let waiting = driver.wait_with_output();
+    tokio::pin!(waiting);
+    let output = tokio::time::timeout(deadline, async {
+        loop {
+            tokio::select! {
+                result = &mut waiting => break result.unwrap(),
+                _ = tokio::time::sleep(Duration::from_millis(2)), if observe_memory => {
+                    if pid.is_none() {
+                        pid = fs::read_to_string(root.join("trace.jsonl")).unwrap_or_default()
+                            .lines().filter_map(|line|serde_json::from_str::<Value>(line).ok())
+                            .find(|row|row["kind"]=="start")
+                            .and_then(|row|row["pid"].as_u64());
+                    }
+                    if let Some(pid) = pid {
+                        let status = fs::read_to_string(format!("/proc/{pid}/status")).unwrap_or_default();
+                        if let Some(rss) = status.lines().find_map(|line|line.strip_prefix("VmRSS:")
+                            .and_then(|value|value.split_whitespace().next())
+                            .and_then(|value|value.parse::<u64>().ok())) {
+                            peak = peak.max(rss * 1024);
+                        }
+                    }
+                }
+            }
+        }
+    })
+    .await
+    .expect("bounded actual Qwen client");
+    assert!(output.status.success(), "Qwen fixture process");
+    assert!(
+        output.stderr.is_empty(),
+        "silent Qwen fixture process: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    (
+        serde_json::from_slice(&output.stdout).unwrap(),
+        before.elapsed(),
+        peak,
+    )
+}
+
+fn normalize_guard_result(mut result: Value) -> Value {
+    let trace = result["trace"].as_array_mut().unwrap();
+    let mut statuses = vec![];
+    trace.retain(|row| {
+        if row["kind"] == "health" {
+            assert_eq!(row["authenticated"], false);
+            statuses.push(row["status"].as_u64().unwrap());
+            false
+        } else {
+            row["kind"] != "fragment"
+        }
+    });
+    assert!(!statuses.is_empty());
+    statuses.sort();
+    statuses.dedup();
+    result["health_statuses"] = json!(statuses);
+    result["health_requests_unauthenticated"] = json!(true);
+    result
+}
+
+async fn actual_guard_case(case: &Value, memory: bool) {
+    let directory = tempfile::Builder::new()
+        .prefix("actual-qwen-guard-")
+        .permissions(fs::Permissions::from_mode(0o700))
+        .tempdir()
+        .unwrap();
+    let root = directory.path();
+    setup(root, &case["spec"]);
+    let (actual, elapsed, peak) =
+        invoke_driver(root, &case["spec"], Duration::from_secs(205), memory).await;
+    let name = case["name"].as_str().unwrap();
+    assert_eq!(
+        normalize_guard_result(actual),
+        case["result"],
+        "{name}: actual released failure, protocol and resource cleanup"
+    );
+    let seconds = elapsed.as_secs_f64();
+    if memory {
+        assert!(peak > 5_000_000_000, "real owned-worker RSS exceeds 5 GB");
+        assert!(seconds < 30.0);
+    } else if name.ends_with("startup") {
+        assert!((87.0..=102.0).contains(&seconds));
+    } else {
+        assert!((177.0..=195.0).contains(&seconds));
+    }
+    assert_eq!(
+        fs::read_dir(root.join("tmp")).unwrap().count(),
+        0,
+        "no owned temporary key/alias/directory remains at request return"
+    );
+    eprintln!(
+        "{}",
+        json!({"name":name,"elapsed_seconds":seconds,"peak_worker_rss_bytes":peak,
+            "released_error_and_protocol_match":true,"owned_resources_gone_at_return":true})
+    );
+}
+
+#[tokio::test]
+#[ignore = "waits for real 90/180-second Qwen deadlines; no clock or timeout override"]
+async fn actual_qwen_deadlines_match_release_and_reap_owned_resources() {
+    let fixture: Value =
+        serde_json::from_str(include_str!("fixtures/released-qwen-faults.json")).unwrap();
+    let cases: Vec<_> = fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|case| {
+            !case["name"]
+                .as_str()
+                .unwrap()
+                .ends_with("resident-overflow")
+        })
+        .collect();
+    assert_eq!(cases.len(), 6);
+    futures_util::future::join_all(cases.into_iter().map(|case| actual_guard_case(case, false)))
+        .await;
+}
+
+#[tokio::test]
+#[ignore = "allocates and observes over 5 GB real RSS in one isolated Qwen peer at a time"]
+async fn actual_qwen_resident_overflow_matches_release_and_reaps_owned_resources() {
+    let available = fs::read_to_string("/proc/meminfo")
+        .unwrap()
+        .lines()
+        .find_map(|line| {
+            line.strip_prefix("MemAvailable:")
+                .and_then(|value| value.split_whitespace().next())
+                .and_then(|value| value.parse::<u64>().ok())
+        })
+        .unwrap()
+        * 1024;
+    assert!(available >= 12_000_000_000);
+    let fixture: Value =
+        serde_json::from_str(include_str!("fixtures/released-qwen-faults.json")).unwrap();
+    let cases: Vec<_> = fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|case| {
+            case["name"]
+                .as_str()
+                .unwrap()
+                .ends_with("resident-overflow")
+        })
+        .collect();
+    assert_eq!(cases.len(), 2);
+    for case in cases {
+        actual_guard_case(case, true).await;
+    }
+}
+
 #[tokio::test]
 async fn native_qwen_client_processes_and_loopback_requests_match_release() {
     let fixture: Value = serde_json::from_str(include_str!("fixtures/released-qwen.json")).unwrap();
@@ -178,24 +345,9 @@ async fn native_qwen_client_processes_and_loopback_requests_match_release() {
             .unwrap();
         let root = directory.path();
         setup(root, &case["spec"]);
-        let mut driver = driver_command(root).spawn().unwrap();
-        let mut stdin = driver.stdin.take().unwrap();
-        stdin
-            .write_all(&serde_json::to_vec(&case["spec"]).unwrap())
-            .await
-            .unwrap();
-        drop(stdin);
-        let output = tokio::time::timeout(Duration::from_secs(20), driver.wait_with_output())
-            .await
-            .expect("bounded Qwen fixture client")
-            .unwrap();
+        let (actual, _, _) =
+            invoke_driver(root, &case["spec"], Duration::from_secs(20), false).await;
         let name = case["name"].as_str().unwrap();
-        assert!(output.status.success(), "Qwen fixture process {name}");
-        assert!(
-            output.stderr.is_empty(),
-            "silent Qwen fixture process {name}"
-        );
-        let actual: Value = serde_json::from_slice(&output.stdout).unwrap();
         if actual != case["result"] {
             let report = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("../../tmp/qwen-mismatch.json");

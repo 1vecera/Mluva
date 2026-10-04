@@ -169,7 +169,16 @@ async fn runtime(arguments: &[String]) {
             let specification = &config["responses"]
                 [requests.min(config["responses"].as_array().unwrap().len() - 1)];
             requests += 1;
-            if first_process && specification["hold_first_process"] == true {
+            let memory = if let Some(bytes) = specification["memory_bytes"].as_u64() {
+                append(&trace, json!({"kind":"allocation","bytes":bytes}));
+                Some(vec![1_u8; bytes as usize])
+            } else {
+                None
+            };
+            std::hint::black_box(&memory);
+            if specification["hold"] == true
+                || (first_process && specification["hold_first_process"] == true)
+            {
                 std::future::pending::<()>().await;
             }
             response.status = specification["status"].as_u64().unwrap_or(200) as u16;
