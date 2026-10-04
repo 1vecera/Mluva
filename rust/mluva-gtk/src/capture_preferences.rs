@@ -216,9 +216,7 @@ impl CapturePreferences {
         let shortcuts = group(
             &capture,
             "Global shortcut",
-            Some(
-                "Press once to start and again to stop; F9 is the practical default on a standard keyboard",
-            ),
+            Some("Press once to start and again to stop. F9 is the practical default."),
         );
         let keys: Vec<_> = (1..=24).map(|number| format!("F{number}")).collect();
         let recording_key = combo(
