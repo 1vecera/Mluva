@@ -27,6 +27,39 @@ fn stores() -> (
     (directory, history, conversations, screenshots)
 }
 
+#[test]
+fn search_filters_complete_history_before_limit_with_literal_wildcards() {
+    let (_directory, history, conversations, _) = stores();
+    let old = history
+        .add(HistoryInput::dictation("old original", "old original"))
+        .unwrap();
+    conversations
+        .append(
+            &old.identifier,
+            "Structure",
+            "Ship the 25% improvement.",
+            "fixture-model",
+        )
+        .unwrap();
+    Connection::open(&history.database.path).unwrap().execute(
+        "UPDATE transcription_history SET created_at = '2000-01-01T00:00:00+00:00' WHERE identifier = ?",
+        [&old.identifier],
+    ).unwrap();
+    for index in 0..90 {
+        let text = format!("New {index}");
+        history.add(HistoryInput::dictation(&text, &text)).unwrap();
+    }
+    assert_eq!(conversations.search("", 80, None).unwrap().len(), 80);
+    for query in ["25%", "old original", "OLD ORIGINAL"] {
+        assert_eq!(
+            conversations.search(query, 80, None).unwrap(),
+            vec![history.find(&old.identifier).unwrap()],
+            "{query}",
+        );
+    }
+    assert!(conversations.search("_", 80, None).unwrap().is_empty());
+}
+
 fn png() -> &'static [u8] {
     include_bytes!("fixtures/synthetic-context.png")
 }

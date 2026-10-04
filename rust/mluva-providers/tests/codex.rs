@@ -230,7 +230,24 @@ async fn actual_jsonl_process_requests_results_and_isolation_match_released_sess
             .zip(row["frames"].as_array().unwrap())
             .enumerate()
         {
-            assert_eq!(frame, expected, "frame {index}/{frame_index}: {scenario}");
+            let mut expected = expected.clone();
+            if expected["message"]["method"] == "initialize" {
+                // Preserve the released wire bytes except the intentional
+                // application release version; never derive expectations from
+                // the request being tested.
+                assert_eq!(
+                    expected["message"]["params"]["clientInfo"]["version"],
+                    "1.6.0"
+                );
+                expected["message"]["params"]["clientInfo"]["version"] =
+                    json!(env!("CARGO_PKG_VERSION"));
+                expected["raw"] = json!(expected["raw"].as_str().unwrap().replacen(
+                    "\"version\":\"1.6.0\"",
+                    &format!("\"version\":\"{}\"", env!("CARGO_PKG_VERSION")),
+                    1,
+                ));
+            }
+            assert_eq!(frame, &expected, "frame {index}/{frame_index}: {scenario}");
         }
         let policy=processes.iter().map(|process| {
             assert!(!Path::new(process["cwd"].as_str().unwrap()).exists(),"private workspace leaked");

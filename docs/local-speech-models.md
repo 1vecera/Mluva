@@ -61,4 +61,4 @@ Tiny's CPU first chunk repeatedly hallucinated “yeah”; the final full-record
 
 Every run confirmed no loaded worker at session creation and no remaining worker after finalization. Additional Qwen tests cancelled during loading and after preview text on both devices; cleanup took at most 1.23 seconds and discarded late text. Tests caught and fixed nullable streaming control messages and a concurrent cancellation cleanup race.
 
-[Measurements and provisional/final output sizes](benchmarks/local-speech-2026-09-17.json) use only the [public Qwen sample](https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen3-ASR-Repo/asr_en.wav). Reproduce with `scripts/benchmark_local_speech.py` after downloading a model into a task-specific XDG data directory; the script itself never downloads or records audio.
+The legacy preview benchmark was retired with Python. Native local-preview and real inference comparisons live in the provider and ASR test packages; their evidence records actual public clips, finalization and worker cleanup.

@@ -243,7 +243,7 @@ fn actual_native_bundle_is_complete_private_and_atomic() {
     assert_eq!(receipt["schema"], 1);
     assert_eq!(receipt["application"], "com.mluva.Linux");
     assert_eq!(receipt["implementation"], "rust");
-    assert_eq!(receipt["version"], "1.6.0");
+    assert_eq!(receipt["version"], env!("CARGO_PKG_VERSION"));
     assert_eq!(receipt["sha256"], json!(files));
     assert_eq!(receipt["links"], json!(links));
     let names: Vec<_> = fs::read_dir(output.join("bin"))
@@ -662,7 +662,7 @@ fn actual_native_bundle_is_complete_private_and_atomic() {
         String::from_utf8_lossy(&unpacked.stderr)
     );
     assert_eq!(fs::read_dir(&extracted).unwrap().count(), 1);
-    let extracted = extracted.join("mluva-1.6.0");
+    let extracted = extracted.join(format!("mluva-{}", env!("CARGO_PKG_VERSION")));
     let (mut archived_files, archived_links) = inventory(&extracted);
     archived_files.remove(".mluva-native.json");
     assert_eq!(archived_files, files);

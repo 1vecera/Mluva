@@ -1,6 +1,6 @@
 # Rust port acceptance
 
-Reference: Mluva `v1.6.0`, commit `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. Work branch: `feat/rust-port`. The installed release remains the reference application while the replacement is developed. No Rust application parity is claimed yet.
+Reference: Mluva `v1.6.0`, commit `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. On 4 October 2026 Daniel authorized merging, removing Python, releasing 2.0.0 and installing locally while accepting the remaining acceptance risk. See the [cutover record](verification/rust-cutover/README.md). The matrix remains an honest record of unverified whole-workflow acceptance; the dated checkpoints below describe earlier installations and work. No complete one-to-one parity is claimed.
 
 Daniel authorized one scope reduction on 1 October 2026: the native managed-model lineup is Whisper Tiny, Parakeet v3 and Qwen3-ASR 1.7B, retaining Qwen as the default. Retired selections migrate without deleting old caches. Model metadata and the unchanged release fixtures still provide the comparison oracle for the retained choices.
 

@@ -4,7 +4,7 @@ import { C, display, easeIn, easeInOut, easeOut, LABEL, mono, ramp, T } from "..
 import { vBlur } from "../parts/Blur";
 import { PORTAL_FRAMES, portalAt } from "../parts/Portal";
 
-// Every theme installed with Omarchy, photographed from the production widget (showreel/capture_widget.py),
+// Every theme installed with Omarchy, photographed from the production widget (the historical v1.6.0 capture recipe),
 // sorted by the widget's background luminance from themes.json: light at the top of the sphere.
 const LIGHT_TO_DARK = [
   "white", "flexoki-light", "lupine", "rose-pine", "catppuccin-latte", "everforest", "nord", "gruvbox", "ristretto",

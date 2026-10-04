@@ -237,7 +237,7 @@ fn fixture_bundle(root: &Path) -> PathBuf {
     }
     let mut files = BTreeMap::new();
     hashes(&bundle, &bundle, &mut files);
-    fs::write(bundle.join(".mluva-native.json"),serde_json::to_vec(&json!({"schema":1,"application":"com.mluva.Linux","implementation":"rust","version":"1.6.0","sha256":files,"links":links})).unwrap()).unwrap();
+    fs::write(bundle.join(".mluva-native.json"),serde_json::to_vec(&json!({"schema":1,"application":"com.mluva.Linux","implementation":"rust","version":env!("CARGO_PKG_VERSION"),"sha256":files,"links":links})).unwrap()).unwrap();
     bundle
 }
 

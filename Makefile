@@ -19,21 +19,6 @@ linux-test: linux-setup
 	cargo fmt --all -- --check
 	$(MAKE) linux-feature-maturity-check
 
-# Temporary gate for the remaining Python implementation during the full port.
-.PHONY: linux-python-setup linux-python-test
-linux-python-setup:
-	@cd linux && if ! test -x .venv/bin/python \
-		|| ! uv run --no-sync python -c 'import gi; gi.require_version("Gtk", "4.0"); gi.require_version("Adw", "1"); gi.require_version("Atspi", "2.0"); gi.require_version("DBus", "1.0"); gi.require_version("cairo", "1.0"); from gi.repository import Adw, Atspi, DBus, Gtk, cairo' >/dev/null 2>&1; then \
-		uv venv --clear --system-site-packages --python /usr/bin/python3; \
-	fi
-	cd linux && uv sync --locked
-
-linux-python-test: linux-python-setup
-	$(MAKE) linux-feature-maturity-check
-	cd linux && uv run --locked pytest -q
-	cd linux && uv run --locked ruff check .
-	cd linux && uv run --locked ruff format --check .
-
 .PHONY: linux-codex-isolation-test
 linux-codex-isolation-test:
 	bash linux/tests/run_codex_isolation_smoke.sh
@@ -73,7 +58,7 @@ linux-overlay-test:
 linux-text-target-test:
 	bash linux/tests/run_application_smoke.sh text-targets
 
-linux-conversation-test: linux-python-setup
+linux-conversation-test:
 	bash linux/tests/run_conversation_smoke.sh
 
 .PHONY: linux-compact-workspace-test

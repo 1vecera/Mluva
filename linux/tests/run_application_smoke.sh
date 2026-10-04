@@ -10,6 +10,7 @@ fi
 mode="${1:-application}"
 case "$mode" in
     application) suites=(application application_shell) ;;
+    conversation) suites=(conversation_page application_shell) ;;
     live-components) suites=(conversation_page document_surfaces) ;;
     live-controllers) suites=(live_controller review_controller) ;;
     compact) suites=(application); compact_case="${2:-}" ;;

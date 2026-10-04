@@ -329,7 +329,7 @@ fn actual_combined_setup_installs_app_widget_and_preserves_failure_boundaries() 
                             &fs::read(widget.join("manifest.json")).unwrap(),
                         )
                         .unwrap();
-                        assert_eq!(manifest["version"], "1.6.0");
+                        assert_eq!(manifest["version"], env!("CARGO_PKG_VERSION"));
                         assert_eq!(
                             fs::read(
                                 widget.join(manifest["entryPoints"]["barWidget"].as_str().unwrap())

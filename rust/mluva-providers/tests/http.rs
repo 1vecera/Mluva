@@ -119,7 +119,11 @@ async fn multipart_and_batch_results_match_released_wire_calls() {
         );
         if row["family"] == "elevenlabs" {
             assert_eq!(request.headers["xi-api-key"], row["request"]["credential"]);
-            assert_eq!(request.headers["user-agent"], row["request"]["user_agent"]);
+            assert_eq!(row["request"]["user_agent"], "MluvaLinux/1.6.0");
+            assert_eq!(
+                request.headers["user-agent"],
+                format!("MluvaLinux/{}", env!("CARGO_PKG_VERSION")),
+            );
         }
     }
 }

@@ -34,4 +34,4 @@ The new application and extension identities require fresh desktop approvals. Ap
 
 Retired names remain necessary inside the native migration/removal readers and their independent fixtures so existing installations can be recognized. Public commands, application identities and aliases use Mluva. The [native package check](../rust/mluva-install/tests/fixtures/package-evidence.md) verifies the actual runtime inventory, file hashes, links and ownership.
 
-`scripts/check_product_identity.py` still belongs to the remaining Python tooling and does not classify the Rust migration boundaries or native executables. It is not a native package acceptance check. Its conversion remains part of the final source/tooling gate; no complete Python-removal or identity-audit acceptance is claimed here.
+The obsolete Python source scanner is retired. Native migration and package checks own upgrade recognition, current application identities, exact manifests and managed links. The [cutover record](verification/rust-cutover/README.md) documents the source removal and acceptance scope.

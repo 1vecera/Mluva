@@ -1,4 +1,7 @@
-# Native Rust implementation
+# Mluva native Rust implementation
+
+Mluva 2.0.0 removes the Python implementation, development helpers and runtime dependency. See the [cutover record](../docs/verification/rust-cutover/README.md) for retained verification owners, delivery authorization and remaining acceptance limits. The detailed comparisons below record incremental development against immutable v1.6.0; their historical pending-install statements describe those checkpoints.
+
 
 The [default developer workflow](mluva-gtk/tests/fixtures/source-make-evidence.md) now uses Rust: `make` builds and validates a complete bundle, `make run` owns a temporary native runtime until Quit, and `make test` runs the workspace/lint/format/generated-document gates. Actual Make setup, first/second launch, released accessibility/actions and cleanup pass with Python and uv blocked. `make linux-shortcut-test` uses the native portal owner on a private headless bus. Remaining Python checks and GUI scripts remain explicit until complete replacement acceptance.
 

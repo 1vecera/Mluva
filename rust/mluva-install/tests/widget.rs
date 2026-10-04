@@ -351,11 +351,14 @@ fn setup(root: &Path, repository: &Path) {
     }
     fs::hard_link(env!("CARGO_BIN_EXE_mluva-install-widget"), executable(root)).unwrap();
     copy_tree(&repository.join(SOURCE), &root.join("repo").join(SOURCE));
-    fs::copy(
-        repository.join("manifest.json"),
-        root.join("repo/manifest.json"),
-    )
-    .unwrap();
+    // This comparison uses the immutable release's input version. Current
+    // release versions are exercised through actual package/setup tests.
+    let mut manifest = load(&repository.join("manifest.json"));
+    manifest["version"] = json!("1.6.0");
+    write(
+        &root.join("repo/manifest.json"),
+        serde_json::to_vec_pretty(&manifest).unwrap(),
+    );
     for name in ["omarchy", "omarchy-shell"] {
         let path = root.join("bin").join(name);
         write(&path, include_bytes!("support/omarchy-peer.sh"));

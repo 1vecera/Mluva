@@ -1,6 +1,6 @@
 # Mluva for Linux
 
-Released Mluva 1.6.0 uses Python, GTK 4, Libadwaita and PipeWire. This development branch contains its [native Rust replacement](../rust/README.md); default build/run/test commands, shortcut checks and installation now use Rust. Some GUI checks and development scripts still use Python during the port. Full Rust application acceptance remains pending. **Omarchy is the primary platform** for the released daily workflow. Fedora GNOME compatibility is retained but has not been tested for several releases.
+Mluva 2.0.0 uses Rust, GTK 4, Libadwaita and PipeWire. Its source, tests and runtime workers contain no Python. See the [native overview](../rust/README.md) and [cutover verification](../docs/verification/rust-cutover/README.md) for the remaining acceptance limits. **Omarchy is the primary platform**. Fedora GNOME compatibility is retained without recent desktop acceptance.
 
 For the shortest path, use the [combined installer or agent prompt](../README.md#install). The [Omarchy guide](../docs/omarchy-integration.md) explains the widget; the [platform profile](../docs/linux-platform-profile.md) describes desktop differences.
 
@@ -19,13 +19,12 @@ After a completed dictation, **Continue** in the widget or **Continue recording*
 | Requirement | Omarchy | Fedora GNOME compatibility |
 | --- | --- | --- |
 | Desktop | Omarchy Quattro with Hyprland 0.55+ and Quickshell 0.3+ | Last accepted on Fedora 44 / GNOME 50; recent releases unverified |
-| Native UI | GTK 4, Libadwaita; released Python development also needs distribution PyGObject and Cairo bindings | Same |
+| Native UI | GTK 4, Libadwaita | Same |
 | Audio | PipeWire, `pw-record`, `pw-dump` | Same |
 | Shortcuts | Hyprland compositor binding or XDG Global Shortcuts portal | XDG Global Shortcuts portal and the desktop backend |
 | Clipboard | `wl-copy` on Wayland | Same |
-| Remaining Python development | Distribution Python 3.12+ and `uv`; neither is used by native installation or runtime bundles | Same |
 
-`bash install.sh` installs runtime packages, the app and, on Omarchy, the plugin. `--app-only` skips plugin changes. On this Rust branch, source setup requires the pinned Rust toolchain and a C compiler before starting; it checks widget ownership before provisioning the remaining [native build dependencies](../CONTRIBUTING.md#local-setup). Prepared native bundles need neither compiler nor Python. App-only `bash linux/install.sh` requires all build/runtime dependencies already present. Runtime package requests are:
+`bash install.sh` installs runtime packages, the app and, on Omarchy, the plugin. `--app-only` skips plugin changes. Source setup requires the pinned Rust toolchain and a C compiler before starting; it checks widget ownership before provisioning the remaining [native build dependencies](../CONTRIBUTING.md#local-setup). Prepared native bundles need neither compiler nor Python. App-only `bash linux/install.sh` requires all build/runtime dependencies already present. Runtime package requests are:
 
 ```sh
 # Omarchy
@@ -37,7 +36,7 @@ sudo dnf install git gtk4 libadwaita at-spi2-core dbus-daemon pipewire-utils \
   wl-clipboard procps-ng webkitgtk6.0 bubblewrap openssl-libs sqlite-libs
 ```
 
-Source setup additionally requests `gcc pkgconf` on Omarchy, or `gcc pkgconf-pkg-config gtk4-devel libadwaita-devel at-spi2-core-devel fontconfig-devel openssl-devel sqlite-devel` on Fedora. The remaining Python development commands separately need `uv`, distribution Python, GI/Cairo bindings and GObject introspection; native setup does not install them.
+Source setup additionally requests `gcc pkgconf` on Omarchy, or `gcc pkgconf-pkg-config gtk4-devel libadwaita-devel at-spi2-core-devel fontconfig-devel openssl-devel sqlite-devel` on Fedora.
 
 X11 clipboard delivery needs `xclip`; its optional keyboard fallback needs `xdotool`. The Omarchy widget requires the existing Omarchy shell and plugin manager; setup does not install an operating system or replace desktop configuration.
 
@@ -99,4 +98,4 @@ If capture fails, check the input and provider status in Settings. If the widget
 
 ## Development
 
-`make linux-setup` builds and validates an optimized native bundle without installing it. `make linux-run` builds and launches a complete native runtime; use it only when you intend to open the UI, and use the private runner for automation. `make linux-test` runs the Rust suite, Clippy, formatting and feature-document check. `make linux-shortcut-test` exercises the native portal owner on an isolated bus without opening a display. Remaining Python unit/lint checks use `make linux-python-test`; unconverted GUI targets prepare their Python environment separately. Both gates remain required during the port. The [contributor guide](../CONTRIBUTING.md#verification) and [Rust guide](../rust/README.md) document focused checks and acceptance limits.
+`make linux-setup` builds and validates an optimized native bundle without installing it. `make linux-run` builds and launches a complete native runtime; use it only when you intend to open the UI, and use the private runner for automation. `make linux-test` runs the Rust suite, Clippy, formatting and feature-document check. `make linux-shortcut-test` exercises the native portal owner on an isolated bus without opening a display. The remaining conversation target also uses the private native runner. The [contributor guide](../CONTRIBUTING.md#verification) and [Rust guide](../rust/README.md) document focused checks and acceptance limits.

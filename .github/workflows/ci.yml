@@ -40,11 +40,9 @@ jobs:
           pipewire-utils
           pkgconf-pkg-config
           procps-ng
-          python3-gobject
           rustup
           shellcheck
           sqlite-devel
-          uv
           wl-clipboard
           && dnf clean all
 
@@ -58,8 +56,8 @@ jobs:
           rustup-init -y --no-modify-path --profile minimal --default-toolchain none
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-      - name: Test and lint native and remaining Python code
-        run: make linux-test linux-shortcut-test linux-python-test
+      - name: Test and lint native code
+        run: make linux-test linux-shortcut-test
 
       - name: Lint shell scripts
         run: shellcheck install.sh linux/*.sh linux/tests/*.sh dev/*.sh linux/mluva-shell

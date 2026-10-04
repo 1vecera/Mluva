@@ -29,20 +29,7 @@ Feature names and limits come from the repository docs: the providers from `docs
 
 Requires Node/npm, FFmpeg, ImageMagick, uv, and for captures Xvfb, D-Bus and Quickshell with Omarchy installed.
 
-```sh
-# From the repository root: capture the widget take and the theme stills.
-env -i PATH="$PATH" HOME="$HOME" USER="$USER" LANG=C.UTF-8 OFFSCREEN_ENABLE_ATSPI=1 \
-  OFFSCREEN_SCREEN_SPEC=3840x2400x24 bash dev/run-isolated.sh tmp/showreel/widget -- \
-  env PYTHONPATH=linux GTK_A11Y=none GSK_RENDERER=cairo QT_SCALE_FACTOR=3 \
-  uv run --project linux --locked python launch-video/showreel/capture_widget.py
-# Repeat with tmp/showreel/themes and MLUVA_CAPTURE_MODE=themes.
-
-cd launch-video
-npm ci --ignore-scripts
-npm run showreel:prepare   # stage public/showreel/ from tmp/showreel/
-npm run showreel:render    # silent picture → out/mluva-showreel.mp4
-npm run showreel:master    # mix, master and mux → out/mluva-showreel-master.mp4
-```
+Historical Python preparation recipes were retired in the 2.0.0 cutover. Committed outputs remain; the original recipes are available in the v1.6.0 tag.
 
 `prepare.py` also builds `AdwaitaSans-Black-NoOverlap.ttf`, a static instance (wght 900, opsz 32) with overlaps removed, because `-webkit-text-stroke` on the variable font draws every contour overlap as a seam. Chrome renders display sizes at opsz 32, so outlined and solid type match.
 
