@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# Share native app and widget installation commands with a development checkout.
+# Build and own native commands from a development checkout.
 set -euo pipefail
 
 source_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 case "${1:-}" in
+    build)
+        executable=""; build_options=(); shift
+        if (( $# != 0 )); then echo "The native build command accepts no arguments." >&2; exit 2; fi ;;
+    run) executable=mluva; build_options=(); shift ;;
     install|uninstall) executable="mluva-$1"; build_options=(); shift ;;
     widget) executable=mluva-install-widget; build_options=(--widget-only); shift ;;
-    *) echo "Expected a native install, uninstall or widget command." >&2; exit 2 ;;
+    *) echo "Expected a native build, run, install, uninstall or widget command." >&2; exit 2 ;;
 esac
 umask 077
 mkdir -p -- "$source_root/tmp"
@@ -48,5 +52,7 @@ run_owned() {
     child_pid=""
     return "$status"
 }
-run_owned group bash "$source_root/linux/build-native.sh" "${build_options[@]}" "$build_root/app"
-run_owned process "$build_root/app/bin/$executable" "$@"
+run_owned group bash "$source_root/linux/build-native.sh" "${build_options[@]}" "$build_root/app" >&2
+if [[ -n "$executable" ]]; then
+    run_owned process "$build_root/app/bin/$executable" "$@"
+fi

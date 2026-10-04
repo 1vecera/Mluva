@@ -42,3 +42,10 @@ name = "managed-launcher-fixture-peer"
 path = "tests/support/managed_launcher_peer.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "global-shortcut-fixture-peer"
+path = "tests/support/global_shortcut_portal_peer.rs"
+test = false
+doc = false
+bench = false

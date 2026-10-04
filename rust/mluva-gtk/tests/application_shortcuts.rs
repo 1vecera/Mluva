@@ -55,8 +55,8 @@ struct Portal {
     bus: gio::DBusConnection,
 }
 impl Portal {
-    fn new(target: &Path) -> Self {
-        let mut child = Command::new(target.join("examples/global_shortcut_portal_peer"))
+    fn new() -> Self {
+        let mut child = Command::new(env!("CARGO_BIN_EXE_global-shortcut-fixture-peer"))
             .stdout(Stdio::piped())
             .spawn()
             .unwrap();
@@ -351,7 +351,7 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         resources.font.parent().unwrap(),
     )
     .unwrap();
-    let portal = Portal::new(&target);
+    let portal = Portal::new();
     assert_eq!(
         fixture["reference"],
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"

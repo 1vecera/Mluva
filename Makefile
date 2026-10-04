@@ -1,4 +1,5 @@
 .DEFAULT_GOAL := linux-setup
+export CARGO_TARGET_DIR ?= $(CURDIR)/tmp/native-build
 .PHONY: test run install linux-setup linux-test linux-feature-maturity linux-feature-maturity-check linux-shortcut-test linux-overlay-test linux-text-target-test linux-conversation-test linux-live-rewrite-test linux-run linux-install linux-uninstall linux-input-helper-install linux-input-helper-status linux-input-helper-remove linux-recording-overlay-install linux-recording-overlay-status linux-recording-overlay-remove
 
 test: linux-test
@@ -9,51 +10,63 @@ install:
 	bash install.sh
 
 linux-setup:
+	bash linux/native-source-command.sh build
+
+linux-test: linux-setup
+	cargo test --locked --workspace
+	cargo clippy --locked --workspace --all-targets -- -D warnings
+	cargo clippy --locked -p mluva-install --no-default-features --all-targets -- -D warnings
+	cargo fmt --all -- --check
+	$(MAKE) linux-feature-maturity-check
+
+# Temporary gate for the remaining Python implementation during the full port.
+.PHONY: linux-python-setup linux-python-test
+linux-python-setup:
 	@cd linux && if ! test -x .venv/bin/python \
 		|| ! uv run --no-sync python -c 'import gi; gi.require_version("Gtk", "4.0"); gi.require_version("Adw", "1"); gi.require_version("Atspi", "2.0"); gi.require_version("DBus", "1.0"); gi.require_version("cairo", "1.0"); from gi.repository import Adw, Atspi, DBus, Gtk, cairo' >/dev/null 2>&1; then \
 		uv venv --clear --system-site-packages --python /usr/bin/python3; \
 	fi
 	cd linux && uv sync --locked
 
-linux-test: linux-setup
+linux-python-test: linux-python-setup
 	$(MAKE) linux-feature-maturity-check
 	cd linux && uv run --locked pytest -q
 	cd linux && uv run --locked ruff check .
 	cd linux && uv run --locked ruff format --check .
 
 .PHONY: linux-codex-isolation-test
-linux-codex-isolation-test: linux-setup
+linux-codex-isolation-test: linux-python-setup
 	cd linux && PYTHONPATH=. uv run --locked python tests/codex_isolation_smoke.py ../tmp/codex-isolation
 
-# Quick text/editing feedback; linux-test remains the complete handoff gate.
+# Fast deterministic config/text/storage/Live feedback; linux-test is the native gate.
 .PHONY: linux-test-fast linux-command-test linux-fluid-workspace-test linux-live-stability-test
-linux-test-fast: linux-setup
-	cd linux && uv run --locked pytest -q tests/test_transcript.py tests/test_conversation.py \
-		tests/test_history.py tests/test_scratchpad.py tests/test_live_rewrite.py tests/test_minimal_markdown.py
+linux-test-fast:
+	cargo test --locked -p mluva-core --test reference_contracts --test persistence_contracts \
+		--test prompt_and_draft_contracts --test live_policy
 
-linux-command-test: linux-setup
+linux-command-test: linux-python-setup
 	bash dev/run-isolated.sh tmp/command-palette -- env PYTHONPATH=linux:linux/tests \
 		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
 		uv run --project linux --locked python linux/tests/command_palette_smoke.py
 
-linux-fluid-workspace-test: linux-setup
+linux-fluid-workspace-test: linux-python-setup
 	OFFSCREEN_ENABLE_ATSPI=1 bash dev/run-isolated.sh tmp/fluid-workspace -- env PYTHONPATH=linux:linux/tests \
 		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
 		uv run --project linux --locked python linux/tests/fluid_workspace_smoke.py
 
-linux-live-stability-test: linux-setup
+linux-live-stability-test: linux-python-setup
 	OFFSCREEN_ENABLE_ATSPI=1 bash dev/run-isolated.sh tmp/live-stability -- env PYTHONPATH=linux:linux/tests \
 		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
 		uv run --project linux --locked python linux/tests/live_stability_smoke.py
 
 .PHONY: linux-continuation-test
-linux-continuation-test: linux-setup
+linux-continuation-test: linux-python-setup
 	OFFSCREEN_ENABLE_ATSPI=1 bash dev/run-isolated.sh tmp/continuation-controls -- env PYTHONPATH=linux:linux/tests \
 		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
 		uv run --project linux --locked python linux/tests/continuation_controls_smoke.py
 
 .PHONY: linux-omarchy-test
-linux-omarchy-test: linux-setup
+linux-omarchy-test: linux-python-setup
 	@mkdir -p tmp/omarchy-widget
 	env -i PATH="$$PATH" HOME="$$HOME" USER="$$USER" LANG=C.UTF-8 \
 		OFFSCREEN_ENABLE_ATSPI=1 OFFSCREEN_DISPLAY_NUMBER="$${OFFSCREEN_DISPLAY_NUMBER:-}" \
@@ -67,20 +80,20 @@ linux-feature-maturity:
 linux-feature-maturity-check:
 	cargo run --locked -q -p mluva-core --bin mluva-feature-maturity -- --check
 
-linux-shortcut-test: linux-setup
+linux-shortcut-test:
 	bash linux/tests/run_global_shortcut_portal_smoke.sh
 
 linux-overlay-test:
 	bash linux/tests/run_recording_overlay_smoke.sh
 
-linux-text-target-test: linux-setup
+linux-text-target-test: linux-python-setup
 	bash linux/tests/run_native_text_target_smoke.sh
 
-linux-conversation-test: linux-setup
+linux-conversation-test: linux-python-setup
 	MLUVA_SMOKE=conversation bash linux/tests/run_native_text_target_smoke.sh tmp/conversation-smoke
 
 .PHONY: linux-compact-workspace-test
-linux-compact-workspace-test: linux-setup
+linux-compact-workspace-test: linux-python-setup
 	@mkdir -p tmp/compact-workspace
 	@set -e; for spec in minimum:420:520:1 narrow:480:640:1 tiled:360:1174:2 wide:1060:780:1 empty:360:700:1 rewriting:360:700:1 recording:360:700:1 processing:360:700:1 live-draft:360:700:1 finalizing:360:700:1; do \
 		scenario=$${spec%%:*}; rest=$${spec#*:}; width=$${rest%%:*}; rest=$${rest#*:}; height=$${rest%%:*}; scale=$${rest#*:}; \
@@ -93,7 +106,7 @@ linux-compact-workspace-test: linux-setup
 	done
 
 .PHONY: linux-conversation-management-test
-linux-conversation-management-test: linux-setup
+linux-conversation-management-test: linux-python-setup
 	@mkdir -p tmp/chat-management
 	@set -e; for spec in minimum:420:520 narrow:480:640 wide:1060:780; do \
 		scenario=$${spec%%:*}; dimensions=$${spec#*:}; \
@@ -105,11 +118,11 @@ linux-conversation-management-test: linux-setup
 			> "tmp/chat-management/$$scenario.log" 2>&1; \
 	done
 
-linux-live-rewrite-test: linux-setup
+linux-live-rewrite-test: linux-python-setup
 	MLUVA_SMOKE=live bash linux/tests/run_native_text_target_smoke.sh tmp/live-workspace
 
 .PHONY: linux-provider-settings-test
-linux-provider-settings-test: linux-setup
+linux-provider-settings-test: linux-python-setup
 	@set -e; for spec in flow:1060:780 minimum:420:520 narrow:480:640 wide:1060:780 details:480:640 error:480:640; do \
 		scenario=$${spec%%:*}; dimensions=$${spec#*:}; \
 		MLUVA_SMOKE=providers MLUVA_PROVIDER_SCENARIO="$$scenario" \
@@ -117,8 +130,8 @@ linux-provider-settings-test: linux-setup
 			bash linux/tests/run_native_text_target_smoke.sh "tmp/provider-settings-smoke/$$scenario"; \
 	done
 
-linux-run: linux-setup
-	cd linux && uv run --locked python -m mluva_linux.app
+linux-run:
+	bash linux/native-source-command.sh run
 
 linux-install:
 	bash linux/install.sh
@@ -145,7 +158,7 @@ linux-recording-overlay-remove:
 	bash linux/configure-recording-overlay.sh remove
 
 .PHONY: linux-prompt-test
-linux-prompt-test: linux-setup
+linux-prompt-test: linux-python-setup
 	@mkdir -p tmp/prompt-editor
 	@set -e; for spec in minimum:420:520:dark narrow:480:640:light wide:1060:780:dark bad-config:480:640:dark; do \
 		scenario=$${spec%%:*}; rest=$${spec#*:}; width=$${rest%%:*}; rest=$${rest#*:}; height=$${rest%%:*}; theme=$${rest#*:}; \

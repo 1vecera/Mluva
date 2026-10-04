@@ -113,10 +113,10 @@ See the [product contract](docs/product-contract.md) for retention, recovery and
 
 ## Development
 
-Released Mluva uses **Python, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. This branch's [native Rust implementation](rust/README.md) preserves that interface and is undergoing acceptance checks; the app-only source installer already uses it. Start with the [code map and focused checks](CONTRIBUTING.md#code-map) or [Linux guide](linux/README.md).
+Released Mluva uses **Python, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. This branch's [native Rust implementation](rust/README.md) is undergoing acceptance checks. Default build/run/test commands and the shortcut check now use Rust; remaining Python checks stay explicit until the full port is accepted. Start with the [code map and focused checks](CONTRIBUTING.md#code-map) or [Linux guide](linux/README.md).
 
 ```sh
-make linux-test linux-shortcut-test
+make linux-test linux-shortcut-test linux-python-test
 shellcheck install.sh linux/*.sh linux/tests/*.sh dev/*.sh linux/mluva-shell
 ```
 

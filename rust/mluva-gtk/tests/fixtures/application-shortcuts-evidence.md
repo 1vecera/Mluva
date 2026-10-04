@@ -17,13 +17,13 @@ Build the native development peers, then execute the ignored check in the guarde
 ```sh
 cargo build --locked -p mluva-audio --bin audio-fixture-peer --bin mluva-audio-cleanup
 cargo build --locked -p mluva-providers --bin credential-fixture-peer
-cargo build --locked -p mluva-gtk --example global_shortcut_portal_peer --example text_target_peer
+cargo build --locked -p mluva-gtk --example text_target_peer
 bash dev/run-isolated-browser.sh tmp/application-shortcut-evidence -- bash -c '
   export PATH="$OFFSCREEN_SESSION_ROOT/application-shortcut-tools:$PATH"
   TZ=UTC cargo test --locked -p mluva-gtk --test application_shortcuts -- --ignored --nocapture
 '
 ```
 
-`MLUVA_DISABLE_GLOBAL_SHORTCUT` must be absent for this check. The separate [assembled-application comparison](application-evidence.md) requires it to be set, matching its released observer. The runner provides private HOME/XDG, DISPLAY, accessibility/session buses, network/PID namespaces and masked devices; both test and peers guard that boundary. No host clipboard, input, portal, microphone, credentials or user content is used. Development peers are excluded from distribution.
+The portal peer is now a Cargo fixture binary and is built/located automatically by the test. `MLUVA_DISABLE_GLOBAL_SHORTCUT` must be absent for this check. The separate [assembled-application comparison](application-evidence.md) requires it to be set, matching its released observer. The runner provides private HOME/XDG, DISPLAY, accessibility/session buses, network/PID namespaces and masked devices; both test and peers guard that boundary. No host clipboard, input, portal, microphone, credentials or user content is used. Development peers are excluded from distribution.
 
 This proves application ownership and real target delivery through a controlled portal. It does not prove physical function keys, compositor approval UI, every target/toolkit, single-instance/background bootstrap, the actual Omarchy widget, screenshots/narration, physical recording, packaging, Python removal or performance. Test applications use registered `NON_UNIQUE` identities and explicit main-context iteration; hide/reopen is not a complete resident-executable acceptance check. All complete-workflow rows remain Pending and the installed app/widget remain 1.6.0.

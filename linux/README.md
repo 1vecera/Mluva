@@ -1,6 +1,6 @@
 # Mluva for Linux
 
-Released Mluva 1.6.0 uses Python, GTK 4, Libadwaita and PipeWire. This development branch contains its [native Rust replacement](../rust/README.md); combined app/widget setup, app-only installation and removal now use Rust, while remaining development commands still use Python. Full Rust application acceptance remains pending. **Omarchy is the primary platform** for the released daily workflow. Fedora GNOME compatibility is retained but has not been tested for several releases.
+Released Mluva 1.6.0 uses Python, GTK 4, Libadwaita and PipeWire. This development branch contains its [native Rust replacement](../rust/README.md); default build/run/test commands, shortcut checks and installation now use Rust. Some GUI checks and development scripts still use Python during the port. Full Rust application acceptance remains pending. **Omarchy is the primary platform** for the released daily workflow. Fedora GNOME compatibility is retained but has not been tested for several releases.
 
 For the shortest path, use the [combined installer or agent prompt](../README.md#install). The [Omarchy guide](../docs/omarchy-integration.md) explains the widget; the [platform profile](../docs/linux-platform-profile.md) describes desktop differences.
 
@@ -99,4 +99,4 @@ If capture fails, check the input and provider status in Settings. If the widget
 
 ## Development
 
-During the port, `make linux-setup` creates the remaining Python development environment with system GTK bindings, and `make linux-run` still starts that implementation; use it only when you intend to open the UI. `make linux-test` runs its deterministic suite, lint, formatting and the native feature-matrix check. The [contributor guide](../CONTRIBUTING.md#verification) lists focused and isolated integration checks; the [Rust guide](../rust/README.md) documents native builds and acceptance evidence.
+`make linux-setup` builds and validates an optimized native bundle without installing it. `make linux-run` builds and launches a complete native runtime; use it only when you intend to open the UI, and use the private runner for automation. `make linux-test` runs the Rust suite, Clippy, formatting and feature-document check. `make linux-shortcut-test` exercises the native portal owner on an isolated bus without opening a display. Remaining Python unit/lint checks use `make linux-python-test`; unconverted GUI targets prepare their Python environment separately. Both gates remain required during the port. The [contributor guide](../CONTRIBUTING.md#verification) and [Rust guide](../rust/README.md) document focused checks and acceptance limits.

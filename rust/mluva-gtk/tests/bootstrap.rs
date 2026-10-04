@@ -7,7 +7,10 @@ use std::{
     collections::BTreeMap,
     fs,
     io::{Read, Write},
-    os::unix::{fs::symlink, process::CommandExt},
+    os::unix::{
+        fs::{PermissionsExt, symlink},
+        process::CommandExt,
+    },
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
     rc::Rc,
@@ -467,9 +470,7 @@ fn startup_faults(
     eprintln!("passed native pending-startup cancel/repeat-toggle and missing-resource cleanup");
 }
 
-#[test]
-#[ignore = "requires the private X11/session/accessibility runner and native cleanup binary"]
-fn released_process_actions_residency_and_headless_dispatch() {
+fn private_session() -> PathBuf {
     let private = PathBuf::from(std::env::var_os("OFFSCREEN_SESSION_ROOT").unwrap());
     for variable in ["HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XAUTHORITY"] {
         assert!(PathBuf::from(std::env::var_os(variable).unwrap()).starts_with(&private));
@@ -486,6 +487,176 @@ fn released_process_actions_residency_and_headless_dispatch() {
     }
     assert_eq!(std::env::var("GDK_BACKEND").unwrap(), "x11");
     assert!(std::env::var_os("WAYLAND_DISPLAY").is_none());
+    private
+}
+
+#[test]
+#[ignore = "builds and runs actual source Make commands in the guarded disposable desktop"]
+fn source_make_build_and_run_without_python() {
+    let private = private_session();
+    let root = private.join("source-make");
+    let repository = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    for directory in ["bin", "config/mluva", "home"] {
+        fs::create_dir_all(root.join(directory)).unwrap();
+    }
+    let reference: Value =
+        serde_json::from_str(include_str!("fixtures/released-bootstrap.json")).unwrap();
+    let case = reference["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|case| case["name"] == "normal-hide-reopen")
+        .unwrap();
+    fs::write(
+        root.join("config/mluva/config.json"),
+        serde_json::to_vec(&case["config"]).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        root.join("home/personal-note"),
+        b"keep unrelated user bytes\n",
+    )
+    .unwrap();
+    for name in ["python3", "uv"] {
+        let path = root.join("bin").join(name);
+        fs::write(&path, "#!/usr/bin/bash\nprintf '%s\\n' \"${0##*/}\" >> \"$MLUVA_SOURCE_INTERPRETER_TRAP\"\nexit 99\n").unwrap();
+        fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let invoke = || {
+        let mut command = application(Path::new("/usr/bin/bwrap"), &root);
+        command
+            .args([
+                "--die-with-parent",
+                "--bind",
+                "/",
+                "/",
+                "--dev",
+                "/dev",
+                "--ro-bind",
+            ])
+            .arg(root.join("bin/python3"))
+            .args(["/usr/bin/python3", "--"])
+            .env("HOME", root.join("home"))
+            .env(
+                "PATH",
+                format!(
+                    "{}:{}:/usr/bin:/bin",
+                    root.join("bin").display(),
+                    Path::new(env!("CARGO")).parent().unwrap().display()
+                ),
+            )
+            .env("CARGO_NET_OFFLINE", "true")
+            .env("CARGO_BUILD_JOBS", "2")
+            .env(
+                "MLUVA_SOURCE_INTERPRETER_TRAP",
+                root.join("interpreter-used"),
+            );
+        command
+    };
+    for program in ["/usr/bin/python3", "uv"] {
+        let output = invoke().arg(program).output().unwrap();
+        assert_eq!(output.status.code(), Some(99));
+        assert!(root.join("interpreter-used").exists());
+        fs::remove_file(root.join("interpreter-used")).unwrap();
+    }
+    let make = |target: &str| {
+        let mut command = invoke();
+        command
+            .args(["/usr/bin/make", "--no-print-directory", "-s", "-C"])
+            .arg(repository)
+            .arg(target);
+        command
+    };
+    let setup = make("linux-setup").output().unwrap();
+    fs::write(root.join("setup.stdout"), &setup.stdout).unwrap();
+    fs::write(root.join("setup.stderr"), &setup.stderr).unwrap();
+    assert!(
+        setup.status.success(),
+        "native Make setup failed: {:?}: {}",
+        setup.status.code(),
+        String::from_utf8_lossy(&setup.stderr)
+    );
+    assert!(!root.join("interpreter-used").exists());
+    assert_eq!(data_files(&root.join("home")), ["personal-note"]);
+    let bus = Bus(gio::bus_get_sync(gio::BusType::Session, gio::Cancellable::NONE).unwrap());
+    assert!(bus.owner().is_none());
+    let accessibility = Accessibility::open();
+    let log = fs::File::create(root.join("run.log")).unwrap();
+    let mut process = Process(
+        make("run")
+            .stdout(log.try_clone().unwrap())
+            .stderr(log)
+            .spawn()
+            .unwrap(),
+    );
+    until(|| bus.owner().is_some() || process.0.try_wait().unwrap().is_some());
+    assert!(
+        process.0.try_wait().unwrap().is_none(),
+        "source Make run exited before registration"
+    );
+    let owner = bus.owner().unwrap();
+    let pid = bus
+        .call(
+            "org.freedesktop.DBus",
+            "/org/freedesktop/DBus",
+            "org.freedesktop.DBus",
+            "GetConnectionUnixProcessID",
+            Some(&(owner.as_str(),).to_variant()),
+        )
+        .unwrap()
+        .get::<(u32,)>()
+        .unwrap()
+        .0;
+    let executable = fs::read_link(format!("/proc/{pid}/exe")).unwrap();
+    let bundle = executable.parent().unwrap().parent().unwrap().to_owned();
+    let receipt: Value =
+        serde_json::from_slice(&fs::read(bundle.join(".mluva-native.json")).unwrap()).unwrap();
+    assert_eq!(receipt["implementation"], "rust");
+    until(|| visible(pid));
+    let mut content = accessibility.visible_content();
+    until(|| {
+        content = accessibility.visible_content();
+        !content.0.is_empty()
+    });
+    let expected =
+        &reference["snapshots"][case["states"][0]["snapshot"].as_u64().unwrap() as usize];
+    assert_eq!(json!(content.0), expected["names"]);
+    assert_eq!(json!(content.1), expected["items"]);
+    let actions = bus
+        .call(&owner, OBJECT, "org.gtk.Actions", "DescribeAll", None)
+        .unwrap();
+    assert_eq!(variant(&actions.child_value(0)), case["actions"]);
+    let secondary = make("run").output().unwrap();
+    fs::write(root.join("second.stdout"), &secondary.stdout).unwrap();
+    fs::write(root.join("second.stderr"), &secondary.stderr).unwrap();
+    assert!(secondary.status.success());
+    assert_eq!(bus.owner().as_deref(), Some(owner.as_str()));
+    bus.action("quit");
+    assert_eq!(process.finish(), 0);
+    until(|| bus.owner().is_none() && !alive(pid));
+    assert!(
+        !bundle.exists(),
+        "source runtime survived its owned process"
+    );
+    assert_eq!(
+        fs::read(root.join("home/personal-note")).unwrap(),
+        b"keep unrelated user bytes\n"
+    );
+    assert_eq!(data_files(&root.join("home")), ["personal-note"]);
+    assert!(!root.join("interpreter-used").exists());
+    eprintln!(
+        "Actual Make setup/run/forwarding/quit preserved released UI/actions and cleaned its runtime without Python or uv"
+    );
+}
+
+#[test]
+#[ignore = "requires the private X11/session/accessibility runner and native cleanup binary"]
+fn released_process_actions_residency_and_headless_dispatch() {
+    let private = private_session();
     let fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-bootstrap.json")).unwrap();
     assert_eq!(

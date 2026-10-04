@@ -51,7 +51,7 @@ async fn settle() {
 fn released_portal_approval_events_rebinding_and_shutdown() {
     let root =
         PathBuf::from(std::env::var_os("OFFSCREEN_SESSION_ROOT").expect("private runner required"));
-    for key in ["HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XAUTHORITY"] {
+    for key in ["HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME"] {
         assert!(PathBuf::from(std::env::var_os(key).unwrap()).starts_with(&root));
     }
     assert_ne!(
@@ -64,10 +64,8 @@ fn released_portal_approval_events_rebinding_and_shutdown() {
     for device in ["/dev/input", "/dev/uinput", "/dev/snd", "/dev/dri"] {
         assert!(!Path::new(device).exists());
     }
-    let executable = PathBuf::from(std::env::var_os("CARGO_TARGET_DIR").unwrap())
-        .join("debug/examples/global_shortcut_portal_peer");
     let mut peer = Peer(
-        Command::new(executable)
+        Command::new(env!("CARGO_BIN_EXE_global-shortcut-fixture-peer"))
             .stdout(Stdio::piped())
             .spawn()
             .unwrap(),

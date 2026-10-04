@@ -1,6 +1,6 @@
 # Development tools
 
-The [contributor guide](../CONTRIBUTING.md) covers native Rust builds and focused checks. The remaining Python development commands use `make linux-setup`; their conversion and complete native acceptance are still pending.
+The [contributor guide](../CONTRIBUTING.md) covers native Rust builds and focused checks. `make` builds a native bundle; `make run` launches it; `make test` checks the native workspace. `make linux-shortcut-test` runs the native portal comparison without a display. The remaining Python checks use `make linux-python-test` or `make linux-python-setup`; their conversion and complete native acceptance are still pending.
 
 ## Isolated UI verification
 
