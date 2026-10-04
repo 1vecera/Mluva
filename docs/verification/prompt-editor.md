@@ -1,6 +1,6 @@
 # Prompt editor verification
 
-S27-483 was implemented on Lenovo against remote `main` at `115faa0` (Mluva 1.1.0). The feature is review-only: no merge, install, release or Omarchy mirror changes.
+This page records the original S27-483 implementation on Lenovo against remote `main` at `115faa0` (Mluva 1.1.0). That checkpoint made no merge, install, release or Omarchy mirror changes. The current [Rust prompt comparison](../../rust/mluva-gtk/tests/fixtures/application-prompts-evidence.md) supersedes its Make-target results with four native sessions and separate-process restarts, 53 assembled states and fourteen exact images, plus the existing editor owner. The historical results and screenshots below retain their original scope.
 
 | Check | Result |
 | --- | --- |

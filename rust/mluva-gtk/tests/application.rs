@@ -35,6 +35,8 @@ mod application_live_editor;
 mod application_live_workspace;
 #[path = "support/application_management.rs"]
 mod application_management;
+#[path = "support/application_prompts.rs"]
+mod application_prompts;
 #[path = "support/application_providers.rs"]
 mod application_providers;
 #[path = "support/capture_ui.rs"]
@@ -255,7 +257,7 @@ impl Observer {
         state
     }
 }
-fn isolated() -> PathBuf {
+fn isolated(tools_name: &str) -> PathBuf {
     let root =
         PathBuf::from(std::env::var_os("OFFSCREEN_SESSION_ROOT").expect("private desktop runner"));
     for key in ["HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XAUTHORITY"] {
@@ -273,19 +275,25 @@ fn isolated() -> PathBuf {
     }
     assert_eq!(
         std::env::split_paths(&std::env::var_os("PATH").unwrap()).next(),
-        Some(root.join("application-tools"))
+        Some(root.join(tools_name))
     );
     root
 }
 #[test]
 #[ignore = "requires isolated GTK/session/network/device runner and native PCM/Codex peers"]
 fn released_assembled_application_and_shutdown() {
-    let root = isolated();
+    let reopening = std::env::var("MLUVA_PROMPT_REOPEN").as_deref() == Ok("1");
+    let tools_name = if reopening {
+        "application-reopened-tools"
+    } else {
+        "application-tools"
+    };
+    let root = isolated(tools_name);
     assert!(
         std::env::var_os("MLUVA_DISABLE_GLOBAL_SHORTCUT").is_some(),
         "match the released observer's disabled portal environment"
     );
-    let tools = root.join("application-tools");
+    let tools = root.join(tools_name);
     fs::create_dir(&tools).unwrap();
     let target = PathBuf::from(std::env::var_os("CARGO_TARGET_DIR").unwrap()).join("debug");
     symlink(
@@ -385,6 +393,8 @@ fn released_assembled_application_and_shutdown() {
         "fixtures/released-application-management.json"
     ))
     .unwrap();
+    let prompts: Value =
+        serde_json::from_str(include_str!("fixtures/released-application-prompts.json")).unwrap();
     for additional in [
         &commands,
         &continuation,
@@ -393,12 +403,22 @@ fn released_assembled_application_and_shutdown() {
         &live_editor,
         &providers,
         &management,
+        &prompts,
     ] {
         for key in ["reference", "gtk", "pango"] {
             assert_eq!(additional[key], fixture[key]);
         }
     }
-    let cases = if let Ok(name) = std::env::var("MLUVA_MANAGEMENT_CASE") {
+    let cases = if let Ok(name) = std::env::var("MLUVA_PROMPT_CASE") {
+        let selected = prompts["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|case| case["name"] == name)
+            .collect::<Vec<_>>();
+        assert_eq!(selected.len(), 1, "select one released prompt scenario");
+        selected
+    } else if let Ok(name) = std::env::var("MLUVA_MANAGEMENT_CASE") {
         let selected = management["cases"]
             .as_array()
             .unwrap()
@@ -437,6 +457,7 @@ fn released_assembled_application_and_shutdown() {
     let workflows = cases.len();
     let mut count = 0;
     for (index, row) in cases.into_iter().enumerate() {
+        let row = if reopening { &row["reopen"] } else { row };
         events.borrow_mut().clear();
         let name = row["name"].as_str().unwrap();
         let params = &row["params"];
@@ -444,9 +465,18 @@ fn released_assembled_application_and_shutdown() {
         let evidence = directory.path().join("evidence");
         fs::create_dir(&evidence).unwrap();
         let _ = fs::remove_file(tools.join("raw.ready.json"));
+        let mut pcm = row["pcm"].clone();
+        if let Some(repetitions) = row["pcm_repetitions"].as_u64() {
+            pcm["pcm_hex"] = json!(
+                pcm["pcm_hex"]
+                    .as_str()
+                    .unwrap()
+                    .repeat(repetitions as usize)
+            );
+        }
         fs::write(
             tools.join("test-config.json"),
-            serde_json::to_vec(&row["pcm"]).unwrap(),
+            serde_json::to_vec(&pcm).unwrap(),
         )
         .unwrap();
         let mut codex = json!({"scenario":"clean","evidence":evidence,"title_controls":{"Narration keeps 12 files.":{"deltas":["Generated conversation"]}}});
@@ -455,6 +485,11 @@ fn released_assembled_application_and_shutdown() {
         }
         if params["management"] == true {
             codex["document_controls"] = json!({"Unsent follow-up":{"gate":evidence.join("rewrite.release"),"deltas":["This must not become a saved reply."]}});
+        }
+        if params["prompts"] == true {
+            codex["live_controls"] = json!({format!("preview|{}",row["source"].as_str().unwrap()):{"deltas":[row["draft"]]}});
+            codex["document_controls"] =
+                json!({"External style instructions":{"deltas":["A concise style response."]}});
         }
         fs::write(
             root.join("application-codex.json"),
@@ -485,12 +520,28 @@ fn released_assembled_application_and_shutdown() {
             document["transcription_base_url"] = json!(format!("{}/v1", peer.address));
         }
         let config: AppConfig = serde_json::from_value(document).unwrap();
-        let paths = AppPaths {
-            config: directory.path().join("config/mluva"),
-            data: directory.path().join("data/mluva"),
-            runtime: directory.path().join("runtime/mluva"),
+        let paths = if params["prompts"] == true {
+            application_prompts::paths(&root, reopening)
+        } else {
+            AppPaths {
+                config: directory.path().join("config/mluva"),
+                data: directory.path().join("data/mluva"),
+                runtime: directory.path().join("runtime/mluva"),
+            }
         };
-        config.save(&paths.config.join("config.json")).unwrap();
+        if !reopening {
+            config.save(&paths.config.join("config.json")).unwrap();
+            if params["prompts"] == true && name == "bad-config" {
+                fs::write(paths.config.join("config.json"), "{malformed configuration").unwrap();
+            }
+        }
+        if params["prompts"] == true {
+            adw::StyleManager::default().set_color_scheme(if params["theme"] == "dark" {
+                adw::ColorScheme::ForceDark
+            } else {
+                adw::ColorScheme::ForceLight
+            });
+        }
         if params["providers"] == true {
             application_providers::prepare_model(&paths.data);
         }
@@ -527,6 +578,25 @@ fn released_assembled_application_and_shutdown() {
                 || owner.capture.page.view_state().initialization_failed
         });
         settle();
+        if params["prompts"] == true {
+            let pids = application_prompts::exercise(
+                &owner, &services, row, &tools, &root, &evidence, reopening,
+            );
+            shutdown(&owner, &platform_closed, &evidence, &pids);
+            assert_eq!(
+                application_continuation::requests(peer.finish()),
+                row["requests"],
+                "prompt HTTP"
+            );
+            assert_eq!(
+                application_continuation::turns(&evidence),
+                row["turns"],
+                "prompt Codex"
+            );
+            count += row["stages"].as_array().unwrap().len();
+            release_application(owner, application);
+            continue;
+        }
         if params["management"] == true {
             let pids = application_management::exercise(
                 &owner,

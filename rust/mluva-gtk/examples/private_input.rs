@@ -89,6 +89,7 @@ fn main() {
                 | "Up"
                 | "Down"
                 | "Tab"
+                | "space"
                 | "p"
                 | "P"
                 | "c"

@@ -15,6 +15,8 @@ case "$mode" in
     compact) suites=(application); compact_case="${2:-}" ;;
     providers) suites=(application); provider_case="${2:-}" ;;
     management) suites=(application); management_case="${2:-}" ;;
+    prompts) suites=(application); prompt_case="${2:-}" ;;
+    prompt-editor) suites=(prompt_editor) ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
 esac
 test_arguments=()
@@ -34,6 +36,12 @@ if "$inside"; then
     fi
     export PATH="$OFFSCREEN_SESSION_ROOT/application-tools:$PATH"
     export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true
+    if [[ "$mode" == prompts ]]; then
+        export MLUVA_PROMPT_CASE="$prompt_case" GDK_SCALE=1
+        cargo test --locked -p mluva-gtk "${test_arguments[@]}" -- --ignored --test-threads=1 --nocapture
+        export MLUVA_PROMPT_REOPEN=1 PATH="$OFFSCREEN_SESSION_ROOT/application-reopened-tools:$PATH"
+        exec cargo test --locked -p mluva-gtk "${test_arguments[@]}" -- --ignored --test-threads=1 --nocapture
+    fi
     if [[ "$mode" == compact ]]; then
         export MLUVA_COMPACT_CASE="$compact_case" GDK_SCALE=1
         if [[ "$compact_case" == tiled ]]; then export GDK_SCALE=2; fi
@@ -71,6 +79,16 @@ fi
 cargo test --locked -p mluva-gtk "${test_arguments[@]}" --no-run
 mkdir -p tmp/application
 evidence="$(mktemp -d "$project_root/tmp/application/run.XXXXXX")"
+if [[ "$mode" == prompts ]]; then
+    prompt_cases=(minimum narrow wide bad-config)
+    if [[ -n "$prompt_case" ]]; then prompt_cases=("$prompt_case"); fi
+    for prompt_case in "${prompt_cases[@]}"; do
+        bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
+            bash dev/run-isolated-browser.sh "$evidence/$prompt_case" -- \
+            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session prompts "$prompt_case"
+    done
+    exit
+fi
 if [[ "$mode" == management ]]; then
     management_cases=(minimum narrow wide)
     if [[ -n "$management_case" ]]; then management_cases=("$management_case"); fi

@@ -142,6 +142,7 @@ impl ApplicationDesktop {
         )?;
         workspace.set_prompt_store(Some(services.prompts.clone()));
         workspace.set_config(services.config())?;
+        workspace.set_private(services.config().incognito_mode);
         let rewrite = RewriteSettings::new(
             services.config(),
             bind!(link, |app| app.load_models()),
