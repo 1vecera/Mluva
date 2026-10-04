@@ -1,0 +1,1006 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "uninstaller_sha256": "b5cfb0efe04f35f47420d10f22a7ec77d60fb8c590c169d8096b330b561bbf8b",
+  "cases": [
+    {
+      "name": "owned",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "unicode",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/Žluťoučký home/.config/mluva and $CASE/Žluťoučký home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/Žluťoučký home/.local/share/applications\n",
+        "removed": [
+          "Žluťoučký home/.config/autostart/com.mluva.Linux.desktop",
+          "Žluťoučký home/.local/bin/mluva",
+          "Žluťoučký home/.local/bin/mluva-input-helper",
+          "Žluťoučký home/.local/bin/mluva-narrate",
+          "Žluťoučký home/.local/bin/mluva-overlay",
+          "Žluťoučký home/.local/bin/mluva-screenshot-editor",
+          "Žluťoučký home/.local/bin/mluva-shell",
+          "Žluťoučký home/.local/bin/mluva-uninstall",
+          "Žluťoučký home/.local/bin/tensaku-edit",
+          "Žluťoučký home/.local/share/applications/com.mluva.Linux.desktop",
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "Žluťoučký home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "Žluťoučký home/.local/share/mluva/app",
+          "Žluťoučký home/.local/share/mluva/app/payload",
+          "Žluťoučký home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "app-foreign",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Refusing to remove an unrecognized application directory: $CASE/home/.local/share/mluva/app\n",
+        "commands": "",
+        "removed": [],
+        "changed": {}
+      }
+    },
+    {
+      "name": "app-absent",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "app-file",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "app-link",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Refusing to remove a symlinked application directory.\n",
+        "commands": "",
+        "removed": [],
+        "changed": {}
+      }
+    },
+    {
+      "name": "parent-link",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Refusing to remove a symlinked application directory.\n",
+        "commands": "",
+        "removed": [],
+        "changed": {}
+      }
+    },
+    {
+      "name": "launcher-foreign",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "Preserved unexpected executable at $CASE/home/.local/bin/mluva.\n",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "launcher-link",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "helper-foreign",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "helper-link",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "Preserved unexpected symlink at $CASE/home/.local/bin/mluva-shell.\n",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "desktop-foreign",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "desktop-link",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "autostart-foreign",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "icon-foreign",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "icon-link",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "extension-changed",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "Preserved a modified recording extension at $CASE/home/.local/share/gnome-shell/extensions/recording-status@mluva.local.\n",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "extension-extra",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "Preserved a modified recording extension at $CASE/home/.local/share/gnome-shell/extensions/recording-status@mluva.local.\n",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "extension-missing",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "Preserved a modified recording extension at $CASE/home/.local/share/gnome-shell/extensions/recording-status@mluva.local.\n",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "extension-link",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "Preserved a modified recording extension at $CASE/home/.local/share/gnome-shell/extensions/recording-status@mluva.local.\n",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "extension-directory",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "home-root",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "MLUVA_INSTALL_HOME must be an absolute non-root directory.\n",
+        "commands": "",
+        "removed": [],
+        "changed": {}
+      }
+    },
+    {
+      "name": "home-relative",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "MLUVA_INSTALL_HOME must be an absolute non-root directory.\n",
+        "commands": "",
+        "removed": [],
+        "changed": {}
+      }
+    },
+    {
+      "name": "xdg-custom",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva recording overlay was removed.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/custom-config/mluva and $CASE/custom-data/mluva.\n",
+        "stderr": "",
+        "commands": "gnome-extensions info recording-status@mluva.local\ngnome-extensions disable recording-status@mluva.local\ngnome-extensions uninstall recording-status@mluva.local\nupdate-desktop-database $CASE/custom-data/applications\n",
+        "removed": [
+          "custom-config/autostart/com.mluva.Linux.desktop",
+          "custom-data/applications/com.mluva.Linux.desktop",
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local",
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "custom-data/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "custom-data/mluva/app",
+          "custom-data/mluva/app/payload",
+          "custom-data/mluva/app/pyproject.toml",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "xdg-root",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Refusing to uninstall through an unsafe XDG root: /\n",
+        "commands": "",
+        "removed": [],
+        "changed": {}
+      }
+    },
+    {
+      "name": "xdg-relative",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Refusing to uninstall through an unsafe XDG root: relative\n",
+        "commands": "",
+        "removed": [],
+        "changed": {}
+      }
+    },
+    {
+      "name": "staged-ignore-xdg",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "live-clean",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva recording overlay was removed.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "gnome-extensions info recording-status@mluva.local\ngnome-extensions disable recording-status@mluva.local\ngnome-extensions uninstall recording-status@mluva.local\nupdate-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "live-input",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva keyboard paste helper removed for user 42424.\nMluva recording overlay was removed.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "sudo systemctl disable --now mluva-input@42424.service\nsudo rm -f -- /etc/systemd/system/mluva-input@.service\nsudo systemctl daemon-reload\nsudo systemctl reset-failed mluva-input@42424.service\ngnome-extensions info recording-status@mluva.local\ngnome-extensions disable recording-status@mluva.local\ngnome-extensions uninstall recording-status@mluva.local\nupdate-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml",
+          "units/mluva-input@.service"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "live-input-failure",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "The application remains installed because its system input helper could not be removed.\n",
+        "commands": "sudo systemctl disable --now mluva-input@42424.service\nsudo rm -f -- /etc/systemd/system/mluva-input@.service\n",
+        "removed": [],
+        "changed": {}
+      }
+    },
+    {
+      "name": "live-input-modified",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Refusing to remove a modified or unrelated system input service.\nThe application remains installed because its system input helper could not be removed.\n",
+        "commands": "",
+        "removed": [],
+        "changed": {}
+      }
+    },
+    {
+      "name": "live-no-overlay",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "gnome-extensions info recording-status@mluva.local\nupdate-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "live-overlay-failure",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "Warning: the optional Mluva recording overlay could not be removed automatically.\nRemove it later with: gnome-extensions uninstall recording-status@mluva.local\n",
+        "commands": "gnome-extensions info recording-status@mluva.local\ngnome-extensions disable recording-status@mluva.local\ngnome-extensions uninstall recording-status@mluva.local\nupdate-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "database-failure",
+      "result": {
+        "code": 25,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\n",
+        "stderr": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "running",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Mluva is running from $CASE/home/.local/share/mluva/app. Close it before uninstalling.\n",
+        "commands": "",
+        "removed": [],
+        "changed": {}
+      }
+    },
+    {
+      "name": "database-group-only",
+      "result": {
+        "code": 0,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\nMluva application files and registered desktop integrations were removed.\nSettings and user-created history remain under $CASE/home/.config/mluva and $CASE/home/.local/share/mluva.\n",
+        "stderr": "",
+        "commands": "",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {
+          "home/.local/share/applications/mimeinfo.cache": {
+            "sha256": "4fea18b04d2fc6237fa76558b7e0e93345c4db47946d58b6be9b4b61cb5e505f",
+            "mode": 420
+          }
+        }
+      }
+    },
+    {
+      "name": "database-unavailable",
+      "result": {
+        "code": 126,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\n",
+        "stderr": "optional-command-exec-failed",
+        "commands": "",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "database-nonexecutable",
+      "result": {
+        "code": 126,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\n",
+        "stderr": "optional-command-exec-failed",
+        "commands": "",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    },
+    {
+      "name": "database-signal",
+      "result": {
+        "code": 143,
+        "stdout": "Staged verification skipped live GNOME extension and systemd helper inspection.\n",
+        "stderr": "optional-command-signal",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "removed": [
+          "home/.config/autostart/com.mluva.Linux.desktop",
+          "home/.local/bin/mluva",
+          "home/.local/bin/mluva-input-helper",
+          "home/.local/bin/mluva-narrate",
+          "home/.local/bin/mluva-overlay",
+          "home/.local/bin/mluva-screenshot-editor",
+          "home/.local/bin/mluva-shell",
+          "home/.local/bin/mluva-uninstall",
+          "home/.local/bin/tensaku-edit",
+          "home/.local/share/applications/com.mluva.Linux.desktop",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js",
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css",
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg",
+          "home/.local/share/mluva/app",
+          "home/.local/share/mluva/app/payload",
+          "home/.local/share/mluva/app/pyproject.toml"
+        ],
+        "changed": {}
+      }
+    }
+  ]
+}

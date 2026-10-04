@@ -1,0 +1,6255 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_sha256": {
+    "linux/mluva_linux/__init__.py": "c242d7dde99d2636421fdca795ddcb0898788a06492ebbea5c770a8e4a506813",
+    "linux/mluva_linux/app.py": "1456c6af104ff95433b1d20ead793f628fada4ef9a67d76b5cf1dc4431885d67",
+    "linux/mluva_linux/appearance_settings.py": "22ff9d044fead9ab8b8b255238d2ad135e723f7d04a3fc7c405d237ff64b2a9c",
+    "linux/mluva_linux/audio.py": "c024477529cdeb33916765a4904a7a3320e595d23245e1c5e2cdad390a96001e",
+    "linux/mluva_linux/batch_preview.py": "4967f87db5da340a9bbc261a7bb7d3654a310ca6de96bb427a6ee16fb22474cb",
+    "linux/mluva_linux/brand.py": "fe29d90483027e03b95652378b1d251d82deeb152f04924706da6eb9773ef6c4",
+    "linux/mluva_linux/brand_assets.py": "e694593770db4a262a591c53a053f595d73d626294029aab8ccc22b60316bdfd",
+    "linux/mluva_linux/codex_client.py": "6d778cd340cd4abce488af4abc9553da3291f79bac3ff4fe03059249afd79a97",
+    "linux/mluva_linux/codex_policy.py": "4ecb7dc4a4b328acf826bf4e0e969902101a412a60f66505210ab9dc44488383",
+    "linux/mluva_linux/command_palette.py": "34461e28dd1a9ed102243dcb100a2000b55fc7c8604e1085bf28ad9ada4f9bbd",
+    "linux/mluva_linux/config.py": "1a1f5244733323b2a2acd7d94c49bcc41b4ec0a79fcef5fec42c36dc0ae77a4f",
+    "linux/mluva_linux/conversation.py": "d05c868b042bc0cd1bde40bfdbabecb49335f251395cd1ad065ed9f3437b7942",
+    "linux/mluva_linux/conversation_titles.py": "2969c932307c4c4d40675729f0c83a9cfbaed209891400655e6f49beca5a2e12",
+    "linux/mluva_linux/conversation_view.py": "5f631eaf25eab9cccf7daee293c5ac579e68420eaa3e0c106df70648827673e6",
+    "linux/mluva_linux/credentials.py": "6e78f1712b9c6696c6e3a5fe2e3ed3809bdf17f303d96517c4062ae49a5eddbc",
+    "linux/mluva_linux/delivery.py": "60ce68b777eee432d5e6b06c556c8bfc5af0b7f3b3926bcf012304e66b10af46",
+    "linux/mluva_linux/diagnostics.py": "bb7d1e58016a24fac3d16c00c9170c274da7bb87659b61141de92ccf76ee283a",
+    "linux/mluva_linux/direct_choices.py": "c32573e31d23aa1821bd705e80ebb4b97bf3ae3cfcd3a277fd9a045c0810a860",
+    "linux/mluva_linux/display_time.py": "da43989c6ef7e3c3a3d23551823410fc33a806bc4c2de517a7cfa07fc3814089",
+    "linux/mluva_linux/elevenlabs.py": "70da93ffc4faeb3ee327213ad9e9dda2eb47380fbc62f301a1cd369c671c7cd2",
+    "linux/mluva_linux/feature_maturity.py": "43749b8e78da937f3fc00d83fbb3acdd4542f42cf3e0eed7494537de433f81c9",
+    "linux/mluva_linux/global_shortcuts.py": "f37f8ade401c1566179765990ce5ffcf00d0b6326034a033a3039940a8405e21",
+    "linux/mluva_linux/history.py": "c8a82d65fe7261e3ea1d69c5fb20f1462fc3fa51e012d3336dec0ad7b6b20d88",
+    "linux/mluva_linux/history_view.py": "1e39b7d8f77e3b4028b67e286c058598c4779a9b372da1bb74f263fd2dd6f1d7",
+    "linux/mluva_linux/language_picker.py": "9d079322db18818248c65ae02b190dc9457f262d368f021b6ea6d02c35ade4a2",
+    "linux/mluva_linux/live_rewrite.py": "b82b950e5210453cba3122de56b4f9164e0116d9abad5598ac04d1c583f30b02",
+    "linux/mluva_linux/local_asr.py": "b6e12ae9e7d2024cb5ff3733a5ee15cbf9d28eca2f6eeb84e6d1c1ad6353a666",
+    "linux/mluva_linux/local_asr_worker.py": "7f8af274c1f9be4bf17ea843199b6f9afeaa065dd981428b20a648f9f91cf88b",
+    "linux/mluva_linux/local_gpu.py": "6fc57ec66d16584d1167b45ea29e56b6213fd5499079a0a34e0a704ae39bee26",
+    "linux/mluva_linux/local_model_settings.py": "634eef25495a54ebc934ac57ed6f5115cae8923556dd691decc6c8112d517b8b",
+    "linux/mluva_linux/local_models.py": "760b3154a0c5ecddadf7d655ef080d827b89e654ee7a5058018a79479ae73f3c",
+    "linux/mluva_linux/local_preview.py": "950c02b44dafb7e683f90bce0c898282eccd2283dafe80d8158bdcdd02e50bea",
+    "linux/mluva_linux/local_qwen.py": "55206f578df5dbeba034cc7cc8fab7ae0a1ccf33a250dd91a953fd8cbf95e353",
+    "linux/mluva_linux/markdown_view.py": "75543cac8200fbfef0b480eac7c93bc0921c8e487ed095de28bf3cedceef55d4",
+    "linux/mluva_linux/meeting.py": "0bc6357f2b074223ed9fa17b42e1efc75fc58100d53f0cfbdc379eeea296efbe",
+    "linux/mluva_linux/meeting_view.py": "8e23488ca455c21db503620b027df1d28e2b0bf188962c569986ae1732533750",
+    "linux/mluva_linux/mermaid_view.py": "226d89b60419012ba4470eeca16a3ada339f0f1a0dc3e37b8fe77d9380bde35c",
+    "linux/mluva_linux/minimal_markdown.py": "edcbb1ab09dc92fd1926d1c1c9b8f480497a81ad60eb93e661375df906d84b28",
+    "linux/mluva_linux/narration.py": "4b0254b8ee859fb9728206ccda0c36500f85ad0c5a11aca4c6dbcd2ee88fc533",
+    "linux/mluva_linux/overlay_state.py": "421dd9783054a4799981f131fcb7440f5ea3aea6d3c71a76117c4df4017918f2",
+    "linux/mluva_linux/personalization.py": "d3b1f36fe5fdf77e3d278823c30b706c3e4630ad3ccaa59a8099b0226ef1c691",
+    "linux/mluva_linux/personalization_view.py": "3cadb940dd96aab4e86595589ac3a3f796b96ba5536253f5012c810655bb13e2",
+    "linux/mluva_linux/pipewire.py": "1a7f5c7e0cfaa0946f7744808c97f1a208e3e8b59e03e5a65267323483840e65",
+    "linux/mluva_linux/polish_preview.py": "dbe3537f1aae10d262958a29acca4c24a8433a50766f598119c93787c0362570",
+    "linux/mluva_linux/private_files.py": "7fe39eac13e1f4bcfd248a8cab514818dc0ab4445f7be10bfa1f79a95a10a905",
+    "linux/mluva_linux/prompt_defaults.py": "2fdf23766603ec9e0f24ee1a43d562f3dd57f44c0706223822e9c740961ff5e8",
+    "linux/mluva_linux/prompt_editor.py": "475d94edc8783022665f653480f23894a0a0e3da35bc7dc9f95b7da1307bc1e6",
+    "linux/mluva_linux/prompts.py": "12c9ab110fc4373e474de196cad4cb98c16c9b58b499de3cc475b03136929609",
+    "linux/mluva_linux/provider_catalog.py": "f29c045c1f29f2453f5d1f3ee575cc9d6cd80e86a294dcd483abdcd750f26f5b",
+    "linux/mluva_linux/provider_settings.py": "7fd396e93c764799a7f3b9b50328295af971c0c5750f93f4061e8c264c51cb28",
+    "linux/mluva_linux/providers.py": "e7f619e2aaf9abe199b381c7b30b7a60454358643a76b107e4476a768e8cee72",
+    "linux/mluva_linux/qwen_asr.py": "6c13709686a4df1e26d206a1e61866e31d0287736f60e79dbd7c635c2ee3abf1",
+    "linux/mluva_linux/realtime.py": "988d98e4856ddacbdaa3ae0ec7be0f803d25f96e548278ab04598215e1ce3546",
+    "linux/mluva_linux/recording_control.py": "b85a2059b8fdd358fc95d2cd96d202173ee84fa623a9c45ee2185090f9864178",
+    "linux/mluva_linux/rewrite_settings.py": "48750b6d6508033f0b284c3ce3f4cc24bc1e13fc301d7d3988f571dca9f412d8",
+    "linux/mluva_linux/rewriting.py": "57a8d7c87429a628f8cf2391551d75375ad53ac7a7d0049baf98b3e1ebff3058",
+    "linux/mluva_linux/scratchpad.py": "7a808fbb02f455cba44171196fe3353154205e465d25a9f8fedc7cd40a681f26",
+    "linux/mluva_linux/screenshot_capture.py": "c77e1e60ab4c8b03b4eea27af7e29ecf9df105433c6f99e558462aa12066c100",
+    "linux/mluva_linux/screenshot_view.py": "21a2d3abb5ed753cc801c28ce4196b8f8aa1e44b2aedb0e401884679158ba588",
+    "linux/mluva_linux/screenshots.py": "db254d499f3c13ff70bdd3cede34205df66af1f2c0807b327657b30dcdcafcdf",
+    "linux/mluva_linux/scroll_forecast.py": "1fee03547d421fefcdbce1284fb5030e95ca91af2a022a3dd1ffcfde42cf2595",
+    "linux/mluva_linux/segment_cleanup.py": "6e3c2664c4879693f9a73a13a2aa47405f23599776f3c14fe012d7d525c2e087",
+    "linux/mluva_linux/settings_view.py": "cea5572eb38126b5580fcfb06aaa2b26539801cd2c2c67ce50169efc7ddb6e87",
+    "linux/mluva_linux/shell_bridge.py": "9dffa08d7996d7510e9132e5ec92aee89092d7bca6e78137dad78a5cb848ae32",
+    "linux/mluva_linux/speech_languages.py": "7c97f002ae82efd14ea87413db2ff1f4ae108ecada11e5f8291564ba9a23b008",
+    "linux/mluva_linux/terminal_target.py": "c0bd12497f4fd95359834a65dfffe61706faeef1334b22163623bc287173ccb5",
+    "linux/mluva_linux/text_diff.py": "e7b0619b0cba58211883a442c3d0d91936877c69e786a1c7c4072319dda80cba",
+    "linux/mluva_linux/text_target.py": "a916b65519d33b3401ebfee910c392560b86d5e70d6131aa3e6702394fef02c7",
+    "linux/mluva_linux/theme.py": "2f240fc62e9ae5b913c42127907f6c063e5585510b6ab04fcf64bf492841f066",
+    "linux/mluva_linux/thinking_settings.py": "ac329516c217714c207e84d75d28246cfdbbe0fecec78b2c5858da2cf7516288",
+    "linux/mluva_linux/title_jobs.py": "051ffdd79cc9ddc8408db55ba0e565f988ee49997f1e347b18abc3175b5cff50",
+    "linux/mluva_linux/transcript.py": "3d072e22ffc59ebc94abdca6948536b6c3a09fbdb71a55a45405f362912b256f",
+    "linux/mluva_linux/ui.py": "f3db4fbf916835e7f5ceb85c340c006474565045b9f79dcb783eea5942fd688b",
+    "linux/mluva_linux/vocabulary.py": "47814ed63b72db83d6986a0be8941f6a638bfc40c406bcfd655236a3260a8dff",
+    "linux/mluva_linux/volatile_audio.py": "627d500a0260799458d49223c23f76c4b6d1d4995dad700e936b0ca62e2afee4",
+    "linux/mluva_linux/workflow.py": "e539145a529a1be6b0ba8a95c4108f470e5d5c2dafe44f14ec5e2457259bc44f",
+    "linux/mluva_linux/workspace_settings.py": "580f640c93aa82b0ef3fc743e1ee811e7b9dbadf56c80932d6a07c7f7db22cf0"
+  },
+  "cases": [
+    {
+      "name": "service-cold-actions",
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "none",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "litellm",
+        "transcription_base_url": "http://127.0.0.1:1/v1",
+        "transcription_api_key_env": "BOOTSTRAP_NO_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": true,
+        "auto_copy_rewrite": true,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": true,
+        "time_format": "24h",
+        "live_rewrite_enabled": false,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": false,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "failures",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "flags": [
+        "--gapplication-service"
+      ],
+      "actions": {
+        "record": [
+          true,
+          "",
+          []
+        ],
+        "cancel": [
+          true,
+          "",
+          []
+        ],
+        "latest": [
+          true,
+          "",
+          []
+        ],
+        "settings": [
+          true,
+          "",
+          []
+        ],
+        "screenshot": [
+          true,
+          "",
+          []
+        ],
+        "history": [
+          true,
+          "",
+          []
+        ],
+        "quit": [
+          true,
+          "",
+          []
+        ],
+        "commands": [
+          true,
+          "",
+          []
+        ],
+        "global-record": [
+          true,
+          "",
+          []
+        ],
+        "review": [
+          true,
+          "(sss)",
+          []
+        ],
+        "meeting": [
+          true,
+          "",
+          []
+        ],
+        "status": [
+          true,
+          "",
+          []
+        ],
+        "personalization": [
+          true,
+          "",
+          []
+        ]
+      },
+      "states": [
+        {
+          "stage": "started",
+          "snapshot": 0
+        },
+        {
+          "stage": "status",
+          "snapshot": 0
+        },
+        {
+          "stage": "global-record",
+          "snapshot": 0
+        },
+        {
+          "stage": "meeting",
+          "snapshot": 0
+        },
+        {
+          "stage": "personalization",
+          "snapshot": 0
+        },
+        {
+          "stage": "latest",
+          "snapshot": 1
+        },
+        {
+          "stage": "history",
+          "snapshot": 2
+        },
+        {
+          "stage": "settings",
+          "snapshot": 3
+        },
+        {
+          "stage": "meeting",
+          "snapshot": 4
+        },
+        {
+          "stage": "personalization",
+          "snapshot": 5
+        },
+        {
+          "stage": "latest",
+          "snapshot": 1
+        },
+        {
+          "stage": "commands",
+          "snapshot": 6
+        },
+        {
+          "stage": "hidden",
+          "snapshot": 7
+        },
+        {
+          "stage": "hidden-status",
+          "snapshot": 8
+        },
+        {
+          "stage": "hidden-meeting",
+          "snapshot": 8
+        },
+        {
+          "stage": "hidden-personalization",
+          "snapshot": 8
+        },
+        {
+          "stage": "second-process",
+          "snapshot": 9
+        }
+      ],
+      "secondary": {
+        "exit": 0,
+        "stdout": "",
+        "stderr": "",
+        "same_owner": true,
+        "files": []
+      },
+      "exit": 0,
+      "diagnostics": ""
+    },
+    {
+      "name": "normal-hide-reopen",
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "none",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "litellm",
+        "transcription_base_url": "http://127.0.0.1:1/v1",
+        "transcription_api_key_env": "BOOTSTRAP_NO_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": true,
+        "auto_copy_rewrite": true,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": true,
+        "time_format": "24h",
+        "live_rewrite_enabled": false,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": false,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "failures",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "flags": [],
+      "actions": {
+        "record": [
+          true,
+          "",
+          []
+        ],
+        "cancel": [
+          true,
+          "",
+          []
+        ],
+        "latest": [
+          true,
+          "",
+          []
+        ],
+        "settings": [
+          true,
+          "",
+          []
+        ],
+        "screenshot": [
+          true,
+          "",
+          []
+        ],
+        "history": [
+          true,
+          "",
+          []
+        ],
+        "quit": [
+          true,
+          "",
+          []
+        ],
+        "commands": [
+          true,
+          "",
+          []
+        ],
+        "global-record": [
+          true,
+          "",
+          []
+        ],
+        "review": [
+          true,
+          "(sss)",
+          []
+        ],
+        "meeting": [
+          true,
+          "",
+          []
+        ],
+        "status": [
+          true,
+          "",
+          []
+        ],
+        "personalization": [
+          true,
+          "",
+          []
+        ]
+      },
+      "states": [
+        {
+          "stage": "started",
+          "snapshot": 1
+        },
+        {
+          "stage": "history",
+          "snapshot": 2
+        },
+        {
+          "stage": "settings",
+          "snapshot": 3
+        },
+        {
+          "stage": "meeting",
+          "snapshot": 4
+        },
+        {
+          "stage": "personalization",
+          "snapshot": 5
+        },
+        {
+          "stage": "latest",
+          "snapshot": 1
+        },
+        {
+          "stage": "commands",
+          "snapshot": 6
+        },
+        {
+          "stage": "hidden",
+          "snapshot": 7
+        },
+        {
+          "stage": "hidden-status",
+          "snapshot": 8
+        },
+        {
+          "stage": "hidden-meeting",
+          "snapshot": 8
+        },
+        {
+          "stage": "hidden-personalization",
+          "snapshot": 8
+        },
+        {
+          "stage": "second-process",
+          "snapshot": 9
+        }
+      ],
+      "secondary": {
+        "exit": 0,
+        "stdout": "",
+        "stderr": "",
+        "same_owner": true,
+        "files": []
+      },
+      "exit": 0,
+      "diagnostics": ""
+    },
+    {
+      "name": "welcome",
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "none",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "litellm",
+        "transcription_base_url": "http://127.0.0.1:1/v1",
+        "transcription_api_key_env": "BOOTSTRAP_NO_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": true,
+        "auto_copy_rewrite": true,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": false,
+        "time_format": "24h",
+        "live_rewrite_enabled": false,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": false,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "failures",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "flags": [],
+      "actions": {
+        "record": [
+          true,
+          "",
+          []
+        ],
+        "cancel": [
+          true,
+          "",
+          []
+        ],
+        "latest": [
+          true,
+          "",
+          []
+        ],
+        "settings": [
+          true,
+          "",
+          []
+        ],
+        "screenshot": [
+          true,
+          "",
+          []
+        ],
+        "history": [
+          true,
+          "",
+          []
+        ],
+        "quit": [
+          true,
+          "",
+          []
+        ],
+        "commands": [
+          true,
+          "",
+          []
+        ],
+        "global-record": [
+          true,
+          "",
+          []
+        ],
+        "review": [
+          true,
+          "(sss)",
+          []
+        ],
+        "meeting": [
+          true,
+          "",
+          []
+        ],
+        "status": [
+          true,
+          "",
+          []
+        ],
+        "personalization": [
+          true,
+          "",
+          []
+        ]
+      },
+      "states": [
+        {
+          "stage": "started",
+          "snapshot": 10
+        }
+      ],
+      "secondary": null,
+      "exit": 0,
+      "diagnostics": ""
+    },
+    {
+      "name": "missing-speech-key",
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "none",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "elevenlabs",
+        "transcription_base_url": "http://127.0.0.1:1/v1",
+        "transcription_api_key_env": "BOOTSTRAP_NO_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": true,
+        "auto_copy_rewrite": true,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": true,
+        "time_format": "24h",
+        "live_rewrite_enabled": false,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": false,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "failures",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "flags": [],
+      "actions": {
+        "record": [
+          true,
+          "",
+          []
+        ],
+        "cancel": [
+          true,
+          "",
+          []
+        ],
+        "latest": [
+          true,
+          "",
+          []
+        ],
+        "settings": [
+          true,
+          "",
+          []
+        ],
+        "screenshot": [
+          true,
+          "",
+          []
+        ],
+        "history": [
+          true,
+          "",
+          []
+        ],
+        "quit": [
+          true,
+          "",
+          []
+        ],
+        "commands": [
+          true,
+          "",
+          []
+        ],
+        "global-record": [
+          true,
+          "",
+          []
+        ],
+        "review": [
+          true,
+          "(sss)",
+          []
+        ],
+        "meeting": [
+          true,
+          "",
+          []
+        ],
+        "status": [
+          true,
+          "",
+          []
+        ],
+        "personalization": [
+          true,
+          "",
+          []
+        ]
+      },
+      "states": [
+        {
+          "stage": "started",
+          "snapshot": 11
+        }
+      ],
+      "secondary": null,
+      "exit": 0,
+      "diagnostics": ""
+    },
+    {
+      "name": "service-cold-history",
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "none",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "litellm",
+        "transcription_base_url": "http://127.0.0.1:1/v1",
+        "transcription_api_key_env": "BOOTSTRAP_NO_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": true,
+        "auto_copy_rewrite": true,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": true,
+        "time_format": "24h",
+        "live_rewrite_enabled": false,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": false,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "failures",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "flags": [
+        "--gapplication-service"
+      ],
+      "actions": {
+        "record": [
+          true,
+          "",
+          []
+        ],
+        "cancel": [
+          true,
+          "",
+          []
+        ],
+        "latest": [
+          true,
+          "",
+          []
+        ],
+        "settings": [
+          true,
+          "",
+          []
+        ],
+        "screenshot": [
+          true,
+          "",
+          []
+        ],
+        "history": [
+          true,
+          "",
+          []
+        ],
+        "quit": [
+          true,
+          "",
+          []
+        ],
+        "commands": [
+          true,
+          "",
+          []
+        ],
+        "global-record": [
+          true,
+          "",
+          []
+        ],
+        "review": [
+          true,
+          "(sss)",
+          []
+        ],
+        "meeting": [
+          true,
+          "",
+          []
+        ],
+        "status": [
+          true,
+          "",
+          []
+        ],
+        "personalization": [
+          true,
+          "",
+          []
+        ]
+      },
+      "states": [
+        {
+          "stage": "started",
+          "snapshot": 0
+        },
+        {
+          "stage": "history",
+          "snapshot": 2
+        }
+      ],
+      "secondary": null,
+      "exit": 0,
+      "diagnostics": ""
+    },
+    {
+      "name": "service-cold-settings",
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "none",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "litellm",
+        "transcription_base_url": "http://127.0.0.1:1/v1",
+        "transcription_api_key_env": "BOOTSTRAP_NO_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": true,
+        "auto_copy_rewrite": true,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": true,
+        "time_format": "24h",
+        "live_rewrite_enabled": false,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": false,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "failures",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "flags": [
+        "--gapplication-service"
+      ],
+      "actions": {
+        "record": [
+          true,
+          "",
+          []
+        ],
+        "cancel": [
+          true,
+          "",
+          []
+        ],
+        "latest": [
+          true,
+          "",
+          []
+        ],
+        "settings": [
+          true,
+          "",
+          []
+        ],
+        "screenshot": [
+          true,
+          "",
+          []
+        ],
+        "history": [
+          true,
+          "",
+          []
+        ],
+        "quit": [
+          true,
+          "",
+          []
+        ],
+        "commands": [
+          true,
+          "",
+          []
+        ],
+        "global-record": [
+          true,
+          "",
+          []
+        ],
+        "review": [
+          true,
+          "(sss)",
+          []
+        ],
+        "meeting": [
+          true,
+          "",
+          []
+        ],
+        "status": [
+          true,
+          "",
+          []
+        ],
+        "personalization": [
+          true,
+          "",
+          []
+        ]
+      },
+      "states": [
+        {
+          "stage": "started",
+          "snapshot": 0
+        },
+        {
+          "stage": "settings",
+          "snapshot": 3
+        }
+      ],
+      "secondary": null,
+      "exit": 0,
+      "diagnostics": ""
+    },
+    {
+      "name": "service-cold-commands",
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "none",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "litellm",
+        "transcription_base_url": "http://127.0.0.1:1/v1",
+        "transcription_api_key_env": "BOOTSTRAP_NO_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": true,
+        "auto_copy_rewrite": true,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": true,
+        "time_format": "24h",
+        "live_rewrite_enabled": false,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": false,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "failures",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "flags": [
+        "--gapplication-service"
+      ],
+      "actions": {
+        "record": [
+          true,
+          "",
+          []
+        ],
+        "cancel": [
+          true,
+          "",
+          []
+        ],
+        "latest": [
+          true,
+          "",
+          []
+        ],
+        "settings": [
+          true,
+          "",
+          []
+        ],
+        "screenshot": [
+          true,
+          "",
+          []
+        ],
+        "history": [
+          true,
+          "",
+          []
+        ],
+        "quit": [
+          true,
+          "",
+          []
+        ],
+        "commands": [
+          true,
+          "",
+          []
+        ],
+        "global-record": [
+          true,
+          "",
+          []
+        ],
+        "review": [
+          true,
+          "(sss)",
+          []
+        ],
+        "meeting": [
+          true,
+          "",
+          []
+        ],
+        "status": [
+          true,
+          "",
+          []
+        ],
+        "personalization": [
+          true,
+          "",
+          []
+        ]
+      },
+      "states": [
+        {
+          "stage": "started",
+          "snapshot": 0
+        },
+        {
+          "stage": "commands",
+          "snapshot": 6
+        }
+      ],
+      "secondary": null,
+      "exit": 0,
+      "diagnostics": ""
+    },
+    {
+      "name": "service-cold-quit",
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "none",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "litellm",
+        "transcription_base_url": "http://127.0.0.1:1/v1",
+        "transcription_api_key_env": "BOOTSTRAP_NO_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": true,
+        "auto_copy_rewrite": true,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": true,
+        "time_format": "24h",
+        "live_rewrite_enabled": false,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": false,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "failures",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "flags": [
+        "--gapplication-service"
+      ],
+      "actions": {
+        "record": [
+          true,
+          "",
+          []
+        ],
+        "cancel": [
+          true,
+          "",
+          []
+        ],
+        "latest": [
+          true,
+          "",
+          []
+        ],
+        "settings": [
+          true,
+          "",
+          []
+        ],
+        "screenshot": [
+          true,
+          "",
+          []
+        ],
+        "history": [
+          true,
+          "",
+          []
+        ],
+        "quit": [
+          true,
+          "",
+          []
+        ],
+        "commands": [
+          true,
+          "",
+          []
+        ],
+        "global-record": [
+          true,
+          "",
+          []
+        ],
+        "review": [
+          true,
+          "(sss)",
+          []
+        ],
+        "meeting": [
+          true,
+          "",
+          []
+        ],
+        "status": [
+          true,
+          "",
+          []
+        ],
+        "personalization": [
+          true,
+          "",
+          []
+        ]
+      },
+      "states": [
+        {
+          "stage": "started",
+          "snapshot": 0
+        }
+      ],
+      "secondary": null,
+      "exit": 0,
+      "diagnostics": "Traceback (most recent call last):\n  File \"$REFERENCE/mluva_linux/app.py\", line 5550, in _on_shutdown\n    self._clear_live_capture()\n    ~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"$REFERENCE/mluva_linux/app.py\", line 4127, in _clear_live_capture\n    self._update_capture_status_rows()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"$REFERENCE/mluva_linux/app.py\", line 2327, in _update_capture_status_rows\n    review_active = self.pending_command_result is not None or self.scratchpad_store.draft is not None\n                                                               ^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'MluvaApplication' object has no attribute 'scratchpad_store'. Did you mean: 'scratchpad_actions'?\n"
+    }
+  ],
+  "cli": [
+    {
+      "flags": [
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Usage:\n  mluva [OPTION…]\n\nHelp Options:\n  -h, --help                Show help options\n  --help-all                Show all help options\n  --help-gapplication       Show GApplication options\n\n",
+      "stderr": ""
+    },
+    {
+      "flags": [
+        "--version"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Unknown option --version\n"
+    },
+    {
+      "flags": [
+        "--unknown"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Unknown option --unknown\n"
+    },
+    {
+      "flags": [
+        "--narrate"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Narrated screenshots are unavailable in Incognito.\n"
+    },
+    {
+      "flags": [
+        "--narrate",
+        "extra"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Unknown option --narrate\n"
+    }
+  ],
+  "snapshots": [
+    {
+      "visible": false,
+      "names": [],
+      "items": [],
+      "signals": []
+    },
+    {
+      "visible": true,
+      "names": [
+        [
+          "button",
+          "Add screenshot"
+        ],
+        [
+          "button",
+          "Close"
+        ],
+        [
+          "button",
+          "Codex model"
+        ],
+        [
+          "button",
+          "Conversations"
+        ],
+        [
+          "button",
+          "Dictate"
+        ],
+        [
+          "button",
+          "Edit prompt · Polish"
+        ],
+        [
+          "button",
+          "Edit prompt · Structure"
+        ],
+        [
+          "button",
+          "Live rewrite template: Grilling"
+        ],
+        [
+          "button",
+          "Maximize"
+        ],
+        [
+          "button",
+          "Minimize"
+        ],
+        [
+          "button",
+          "Mluva menu"
+        ],
+        [
+          "button",
+          "Mluva settings"
+        ],
+        [
+          "button",
+          "More"
+        ],
+        [
+          "button",
+          "New conversation"
+        ],
+        [
+          "button",
+          "Polish"
+        ],
+        [
+          "button",
+          "Save this prompt for later"
+        ],
+        [
+          "button",
+          "Show or hide history"
+        ],
+        [
+          "button",
+          "Start conversation"
+        ],
+        [
+          "button",
+          "Structure"
+        ],
+        [
+          "grid cell",
+          "Codex model"
+        ],
+        [
+          "grid cell",
+          "More"
+        ],
+        [
+          "grid cell",
+          "Polish Edit prompt · Polish"
+        ],
+        [
+          "grid cell",
+          "Structure Edit prompt · Structure"
+        ],
+        [
+          "label",
+          "Codex model"
+        ],
+        [
+          "label",
+          "Dictate"
+        ],
+        [
+          "label",
+          "Live rewrite"
+        ],
+        [
+          "label",
+          "More"
+        ],
+        [
+          "label",
+          "New conversation"
+        ],
+        [
+          "label",
+          "Paste or type text to start…"
+        ],
+        [
+          "label",
+          "Polish"
+        ],
+        [
+          "label",
+          "Press F9 to dictate. Or paste text below.\nPolish it, structure it, make it yours."
+        ],
+        [
+          "label",
+          "Start conversation"
+        ],
+        [
+          "label",
+          "Structure"
+        ],
+        [
+          "label",
+          "Your words, ready to use"
+        ],
+        [
+          "status",
+          "Dictation copies automatically."
+        ],
+        [
+          "text box",
+          "Write a custom instruction, then press Ctrl+Enter to send"
+        ],
+        [
+          "toggle button",
+          "Codex model"
+        ],
+        [
+          "toggle button",
+          "Live rewrite"
+        ],
+        [
+          "toggle button",
+          "Live rewrite template: Grilling"
+        ],
+        [
+          "toggle button",
+          "Mluva menu"
+        ],
+        [
+          "toggle button",
+          "More"
+        ],
+        [
+          "window",
+          "Mluva"
+        ]
+      ],
+      "items": [],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "visible": true,
+      "names": [
+        [
+          "button",
+          "Close"
+        ],
+        [
+          "button",
+          "Conversations"
+        ],
+        [
+          "button",
+          "Maximize"
+        ],
+        [
+          "button",
+          "Minimize"
+        ],
+        [
+          "button",
+          "Mluva menu"
+        ],
+        [
+          "button",
+          "Mluva settings"
+        ],
+        [
+          "button",
+          "Show or hide history"
+        ],
+        [
+          "group",
+          "No transcriptions yet"
+        ],
+        [
+          "group",
+          "No transcriptions yet"
+        ],
+        [
+          "group",
+          "No transcriptions yet"
+        ],
+        [
+          "group",
+          "No transcriptions yet"
+        ],
+        [
+          "group",
+          "No transcriptions yet"
+        ],
+        [
+          "label",
+          "0 shown"
+        ],
+        [
+          "label",
+          "0 shown"
+        ],
+        [
+          "label",
+          "0 shown"
+        ],
+        [
+          "label",
+          "0 shown"
+        ],
+        [
+          "label",
+          "0 shown"
+        ],
+        [
+          "label",
+          "Completed captures remain visible and recoverable in the local History surface."
+        ],
+        [
+          "label",
+          "Completed captures remain visible and recoverable in the local History surface."
+        ],
+        [
+          "label",
+          "Completed captures remain visible and recoverable in the local History surface."
+        ],
+        [
+          "label",
+          "Completed captures remain visible and recoverable in the local History surface."
+        ],
+        [
+          "label",
+          "Completed captures remain visible and recoverable in the local History surface."
+        ],
+        [
+          "label",
+          "Completed non-Incognito captures will remain recoverable here."
+        ],
+        [
+          "label",
+          "Completed non-Incognito captures will remain recoverable here."
+        ],
+        [
+          "label",
+          "Completed non-Incognito captures will remain recoverable here."
+        ],
+        [
+          "label",
+          "Completed non-Incognito captures will remain recoverable here."
+        ],
+        [
+          "label",
+          "Completed non-Incognito captures will remain recoverable here."
+        ],
+        [
+          "label",
+          "History"
+        ],
+        [
+          "label",
+          "No transcriptions yet"
+        ],
+        [
+          "label",
+          "No transcriptions yet"
+        ],
+        [
+          "label",
+          "No transcriptions yet"
+        ],
+        [
+          "label",
+          "No transcriptions yet"
+        ],
+        [
+          "label",
+          "No transcriptions yet"
+        ],
+        [
+          "label",
+          "Recent transcriptions"
+        ],
+        [
+          "label",
+          "Recent transcriptions"
+        ],
+        [
+          "label",
+          "Recent transcriptions"
+        ],
+        [
+          "label",
+          "Recent transcriptions"
+        ],
+        [
+          "label",
+          "Recent transcriptions"
+        ],
+        [
+          "label",
+          "Verified on Omarchy"
+        ],
+        [
+          "label",
+          "Verified on Omarchy"
+        ],
+        [
+          "label",
+          "Verified on Omarchy"
+        ],
+        [
+          "label",
+          "Verified on Omarchy"
+        ],
+        [
+          "label",
+          "Verified on Omarchy"
+        ],
+        [
+          "toggle button",
+          "Mluva menu"
+        ],
+        [
+          "window",
+          "Mluva"
+        ]
+      ],
+      "items": [],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "visible": true,
+      "names": [
+        [
+          "button",
+          "Apply"
+        ],
+        [
+          "button",
+          "Apply"
+        ],
+        [
+          "button",
+          "Back to workspace · Esc"
+        ],
+        [
+          "button",
+          "Back to workspace · Esc"
+        ],
+        [
+          "button",
+          "Close"
+        ],
+        [
+          "button",
+          "Conversations"
+        ],
+        [
+          "button",
+          "Maximize"
+        ],
+        [
+          "button",
+          "Minimize"
+        ],
+        [
+          "button",
+          "Mluva menu"
+        ],
+        [
+          "button",
+          "Mluva settings"
+        ],
+        [
+          "button",
+          "Show or hide history"
+        ],
+        [
+          "combo box",
+          "History time format"
+        ],
+        [
+          "combo box",
+          "History time format"
+        ],
+        [
+          "combo box",
+          "Live rewrite mode"
+        ],
+        [
+          "combo box",
+          "Live rewrite mode"
+        ],
+        [
+          "combo box",
+          "Template"
+        ],
+        [
+          "combo box",
+          "Template"
+        ],
+        [
+          "grid cell",
+          "Advanced"
+        ],
+        [
+          "grid cell",
+          "Advanced"
+        ],
+        [
+          "grid cell",
+          "Audio"
+        ],
+        [
+          "grid cell",
+          "Audio"
+        ],
+        [
+          "grid cell",
+          "Capture"
+        ],
+        [
+          "grid cell",
+          "Capture"
+        ],
+        [
+          "grid cell",
+          "Feature maturity"
+        ],
+        [
+          "grid cell",
+          "Feature maturity"
+        ],
+        [
+          "grid cell",
+          "Privacy"
+        ],
+        [
+          "grid cell",
+          "Privacy"
+        ],
+        [
+          "grid cell",
+          "Prompts"
+        ],
+        [
+          "grid cell",
+          "Prompts"
+        ],
+        [
+          "grid cell",
+          "Providers"
+        ],
+        [
+          "grid cell",
+          "Providers"
+        ],
+        [
+          "grid cell",
+          "Workspace"
+        ],
+        [
+          "grid cell",
+          "Workspace"
+        ],
+        [
+          "group",
+          "Appearance"
+        ],
+        [
+          "group",
+          "Appearance"
+        ],
+        [
+          "group",
+          "Documents"
+        ],
+        [
+          "group",
+          "Documents"
+        ],
+        [
+          "group",
+          "Live rewrite"
+        ],
+        [
+          "group",
+          "Live rewrite"
+        ],
+        [
+          "group",
+          "Your recorder"
+        ],
+        [
+          "group",
+          "Your recorder"
+        ],
+        [
+          "label",
+          "24-hour · 14:30"
+        ],
+        [
+          "label",
+          "24-hour · 14:30"
+        ],
+        [
+          "label",
+          "5 visible lines · 5 recommended"
+        ],
+        [
+          "label",
+          "5 visible lines · 5 recommended"
+        ],
+        [
+          "label",
+          "A little space for your voice."
+        ],
+        [
+          "label",
+          "A little space for your voice."
+        ],
+        [
+          "label",
+          "Advanced"
+        ],
+        [
+          "label",
+          "Advanced"
+        ],
+        [
+          "label",
+          "All templates and structures are in Settings → Prompts."
+        ],
+        [
+          "label",
+          "All templates and structures are in Settings → Prompts."
+        ],
+        [
+          "label",
+          "Appearance"
+        ],
+        [
+          "label",
+          "Appearance"
+        ],
+        [
+          "label",
+          "Apply"
+        ],
+        [
+          "label",
+          "Apply"
+        ],
+        [
+          "label",
+          "Audio"
+        ],
+        [
+          "label",
+          "Audio"
+        ],
+        [
+          "label",
+          "Background · 82%"
+        ],
+        [
+          "label",
+          "Background · 82%"
+        ],
+        [
+          "label",
+          "Capture"
+        ],
+        [
+          "label",
+          "Capture"
+        ],
+        [
+          "label",
+          "Changes apply to the next request or recording."
+        ],
+        [
+          "label",
+          "Changes apply to the next request or recording."
+        ],
+        [
+          "label",
+          "Copy completed dictation automatically"
+        ],
+        [
+          "label",
+          "Copy completed dictation automatically"
+        ],
+        [
+          "label",
+          "Copy completed rewrites automatically"
+        ],
+        [
+          "label",
+          "Copy completed rewrites automatically"
+        ],
+        [
+          "label",
+          "DESKTOP PREVIEW"
+        ],
+        [
+          "label",
+          "DESKTOP PREVIEW"
+        ],
+        [
+          "label",
+          "Documents"
+        ],
+        [
+          "label",
+          "Documents"
+        ],
+        [
+          "label",
+          "Edit Live prompt"
+        ],
+        [
+          "label",
+          "Edit Live prompt"
+        ],
+        [
+          "label",
+          "Feature maturity"
+        ],
+        [
+          "label",
+          "Feature maturity"
+        ],
+        [
+          "label",
+          "Grilling"
+        ],
+        [
+          "label",
+          "Grilling"
+        ],
+        [
+          "label",
+          "History time format"
+        ],
+        [
+          "label",
+          "History time format"
+        ],
+        [
+          "label",
+          "Live rewrite"
+        ],
+        [
+          "label",
+          "Live rewrite"
+        ],
+        [
+          "label",
+          "Live rewrite mode"
+        ],
+        [
+          "label",
+          "Live rewrite mode"
+        ],
+        [
+          "label",
+          "Live rewrite sends provisional recognition to the model as speech arrives. Stop reconciles the draft with the final transcript. Later updates are grouped; short tails update after a pause. Batch speech engines update by chunk, not every word. Extra provider requests may use credits."
+        ],
+        [
+          "label",
+          "Live rewrite sends provisional recognition to the model as speech arrives. Stop reconciles the draft with the final transcript. Later updates are grouped; short tails update after a pause. Batch speech engines update by chunk, not every word. Extra provider requests may use credits."
+        ],
+        [
+          "label",
+          "More contrast"
+        ],
+        [
+          "label",
+          "More contrast"
+        ],
+        [
+          "label",
+          "More desktop"
+        ],
+        [
+          "label",
+          "More desktop"
+        ],
+        [
+          "label",
+          "Off"
+        ],
+        [
+          "label",
+          "Off"
+        ],
+        [
+          "label",
+          "Off recommended · copy when you are ready"
+        ],
+        [
+          "label",
+          "Off recommended · copy when you are ready"
+        ],
+        [
+          "label",
+          "Paste when I stop"
+        ],
+        [
+          "label",
+          "Paste when I stop"
+        ],
+        [
+          "label",
+          "Privacy"
+        ],
+        [
+          "label",
+          "Privacy"
+        ],
+        [
+          "label",
+          "Prompts"
+        ],
+        [
+          "label",
+          "Prompts"
+        ],
+        [
+          "label",
+          "Providers"
+        ],
+        [
+          "label",
+          "Providers"
+        ],
+        [
+          "label",
+          "Save settings"
+        ],
+        [
+          "label",
+          "Save settings"
+        ],
+        [
+          "label",
+          "Settings"
+        ],
+        [
+          "label",
+          "Settings"
+        ],
+        [
+          "label",
+          "Settings"
+        ],
+        [
+          "label",
+          "Show Copy icon"
+        ],
+        [
+          "label",
+          "Show Copy icon"
+        ],
+        [
+          "label",
+          "Show Save icon"
+        ],
+        [
+          "label",
+          "Show Save icon"
+        ],
+        [
+          "label",
+          "Show history sidebar by default"
+        ],
+        [
+          "label",
+          "Show history sidebar by default"
+        ],
+        [
+          "label",
+          "Showing the last 5 of 10 lines · 82% background opacity"
+        ],
+        [
+          "label",
+          "Showing the last 5 of 10 lines · 82% background opacity"
+        ],
+        [
+          "label",
+          "Smoothly follow new text"
+        ],
+        [
+          "label",
+          "Smoothly follow new text"
+        ],
+        [
+          "label",
+          "Template"
+        ],
+        [
+          "label",
+          "Template"
+        ],
+        [
+          "label",
+          "Where should it sit?"
+        ],
+        [
+          "label",
+          "Where should it sit?"
+        ],
+        [
+          "label",
+          "Workspace"
+        ],
+        [
+          "label",
+          "Workspace"
+        ],
+        [
+          "label",
+          "Your recorder"
+        ],
+        [
+          "label",
+          "Your recorder"
+        ],
+        [
+          "label",
+          "↓  Center"
+        ],
+        [
+          "label",
+          "↓  Center"
+        ],
+        [
+          "label",
+          "↘  Right"
+        ],
+        [
+          "label",
+          "↘  Right"
+        ],
+        [
+          "label",
+          "↙  Left"
+        ],
+        [
+          "label",
+          "↙  Left"
+        ],
+        [
+          "label",
+          "● Live"
+        ],
+        [
+          "label",
+          "● Live"
+        ],
+        [
+          "list item",
+          "Edit Live prompt"
+        ],
+        [
+          "list item",
+          "Edit Live prompt"
+        ],
+        [
+          "list item",
+          "Save settings"
+        ],
+        [
+          "list item",
+          "Save settings"
+        ],
+        [
+          "slider",
+          "Recorder background opacity"
+        ],
+        [
+          "slider",
+          "Recorder background opacity"
+        ],
+        [
+          "slider",
+          "Visible transcript lines"
+        ],
+        [
+          "slider",
+          "Visible transcript lines"
+        ],
+        [
+          "switch",
+          "Copy completed dictation automatically"
+        ],
+        [
+          "switch",
+          "Copy completed dictation automatically"
+        ],
+        [
+          "switch",
+          "Copy completed dictation automatically"
+        ],
+        [
+          "switch",
+          "Copy completed dictation automatically"
+        ],
+        [
+          "switch",
+          "Copy completed rewrites automatically"
+        ],
+        [
+          "switch",
+          "Copy completed rewrites automatically"
+        ],
+        [
+          "switch",
+          "Copy completed rewrites automatically"
+        ],
+        [
+          "switch",
+          "Copy completed rewrites automatically"
+        ],
+        [
+          "switch",
+          "Paste when I stop"
+        ],
+        [
+          "switch",
+          "Paste when I stop"
+        ],
+        [
+          "switch",
+          "Paste when I stop"
+        ],
+        [
+          "switch",
+          "Paste when I stop"
+        ],
+        [
+          "switch",
+          "Show Copy icon"
+        ],
+        [
+          "switch",
+          "Show Copy icon"
+        ],
+        [
+          "switch",
+          "Show Copy icon"
+        ],
+        [
+          "switch",
+          "Show Copy icon"
+        ],
+        [
+          "switch",
+          "Show Save icon"
+        ],
+        [
+          "switch",
+          "Show Save icon"
+        ],
+        [
+          "switch",
+          "Show Save icon"
+        ],
+        [
+          "switch",
+          "Show Save icon"
+        ],
+        [
+          "switch",
+          "Show history sidebar by default"
+        ],
+        [
+          "switch",
+          "Show history sidebar by default"
+        ],
+        [
+          "switch",
+          "Show history sidebar by default"
+        ],
+        [
+          "switch",
+          "Show history sidebar by default"
+        ],
+        [
+          "switch",
+          "Smoothly follow new text"
+        ],
+        [
+          "switch",
+          "Smoothly follow new text"
+        ],
+        [
+          "switch",
+          "Smoothly follow new text"
+        ],
+        [
+          "switch",
+          "Smoothly follow new text"
+        ],
+        [
+          "toggle button",
+          "Advanced"
+        ],
+        [
+          "toggle button",
+          "Advanced"
+        ],
+        [
+          "toggle button",
+          "Audio"
+        ],
+        [
+          "toggle button",
+          "Audio"
+        ],
+        [
+          "toggle button",
+          "Capture"
+        ],
+        [
+          "toggle button",
+          "Capture"
+        ],
+        [
+          "toggle button",
+          "Feature maturity"
+        ],
+        [
+          "toggle button",
+          "Feature maturity"
+        ],
+        [
+          "toggle button",
+          "Mluva menu"
+        ],
+        [
+          "toggle button",
+          "Privacy"
+        ],
+        [
+          "toggle button",
+          "Privacy"
+        ],
+        [
+          "toggle button",
+          "Prompts"
+        ],
+        [
+          "toggle button",
+          "Prompts"
+        ],
+        [
+          "toggle button",
+          "Providers"
+        ],
+        [
+          "toggle button",
+          "Providers"
+        ],
+        [
+          "toggle button",
+          "Workspace"
+        ],
+        [
+          "toggle button",
+          "Workspace"
+        ],
+        [
+          "toggle button",
+          "↓  Center"
+        ],
+        [
+          "toggle button",
+          "↓  Center"
+        ],
+        [
+          "toggle button",
+          "↘  Right"
+        ],
+        [
+          "toggle button",
+          "↘  Right"
+        ],
+        [
+          "toggle button",
+          "↙  Left"
+        ],
+        [
+          "toggle button",
+          "↙  Left"
+        ],
+        [
+          "window",
+          "Mluva"
+        ]
+      ],
+      "items": [
+        "Edit Live prompt",
+        "Save settings",
+        "Edit Live prompt",
+        "Save settings"
+      ],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "visible": true,
+      "names": [
+        [
+          "button",
+          "Capture boundary and cloud processing"
+        ],
+        [
+          "button",
+          "Capture boundary and cloud processing"
+        ],
+        [
+          "button",
+          "Capture boundary and cloud processing"
+        ],
+        [
+          "button",
+          "Capture boundary and cloud processing"
+        ],
+        [
+          "button",
+          "Close"
+        ],
+        [
+          "button",
+          "Conversations"
+        ],
+        [
+          "button",
+          "Maximize"
+        ],
+        [
+          "button",
+          "Minimize"
+        ],
+        [
+          "button",
+          "Mluva menu"
+        ],
+        [
+          "button",
+          "Mluva settings"
+        ],
+        [
+          "button",
+          "Show or hide history"
+        ],
+        [
+          "button",
+          "Start Meeting capture"
+        ],
+        [
+          "button",
+          "Start Meeting capture"
+        ],
+        [
+          "button",
+          "Start Meeting capture"
+        ],
+        [
+          "button",
+          "Start Meeting capture"
+        ],
+        [
+          "label",
+          "0 saved"
+        ],
+        [
+          "label",
+          "0 saved"
+        ],
+        [
+          "label",
+          "0 saved"
+        ],
+        [
+          "label",
+          "0 saved"
+        ],
+        [
+          "label",
+          "Always explicit · microphone + system output · never auto-pastes"
+        ],
+        [
+          "label",
+          "Always explicit · microphone + system output · never auto-pastes"
+        ],
+        [
+          "label",
+          "Always explicit · microphone + system output · never auto-pastes"
+        ],
+        [
+          "label",
+          "Always explicit · microphone + system output · never auto-pastes"
+        ],
+        [
+          "label",
+          "Audio routes"
+        ],
+        [
+          "label",
+          "Audio routes"
+        ],
+        [
+          "label",
+          "Audio routes"
+        ],
+        [
+          "label",
+          "Audio routes"
+        ],
+        [
+          "label",
+          "Capture boundary and cloud processing"
+        ],
+        [
+          "label",
+          "Capture boundary and cloud processing"
+        ],
+        [
+          "label",
+          "Capture boundary and cloud processing"
+        ],
+        [
+          "label",
+          "Capture boundary and cloud processing"
+        ],
+        [
+          "label",
+          "Default (automatic) + everything playing through Default (automatic)"
+        ],
+        [
+          "label",
+          "Default (automatic) + everything playing through Default (automatic)"
+        ],
+        [
+          "label",
+          "Default (automatic) + everything playing through Default (automatic)"
+        ],
+        [
+          "label",
+          "Default (automatic) + everything playing through Default (automatic)"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Meeting"
+        ],
+        [
+          "label",
+          "Meeting archive"
+        ],
+        [
+          "label",
+          "Meeting archive"
+        ],
+        [
+          "label",
+          "Meeting archive"
+        ],
+        [
+          "label",
+          "Meeting archive"
+        ],
+        [
+          "label",
+          "Microphone plus system-audio capture, diarization, review, and archive still need manual acceptance."
+        ],
+        [
+          "label",
+          "Microphone plus system-audio capture, diarization, review, and archive still need manual acceptance."
+        ],
+        [
+          "label",
+          "Microphone plus system-audio capture, diarization, review, and archive still need manual acceptance."
+        ],
+        [
+          "label",
+          "Microphone plus system-audio capture, diarization, review, and archive still need manual acceptance."
+        ],
+        [
+          "label",
+          "No saved meetings yet"
+        ],
+        [
+          "label",
+          "No saved meetings yet"
+        ],
+        [
+          "label",
+          "No saved meetings yet"
+        ],
+        [
+          "label",
+          "No saved meetings yet"
+        ],
+        [
+          "label",
+          "Only explicit non-Incognito Meeting captures appear here."
+        ],
+        [
+          "label",
+          "Only explicit non-Incognito Meeting captures appear here."
+        ],
+        [
+          "label",
+          "Only explicit non-Incognito Meeting captures appear here."
+        ],
+        [
+          "label",
+          "Only explicit non-Incognito Meeting captures appear here."
+        ],
+        [
+          "label",
+          "Private local archive"
+        ],
+        [
+          "label",
+          "Private local archive"
+        ],
+        [
+          "label",
+          "Private local archive"
+        ],
+        [
+          "label",
+          "Private local archive"
+        ],
+        [
+          "label",
+          "Ready for an explicit Meeting"
+        ],
+        [
+          "label",
+          "Ready for an explicit Meeting"
+        ],
+        [
+          "label",
+          "Ready for an explicit Meeting"
+        ],
+        [
+          "label",
+          "Ready for an explicit Meeting"
+        ],
+        [
+          "label",
+          "Start Meeting capture"
+        ],
+        [
+          "label",
+          "Start Meeting capture"
+        ],
+        [
+          "label",
+          "Start Meeting capture"
+        ],
+        [
+          "label",
+          "Start Meeting capture"
+        ],
+        [
+          "label",
+          "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
+        ],
+        [
+          "label",
+          "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
+        ],
+        [
+          "label",
+          "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
+        ],
+        [
+          "label",
+          "Uploaded to ElevenLabs after Stop; mixed audio is retained for explicit retry"
+        ],
+        [
+          "list item",
+          "No saved meetings yet"
+        ],
+        [
+          "list item",
+          "No saved meetings yet"
+        ],
+        [
+          "list item",
+          "No saved meetings yet"
+        ],
+        [
+          "list item",
+          "No saved meetings yet"
+        ],
+        [
+          "status",
+          "Meeting is idle"
+        ],
+        [
+          "status",
+          "Meeting is idle"
+        ],
+        [
+          "status",
+          "Meeting is idle"
+        ],
+        [
+          "status",
+          "Meeting is idle"
+        ],
+        [
+          "toggle button",
+          "Mluva menu"
+        ],
+        [
+          "window",
+          "Mluva"
+        ]
+      ],
+      "items": [
+        "No saved meetings yet",
+        "No saved meetings yet",
+        "No saved meetings yet",
+        "No saved meetings yet"
+      ],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "visible": true,
+      "names": [
+        [
+          "button",
+          "Close"
+        ],
+        [
+          "button",
+          "Conversations"
+        ],
+        [
+          "button",
+          "Maximize"
+        ],
+        [
+          "button",
+          "Minimize"
+        ],
+        [
+          "button",
+          "Mluva menu"
+        ],
+        [
+          "button",
+          "Mluva settings"
+        ],
+        [
+          "button",
+          "Show or hide history"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "Personalization"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "toggle button",
+          "Mluva menu"
+        ],
+        [
+          "window",
+          "Mluva"
+        ]
+      ],
+      "items": [
+        "No dictionary entries yet",
+        "No dictionary entries yet",
+        "No dictionary entries yet",
+        "No dictionary entries yet",
+        "No dictionary entries yet",
+        "No dictionary entries yet",
+        "Add dictionary entry",
+        "Add dictionary entry",
+        "Add dictionary entry",
+        "Add dictionary entry",
+        "Add dictionary entry",
+        "Add dictionary entry"
+      ],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "visible": true,
+      "names": [
+        [
+          "button",
+          "Add screenshot"
+        ],
+        [
+          "button",
+          "Close"
+        ],
+        [
+          "button",
+          "Close"
+        ],
+        [
+          "button",
+          "Codex model"
+        ],
+        [
+          "button",
+          "Conversations"
+        ],
+        [
+          "button",
+          "Dictate"
+        ],
+        [
+          "button",
+          "Edit prompt · Polish"
+        ],
+        [
+          "button",
+          "Edit prompt · Structure"
+        ],
+        [
+          "button",
+          "Live rewrite template: Grilling"
+        ],
+        [
+          "button",
+          "Maximize"
+        ],
+        [
+          "button",
+          "Minimize"
+        ],
+        [
+          "button",
+          "Mluva menu"
+        ],
+        [
+          "button",
+          "Mluva settings"
+        ],
+        [
+          "button",
+          "More"
+        ],
+        [
+          "button",
+          "New conversation"
+        ],
+        [
+          "button",
+          "Polish"
+        ],
+        [
+          "button",
+          "Save this prompt for later"
+        ],
+        [
+          "button",
+          "Show or hide history"
+        ],
+        [
+          "button",
+          "Start conversation"
+        ],
+        [
+          "button",
+          "Structure"
+        ],
+        [
+          "dialog",
+          "Commands"
+        ],
+        [
+          "grid cell",
+          "Codex model"
+        ],
+        [
+          "grid cell",
+          "More"
+        ],
+        [
+          "grid cell",
+          "Polish Edit prompt · Polish"
+        ],
+        [
+          "grid cell",
+          "Structure Edit prompt · Structure"
+        ],
+        [
+          "group",
+          "Ctrl + ,"
+        ],
+        [
+          "group",
+          "Ctrl + 1"
+        ],
+        [
+          "group",
+          "Ctrl + 2"
+        ],
+        [
+          "group",
+          "Ctrl + B"
+        ],
+        [
+          "group",
+          "Ctrl + H"
+        ],
+        [
+          "group",
+          "Ctrl + L"
+        ],
+        [
+          "group",
+          "Ctrl + R"
+        ],
+        [
+          "group",
+          "Ctrl + S"
+        ],
+        [
+          "group",
+          "Shift + Ctrl + C"
+        ],
+        [
+          "group",
+          "Shift + Ctrl + P"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          "+"
+        ],
+        [
+          "label",
+          ","
+        ],
+        [
+          "label",
+          "1"
+        ],
+        [
+          "label",
+          "2"
+        ],
+        [
+          "label",
+          "B"
+        ],
+        [
+          "label",
+          "C"
+        ],
+        [
+          "label",
+          "Codex model"
+        ],
+        [
+          "label",
+          "Commands"
+        ],
+        [
+          "label",
+          "Copy current text"
+        ],
+        [
+          "label",
+          "Ctrl"
+        ],
+        [
+          "label",
+          "Ctrl"
+        ],
+        [
+          "label",
+          "Ctrl"
+        ],
+        [
+          "label",
+          "Ctrl"
+        ],
+        [
+          "label",
+          "Ctrl"
+        ],
+        [
+          "label",
+          "Ctrl"
+        ],
+        [
+          "label",
+          "Ctrl"
+        ],
+        [
+          "label",
+          "Ctrl"
+        ],
+        [
+          "label",
+          "Ctrl"
+        ],
+        [
+          "label",
+          "Ctrl"
+        ],
+        [
+          "label",
+          "Cycle Live rewrite: Off → Once → Continuous"
+        ],
+        [
+          "label",
+          "Dictate"
+        ],
+        [
+          "label",
+          "H"
+        ],
+        [
+          "label",
+          "Hide draft pane"
+        ],
+        [
+          "label",
+          "Hide original pane"
+        ],
+        [
+          "label",
+          "History"
+        ],
+        [
+          "label",
+          "L"
+        ],
+        [
+          "label",
+          "Live conversation"
+        ],
+        [
+          "label",
+          "Live rewrite"
+        ],
+        [
+          "label",
+          "More"
+        ],
+        [
+          "label",
+          "New conversation"
+        ],
+        [
+          "label",
+          "P"
+        ],
+        [
+          "label",
+          "Paste or type text to start…"
+        ],
+        [
+          "label",
+          "Polish"
+        ],
+        [
+          "label",
+          "Polish text"
+        ],
+        [
+          "label",
+          "Press F9 to dictate. Or paste text below.\nPolish it, structure it, make it yours."
+        ],
+        [
+          "label",
+          "R"
+        ],
+        [
+          "label",
+          "Rewrite with an instruction"
+        ],
+        [
+          "label",
+          "S"
+        ],
+        [
+          "label",
+          "Save edits"
+        ],
+        [
+          "label",
+          "Settings"
+        ],
+        [
+          "label",
+          "Settings · Advanced · Diagnostics · Privacy-safe timing export · Experimental"
+        ],
+        [
+          "label",
+          "Settings · Audio · Audio routing · Meeting system output · Experimental"
+        ],
+        [
+          "label",
+          "Settings · Audio · Audio routing · Microphone"
+        ],
+        [
+          "label",
+          "Settings · Audio · Audio routing · PipeWire device snapshot"
+        ],
+        [
+          "label",
+          "Settings · Capture · Behavior · Automatic conversation titles"
+        ],
+        [
+          "label",
+          "Settings · Capture · Behavior · Automatic paste · Experimental"
+        ],
+        [
+          "label",
+          "Settings · Capture · Behavior · Faithful cleanup · Experimental"
+        ],
+        [
+          "label",
+          "Settings · Capture · Behavior · Remember mode and style per application · Experimental"
+        ],
+        [
+          "label",
+          "Settings · Capture · Behavior · Spoken structure · Experimental"
+        ],
+        [
+          "label",
+          "Settings · Capture · Capture defaults · Capture mode"
+        ],
+        [
+          "label",
+          "Settings · Capture · Capture defaults · Custom output modes"
+        ],
+        [
+          "label",
+          "Settings · Capture · Capture defaults · Output style"
+        ],
+        [
+          "label",
+          "Settings · Capture · Capture defaults · Selected style instructions"
+        ],
+        [
+          "label",
+          "Settings · Capture · Capture defaults · Transcription language"
+        ],
+        [
+          "label",
+          "Settings · Capture · Global shortcut · Desktop approval"
+        ],
+        [
+          "label",
+          "Settings · Capture · Global shortcut · Open latest conversation"
+        ],
+        [
+          "label",
+          "Settings · Capture · Global shortcut · Recording key"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Conversation title"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Dictation cleanup"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Live · Custom"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Live · Grilling"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Live · Polish"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Live · Structured note"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Live · Task spec"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Rewrite · Polish"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Rewrite · Structure"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Style · Email"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Style · Google Chat"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Style · Message"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Style · Prompt"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Style · Prose"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Style · Tasks"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Style · Technical notes"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Template · Note structure"
+        ],
+        [
+          "label",
+          "Settings · Edit prompt · Template · Task spec structure"
+        ],
+        [
+          "label",
+          "Settings · Live rewrite template: Custom"
+        ],
+        [
+          "label",
+          "Settings · Live rewrite template: Grilling"
+        ],
+        [
+          "label",
+          "Settings · Live rewrite template: Polish"
+        ],
+        [
+          "label",
+          "Settings · Live rewrite template: Structured note"
+        ],
+        [
+          "label",
+          "Settings · Live rewrite template: Task spec"
+        ],
+        [
+          "label",
+          "Settings · Privacy · Privacy and retention · Incognito · Experimental"
+        ],
+        [
+          "label",
+          "Settings · Privacy · Privacy and retention · Keep audio · Experimental"
+        ],
+        [
+          "label",
+          "Settings · Privacy · Privacy and retention · Keep history · Experimental"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Conversation title"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Dictation cleanup"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Live · Custom"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Live · Grilling"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Live · Polish"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Live · Structured note"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Live · Task spec"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Rewrite · Polish"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Rewrite · Structure"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Style · Email"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Style · Google Chat"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Style · Message"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Style · Prompt"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Style · Prose"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Style · Tasks"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Style · Technical notes"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Template · Note structure"
+        ],
+        [
+          "label",
+          "Settings · Prompts · Prompts · Template · Task spec structure"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · API base URL (include the API prefix)"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · API key environment variable · name only"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Batch providers recognize again at Stop"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Connection"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Connection details"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Connection details"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · ElevenLabs API key"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Fast mode"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Keep keys in your secret manager"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Live speech previews"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Live speech previews"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Model"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Model"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Model ID / deployment alias"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Seconds per audio chunk"
+        ],
+        [
+          "label",
+          "Settings · Providers · Rewriting · Thinking level"
+        ],
+        [
+          "label",
+          "Settings · Providers · Save provider choices"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · API base URL (include the API prefix)"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · API key environment variable · name only"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Batch providers recognize again at Stop"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Connection"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Connection details"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Connection details"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · ElevenLabs API key"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Fast mode"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Keep keys in your secret manager"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Live speech previews"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Live speech previews"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Model"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Model"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Model ID / deployment alias"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Seconds per audio chunk"
+        ],
+        [
+          "label",
+          "Settings · Providers · Speech recognition · Thinking level"
+        ],
+        [
+          "label",
+          "Settings · Time format: 12-hour · 2:30 PM"
+        ],
+        [
+          "label",
+          "Settings · Time format: 24-hour · 14:30"
+        ],
+        [
+          "label",
+          "Settings · Welcome and provider setup"
+        ],
+        [
+          "label",
+          "Settings · Widget position: Bottom"
+        ],
+        [
+          "label",
+          "Settings · Widget position: Lower left"
+        ],
+        [
+          "label",
+          "Settings · Widget position: Lower right"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Appearance · History time format"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Appearance · Show history sidebar by default"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Documents · Copy completed dictation automatically"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Documents · Copy completed rewrites automatically"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Documents · Scroll animation (milliseconds)"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Documents · Show Copy icon"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Documents · Show Save icon"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Documents · Smoothly follow new text"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Documents · Space below new text (lines)"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Documents · Widget dismissal delay (seconds)"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Floating widget position"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Live rewrite · Edit Live prompt"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Live rewrite · Live rewrite mode"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Live rewrite · Minimum time between updates (seconds)"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Live rewrite · New characters to group after the first draft"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Live rewrite · Template"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Save settings"
+        ],
+        [
+          "label",
+          "Settings · Workspace · Your recorder · Paste when I stop"
+        ],
+        [
+          "label",
+          "Shift"
+        ],
+        [
+          "label",
+          "Shift"
+        ],
+        [
+          "label",
+          "Start conversation"
+        ],
+        [
+          "label",
+          "Start dictation"
+        ],
+        [
+          "label",
+          "Structure"
+        ],
+        [
+          "label",
+          "Toggle history sidebar"
+        ],
+        [
+          "label",
+          "Your words, ready to use"
+        ],
+        [
+          "label",
+          "↑ ↓ to choose · Enter to run · Esc to close"
+        ],
+        [
+          "list item",
+          "Copy current text"
+        ],
+        [
+          "list item",
+          "Cycle Live rewrite: Off → Once → Continuous"
+        ],
+        [
+          "list item",
+          "Hide draft pane"
+        ],
+        [
+          "list item",
+          "Hide original pane"
+        ],
+        [
+          "list item",
+          "History"
+        ],
+        [
+          "list item",
+          "Live conversation"
+        ],
+        [
+          "list item",
+          "Polish text"
+        ],
+        [
+          "list item",
+          "Rewrite with an instruction"
+        ],
+        [
+          "list item",
+          "Save edits"
+        ],
+        [
+          "list item",
+          "Settings"
+        ],
+        [
+          "list item",
+          "Settings · Advanced · Diagnostics · Privacy-safe timing export · Experimental"
+        ],
+        [
+          "list item",
+          "Settings · Audio · Audio routing · Meeting system output · Experimental"
+        ],
+        [
+          "list item",
+          "Settings · Audio · Audio routing · Microphone"
+        ],
+        [
+          "list item",
+          "Settings · Audio · Audio routing · PipeWire device snapshot"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Behavior · Automatic conversation titles"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Behavior · Automatic paste · Experimental"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Behavior · Faithful cleanup · Experimental"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Behavior · Remember mode and style per application · Experimental"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Behavior · Spoken structure · Experimental"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Capture defaults · Capture mode"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Capture defaults · Custom output modes"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Capture defaults · Output style"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Capture defaults · Selected style instructions"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Capture defaults · Transcription language"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Global shortcut · Desktop approval"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Global shortcut · Open latest conversation"
+        ],
+        [
+          "list item",
+          "Settings · Capture · Global shortcut · Recording key"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Conversation title"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Dictation cleanup"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Live · Custom"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Live · Grilling"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Live · Polish"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Live · Structured note"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Live · Task spec"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Rewrite · Polish"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Rewrite · Structure"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Style · Email"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Style · Google Chat"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Style · Message"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Style · Prompt"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Style · Prose"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Style · Tasks"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Style · Technical notes"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Template · Note structure"
+        ],
+        [
+          "list item",
+          "Settings · Edit prompt · Template · Task spec structure"
+        ],
+        [
+          "list item",
+          "Settings · Live rewrite template: Custom"
+        ],
+        [
+          "list item",
+          "Settings · Live rewrite template: Grilling"
+        ],
+        [
+          "list item",
+          "Settings · Live rewrite template: Polish"
+        ],
+        [
+          "list item",
+          "Settings · Live rewrite template: Structured note"
+        ],
+        [
+          "list item",
+          "Settings · Live rewrite template: Task spec"
+        ],
+        [
+          "list item",
+          "Settings · Privacy · Privacy and retention · Incognito · Experimental"
+        ],
+        [
+          "list item",
+          "Settings · Privacy · Privacy and retention · Keep audio · Experimental"
+        ],
+        [
+          "list item",
+          "Settings · Privacy · Privacy and retention · Keep history · Experimental"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Conversation title"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Dictation cleanup"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Live · Custom"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Live · Grilling"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Live · Polish"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Live · Structured note"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Live · Task spec"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Rewrite · Polish"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Rewrite · Structure"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Style · Email"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Style · Google Chat"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Style · Message"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Style · Prompt"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Style · Prose"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Style · Tasks"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Style · Technical notes"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Template · Note structure"
+        ],
+        [
+          "list item",
+          "Settings · Prompts · Prompts · Template · Task spec structure"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · API base URL (include the API prefix)"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · API key environment variable · name only"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Batch providers recognize again at Stop"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Connection"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Connection details"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Connection details"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · ElevenLabs API key"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Fast mode"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Keep keys in your secret manager"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Live speech previews"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Live speech previews"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Model"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Model"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Model ID / deployment alias"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Seconds per audio chunk"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Rewriting · Thinking level"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Save provider choices"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · API base URL (include the API prefix)"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · API key environment variable · name only"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Batch providers recognize again at Stop"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Connection"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Connection details"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Connection details"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · ElevenLabs API key"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Fast mode"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Keep keys in your secret manager"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Live speech previews"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Live speech previews"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Model"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Model"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Model ID / deployment alias"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Seconds per audio chunk"
+        ],
+        [
+          "list item",
+          "Settings · Providers · Speech recognition · Thinking level"
+        ],
+        [
+          "list item",
+          "Settings · Time format: 12-hour · 2:30 PM"
+        ],
+        [
+          "list item",
+          "Settings · Time format: 24-hour · 14:30"
+        ],
+        [
+          "list item",
+          "Settings · Welcome and provider setup"
+        ],
+        [
+          "list item",
+          "Settings · Widget position: Bottom"
+        ],
+        [
+          "list item",
+          "Settings · Widget position: Lower left"
+        ],
+        [
+          "list item",
+          "Settings · Widget position: Lower right"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Appearance · History time format"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Appearance · Show history sidebar by default"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Documents · Copy completed dictation automatically"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Documents · Copy completed rewrites automatically"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Documents · Scroll animation (milliseconds)"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Documents · Show Copy icon"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Documents · Show Save icon"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Documents · Smoothly follow new text"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Documents · Space below new text (lines)"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Documents · Widget dismissal delay (seconds)"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Floating widget position"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Live rewrite · Edit Live prompt"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Live rewrite · Live rewrite mode"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Live rewrite · Minimum time between updates (seconds)"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Live rewrite · New characters to group after the first draft"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Live rewrite · Template"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Save settings"
+        ],
+        [
+          "list item",
+          "Settings · Workspace · Your recorder · Paste when I stop"
+        ],
+        [
+          "list item",
+          "Start dictation"
+        ],
+        [
+          "list item",
+          "Toggle history sidebar"
+        ],
+        [
+          "search box",
+          "Search actions"
+        ],
+        [
+          "status",
+          "Dictation copies automatically."
+        ],
+        [
+          "text box",
+          "Write a custom instruction, then press Ctrl+Enter to send"
+        ],
+        [
+          "toggle button",
+          "Codex model"
+        ],
+        [
+          "toggle button",
+          "Live rewrite"
+        ],
+        [
+          "toggle button",
+          "Live rewrite template: Grilling"
+        ],
+        [
+          "toggle button",
+          "Mluva menu"
+        ],
+        [
+          "toggle button",
+          "More"
+        ],
+        [
+          "window",
+          "Mluva"
+        ]
+      ],
+      "items": [
+        "Start dictation",
+        "Cycle Live rewrite: Off → Once → Continuous",
+        "Polish text",
+        "Rewrite with an instruction",
+        "Copy current text",
+        "Save edits",
+        "History",
+        "Live conversation",
+        "Toggle history sidebar",
+        "Hide original pane",
+        "Hide draft pane",
+        "Settings",
+        "Settings · Welcome and provider setup",
+        "Settings · Workspace · Floating widget position",
+        "Settings · Widget position: Lower left",
+        "Settings · Widget position: Bottom",
+        "Settings · Widget position: Lower right",
+        "Settings · Time format: 24-hour · 14:30",
+        "Settings · Time format: 12-hour · 2:30 PM",
+        "Settings · Live rewrite template: Grilling",
+        "Settings · Live rewrite template: Task spec",
+        "Settings · Live rewrite template: Structured note",
+        "Settings · Live rewrite template: Polish",
+        "Settings · Live rewrite template: Custom",
+        "Settings · Edit prompt · Dictation cleanup",
+        "Settings · Edit prompt · Live · Grilling",
+        "Settings · Edit prompt · Live · Task spec",
+        "Settings · Edit prompt · Live · Structured note",
+        "Settings · Edit prompt · Live · Polish",
+        "Settings · Edit prompt · Live · Custom",
+        "Settings · Edit prompt · Template · Task spec structure",
+        "Settings · Edit prompt · Template · Note structure",
+        "Settings · Edit prompt · Rewrite · Polish",
+        "Settings · Edit prompt · Rewrite · Structure",
+        "Settings · Edit prompt · Conversation title",
+        "Settings · Edit prompt · Style · Message",
+        "Settings · Edit prompt · Style · Google Chat",
+        "Settings · Edit prompt · Style · Tasks",
+        "Settings · Edit prompt · Style · Email",
+        "Settings · Edit prompt · Style · Prose",
+        "Settings · Edit prompt · Style · Technical notes",
+        "Settings · Edit prompt · Style · Prompt",
+        "Settings · Prompts · Prompts · Dictation cleanup",
+        "Settings · Prompts · Prompts · Live · Grilling",
+        "Settings · Prompts · Prompts · Live · Task spec",
+        "Settings · Prompts · Prompts · Live · Structured note",
+        "Settings · Prompts · Prompts · Live · Polish",
+        "Settings · Prompts · Prompts · Live · Custom",
+        "Settings · Prompts · Prompts · Template · Task spec structure",
+        "Settings · Prompts · Prompts · Template · Note structure",
+        "Settings · Prompts · Prompts · Rewrite · Polish",
+        "Settings · Prompts · Prompts · Rewrite · Structure",
+        "Settings · Prompts · Prompts · Conversation title",
+        "Settings · Prompts · Prompts · Style · Message",
+        "Settings · Prompts · Prompts · Style · Google Chat",
+        "Settings · Prompts · Prompts · Style · Tasks",
+        "Settings · Prompts · Prompts · Style · Email",
+        "Settings · Prompts · Prompts · Style · Prose",
+        "Settings · Prompts · Prompts · Style · Technical notes",
+        "Settings · Prompts · Prompts · Style · Prompt",
+        "Settings · Workspace · Your recorder · Paste when I stop",
+        "Settings · Workspace · Appearance · Show history sidebar by default",
+        "Settings · Workspace · Appearance · History time format",
+        "Settings · Workspace · Documents · Copy completed dictation automatically",
+        "Settings · Workspace · Documents · Copy completed rewrites automatically",
+        "Settings · Workspace · Documents · Show Copy icon",
+        "Settings · Workspace · Documents · Show Save icon",
+        "Settings · Workspace · Documents · Smoothly follow new text",
+        "Settings · Workspace · Documents · Widget dismissal delay (seconds)",
+        "Settings · Workspace · Documents · Scroll animation (milliseconds)",
+        "Settings · Workspace · Documents · Space below new text (lines)",
+        "Settings · Workspace · Live rewrite · Live rewrite mode",
+        "Settings · Workspace · Live rewrite · Template",
+        "Settings · Workspace · Live rewrite · New characters to group after the first draft",
+        "Settings · Workspace · Live rewrite · Minimum time between updates (seconds)",
+        "Settings · Workspace · Live rewrite · Edit Live prompt",
+        "Settings · Workspace · Save settings",
+        "Settings · Providers · Speech recognition · ElevenLabs API key",
+        "Settings · Providers · Speech recognition · Model",
+        "Settings · Providers · Speech recognition · Model",
+        "Settings · Providers · Speech recognition · Model ID / deployment alias",
+        "Settings · Providers · Speech recognition · Fast mode",
+        "Settings · Providers · Speech recognition · Thinking level",
+        "Settings · Providers · Speech recognition · Connection",
+        "Settings · Providers · Speech recognition · Connection details",
+        "Settings · Providers · Speech recognition · Connection details",
+        "Settings · Providers · Speech recognition · API base URL (include the API prefix)",
+        "Settings · Providers · Speech recognition · API key environment variable · name only",
+        "Settings · Providers · Speech recognition · Keep keys in your secret manager",
+        "Settings · Providers · Speech recognition · Live speech previews",
+        "Settings · Providers · Speech recognition · Live speech previews",
+        "Settings · Providers · Speech recognition · Seconds per audio chunk",
+        "Settings · Providers · Speech recognition · Batch providers recognize again at Stop",
+        "Settings · Providers · Rewriting · ElevenLabs API key",
+        "Settings · Providers · Rewriting · Model",
+        "Settings · Providers · Rewriting · Model",
+        "Settings · Providers · Rewriting · Model ID / deployment alias",
+        "Settings · Providers · Rewriting · Fast mode",
+        "Settings · Providers · Rewriting · Thinking level",
+        "Settings · Providers · Rewriting · Connection",
+        "Settings · Providers · Rewriting · Connection details",
+        "Settings · Providers · Rewriting · Connection details",
+        "Settings · Providers · Rewriting · API base URL (include the API prefix)",
+        "Settings · Providers · Rewriting · API key environment variable · name only",
+        "Settings · Providers · Rewriting · Keep keys in your secret manager",
+        "Settings · Providers · Rewriting · Live speech previews",
+        "Settings · Providers · Rewriting · Live speech previews",
+        "Settings · Providers · Rewriting · Seconds per audio chunk",
+        "Settings · Providers · Rewriting · Batch providers recognize again at Stop",
+        "Settings · Providers · Save provider choices",
+        "Settings · Capture · Capture defaults · Capture mode",
+        "Settings · Capture · Capture defaults · Transcription language",
+        "Settings · Capture · Capture defaults · Output style",
+        "Settings · Capture · Capture defaults · Selected style instructions",
+        "Settings · Capture · Capture defaults · Custom output modes",
+        "Settings · Capture · Global shortcut · Recording key",
+        "Settings · Capture · Global shortcut · Desktop approval",
+        "Settings · Capture · Global shortcut · Open latest conversation",
+        "Settings · Capture · Behavior · Remember mode and style per application · Experimental",
+        "Settings · Capture · Behavior · Faithful cleanup · Experimental",
+        "Settings · Capture · Behavior · Automatic conversation titles",
+        "Settings · Capture · Behavior · Spoken structure · Experimental",
+        "Settings · Capture · Behavior · Automatic paste · Experimental",
+        "Settings · Audio · Audio routing · Microphone",
+        "Settings · Audio · Audio routing · Meeting system output · Experimental",
+        "Settings · Audio · Audio routing · PipeWire device snapshot",
+        "Settings · Privacy · Privacy and retention · Incognito · Experimental",
+        "Settings · Privacy · Privacy and retention · Keep audio · Experimental",
+        "Settings · Privacy · Privacy and retention · Keep history · Experimental",
+        "Settings · Advanced · Diagnostics · Privacy-safe timing export · Experimental"
+      ],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "visible": false,
+      "names": [],
+      "items": [],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "visible": false,
+      "names": [],
+      "items": [],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        },
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "visible": true,
+      "names": [
+        [
+          "button",
+          "Close"
+        ],
+        [
+          "button",
+          "Conversations"
+        ],
+        [
+          "button",
+          "Maximize"
+        ],
+        [
+          "button",
+          "Minimize"
+        ],
+        [
+          "button",
+          "Mluva menu"
+        ],
+        [
+          "button",
+          "Mluva settings"
+        ],
+        [
+          "button",
+          "Show or hide history"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "group",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add dictionary entry"
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Add one only when Mluva repeatedly writes an exact phrase incorrectly."
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Dictionary"
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Exact whole-phrase replacements run locally before optional Codex enhancement."
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Experimental"
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Local replacements and review-only suggestions still need manual acceptance."
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "Map one exact spoken phrase to its written form"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "No dictionary entries yet"
+        ],
+        [
+          "label",
+          "Personalization"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Saved dictionary entries"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Snippets"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Styles"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "label",
+          "Suggestions"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "Add dictionary entry"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "list item",
+          "No dictionary entries yet"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Dictionary"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Snippets"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Styles"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "tab",
+          "Suggestions"
+        ],
+        [
+          "toggle button",
+          "Mluva menu"
+        ],
+        [
+          "window",
+          "Mluva"
+        ]
+      ],
+      "items": [
+        "No dictionary entries yet",
+        "No dictionary entries yet",
+        "No dictionary entries yet",
+        "No dictionary entries yet",
+        "No dictionary entries yet",
+        "No dictionary entries yet",
+        "Add dictionary entry",
+        "Add dictionary entry",
+        "Add dictionary entry",
+        "Add dictionary entry",
+        "Add dictionary entry",
+        "Add dictionary entry"
+      ],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        },
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "visible": true,
+      "names": [
+        [
+          "button",
+          "Close"
+        ],
+        [
+          "button",
+          "Continue"
+        ],
+        [
+          "button",
+          "Continue"
+        ],
+        [
+          "button",
+          "Continue"
+        ],
+        [
+          "button",
+          "Conversations"
+        ],
+        [
+          "button",
+          "Maximize"
+        ],
+        [
+          "button",
+          "Minimize"
+        ],
+        [
+          "button",
+          "Mluva menu"
+        ],
+        [
+          "button",
+          "Mluva settings"
+        ],
+        [
+          "button",
+          "Refresh"
+        ],
+        [
+          "button",
+          "Refresh"
+        ],
+        [
+          "button",
+          "Refresh"
+        ],
+        [
+          "button",
+          "Show or hide history"
+        ],
+        [
+          "combo box",
+          "Model"
+        ],
+        [
+          "combo box",
+          "Model"
+        ],
+        [
+          "combo box",
+          "Model"
+        ],
+        [
+          "label",
+          "Choose speech recognition"
+        ],
+        [
+          "label",
+          "Choose speech recognition"
+        ],
+        [
+          "label",
+          "Choose speech recognition"
+        ],
+        [
+          "label",
+          "Connection"
+        ],
+        [
+          "label",
+          "Connection"
+        ],
+        [
+          "label",
+          "Connection"
+        ],
+        [
+          "label",
+          "Connection details"
+        ],
+        [
+          "label",
+          "Connection details"
+        ],
+        [
+          "label",
+          "Connection details"
+        ],
+        [
+          "label",
+          "Continue"
+        ],
+        [
+          "label",
+          "Continue"
+        ],
+        [
+          "label",
+          "Continue"
+        ],
+        [
+          "label",
+          "Custom"
+        ],
+        [
+          "label",
+          "Custom"
+        ],
+        [
+          "label",
+          "Custom"
+        ],
+        [
+          "label",
+          "ElevenLabs"
+        ],
+        [
+          "label",
+          "ElevenLabs"
+        ],
+        [
+          "label",
+          "ElevenLabs"
+        ],
+        [
+          "label",
+          "Endpoint and key variable name"
+        ],
+        [
+          "label",
+          "Endpoint and key variable name"
+        ],
+        [
+          "label",
+          "Endpoint and key variable name"
+        ],
+        [
+          "label",
+          "Live speech previews"
+        ],
+        [
+          "label",
+          "Live speech previews"
+        ],
+        [
+          "label",
+          "Live speech previews"
+        ],
+        [
+          "label",
+          "Local model"
+        ],
+        [
+          "label",
+          "Local model"
+        ],
+        [
+          "label",
+          "Local model"
+        ],
+        [
+          "label",
+          "Model"
+        ],
+        [
+          "label",
+          "Model"
+        ],
+        [
+          "label",
+          "Model"
+        ],
+        [
+          "label",
+          "No key found. A local server may not need one. Otherwise set the named variable in Mluva’s launch environment and restart. Connection details contain the variable name only."
+        ],
+        [
+          "label",
+          "No key found. A local server may not need one. Otherwise set the named variable in Mluva’s launch environment and restart. Connection details contain the variable name only."
+        ],
+        [
+          "label",
+          "No key found. A local server may not need one. Otherwise set the named variable in Mluva’s launch environment and restart. Connection details contain the variable name only."
+        ],
+        [
+          "label",
+          "Recognizes audio through your LiteLLM or OpenAI-compatible server."
+        ],
+        [
+          "label",
+          "Recognizes audio through your LiteLLM or OpenAI-compatible server."
+        ],
+        [
+          "label",
+          "Recognizes audio through your LiteLLM or OpenAI-compatible server."
+        ],
+        [
+          "label",
+          "Refresh"
+        ],
+        [
+          "label",
+          "Refresh"
+        ],
+        [
+          "label",
+          "Refresh"
+        ],
+        [
+          "label",
+          "Set up Mluva in three steps"
+        ],
+        [
+          "label",
+          "Set up Mluva in three steps"
+        ],
+        [
+          "label",
+          "Set up Mluva in three steps"
+        ],
+        [
+          "label",
+          "Step 1 of 3 · Speech"
+        ],
+        [
+          "label",
+          "Step 1 of 3 · Speech"
+        ],
+        [
+          "label",
+          "Step 1 of 3 · Speech"
+        ],
+        [
+          "label",
+          "Welcome"
+        ],
+        [
+          "label",
+          "whisper"
+        ],
+        [
+          "label",
+          "whisper"
+        ],
+        [
+          "label",
+          "whisper"
+        ],
+        [
+          "list item",
+          "Connection"
+        ],
+        [
+          "list item",
+          "Connection"
+        ],
+        [
+          "list item",
+          "Connection"
+        ],
+        [
+          "list item",
+          "Connection details"
+        ],
+        [
+          "list item",
+          "Connection details"
+        ],
+        [
+          "list item",
+          "Connection details"
+        ],
+        [
+          "list item",
+          "Live speech previews"
+        ],
+        [
+          "list item",
+          "Live speech previews"
+        ],
+        [
+          "list item",
+          "Live speech previews"
+        ],
+        [
+          "toggle button",
+          "Custom"
+        ],
+        [
+          "toggle button",
+          "Custom"
+        ],
+        [
+          "toggle button",
+          "Custom"
+        ],
+        [
+          "toggle button",
+          "ElevenLabs"
+        ],
+        [
+          "toggle button",
+          "ElevenLabs"
+        ],
+        [
+          "toggle button",
+          "ElevenLabs"
+        ],
+        [
+          "toggle button",
+          "Local model"
+        ],
+        [
+          "toggle button",
+          "Local model"
+        ],
+        [
+          "toggle button",
+          "Local model"
+        ],
+        [
+          "toggle button",
+          "Mluva menu"
+        ],
+        [
+          "window",
+          "Mluva"
+        ]
+      ],
+      "items": [
+        "Connection",
+        "Connection",
+        "Connection",
+        "Connection details",
+        "Live speech previews",
+        "Connection details",
+        "Live speech previews",
+        "Connection details",
+        "Live speech previews"
+      ],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "visible": true,
+      "names": [
+        [
+          "button",
+          "Add screenshot"
+        ],
+        [
+          "button",
+          "Close"
+        ],
+        [
+          "button",
+          "Codex model"
+        ],
+        [
+          "button",
+          "Conversations"
+        ],
+        [
+          "button",
+          "Dictate"
+        ],
+        [
+          "button",
+          "Edit prompt · Polish"
+        ],
+        [
+          "button",
+          "Edit prompt · Structure"
+        ],
+        [
+          "button",
+          "Live rewrite template: Grilling"
+        ],
+        [
+          "button",
+          "Maximize"
+        ],
+        [
+          "button",
+          "Minimize"
+        ],
+        [
+          "button",
+          "Mluva menu"
+        ],
+        [
+          "button",
+          "Mluva settings"
+        ],
+        [
+          "button",
+          "More"
+        ],
+        [
+          "button",
+          "New conversation"
+        ],
+        [
+          "button",
+          "Polish"
+        ],
+        [
+          "button",
+          "Retry initialization"
+        ],
+        [
+          "button",
+          "Save this prompt for later"
+        ],
+        [
+          "button",
+          "Show or hide history"
+        ],
+        [
+          "button",
+          "Start conversation"
+        ],
+        [
+          "button",
+          "Structure"
+        ],
+        [
+          "grid cell",
+          "Codex model"
+        ],
+        [
+          "grid cell",
+          "More"
+        ],
+        [
+          "grid cell",
+          "Polish Edit prompt · Polish"
+        ],
+        [
+          "grid cell",
+          "Structure Edit prompt · Structure"
+        ],
+        [
+          "label",
+          "Codex model"
+        ],
+        [
+          "label",
+          "Dictate"
+        ],
+        [
+          "label",
+          "ElevenLabs credential unavailable"
+        ],
+        [
+          "label",
+          "Live rewrite"
+        ],
+        [
+          "label",
+          "More"
+        ],
+        [
+          "label",
+          "New conversation"
+        ],
+        [
+          "label",
+          "Paste or type text to start…"
+        ],
+        [
+          "label",
+          "Polish"
+        ],
+        [
+          "label",
+          "Press F9 to dictate. Or paste text below.\nPolish it, structure it, make it yours."
+        ],
+        [
+          "label",
+          "Retry initialization"
+        ],
+        [
+          "label",
+          "Setup required"
+        ],
+        [
+          "label",
+          "Start conversation"
+        ],
+        [
+          "label",
+          "Structure"
+        ],
+        [
+          "label",
+          "Your words, ready to use"
+        ],
+        [
+          "status",
+          "Dictation copies automatically."
+        ],
+        [
+          "status",
+          "Set up the missing capture dependency, then retry from the callout."
+        ],
+        [
+          "text box",
+          "Write a custom instruction, then press Ctrl+Enter to send"
+        ],
+        [
+          "toggle button",
+          "Codex model"
+        ],
+        [
+          "toggle button",
+          "Live rewrite"
+        ],
+        [
+          "toggle button",
+          "Live rewrite template: Grilling"
+        ],
+        [
+          "toggle button",
+          "Mluva menu"
+        ],
+        [
+          "toggle button",
+          "More"
+        ],
+        [
+          "window",
+          "Mluva"
+        ]
+      ],
+      "items": [],
+      "signals": [
+        {
+          "name": "StateChanged",
+          "values": [
+            false,
+            "hidden",
+            "",
+            0,
+            "",
+            "",
+            0.0,
+            "",
+            ""
+          ]
+        },
+        {
+          "name": "ShellStateChanged",
+          "values": [
+            {
+              "phase": "idle",
+              "elapsed": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -18,7 +18,7 @@ The published Omarchy plugin ID remains `mluva.dictation`; it already uses the c
 
 ## Linux upgrades
 
-Close the existing app, then run `bash install.sh` from the new source. Use `bash linux/install.sh` when dependencies and shell plugins are managed separately. The installer invokes [the migration boundary](../linux/migrate_legacy.py) before publishing the current package. That file is not copied into the installed application. Development checkouts also require this explicit upgrade before using the renamed runtime against existing state.
+Close the existing app before upgrading. On this Rust development branch, prepare the [native source prerequisites](../CONTRIBUTING.md#local-setup), then use `bash linux/install.sh` when dependencies and shell plugins are managed separately. It builds a native bundle before invoking the installer's [migration transaction](../rust/mluva-install/src/legacy.rs); prepared native packages invoke the same transaction directly. The former Python migration script is removed. [Independent comparisons](../rust/mluva-install/tests/fixtures/legacy-evidence.md) retain the released state and recovery contract. Root `bash install.sh` now coordinates native [dependency/app/widget setup](../rust/mluva-install/tests/fixtures/source-setup-evidence.md); complete native acceptance remains pending.
 
 The migration checks directory and launcher ownership before its first write. Two independently populated old and new state roots, unrecognized launchers, symlinked state roots, differing credential references, or locally modified system service templates stop the upgrade without adopting or overwriting them. Reconcile the reported conflict before retrying; no automatic history merge is attempted.
 
@@ -32,11 +32,6 @@ The new application and extension identities require fresh desktop approvals. Ap
 
 ## Package identity checks
 
-Retired names remain only in the migration reader, its tests, this guide and the identity scanner. The installed runtime contains none.
+Retired names remain necessary inside the native migration/removal readers and their independent fixtures so existing installations can be recognized. Public commands, application identities and aliases use Mluva. The [native package check](../rust/mluva-install/tests/fixtures/package-evidence.md) verifies the actual runtime inventory, file hashes, links and ownership.
 
-```sh
-uv run --no-project scripts/check_product_identity.py
-uv run --no-project scripts/check_product_identity.py --package /absolute/staged/home/.local/share/mluva/app
-```
-
-The scanner lists migration exceptions separately and fails for unclassified matches. Check both the source and the actual installation tree.
+The obsolete Python source scanner is retired. Native migration and package checks own upgrade recognition, current application identities, exact manifests and managed links. The [cutover record](verification/rust-cutover/README.md) documents the source removal and acceptance scope.

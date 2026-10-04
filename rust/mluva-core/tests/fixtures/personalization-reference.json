@@ -1,0 +1,21 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "unicode_version": "16.0.0",
+  "files": {
+    "linux/mluva_linux/personalization.py": "d3b1f36fe5fdf77e3d278823c30b706c3e4630ad3ccaa59a8099b0226ef1c691",
+    "linux/mluva_linux/minimal_markdown.py": "edcbb1ab09dc92fd1926d1c1c9b8f480497a81ad60eb93e661375df906d84b28",
+    "linux/mluva_linux/vocabulary.py": "47814ed63b72db83d6986a0be8941f6a638bfc40c406bcfd655236a3260a8dff",
+    "linux/mluva_linux/text_diff.py": "e7b0619b0cba58211883a442c3d0d91936877c69e786a1c7c4072319dda80cba"
+  },
+  "counts": {
+    "text": 4605,
+    "case_conversion": 11984,
+    "integrity": 55,
+    "markdown": 1839,
+    "corrections": 82,
+    "suggestions": 12,
+    "loads": 63,
+    "traces": 3,
+    "text_diff": 608
+  }
+}

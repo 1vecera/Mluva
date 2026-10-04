@@ -1,0 +1,66 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Private Mluva Firefox target</title>
+<style>
+  body { font: 18px sans-serif; margin: 24px; }
+  textarea, input, [contenteditable] { display: block; width: 650px; margin: 12px; font: inherit; }
+  textarea { height: 150px; }
+  [contenteditable] { min-height: 70px; border: 1px solid; white-space: pre-wrap; }
+</style>
+<h1>Disposable synthetic paste target</h1>
+<textarea id="textview" aria-label="Synthetic multiline input"></textarea>
+<input id="entry" aria-label="Synthetic single line input">
+<input id="second" aria-label="Other synthetic input">
+<input id="password" type="password" aria-label="Synthetic password">
+<div id="rich" contenteditable="true" aria-label="Synthetic rich input"></div>
+<button id="button">Non-text focus</button>
+<script>
+  let events = [], prevent = false;
+  for (const name of ["paste", "beforeinput", "input"]) {
+    document.addEventListener(name, event => {
+      events.push({name, target: event.target.id, type: event.inputType || null});
+      if (name === "paste" && prevent) event.preventDefault();
+    });
+  }
+  function select(field, start, end, direction) {
+    if (field.id !== "rich") {
+      field.setSelectionRange(start, end, direction || "forward");
+    } else {
+      const range = document.createRange();
+      range.setStart(field.firstChild, start);
+      range.setEnd(field.firstChild, end);
+      const selection = window.getSelection();
+      selection.removeAllRanges(); selection.addRange(range);
+    }
+  }
+  window.setup = spec => {
+    for (const id of ["textview", "entry", "second", "password", "rich"]) {
+      const field = document.getElementById(id);
+      if (id === "rich") field.textContent = "Other rich target";
+      else { field.readOnly = false; field.value = id === "second" ? "OTHER TARGET MUST SURVIVE" : ""; }
+    }
+    const field = document.getElementById(spec.kind);
+    if (spec.kind === "rich") field.textContent = spec.text;
+    else { field.value = spec.text; field.readOnly = spec.readonly || false; }
+    field.focus(); select(field, spec.start, spec.end, spec.direction);
+    prevent = spec.prevent || false; events = [];
+    return true;
+  };
+  window.change = spec => {
+    const field = document.getElementById(spec.kind || "textview");
+    if (spec.operation === "focus") field.focus();
+    else select(field, spec.start, spec.end, spec.direction);
+    return true;
+  };
+  window.observe = () => {
+    const fields = {};
+    for (const id of ["textview", "entry", "second", "password", "rich"]) {
+      const field = document.getElementById(id), selection = window.getSelection();
+      fields[id] = id === "rich" ? {text: field.textContent,
+        start: selection.anchorNode && field.contains(selection.anchorNode) ? selection.anchorOffset : null,
+        end: selection.focusNode && field.contains(selection.focusNode) ? selection.focusOffset : null,
+        readonly: false} : {text: field.value, start: field.selectionStart, end: field.selectionEnd, readonly: field.readOnly};
+    }
+    return {fields, focus: document.activeElement.id, document_focused: document.hasFocus(), events};
+  };
+</script>

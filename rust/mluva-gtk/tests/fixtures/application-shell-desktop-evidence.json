@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "gtk": [
+    4,
+    22,
+    4
+  ],
+  "libadwaita": [
+    1,
+    9,
+    3
+  ],
+  "pango": "1.58.2",
+  "scale": 1,
+  "isolation": {
+    "display": "disposable Xvfb",
+    "sessionBus": "private",
+    "accessibilityRegistry": "private",
+    "data": "private synthetic XDG directories",
+    "input": "authority-guarded native XTest helper"
+  },
+  "motionAndCursorBlinking": false,
+  "observations": {
+    "settings": 8,
+    "catalog": 30,
+    "palette": 25,
+    "window": 36,
+    "binding": 3
+  },
+  "totalObservations": 102,
+  "commandsPerCatalog": 51,
+  "registeredActions": {
+    "cancel": null,
+    "commands": null,
+    "global-record": null,
+    "history": null,
+    "latest": null,
+    "meeting": null,
+    "personalization": null,
+    "quit": null,
+    "record": null,
+    "review": "(sss)",
+    "screenshot": null,
+    "settings": null,
+    "status": null
+  },
+  "externalActionReceipt": [
+    [
+      "probe",
+      "synthetic-conversation",
+      "synthetic-option"
+    ],
+    [
+      "status"
+    ]
+  ],
+  "referenceSources": {
+    "linux/mluva_linux/command_palette.py": "34461e28dd1a9ed102243dcb100a2000b55fc7c8604e1085bf28ad9ada4f9bbd",
+    "linux/mluva_linux/settings_view.py": "cea5572eb38126b5580fcfb06aaa2b26539801cd2c2c67ce50169efc7ddb6e87",
+    "linux/mluva_linux/prompts.py": "12c9ab110fc4373e474de196cad4cb98c16c9b58b499de3cc475b03136929609",
+    "linux/mluva_linux/personalization.py": "d3b1f36fe5fdf77e3d278823c30b706c3e4630ad3ccaa59a8099b0226ef1c691",
+    "linux/mluva_linux/theme.py": "2f240fc62e9ae5b913c42127907f6c063e5585510b6ab04fcf64bf492841f066",
+    "linux/mluva_linux/app.py": "1456c6af104ff95433b1d20ead793f628fada4ef9a67d76b5cf1dc4431885d67",
+    "linux/mluva_linux/prompt_editor.py": "475d94edc8783022665f653480f23894a0a0e3da35bc7dc9f95b7da1307bc1e6",
+    "linux/mluva_linux/personalization_view.py": "3cadb940dd96aab4e86595589ac3a3f796b96ba5536253f5012c810655bb13e2"
+  },
+  "nativeSources": {
+    "rust/mluva-gtk/src/application_shell.rs": "9bacb6780dd146bbd4f327355ac8ffc6d80ee4ee36d12a0e9e748843e9024194",
+    "rust/mluva-gtk/src/command_palette.rs": "bc95d358617b98e0bf1063f65c199f8ce798ab6f10b2265d217b46730322b2f9",
+    "rust/mluva-gtk/src/commands.rs": "caff4b39fa73178b429f960ff78c2cf607e90be745cb5d0ff77de949baa14471",
+    "rust/mluva-gtk/src/settings_view.rs": "8c9931aef9c61e1c5d1fb4ce898594031c1ed10602391a63e9609affe78d038b",
+    "rust/mluva-gtk/src/editor_pages.rs": "72b72e2b030f8f5c7010ad813b6ef5ade17e863876956d5883a19fbdc4cd8e0e",
+    "rust/mluva-gtk/src/prompt_editor.rs": "786e735886e186a001e157c30dbb118ae082919e886c0ef23cf011d50d0cb7ac",
+    "rust/mluva-gtk/src/personalization.rs": "4d727467ae43b8c1f6c237ccb2b4b85b464b1833459990d8fe25500dc3a5413e",
+    "rust/mluva-gtk/src/theme.rs": "c0fb68e10a538fe088ec97e1ab0212f78d13fbcf94dfd43116a3b9abd26d2a84",
+    "rust/mluva-gtk/examples/private_input.rs": "e55e7242274475ecbd11a85ac2a04693b2e75f650e7578b5e4bcdb2aa4235734",
+    "rust/mluva-gtk/tests/application_shell.rs": "a24c2a4f365ee8b694e6237057fbdbfa63d23d3c823eca619538b750ab8efc2e",
+    "Cargo.lock": "2d53fdf660295d760a3925d3bc434b8cfabb7523634e7259a966d6d2f64acfdc"
+  },
+  "renderedStates": [
+    {
+      "state": "root-initial",
+      "size": [
+        1050,
+        770
+      ],
+      "referenceRgbaSha256": "3a344b25d167bfd7f2ee89d9be6747e043a0c5a9abe95a28dc532fa594db2060",
+      "nativeRgbaSha256": "3a344b25d167bfd7f2ee89d9be6747e043a0c5a9abe95a28dc532fa594db2060",
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "bounds": null
+    },
+    {
+      "state": "root-step-2",
+      "size": [
+        1050,
+        770
+      ],
+      "referenceRgbaSha256": "d741575fd1ef7dc75d25d47c18383f5c1c6e3c3541b4f948c68e0417211b23c6",
+      "nativeRgbaSha256": "151b3616121e2b0b5a617cf974c303190488a7dd544845cf12539c7ce93d5743",
+      "differingPixels": 23,
+      "maxChannelDelta": 1,
+      "bounds": [
+        228,
+        369,
+        630,
+        369
+      ]
+    },
+    {
+      "state": "root-step-28",
+      "size": [
+        1050,
+        770
+      ],
+      "referenceRgbaSha256": "a7b62c2e6353cf382952ee202a1d2f6ebe3bef3a39349a109c8fafef5b29246a",
+      "nativeRgbaSha256": "a7b62c2e6353cf382952ee202a1d2f6ebe3bef3a39349a109c8fafef5b29246a",
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "bounds": null
+    },
+    {
+      "state": "root-step-5",
+      "size": [
+        727,
+        770
+      ],
+      "referenceRgbaSha256": "76c103bd5da320542ede3de20bd7e2d3c357c71062c4670e76c69e5220445571",
+      "nativeRgbaSha256": "f4c0d8718862c54ee5bcd540252687acacbc47008b18ba130376c30c08bc29f2",
+      "differingPixels": 3,
+      "maxChannelDelta": 1,
+      "bounds": [
+        301,
+        743,
+        306,
+        751
+      ]
+    },
+    {
+      "state": "root-step-6",
+      "size": [
+        726,
+        770
+      ],
+      "referenceRgbaSha256": "39bb36f060a33520395c1e39112262c81c7a89a333ed69a865c176ed311d6022",
+      "nativeRgbaSha256": "e95b369ec24e7a8208df1bbd88cb539b85f297845b7da256aa758a3ed71b062c",
+      "differingPixels": 13,
+      "maxChannelDelta": 2,
+      "bounds": [
+        354,
+        707,
+        364,
+        749
+      ]
+    },
+    {
+      "state": "root-step-7",
+      "size": [
+        725,
+        770
+      ],
+      "referenceRgbaSha256": "e7b516633f9850ca3b0b40bc2584a161281e5af4f893eab7c222c17c83504a9e",
+      "nativeRgbaSha256": "91bd38e6d9209d69b32117ebf3d7e1cfb99353d9c75796f06d4689abd0c67801",
+      "differingPixels": 9,
+      "maxChannelDelta": 2,
+      "bounds": [
+        321,
+        709,
+        380,
+        749
+      ]
+    },
+    {
+      "state": "root-step-8",
+      "size": [
+        410,
+        770
+      ],
+      "referenceRgbaSha256": "36f19e274743ce67be338e4a3fac090d1777b913afd2036fb0e7f95330252e9f",
+      "nativeRgbaSha256": "36f19e274743ce67be338e4a3fac090d1777b913afd2036fb0e7f95330252e9f",
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "bounds": null
+    },
+    {
+      "state": "root-step-9",
+      "size": [
+        1050,
+        770
+      ],
+      "referenceRgbaSha256": "dbc05801ae83d7fef55520b2f8b5e8610eb9044d03887109e55eed2d91e8327a",
+      "nativeRgbaSha256": "dbc05801ae83d7fef55520b2f8b5e8610eb9044d03887109e55eed2d91e8327a",
+      "differingPixels": 0,
+      "maxChannelDelta": 0,
+      "bounds": null
+    }
+  ],
+  "demonstrated": [
+    "Unchanged command identities and availability across document/editor/session/privacy changes",
+    "Unicode search, disabled rows, keyboard navigation and dismissal before guarded dispatch",
+    "Actual preference page selection and nested-row focus, including retained command destinations after row refresh",
+    "Window sizing, adaptive capture controls, navigation, modal guards and resident hide/reopen",
+    "Shared prompt editor opening inside the native window",
+    "Public action names/types and two cross-process private-bus action receipts"
+  ],
+  "limits": [
+    "Capture, welcome, meeting, history and Workspace/Capture preference contents use synthetic boundaries; their complete workflows remain pending",
+    "External action receipts prove the publisher and typed arguments; review/delivery policy and overlay services remain pending",
+    "Four rendered states match exact RGBA8; the remaining states differ at 3–23 pixels, with a maximum two-channel-unit difference",
+    "Motion is disabled; other scales, compositor/global shortcuts, real microphone, complete application integration and performance acceptance remain pending"
+  ]
+}

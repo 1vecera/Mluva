@@ -18,17 +18,19 @@ The recording and review surfaces accept pointer input. Neither requests focus w
 
 Use the [combined installation command or agent prompt](../README.md#install). From a complete Mluva checkout, `bash install.sh` installs system dependencies, the native app and the bundled Omarchy widget together from the same release. Start Mluva from the application menu after setup. This integration needs Omarchy Quattro's existing shell and plugin manager, Quickshell 0.3+ and Hyprland 0.55+.
 
-For a Git-managed plugin installation, use the [plugin-manager commands](../README.md#install-through-omarchys-plugin-manager). The root manifest points at `linux/quickshell/mluva.dictation/Widget.qml`; the native app, widget, releases and website remain in this repository. Omarchy clones and enables QML but does not run installation hooks or install Python, GTK, PipeWire, provider clients or models. Run `bash "$HOME/.config/omarchy/plugins/mluva.dictation/install.sh" --app-only` to install the matching native app and required system packages. Optional providers and models remain separate choices in Settings.
+For a Git-managed plugin installation, use the [plugin-manager commands](../README.md#install-through-omarchys-plugin-manager). The root manifest points at `linux/quickshell/mluva.dictation/Widget.qml`; the native app, widget, releases and website remain in this repository. Omarchy clones and enables QML but does not run installation hooks or install build tools, GTK, PipeWire, provider clients or models. On the Rust development branch, prepare the pinned Rust toolchain and a C compiler, then run `bash "$HOME/.config/omarchy/plugins/mluva.dictation/install.sh" --app-only` to install the matching native app and remaining system packages. Optional providers and models remain separate choices in Settings; complete Rust acceptance is still pending.
 
 Git-managed widgets update with `omarchy plugin update mluva.dictation`, followed by the same `--app-only` command while Mluva is closed. Updating only the plugin leaves the native app unchanged. The combined installer protects Git-managed checkouts from replacement; use `--app-only` inside the existing plugin checkout. Conversely, bundled installations keep using the combined setup below. Do not add a second copy with the same plugin ID. To switch routes, back up any custom widget files outside the plugin directory, remove the existing widget with `omarchy plugin remove mluva.dictation`, then follow the chosen installation path.
 
 The plugin registers a Lua rule for its own window before showing it and reapplies that rule after a compositor configuration reload. It does not edit desktop configuration files.
 
-If the matching native app is already installed and you only need the widget, run this from the same Mluva checkout or extracted release archive:
+If the matching native app is already installed and you only need the widget, run this from the Rust source checkout, with the [source prerequisites](../CONTRIBUTING.md#local-setup) prepared:
 
 ```sh
-python3 linux/install_widget.py
+bash linux/install-widget.sh
 ```
+
+From a prepared native runtime bundle, use `bin/mluva-install-widget` directly; it needs no compiler or Python. Published 1.6.0 archives retain their own bundled instructions.
 
 The plugin invokes the native app's `mluva-shell` bridge. If the shell cannot find it, set the widget's **Mluva shell executable** setting to the full path of `~/.local/bin/mluva-shell`, expanded to your actual home directory.
 
@@ -39,8 +41,8 @@ The installer validates the widget, uses a content-specific QML entry-point path
 For bundled plugin-only maintenance:
 
 ```sh
-# Update from the matching Mluva release:
-python3 linux/install_widget.py
+# Update from the matching prepared native bundle:
+bin/mluva-install-widget
 omarchy plugin disable mluva.dictation
 omarchy plugin remove mluva.dictation
 ```
@@ -79,11 +81,11 @@ Install the optional [Tensaku source extension](../linux/integrations/tensaku/RE
 
 ## Verification
 
-Run `make linux-test linux-shortcut-test`, repository shell checks and `make linux-omarchy-test`. The Omarchy runtime fixture requires an installed shell under `/usr/share/omarchy/shell`; the runner supplies a private X11 display, session bus and XDG state. `linux/tests/shell_overlay_smoke.py` copies the installed controls into its private fixture and redirects desktop configuration reads. It runs the production widget and bridge against a separate synthetic publisher, checks focus retention while recording, five-line geometry, intermediate scrolling frames, long-preview wrapping, controls, light/dark colors, errors, preview erasure, owner loss, monitor fit, timed dismissal and actual pointer/keyboard countdown pauses, and retains screenshots.
+Run `make linux-test linux-shortcut-test`, repository shell checks and `make linux-omarchy-test`; remaining Python app checks use `make linux-python-test` during the port. The [native widget owner](../rust/mluva-gtk/tests/omarchy_widget.rs) connects the production Rust status publisher, real native bridge and unchanged QML. Its runner copies the installed Omarchy `Commons`/`Ui` controls into a private fixture, redirects desktop configuration reads and isolates X11, session/accessibility buses, HOME/XDG, network/PID namespaces and devices with software Mesa. It retains focus, geometry, scrolling/contraction, Unicode preview origins, review controls, light/dark colors, errors, owner loss, monitor-bar ownership and actual pointer/keyboard countdown checks. [Release evidence](../rust/mluva-gtk/tests/fixtures/omarchy-widget-evidence.md) compares 51 stable states and the 300-frame preview replay with untouched v1.6.0. The two former Python helpers are retired. The check requires the installed Omarchy shell, Quickshell, Xvfb, xdotool, ImageMagick and FFmpeg/ffprobe; `MLUVA_PANEL_REPLAY=1 make linux-omarchy-test` selects only the retained replay.
 
-`linux/tests/conversation_ui_smoke.py` with `MLUVA_UI_SCENARIO=lifecycle` tests the real GTK callbacks and a separate fake model subprocess, including note identity during browsing, deliberate Copy, saved prompts, duplicate clicks, cancellation, Incognito, deletion, late completion after dismissal, automatic title generation, a queued title, manual renames, unsaved title edits and provider failure. `linux/tests/theme_ui_smoke.py` replaces only a private theme symlink and checks that an already open GTK window follows both schemes and recovers from malformed theme data.
+`linux/tests/conversation_ui_smoke.py` with `MLUVA_UI_SCENARIO=lifecycle` tests the real GTK callbacks and a separate fake model subprocess, including note identity during browsing, deliberate Copy, saved prompts, duplicate clicks, cancellation, Incognito, deletion, late completion after dismissal, automatic title generation, a queued title, manual renames, unsaved title edits and provider failure. The [native theme comparison](../rust/mluva-gtk/tests/fixtures/theme-evidence.md) replaces the Python theme observer: its open window follows private symlink/file changes, both system schemes and malformed/removal recovery through the actual timer, then stops reloading after close. Nine component states and their 520×200 X11 captures match the untouched release; broader application/theme acceptance remains pending.
 
-The private X11 checks establish production QML rendering and application/bridge behavior. The core dictation, rewrite and widget workflow is also tested end to end through daily Omarchy use. These isolated checks complement that desktop acceptance; automatic insertion and alternative provider/model combinations retain their separate limits.
+These X11 checks establish native publisher/bridge/QML integration. The daily-use and compositor receipts below belong to the released Python application; complete native application/widget/Wayland acceptance remains pending. Automatic insertion and alternative provider/model combinations retain their separate verification scopes.
 
 The earlier [recorder-header verification](verification/recorder-header/README.md) covers native dragging from either surface, tiling and pinning, and a cached-plugin upgrade inside the installed Omarchy shell. The [fluid workspace verification](verification/fluid-workspace.md) covers the current bare header, placement presets and recording pulse, with its separate isolation limits.
 

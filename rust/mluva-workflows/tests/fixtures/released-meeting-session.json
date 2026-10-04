@@ -1,0 +1,2490 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_sha256": {
+    "linux/mluva_linux/brand.py": "fe29d90483027e03b95652378b1d251d82deeb152f04924706da6eb9773ef6c4",
+    "linux/mluva_linux/__init__.py": "c242d7dde99d2636421fdca795ddcb0898788a06492ebbea5c770a8e4a506813",
+    "linux/mluva_linux/audio.py": "c024477529cdeb33916765a4904a7a3320e595d23245e1c5e2cdad390a96001e",
+    "linux/mluva_linux/private_files.py": "7fe39eac13e1f4bcfd248a8cab514818dc0ab4445f7be10bfa1f79a95a10a905",
+    "linux/mluva_linux/prompt_defaults.py": "2fdf23766603ec9e0f24ee1a43d562f3dd57f44c0706223822e9c740961ff5e8",
+    "linux/mluva_linux/config.py": "1a1f5244733323b2a2acd7d94c49bcc41b4ec0a79fcef5fec42c36dc0ae77a4f",
+    "linux/mluva_linux/elevenlabs.py": "70da93ffc4faeb3ee327213ad9e9dda2eb47380fbc62f301a1cd369c671c7cd2",
+    "linux/mluva_linux/meeting.py": "0bc6357f2b074223ed9fa17b42e1efc75fc58100d53f0cfbdc379eeea296efbe"
+  },
+  "cases": [
+    {
+      "name": "capture-both",
+      "audio": {
+        "name": "both",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 1
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 1
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "microphone",
+              "system"
+            ],
+            "warnings": [],
+            "duration_seconds": 0.0005
+          }
+        },
+        "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000d007d007d007d007d007d007e803e803",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": false,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "completed",
+        "meeting": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "title": null,
+          "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "speakers": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "startedAt": 0.0,
+              "endedAt": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "startedAt": 1.0,
+              "endedAt": 2.0
+            }
+          ],
+          "insights": {
+            "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "decisions": [
+              "We decided to ship."
+            ],
+            "actionItems": [
+              "Anna will verify.",
+              "Follow-up tomorrow."
+            ]
+          },
+          "timestamp": "2026-09-28T12:34:56.123456Z",
+          "duration": 0.0005,
+          "provider": "elevenlabsScribeV2",
+          "language": "ces",
+          "audioSources": [
+            "microphone",
+            "system"
+          ],
+          "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+          "recognitionStatus": "completed",
+          "transcriptionID": "synthetic-meeting",
+          "warnings": []
+        },
+        "transcription": {
+          "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "language_code": "ces",
+          "language_probability": 0.95,
+          "transcription_id": "synthetic-meeting",
+          "speaker_segments": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "started_at_seconds": 0.0,
+              "ended_at_seconds": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "started_at_seconds": 1.0,
+              "ended_at_seconds": 2.0
+            }
+          ],
+          "audio_duration_seconds": 9.5
+        },
+        "incognito": false
+      },
+      "observed": {
+        "meetings": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "title": null,
+            "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "speakers": [
+              {
+                "speaker": "Speaker 1",
+                "text": "Wedecided.",
+                "startedAt": 0.0,
+                "endedAt": 1.0
+              },
+              {
+                "speaker": "Speaker 2",
+                "text": "Annawill verify.",
+                "startedAt": 1.0,
+                "endedAt": 2.0
+              }
+            ],
+            "insights": {
+              "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+              "decisions": [
+                "We decided to ship."
+              ],
+              "actionItems": [
+                "Anna will verify.",
+                "Follow-up tomorrow."
+              ]
+            },
+            "timestamp": "2026-09-28T12:34:56.123456Z",
+            "duration": 0.0005,
+            "provider": "elevenlabsScribeV2",
+            "language": "ces",
+            "audioSources": [
+              "microphone",
+              "system"
+            ],
+            "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+            "recognitionStatus": "completed",
+            "transcriptionID": "synthetic-meeting",
+            "warnings": []
+          }
+        ],
+        "persistence_error": false,
+        "files": {
+          "archive/meetings.json": {
+            "bytes": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbCiAgICAgICJtaWNyb3Bob25lIiwKICAgICAgInN5c3RlbSIKICAgIF0sCiAgICAiZHVyYXRpb24iOiAwLjAwMDUsCiAgICAiaWQiOiAiMTExMTExMTEtMTExMS00MTExLTgxMTEtMTExMTExMTExMTExIiwKICAgICJpbnNpZ2h0cyI6IHsKICAgICAgImFjdGlvbkl0ZW1zIjogWwogICAgICAgICJBbm5hIHdpbGwgdmVyaWZ5LiIsCiAgICAgICAgIkZvbGxvdy11cCB0b21vcnJvdy4iCiAgICAgIF0sCiAgICAgICJkZWNpc2lvbnMiOiBbCiAgICAgICAgIldlIGRlY2lkZWQgdG8gc2hpcC4iCiAgICAgIF0sCiAgICAgICJzdW1tYXJ5IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIKICAgIH0sCiAgICAibGFuZ3VhZ2UiOiAiY2VzIiwKICAgICJwcm92aWRlciI6ICJlbGV2ZW5sYWJzU2NyaWJlVjIiLAogICAgInJlY29nbml0aW9uU3RhdHVzIjogImNvbXBsZXRlZCIsCiAgICAicmVjb3JkaW5nRmlsZW5hbWUiOiAiMTExMTExMTEtMTExMS00MTExLTgxMTEtMTExMTExMTExMTExLndhdiIsCiAgICAic3BlYWtlcnMiOiBbCiAgICAgIHsKICAgICAgICAiZW5kZWRBdCI6IDEuMCwKICAgICAgICAic3BlYWtlciI6ICJTcGVha2VyIDEiLAogICAgICAgICJzdGFydGVkQXQiOiAwLjAsCiAgICAgICAgInRleHQiOiAiV2VkZWNpZGVkLiIKICAgICAgfSwKICAgICAgewogICAgICAgICJlbmRlZEF0IjogMi4wLAogICAgICAgICJzcGVha2VyIjogIlNwZWFrZXIgMiIsCiAgICAgICAgInN0YXJ0ZWRBdCI6IDEuMCwKICAgICAgICAidGV4dCI6ICJBbm5hd2lsbCB2ZXJpZnkuIgogICAgICB9CiAgICBdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogInN5bnRoZXRpYy1tZWV0aW5nIiwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
+          },
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": {
+            "bytes": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        },
+        "modes": {
+          "archive": 448,
+          "archive/meetings.json": 384,
+          "archive/recordings": 448,
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": 384
+        }
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "capture-mic-only",
+      "audio": {
+        "name": "mic-only",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 1
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 2
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "microphone"
+            ],
+            "warnings": [
+              "System audio was unavailable; this meeting contains microphone audio only."
+            ],
+            "duration_seconds": 0.0005
+          }
+        },
+        "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": false,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "completed",
+        "meeting": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "title": null,
+          "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "speakers": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "startedAt": 0.0,
+              "endedAt": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "startedAt": 1.0,
+              "endedAt": 2.0
+            }
+          ],
+          "insights": {
+            "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "decisions": [
+              "We decided to ship."
+            ],
+            "actionItems": [
+              "Anna will verify.",
+              "Follow-up tomorrow."
+            ]
+          },
+          "timestamp": "2026-09-28T12:34:56.123456Z",
+          "duration": 0.0005,
+          "provider": "elevenlabsScribeV2",
+          "language": "ces",
+          "audioSources": [
+            "microphone"
+          ],
+          "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+          "recognitionStatus": "completed",
+          "transcriptionID": "synthetic-meeting",
+          "warnings": [
+            "System audio was unavailable; this meeting contains microphone audio only."
+          ]
+        },
+        "transcription": {
+          "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "language_code": "ces",
+          "language_probability": 0.95,
+          "transcription_id": "synthetic-meeting",
+          "speaker_segments": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "started_at_seconds": 0.0,
+              "ended_at_seconds": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "started_at_seconds": 1.0,
+              "ended_at_seconds": 2.0
+            }
+          ],
+          "audio_duration_seconds": 9.5
+        },
+        "incognito": false
+      },
+      "observed": {
+        "meetings": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "title": null,
+            "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "speakers": [
+              {
+                "speaker": "Speaker 1",
+                "text": "Wedecided.",
+                "startedAt": 0.0,
+                "endedAt": 1.0
+              },
+              {
+                "speaker": "Speaker 2",
+                "text": "Annawill verify.",
+                "startedAt": 1.0,
+                "endedAt": 2.0
+              }
+            ],
+            "insights": {
+              "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+              "decisions": [
+                "We decided to ship."
+              ],
+              "actionItems": [
+                "Anna will verify.",
+                "Follow-up tomorrow."
+              ]
+            },
+            "timestamp": "2026-09-28T12:34:56.123456Z",
+            "duration": 0.0005,
+            "provider": "elevenlabsScribeV2",
+            "language": "ces",
+            "audioSources": [
+              "microphone"
+            ],
+            "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+            "recognitionStatus": "completed",
+            "transcriptionID": "synthetic-meeting",
+            "warnings": [
+              "System audio was unavailable; this meeting contains microphone audio only."
+            ]
+          }
+        ],
+        "persistence_error": false,
+        "files": {
+          "archive/meetings.json": {
+            "bytes": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbCiAgICAgICJtaWNyb3Bob25lIgogICAgXSwKICAgICJkdXJhdGlvbiI6IDAuMDAwNSwKICAgICJpZCI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEiLAogICAgImluc2lnaHRzIjogewogICAgICAiYWN0aW9uSXRlbXMiOiBbCiAgICAgICAgIkFubmEgd2lsbCB2ZXJpZnkuIiwKICAgICAgICAiRm9sbG93LXVwIHRvbW9ycm93LiIKICAgICAgXSwKICAgICAgImRlY2lzaW9ucyI6IFsKICAgICAgICAiV2UgZGVjaWRlZCB0byBzaGlwLiIKICAgICAgXSwKICAgICAgInN1bW1hcnkiOiAiV2UgZGVjaWRlZCB0byBzaGlwLiBBbm5hIHdpbGwgdmVyaWZ5LiBGb2xsb3ctdXAgdG9tb3Jyb3cuIgogICAgfSwKICAgICJsYW5ndWFnZSI6ICJjZXMiLAogICAgInByb3ZpZGVyIjogImVsZXZlbmxhYnNTY3JpYmVWMiIsCiAgICAicmVjb2duaXRpb25TdGF0dXMiOiAiY29tcGxldGVkIiwKICAgICJyZWNvcmRpbmdGaWxlbmFtZSI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEud2F2IiwKICAgICJzcGVha2VycyI6IFsKICAgICAgewogICAgICAgICJlbmRlZEF0IjogMS4wLAogICAgICAgICJzcGVha2VyIjogIlNwZWFrZXIgMSIsCiAgICAgICAgInN0YXJ0ZWRBdCI6IDAuMCwKICAgICAgICAidGV4dCI6ICJXZWRlY2lkZWQuIgogICAgICB9LAogICAgICB7CiAgICAgICAgImVuZGVkQXQiOiAyLjAsCiAgICAgICAgInNwZWFrZXIiOiAiU3BlYWtlciAyIiwKICAgICAgICAic3RhcnRlZEF0IjogMS4wLAogICAgICAgICJ0ZXh0IjogIkFubmF3aWxsIHZlcmlmeS4iCiAgICAgIH0KICAgIF0sCiAgICAidGltZXN0YW1wIjogIjIwMjYtMDktMjhUMTI6MzQ6NTYuMTIzNDU2WiIsCiAgICAidGl0bGUiOiBudWxsLAogICAgInRyYW5zY3JpcHQiOiAiV2UgZGVjaWRlZCB0byBzaGlwLiBBbm5hIHdpbGwgdmVyaWZ5LiBGb2xsb3ctdXAgdG9tb3Jyb3cuIiwKICAgICJ0cmFuc2NyaXB0aW9uSUQiOiAic3ludGhldGljLW1lZXRpbmciLAogICAgIndhcm5pbmdzIjogWwogICAgICAiU3lzdGVtIGF1ZGlvIHdhcyB1bmF2YWlsYWJsZTsgdGhpcyBtZWV0aW5nIGNvbnRhaW5zIG1pY3JvcGhvbmUgYXVkaW8gb25seS4iCiAgICBdCiAgfQpdCg=="
+          },
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": {
+            "bytes": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADoA+gD6APoA+gD6APoA+gD"
+          }
+        },
+        "modes": {
+          "archive": 448,
+          "archive/meetings.json": 384,
+          "archive/recordings": 448,
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": 384
+        }
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADoA+gD6APoA+gD6APoA+gD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "capture-system-only",
+      "audio": {
+        "name": "system-only",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 2
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 1
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "system"
+            ],
+            "warnings": [
+              "Microphone audio was unavailable; this meeting contains system audio only."
+            ],
+            "duration_seconds": 0.000375
+          }
+        },
+        "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": false,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "completed",
+        "meeting": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "title": null,
+          "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "speakers": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "startedAt": 0.0,
+              "endedAt": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "startedAt": 1.0,
+              "endedAt": 2.0
+            }
+          ],
+          "insights": {
+            "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "decisions": [
+              "We decided to ship."
+            ],
+            "actionItems": [
+              "Anna will verify.",
+              "Follow-up tomorrow."
+            ]
+          },
+          "timestamp": "2026-09-28T12:34:56.123456Z",
+          "duration": 0.000375,
+          "provider": "elevenlabsScribeV2",
+          "language": "ces",
+          "audioSources": [
+            "system"
+          ],
+          "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+          "recognitionStatus": "completed",
+          "transcriptionID": "synthetic-meeting",
+          "warnings": [
+            "Microphone audio was unavailable; this meeting contains system audio only."
+          ]
+        },
+        "transcription": {
+          "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "language_code": "ces",
+          "language_probability": 0.95,
+          "transcription_id": "synthetic-meeting",
+          "speaker_segments": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "started_at_seconds": 0.0,
+              "ended_at_seconds": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "started_at_seconds": 1.0,
+              "ended_at_seconds": 2.0
+            }
+          ],
+          "audio_duration_seconds": 9.5
+        },
+        "incognito": false
+      },
+      "observed": {
+        "meetings": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "title": null,
+            "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "speakers": [
+              {
+                "speaker": "Speaker 1",
+                "text": "Wedecided.",
+                "startedAt": 0.0,
+                "endedAt": 1.0
+              },
+              {
+                "speaker": "Speaker 2",
+                "text": "Annawill verify.",
+                "startedAt": 1.0,
+                "endedAt": 2.0
+              }
+            ],
+            "insights": {
+              "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+              "decisions": [
+                "We decided to ship."
+              ],
+              "actionItems": [
+                "Anna will verify.",
+                "Follow-up tomorrow."
+              ]
+            },
+            "timestamp": "2026-09-28T12:34:56.123456Z",
+            "duration": 0.000375,
+            "provider": "elevenlabsScribeV2",
+            "language": "ces",
+            "audioSources": [
+              "system"
+            ],
+            "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+            "recognitionStatus": "completed",
+            "transcriptionID": "synthetic-meeting",
+            "warnings": [
+              "Microphone audio was unavailable; this meeting contains system audio only."
+            ]
+          }
+        ],
+        "persistence_error": false,
+        "files": {
+          "archive/meetings.json": {
+            "bytes": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbCiAgICAgICJzeXN0ZW0iCiAgICBdLAogICAgImR1cmF0aW9uIjogMC4wMDAzNzUsCiAgICAiaWQiOiAiMTExMTExMTEtMTExMS00MTExLTgxMTEtMTExMTExMTExMTExIiwKICAgICJpbnNpZ2h0cyI6IHsKICAgICAgImFjdGlvbkl0ZW1zIjogWwogICAgICAgICJBbm5hIHdpbGwgdmVyaWZ5LiIsCiAgICAgICAgIkZvbGxvdy11cCB0b21vcnJvdy4iCiAgICAgIF0sCiAgICAgICJkZWNpc2lvbnMiOiBbCiAgICAgICAgIldlIGRlY2lkZWQgdG8gc2hpcC4iCiAgICAgIF0sCiAgICAgICJzdW1tYXJ5IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIKICAgIH0sCiAgICAibGFuZ3VhZ2UiOiAiY2VzIiwKICAgICJwcm92aWRlciI6ICJlbGV2ZW5sYWJzU2NyaWJlVjIiLAogICAgInJlY29nbml0aW9uU3RhdHVzIjogImNvbXBsZXRlZCIsCiAgICAicmVjb3JkaW5nRmlsZW5hbWUiOiAiMTExMTExMTEtMTExMS00MTExLTgxMTEtMTExMTExMTExMTExLndhdiIsCiAgICAic3BlYWtlcnMiOiBbCiAgICAgIHsKICAgICAgICAiZW5kZWRBdCI6IDEuMCwKICAgICAgICAic3BlYWtlciI6ICJTcGVha2VyIDEiLAogICAgICAgICJzdGFydGVkQXQiOiAwLjAsCiAgICAgICAgInRleHQiOiAiV2VkZWNpZGVkLiIKICAgICAgfSwKICAgICAgewogICAgICAgICJlbmRlZEF0IjogMi4wLAogICAgICAgICJzcGVha2VyIjogIlNwZWFrZXIgMiIsCiAgICAgICAgInN0YXJ0ZWRBdCI6IDEuMCwKICAgICAgICAidGV4dCI6ICJBbm5hd2lsbCB2ZXJpZnkuIgogICAgICB9CiAgICBdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogInN5bnRoZXRpYy1tZWV0aW5nIiwKICAgICJ3YXJuaW5ncyI6IFsKICAgICAgIk1pY3JvcGhvbmUgYXVkaW8gd2FzIHVuYXZhaWxhYmxlOyB0aGlzIG1lZXRpbmcgY29udGFpbnMgc3lzdGVtIGF1ZGlvIG9ubHkuIgogICAgXQogIH0KXQo="
+          },
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": {
+            "bytes": "UklGRjAAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQwAAAC4C7gLuAu4C7gLuAs="
+          }
+        },
+        "modes": {
+          "archive": 448,
+          "archive/meetings.json": 384,
+          "archive/recordings": 448,
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": 384
+        }
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjAAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQwAAAC4C7gLuAu4C7gLuAs="
+          }
+        }
+      ]
+    },
+    {
+      "name": "capture-neither",
+      "audio": {
+        "name": "neither",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 2
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 2
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "error": "Meeting capture produced no usable microphone or system audio."
+        },
+        "wav_hex": null,
+        "partials": [],
+        "active_after": false,
+        "file_mode": null,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": false,
+      "responses": [],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "audio-error",
+        "message": "Meeting capture produced no usable microphone or system audio."
+      },
+      "observed": {
+        "meetings": [],
+        "persistence_error": false,
+        "files": {},
+        "modes": {
+          "archive": 493,
+          "archive/recordings": 448
+        }
+      },
+      "requests": []
+    },
+    {
+      "name": "capture-default-interrupt",
+      "audio": {
+        "name": "default-interrupt",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 0
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 0
+          },
+          "default_interrupt": true
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "microphone",
+              "system"
+            ],
+            "warnings": [],
+            "duration_seconds": 0.0005
+          }
+        },
+        "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000d007d007d007d007d007d007e803e803",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": false,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "completed",
+        "meeting": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "title": null,
+          "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "speakers": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "startedAt": 0.0,
+              "endedAt": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "startedAt": 1.0,
+              "endedAt": 2.0
+            }
+          ],
+          "insights": {
+            "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "decisions": [
+              "We decided to ship."
+            ],
+            "actionItems": [
+              "Anna will verify.",
+              "Follow-up tomorrow."
+            ]
+          },
+          "timestamp": "2026-09-28T12:34:56.123456Z",
+          "duration": 0.0005,
+          "provider": "elevenlabsScribeV2",
+          "language": "ces",
+          "audioSources": [
+            "microphone",
+            "system"
+          ],
+          "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+          "recognitionStatus": "completed",
+          "transcriptionID": "synthetic-meeting",
+          "warnings": []
+        },
+        "transcription": {
+          "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "language_code": "ces",
+          "language_probability": 0.95,
+          "transcription_id": "synthetic-meeting",
+          "speaker_segments": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "started_at_seconds": 0.0,
+              "ended_at_seconds": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "started_at_seconds": 1.0,
+              "ended_at_seconds": 2.0
+            }
+          ],
+          "audio_duration_seconds": 9.5
+        },
+        "incognito": false
+      },
+      "observed": {
+        "meetings": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "title": null,
+            "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "speakers": [
+              {
+                "speaker": "Speaker 1",
+                "text": "Wedecided.",
+                "startedAt": 0.0,
+                "endedAt": 1.0
+              },
+              {
+                "speaker": "Speaker 2",
+                "text": "Annawill verify.",
+                "startedAt": 1.0,
+                "endedAt": 2.0
+              }
+            ],
+            "insights": {
+              "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+              "decisions": [
+                "We decided to ship."
+              ],
+              "actionItems": [
+                "Anna will verify.",
+                "Follow-up tomorrow."
+              ]
+            },
+            "timestamp": "2026-09-28T12:34:56.123456Z",
+            "duration": 0.0005,
+            "provider": "elevenlabsScribeV2",
+            "language": "ces",
+            "audioSources": [
+              "microphone",
+              "system"
+            ],
+            "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+            "recognitionStatus": "completed",
+            "transcriptionID": "synthetic-meeting",
+            "warnings": []
+          }
+        ],
+        "persistence_error": false,
+        "files": {
+          "archive/meetings.json": {
+            "bytes": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbCiAgICAgICJtaWNyb3Bob25lIiwKICAgICAgInN5c3RlbSIKICAgIF0sCiAgICAiZHVyYXRpb24iOiAwLjAwMDUsCiAgICAiaWQiOiAiMTExMTExMTEtMTExMS00MTExLTgxMTEtMTExMTExMTExMTExIiwKICAgICJpbnNpZ2h0cyI6IHsKICAgICAgImFjdGlvbkl0ZW1zIjogWwogICAgICAgICJBbm5hIHdpbGwgdmVyaWZ5LiIsCiAgICAgICAgIkZvbGxvdy11cCB0b21vcnJvdy4iCiAgICAgIF0sCiAgICAgICJkZWNpc2lvbnMiOiBbCiAgICAgICAgIldlIGRlY2lkZWQgdG8gc2hpcC4iCiAgICAgIF0sCiAgICAgICJzdW1tYXJ5IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIKICAgIH0sCiAgICAibGFuZ3VhZ2UiOiAiY2VzIiwKICAgICJwcm92aWRlciI6ICJlbGV2ZW5sYWJzU2NyaWJlVjIiLAogICAgInJlY29nbml0aW9uU3RhdHVzIjogImNvbXBsZXRlZCIsCiAgICAicmVjb3JkaW5nRmlsZW5hbWUiOiAiMTExMTExMTEtMTExMS00MTExLTgxMTEtMTExMTExMTExMTExLndhdiIsCiAgICAic3BlYWtlcnMiOiBbCiAgICAgIHsKICAgICAgICAiZW5kZWRBdCI6IDEuMCwKICAgICAgICAic3BlYWtlciI6ICJTcGVha2VyIDEiLAogICAgICAgICJzdGFydGVkQXQiOiAwLjAsCiAgICAgICAgInRleHQiOiAiV2VkZWNpZGVkLiIKICAgICAgfSwKICAgICAgewogICAgICAgICJlbmRlZEF0IjogMi4wLAogICAgICAgICJzcGVha2VyIjogIlNwZWFrZXIgMiIsCiAgICAgICAgInN0YXJ0ZWRBdCI6IDEuMCwKICAgICAgICAidGV4dCI6ICJBbm5hd2lsbCB2ZXJpZnkuIgogICAgICB9CiAgICBdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIldlIGRlY2lkZWQgdG8gc2hpcC4gQW5uYSB3aWxsIHZlcmlmeS4gRm9sbG93LXVwIHRvbW9ycm93LiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogInN5bnRoZXRpYy1tZWV0aW5nIiwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
+          },
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": {
+            "bytes": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        },
+        "modes": {
+          "archive": 448,
+          "archive/meetings.json": 384,
+          "archive/recordings": 448,
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": 384
+        }
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "incognito-both",
+      "audio": {
+        "name": "both",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 1
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 1
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "microphone",
+              "system"
+            ],
+            "warnings": [],
+            "duration_seconds": 0.0005
+          }
+        },
+        "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000d007d007d007d007d007d007e803e803",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": true,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "completed",
+        "meeting": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "title": null,
+          "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "speakers": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "startedAt": 0.0,
+              "endedAt": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "startedAt": 1.0,
+              "endedAt": 2.0
+            }
+          ],
+          "insights": {
+            "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "decisions": [
+              "We decided to ship."
+            ],
+            "actionItems": [
+              "Anna will verify.",
+              "Follow-up tomorrow."
+            ]
+          },
+          "timestamp": "2026-09-28T12:34:56.123456Z",
+          "duration": 0.0005,
+          "provider": "elevenlabsScribeV2",
+          "language": "ces",
+          "audioSources": [
+            "microphone",
+            "system"
+          ],
+          "recordingFilename": null,
+          "recognitionStatus": "completed",
+          "transcriptionID": "synthetic-meeting",
+          "warnings": []
+        },
+        "transcription": {
+          "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "language_code": "ces",
+          "language_probability": 0.95,
+          "transcription_id": "synthetic-meeting",
+          "speaker_segments": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "started_at_seconds": 0.0,
+              "ended_at_seconds": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "started_at_seconds": 1.0,
+              "ended_at_seconds": 2.0
+            }
+          ],
+          "audio_duration_seconds": 9.5
+        },
+        "incognito": true
+      },
+      "observed": {
+        "meetings": [],
+        "persistence_error": false,
+        "files": {},
+        "modes": {}
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "incognito-mic-only",
+      "audio": {
+        "name": "mic-only",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 1
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 2
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "microphone"
+            ],
+            "warnings": [
+              "System audio was unavailable; this meeting contains microphone audio only."
+            ],
+            "duration_seconds": 0.0005
+          }
+        },
+        "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": true,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "completed",
+        "meeting": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "title": null,
+          "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "speakers": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "startedAt": 0.0,
+              "endedAt": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "startedAt": 1.0,
+              "endedAt": 2.0
+            }
+          ],
+          "insights": {
+            "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "decisions": [
+              "We decided to ship."
+            ],
+            "actionItems": [
+              "Anna will verify.",
+              "Follow-up tomorrow."
+            ]
+          },
+          "timestamp": "2026-09-28T12:34:56.123456Z",
+          "duration": 0.0005,
+          "provider": "elevenlabsScribeV2",
+          "language": "ces",
+          "audioSources": [
+            "microphone"
+          ],
+          "recordingFilename": null,
+          "recognitionStatus": "completed",
+          "transcriptionID": "synthetic-meeting",
+          "warnings": [
+            "System audio was unavailable; this meeting contains microphone audio only."
+          ]
+        },
+        "transcription": {
+          "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "language_code": "ces",
+          "language_probability": 0.95,
+          "transcription_id": "synthetic-meeting",
+          "speaker_segments": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "started_at_seconds": 0.0,
+              "ended_at_seconds": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "started_at_seconds": 1.0,
+              "ended_at_seconds": 2.0
+            }
+          ],
+          "audio_duration_seconds": 9.5
+        },
+        "incognito": true
+      },
+      "observed": {
+        "meetings": [],
+        "persistence_error": false,
+        "files": {},
+        "modes": {}
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADoA+gD6APoA+gD6APoA+gD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "incognito-system-only",
+      "audio": {
+        "name": "system-only",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 2
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 1
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "system"
+            ],
+            "warnings": [
+              "Microphone audio was unavailable; this meeting contains system audio only."
+            ],
+            "duration_seconds": 0.000375
+          }
+        },
+        "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": true,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "completed",
+        "meeting": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "title": null,
+          "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "speakers": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "startedAt": 0.0,
+              "endedAt": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "startedAt": 1.0,
+              "endedAt": 2.0
+            }
+          ],
+          "insights": {
+            "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "decisions": [
+              "We decided to ship."
+            ],
+            "actionItems": [
+              "Anna will verify.",
+              "Follow-up tomorrow."
+            ]
+          },
+          "timestamp": "2026-09-28T12:34:56.123456Z",
+          "duration": 0.000375,
+          "provider": "elevenlabsScribeV2",
+          "language": "ces",
+          "audioSources": [
+            "system"
+          ],
+          "recordingFilename": null,
+          "recognitionStatus": "completed",
+          "transcriptionID": "synthetic-meeting",
+          "warnings": [
+            "Microphone audio was unavailable; this meeting contains system audio only."
+          ]
+        },
+        "transcription": {
+          "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "language_code": "ces",
+          "language_probability": 0.95,
+          "transcription_id": "synthetic-meeting",
+          "speaker_segments": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "started_at_seconds": 0.0,
+              "ended_at_seconds": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "started_at_seconds": 1.0,
+              "ended_at_seconds": 2.0
+            }
+          ],
+          "audio_duration_seconds": 9.5
+        },
+        "incognito": true
+      },
+      "observed": {
+        "meetings": [],
+        "persistence_error": false,
+        "files": {},
+        "modes": {}
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjAAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQwAAAC4C7gLuAu4C7gLuAs="
+          }
+        }
+      ]
+    },
+    {
+      "name": "incognito-neither",
+      "audio": {
+        "name": "neither",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 2
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 2
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "error": "Meeting capture produced no usable microphone or system audio."
+        },
+        "wav_hex": null,
+        "partials": [],
+        "active_after": false,
+        "file_mode": null,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": true,
+      "responses": [],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "audio-error",
+        "message": "Meeting capture produced no usable microphone or system audio."
+      },
+      "observed": {
+        "meetings": [],
+        "persistence_error": false,
+        "files": {},
+        "modes": {}
+      },
+      "requests": []
+    },
+    {
+      "name": "incognito-default-interrupt",
+      "audio": {
+        "name": "default-interrupt",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 0
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 0
+          },
+          "default_interrupt": true
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "microphone",
+              "system"
+            ],
+            "warnings": [],
+            "duration_seconds": 0.0005
+          }
+        },
+        "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000d007d007d007d007d007d007e803e803",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": true,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "completed",
+        "meeting": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "title": null,
+          "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "speakers": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "startedAt": 0.0,
+              "endedAt": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "startedAt": 1.0,
+              "endedAt": 2.0
+            }
+          ],
+          "insights": {
+            "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "decisions": [
+              "We decided to ship."
+            ],
+            "actionItems": [
+              "Anna will verify.",
+              "Follow-up tomorrow."
+            ]
+          },
+          "timestamp": "2026-09-28T12:34:56.123456Z",
+          "duration": 0.0005,
+          "provider": "elevenlabsScribeV2",
+          "language": "ces",
+          "audioSources": [
+            "microphone",
+            "system"
+          ],
+          "recordingFilename": null,
+          "recognitionStatus": "completed",
+          "transcriptionID": "synthetic-meeting",
+          "warnings": []
+        },
+        "transcription": {
+          "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "language_code": "ces",
+          "language_probability": 0.95,
+          "transcription_id": "synthetic-meeting",
+          "speaker_segments": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "started_at_seconds": 0.0,
+              "ended_at_seconds": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "started_at_seconds": 1.0,
+              "ended_at_seconds": 2.0
+            }
+          ],
+          "audio_duration_seconds": 9.5
+        },
+        "incognito": true
+      },
+      "observed": {
+        "meetings": [],
+        "persistence_error": false,
+        "files": {},
+        "modes": {}
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "retained-recognition-failure",
+      "audio": {
+        "name": "both",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 1
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 1
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "microphone",
+              "system"
+            ],
+            "warnings": [],
+            "duration_seconds": 0.0005
+          }
+        },
+        "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000d007d007d007d007d007d007e803e803",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": false,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 503,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "failed",
+        "message": "Meeting transcription failed. Its private recording is retained for explicit retry.",
+        "stage": "recognition",
+        "meeting": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "title": null,
+          "transcript": "",
+          "speakers": [],
+          "insights": {
+            "summary": "",
+            "decisions": [],
+            "actionItems": []
+          },
+          "timestamp": "2026-09-28T12:34:56.123456Z",
+          "duration": 0.0005,
+          "provider": "elevenlabsScribeV2",
+          "language": "ces",
+          "audioSources": [
+            "microphone",
+            "system"
+          ],
+          "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+          "recognitionStatus": "failed",
+          "transcriptionID": null,
+          "warnings": []
+        },
+        "retained_audio_path": "$ROOT/archive/recordings/11111111-1111-4111-8111-111111111111.wav"
+      },
+      "observed": {
+        "meetings": [
+          {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "title": null,
+            "transcript": "",
+            "speakers": [],
+            "insights": {
+              "summary": "",
+              "decisions": [],
+              "actionItems": []
+            },
+            "timestamp": "2026-09-28T12:34:56.123456Z",
+            "duration": 0.0005,
+            "provider": "elevenlabsScribeV2",
+            "language": "ces",
+            "audioSources": [
+              "microphone",
+              "system"
+            ],
+            "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+            "recognitionStatus": "failed",
+            "transcriptionID": null,
+            "warnings": []
+          }
+        ],
+        "persistence_error": false,
+        "files": {
+          "archive/meetings.json": {
+            "bytes": "WwogIHsKICAgICJhdWRpb1NvdXJjZXMiOiBbCiAgICAgICJtaWNyb3Bob25lIiwKICAgICAgInN5c3RlbSIKICAgIF0sCiAgICAiZHVyYXRpb24iOiAwLjAwMDUsCiAgICAiaWQiOiAiMTExMTExMTEtMTExMS00MTExLTgxMTEtMTExMTExMTExMTExIiwKICAgICJpbnNpZ2h0cyI6IHsKICAgICAgImFjdGlvbkl0ZW1zIjogW10sCiAgICAgICJkZWNpc2lvbnMiOiBbXSwKICAgICAgInN1bW1hcnkiOiAiIgogICAgfSwKICAgICJsYW5ndWFnZSI6ICJjZXMiLAogICAgInByb3ZpZGVyIjogImVsZXZlbmxhYnNTY3JpYmVWMiIsCiAgICAicmVjb2duaXRpb25TdGF0dXMiOiAiZmFpbGVkIiwKICAgICJyZWNvcmRpbmdGaWxlbmFtZSI6ICIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEud2F2IiwKICAgICJzcGVha2VycyI6IFtdLAogICAgInRpbWVzdGFtcCI6ICIyMDI2LTA5LTI4VDEyOjM0OjU2LjEyMzQ1NloiLAogICAgInRpdGxlIjogbnVsbCwKICAgICJ0cmFuc2NyaXB0IjogIiIsCiAgICAidHJhbnNjcmlwdGlvbklEIjogbnVsbCwKICAgICJ3YXJuaW5ncyI6IFtdCiAgfQpdCg=="
+          },
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": {
+            "bytes": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        },
+        "modes": {
+          "archive": 448,
+          "archive/meetings.json": 384,
+          "archive/recordings": 448,
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": 384
+        }
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "incognito-recognition-failure",
+      "audio": {
+        "name": "both",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 1
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 1
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "microphone",
+              "system"
+            ],
+            "warnings": [],
+            "duration_seconds": 0.0005
+          }
+        },
+        "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000d007d007d007d007d007d007e803e803",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": true,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 503,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": false,
+      "cancel": false,
+      "result": {
+        "kind": "failed",
+        "message": "Meeting transcription failed and Incognito audio was erased.",
+        "stage": "recognition",
+        "meeting": null,
+        "retained_audio_path": null
+      },
+      "observed": {
+        "meetings": [],
+        "persistence_error": false,
+        "files": {},
+        "modes": {}
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "completed-index-failure",
+      "audio": {
+        "name": "both",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 1
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 1
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "microphone",
+              "system"
+            ],
+            "warnings": [],
+            "duration_seconds": 0.0005
+          }
+        },
+        "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000d007d007d007d007d007d007e803e803",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": false,
+      "responses": [
+        {
+          "route": "speech",
+          "status": 200,
+          "payload": {
+            "text": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "language_code": "ces",
+            "language_probability": 0.95,
+            "transcription_id": "synthetic-meeting",
+            "audio_duration_secs": 9.5,
+            "words": [
+              {
+                "type": "word",
+                "text": "We",
+                "speaker_id": "speaker_0",
+                "start": 0,
+                "end": 0.5
+              },
+              {
+                "type": "word",
+                "text": "decided.",
+                "speaker_id": "speaker_0",
+                "start": 0.5,
+                "end": 1
+              },
+              {
+                "type": "word",
+                "text": "Anna",
+                "speaker_id": "speaker_1",
+                "start": 1,
+                "end": 1.5
+              },
+              {
+                "type": "word",
+                "text": "will verify.",
+                "speaker_id": "speaker_1",
+                "start": 1.5,
+                "end": 2
+              }
+            ]
+          }
+        }
+      ],
+      "index_failure": true,
+      "cancel": false,
+      "result": {
+        "kind": "failed",
+        "message": "Meeting transcript completed, but the private archive index could not be saved.",
+        "stage": "persistence",
+        "meeting": {
+          "id": "11111111-1111-4111-8111-111111111111",
+          "title": null,
+          "transcript": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+          "speakers": [
+            {
+              "speaker": "Speaker 1",
+              "text": "Wedecided.",
+              "startedAt": 0.0,
+              "endedAt": 1.0
+            },
+            {
+              "speaker": "Speaker 2",
+              "text": "Annawill verify.",
+              "startedAt": 1.0,
+              "endedAt": 2.0
+            }
+          ],
+          "insights": {
+            "summary": "We decided to ship. Anna will verify. Follow-up tomorrow.",
+            "decisions": [
+              "We decided to ship."
+            ],
+            "actionItems": [
+              "Anna will verify.",
+              "Follow-up tomorrow."
+            ]
+          },
+          "timestamp": "2026-09-28T12:34:56.123456Z",
+          "duration": 0.0005,
+          "provider": "elevenlabsScribeV2",
+          "language": "ces",
+          "audioSources": [
+            "microphone",
+            "system"
+          ],
+          "recordingFilename": "11111111-1111-4111-8111-111111111111.wav",
+          "recognitionStatus": "completed",
+          "transcriptionID": "synthetic-meeting",
+          "warnings": []
+        },
+        "retained_audio_path": "$ROOT/archive/recordings/11111111-1111-4111-8111-111111111111.wav"
+      },
+      "observed": {
+        "meetings": [],
+        "persistence_error": false,
+        "files": {
+          "archive/meetings.json/preserved": {
+            "bytes": "YmxvY2tlZCBpbmRleA=="
+          },
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": {
+            "bytes": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        },
+        "modes": {
+          "archive": 448,
+          "archive/meetings.json": 493,
+          "archive/meetings.json/preserved": 420,
+          "archive/recordings": 448,
+          "archive/recordings/11111111-1111-4111-8111-111111111111.wav": 384
+        }
+      },
+      "requests": [
+        {
+          "path": "/speech-to-text",
+          "fields": {
+            "model_id": "scribe_v2",
+            "timestamps_granularity": "word",
+            "tag_audio_events": "false",
+            "diarize": "true",
+            "language_code": "ces",
+            "file": "UklGRjQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YRAAAADQB9AH0AfQB9AH0AfoA+gD"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cancel-before-stop",
+      "audio": {
+        "name": "both",
+        "config": {
+          "microphone": {
+            "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000e803e803e803e803e803e803e803e803",
+            "wait": true,
+            "exit": 1
+          },
+          "system": {
+            "wav_hex": "524946463000000057415645666d74201000000001000100803e0000007d000002001000646174610c000000b80bb80bb80bb80bb80bb80b",
+            "wait": true,
+            "exit": 1
+          },
+          "default_interrupt": false
+        },
+        "result": {
+          "ok": {
+            "path": "meeting.wav",
+            "audio_sources": [
+              "microphone",
+              "system"
+            ],
+            "warnings": [],
+            "duration_seconds": 0.0005
+          }
+        },
+        "wav_hex": "524946463400000057415645666d74201000000001000100803e0000007d0000020010006461746110000000d007d007d007d007d007d007e803e803",
+        "partials": [],
+        "active_after": false,
+        "file_mode": 384,
+        "argv": {
+          "microphone": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.microphone",
+            "<source.wav>"
+          ],
+          "system": [
+            "--rate",
+            "16000",
+            "--channels",
+            "1",
+            "--format",
+            "s16",
+            "--target",
+            "configured.output",
+            "--properties",
+            "{ \"stream.capture.sink\": true }",
+            "<source.wav>"
+          ]
+        }
+      },
+      "incognito": false,
+      "responses": [],
+      "index_failure": false,
+      "cancel": true,
+      "result": {
+        "kind": "cancelled"
+      },
+      "observed": {
+        "meetings": [],
+        "persistence_error": false,
+        "files": {},
+        "modes": {
+          "archive": 493,
+          "archive/recordings": 448
+        }
+      },
+      "requests": []
+    }
+  ]
+}

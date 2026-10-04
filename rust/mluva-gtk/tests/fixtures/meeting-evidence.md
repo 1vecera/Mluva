@@ -1,0 +1,25 @@
+# Native Meeting records, retry and archive page
+
+Invariant observation fields now use the shared [lossless fixture storage](fixture-storage.md). Native equality and identical canonical hashes preserve every complete original observation, action and source metadata; the existing comparisons and scope below are unchanged.
+
+The unchanged reference is released v1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. External observers check every imported application module byte-for-byte against that commit and exercise actual local archives, widgets and ElevenLabs HTTP clients. Native checks consume [frozen record/archive/workflow observations](../../../mluva-core/tests/fixtures/released-meeting.json), SHA-256 `d27cc294fd506639a3a34ee92bf84716ebfdf78a19917f57f25b08d36c394b28`, and [frozen page observations](released-meeting-page.json), SHA-256 `331709ce6205beb558715c3e4e759429aa9e0602045e314dcc2ebd84614644f3`, without an interpreter.
+
+The record/store comparison matches eleven portable record formats, twenty-eight rejected rows, fourteen literal insight texts, eight archive transactions/59 file-and-record states and nine additional load boundaries. It preserves title/timing/source normalization, speaker turns, legacy fields, deterministic literal summaries/actions, JSON bytes and Markdown, in-place updates, newest-first order, the 200-record bound and overflow audio deletion. Actual directory/file conflicts reject writes before publishing state or erasing recordings. Traversal and outside symlinks are excluded from managed audio operations. Malformed/non-finite/oversized input stays unchanged and disables writes; the size case uses a sparse file above the 100 MB limit. Compatible duplicate legacy identities remain accepted.
+
+Fifteen actual diarized HTTP workflows/23 archive/result states match finalized audio requests, speaker mapping, duration fallback, warnings, language selection, retained failures, explicit retry, missing audio, archive collision and failed index writes. Retry preserves the same identifier, human title, duration and recording while replacing recognition facts. Incognito writes no archive record and erases finalized audio on both success and failure. A separate native fault drops an actual in-flight Incognito request after the peer receives it; owned audio is erased, no index appears and no late record is published. This fault checks ownership of finalized audio, not microphone or memory-backed capture.
+
+ApplicationServices now opens the separate `meetings/meetings.json` archive before capture credentials and shares it through one owner. MeetingPage uses that compatible store shape for real title saves, JSON/Markdown exports and record display. Its explicitly executed private comparison matches six unchanged-release scenarios/44 GTK states: privacy/routes/status, explicit start/stop/processing presentation, Unicode previews, duration/time format, recovery visibility, summaries/transcripts/warnings, persisted titles, expansion preservation and delete dialogs. Cancel and a rejected parent deletion preserve the record; confirmed deletion removes the referenced owned audio. Only outer toggle/copy/retry/delete/message callbacks are controlled boundaries. Capture and retry are not invoked through these page callbacks in this comparison.
+
+The title-write failure comparison preserves the actual error prefix and failed file/store/control state. Its operating-system error detail is normalized to `I/O failure`: the released exception contains a generated temporary filename and native I/O formatting differs. Other messages and export destinations are compared after replacing only the private test root. Toolkit scope is GTK 4.22.4, Libadwaita 1.9.3, scale 1 and reduced motion; these are actual widget/control observations, not pixel, animation or full accessibility acceptance.
+
+Reproduce the ordinary checks from the repository root, with scratch under its `tmp/`:
+
+```sh
+cargo test --locked -p mluva-core -p mluva-workflows --test meeting -- --nocapture
+bash dev/run-isolated-browser.sh tmp/native-meeting-page -- \
+  cargo test --locked -p mluva-gtk --test meeting_page -- --ignored --test-threads=1 --nocapture
+```
+
+Desktop/reference runs isolate display, HOME/XDG, session/accessibility buses, network/PID/mount namespaces and input/audio/GPU device nodes. Requests target owned loopback peers with synthetic finalized bytes and a synthetic key. No microphone, account, managed credential, user-content upload, host focus/input or clipboard is used. Temporary observers and raw logs stay ignored scratch; development peers must not ship.
+
+Meeting capture/service construction, busy/privacy/retry/deletion guards, elapsed timers, diagnostics, active reconfiguration and shutdown still need the native application lifecycle owner. Finalized workflow file operations must run off GTK's context when that owner is assembled. Real microphone/system recording and full Meeting acceptance remain pending. There is still no complete runnable native app; all complete-workflow rows remain Pending, installed app/widget remain verified 1.6.0 and the full Rust goal stays active.

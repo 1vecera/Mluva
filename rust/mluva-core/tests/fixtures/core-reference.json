@@ -1,0 +1,8 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "files": {
+    "linux/mluva_linux/config.py": "1a1f5244733323b2a2acd7d94c49bcc41b4ec0a79fcef5fec42c36dc0ae77a4f",
+    "linux/mluva_linux/transcript.py": "3d072e22ffc59ebc94abdca6948536b6c3a09fbdb71a55a45405f362912b256f",
+    "linux/mluva_linux/prompt_defaults.py": "2fdf23766603ec9e0f24ee1a43d562f3dd57f44c0706223822e9c740961ff5e8"
+  }
+}

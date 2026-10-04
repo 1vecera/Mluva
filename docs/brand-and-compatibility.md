@@ -32,16 +32,11 @@ Backgrounds are transparent by default. Every viewBox is tight, so keep clear sp
 
 ## Regenerate
 
-`docs/brand` is the source of truth. Rebuild it from its committed sources, then refresh the integration surfaces:
+`docs/brand` holds the committed sources and rendered assets. Runtime assets are in `rust/mluva-gtk/resources`; preserve those bytes when changing the artwork.
 
-```sh
-uv run docs/brand/build.py
-make linux-setup
-cd linux
-uv run --locked python -m mluva_linux.brand_assets --png
-```
+Historical Python preparation recipes were retired in the 2.0.0 cutover. Committed outputs remain; the original recipes are available in the v1.6.0 tag.
 
-`build.py` needs `rsvg-convert` (librsvg, the renderer GTK uses) and `magick`; `brand_assets.py` needs `rsvg-convert` for the PNG siblings. `make linux-test` checks the app tile, the symbolic icon, the `docs/assets` copies and `docs/favicon.ico` for drift against `docs/brand`.
+The historical recipes used `rsvg-convert` and ImageMagick. Native package and GTK comparisons preserve runtime resources; the removed Python artwork checks are not part of the 2.0.0 gate.
 
 The wordmark is traced and outlined artwork; it no longer derives from a font. The bundled JetBrains Mono family remains the application typeface under its [OFL notice](../linux/quickshell/mluva.dictation/fonts/OFL.txt). The former frost-blue unfolding-thought mark and JetBrains Mono wordmark were retired on 18 September 2026 and remain in git history.
 

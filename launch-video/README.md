@@ -25,7 +25,6 @@ npm run master
 
 The result is `out/mluva-intro-live-master.mp4`. Remotion renders silent picture; `script/master.py` checks its duration and attaches the approved mix as AAC without changing the video. This keeps sound aligned and avoids repeated voice processing or renderer-specific audio-delay corrections. The Remotion composition still plays the mix during interactive preview.
 
-For a smaller full-length preview, use `npm run preview`, then `uv run script/master.py out/mluva-intro-live-preview.mp4`.
 
 `Root.tsx` reads the local edit plan and sets the exact frame count. `src/MluvaIntro.tsx` lays out the scene; `src/PoppyCaptions.tsx` renders captions. The desktop fills a 1728×1080 area at (96, 0), preserving its 16:10 aspect. The cutout has no backdrop, outline, shadow or added edge fades.
 

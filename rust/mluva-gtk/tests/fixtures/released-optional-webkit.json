@@ -1,0 +1,52 @@
+{
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_sha256": {
+    "linux/mluva_linux/mermaid_view.py": "226d89b60419012ba4470eeca16a3ada339f0f1a0dc3e37b8fe77d9380bde35c",
+    "linux/mluva_linux/conversation_view.py": "5f631eaf25eab9cccf7daee293c5ac579e68420eaa3e0c106df70648827673e6",
+    "linux/mluva_linux/theme.py": "2f240fc62e9ae5b913c42127907f6c063e5585510b6ab04fcf64bf492841f066"
+  },
+  "cases": [
+    {
+      "name": "initial",
+      "source": "Before\n```mermaid\ngraph TD; A[Start]-->B[Result];\n```\nAfter",
+      "expected": {
+        "source": "Before\n```mermaid\ngraph TD; A[Start]-->B[Result];\n```\nAfter",
+        "visible": "Before\n```mermaid\ngraph TD; A[Start]-->B[Result];\n```\nAfter",
+        "editable": true,
+        "notice": "Mermaid preview needs WebKitGTK 6.0. The editable sketch source is kept above.",
+        "notice_visible": true,
+        "preview_visible": true,
+        "pictures": 0,
+        "web": false
+      }
+    },
+    {
+      "name": "edited",
+      "source": "Updated Ω 🐎\n```mermaid\ngraph LR; C[Žluťoučký]-->D[Saved source];\n```",
+      "expected": {
+        "source": "Updated Ω 🐎\n```mermaid\ngraph LR; C[Žluťoučký]-->D[Saved source];\n```",
+        "visible": "Updated Ω 🐎\n```mermaid\ngraph LR; C[Žluťoučký]-->D[Saved source];\n```",
+        "editable": true,
+        "notice": "Mermaid preview needs WebKitGTK 6.0. The editable sketch source is kept above.",
+        "notice_visible": true,
+        "preview_visible": true,
+        "pictures": 0,
+        "web": false
+      }
+    },
+    {
+      "name": "plain",
+      "source": "Kept as editable plain text. Ω 🐎",
+      "expected": {
+        "source": "Kept as editable plain text. Ω 🐎",
+        "visible": "Kept as editable plain text. Ω 🐎",
+        "editable": true,
+        "notice": "Mermaid preview needs WebKitGTK 6.0. The editable sketch source is kept above.",
+        "notice_visible": true,
+        "preview_visible": false,
+        "pictures": 0,
+        "web": false
+      }
+    }
+  ]
+}

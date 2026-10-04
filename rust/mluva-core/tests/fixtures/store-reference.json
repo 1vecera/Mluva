@@ -1,0 +1,8 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "files": {
+    "linux/mluva_linux/history.py": "c8a82d65fe7261e3ea1d69c5fb20f1462fc3fa51e012d3336dec0ad7b6b20d88",
+    "linux/mluva_linux/conversation.py": "d05c868b042bc0cd1bde40bfdbabecb49335f251395cd1ad065ed9f3437b7942",
+    "linux/mluva_linux/screenshots.py": "db254d499f3c13ff70bdd3cede34205df66af1f2c0807b327657b30dcdcafcdf"
+  }
+}

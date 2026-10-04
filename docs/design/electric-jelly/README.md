@@ -14,7 +14,6 @@ Editable 3D recreation of the Electric Jelly material, continuing the selected v
 - `source/figma-contour.svg`: exact exported contour from node `206:1683`, inside the selected study.
 - `source/reflection-cards.json`: editable highlight footprints and brightness settings, refined against the material reference.
 - `source/material-reference.png` and `source/selected-vector.png`: the source images used for comparison.
-- `create_electric_jelly.py` and `reflection_cards.py`: reproducible Blender 5.2 generation scripts; no additional Python packages are required inside Blender.
 
 ## How the appearance works
 
@@ -26,13 +25,7 @@ This is a study for the front hero view. The reference still has more irregular 
 
 ## Rebuild
 
-Run from this folder using Blender 5.2. The command preserves existing scenes in the fresh Blender process and refuses to overwrite the output unless `--force` is given.
-
-```sh
-blender --background --factory-startup --python create_electric_jelly.py -- --output ./electric-jelly.blend --render --force
-```
-
-On macOS, the Blender executable can be `/Applications/Blender.app/Contents/MacOS/Blender`. For a quick preview, add `--size 512 --samples 32`. Defaults are 1200 pixels and 128 Cycles samples, with Metal GPU rendering when available and CPU otherwise. Render paths inside the saved scene are relative.
+The committed Blender scene remains editable. Historical Python preparation recipes were retired in 2.0.0 and are available in the v1.6.0 tag.
 
 ## Verification
 

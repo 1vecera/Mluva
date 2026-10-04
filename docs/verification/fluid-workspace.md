@@ -1,5 +1,7 @@
 # Fluid dictation workspace verification
 
+4 October 2026 port checkpoint: `make linux-fluid-workspace-test` and `make linux-live-stability-test` now share the native application, conversation and document checks through `linux-live-workspace-test`. Their two Python scripts are removed; the [native evidence and contract mapping](../../rust/mluva-gtk/tests/fixtures/live-workspace-evidence.md) records the independent released observations and current acceptance limits. The September results below describe the earlier implementation and remain historical evidence.
+
 Verified on 10 September 2026 in a disposable Fedora Linux container with private X11, D-Bus, accessibility and XDG state. The native GTK application and production Quickshell widget were exercised with synthetic audio/provider and desktop-target boundaries. No microphone, real transcript, host clipboard or visible desktop was used.
 
 ## Results

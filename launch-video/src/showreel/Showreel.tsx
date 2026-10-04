@@ -46,7 +46,7 @@ const Camera: React.FC<{ index: number; length: number; children: React.ReactNod
   );
 };
 
-// Studio preview only; renders are muted and showreel/mix.py masters the same cue sheet.
+// Studio preview only; renders are muted and the historical v1.6.0 mastering recipe masters the same cue sheet.
 const Soundtrack: React.FC = () => (
   <>
     <Audio src={staticFile(`showreel/audio/${cues.score.file}`)} volume={10 ** (cues.score.gain_db / 20)} />

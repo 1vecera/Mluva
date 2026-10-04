@@ -1,0 +1,49 @@
+[
+  {
+    "environ": {
+      "HOME": "/home/synthetic"
+    },
+    "expected": {
+      "config": "/home/synthetic/.config/mluva",
+      "data": "/home/synthetic/.local/share/mluva",
+      "runtime": "/home/synthetic/.local/share/mluva/runtime"
+    }
+  },
+  {
+    "environ": {
+      "HOME": "/home/synthetic",
+      "XDG_CONFIG_HOME": "/config",
+      "XDG_DATA_HOME": "/data",
+      "XDG_RUNTIME_DIR": "/run/private"
+    },
+    "expected": {
+      "config": "/config/mluva",
+      "data": "/data/mluva",
+      "runtime": "/run/private/mluva"
+    }
+  },
+  {
+    "environ": {
+      "HOME": "/home/synthetic",
+      "XDG_CONFIG_HOME": "",
+      "XDG_DATA_HOME": "",
+      "XDG_RUNTIME_DIR": ""
+    },
+    "expected": {
+      "config": "mluva",
+      "data": "mluva",
+      "runtime": "mluva"
+    }
+  },
+  {
+    "environ": {
+      "XDG_CONFIG_HOME": "/config",
+      "XDG_DATA_HOME": "/data"
+    },
+    "expected": {
+      "config": "/config/mluva",
+      "data": "/data/mluva",
+      "runtime": "/data/mluva/runtime"
+    }
+  }
+]

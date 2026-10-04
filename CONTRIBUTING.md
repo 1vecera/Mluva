@@ -1,75 +1,68 @@
 # Contributing to Mluva
 
-Mluva accepts focused changes that preserve its privacy, exact-target delivery, immutable raw-recognition, and recoverable-failure contracts. Omarchy is the primary platform and the core workflow is used daily. Fedora GNOME compatibility is retained but has not been tested in recent releases.
-
-Contributions submitted to this repository are accepted under the repository's [Apache License 2.0](LICENSE).
+Mluva uses Rust, GTK4/Libadwaita and PipeWire. Preserve privacy, exact-target delivery, immutable raw recognition and recoverable failures. Omarchy is the primary platform; Fedora GNOME compatibility remains without recent desktop acceptance. Contributions use the [Apache License 2.0](LICENSE).
 
 ## Local setup
 
-Follow the [Linux guide](linux/README.md) for runtime dependencies and provider setup. Tests use local protocol servers, fake audio and desktop boundaries, and generated content; they must not open a microphone, inspect the live accessibility tree, alter the clipboard, inject input, or open a shortcut approval dialog.
+Install the repository-pinned Rust 1.95 toolchain, a C compiler, pkg-config and development libraries for GTK 4.14+, Libadwaita 1.5+, libatspi, Fontconfig, SQLite and OpenSSL. Bash, coreutils and util-linux coordinate builds. WebKitGTK 6.0 loads only when diagrams need it. See the [Linux runtime guide](linux/README.md) and [native verification](rust/README.md) for additional test dependencies. Python and uv are not required.
 
-Run `make linux-setup` to prepare the locked Python environment with distribution PyGObject access. GUI checks use the isolated runners below.
+`make` builds and validates an optimized native bundle. Compiler artifacts stay in `tmp/native-build` unless `CARGO_TARGET_DIR` is set. `make run` prepares a temporary bundle and launches the app; Quit removes it, while closing the window keeps the resident app running. Automated launch checks must use the private desktop runner.
+
+```sh
+bash linux/build-native.sh "$PWD/tmp/native-bundle"
+```
+
+The output must not exist. Locked Cargo dependencies, runtime resources and verified dependency notices form the bundle. `CARGO_TARGET_DIR`, `CARGO_HOME` and `RUSTUP_HOME` are respected, including relative locations. A populated dependency cache supports offline builds.
+
+With runtime dependencies present, `make linux-install` builds and installs through the same native transaction as a prepared package. Use `MLUVA_INSTALL_HOME="$PWD/tmp/staged-home" bash linux/install.sh` for disposable-prefix verification. `make linux-uninstall` builds the native removal command; installed `mluva-uninstall` needs no compiler. Existing settings, History, drafts, models and credentials are preserved during upgrades.
+
+Combined `bash install.sh` provisions desktop dependencies, installs the app and updates the Omarchy widget; `--app-only` skips the widget. Source setup requires Rust and a C compiler first. Prepared bundles require neither compiler nor Python. Widget ownership is checked before package or application changes. `bash linux/install-widget.sh --check` runs native widget preflight from source.
 
 ## Code map
 
-Bare Python filenames refer to [linux/mluva_linux](linux/mluva_linux). Tooling paths start at the repository root. Start at the feature's logic, then follow its calls into `app.py` for lifecycle wiring. GTK callbacks stay on the main thread; provider and audio work runs outside it.
+GTK callbacks stay on the main thread; provider/audio work runs outside it. The [native overview](rust/README.md) links independent released comparisons and their exact scopes.
 
-| Change | Linux owner |
+| Change | Owner |
 | --- | --- |
-| Recording and final delivery | `app.py`: `_start_capture`, `_prepare_capture`, `_finish_recording`; `audio.py` captures PCM, `workflow.py` prepares/persists/delivers the final result |
-| Speech/rewrite provider selection | `config.py` stores choices; `provider_catalog.py` describes/discovers routes; `providers.py` creates speech clients; `rewriting.py` owns rewrite client construction, model/speed policy and execution; `app.py` owns worker dispatch and UI completion gates; `provider_settings.py` renders choices |
-| Live rewrite and manual edits | `live_rewrite.py` schedules/prompts; `app.py`: `_maybe_live_rewrite`, `_live_rewrite_finished`, `_save_live_draft` guard sessions/revisions; `conversation_view.py` owns editors and `conversation.py` saves working copies |
-| Prompt instructions and templates | `prompt_defaults.py`: `LIVE_TEMPLATES` defines each Live mode once for validation, menus, prompts and initial structure; `prompts.py` resolves local overrides; `prompt_editor.py` is the shared native editor; `app.py` freezes recording snapshots |
-| Automatic conversation titles | `title_jobs.py` owns the bounded queue, worker and main-thread commit checks; `conversation_titles.py` owns bounded prompt/title rules and SQL compare-and-set; `app.py` supplies settings and label refresh callbacks |
-| Commands | `command_palette.py`: `application_commands` owns Ctrl+P actions and availability. Spoken Command mode uses `workflow.py` and `app.py`: `_accept_command_preview` |
-| History, recovery and privacy | `history.py`, `conversation.py`, `scratchpad.py`, `meeting.py` own persistence; `history_view.py` renders history; `workflow.py` enforces retention/Incognito |
-| Sidebar rename, merge and delete | `conversation_view.py` owns menus and inline titles; `conversation.py` joins saved chats atomically; `app.py` saves pending edits and checks active operations; `make linux-conversation-management-test` exercises the native controls at three window sizes |
-| Native UI and theme | `conversation_view.py`, `markdown_view.py`, `ui.py`, `theme.py`; settings/page views are siblings; `app.py` composes them |
-| Desktop integration | `global_shortcuts.py` owns portal sessions; `text_target.py` captures/restores accessible text; `terminal_target.py` revalidates exact Hyprland terminal identities; `delivery.py` inserts/copies; `shell_bridge.py` and `overlay_state.py` connect the GNOME/QML surfaces |
-| Installation and development tooling | `install.sh` coordinates dependencies, the native app and the Omarchy plugin; `linux/install.sh` and `linux/resources/mluva.in` own the app installation; `dev/run-isolated.sh` owns isolated GUI checks |
-
-Raw recognition is immutable. Editor drafts, processed text and delivery results are separate. Live provisional text must never become final delivery; late provider output must pass session, privacy and manual-edit revision gates. A command opened on one document must not act on a newly selected document or replacement editor. Keep these guards beside the affected callbacks instead of introducing a shared state framework.
+| Configuration, prompts, personalization, History, conversations, retention | `rust/mluva-core/src` |
+| PCM/WAV, private audio, PipeWire and crash cleanup | `rust/mluva-audio/src` |
+| Speech/rewrite connections, credentials, local model downloads and previews | `rust/mluva-providers/src` |
+| Native model execution and recognition worker | `rust/mluva-asr/src` |
+| Recording, delivery, Live/review, titles, meetings, screenshots and narration | `rust/mluva-workflows/src` |
+| GTK application, pages, settings, rendering and text-target tracking | `rust/mluva-gtk/src` |
+| D-Bus action/status bridge | `rust/mluva-shell/src` |
+| Installation, identity migration, package/archive, widget and editor launch | `rust/mluva-install/src` |
+| Omarchy widget / GNOME recording display | `linux/quickshell/mluva.dictation` / `linux/gnome-extension` |
 
 ## Verification
 
-Keep a test when it would catch an observable regression: lost text, an incorrect request, a stale result, unwanted delivery, leaked content or failed recovery. Use controlled external boundaries while running the production logic. Expected results should be independent of the implementation; avoid copying constants, searching source code for particular statements, checking unchanged input fixtures, or duplicating an existing stronger scenario. When a test claims an operation is skipped, make that operation available and observable. Generated-file drift belongs in its existing check command. Keep explicit configuration and packaging checks where they protect a privacy, security or distribution contract.
+Tests use synthetic content and local protocol peers. Never open a real microphone, inspect the live accessibility tree, change the host clipboard, inject host input or open host permission dialogs. GUI checks use `dev/run-isolated-browser.sh` with private display, HOME/XDG, D-Bus, accessibility, network and device isolation. See [dev/README.md](dev/README.md) for prerequisites. Image comparisons also require ImageMagick; Mermaid checks require WebKitGTK 6.0.
 
-For a quick text/editing change, run `make linux-test-fast` from the root. It covers transcript preservation, conversation/history persistence, scratchpads, Live scheduling and Markdown round trips. It is a subset, not the complete check set. For other changes, choose the tests that exercise their boundary:
-
-| Change | Focused check after `make linux-setup` |
-| --- | --- |
-| Provider route or catalog | `(cd linux && uv run --locked pytest -q tests/test_provider_catalog.py tests/test_provider_workspace.py)` |
-| Rewrite policy or title lifecycle | `(cd linux && uv run --locked pytest -q tests/test_rewriting.py tests/test_title_jobs.py tests/test_conversation_titles.py)`; `make linux-conversation-test` exercises the native completion gates |
-| Codex capability restrictions | `make linux-codex-isolation-test` exercises the installed CLI against a loopback model fixture, including an unsolicited command, inherited MCP and global instructions; it does not use a real account or provider |
-| Recording, cleanup or delivery | `(cd linux && uv run --locked pytest -q tests/test_app_capture.py tests/test_workflow.py tests/test_segment_cleanup.py tests/test_delivery.py)` |
-| Prompt configuration or editor | `make linux-prompt-test` (hover/focus, Ctrl+P deep links, local files, Save/Cancel/reset, restart and recording snapshots) |
-| Ctrl+P action or availability | `make linux-command-test` (real native editor, stale actions, lossless Copy/Save, dismissal and keyboard navigation) |
-| Live editor or finalization | `make linux-live-rewrite-test` (manual edits, late results, final transcript and clipboard gates) |
-| Continue recording, Live activation or thinking controls | `make linux-continuation-test` (real capture lifecycle with fake device/provider boundaries, edits, cancellation, persistence and narrow layout) |
-| Conversation layout | `make linux-compact-workspace-test` (minimum, narrow, wide and 360-pixel tiles at 2× scaling; checks visible control bounds in saved, empty, rewrite and recording states) |
-| Grilling, live navigation or Mermaid | `make linux-fluid-workspace-test` (mid-recording controls, paused draft recovery, questions, offline diagrams and responsive layouts; requires WebKitGTK 6.0) |
-| Omarchy widget | `make linux-omarchy-test` (production QML and bridge on a private display/bus) |
-| Installed launch or shortcut registration | `(cd linux && uv run --locked pytest -q tests/test_launcher.py tests/test_global_shortcuts.py)` followed by `make linux-shortcut-test` |
-
-Rewrite policy and title jobs also run without GTK on a non-Linux development host:
-
-```bash
-uv run --no-project --with pytest==9.1.1 pytest -q \
-  linux/tests/test_rewriting.py linux/tests/test_title_jobs.py linux/tests/test_conversation_titles.py
-```
-
-Run the complete Linux gate before submitting a change; it retains every deterministic case plus lint, formatting and generated-feature consistency:
-
-```bash
+```sh
 make linux-test
 make linux-shortcut-test
 shellcheck install.sh linux/*.sh linux/tests/*.sh dev/*.sh linux/mluva-shell
 ```
 
-For desktop delivery changes, also run `make linux-text-target-test`. Widget changes use `make linux-omarchy-test` on an Omarchy development machine. GNOME-extension changes use `make linux-overlay-test` in an environment with GNOME Shell’s headless test tools; that compatibility check is not required for unrelated Omarchy work.
+The on-demand CI job runs the native gate; local success does not establish a hosted or clean-distribution result. Do not spend to unblock CI.
 
-The [architecture review](docs/architecture-review.md) records the scope, measured baseline, three implemented improvements and 20 options for faster feature development. The remaining recommendations are proposals; the code map above describes the current implementation.
+| Changed boundary | Private integration check |
+| --- | --- |
+| Full recording/application and desktop actions | `make linux-application-test` |
+| Conversation editing, navigation and scrolling | `make linux-conversation-test` |
+| Live workspace and controllers | `make linux-live-workspace-test linux-live-rewrite-test` |
+| Provider preferences and held discovery | `make linux-provider-settings-test` |
+| Conversation rename, merge, privacy and deletion | `make linux-conversation-management-test` |
+| Compact layouts and finalization | `make linux-compact-workspace-test` |
+| Prompt editor, persistence and process restart | `make linux-prompt-test` |
+| First-run model download/readiness and opt-ins | `MLUVA_TEST_ONBOARDING_ASSETS=/absolute/public-fixtures make linux-onboarding-test` |
+| Screenshot context and real editor narration | `MLUVA_TEST_EDITOR=/absolute/verified/tensaku make linux-screenshot-test` |
+| Exact-target paste / widget | `make linux-text-target-test` / `make linux-omarchy-test` |
+| Installed Codex isolation | `make linux-codex-isolation-test` |
+| GNOME display extension | `make linux-overlay-test` in GNOME's headless test environment |
+
+Remaining physical-device, desktop permission and platform limits are recorded in the [2.0.0 cutover evidence](docs/verification/rust-cutover/README.md). Historical Python comparison and artwork recipes are available from v1.6.0 and are not maintained or shipped in 2.0.0.
 
 ## Pull requests
 
-Keep each pull request narrow, explain the user-visible outcome and failure behavior, include focused tests, and update the product or platform contract when behavior changes. Never include credentials, real transcripts, real recordings, private application or window names, or screenshots containing user data. Public claims about compatibility, privacy, speed, or accuracy require reproducible evidence.
+Describe the user-visible outcome and failure behavior, include focused verification and update changed product/platform contracts. Do not include credentials, real transcripts, recordings, private window names or user screenshots. Claims about compatibility, privacy, speed and accuracy require reproducible evidence.

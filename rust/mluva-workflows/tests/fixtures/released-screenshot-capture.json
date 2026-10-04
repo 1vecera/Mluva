@@ -1,0 +1,571 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_sha256": {
+    "linux/mluva_linux/__init__.py": "c242d7dde99d2636421fdca795ddcb0898788a06492ebbea5c770a8e4a506813",
+    "linux/mluva_linux/brand.py": "fe29d90483027e03b95652378b1d251d82deeb152f04924706da6eb9773ef6c4",
+    "linux/mluva_linux/screenshot_capture.py": "c77e1e60ab4c8b03b4eea27af7e29ecf9df105433c6f99e558462aa12066c100",
+    "linux/mluva_linux/screenshots.py": "db254d499f3c13ff70bdd3cede34205df66af1f2c0807b327657b30dcdcafcdf"
+  },
+  "cases": [
+    {
+      "name": "selected",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082"
+      },
+      "observed": {
+        "result": {
+          "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082"
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "whitespace",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "whitespace": true
+      },
+      "observed": {
+        "result": {
+          "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082"
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "non-utf8-name",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "name_hex": "ff2e706e67"
+      },
+      "observed": {
+        "result": {
+          "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082"
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "relative-path",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "kind": "relative"
+      },
+      "observed": {
+        "result": {
+          "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082"
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "parent-components",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "kind": "parent-components"
+      },
+      "observed": {
+        "result": {
+          "io": 2
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "blank",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "output_hex": "0b200a"
+      },
+      "observed": {
+        "result": {
+          "cancelled": true
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "exit-one",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "exit": 1
+      },
+      "observed": {
+        "result": {
+          "cancelled": true
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "large-output",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "large_output": true
+      },
+      "observed": {
+        "result": {
+          "error": "Screenshot picker returned an invalid file."
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "large-output-failed",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "large_output": true,
+        "exit": 1
+      },
+      "observed": {
+        "result": {
+          "cancelled": true
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "large-blank-output",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "large_whitespace": true
+      },
+      "observed": {
+        "result": {
+          "cancelled": true
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "large-blank-prefix",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "large_whitespace": true,
+        "trailing_text": true
+      },
+      "observed": {
+        "result": {
+          "error": "Screenshot picker returned an invalid file."
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "stderr",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "stderr": true
+      },
+      "observed": {
+        "result": {
+          "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082"
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "missing",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "kind": "missing"
+      },
+      "observed": {
+        "result": {
+          "io": 2
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "directory",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "kind": "directory"
+      },
+      "observed": {
+        "result": {
+          "io": 21
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "symlink",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "kind": "symlink"
+      },
+      "observed": {
+        "result": {
+          "error": "Screenshot picker returned a file outside its capture directory."
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "outside",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "kind": "outside"
+      },
+      "observed": {
+        "result": {
+          "error": "Screenshot picker returned a file outside its capture directory."
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "nested",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "kind": "nested"
+      },
+      "observed": {
+        "result": {
+          "error": "Screenshot picker returned a file outside its capture directory."
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "invalid-png",
+      "spec": {
+        "png": "6e6f74206120504e47"
+      },
+      "observed": {
+        "result": {
+          "error": "Screenshot is not a PNG image."
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "truncated-png",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae"
+      },
+      "observed": {
+        "result": {
+          "error": "Screenshot is incomplete. Save it in the editor and try again."
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "large-image",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "kind": "large-image"
+      },
+      "observed": {
+        "result": {
+          "error": "Screenshot exceeds the 8 MB image limit."
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "missing-picker",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "missing_tool": true
+      },
+      "observed": {
+        "result": {
+          "io": 2
+        },
+        "trace": null,
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "cancel-before-start",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "precancel": true
+      },
+      "observed": {
+        "result": {
+          "cancelled": true
+        },
+        "trace": null,
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "cancel-with-child",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "wait": true,
+        "cancel": true,
+        "child": true
+      },
+      "observed": {
+        "result": {
+          "cancelled": true
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    },
+    {
+      "name": "timeout",
+      "spec": {
+        "png": "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c49444154789c63f8cfc0000003010100c9fe92ef0000000049454e44ae426082",
+        "wait": true,
+        "child": true
+      },
+      "observed": {
+        "result": {
+          "error": "Screenshot selection timed out. Press F10 to try again."
+        },
+        "trace": {
+          "args": [
+            "screenshot",
+            "region",
+            "save"
+          ],
+          "directory_mode": 448,
+          "group_leader": true,
+          "session_leader": true
+        },
+        "directory_empty": true,
+        "processes_gone": true
+      }
+    }
+  ]
+}

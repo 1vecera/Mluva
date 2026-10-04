@@ -1,0 +1,83 @@
+[
+  {
+    "input": {
+      "identifier": "synthetic-draft",
+      "history_identifier": null,
+      "created_at": "2026-09-01T12:00:00+00:00",
+      "raw_text": "Raw český text",
+      "text": "Edited český text",
+      "audio_path": null
+    },
+    "expected": {
+      "identifier": "synthetic-draft",
+      "history_identifier": null,
+      "created_at": "2026-09-01T12:00:00+00:00",
+      "raw_text": "Raw český text",
+      "text": "Edited český text",
+      "audio_path": null,
+      "incognito": false,
+      "audio_retention_policy": "failures",
+      "session_identifier": null
+    },
+    "damaged": false
+  },
+  {
+    "input": {
+      "identifier": "synthetic-draft",
+      "history_identifier": null,
+      "created_at": "2026-09-01T12:00:00+00:00",
+      "raw_text": "Raw český text",
+      "text": "Edited český text",
+      "audio_path": null,
+      "incognito": true
+    },
+    "expected": {
+      "identifier": "synthetic-draft",
+      "history_identifier": null,
+      "created_at": "2026-09-01T12:00:00+00:00",
+      "raw_text": "Raw český text",
+      "text": "Edited český text",
+      "audio_path": null,
+      "incognito": true,
+      "audio_retention_policy": "failures",
+      "session_identifier": null
+    },
+    "damaged": false
+  },
+  {
+    "input": {
+      "identifier": "synthetic-draft",
+      "history_identifier": null,
+      "created_at": "2026-09-01T12:00:00+00:00",
+      "raw_text": "Raw český text",
+      "text": "Edited český text",
+      "audio_path": null,
+      "audio_retention_policy": "always",
+      "session_identifier": "capture-one"
+    },
+    "expected": {
+      "identifier": "synthetic-draft",
+      "history_identifier": null,
+      "created_at": "2026-09-01T12:00:00+00:00",
+      "raw_text": "Raw český text",
+      "text": "Edited český text",
+      "audio_path": null,
+      "incognito": false,
+      "audio_retention_policy": "always",
+      "session_identifier": "capture-one"
+    },
+    "damaged": false
+  },
+  {
+    "input": [],
+    "expected": null,
+    "damaged": true
+  },
+  {
+    "input": {
+      "extra": true
+    },
+    "expected": null,
+    "damaged": true
+  }
+]

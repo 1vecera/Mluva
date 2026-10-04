@@ -1,0 +1,180 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_sha256": {
+    "linux/mluva_linux/mermaid_view.py": "226d89b60419012ba4470eeca16a3ada339f0f1a0dc3e37b8fe77d9380bde35c",
+    "linux/mluva_linux/conversation_view.py": "5f631eaf25eab9cccf7daee293c5ac579e68420eaa3e0c106df70648827673e6",
+    "linux/mluva_linux/scroll_forecast.py": "1fee03547d421fefcdbce1284fb5030e95ca91af2a022a3dd1ffcfde42cf2595",
+    "linux/mluva_linux/theme.py": "2f240fc62e9ae5b913c42127907f6c063e5585510b6ab04fcf64bf492841f066",
+    "linux/mluva_linux/brand.py": "fe29d90483027e03b95652378b1d251d82deeb152f04924706da6eb9773ef6c4",
+    "linux/mluva_linux/__init__.py": "c242d7dde99d2636421fdca795ddcb0898788a06492ebbea5c770a8e4a506813",
+    "linux/mluva_linux/minimal_markdown.py": "edcbb1ab09dc92fd1926d1c1c9b8f480497a81ad60eb93e661375df906d84b28",
+    "linux/mluva_linux/text_diff.py": "e7b0619b0cba58211883a442c3d0d91936877c69e786a1c7c4072319dda80cba",
+    "linux/mluva_linux/markdown_view.py": "75543cac8200fbfef0b480eac7c93bc0921c8e487ed095de28bf3cedceef55d4",
+    "linux/mluva_linux/private_files.py": "7fe39eac13e1f4bcfd248a8cab514818dc0ab4445f7be10bfa1f79a95a10a905",
+    "linux/mluva_linux/prompt_defaults.py": "2fdf23766603ec9e0f24ee1a43d562f3dd57f44c0706223822e9c740961ff5e8",
+    "linux/mluva_linux/config.py": "1a1f5244733323b2a2acd7d94c49bcc41b4ec0a79fcef5fec42c36dc0ae77a4f",
+    "linux/mluva_linux/screenshots.py": "db254d499f3c13ff70bdd3cede34205df66af1f2c0807b327657b30dcdcafcdf",
+    "linux/mluva_linux/history.py": "c8a82d65fe7261e3ea1d69c5fb20f1462fc3fa51e012d3336dec0ad7b6b20d88",
+    "linux/mluva_linux/conversation.py": "d05c868b042bc0cd1bde40bfdbabecb49335f251395cd1ad065ed9f3437b7942",
+    "linux/mluva_linux/conversation_titles.py": "2969c932307c4c4d40675729f0c83a9cfbaed209891400655e6f49beca5a2e12",
+    "linux/mluva_linux/display_time.py": "da43989c6ef7e3c3a3d23551823410fc33a806bc4c2de517a7cfa07fc3814089",
+    "linux/mluva_linux/live_rewrite.py": "b82b950e5210453cba3122de56b4f9164e0116d9abad5598ac04d1c583f30b02",
+    "linux/mluva_linux/prompts.py": "12c9ab110fc4373e474de196cad4cb98c16c9b58b499de3cc475b03136929609",
+    "linux/mluva_linux/prompt_editor.py": "475d94edc8783022665f653480f23894a0a0e3da35bc7dc9f95b7da1307bc1e6",
+    "linux/mluva_linux/recording_control.py": "b85a2059b8fdd358fc95d2cd96d202173ee84fa623a9c45ee2185090f9864178",
+    "linux/mluva_linux/screenshot_view.py": "21a2d3abb5ed753cc801c28ce4196b8f8aa1e44b2aedb0e401884679158ba588",
+    "linux/mluva_linux/feature_maturity.py": "43749b8e78da937f3fc00d83fbb3acdd4542f42cf3e0eed7494537de433f81c9",
+    "linux/mluva_linux/ui.py": "f3db4fbf916835e7f5ceb85c340c006474565045b9f79dcb783eea5942fd688b"
+  },
+  "gtk": [
+    4,
+    22,
+    4
+  ],
+  "pango": "1.58.2",
+  "stages": [
+    {
+      "name": "sequence",
+      "source": "```mermaid\nsequenceDiagram\n Speaker->>Mluva: Dictate\n Mluva-->>Speaker: Questions\n```\n",
+      "visible": "",
+      "textures": [
+        {
+          "width": 450,
+          "height": 275,
+          "sha256": "d412272f5805df9a9ce6f0c09ce76d7723baa0a2b004bfde43a975be62643d2d"
+        }
+      ],
+      "notice": "",
+      "notice_visible": false,
+      "preview_visible": true,
+      "renderer_present": true,
+      "external_requests": [],
+      "ephemeral": true
+    },
+    {
+      "name": "paragraph-keeps-render",
+      "source": "A new paragraph.\n```mermaid\nsequenceDiagram\n Speaker->>Mluva: Dictate\n Mluva-->>Speaker: Questions\n```\n",
+      "visible": "A new paragraph.\n",
+      "textures": [
+        {
+          "width": 450,
+          "height": 275,
+          "sha256": "d412272f5805df9a9ce6f0c09ce76d7723baa0a2b004bfde43a975be62643d2d"
+        }
+      ],
+      "notice": "",
+      "notice_visible": false,
+      "preview_visible": true,
+      "renderer_present": true,
+      "external_requests": [],
+      "texture_reused": true
+    },
+    {
+      "name": "edited-sequence",
+      "source": "```mermaid\nsequenceDiagram\n Speaker->>Mluva: Dictate\n Mluva-->>Speaker: Context\n```\n",
+      "visible": "",
+      "textures": [
+        {
+          "width": 450,
+          "height": 275,
+          "sha256": "274ee71c9594d5196d06bc626efc7e78c5171a8843d30066d6216d0a21106910"
+        }
+      ],
+      "notice": "",
+      "notice_visible": false,
+      "preview_visible": true,
+      "renderer_present": true,
+      "external_requests": []
+    },
+    {
+      "name": "invalid",
+      "source": "```mermaid\nthis is not a diagram\n```\n",
+      "visible": "this is not a diagram\n\n",
+      "textures": [],
+      "notice": "Incomplete sketch — source kept above.",
+      "notice_visible": true,
+      "preview_visible": true,
+      "renderer_present": true,
+      "external_requests": []
+    },
+    {
+      "name": "directive",
+      "source": "```mermaid\n%%{init:{\"securityLevel\":\"loose\"}}%%\nflowchart LR\n A-->B\n```\n",
+      "visible": "%%{init:{\"securityLevel\":\"loose\"}}%%\nflowchart LR\n A-->B\n\n",
+      "textures": [],
+      "notice": "Incomplete sketch — source kept above.",
+      "notice_visible": true,
+      "preview_visible": true,
+      "renderer_present": true,
+      "external_requests": []
+    },
+    {
+      "name": "remote-image",
+      "source": "```mermaid\nflowchart LR\n A[\"<img src=https://example.invalid/private>\"]\n```\n",
+      "visible": "",
+      "textures": [
+        {
+          "width": 196,
+          "height": 120,
+          "sha256": "b28d835dba1b3d3f0bec7343aeef0ef65578e32affd1e48cbf65875544a42fd6"
+        }
+      ],
+      "notice": "",
+      "notice_visible": false,
+      "preview_visible": true,
+      "renderer_present": true,
+      "external_requests": []
+    },
+    {
+      "name": "unfinished",
+      "source": "```mermaid\nflowchart LR\n A -->",
+      "visible": "flowchart LR\n A -->",
+      "textures": [
+        {
+          "width": 196,
+          "height": 120,
+          "sha256": "b28d835dba1b3d3f0bec7343aeef0ef65578e32affd1e48cbf65875544a42fd6"
+        }
+      ],
+      "notice": "",
+      "notice_visible": false,
+      "preview_visible": false,
+      "renderer_present": true,
+      "external_requests": []
+    },
+    {
+      "name": "recovered",
+      "source": "```mermaid\nsequenceDiagram\n Speaker->>Mluva: Dictate\n Mluva-->>Speaker: Questions\n```\n",
+      "visible": "",
+      "textures": [
+        {
+          "width": 450,
+          "height": 275,
+          "sha256": "d412272f5805df9a9ce6f0c09ce76d7723baa0a2b004bfde43a975be62643d2d"
+        }
+      ],
+      "notice": "",
+      "notice_visible": false,
+      "preview_visible": true,
+      "renderer_present": true,
+      "external_requests": []
+    },
+    {
+      "name": "renderer-terminated",
+      "source": "```mermaid\nsequenceDiagram\n Speaker->>Mluva: Dictate\n Mluva-->>Speaker: Questions\n```\n",
+      "visible": "sequenceDiagram\n Speaker->>Mluva: Dictate\n Mluva-->>Speaker: Questions\n\n",
+      "textures": [
+        {
+          "width": 450,
+          "height": 275,
+          "sha256": "d412272f5805df9a9ce6f0c09ce76d7723baa0a2b004bfde43a975be62643d2d"
+        }
+      ],
+      "notice": "Sketch preview unavailable. The editable Mermaid source is kept above.",
+      "notice_visible": true,
+      "preview_visible": true,
+      "renderer_present": false,
+      "external_requests": []
+    }
+  ]
+}

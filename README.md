@@ -4,7 +4,7 @@
 
 Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v1.6.0)**
+**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v2.0.0)**
 
 ## Meet Mluva
 
@@ -30,6 +30,8 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 Live rewrite is opt-in and Experimental. It marks missing information, preserves manual edits and reconciles the draft with the final transcript when recording stops. [Explore the features and their limits →](docs/feature-story.md)
 
 ## Install
+
+Mluva 2.0.0 uses [native Rust executables](rust/README.md), with no Python runtime. Download the prepared Omarchy x86_64 bundle for an installation without a compiler. Source builds require the pinned Rust toolchain and a C compiler before setup provisions the remaining [development prerequisites](CONTRIBUTING.md#local-setup). See the [cutover verification and remaining acceptance limits](docs/verification/rust-cutover/README.md).
 
 Run the setup from a source checkout or extracted [release archive](https://github.com/1vecera/Mluva/releases/latest). On **Omarchy Quattro**, it installs the desktop dependencies, native application and bundled shell widget together. Both parts share one repository, version and package. It shows the installation plan first; system packages may request your sudo password.
 
@@ -58,7 +60,7 @@ them. Tell me how to launch Mluva and approve its recording shortcuts.
 
 **Other install paths:** `bash install.sh --app-only` installs the native app without changing plugins. Fedora GNOME uses the same setup command, with the compatibility limits below. For a staged install or preinstalled dependencies, see the [Linux guide](linux/README.md#install-for-the-current-user).
 
-**Narrated screenshots:** the release includes an optional prebuilt Tensaku editor for Omarchy x86_64. Verify and extract it, then run `bash linux/install-narrated-editor.sh --prebuilt-dir /absolute/path/to/mluva-1.6.0-tensaku-omarchy-x86_64` from the Mluva checkout or extracted source package. A source build remains available. Configure F10 as described in the [screenshot setup](docs/omarchy-integration.md#screenshot-context). Screenshot context is Experimental.
+**Narrated screenshots:** the release includes an optional prebuilt Tensaku editor for Omarchy x86_64. Verify and extract it, then run `bash linux/install-narrated-editor.sh --prebuilt-dir /absolute/path/to/mluva-2.0.0-tensaku-omarchy-x86_64` from the Mluva checkout or extracted source package. A source build remains available. Configure F10 as described in the [screenshot setup](docs/omarchy-integration.md#screenshot-context). Screenshot context is Experimental.
 
 **Upgrading:** quit Mluva, update the checkout with `git pull --ff-only`, and rerun `bash install.sh`. Existing plugin customizations are preserved; setup checks for conflicting changes before installing. If a later plugin operation fails, the native app remains installed and setup reports how to retry. Upgrades from 0.x migrate the old product identities and retain a private backup of settings, conversations, drafts and audio. See the [migration guide](docs/identity-migration.md) for customized installations.
 
@@ -111,7 +113,7 @@ See the [product contract](docs/product-contract.md) for retention, recovery and
 
 ## Development
 
-Mluva uses **Python, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. Start with the [code map and focused checks](CONTRIBUTING.md#code-map) or [Linux guide](linux/README.md).
+Mluva uses **Rust, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. Source, tests and runtime workers contain no Python. Start with the [code map and focused checks](CONTRIBUTING.md#code-map), [native overview](rust/README.md) or [Linux guide](linux/README.md).
 
 ```sh
 make linux-test linux-shortcut-test

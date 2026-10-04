@@ -1,0 +1,315 @@
+{
+  "cpu": [
+    {
+      "package": "onnxruntime",
+      "version": "1.30.0",
+      "url": "https://files.pythonhosted.org/packages/f1/38/8138eed225c5bc6ddfc05879ecac7dacc63c34b9b6f99be72839c1f6dc49/onnxruntime-1.30.0-cp314-cp314-manylinux_2_28_x86_64.whl",
+      "size": 23586333,
+      "sha256": "8b611d24db2954545ce6bd9acd4670183cb368e4642450de7a9ab6474eb374ec",
+      "members": [
+        {
+          "member": "onnxruntime/LICENSE",
+          "path": "notices/onnxruntime/LICENSE",
+          "size": 1073,
+          "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+        },
+        {
+          "member": "onnxruntime/ThirdPartyNotices.txt",
+          "path": "notices/onnxruntime/ThirdPartyNotices.txt",
+          "size": 338088,
+          "sha256": "143764b952fdb1a7c69ce653bfba74a7744d6a8a573bfb73e235fba356c83de3"
+        },
+        {
+          "member": "onnxruntime/capi/libonnxruntime.so.1.30.0",
+          "path": "lib/libonnxruntime.so.1.30.0",
+          "size": 28985152,
+          "sha256": "c902c70b3003c0e99fada202f37478c515ae9bba7944c2b2abd0017bae0c82ed"
+        },
+        {
+          "member": "onnxruntime/capi/libonnxruntime_providers_shared.so",
+          "path": "lib/libonnxruntime_providers_shared.so",
+          "size": 14632,
+          "sha256": "086ec1d5388f64153d9c63470d126693db9a182c8ce236d3a1119068471b8a0d"
+        }
+      ]
+    }
+  ],
+  "cuda": [
+    {
+      "package": "onnxruntime-gpu",
+      "version": "1.26.0",
+      "url": "https://files.pythonhosted.org/packages/fd/c8/aa2dc0e79bba577f37d5448bcb32fea79977e07506684d8138c19a0f1077/onnxruntime_gpu-1.26.0-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "size": 276978254,
+      "sha256": "9e6e4fb1ec9ae1cf456534d9115f106ab2a1ae96fa513b4ed0f4795302b4a2c6",
+      "members": [
+        {
+          "member": "onnxruntime/LICENSE",
+          "path": "notices/onnxruntime-gpu/LICENSE",
+          "size": 1073,
+          "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+        },
+        {
+          "member": "onnxruntime/ThirdPartyNotices.txt",
+          "path": "notices/onnxruntime-gpu/ThirdPartyNotices.txt",
+          "size": 325054,
+          "sha256": "0e07b95f3a8d6230037707c5c4a2b554d12c4cb67369669ac255635528ffcee2"
+        },
+        {
+          "member": "onnxruntime/capi/libonnxruntime.so.1.26.0",
+          "path": "lib/libonnxruntime.so.1.26.0",
+          "size": 23101400,
+          "sha256": "7fe6f3306ea455b3d1493ea8b95bf442b48a216e459c47564152e5f7d5ded2c6"
+        },
+        {
+          "member": "onnxruntime/capi/libonnxruntime_providers_cuda.so",
+          "path": "lib/libonnxruntime_providers_cuda.so",
+          "size": 400831992,
+          "sha256": "b3d419caf0b6ecc3883d0f6d97190a325199fb72815e13c3d0668e590e2cc53f"
+        },
+        {
+          "member": "onnxruntime/capi/libonnxruntime_providers_shared.so",
+          "path": "lib/libonnxruntime_providers_shared.so",
+          "size": 14632,
+          "sha256": "086ec1d5388f64153d9c63470d126693db9a182c8ce236d3a1119068471b8a0d"
+        }
+      ]
+    },
+    {
+      "package": "nvidia-cublas-cu12",
+      "version": "12.9.2.10",
+      "url": "https://files.pythonhosted.org/packages/cb/c0/0a517bfe63ccd3b92eb254d264e28fca3c7cab75d07daea315250fb1bf73/nvidia_cublas_cu12-12.9.2.10-py3-none-manylinux_2_27_x86_64.whl",
+      "size": 581240110,
+      "sha256": "e4f53a8ca8c5d6e8c492d0d0a3d565ecb59a751b19cfdaa4f6da0ab2104c1702",
+      "members": [
+        {
+          "member": "nvidia/cublas/lib/libcublas.so.12",
+          "path": "lib/libcublas.so.12",
+          "size": 105140976,
+          "sha256": "5757ab5839fb4f203ca47ecb336110d10f4a5606b1e097f195fbca89774569e2"
+        },
+        {
+          "member": "nvidia/cublas/lib/libcublasLt.so.12",
+          "path": "lib/libcublasLt.so.12",
+          "size": 749210000,
+          "sha256": "2c9006a75c74b3bea2dc7ae2ec38ab038b0e45ea02cb4b717a915e8a5796acb1"
+        },
+        {
+          "member": "nvidia/cublas/lib/libnvblas.so.12",
+          "path": "lib/libnvblas.so.12",
+          "size": 753824,
+          "sha256": "188c9ff9a2814220ef99ae8d2ebc2b77614c1e5fb527f93bae66d011ad518fc8"
+        },
+        {
+          "member": "nvidia_cublas_cu12-12.9.2.10.dist-info/licenses/License.txt",
+          "path": "notices/nvidia-cublas-cu12/License.txt",
+          "size": 59262,
+          "sha256": "ad6f5853fba0ca0d159d0f58d49ae49830c2f8c93f7a92648b9ce90adb4c6ccd"
+        }
+      ]
+    },
+    {
+      "package": "nvidia-cuda-nvrtc-cu12",
+      "version": "12.9.86",
+      "url": "https://files.pythonhosted.org/packages/b8/85/e4af82cc9202023862090bfca4ea827d533329e925c758f0cde964cb54b7/nvidia_cuda_nvrtc_cu12-12.9.86-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl",
+      "size": 89568129,
+      "sha256": "210cf05005a447e29214e9ce50851e83fc5f4358df8b453155d5e1918094dcb4",
+      "members": [
+        {
+          "member": "nvidia/cuda_nvrtc/lib/libnvrtc-builtins.alt.so.12.9",
+          "path": "lib/libnvrtc-builtins.alt.so.12.9",
+          "size": 7169992,
+          "sha256": "5246bbfb25da49f7107b6a3ae9bb337fb45bce0178f97a431ce8a88113b2283c"
+        },
+        {
+          "member": "nvidia/cuda_nvrtc/lib/libnvrtc-builtins.so.12.9",
+          "path": "lib/libnvrtc-builtins.so.12.9",
+          "size": 7202760,
+          "sha256": "6507cf33450cfb22970c2c1e7aa8e7c0a33e39d864720277b05f61a92791e2e8"
+        },
+        {
+          "member": "nvidia/cuda_nvrtc/lib/libnvrtc.alt.so.12",
+          "path": "lib/libnvrtc.alt.so.12",
+          "size": 106723760,
+          "sha256": "0da838ec1266d7d12409927a8b5f00aecea29bf97b359f4462877bf6ecb5997e"
+        },
+        {
+          "member": "nvidia/cuda_nvrtc/lib/libnvrtc.so.12",
+          "path": "lib/libnvrtc.so.12",
+          "size": 106244480,
+          "sha256": "7c67c6b51ea0e0279634cebd676ff7efda1674806444520c84430ad5c35fe625"
+        },
+        {
+          "member": "nvidia_cuda_nvrtc_cu12-12.9.86.dist-info/licenses/License.txt",
+          "path": "notices/nvidia-cuda-nvrtc-cu12/License.txt",
+          "size": 59262,
+          "sha256": "ad6f5853fba0ca0d159d0f58d49ae49830c2f8c93f7a92648b9ce90adb4c6ccd"
+        }
+      ]
+    },
+    {
+      "package": "nvidia-cuda-runtime-cu12",
+      "version": "12.9.79",
+      "url": "https://files.pythonhosted.org/packages/bc/46/a92db19b8309581092a3add7e6fceb4c301a3fd233969856a8cbf042cd3c/nvidia_cuda_runtime_cu12-12.9.79-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "size": 3493179,
+      "sha256": "25bba2dfb01d48a9b59ca474a1ac43c6ebf7011f1b0b8cc44f54eb6ac48a96c3",
+      "members": [
+        {
+          "member": "nvidia/cuda_runtime/lib/libcudart.so.12",
+          "path": "lib/libcudart.so.12",
+          "size": 741088,
+          "sha256": "256e6409e4f06f618e1fb53d4844a6b81cdded1013afa8ade40c22f99eb133b7"
+        },
+        {
+          "member": "nvidia_cuda_runtime_cu12-12.9.79.dist-info/licenses/License.txt",
+          "path": "notices/nvidia-cuda-runtime-cu12/License.txt",
+          "size": 59262,
+          "sha256": "ad6f5853fba0ca0d159d0f58d49ae49830c2f8c93f7a92648b9ce90adb4c6ccd"
+        }
+      ]
+    },
+    {
+      "package": "nvidia-cudnn-cu12",
+      "version": "9.25.1.1",
+      "url": "https://files.pythonhosted.org/packages/74/27/450c690b2ed878fd323dce0fcc6ed1746013210bc9c395f30eaf6fb03b09/nvidia_cudnn_cu12-9.25.1.1-py3-none-manylinux_2_27_x86_64.whl",
+      "size": 751246851,
+      "sha256": "515df94e4060bb58c88588e46fb39a5df310659d2d98733d1697ed667b4895d1",
+      "members": [
+        {
+          "member": "nvidia/cudnn/lib/libcudnn.so.9",
+          "path": "lib/libcudnn.so.9",
+          "size": 129240,
+          "sha256": "762d68d8f8e74230a1398b0e0919ef0ccfc5d1b268ca6671855ccb147f7a5028"
+        },
+        {
+          "member": "nvidia/cudnn/lib/libcudnn_adv.so.9",
+          "path": "lib/libcudnn_adv.so.9",
+          "size": 272749720,
+          "sha256": "9bfe95c0be7181a7fd463a5ebd6f1bb94d6c7440f219dd9344d5d859833e900f"
+        },
+        {
+          "member": "nvidia/cudnn/lib/libcudnn_cnn.so.9",
+          "path": "lib/libcudnn_cnn.so.9",
+          "size": 4203840,
+          "sha256": "50628884aa7f3837694d968f5dfbc0bb48548b516c8860cdcf06d41818d5e93a"
+        },
+        {
+          "member": "nvidia/cudnn/lib/libcudnn_engines_precompiled.so.9",
+          "path": "lib/libcudnn_engines_precompiled.so.9",
+          "size": 576741624,
+          "sha256": "f697ce7f71143d106218c9e1dce238512be4874530bffdd84c68707e6bc82984"
+        },
+        {
+          "member": "nvidia/cudnn/lib/libcudnn_engines_runtime_compiled.so.9",
+          "path": "lib/libcudnn_engines_runtime_compiled.so.9",
+          "size": 41975128,
+          "sha256": "1d6f5778f4b8f46549737763c3342139e3e3e9ac66aee3b387de60e91045bd4e"
+        },
+        {
+          "member": "nvidia/cudnn/lib/libcudnn_engines_tensor_ir.so.9",
+          "path": "lib/libcudnn_engines_tensor_ir.so.9",
+          "size": 2099032,
+          "sha256": "2026f396d39218b1bebcfb0d1429b88ea0e080212d8c8db7a510cd3d4c30e070"
+        },
+        {
+          "member": "nvidia/cudnn/lib/libcudnn_ext.so.9",
+          "path": "lib/libcudnn_ext.so.9",
+          "size": 2109544,
+          "sha256": "697dfdf8516864e68f900e83d7c725bacb1756ae64ad18e28d965e3db72d3cbc"
+        },
+        {
+          "member": "nvidia/cudnn/lib/libcudnn_graph.so.9",
+          "path": "lib/libcudnn_graph.so.9",
+          "size": 115558928,
+          "sha256": "3e3bfe79f427166c97e4d5807be6a1f3e13a2455d6e79a6582764cd73e8009bd"
+        },
+        {
+          "member": "nvidia/cudnn/lib/libcudnn_heuristic.so.9",
+          "path": "lib/libcudnn_heuristic.so.9",
+          "size": 60822200,
+          "sha256": "1cab6f11afe1ecab1daad9097b3f18f5d93b13c44f16090bd6adf200fc043055"
+        },
+        {
+          "member": "nvidia/cudnn/lib/libcudnn_ops.so.9",
+          "path": "lib/libcudnn_ops.so.9",
+          "size": 106964632,
+          "sha256": "55a86983cb587e34e84c605ceed0f753cb52fed87f9a33387a9de804dab6eb9f"
+        },
+        {
+          "member": "nvidia_cudnn_cu12-9.25.1.1.dist-info/licenses/License.txt",
+          "path": "notices/nvidia-cudnn-cu12/License.txt",
+          "size": 18174,
+          "sha256": "49cf79bdb35734b52fe6203013b3bd759f81e998cd32aa2c65c51db9a88c61d2"
+        }
+      ]
+    },
+    {
+      "package": "nvidia-cufft-cu12",
+      "version": "11.4.1.4",
+      "url": "https://files.pythonhosted.org/packages/95/f4/61e6996dd20481ee834f57a8e9dca28b1869366a135e0d42e2aa8493bdd4/nvidia_cufft_cu12-11.4.1.4-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "size": 200877592,
+      "sha256": "c67884f2a7d276b4b80eb56a79322a95df592ae5e765cf1243693365ccab4e28",
+      "members": [
+        {
+          "member": "nvidia/cufft/lib/libcufft.so.11",
+          "path": "lib/libcufft.so.11",
+          "size": 291507928,
+          "sha256": "e1d65ebd08895f9d9883f848f3974f89e0130416252477b18835ba7f15d159bc"
+        },
+        {
+          "member": "nvidia/cufft/lib/libcufftw.so.11",
+          "path": "lib/libcufftw.so.11",
+          "size": 2101488,
+          "sha256": "09db2c93073d233f0bb1730dd10c4d3b5c4ec949da8e9e7db86d6ed97fcb6c3e"
+        },
+        {
+          "member": "nvidia_cufft_cu12-11.4.1.4.dist-info/licenses/License.txt",
+          "path": "notices/nvidia-cufft-cu12/License.txt",
+          "size": 59262,
+          "sha256": "ad6f5853fba0ca0d159d0f58d49ae49830c2f8c93f7a92648b9ce90adb4c6ccd"
+        }
+      ]
+    },
+    {
+      "package": "nvidia-curand-cu12",
+      "version": "10.3.10.19",
+      "url": "https://files.pythonhosted.org/packages/31/44/193a0e171750ca9f8320626e8a1f2381e4077a65e69e2fb9708bd479e34a/nvidia_curand_cu12-10.3.10.19-py3-none-manylinux_2_27_x86_64.whl",
+      "size": 68295626,
+      "sha256": "49b274db4780d421bd2ccd362e1415c13887c53c214f0d4b761752b8f9f6aa1e",
+      "members": [
+        {
+          "member": "nvidia/curand/lib/libcurand.so.10",
+          "path": "lib/libcurand.so.10",
+          "size": 166965432,
+          "sha256": "ab8c07338fa663c018b16df5b3f3878c84aaae98bda930e9e8bad340427b0faa"
+        },
+        {
+          "member": "nvidia_curand_cu12-10.3.10.19.dist-info/License.txt",
+          "path": "notices/nvidia-curand-cu12/License.txt",
+          "size": 59262,
+          "sha256": "ad6f5853fba0ca0d159d0f58d49ae49830c2f8c93f7a92648b9ce90adb4c6ccd"
+        }
+      ]
+    },
+    {
+      "package": "nvidia-nvjitlink-cu12",
+      "version": "12.9.86",
+      "url": "https://files.pythonhosted.org/packages/46/0c/c75bbfb967457a0b7670b8ad267bfc4fffdf341c074e0a80db06c24ccfd4/nvidia_nvjitlink_cu12-12.9.86-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl",
+      "size": 39748338,
+      "sha256": "e3f1171dbdc83c5932a45f0f4c99180a70de9bd2718c1ab77d14104f6d7147f9",
+      "members": [
+        {
+          "member": "nvidia/nvjitlink/lib/libnvJitLink.so.12",
+          "path": "lib/libnvJitLink.so.12",
+          "size": 95935344,
+          "sha256": "02d3acb5fe598dd20f0fca3cc03734ad164037a22747a01900561a42d0b8448f"
+        },
+        {
+          "member": "nvidia_nvjitlink_cu12-12.9.86.dist-info/licenses/License.txt",
+          "path": "notices/nvidia-nvjitlink-cu12/License.txt",
+          "size": 59262,
+          "sha256": "ad6f5853fba0ca0d159d0f58d49ae49830c2f8c93f7a92648b9ce90adb4c6ccd"
+        }
+      ]
+    }
+  ]
+}

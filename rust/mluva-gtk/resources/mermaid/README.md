@@ -1,0 +1,7 @@
+# Offline Mermaid resources
+
+`mermaid.min.js`, `mermaid.min.js.LEGAL.txt`, `LICENSE` and `components.json` are byte-identical copies of the released 1.6.0 resources at commit `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. The bundle is Mermaid 12.0.0 with the release's pinned sanitizer/dependency overrides. Its SHA-256 is `6f3bba2204d78ddbee16e6c6fc366f290c7bfe5e718f6482a10365e859e6e40f`; component versions and license notices are retained alongside it. Local Git attributes exempt only the verbatim bundle and notices from whitespace checking so literal string/license bytes are preserved.
+
+`preview.html` preserves the release's offline renderer template. Native code injects the bundled JetBrains Mono face into its font placeholder and loads it through an ephemeral WebKitGTK 6.0 session. The template enforces the existing content policy, strict Mermaid security and rejected diagram configuration directives. Native SVG validation and navigation guards preserve editable source when a sketch is invalid or unavailable.
+
+The existing `scripts/mermaid` lockfile rebuilds the bundle with `npm ci --ignore-scripts && npm run build`. Verify its output digest and bundled notices before copying updated resources here and renewing the unchanged-reference diagram comparisons. Packaging must install these resources with the native fonts. The current GTK build links WebKitGTK 6.0; the release's optional-library behavior and final distribution dependencies still require acceptance before shipping the replacement.
