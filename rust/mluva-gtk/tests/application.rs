@@ -25,6 +25,8 @@ use std::{
 };
 #[path = "support/application_commands.rs"]
 mod application_commands;
+#[path = "support/application_compact.rs"]
+mod application_compact;
 #[path = "support/application_continuation.rs"]
 mod application_continuation;
 #[path = "support/application_live_workspace.rs"]
@@ -87,7 +89,7 @@ fn widgets(widget: &impl IsA<gtk::Widget>) -> Vec<gtk::Widget> {
     }
     result
 }
-fn capture_window(path: &Path) {
+fn window_id() -> String {
     let result = Command::new("xdotool")
         .args(["search", "--onlyvisible", "--name", "^Mluva$"])
         .output()
@@ -96,14 +98,25 @@ fn capture_window(path: &Path) {
     let windows = String::from_utf8(result.stdout).unwrap();
     let windows = windows.lines().collect::<Vec<_>>();
     assert_eq!(windows.len(), 1);
+    windows[0].into()
+}
+fn capture_window(path: &Path) {
     assert!(
         Command::new("import")
-            .args(["-window", windows[0]])
+            .args(["-window", &window_id()])
             .arg(path)
             .status()
             .unwrap()
             .success()
     );
+}
+fn release_application(owner: Rc<ApplicationDesktop>, application: adw::Application) {
+    // WebKit tears down asynchronously while the GTK owner loop still runs.
+    let released = Rc::downgrade(&owner);
+    drop(owner);
+    drop(application);
+    until(|| released.upgrade().is_none());
+    settle_for(Duration::from_millis(500));
 }
 fn shutdown(
     owner: &Rc<ApplicationDesktop>,
@@ -351,18 +364,33 @@ fn released_assembled_application_and_shutdown() {
         "fixtures/released-application-live-workspace.json"
     ))
     .unwrap();
-    for additional in [&commands, &continuation, &live_workspace] {
+    let compact: Value =
+        serde_json::from_str(include_str!("fixtures/released-application-compact.json")).unwrap();
+    for additional in [&commands, &continuation, &live_workspace, &compact] {
         for key in ["reference", "gtk", "pango"] {
             assert_eq!(additional[key], fixture[key]);
         }
     }
-    let cases = fixture["cases"].as_array().unwrap().iter().chain([
-        &commands,
-        &continuation,
-        &live_workspace,
-    ]);
+    let cases = if let Ok(name) = std::env::var("MLUVA_COMPACT_CASE") {
+        let selected = compact["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|case| case["name"] == name)
+            .collect::<Vec<_>>();
+        assert_eq!(selected.len(), 1, "select one released compact scenario");
+        selected
+    } else {
+        fixture["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .chain([&commands, &continuation, &live_workspace])
+            .collect()
+    };
+    let workflows = cases.len();
     let mut count = 0;
-    for (index, row) in cases.enumerate() {
+    for (index, row) in cases.into_iter().enumerate() {
         events.borrow_mut().clear();
         let name = row["name"].as_str().unwrap();
         let params = &row["params"];
@@ -387,6 +415,10 @@ fn released_assembled_application_and_shutdown() {
         let mut responses = row["responses"].as_array().unwrap().clone();
         for response in &mut responses {
             response["delay_ms"] = json!(350);
+            if params["compact"] == true && name == "processing" {
+                response["wait_for_file"] = json!(evidence.join("provider.release"));
+                response["incoming_file"] = json!(evidence.join("speech.arrived"));
+            }
         }
         let mut peer = http::Peer::new(&responses);
         let mut document = row["config"].clone();
@@ -431,6 +463,24 @@ fn released_assembled_application_and_shutdown() {
                 || owner.capture.page.view_state().initialization_failed
         });
         settle();
+        if params["compact"] == true {
+            let pids =
+                application_compact::exercise(&owner, &services, row, &tools, &root, &evidence);
+            shutdown(&owner, &platform_closed, &evidence, &pids);
+            assert_eq!(
+                application_continuation::requests(peer.finish()),
+                row["requests"],
+                "compact HTTP"
+            );
+            assert_eq!(
+                application_continuation::turns(&evidence),
+                row["turns"],
+                "compact Codex"
+            );
+            count += 2;
+            release_application(owner, application);
+            continue;
+        }
         if params["commands"] == true {
             let pid =
                 application_commands::exercise(&owner, &services, &application, row, &tools, &root);
@@ -483,13 +533,7 @@ fn released_assembled_application_and_shutdown() {
                 "Live workspace Codex"
             );
             count += row["stages"].as_array().unwrap().len();
-            // WebKit tears down its renderers asynchronously. Release the last
-            // application references while the GTK owner loop is still running.
-            let released = Rc::downgrade(&owner);
-            drop(owner);
-            drop(application);
-            until(|| released.upgrade().is_none());
-            settle_for(Duration::from_millis(500));
+            release_application(owner, application);
             continue;
         }
         gtk::gdk::Display::default()
@@ -614,7 +658,6 @@ fn released_assembled_application_and_shutdown() {
         println!("{name}: {stage_index} states PASS");
     }
     println!(
-        "Assembled application: {} workflows, {count} GTK/store states, acknowledged owner shutdown",
-        fixture["cases"].as_array().unwrap().len() + 3
+        "Assembled application: {workflows} workflows, {count} GTK/store states, acknowledged owner shutdown"
     );
 }

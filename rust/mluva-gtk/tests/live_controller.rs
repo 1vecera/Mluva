@@ -741,6 +741,7 @@ fn released_capture_live_controls(
             CaptureControllerCallbacks {
                 wait_for_images: Rc::new(|_| Box::pin(async { Ok(()) })),
                 prepare_result: Rc::new(|_, _| {}),
+                refresh_history: Rc::new(|_| {}),
                 queue_title: capture_ui::titles(&page, runtime, directory.path()),
                 images: Rc::new(|_| Ok(vec![])),
                 completed: Rc::new(|_| {}),

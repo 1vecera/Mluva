@@ -6,6 +6,7 @@ use crate::{
 use mluva_core::{config::AudioRetentionPolicy, screenshots::ImageInput};
 use mluva_workflows::{
     capture::CapturePhase,
+    dictation::WorkflowResult,
     meeting_session::MeetingPhase,
     services::{InlineSavePolicy, SettingsActivity, SettingsKind, SettingsUpdate},
 };
@@ -571,6 +572,32 @@ impl ApplicationDesktop {
             _ => self.idle(),
         }
     }
+    pub(super) fn capture_history_changed(&self, result: &mut WorkflowResult) {
+        if self.closed.get()
+            || result.requires_acceptance
+            || (result.history_entry.is_none()
+                && mluva_core::text::trim(&result.transcription.text).is_empty())
+        {
+            return;
+        }
+        let mut excluded = self.excluded_history();
+        if self.live.active() {
+            excluded.extend(
+                result
+                    .history_entry
+                    .as_ref()
+                    .map(|entry| entry.identifier.clone()),
+            );
+        }
+        if let Err(error) = self.services.prune_history(&excluded) {
+            result
+                .delivery
+                .guidance
+                .push_str(&format!(" History retention failed: {error}"));
+        }
+        let _ = self.history.page.refresh();
+        self.history_changed();
+    }
     pub(super) fn capture_completed(self: &Rc<Self>, completion: CaptureCompletion) {
         if self.closed.get() {
             return;
@@ -606,14 +633,6 @@ impl ApplicationDesktop {
                 .show_notes(result, completion.session.options.audio_retention);
             return;
         }
-        if let Err(error) = self.services.prune_history(&self.excluded_history()) {
-            self.page().set_status(&format!(
-                "{} History retention failed: {error}",
-                result.delivery.guidance
-            ));
-        }
-        let _ = self.history.page.refresh();
-        self.history_changed();
         self.idle();
         if result.mode == "dictation"
             && !result.incognito

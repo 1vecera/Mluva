@@ -323,6 +323,7 @@ impl ApplicationDesktop {
                     })
                 },
                 completed: bind!(link, |app, completion| app.capture_completed(completion)),
+                refresh_history: bind!(link, |app, result| app.capture_history_changed(result)),
                 failed: bind!(link, |app, failure| app.capture_failed(failure)),
                 cancelled: bind!(link, |app, id| app.capture_cancelled(id)),
                 phase_changed: bind!(link, |app, phase| app.capture_phase(phase)),

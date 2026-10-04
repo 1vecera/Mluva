@@ -258,6 +258,7 @@ fn released_application_capture_factory() {
                 CaptureControllerCallbacks {
                     wait_for_images: Rc::new(|_| Box::pin(async { Ok(()) })),
                     prepare_result: Rc::new(|_, _| {}),
+                    refresh_history: Rc::new(|_| {}),
                     queue_title: capture_ui::titles(&page, &runtime, &services.cwd),
                     images: Rc::new(|_| Ok(vec![])),
                     completed: Rc::new(move |completion| {

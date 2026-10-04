@@ -61,6 +61,8 @@ pub struct CaptureControllerCallbacks {
     pub images: CaptureImages,
     pub wait_for_images: WaitForCaptureImages,
     pub prepare_result: PrepareCaptureResult,
+    /// Reconcile saved history before selecting the completed conversation.
+    pub refresh_history: Rc<dyn Fn(&mut WorkflowResult)>,
     pub queue_title: Rc<dyn Fn(&mluva_core::history::HistoryEntry)>,
     pub completed: Rc<dyn Fn(CaptureCompletion)>,
     pub failed: Rc<dyn Fn(CaptureFailure)>,
@@ -601,6 +603,7 @@ impl CaptureController {
                     }
                     controller.page.output_view.buffer().set_text(&result.output_text);
                     controller.page.refresh_output_visibility();
+                    (controller.callbacks.refresh_history)(&mut result);
                     if result.mode == "dictation" && (!text::trim(&result.transcription.text).is_empty() || result.history_entry.is_some()) {
                         let displayed = if let Some(entry) = result.history_entry.clone() {
                             controller.page.workspace.refresh_history().and_then(|()| {
@@ -640,7 +643,7 @@ impl CaptureController {
                         session: session.clone(),
                         delivery_target: target,
                     });
-                    // Completion first refreshes the archive. Released title updates
+                    // History reconciliation first refreshes the archive. Title updates
                     // then change its existing row without rebuilding raw recordings.
                     if let Some(entry) = title_entry {
                         (controller.callbacks.queue_title)(&entry);

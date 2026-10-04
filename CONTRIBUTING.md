@@ -66,6 +66,8 @@ Theme changes use the [native theme comparison](rust/mluva-gtk/tests/fixtures/th
 
 `make linux-live-workspace-test` adds the existing native conversation and document owners to that shared application run. Both `linux-live-stability-test` and `linux-fluid-workspace-test` depend on it and run once when requested together. The [Live workspace evidence](rust/mluva-gtk/tests/fixtures/live-workspace-evidence.md) covers Grilling/questions, manual edits, template changes, pause/silent recovery, scrolling stability, light/dark/narrow layouts and actual offline Mermaid transitions. Rendering needs WebKitGTK 6.0. The two retired Python smoke scripts have no remaining callers.
 
+`make linux-compact-workspace-test` runs eleven native application scenarios in separate private sessions: minimum/narrow/wide, a 360-pixel tile at 2× scaling, empty, rewriting, recording, processing, Live draft and two finalization states. The [compact evidence](rust/mluva-gtk/tests/fixtures/compact-workspace-evidence.md) records exact released controls, geometry, stored text, provider requests and close/reopen behavior, including the selected-conversation refresh repair. It uses the application runner prerequisites without Python; full screenshots use a 2200×2500 virtual screen. A focused replay is `bash linux/tests/run_application_smoke.sh compact finalizing`.
+
 The following checks still exercise Python during the port. Their Make targets prepare that environment automatically; run `make linux-python-setup` before a direct `uv` command:
 
 | Remaining Python owner | Focused check |
@@ -76,7 +78,6 @@ The following checks still exercise Python during the port. Their Make targets p
 | Recording, cleanup or delivery | `(cd linux && uv run --locked pytest -q tests/test_app_capture.py tests/test_workflow.py tests/test_segment_cleanup.py tests/test_delivery.py)` |
 | Prompt configuration or editor | `make linux-prompt-test` (hover/focus, Ctrl+P deep links, local files, Save/Cancel/reset, restart and recording snapshots) |
 | Live editor or finalization | `make linux-live-rewrite-test` (manual edits, late results, final transcript and clipboard gates) |
-| Conversation layout | `make linux-compact-workspace-test` (minimum, narrow, wide and 360-pixel tiles at 2× scaling; checks visible control bounds in saved, empty, rewrite and recording states) |
 | Shortcut or manual credential helper | `(cd linux && uv run --locked pytest -q tests/test_launcher.py tests/test_global_shortcuts.py)`; the native portal owner additionally uses `make linux-shortcut-test` |
 
 The remaining Python rewrite-policy and title-job checks also run without GTK on a non-Linux development host:

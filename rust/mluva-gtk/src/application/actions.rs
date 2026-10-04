@@ -221,7 +221,21 @@ impl ApplicationDesktop {
         if self.closed.get() {
             return;
         }
-        if let Err(error) = self.workspace().refresh_history() {
+        let workspace = self.workspace();
+        let refreshed = workspace.refresh_history().and_then(|()| {
+            let Some(selected) = workspace.entry() else {
+                return Ok(());
+            };
+            match self.services.history.find(&selected.identifier) {
+                Ok(entry) => {
+                    let replies = self.services.conversations.replies(&entry.identifier)?;
+                    workspace.show_conversation(Some(entry), &replies, false)
+                }
+                Err(StoreError::NotFound) => workspace.show_conversation(None, &[], false),
+                Err(error) => Err(error),
+            }
+        });
+        if let Err(error) = refreshed {
             self.shell.show_message(&error.to_string());
         }
         self.personalization.refresh();

@@ -499,6 +499,7 @@ fn incognito_notes_and_exit(
                 CaptureControllerCallbacks {
                     wait_for_images: Rc::new(|_| Box::pin(async { Ok(()) })),
                     prepare_result: Rc::new(|_, _| {}),
+                    refresh_history: Rc::new(|_| {}),
                     queue_title: capture_ui::titles(&page, runtime, directory.path()),
                     live_config_changed: Rc::new(|_| true),
                     images: Rc::new(|_| Ok(vec![])),
@@ -820,6 +821,7 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
             CaptureControllerCallbacks {
                 wait_for_images: Rc::new(|_| Box::pin(async { Ok(()) })),
                 prepare_result: Rc::new(|_, _| {}),
+                refresh_history: Rc::new(|_| {}),
                 queue_title: capture_ui::titles(&page, &runtime, directory.path()),
                 live_config_changed: Rc::new(|_| true),
                 images: Rc::new(|_| Ok(vec![])),
