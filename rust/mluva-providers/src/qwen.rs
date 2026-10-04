@@ -13,7 +13,8 @@ use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::fs;
-use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt};
+use std::os::fd::{AsRawFd, FromRawFd};
+use std::os::unix::fs::{DirBuilderExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::{
@@ -215,22 +216,13 @@ impl QwenSpeechClient {
         getrandom::fill(&mut entropy).map_err(|_| ProviderError::message(FAILED))?;
         let token = URL_SAFE_NO_PAD.encode(entropy);
         let key_path = temporary.path().join("key");
-        use std::io::Write;
-        let mut key = fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .mode(0o600)
-            .open(&key_path)
-            .map_err(|_| ProviderError::message(FAILED))?;
-        key.write_all(token.as_bytes())
-            .map_err(|_| ProviderError::message(FAILED))?;
-        drop(key);
+        let key = anonymous_key(&key_path, &token).map_err(|_| ProviderError::message(FAILED))?;
         let port = std::net::TcpListener::bind("127.0.0.1:0")
             .and_then(|listener| listener.local_addr())
             .map_err(|_| ProviderError::message(FAILED))?
             .port();
         let path = spec.path(&self.options.data_dir);
-        let mut command = Command::new(&executable);
+        let mut command = runtime_command(&executable)?;
         command
             .arg("-m")
             .arg(path.join("Qwen3-ASR-1.7B-Q4_0.gguf"))
@@ -284,7 +276,7 @@ impl QwenSpeechClient {
             changed: Notify::new(),
         });
         *self.current.lock().unwrap() = Some(session.clone());
-        tokio::spawn(lifecycle(process, temporary, session.clone()));
+        tokio::spawn(lifecycle(process, temporary, key, session.clone()));
         // Startup health checks must not prevent close/cancel from taking ownership.
         drop(_lifecycle);
         let mut startup = StopOnDrop(Some(session.clone()));
@@ -326,14 +318,16 @@ impl QwenSpeechClient {
         executable: &Path,
         environment: &BTreeMap<OsString, OsString>,
     ) -> Result<String> {
-        let mut process = Command::new(executable)
+        let mut command = runtime_command(executable)?;
+        command
             .arg("--list-devices")
             .env_clear()
             .envs(environment)
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            .kill_on_drop(true)
+            .kill_on_drop(true);
+        let mut process = command
             .spawn()
             .map_err(|_| ProviderError::message(FAILED))?;
         use tokio::io::AsyncReadExt;
@@ -634,7 +628,70 @@ impl Drop for QwenSpeechClient {
     }
 }
 
-async fn lifecycle(mut process: Child, temporary: tempfile::TempDir, session: Arc<Session>) {
+// Keep the released private pathname without persisting its authentication bytes.
+// When the owner dies, its descriptor disappears and the alias becomes unreadable.
+fn anonymous_key(path: &Path, token: &str) -> std::io::Result<fs::File> {
+    use std::io::{Seek, Write};
+    let descriptor = unsafe {
+        libc::memfd_create(
+            c"mluva-qwen-key".as_ptr(),
+            libc::MFD_CLOEXEC | libc::MFD_ALLOW_SEALING,
+        )
+    };
+    if descriptor < 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+    let mut key = unsafe { fs::File::from_raw_fd(descriptor) };
+    key.set_permissions(fs::Permissions::from_mode(0o600))?;
+    key.write_all(token.as_bytes())?;
+    key.rewind()?;
+    let seals = libc::F_SEAL_SEAL | libc::F_SEAL_SHRINK | libc::F_SEAL_GROW | libc::F_SEAL_WRITE;
+    if unsafe { libc::fcntl(key.as_raw_fd(), libc::F_ADD_SEALS, seals) } < 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+    std::os::unix::fs::symlink(
+        format!("/proc/{}/fd/{}", std::process::id(), key.as_raw_fd()),
+        path,
+    )?;
+    Ok(key)
+}
+
+fn runtime_command(executable: &Path) -> Result<Command> {
+    use std::io::Read;
+    let mut magic = [0; 4];
+    // Reject non-ELF payloads before libc's fork/exec script fallback, keeping
+    // the released invalid-binary diagnostic for the managed native runtime.
+    if fs::File::open(executable)
+        .and_then(|mut file| file.read_exact(&mut magic))
+        .is_err()
+        || magic != *b"\x7fELF"
+    {
+        return Err(ProviderError::message(FAILED));
+    }
+    let mut command = Command::new(executable);
+    let parent = std::process::id() as libc::pid_t;
+    // Only async-signal-safe syscalls run between fork and exec. Recheck the
+    // parent to cover its death before the kernel signal was installed.
+    unsafe {
+        command.pre_exec(move || {
+            if libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL) != 0 {
+                return Err(std::io::Error::last_os_error());
+            }
+            if libc::getppid() != parent {
+                return Err(std::io::Error::from_raw_os_error(libc::ESRCH));
+            }
+            Ok(())
+        });
+    }
+    Ok(command)
+}
+
+async fn lifecycle(
+    mut process: Child,
+    temporary: tempfile::TempDir,
+    key: fs::File,
+    session: Arc<Session>,
+) {
     let mut monitor = tokio::time::interval(Duration::from_millis(100));
     monitor.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
     monitor.tick().await;
@@ -669,6 +726,7 @@ async fn lifecycle(mut process: Child, temporary: tempfile::TempDir, session: Ar
         }
     }
     drop(temporary);
+    drop(key);
     *session.token.lock().unwrap() = None;
     session.done.store(true, Ordering::Release);
     session.changed.notify_waiters();

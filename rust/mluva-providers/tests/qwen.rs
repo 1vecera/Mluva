@@ -86,6 +86,45 @@ fn unhex(value: &str) -> Vec<u8> {
         .collect()
 }
 
+#[test]
+fn abrupt_parent_failure_reaps_the_runtime_and_revokes_its_key() {
+    for (device, phase) in [("cpu", "ready"), ("cuda", "ready"), ("cuda", "probe")] {
+        let directory = tempfile::Builder::new()
+            .prefix("qwen-parent-crash-")
+            .permissions(fs::Permissions::from_mode(0o700))
+            .tempdir()
+            .unwrap();
+        setup(
+            directory.path(),
+            &json!({"device":device,"probe_delay_ms":if phase == "probe" { 10_000 } else { 0 },"responses":[{"events":[
+                {"choices":[{"delta":{"content":"language English<asr_text>hello"}}]}
+            ]}]}),
+        );
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_qwen-fixture-peer"))
+            .arg("--observe-parent-crash")
+            .env_clear()
+            .env("PATH", "/usr/bin:/bin")
+            .env("QWEN_FIXTURE_ROOT", directory.path())
+            .env("QWEN_CRASH_DEVICE", device)
+            .env("QWEN_CRASH_PHASE", phase)
+            .env("TMPDIR", directory.path().join("tmp"))
+            .stdin(Stdio::null())
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{device}/{phase}: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let observed: Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(
+            observed,
+            json!({"phase":phase,"worker_killed_after_parent_crash":true,"key_revoked":true,
+                "anonymous_key_sealed":phase == "ready","normal_request_completed":phase == "ready"})
+        );
+    }
+}
+
 fn driver_command(root: &Path) -> Command {
     let mut command = Command::new(env!("CARGO_BIN_EXE_qwen-fixture-peer"));
     command

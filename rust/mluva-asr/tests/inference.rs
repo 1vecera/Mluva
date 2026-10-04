@@ -214,7 +214,7 @@ async fn actual_recognition(reference: &Value, device: &str) {
         options.cpu_runtime = library.clone();
         options.device = device.into();
         options.keep_alive = true;
-        let client = Arc::new(LocalSpeechClient::new(options).unwrap());
+        let mut client = Arc::new(LocalSpeechClient::new(options.clone()).unwrap());
         let actions = case["actions"].as_array().unwrap();
         let mut retained = None;
         for action in actions {
@@ -270,8 +270,64 @@ async fn actual_recognition(reference: &Value, device: &str) {
         let restarted = processes[0];
         assert_ne!(restarted, pid, "a closed capture loads a new owned worker");
         let cache = worker_cache(restarted, device);
-        client.close().await;
+        // A completed, verified request proves these weights have already loaded.
+        // Observe the next WAV block and CPU work before interrupting recognition.
+        let baseline = worker_activity(restarted);
+        let capture = client.clone();
+        let path = root.join("asr-en-double.wav");
+        let task = tokio::spawn(async move { capture.transcribe(&path, "auto", None).await });
+        let active = tokio::time::timeout(Duration::from_secs(5), async {
+            loop {
+                assert!(!task.is_finished(), "recognition must still be in flight");
+                let activity = worker_activity(restarted);
+                if activity.0 > baseline.0 && activity.1 >= baseline.1 + 800_000 {
+                    return activity;
+                }
+                tokio::time::sleep(Duration::from_millis(2)).await;
+            }
+        })
+        .await
+        .expect("the resident worker consumes an actual 25-second block and does CPU work");
+        let before = std::time::Instant::now();
+        tokio::time::timeout(Duration::from_secs(2), client.cancel())
+            .await
+            .expect("active cancellation must reap the worker promptly");
+        let cancelled_ms = before.elapsed().as_secs_f64() * 1000.0;
+        let outcome = tokio::time::timeout(Duration::from_secs(2), task)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            outcome.unwrap_err().to_string(),
+            "Local transcription cancelled."
+        );
         assert!(!Path::new(&format!("/proc/{restarted}")).exists());
+        assert_cache_removed(&cache);
+        assert!(owned_processes(&model_root).is_empty());
+        eprintln!(
+            "{}",
+            json!({"model":id,"device":device,"active_cancel":{
+                "worker_cpu_ticks":active.0-baseline.0,"worker_read_bytes":active.1-baseline.1,
+                "elapsed_ms":cancelled_ms,"worker_reaped":true,"no_transcription":true}})
+        );
+        // A new capture remains usable after cancellation invalidates this client.
+        client = Arc::new(LocalSpeechClient::new(options).unwrap());
+        let result = client
+            .transcribe(
+                &root.join(first["filename"].as_str().unwrap()),
+                first["language"].as_str().unwrap(),
+                None,
+            )
+            .await
+            .unwrap();
+        assert_result(&result, first, id);
+        let processes = owned_processes(&model_root);
+        assert_eq!(processes.len(), 1);
+        let recovered = processes[0];
+        assert_ne!(recovered, restarted);
+        let cache = worker_cache(recovered, device);
+        client.close().await;
+        assert!(!Path::new(&format!("/proc/{recovered}")).exists());
         assert_cache_removed(&cache);
         // Interrupt actual weight loading through the same application-facing factory.
         let capture = client.clone();
@@ -307,9 +363,29 @@ async fn actual_recognition(reference: &Value, device: &str) {
         assert_cache_removed(&cache);
         assert!(owned_processes(&model_root).is_empty());
         eprintln!(
-            "{id}/{device}: parent metadata, weight reuse, explicit close/restart and loading cancellation verified"
+            "{id}/{device}: metadata, weight reuse, close/restart, active cancellation/recovery and loading cancellation verified"
         );
     }
+}
+
+fn worker_activity(pid: u32) -> (u64, u64) {
+    let stat = fs::read_to_string(format!("/proc/{pid}/stat")).unwrap();
+    let fields: Vec<_> = stat
+        .rsplit_once(')')
+        .unwrap()
+        .1
+        .split_whitespace()
+        .collect();
+    let ticks = fields[11].parse::<u64>().unwrap() + fields[12].parse::<u64>().unwrap();
+    let reads = fs::read_to_string(format!("/proc/{pid}/io"))
+        .unwrap()
+        .lines()
+        .find_map(|line| line.strip_prefix("rchar: "))
+        .unwrap()
+        .trim()
+        .parse()
+        .unwrap();
+    (ticks, reads)
 }
 
 fn assert_result(result: &mluva_providers::TranscriptionResult, action: &Value, id: &str) {

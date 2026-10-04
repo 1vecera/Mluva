@@ -244,11 +244,16 @@ async fn driver(spec: Value, root: &Path) {
     options.device = spec["device"].as_str().unwrap_or("cpu").into();
     options.keep_alive = spec["keep_alive"] == true;
     let client = Arc::new(QwenSpeechClient::new(options).unwrap());
-    let mut results = vec![];
+    let mut results: Vec<Value> = vec![];
     let mut states = vec![];
     let mut partials = vec![];
     for call in spec["calls"].as_array().unwrap() {
         match call["action"].as_str().unwrap_or("transcribe") {
+            "park_for_parent_crash" => {
+                assert_eq!(results.last().unwrap()["ok"]["text"], "hello");
+                fs::write(root.join("parent-crash-ready"), b"ready").unwrap();
+                std::future::pending::<()>().await;
+            }
             "close_during_startup" => {
                 let worker = client.clone();
                 let path = root.join("audio.wav");
@@ -353,9 +358,128 @@ async fn driver(spec: Value, root: &Path) {
         json!({"results":results,"partials":partials,"states":states,"closed":state(root),"trace":trace,"cache_mode":fs::metadata(cache).ok().map(|metadata|metadata.permissions().mode()&0o777)})
     );
 }
+
+fn observe_parent_crash(root: &Path) {
+    use std::os::fd::AsRawFd;
+    use std::process::{Command, Stdio};
+    assert_eq!(
+        unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) },
+        0
+    );
+    let device = std::env::var("QWEN_CRASH_DEVICE").unwrap();
+    let phase = std::env::var("QWEN_CRASH_PHASE").unwrap();
+    let spec = json!({"device":device,"keep_alive":true,"calls":[
+        {"action":"transcribe"},{"action":"park_for_parent_crash"}
+    ]});
+    let mut parent = Command::new(std::env::current_exe().unwrap())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    parent
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(&serde_json::to_vec(&spec).unwrap())
+        .unwrap();
+    let mut owned = None;
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let before = std::time::Instant::now();
+        let stage_ready = || {
+            if phase == "ready" {
+                root.join("parent-crash-ready").exists()
+            } else {
+                fs::read_to_string(root.join("trace.jsonl"))
+                    .unwrap_or_default()
+                    .lines()
+                    .any(|line| serde_json::from_str::<Value>(line).unwrap()["kind"] == "probe")
+            }
+        };
+        while !stage_ready() {
+            assert!(
+                parent.try_wait().unwrap().is_none(),
+                "client exited before its verified request"
+            );
+            assert!(before.elapsed() < Duration::from_secs(5));
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        let started: Value = fs::read_to_string(root.join("trace.jsonl"))
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str::<Value>(line).unwrap())
+            .find(|value| value["kind"] == if phase == "ready" { "start" } else { "probe" })
+            .unwrap();
+        let pid = started["pid"].as_u64().unwrap() as libc::pid_t;
+        owned = Some(pid);
+        let key = started["key_path"].as_str().map(PathBuf::from);
+        let anonymous = key.as_ref().is_some_and(|key| {
+            let file = fs::File::open(key).unwrap();
+            let seals = unsafe { libc::fcntl(file.as_raw_fd(), libc::F_GET_SEALS) };
+            let required =
+                libc::F_SEAL_SEAL | libc::F_SEAL_SHRINK | libc::F_SEAL_GROW | libc::F_SEAL_WRITE;
+            // Drop this descriptor before crashing the credential's real owner.
+            fs::read_link(key).is_ok() && seals >= 0 && seals & required == required
+        });
+        parent.kill().unwrap();
+        assert!(!parent.wait().unwrap().success());
+        let before = std::time::Instant::now();
+        let mut status = 0;
+        loop {
+            let reaped = unsafe { libc::waitpid(pid, &mut status, libc::WNOHANG) };
+            assert!(reaped >= 0);
+            if reaped == pid {
+                break;
+            }
+            assert!(
+                before.elapsed() < Duration::from_secs(2),
+                "owned model outlived its crashed parent"
+            );
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        owned = None;
+        assert_eq!(libc::WTERMSIG(status), libc::SIGKILL);
+        assert!(
+            key.as_ref().is_none_or(|key| !key.exists()),
+            "no readable key survives its owner"
+        );
+        assert!(
+            phase != "ready" || anonymous,
+            "temporary authentication uses immutable anonymous memory"
+        );
+        println!(
+            "{}",
+            json!({"phase":phase,"worker_killed_after_parent_crash":true,"key_revoked":true,
+            "anonymous_key_sealed":anonymous,"normal_request_completed":phase == "ready"})
+        );
+    }));
+    let _ = parent.kill();
+    let _ = parent.wait();
+    if let Some(pid) = owned {
+        let args = fs::read(format!("/proc/{pid}/cmdline")).unwrap_or_default();
+        if args
+            .split(|byte| *byte == 0)
+            .any(|arg| arg.starts_with(root.as_os_str().as_encoded_bytes()))
+        {
+            unsafe {
+                libc::kill(pid, libc::SIGKILL);
+                libc::waitpid(pid, std::ptr::null_mut(), 0);
+            }
+        }
+    }
+    if let Err(error) = result {
+        std::panic::resume_unwind(error);
+    }
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     let arguments: Vec<String> = std::env::args().skip(1).collect();
+    if arguments == ["--observe-parent-crash"] {
+        let root = PathBuf::from(std::env::var_os("QWEN_FIXTURE_ROOT").unwrap());
+        observe_parent_crash(&root);
+        return;
+    }
     if !arguments.is_empty() {
         runtime(&arguments).await;
         return;
