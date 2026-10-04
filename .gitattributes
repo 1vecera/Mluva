@@ -4,3 +4,11 @@ linux/integrations/tensaku/LICENSE linguist-vendored
 # Preserve upstream's title underline and raw diff context lines verbatim.
 linux/integrations/tensaku/NOTICE linguist-vendored conflict-marker-size=32
 linux/integrations/tensaku/narration.patch linguist-vendored whitespace=-blank-at-eol
+# Frozen reference outputs remain reviewable; keep their large generated datasets collapsed by default.
+rust/mluva-core/tests/fixtures/*.json linguist-generated
+rust/mluva-core/tests/fixtures/*.sql linguist-generated
+rust/mluva-core/resources/word-ranges.json linguist-generated
+rust/mluva-core/resources/case-properties.json linguist-generated
+rust/mluva-gtk/tests/fixtures/*.json linguist-generated
+rust/mluva-gtk/resources/fonts/*.ttf linguist-vendored
+rust/mluva-gtk/resources/fonts/OFL.txt linguist-vendored

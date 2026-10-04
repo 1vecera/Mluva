@@ -1,0 +1,272 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "onnx_asr": "0.12.0",
+  "onnxruntime": "1.30.0",
+  "runtime": [
+    {
+      "archive": "asr",
+      "archive_sha256": "5e7ceca454609819ea7833f61e2302e0c8f6ece4f8a78b66c5daba53cb51de4a",
+      "member": "onnx_asr/preprocessors/data/nemo128_conv.onnx",
+      "size": 1190298,
+      "sha256": "5bbdc98847c3153c54e7b58f2c8668d0c19a22d07ed16204a058d26880985c6c"
+    },
+    {
+      "archive": "asr",
+      "archive_sha256": "5e7ceca454609819ea7833f61e2302e0c8f6ece4f8a78b66c5daba53cb51de4a",
+      "member": "onnx_asr/preprocessors/data/whisper80_conv.onnx",
+      "size": 710923,
+      "sha256": "ee6096f815911e76b21e90b6ee126a99127efeadcc870805e2f5967f65af28da"
+    },
+    {
+      "archive": "cpu",
+      "archive_sha256": "8b611d24db2954545ce6bd9acd4670183cb368e4642450de7a9ab6474eb374ec",
+      "member": "onnxruntime/capi/libonnxruntime.so.1.30.0",
+      "size": 28985152,
+      "sha256": "c902c70b3003c0e99fada202f37478c515ae9bba7944c2b2abd0017bae0c82ed"
+    },
+    {
+      "archive": "cpu",
+      "archive_sha256": "8b611d24db2954545ce6bd9acd4670183cb368e4642450de7a9ab6474eb374ec",
+      "member": "onnxruntime/capi/libonnxruntime_providers_shared.so",
+      "size": 14632,
+      "sha256": "086ec1d5388f64153d9c63470d126693db9a182c8ce236d3a1119068471b8a0d"
+    }
+  ],
+  "models": [
+    {
+      "id": "whisper-tiny",
+      "label": "Whisper Tiny",
+      "repo": "onnx-community/whisper-tiny",
+      "revision": "ff4177021cc41f7db950912b73ea4fdf7d01d8e7",
+      "quantization": "quantized",
+      "engine": "whisper",
+      "files": [
+        {
+          "name": "config.json",
+          "size": 2243,
+          "sha256": "46aeea0a406afbeb563fc8e59ca10609203df4299af6a83f73752fef369efd2d"
+        },
+        {
+          "name": "vocab.json",
+          "size": 1036584,
+          "sha256": "50d6a919f0a0601d56a04eb583c780d18553aa388254ba3158eb6a00f13e2c1a"
+        },
+        {
+          "name": "added_tokens.json",
+          "size": 34604,
+          "sha256": "9715fd2243b6f06a5858b5e32950d2853f73dd5bc201aafcf76f5082a2d8acd1"
+        },
+        {
+          "name": "onnx/encoder_model_quantized.onnx",
+          "size": 10124990,
+          "sha256": "2af4a414ca47aa30f61246017e5fe82b0a8d229281d1255ba666a2a7f6b84d19"
+        },
+        {
+          "name": "onnx/decoder_model_merged_quantized.onnx",
+          "size": 30719241,
+          "sha256": "25e807a962b6349356d0ea5d0dfe530b7e5bf0e2a484aeca0359d03143faddd3"
+        }
+      ],
+      "ram_mb": 500
+    },
+    {
+      "id": "parakeet-v3",
+      "label": "Parakeet v3",
+      "repo": "istupakov/parakeet-tdt-0.6b-v3-onnx",
+      "revision": "8f23f0c03c8761650bdb5b40aaf3e40d2c15f1ce",
+      "quantization": "int8",
+      "engine": "nemo-parakeet-tdt-0.6b-v3",
+      "files": [
+        {
+          "name": "config.json",
+          "size": 97,
+          "sha256": "666903c76b9798caf2c210afd4f6cd60b08a8dbf9800ec8d7a3bc0d2148ac466"
+        },
+        {
+          "name": "vocab.txt",
+          "size": 93939,
+          "sha256": "d58544679ea4bc6ac563d1f545eb7d474bd6cfa467f0a6e2c1dc1c7d37e3c35d"
+        },
+        {
+          "name": "encoder-model.int8.onnx",
+          "size": 652183999,
+          "sha256": "6139d2fa7e1b086097b277c7149725edbab89cc7c7ae64b23c741be4055aff09"
+        },
+        {
+          "name": "decoder_joint-model.int8.onnx",
+          "size": 18202004,
+          "sha256": "eea7483ee3d1a30375daedc8ed83e3960c91b098812127a0d99d1c8977667a70"
+        }
+      ],
+      "ram_mb": 2000
+    }
+  ],
+  "cases": [
+    {
+      "model": "whisper-tiny",
+      "device": "cpu",
+      "actions": [
+        {
+          "name": "english-auto",
+          "filename": "asr-en.wav",
+          "language": "auto",
+          "text_sha256": "ae325a3f3233160ae68c32c1cf2122b816a8d3b7c77bc338c9e97434b2d01dd7",
+          "text_characters": 180,
+          "metadata": {
+            "language_code": "auto",
+            "language_probability": null,
+            "transcription_id": null,
+            "speaker_segments": [],
+            "audio_duration_seconds": null
+          }
+        },
+        {
+          "name": "english-forced",
+          "filename": "asr-en.wav",
+          "language": "eng",
+          "text_sha256": "ae325a3f3233160ae68c32c1cf2122b816a8d3b7c77bc338c9e97434b2d01dd7",
+          "text_characters": 180,
+          "metadata": {
+            "language_code": "eng",
+            "language_probability": null,
+            "transcription_id": null,
+            "speaker_segments": [],
+            "audio_duration_seconds": null
+          }
+        },
+        {
+          "name": "english-double-auto",
+          "filename": "asr-en-double.wav",
+          "language": "auto",
+          "text_sha256": "1dec0ae15cfb279cc6010641e349631d254c52a877a9f9915826fe2aed3e6014",
+          "text_characters": 361,
+          "metadata": {
+            "language_code": "auto",
+            "language_probability": null,
+            "transcription_id": null,
+            "speaker_segments": [],
+            "audio_duration_seconds": null
+          }
+        },
+        {
+          "name": "chinese-auto",
+          "filename": "asr-zh.wav",
+          "language": "auto",
+          "text_sha256": "9964abaf265c4497daffecc2734199d8c3ce61523523a66e13b07f46139f92a6",
+          "text_characters": 13,
+          "metadata": {
+            "language_code": "auto",
+            "language_probability": null,
+            "transcription_id": null,
+            "speaker_segments": [],
+            "audio_duration_seconds": null
+          }
+        },
+        {
+          "name": "chinese-forced",
+          "filename": "asr-zh.wav",
+          "language": "zho",
+          "text_sha256": "9964abaf265c4497daffecc2734199d8c3ce61523523a66e13b07f46139f92a6",
+          "text_characters": 13,
+          "metadata": {
+            "language_code": "zho",
+            "language_probability": null,
+            "transcription_id": null,
+            "speaker_segments": [],
+            "audio_duration_seconds": null
+          }
+        }
+      ]
+    },
+    {
+      "model": "parakeet-v3",
+      "device": "cpu",
+      "actions": [
+        {
+          "name": "english-auto",
+          "filename": "asr-en.wav",
+          "language": "auto",
+          "text_sha256": "22f51b8eb160d9743921dffeaff72d3e54b4cb136388b692ce200942333fa3fd",
+          "text_characters": 183,
+          "metadata": {
+            "language_code": "auto",
+            "language_probability": null,
+            "transcription_id": null,
+            "speaker_segments": [],
+            "audio_duration_seconds": null
+          }
+        },
+        {
+          "name": "english-forced",
+          "filename": "asr-en.wav",
+          "language": "eng",
+          "text_sha256": "22f51b8eb160d9743921dffeaff72d3e54b4cb136388b692ce200942333fa3fd",
+          "text_characters": 183,
+          "metadata": {
+            "language_code": "eng",
+            "language_probability": null,
+            "transcription_id": null,
+            "speaker_segments": [],
+            "audio_duration_seconds": null
+          }
+        },
+        {
+          "name": "english-double-auto",
+          "filename": "asr-en-double.wav",
+          "language": "auto",
+          "text_sha256": "6dbca0448422583a087726813c8c81c637741002ecbba8796cade81f5b4b3c77",
+          "text_characters": 367,
+          "metadata": {
+            "language_code": "auto",
+            "language_probability": null,
+            "transcription_id": null,
+            "speaker_segments": [],
+            "audio_duration_seconds": null
+          }
+        }
+      ]
+    }
+  ],
+  "package_sources": [
+    {
+      "name": "asr.py",
+      "sha256": "90d79832a9f5073270e604dc19308a56927cecabcf29815de97825e19187a862"
+    },
+    {
+      "name": "models/whisper.py",
+      "sha256": "cd51aac50037065c6187f669ac8c03d46e3d606d8de4adb33d72dad23aca3fdb"
+    },
+    {
+      "name": "models/nemo.py",
+      "sha256": "646fac0da96b4fea153113a5536202182816269478ad5f3d6dab854b50bb0a69"
+    },
+    {
+      "name": "loader.py",
+      "sha256": "ef4782a1f466ca29bf912c1b59a2e9bee6f2e95e47997c566cb1525a54288237"
+    },
+    {
+      "name": "onnx.py",
+      "sha256": "a4c686f9caf2a680a1bb2c3f941fa99bf734d09751e0c0fe611f32ecdc5fb790"
+    },
+    {
+      "name": "preprocessors/numpy_preprocessor.py",
+      "sha256": "215b10e9549843feb5961f9a5c03bfa79270b5c08f7bfdd34388bce3f6f0a83f"
+    },
+    {
+      "name": "preprocessors/preprocessor.py",
+      "sha256": "cde18fdcb0a38e44ec3bc1d7b7dc1039294d27e985adf285821d062daef21f6f"
+    },
+    {
+      "name": "preprocessors/data/fbanks.npz",
+      "sha256": "7f3e3bd26f90946c5f91a3f60af6f4c5c2b07a94f2fb2da91bb325b9d26feb73"
+    },
+    {
+      "name": "preprocessors/data/whisper80_conv.onnx",
+      "sha256": "ee6096f815911e76b21e90b6ee126a99127efeadcc870805e2f5967f65af28da"
+    },
+    {
+      "name": "preprocessors/data/nemo128_conv.onnx",
+      "sha256": "5bbdc98847c3153c54e7b58f2c8668d0c19a22d07ed16204a058d26880985c6c"
+    }
+  ]
+}

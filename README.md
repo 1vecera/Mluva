@@ -31,6 +31,8 @@ Live rewrite is opt-in and Experimental. It marks missing information, preserves
 
 ## Install
 
+This development branch is the [Rust port](rust/README.md), with complete application acceptance still pending. Its combined source installer now builds the app and widget in Rust. Install the pinned Rust toolchain and a C compiler first; setup then provisions the remaining [native development prerequisites](CONTRIBUTING.md#local-setup). Prepared native bundles need neither a compiler nor Python. Use the published 1.6.0 release for the established installation below until native acceptance is complete.
+
 Run the setup from a source checkout or extracted [release archive](https://github.com/1vecera/Mluva/releases/latest). On **Omarchy Quattro**, it installs the desktop dependencies, native application and bundled shell widget together. Both parts share one repository, version and package. It shows the installation plan first; system packages may request your sudo password.
 
 ```sh
@@ -111,10 +113,10 @@ See the [product contract](docs/product-contract.md) for retention, recovery and
 
 ## Development
 
-Mluva uses **Python, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. Start with the [code map and focused checks](CONTRIBUTING.md#code-map) or [Linux guide](linux/README.md).
+Released Mluva uses **Python, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. This branch's [native Rust implementation](rust/README.md) is undergoing acceptance checks. Default build/run/test commands and the shortcut check now use Rust; remaining Python checks stay explicit until the full port is accepted. Start with the [code map and focused checks](CONTRIBUTING.md#code-map) or [Linux guide](linux/README.md).
 
 ```sh
-make linux-test linux-shortcut-test
+make linux-test linux-shortcut-test linux-python-test
 shellcheck install.sh linux/*.sh linux/tests/*.sh dev/*.sh linux/mluva-shell
 ```
 

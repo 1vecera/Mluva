@@ -22,12 +22,7 @@ fi
 }
 
 unit_is_owned() {
-    /usr/bin/python3 - "${unit_source}" "${unit_destination}" <<'PYOWNERSHIP'
-import sys
-from pathlib import Path
-source, destination = map(Path, sys.argv[1:])
-sys.exit(0 if source.read_bytes() == destination.read_bytes() else 1)
-PYOWNERSHIP
+    cmp -s -- "${unit_source}" "${unit_destination}" 2>/dev/null
 }
 
 case "${action}" in

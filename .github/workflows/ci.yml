@@ -27,15 +27,23 @@ jobs:
           dnf -y --setopt=install_weak_deps=False install
           at-spi2-core
           dbus-daemon
+          gcc
           git
           gobject-introspection
-          gtk4
-          libadwaita
+          gtk4-devel
+          libadwaita-devel
+          at-spi2-core-devel
+          fontconfig-devel
+          openssl-devel
+          bubblewrap
           make
           pipewire-utils
+          pkgconf-pkg-config
           procps-ng
           python3-gobject
+          rustup
           shellcheck
+          sqlite-devel
           uv
           wl-clipboard
           && dnf clean all
@@ -45,8 +53,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Test and lint Linux client
-        run: make linux-test linux-shortcut-test
+      - name: Prepare Rust tooling
+        run: |
+          rustup-init -y --no-modify-path --profile minimal --default-toolchain none
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Test and lint native and remaining Python code
+        run: make linux-test linux-shortcut-test linux-python-test
 
       - name: Lint shell scripts
         run: shellcheck install.sh linux/*.sh linux/tests/*.sh dev/*.sh linux/mluva-shell

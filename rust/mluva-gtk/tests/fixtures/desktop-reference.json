@@ -1,0 +1,15 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "files": {
+    "linux/mluva_linux/theme.py": "2f240fc62e9ae5b913c42127907f6c063e5585510b6ab04fcf64bf492841f066",
+    "linux/mluva_linux/feature_maturity.py": "43749b8e78da937f3fc00d83fbb3acdd4542f42cf3e0eed7494537de433f81c9",
+    "linux/mluva_linux/personalization_view.py": "3cadb940dd96aab4e86595589ac3a3f796b96ba5536253f5012c810655bb13e2",
+    "linux/mluva_linux/markdown_view.py": "75543cac8200fbfef0b480eac7c93bc0921c8e487ed095de28bf3cedceef55d4",
+    "linux/mluva_linux/ui.py": "f3db4fbf916835e7f5ceb85c340c006474565045b9f79dcb783eea5942fd688b",
+    "linux/quickshell/mluva.dictation/fonts/JetBrainsMono-Regular.ttf": "e6fd0d7e91550b3ed2b735d4312474362c4716edc4fc0577a0f61ed782d5aed1",
+    "linux/quickshell/mluva.dictation/fonts/JetBrainsMono-Medium.ttf": "d16e6dc99672734698d629705f617c79f6eb6040f5113efe3a145204dc988109",
+    "linux/quickshell/mluva.dictation/fonts/JetBrainsMono-Bold.ttf": "d22c4f3821d725eb01210d278d95dfcfcaadc34699a06658d47c8a5cc5830ada",
+    "linux/quickshell/mluva.dictation/fonts/JetBrainsMono-Italic.ttf": "6dc8e1322d4b2013b64e277bf66abc6748207c46a590471d4296876c2c235d0c",
+    "linux/quickshell/mluva.dictation/fonts/OFL.txt": "c1ab7c666206842a02b35b30770dac0d7a10156ed401c9defc3f02a754d89e90"
+  }
+}

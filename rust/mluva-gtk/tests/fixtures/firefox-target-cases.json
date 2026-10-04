@@ -1,0 +1,1975 @@
+{
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "module_sha256": {
+    "text_target.py": "a916b65519d33b3401ebfee910c392560b86d5e70d6131aa3e6702394fef02c7",
+    "delivery.py": "60ce68b777eee432d5e6b06c556c8bfc5af0b7f3b3926bcf012304e66b10af46"
+  },
+  "browser": {
+    "version": "154.0",
+    "build_id": "20260818182641"
+  },
+  "cases": [
+    {
+      "input": {
+        "name": "cold-utf16-caret",
+        "setup": {
+          "kind": "textview",
+          "text": "Před 😀 část konec",
+          "start": 8,
+          "end": 8
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true,
+        "cold": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 8,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 8,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": true,
+          "guidance": "Inserted once into the restored target application.",
+          "paste_dispatched": true,
+          "paste_confirmed": true,
+          "history_outcome": "pasted"
+        },
+        "confirmed_after": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Před 😀 Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.část konec",
+              "start": 49,
+              "end": 49,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "textview",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "textview",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "textarea-utf16-selection",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": true,
+          "guidance": "Inserted once into the restored target application.",
+          "paste_dispatched": true,
+          "paste_confirmed": true,
+          "history_outcome": "pasted"
+        },
+        "confirmed_after": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek. konec",
+              "start": 48,
+              "end": 48,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "textview",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "textview",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "textarea-backward-selection",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17,
+          "direction": "backward"
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 7,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 7,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": true,
+          "guidance": "Inserted once into the restored target application.",
+          "paste_dispatched": true,
+          "paste_confirmed": true,
+          "history_outcome": "pasted"
+        },
+        "confirmed_after": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek. konec",
+              "start": 48,
+              "end": 48,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "textview",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "textview",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "textarea-moved-caret",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true,
+        "before": {
+          "operation": "caret",
+          "start": 0,
+          "end": 0
+        }
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": true,
+          "guidance": "Inserted once into the restored target application.",
+          "paste_dispatched": true,
+          "paste_confirmed": true,
+          "history_outcome": "pasted"
+        },
+        "confirmed_after": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek. konec",
+              "start": 48,
+              "end": 48,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "textview",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "textview",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "textarea-cleared-selection",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true,
+        "before": {
+          "operation": "selection",
+          "start": 2,
+          "end": 2
+        }
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": true,
+          "guidance": "Inserted once into the restored target application.",
+          "paste_dispatched": true,
+          "paste_confirmed": true,
+          "history_outcome": "pasted"
+        },
+        "confirmed_after": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek. konec",
+              "start": 48,
+              "end": 48,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "textview",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "textview",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "textarea-changed-selection",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true,
+        "before": {
+          "operation": "selection",
+          "start": 0,
+          "end": 2
+        }
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": true,
+          "guidance": "Inserted once into the restored target application.",
+          "paste_dispatched": true,
+          "paste_confirmed": true,
+          "history_outcome": "pasted"
+        },
+        "confirmed_after": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek. konec",
+              "start": 48,
+              "end": 48,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "textview",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "textview",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "singleline-newline-normalization",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": true,
+          "guidance": "Inserted once into the restored target application.",
+          "paste_dispatched": true,
+          "paste_confirmed": true,
+          "history_outcome": "pasted"
+        },
+        "confirmed_after": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "entry": {
+              "text": "Mluva: Příliš žluťoučký 😀 👩‍💻 é Druhý řádek. konec",
+              "start": 48,
+              "end": 48,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "entry",
+          "events": [
+            {
+              "name": "paste",
+              "target": "entry",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "entry",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "entry",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "textarea-clipboard-nul",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "nul\u0000tail😀",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": false,
+          "guidance": "Paste was sent once, but the captured target did not confirm insertion. The complete text remains on the clipboard; inspect the target before any manual retry.",
+          "paste_dispatched": true,
+          "paste_confirmed": false,
+          "history_outcome": "paste-unconfirmed"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: nul konec",
+              "start": 10,
+              "end": 10,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "textview",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "textview",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "nul\u0000tail😀",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "textarea-refuses-paste",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17,
+          "prevent": true
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": false,
+          "guidance": "Paste was sent once, but the captured target did not confirm insertion. The complete text remains on the clipboard; inspect the target before any manual retry.",
+          "paste_dispatched": true,
+          "paste_confirmed": false,
+          "history_outcome": "paste-unconfirmed"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: původní 🐎 konec",
+              "start": 7,
+              "end": 17,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "readonly-current",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17,
+          "readonly": true
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": false,
+          "guidance": "Paste was sent once, but the captured target did not confirm insertion. The complete text remains on the clipboard; inspect the target before any manual retry.",
+          "paste_dispatched": true,
+          "paste_confirmed": false,
+          "history_outcome": "paste-unconfirmed"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: původní 🐎 konec",
+              "start": 7,
+              "end": 17,
+              "readonly": true
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "stale-other-field",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true,
+        "before": {
+          "operation": "focus",
+          "kind": "second"
+        }
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": false,
+        "receipt": {
+          "copied": true,
+          "pasted": false,
+          "guidance": "Copied. Paste in the target application.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: původní 🐎 konec",
+              "start": 7,
+              "end": 17,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "second",
+          "events": []
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "stale-own-window",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true,
+        "own_focus": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "own_capture": null,
+        "restored": false,
+        "receipt": {
+          "copied": true,
+          "pasted": false,
+          "guidance": "Copied. Paste in the target application.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: původní 🐎 konec",
+              "start": 7,
+              "end": 17,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": []
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "closed-tracker",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true,
+        "close": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": false,
+        "receipt": {
+          "copied": true,
+          "pasted": false,
+          "guidance": "Copied. Paste in the target application.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: původní 🐎 konec",
+              "start": 7,
+              "end": 17,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": []
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "late-focus-change",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true,
+        "late_focus": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": false,
+          "guidance": "The captured target could not be revalidated immediately before keyboard delivery, so no paste was attempted. The complete text remains on the clipboard.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: původní 🐎 konec",
+              "start": 7,
+              "end": 17,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "second",
+          "events": []
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "automatic-paste-disabled",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": false
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": false,
+        "receipt": {
+          "copied": true,
+          "pasted": false,
+          "guidance": "Copied. Paste in the target application.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: původní 🐎 konec",
+              "start": 7,
+              "end": 17,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": []
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "password-refusal",
+        "setup": {
+          "kind": "password",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "snapshot": null,
+        "tracker_identity_matches": false,
+        "restored": false,
+        "receipt": {
+          "copied": true,
+          "pasted": false,
+          "guidance": "Copied. Paste in the target application.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "Mluva: původní 🐎 konec",
+              "start": 7,
+              "end": 17,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "password",
+          "events": []
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "nontext-refusal",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true,
+        "nontext": true
+      },
+      "expected": {
+        "snapshot": null,
+        "tracker_identity_matches": true,
+        "restored": false,
+        "receipt": {
+          "copied": true,
+          "pasted": false,
+          "guidance": "Copied. Paste in the target application.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: původní 🐎 konec",
+              "start": 7,
+              "end": 17,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "button",
+          "events": []
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "command-utf16-selection",
+        "setup": {
+          "kind": "textview",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "command",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": "původní 🐎﻿",
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": true,
+          "guidance": "Inserted once into the restored target application.",
+          "paste_dispatched": true,
+          "paste_confirmed": true,
+          "history_outcome": "pasted"
+        },
+        "confirmed_after": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Mluva: Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek. konec",
+              "start": 48,
+              "end": 48,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "textview",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "textview",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": [
+          [
+            7,
+            17
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "command-exact-gecko-limit",
+        "setup": {
+          "kind": "textview",
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "start": 0,
+          "end": 2000
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "command",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": "😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿😀﻿",
+          "selection": [
+            0,
+            2000
+          ],
+          "caret": 2000,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            0,
+            2000
+          ],
+          "caret": 2000,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": true,
+          "guidance": "Inserted once into the restored target application.",
+          "paste_dispatched": true,
+          "paste_confirmed": true,
+          "history_outcome": "pasted"
+        },
+        "confirmed_after": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+              "start": 41,
+              "end": 41,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": [
+            {
+              "name": "paste",
+              "target": "textview",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "textview",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "textview",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "text_reads": [
+          [
+            0,
+            2000
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "command-exceeds-gecko-limit",
+        "setup": {
+          "kind": "textview",
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "start": 0,
+          "end": 2002
+        },
+        "payload": "Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek.",
+        "mode": "command",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "error": "The selected text is 2,002 characters; Command mode allows at most 2,000. Shorten the selection before recording.",
+        "tracker_identity_matches": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+              "start": 0,
+              "end": 2002,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Other rich target",
+              "start": null,
+              "end": null,
+              "readonly": false
+            }
+          },
+          "focus": "textview",
+          "events": []
+        },
+        "clipboard": "UNCHANGED CLIPBOARD CONTROL",
+        "text_reads": [
+          [
+            0,
+            2002
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "rich-utf16-selection",
+        "setup": {
+          "kind": "rich",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 17
+        },
+        "payload": "Nová 😀 fráze.",
+        "mode": "delivery",
+        "maximum": 2000,
+        "auto": true
+      },
+      "expected": {
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            17
+          ],
+          "caret": 17,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "receipt": {
+          "copied": true,
+          "pasted": true,
+          "guidance": "Inserted once into the restored target application.",
+          "paste_dispatched": true,
+          "paste_confirmed": true,
+          "history_outcome": "pasted"
+        },
+        "confirmed_after": true,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "entry": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "second": {
+              "text": "OTHER TARGET MUST SURVIVE",
+              "start": 25,
+              "end": 25,
+              "readonly": false
+            },
+            "password": {
+              "text": "",
+              "start": 0,
+              "end": 0,
+              "readonly": false
+            },
+            "rich": {
+              "text": "Mluva: Nová 😀 fráze. konec",
+              "start": 21,
+              "end": 21,
+              "readonly": false
+            }
+          },
+          "focus": "rich",
+          "events": [
+            {
+              "name": "paste",
+              "target": "rich",
+              "type": null
+            },
+            {
+              "name": "beforeinput",
+              "target": "rich",
+              "type": "insertFromPaste"
+            },
+            {
+              "name": "input",
+              "target": "rich",
+              "type": "insertFromPaste"
+            }
+          ]
+        },
+        "clipboard": "Nová 😀 fráze.",
+        "text_reads": []
+      }
+    }
+  ]
+}

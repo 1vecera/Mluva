@@ -1,0 +1,42 @@
+{
+  "reference": {
+    "release": "v1.6.0",
+    "commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+    "source_sha256": {
+      "audio.py": "c024477529cdeb33916765a4904a7a3320e595d23245e1c5e2cdad390a96001e",
+      "pipewire.py": "1a7f5c7e0cfaa0946f7744808c97f1a208e3e8b59e03e5a65267323483840e65",
+      "volatile_audio.py": "627d500a0260799458d49223c23f76c4b6d1d4995dad700e936b0ca62e2afee4"
+    },
+    "python": "3.14.7",
+    "scope": "Synthetic PCM and real child processes only; no microphone, desktop audio, provider or complete-app parity."
+  },
+  "observations": [
+    {
+      "meeting": false,
+      "file_count": 1,
+      "file_modes": [
+        384
+      ],
+      "directory_mode": 448,
+      "memory_backed": true,
+      "watchdog_has_own_session": true,
+      "watchdog_environment_empty": true,
+      "removed_after_sigkill": true,
+      "durable_audio_absent": true
+    },
+    {
+      "meeting": true,
+      "file_count": 2,
+      "file_modes": [
+        384,
+        384
+      ],
+      "directory_mode": 448,
+      "memory_backed": true,
+      "watchdog_has_own_session": true,
+      "watchdog_environment_empty": true,
+      "removed_after_sigkill": true,
+      "durable_audio_absent": true
+    }
+  ]
+}

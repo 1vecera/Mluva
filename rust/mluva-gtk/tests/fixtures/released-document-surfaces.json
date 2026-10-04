@@ -1,0 +1,701 @@
+{
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_sha256": {
+    "linux/mluva_linux/mermaid_view.py": "226d89b60419012ba4470eeca16a3ada339f0f1a0dc3e37b8fe77d9380bde35c",
+    "linux/mluva_linux/conversation_view.py": "5f631eaf25eab9cccf7daee293c5ac579e68420eaa3e0c106df70648827673e6",
+    "linux/mluva_linux/scroll_forecast.py": "1fee03547d421fefcdbce1284fb5030e95ca91af2a022a3dd1ffcfde42cf2595",
+    "linux/mluva_linux/theme.py": "2f240fc62e9ae5b913c42127907f6c063e5585510b6ab04fcf64bf492841f066"
+  },
+  "blocks": [
+    {
+      "source": "",
+      "expected": []
+    },
+    {
+      "source": "```mermaid\ngraph TD; A-->B;\n```",
+      "expected": [
+        {
+          "start": 0,
+          "end": 31,
+          "text": "graph TD; A-->B;\n"
+        }
+      ]
+    },
+    {
+      "source": "~~~ MERMAID \nsequenceDiagram\nA->>B: hello\n~~~~\n",
+      "expected": [
+        {
+          "start": 0,
+          "end": 47,
+          "text": "sequenceDiagram\nA->>B: hello\n"
+        }
+      ]
+    },
+    {
+      "source": "Before 😀\r\n  ```mermaid\r\ngraph LR; A-->B;\r\n  ```\r\nAfter",
+      "expected": [
+        {
+          "start": 10,
+          "end": 49,
+          "text": "graph LR; A-->B;\r\n"
+        }
+      ]
+    },
+    {
+      "source": "```python\n```mermaid\ngraph TD;A-->B\n```\n```",
+      "expected": []
+    },
+    {
+      "source": "```mermaid\nunclosed",
+      "expected": []
+    },
+    {
+      "source": "    ```mermaid\nnot a fence\n    ```",
+      "expected": []
+    },
+    {
+      "source": "```mermaid\n```",
+      "expected": []
+    },
+    {
+      "source": "```mermaid\nbody\n~~~\n```",
+      "expected": [
+        {
+          "start": 0,
+          "end": 23,
+          "text": "body\n~~~\n"
+        }
+      ]
+    },
+    {
+      "source": "```mermaid\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n```",
+      "expected": []
+    },
+    {
+      "source": "```mermaid\na\n```\n```mermaid\na\n```\n```mermaid\na\n```\n```mermaid\na\n```\n",
+      "expected": [
+        {
+          "start": 0,
+          "end": 17,
+          "text": "a\n"
+        },
+        {
+          "start": 17,
+          "end": 34,
+          "text": "a\n"
+        },
+        {
+          "start": 34,
+          "end": 51,
+          "text": "a\n"
+        }
+      ]
+    },
+    {
+      "source": "```mermaid\nx\n````lang\n````",
+      "expected": [
+        {
+          "start": 0,
+          "end": 26,
+          "text": "x\n````lang\n"
+        }
+      ]
+    },
+    {
+      "source": "```mermaid A ``` ",
+      "expected": [
+        {
+          "start": 0,
+          "end": 17,
+          "text": "A "
+        }
+      ]
+    },
+    {
+      "source": "```Mermaid\nA\n```\n~~~mermaid\nB\n~~~",
+      "expected": [
+        {
+          "start": 0,
+          "end": 17,
+          "text": "A\n"
+        },
+        {
+          "start": 17,
+          "end": 33,
+          "text": "B\n"
+        }
+      ]
+    }
+  ],
+  "xml": [
+    {
+      "svg": "<svg/>",
+      "expected": {
+        "accepted": true,
+        "category": null
+      }
+    },
+    {
+      "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>Alpha &amp; Ω</text></svg>",
+      "expected": {
+        "accepted": true,
+        "category": null
+      }
+    },
+    {
+      "svg": "<svg><g><path/></g></svg>",
+      "expected": {
+        "accepted": true,
+        "category": null
+      }
+    },
+    {
+      "svg": "<?xml version=\"1.0\"?><svg/>",
+      "expected": {
+        "accepted": true,
+        "category": null
+      }
+    },
+    {
+      "svg": "<svg><image/></svg>",
+      "expected": {
+        "accepted": false,
+        "category": "Unsupported sketch content"
+      }
+    },
+    {
+      "svg": "<svg><script/></svg>",
+      "expected": {
+        "accepted": false,
+        "category": "Unsupported sketch content"
+      }
+    },
+    {
+      "svg": "<svg><foreignObject/></svg>",
+      "expected": {
+        "accepted": false,
+        "category": "Unsupported sketch content"
+      }
+    },
+    {
+      "svg": "<svg xmlns:xlink=\"http://www.w3.org/1999/xlink\"><use xlink:href=\"#local\"/></svg>",
+      "expected": {
+        "accepted": true,
+        "category": null
+      }
+    },
+    {
+      "svg": "<svg href=\"https://example.invalid\"/>",
+      "expected": {
+        "accepted": false,
+        "category": "External sketch reference"
+      }
+    },
+    {
+      "svg": "<svg fill=\"url('#local')\"/>",
+      "expected": {
+        "accepted": true,
+        "category": null
+      }
+    },
+    {
+      "svg": "<svg><style>rect {fill:url(\"https://example.invalid/x\")}</style></svg>",
+      "expected": {
+        "accepted": false,
+        "category": "External sketch resource"
+      }
+    },
+    {
+      "svg": "<svg><unbound:path/></svg>",
+      "expected": {
+        "accepted": false,
+        "category": "xml"
+      }
+    },
+    {
+      "svg": "<svg/><svg/>",
+      "expected": {
+        "accepted": false,
+        "category": "xml"
+      }
+    },
+    {
+      "svg": "<svg><path bad/></svg>",
+      "expected": {
+        "accepted": false,
+        "category": "xml"
+      }
+    },
+    {
+      "svg": "<!DOCTYPE svg [<!ENTITY name \"kept\">]><svg><text>&name;</text></svg>",
+      "expected": {
+        "accepted": true,
+        "category": null
+      }
+    },
+    {
+      "svg": "<svg>before</svg>after",
+      "expected": {
+        "accepted": false,
+        "category": "xml"
+      }
+    },
+    {
+      "svg": "<svg>&undefined;</svg>",
+      "expected": {
+        "accepted": false,
+        "category": "xml"
+      }
+    },
+    {
+      "svg": "<svg>\u0000</svg>",
+      "expected": {
+        "accepted": false,
+        "category": "xml"
+      }
+    },
+    {
+      "svg": "<svg><style><![CDATA[x {fill:URL ( https://example.invalid )}]]></style></svg>",
+      "expected": {
+        "accepted": false,
+        "category": "External sketch resource"
+      }
+    },
+    {
+      "svg": "<svg xmlns:q=\"urn:x\"><q:image/></svg>",
+      "expected": {
+        "accepted": false,
+        "category": "Unsupported sketch content"
+      }
+    }
+  ],
+  "forecast": [
+    {
+      "characters": 0,
+      "now": 0,
+      "columns": 40,
+      "fill": 0.8,
+      "horizon": 1.05,
+      "limit": 2,
+      "expected": 0.11500000000000021
+    },
+    {
+      "characters": 0,
+      "now": 0,
+      "columns": 0,
+      "fill": 1,
+      "horizon": 0,
+      "limit": 6,
+      "expected": 2.4000000000000004
+    },
+    {
+      "characters": 0,
+      "now": 0,
+      "columns": 80,
+      "fill": 0.25,
+      "horizon": 0.2,
+      "limit": 0,
+      "expected": 0
+    },
+    {
+      "characters": 0,
+      "now": 0,
+      "columns": 10,
+      "fill": 0.95,
+      "horizon": 2,
+      "limit": 6,
+      "expected": 2.3499999999999996
+    },
+    {
+      "characters": 12,
+      "now": 0.1,
+      "columns": 40,
+      "fill": 0.8,
+      "horizon": 1.05,
+      "limit": 2,
+      "expected": 0.11500000000000021
+    },
+    {
+      "characters": 12,
+      "now": 0.1,
+      "columns": 0,
+      "fill": 1,
+      "horizon": 0,
+      "limit": 6,
+      "expected": 2.4000000000000004
+    },
+    {
+      "characters": 12,
+      "now": 0.1,
+      "columns": 80,
+      "fill": 0.25,
+      "horizon": 0.2,
+      "limit": 0,
+      "expected": 0
+    },
+    {
+      "characters": 12,
+      "now": 0.1,
+      "columns": 10,
+      "fill": 0.95,
+      "horizon": 2,
+      "limit": 6,
+      "expected": 2.3499999999999996
+    },
+    {
+      "characters": 30,
+      "now": 0.3,
+      "columns": 40,
+      "fill": 0.8,
+      "horizon": 1.05,
+      "limit": 2,
+      "expected": 1.9000000000000004
+    },
+    {
+      "characters": 30,
+      "now": 0.3,
+      "columns": 0,
+      "fill": 1,
+      "horizon": 0,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 30,
+      "now": 0.3,
+      "columns": 80,
+      "fill": 0.25,
+      "horizon": 0.2,
+      "limit": 0,
+      "expected": 0
+    },
+    {
+      "characters": 30,
+      "now": 0.3,
+      "columns": 10,
+      "fill": 0.95,
+      "horizon": 2,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 15,
+      "now": 0.5,
+      "columns": 40,
+      "fill": 0.8,
+      "horizon": 1.05,
+      "limit": 2,
+      "expected": 1.375
+    },
+    {
+      "characters": 15,
+      "now": 0.5,
+      "columns": 0,
+      "fill": 1,
+      "horizon": 0,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 15,
+      "now": 0.5,
+      "columns": 80,
+      "fill": 0.25,
+      "horizon": 0.2,
+      "limit": 0,
+      "expected": 0
+    },
+    {
+      "characters": 15,
+      "now": 0.5,
+      "columns": 10,
+      "fill": 0.95,
+      "horizon": 2,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 45,
+      "now": 1,
+      "columns": 40,
+      "fill": 0.8,
+      "horizon": 1.05,
+      "limit": 2,
+      "expected": 0.98125
+    },
+    {
+      "characters": 45,
+      "now": 1,
+      "columns": 0,
+      "fill": 1,
+      "horizon": 0,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 45,
+      "now": 1,
+      "columns": 80,
+      "fill": 0.25,
+      "horizon": 0.2,
+      "limit": 0,
+      "expected": 0
+    },
+    {
+      "characters": 45,
+      "now": 1,
+      "columns": 10,
+      "fill": 0.95,
+      "horizon": 2,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 500,
+      "now": 2,
+      "columns": 40,
+      "fill": 0.8,
+      "horizon": 1.05,
+      "limit": 2,
+      "expected": 1.9000000000000004
+    },
+    {
+      "characters": 500,
+      "now": 2,
+      "columns": 0,
+      "fill": 1,
+      "horizon": 0,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 500,
+      "now": 2,
+      "columns": 80,
+      "fill": 0.25,
+      "horizon": 0.2,
+      "limit": 0,
+      "expected": 0
+    },
+    {
+      "characters": 500,
+      "now": 2,
+      "columns": 10,
+      "fill": 0.95,
+      "horizon": 2,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 490,
+      "now": 5,
+      "columns": 40,
+      "fill": 0.8,
+      "horizon": 1.05,
+      "limit": 2,
+      "expected": 1.9000000000000004
+    },
+    {
+      "characters": 490,
+      "now": 5,
+      "columns": 0,
+      "fill": 1,
+      "horizon": 0,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 490,
+      "now": 5,
+      "columns": 80,
+      "fill": 0.25,
+      "horizon": 0.2,
+      "limit": 0,
+      "expected": 0
+    },
+    {
+      "characters": 490,
+      "now": 5,
+      "columns": 10,
+      "fill": 0.95,
+      "horizon": 2,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 530,
+      "now": 6,
+      "columns": 40,
+      "fill": 0.8,
+      "horizon": 1.05,
+      "limit": 2,
+      "expected": 1.9000000000000004
+    },
+    {
+      "characters": 530,
+      "now": 6,
+      "columns": 0,
+      "fill": 1,
+      "horizon": 0,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 530,
+      "now": 6,
+      "columns": 80,
+      "fill": 0.25,
+      "horizon": 0.2,
+      "limit": 0,
+      "expected": 0
+    },
+    {
+      "characters": 530,
+      "now": 6,
+      "columns": 10,
+      "fill": 0.95,
+      "horizon": 2,
+      "limit": 6,
+      "expected": 6
+    },
+    {
+      "characters": 530,
+      "now": 11,
+      "columns": 40,
+      "fill": 0.8,
+      "horizon": 1.05,
+      "limit": 2,
+      "expected": 0.0
+    },
+    {
+      "characters": 530,
+      "now": 11,
+      "columns": 0,
+      "fill": 1,
+      "horizon": 0,
+      "limit": 6,
+      "expected": 0.0
+    },
+    {
+      "characters": 530,
+      "now": 11,
+      "columns": 80,
+      "fill": 0.25,
+      "horizon": 0.2,
+      "limit": 0,
+      "expected": 0
+    },
+    {
+      "characters": 530,
+      "now": 11,
+      "columns": 10,
+      "fill": 0.95,
+      "horizon": 2,
+      "limit": 6,
+      "expected": 0.0
+    }
+  ],
+  "renders": [
+    {
+      "name": "flowchart",
+      "source": "```mermaid\ngraph TD; A[Start]-->B[Result];\n```",
+      "expected": {
+        "textures": [
+          {
+            "width": 196,
+            "height": 158,
+            "sha256": "36fd0479e8e130d35f56fd36f22e1efeb10b7579142b3ccc5f13a23383434d80"
+          }
+        ],
+        "notice": "",
+        "notice_visible": false,
+        "source": "```mermaid\ngraph TD; A[Start]-->B[Result];\n```",
+        "visible": "",
+        "preview_visible": true
+      }
+    },
+    {
+      "name": "sequence",
+      "source": "```mermaid\nsequenceDiagram\nAlice->>Bob: Hello\nBob-->>Alice: Kept locally\n```",
+      "expected": {
+        "textures": [
+          {
+            "width": 450,
+            "height": 275,
+            "sha256": "b29097e58122af5089d1e2034fc632276d2c901349997fb9c13d48989af53cb0"
+          }
+        ],
+        "notice": "",
+        "notice_visible": false,
+        "source": "```mermaid\nsequenceDiagram\nAlice->>Bob: Hello\nBob-->>Alice: Kept locally\n```",
+        "visible": "",
+        "preview_visible": true
+      }
+    },
+    {
+      "name": "unicode",
+      "source": "```mermaid\ngraph LR; A[Žluťoučký 🐎]-->B[Ω & details];\n```",
+      "expected": {
+        "textures": [
+          {
+            "width": 416,
+            "height": 67,
+            "sha256": "8392e3870a910c303cff70ccc8122b2cded362c9767a8446855f14dc6c6b2da8"
+          }
+        ],
+        "notice": "",
+        "notice_visible": false,
+        "source": "```mermaid\ngraph LR; A[Žluťoučký 🐎]-->B[Ω & details];\n```",
+        "visible": "",
+        "preview_visible": true
+      }
+    },
+    {
+      "name": "invalid",
+      "source": "```mermaid\nthis is not a diagram\n```",
+      "expected": {
+        "textures": [],
+        "notice": "Incomplete sketch — source kept above.",
+        "notice_visible": true,
+        "source": "```mermaid\nthis is not a diagram\n```",
+        "visible": "this is not a diagram\n",
+        "preview_visible": true
+      }
+    },
+    {
+      "name": "directive",
+      "source": "```mermaid\n%%{init: {\"theme\":\"dark\"}}%%\ngraph TD;A-->B;\n```",
+      "expected": {
+        "textures": [],
+        "notice": "Incomplete sketch — source kept above.",
+        "notice_visible": true,
+        "source": "```mermaid\n%%{init: {\"theme\":\"dark\"}}%%\ngraph TD;A-->B;\n```",
+        "visible": "%%{init: {\"theme\":\"dark\"}}%%\ngraph TD;A-->B;\n",
+        "preview_visible": true
+      }
+    },
+    {
+      "name": "multiple",
+      "source": "```mermaid\ngraph TD;A-->B;\n```\n```mermaid\ninvalid\n```\n```mermaid\ngraph LR;C-->D;\n```",
+      "expected": {
+        "textures": [
+          {
+            "width": 196,
+            "height": 158,
+            "sha256": "86ffc3623796d038c92bba5f640460cdfc1346ed958ca10627c12c4c073fc959"
+          },
+          {
+            "width": 416,
+            "height": 67,
+            "sha256": "613b80bc19abf9f4b5630f108569f69ee456470eb5c0e1cb6d15bf2d5eec82e4"
+          }
+        ],
+        "notice": "Incomplete sketch — source kept above.",
+        "notice_visible": true,
+        "source": "```mermaid\ngraph TD;A-->B;\n```\n```mermaid\ninvalid\n```\n```mermaid\ngraph LR;C-->D;\n```",
+        "visible": "invalid\n\n",
+        "preview_visible": true
+      }
+    }
+  ]
+}

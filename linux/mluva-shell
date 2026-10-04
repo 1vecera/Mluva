@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source_dir="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
-export PYTHONPATH="${source_dir}"
-exec /usr/bin/python3 -m mluva_linux.shell_bridge "$@"
+source_root="$(cd -- "$source_dir/.." && pwd)"
+# This headless executable needs no bundled resources. Cargo replaces itself
+# with the bridge, preserving its process identity, signals and output pipes.
+# Resolve caller-relative caches before selecting the pinned source toolchain.
+CARGO_TARGET_DIR="$(realpath -m -- "${CARGO_TARGET_DIR:-$source_root/tmp/native-build}")"
+export CARGO_TARGET_DIR
+if [[ -n "${CARGO_HOME:-}" ]]; then
+    CARGO_HOME="$(realpath -m -- "$CARGO_HOME")"
+    export CARGO_HOME
+fi
+if [[ -n "${RUSTUP_HOME:-}" ]]; then
+    RUSTUP_HOME="$(realpath -m -- "$RUSTUP_HOME")"
+    export RUSTUP_HOME
+fi
+cd -- "$source_root"
+exec cargo run --locked --quiet --release -p mluva-shell -- "$@"

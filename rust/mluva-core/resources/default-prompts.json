@@ -1,0 +1,170 @@
+{
+  "prompts": [
+    {
+      "identifier": "cleanup",
+      "name": "Dictation cleanup",
+      "purpose": "Optional faithful cleanup; fact and token integrity checks remain fixed.",
+      "default": "Faithfully clean this dictated text. Remove obvious filler and repair punctuation only.",
+      "built_in": true
+    },
+    {
+      "identifier": "live-grilling",
+      "name": "Live · Grilling",
+      "purpose": "Develop an idea and surface the next unanswered questions.",
+      "default": "Help the speaker develop and stress-test their idea without interrupting their speech. Put ## Questions first and ## Architecture after it. Omit either section until it has content. Under Questions keep one to three short, specific unanswered questions, most consequential first. Ask only questions whose prerequisites are already answered; do not assume unresolved decisions. On every update, remove questions answered anywhere in the transcript, incorporate those answers below, and advance to the next unresolved decisions. Do not repeat answered questions or demand an answer before making progress. When no material questions remain, omit the Questions section. Under Architecture build a concise working design in the speaker's language. Consider intent, requirements, constraints, preferences, technologies, components, interfaces, decisions and success criteria. Only create a field or heading when speech supplies useful content for it; hide empty fields and templates. Do not fill the page with missing-information placeholders. Explicit unknowns belong in Questions. Include a small fenced mermaid flowchart or sequenceDiagram when the speaker has described relationships that a sketch makes clearer. Use only supplied components and connections, no invented architecture. Use plain labels and standard Mermaid syntax, without links, HTML, directives or frontmatter. Keep Questions and Architecture as these exact headings; the content follows the speaker's language.",
+      "built_in": true
+    },
+    {
+      "identifier": "live-task-spec",
+      "name": "Live · Task spec",
+      "purpose": "Fill the separately editable task structure.",
+      "default": "Fill the task specification template from the speaker's words.",
+      "built_in": true
+    },
+    {
+      "identifier": "live-structured-note",
+      "name": "Live · Structured note",
+      "purpose": "Organize dictation using the note structure.",
+      "default": "Turn the text into a structured note in the same language. Lead with a concise summary, then group the details into clear bullet points, most important first. Preserve facts, names, numbers, uncertainty and technical terms. Do not invent decisions, owners or deadlines. Keep sections that identify missing information.",
+      "built_in": true
+    },
+    {
+      "identifier": "live-polish",
+      "name": "Live · Polish",
+      "purpose": "Polish a growing draft during dictation.",
+      "default": "Polish the text faithfully. Remove filler words, false starts and accidental repetitions; fix grammar and punctuation and lightly paraphrase for clarity. Keep the speaker's language, voice, meaning, facts, names, numbers and technical terms. Do not summarize or invent details.",
+      "built_in": true
+    },
+    {
+      "identifier": "live-custom",
+      "name": "Live · Custom",
+      "purpose": "Your own instructions for live dictation.",
+      "default": "",
+      "built_in": true
+    },
+    {
+      "identifier": "template-task-spec",
+      "name": "Template · Task spec structure",
+      "purpose": "Initial Markdown structure for Live Task spec.",
+      "default": "# Task\n[Missing: task name]\n\n## Intent\n[Missing: outcome and why it matters]\n\n## Requirements\n[Missing: what to build or change]\n\n## Constraints\n[Missing: boundaries, technologies and things to preserve]\n\n## Success criteria\n[Missing: observable checks]\n\n## Open questions\n[Missing: unresolved decisions or approvals]",
+      "built_in": true
+    },
+    {
+      "identifier": "template-structured-note",
+      "name": "Template · Note structure",
+      "purpose": "Initial Markdown structure for Live Structured note.",
+      "default": "# Note\n[Missing: subject]\n\n## Summary\n[Missing: main point]\n\n## Details\n[Missing: supporting information]\n\n## Decisions and next steps\n[Missing: explicit decisions or next steps]\n\n## Open questions\n[Missing: what still needs clarification]",
+      "built_in": true
+    },
+    {
+      "identifier": "rewrite-polish",
+      "name": "Rewrite · Polish",
+      "purpose": "Polish the current conversation on request.",
+      "default": "Polish the text faithfully. Remove filler words, false starts and accidental repetitions; fix grammar and punctuation and lightly paraphrase for clarity. Keep the speaker's language, voice, meaning, facts, names, numbers and technical terms. Do not summarize or invent details.",
+      "built_in": true
+    },
+    {
+      "identifier": "rewrite-structure",
+      "name": "Rewrite · Structure",
+      "purpose": "Turn the current conversation into a structured note.",
+      "default": "Turn the text into a structured note in the same language. Lead with a concise summary, then group the details into clear bullet points, most important first. Preserve facts, names, numbers, uncertainty and technical terms. Do not invent decisions, owners or deadlines.",
+      "built_in": true
+    },
+    {
+      "identifier": "title",
+      "name": "Conversation title",
+      "purpose": "Name a completed conversation when automatic titles are enabled.",
+      "default": "Write a specific 3–7 word title in the original language. Name the subject, not the act of dictating.",
+      "built_in": true
+    }
+  ],
+  "live_templates": [
+    {
+      "identifier": "grilling",
+      "name": "Grilling",
+      "purpose": "Develop an idea and surface the next unanswered questions.",
+      "instructions": "Help the speaker develop and stress-test their idea without interrupting their speech. Put ## Questions first and ## Architecture after it. Omit either section until it has content. Under Questions keep one to three short, specific unanswered questions, most consequential first. Ask only questions whose prerequisites are already answered; do not assume unresolved decisions. On every update, remove questions answered anywhere in the transcript, incorporate those answers below, and advance to the next unresolved decisions. Do not repeat answered questions or demand an answer before making progress. When no material questions remain, omit the Questions section. Under Architecture build a concise working design in the speaker's language. Consider intent, requirements, constraints, preferences, technologies, components, interfaces, decisions and success criteria. Only create a field or heading when speech supplies useful content for it; hide empty fields and templates. Do not fill the page with missing-information placeholders. Explicit unknowns belong in Questions. Include a small fenced mermaid flowchart or sequenceDiagram when the speaker has described relationships that a sketch makes clearer. Use only supplied components and connections, no invented architecture. Use plain labels and standard Mermaid syntax, without links, HTML, directives or frontmatter. Keep Questions and Architecture as these exact headings; the content follows the speaker's language.",
+      "draft": null
+    },
+    {
+      "identifier": "task-spec",
+      "name": "Task spec",
+      "purpose": "Fill the separately editable task structure.",
+      "instructions": "Fill the task specification template from the speaker's words.",
+      "draft": {
+        "name": "Task spec structure",
+        "purpose": "Initial Markdown structure for Live Task spec.",
+        "text": "# Task\n[Missing: task name]\n\n## Intent\n[Missing: outcome and why it matters]\n\n## Requirements\n[Missing: what to build or change]\n\n## Constraints\n[Missing: boundaries, technologies and things to preserve]\n\n## Success criteria\n[Missing: observable checks]\n\n## Open questions\n[Missing: unresolved decisions or approvals]"
+      }
+    },
+    {
+      "identifier": "structured-note",
+      "name": "Structured note",
+      "purpose": "Organize dictation using the note structure.",
+      "instructions": "Turn the text into a structured note in the same language. Lead with a concise summary, then group the details into clear bullet points, most important first. Preserve facts, names, numbers, uncertainty and technical terms. Do not invent decisions, owners or deadlines. Keep sections that identify missing information.",
+      "draft": {
+        "name": "Note structure",
+        "purpose": "Initial Markdown structure for Live Structured note.",
+        "text": "# Note\n[Missing: subject]\n\n## Summary\n[Missing: main point]\n\n## Details\n[Missing: supporting information]\n\n## Decisions and next steps\n[Missing: explicit decisions or next steps]\n\n## Open questions\n[Missing: what still needs clarification]"
+      }
+    },
+    {
+      "identifier": "polish",
+      "name": "Polish",
+      "purpose": "Polish a growing draft during dictation.",
+      "instructions": "Polish the text faithfully. Remove filler words, false starts and accidental repetitions; fix grammar and punctuation and lightly paraphrase for clarity. Keep the speaker's language, voice, meaning, facts, names, numbers and technical terms. Do not summarize or invent details.",
+      "draft": null
+    },
+    {
+      "identifier": "custom",
+      "name": "Custom",
+      "purpose": "Your own instructions for live dictation.",
+      "instructions": "",
+      "draft": null
+    }
+  ],
+  "styles": [
+    {
+      "identifier": "FDD26FEF-80E7-4AD3-9D08-7874266A12E8",
+      "name": "Message",
+      "instructions": "Rewrite as a concise, natural chat message. Preserve every fact, request, technical term, and level of certainty.",
+      "is_built_in": true
+    },
+    {
+      "identifier": "5DD73A99-80C2-4FA9-99C2-DC7528300248",
+      "name": "Google Chat",
+      "instructions": "Rewrite as a concise, natural Google Chat message in the speaker's language. Lead with the point or request, use short paragraphs, and use bullets only when they improve scanability. Preserve every fact, constraint, name, and level of certainty. Do not invent a greeting, recipient, emoji, or sign-off.",
+      "is_built_in": true
+    },
+    {
+      "identifier": "7AD20551-3DC5-4774-9D34-DB4704F3A05F",
+      "name": "Tasks",
+      "instructions": "Rewrite as task-ready text with a short action-oriented title followed by compact bullets for the outcome, context, and constraints that were actually dictated. Preserve explicit owners and dates. Never invent an assignee, deadline, priority, or acceptance criterion.",
+      "is_built_in": true
+    },
+    {
+      "identifier": "0E5FB9A9-56CF-4C6F-A825-26D4057AB5AB",
+      "name": "Email",
+      "instructions": "Rewrite as a clear professional email body. Preserve every fact and request. Do not invent a greeting, recipient, or sign-off.",
+      "is_built_in": true
+    },
+    {
+      "identifier": "58D7C7D2-DDBA-41C8-B6B8-497220E9D5A9",
+      "name": "Prose",
+      "instructions": "Rewrite as polished connected prose with natural paragraphs. Preserve meaning, facts, and the speaker's level of certainty.",
+      "is_built_in": true
+    },
+    {
+      "identifier": "84D3302E-8886-4079-88C1-A86F1B4BE7D6",
+      "name": "Technical notes",
+      "instructions": "Rewrite as compact structured technical notes. Preserve commands, identifiers, paths, URLs, versions, numbers, and negation exactly.",
+      "is_built_in": true
+    },
+    {
+      "identifier": "54680987-230B-4E27-851C-AAD358AA54B3",
+      "name": "Prompt",
+      "instructions": "Rewrite as a clear reusable instruction for an AI system. Preserve constraints and source facts. Do not answer the instruction.",
+      "is_built_in": true
+    }
+  ]
+}

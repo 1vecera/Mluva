@@ -1,0 +1,23 @@
+# Released History recovery ownership
+
+The unchanged reference is Mluva v1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. [The recovery fixture](released-history-controller.json), SHA-256 `fa90ed31f45ece118e12c2540acdd62aa4fa69c1e6e206d7871c043b11b16727`, records fifteen actual released MluvaApplication recovery workflows/59 GTK and store states. The external observer checks imported application modules against the pinned commit. It calls the real application handlers, real local stores and real ElevenLabs HTTP client against an owned loopback server. Native checks consume static results without an interpreter.
+
+HistoryController connects HistoryPage to the actual capture/preferences widgets and shared application stores. It owns fresh-client recognition retries, selective control locks, retry/reprocess/delete guards, raw reprocessing with current local rules, coordinated unresolved Notes deletion, screenshot-editor close requests, exact retained delivery targets and a 32-entry session-only cache. Cached accessibility targets discard the selected-text payload. The shared CaptureServices factory now constructs the same workflow for either recording or recovery, preserving current personalization/prompt snapshots and transport ownership.
+
+The released comparisons cover unavailable services, active recording/Meeting guards, Command and Notes protections, local reprocessing, successful/failed/missing-audio recognition, repeated retry and deletion while retrying, explicit clipboard recovery, retained-audio cleanup and screenshot deletion coordination. Retry success remains a preview requiring explicit delivery. Actual HTTP multipart fields/audio bytes, database records, output text, status, control sensitivity, callback ordering, archive counts and draft/audio files are compared. Generated UUIDs and private roots are normalized; measured durations retain their presence while their numeric values are excluded. Title scheduling, unrelated parent activity, screenshot-editor closure and outer idle/change notifications are explicit application boundaries.
+
+Four delivery cases use a separate native GTK editor process over the private accessibility bus. They compare its actual text, Unicode selection/caret and edit count, including one successful replacement, disabled automatic paste, an exited target and cache eviction. The Source collector explicitly asserts that the positive case replaces the selected character; automatic paste is enabled by that case's input. Native checks independently read actual clipboard bytes after every nonempty explicit delivery. Process IDs and request serials are excluded from paired editor observations. No host editor, clipboard or focus is involved. The recorded environment can emit an AT-SPI stale-cache warning after a private peer exits; this is retained in the raw logs and does not establish broader target/platform acceptance.
+
+The additional native shutdown fault starts a real retained-audio request, waits until the server has received it, closes the owner and waits for the server's delayed response attempt. The completed shutdown prevents later History, output or callback publication, preserves the recovery audio and rejects new service installation. The root application must await HistoryController's shutdown task before stopping its main context. Dropping the controller also cancels its owned work.
+
+Reproduce with the documented native environment inside the disposable helper:
+
+```sh
+cargo build --locked -p mluva-gtk --example text_target_peer
+bash dev/run-isolated-browser.sh tmp/native-history-owner -- \
+  cargo test --locked -p mluva-gtk --test history_controller -- --ignored --test-threads=1 --nocapture
+```
+
+The affected capture-factory comparison (six released transactions/eight GTK states) and Meeting owner (nine workflows/47 GTK states) also passed after sharing the existing capture/preferences test graph and workflow construction. The capture-factory check requires its documented private `factory-tools` PATH prefix; running it without that guard correctly fails before any capture.
+
+These checks isolate display, HOME/XDG, session/accessibility buses, network/PID/mount namespaces and input/audio/GPU devices. All content, credentials, PCM and provider responses are synthetic. Observers and raw logs stay ignored under `tmp/`; comparison peers are unshipped. This is bounded recovery ownership, not a complete runnable application or full History acceptance. Root assembly, complete pending-review lifecycle, broader visual/accessibility/target coverage, physical devices/keys, packaging/Python removal and whole-app performance remain pending. Every full-workflow matrix row remains Pending; no Rust installation, merge or release is claimed.

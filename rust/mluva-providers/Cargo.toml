@@ -1,0 +1,72 @@
+[package]
+name = "mluva-providers"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Native speech and rewrite provider connections"
+
+[dependencies]
+mluva-core = { path = "../mluva-core" }
+mluva-audio = { path = "../mluva-audio" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+base64.workspace = true
+url.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+reqwest.workspace = true
+tokio-tungstenite.workspace = true
+futures-util.workspace = true
+libc.workspace = true
+tempfile.workspace = true
+caseless.workspace = true
+sha2 = "0.11.0"
+tar = "0.4.46"
+flate2 = "1.1.10"
+getrandom = "0.4.3"
+zip = { version = "=8.6.0", default-features = false, features = ["deflate-flate2"] }
+
+[dev-dependencies]
+native-tls = "0.2"
+tokio-native-tls = "0.3"
+
+[[bin]]
+name = "provider-fixture-peer"
+path = "tests/support/peer.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "codex-fixture-peer"
+path = "tests/support/codex_peer.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "credential-fixture-peer"
+path = "tests/support/credential_peer.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "asset-fixture-peer"
+path = "tests/support/asset_peer.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "qwen-fixture-peer"
+path = "tests/support/qwen_peer.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "local-asr-fixture-peer"
+path = "tests/support/local_asr_peer.rs"
+test = false
+doc = false

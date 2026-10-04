@@ -1,0 +1,463 @@
+{
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_sha256": {
+    "linux/mluva_linux/conversation_view.py": "5f631eaf25eab9cccf7daee293c5ac579e68420eaa3e0c106df70648827673e6",
+    "linux/mluva_linux/history.py": "c8a82d65fe7261e3ea1d69c5fb20f1462fc3fa51e012d3336dec0ad7b6b20d88",
+    "linux/mluva_linux/conversation.py": "d05c868b042bc0cd1bde40bfdbabecb49335f251395cd1ad065ed9f3437b7942",
+    "linux/mluva_linux/config.py": "1a1f5244733323b2a2acd7d94c49bcc41b4ec0a79fcef5fec42c36dc0ae77a4f",
+    "linux/mluva_linux/theme.py": "2f240fc62e9ae5b913c42127907f6c063e5585510b6ab04fcf64bf492841f066"
+  },
+  "short": "Again, when I am dictating, the first words should stay at the top.",
+  "cases": [
+    {
+      "action": {
+        "op": "short",
+        "capture": 0,
+        "count": 6
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again,"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 0,
+        "count": 12
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when "
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 0,
+        "count": 20
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dic"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 0,
+        "count": 31
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dictating, the"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 0,
+        "count": 43
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dictating, the first words"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 0,
+        "count": 67
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dictating, the first words should stay at the top."
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 1,
+        "count": 6
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again,"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 1,
+        "count": 12
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when "
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 1,
+        "count": 20
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dic"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 1,
+        "count": 31
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dictating, the"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 1,
+        "count": 43
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dictating, the first words"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 1,
+        "count": 67
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dictating, the first words should stay at the top."
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 2,
+        "count": 6
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again,"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 2,
+        "count": 12
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when "
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 2,
+        "count": 20
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dic"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 2,
+        "count": 31
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dictating, the"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 2,
+        "count": 43
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dictating, the first words"
+      }
+    },
+    {
+      "action": {
+        "op": "short",
+        "capture": 2,
+        "count": 67
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "Again, when I am dictating, the first words should stay at the top."
+      }
+    },
+    {
+      "action": {
+        "op": "long",
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47."
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": false,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47."
+      }
+    },
+    {
+      "action": {
+        "op": "append",
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought."
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": false,
+        "intermediate": true,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought."
+      }
+    },
+    {
+      "action": {
+        "op": "manual",
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought.\nThe reader stays where they scrolled."
+      },
+      "expected": {
+        "at_end": false,
+        "at_origin": false,
+        "intermediate": false,
+        "manual_90": true,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": false,
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought.\nThe reader stays where they scrolled."
+      }
+    },
+    {
+      "action": {
+        "op": "correction",
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought.\nThe reader stays where they stopped."
+      },
+      "expected": {
+        "at_end": false,
+        "at_origin": false,
+        "intermediate": false,
+        "manual_90": true,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": false,
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought.\nThe reader stays where they stopped."
+      }
+    },
+    {
+      "action": {
+        "op": "large-correction",
+        "text": "A large correction leaves a short ending."
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": false,
+        "intermediate": true,
+        "manual_90": false,
+        "top": 1261,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "A large correction leaves a short ending."
+      }
+    },
+    {
+      "action": {
+        "op": "smooth-off",
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought.\nThe reader stays where they stopped.\nNew text appears without animation.\nsmooth-off"
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": false,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought.\nThe reader stays where they stopped.\nNew text appears without animation.\nsmooth-off"
+      }
+    },
+    {
+      "action": {
+        "op": "duration-zero",
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought.\nThe reader stays where they stopped.\nNew text appears without animation.\nduration-zero"
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": false,
+        "intermediate": true,
+        "manual_90": false,
+        "top": 11,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought.\nThe reader stays where they stopped.\nNew text appears without animation.\nduration-zero"
+      }
+    },
+    {
+      "action": {
+        "op": "reduced-motion",
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought.\nThe reader stays where they stopped.\nNew text appears without animation.\nreduced-motion"
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": false,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 11,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "A steady line of dictated text 0.\nA steady line of dictated text 1.\nA steady line of dictated text 2.\nA steady line of dictated text 3.\nA steady line of dictated text 4.\nA steady line of dictated text 5.\nA steady line of dictated text 6.\nA steady line of dictated text 7.\nA steady line of dictated text 8.\nA steady line of dictated text 9.\nA steady line of dictated text 10.\nA steady line of dictated text 11.\nA steady line of dictated text 12.\nA steady line of dictated text 13.\nA steady line of dictated text 14.\nA steady line of dictated text 15.\nA steady line of dictated text 16.\nA steady line of dictated text 17.\nA steady line of dictated text 18.\nA steady line of dictated text 19.\nA steady line of dictated text 20.\nA steady line of dictated text 21.\nA steady line of dictated text 22.\nA steady line of dictated text 23.\nA steady line of dictated text 24.\nA steady line of dictated text 25.\nA steady line of dictated text 26.\nA steady line of dictated text 27.\nA steady line of dictated text 28.\nA steady line of dictated text 29.\nA steady line of dictated text 30.\nA steady line of dictated text 31.\nA steady line of dictated text 32.\nA steady line of dictated text 33.\nA steady line of dictated text 34.\nA steady line of dictated text 35.\nA steady line of dictated text 36.\nA steady line of dictated text 37.\nA steady line of dictated text 38.\nA steady line of dictated text 39.\nA steady line of dictated text 40.\nA steady line of dictated text 41.\nA steady line of dictated text 42.\nA steady line of dictated text 43.\nA steady line of dictated text 44.\nA steady line of dictated text 45.\nA steady line of dictated text 46.\nA steady line of dictated text 47.\nOne more line arrives.\nThen the next complete thought.\nThe reader stays where they stopped.\nNew text appears without animation.\nreduced-motion"
+      }
+    },
+    {
+      "action": {
+        "op": "fresh",
+        "text": "A fresh short capture."
+      },
+      "expected": {
+        "at_end": true,
+        "at_origin": true,
+        "intermediate": false,
+        "manual_90": false,
+        "top": 4,
+        "bottom_at_least_4": true,
+        "following": true,
+        "text": "A fresh short capture."
+      }
+    }
+  ]
+}

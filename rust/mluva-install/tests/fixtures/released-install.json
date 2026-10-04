@@ -1,0 +1,3522 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "installer_sha256": "5833604b41f56d378bfe380e12df0531efe908636cb2a1ad22b241027a07ddb7",
+  "cases": [
+    {
+      "name": "fresh",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nStaged verification skipped live GNOME extension, systemd helper, accessibility, and secret-profile inspection.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "owned",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nStaged verification skipped live GNOME extension, systemd helper, accessibility, and secret-profile inspection.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "unicode",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva is installed. Launch it from the application menu or run $CASE/Žluťoučký home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nStaged verification skipped live GNOME extension, systemd helper, accessibility, and secret-profile inspection.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/Žluťoučký home/.local/share/applications\n",
+        "tree": {
+          "Žluťoučký home": {
+            "directory": 493
+          },
+          "Žluťoučký home/.config": {
+            "directory": 493
+          },
+          "Žluťoučký home/.config/autostart": {
+            "directory": 493
+          },
+          "Žluťoučký home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "Žluťoučký home/.config/mluva": {
+            "directory": 493
+          },
+          "Žluťoučký home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "Žluťoučký home/.local": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/bin": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "Žluťoučký home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/Žluťoučký home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "Žluťoučký home/.local/bin/mluva-narrate": {
+            "link": "$CASE/Žluťoučký home/.local/share/mluva/app/mluva-narrate"
+          },
+          "Žluťoučký home/.local/bin/mluva-overlay": {
+            "link": "$CASE/Žluťoučký home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "Žluťoučký home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/Žluťoučký home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "Žluťoučký home/.local/bin/mluva-shell": {
+            "link": "$CASE/Žluťoučký home/.local/share/mluva/app/mluva-shell"
+          },
+          "Žluťoučký home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/Žluťoučký home/.local/share/mluva/app/uninstall.sh"
+          },
+          "Žluťoučký home/.local/bin/tensaku-edit": {
+            "link": "$CASE/Žluťoučký home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "Žluťoučký home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/applications": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "30846ed2f22daabb93db928a44ad0280f20fa24fa032bb2cf277bf0048c8c399",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/icons": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/mluva": {
+            "directory": 448
+          },
+          "Žluťoučký home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "Žluťoučký home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "Žluťoučký home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "Žluťoučký home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "xdg-custom",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nChoose your speech and rewrite providers in Settings and supply their credentials through the application environment.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/custom-data/applications\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/custom-data/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/custom-data/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/custom-data/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/custom-data/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/custom-data/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/custom-data/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/custom-data/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "custom-data": {
+            "directory": 493
+          },
+          "custom-data/applications": {
+            "directory": 493
+          },
+          "custom-data/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "custom-data/gnome-shell": {
+            "directory": 493
+          },
+          "custom-data/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "custom-data/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "custom-data/icons": {
+            "directory": 493
+          },
+          "custom-data/icons/hicolor": {
+            "directory": 493
+          },
+          "custom-data/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "custom-data/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "custom-data/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "custom-data/mluva": {
+            "directory": 448
+          },
+          "custom-data/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "custom-data/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "custom-data/mluva/models": {
+            "directory": 493
+          },
+          "custom-data/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "custom-data/mluva/recordings": {
+            "directory": 493
+          },
+          "custom-data/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "custom-data/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "custom-data/mluva/screenshots": {
+            "directory": 493
+          },
+          "custom-data/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "custom-data/mluva/tensaku": {
+            "directory": 493
+          },
+          "custom-data/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "custom-data/mluva-migration-backups": {
+            "directory": 493
+          },
+          "custom-data/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "custom-data/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "custom-config": {
+            "directory": 493
+          },
+          "custom-config/autostart": {
+            "directory": 493
+          },
+          "custom-config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "custom-config/mluva": {
+            "directory": 493
+          },
+          "custom-config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "staged-ignore-xdg",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nStaged verification skipped live GNOME extension, systemd helper, accessibility, and secret-profile inspection.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "live-clean",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nChoose your speech and rewrite providers in Settings and supply their credentials through the application environment.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "live-profile-valid",
+      "result": {
+        "code": 0,
+        "stdout": "Configured the scoped Mluva secret profile.\nMluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nThe launcher will resolve only the reviewed ElevenLabs credential reference at runtime.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/daniel-ai-skills": {
+            "directory": 493
+          },
+          "home/.config/daniel-ai-skills/bin": {
+            "directory": 493
+          },
+          "home/.config/daniel-ai-skills/bin/das-mcp-launch": {
+            "sha256": "0a5fb2d3a9e42d8cd0cd06a68ffdbc8cdd3e26ad2ec801c47867e457e7433e1a",
+            "mode": 493
+          },
+          "home/.config/daniel-ai-skills/env": {
+            "directory": 448
+          },
+          "home/.config/daniel-ai-skills/env/agent.env": {
+            "sha256": "740e47359088a3924de3df19c68f02b75f9bcb77f23c779d76ecc5dc7b6ea950",
+            "mode": 420
+          },
+          "home/.config/daniel-ai-skills/env/mluva.env": {
+            "sha256": "48710e976b8a891e505d764ee04420c7e61f9c20ebc50dcd96412418a1a9a2a6",
+            "mode": 384
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "live-profile-existing",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nThe launcher will resolve only the reviewed ElevenLabs credential reference at runtime.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/daniel-ai-skills": {
+            "directory": 493
+          },
+          "home/.config/daniel-ai-skills/bin": {
+            "directory": 493
+          },
+          "home/.config/daniel-ai-skills/bin/das-mcp-launch": {
+            "sha256": "0a5fb2d3a9e42d8cd0cd06a68ffdbc8cdd3e26ad2ec801c47867e457e7433e1a",
+            "mode": 493
+          },
+          "home/.config/daniel-ai-skills/env": {
+            "directory": 488
+          },
+          "home/.config/daniel-ai-skills/env/agent.env": {
+            "sha256": "740e47359088a3924de3df19c68f02b75f9bcb77f23c779d76ecc5dc7b6ea950",
+            "mode": 420
+          },
+          "home/.config/daniel-ai-skills/env/mluva.env": {
+            "sha256": "1613090a94a209abe3b9930d5f22cefc7c17d768371421c8f8ef643b4dd09e9a",
+            "mode": 384
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "live-profile-empty",
+      "result": {
+        "code": 0,
+        "stdout": "Configured the scoped Mluva secret profile.\nMluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nThe launcher will resolve only the reviewed ElevenLabs credential reference at runtime.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/daniel-ai-skills": {
+            "directory": 493
+          },
+          "home/.config/daniel-ai-skills/bin": {
+            "directory": 493
+          },
+          "home/.config/daniel-ai-skills/bin/das-mcp-launch": {
+            "sha256": "0a5fb2d3a9e42d8cd0cd06a68ffdbc8cdd3e26ad2ec801c47867e457e7433e1a",
+            "mode": 493
+          },
+          "home/.config/daniel-ai-skills/env": {
+            "directory": 448
+          },
+          "home/.config/daniel-ai-skills/env/agent.env": {
+            "sha256": "740e47359088a3924de3df19c68f02b75f9bcb77f23c779d76ecc5dc7b6ea950",
+            "mode": 420
+          },
+          "home/.config/daniel-ai-skills/env/mluva.env": {
+            "sha256": "48710e976b8a891e505d764ee04420c7e61f9c20ebc50dcd96412418a1a9a2a6",
+            "mode": 384
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "live-profile-cr",
+      "result": {
+        "code": 0,
+        "stdout": "Configured the scoped Mluva secret profile.\nMluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nThe launcher will resolve only the reviewed ElevenLabs credential reference at runtime.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/daniel-ai-skills": {
+            "directory": 493
+          },
+          "home/.config/daniel-ai-skills/bin": {
+            "directory": 493
+          },
+          "home/.config/daniel-ai-skills/bin/das-mcp-launch": {
+            "sha256": "0a5fb2d3a9e42d8cd0cd06a68ffdbc8cdd3e26ad2ec801c47867e457e7433e1a",
+            "mode": 493
+          },
+          "home/.config/daniel-ai-skills/env": {
+            "directory": 448
+          },
+          "home/.config/daniel-ai-skills/env/agent.env": {
+            "sha256": "98aabc05b217e0c5b9e4f11245d1f2fbfeabd08c79db4baae916a3ba08b46e21",
+            "mode": 420
+          },
+          "home/.config/daniel-ai-skills/env/mluva.env": {
+            "sha256": "6e3291a9bc1f41047ebb6755637926e846b68a360c96c62cc4fe143351daf005",
+            "mode": 384
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "live-gnome-missing",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nFor a bottom recording bar that remains visible over other applications, install the optional display-only extension:\n  mluva-overlay install\nA newly installed GNOME Shell extension may require one logout and login before it can be enabled.\nFor automatic paste in apps without native accessibility editing, install the optional keyboard-only helper:\n  mluva-input-helper install\nThis requires sudo once and grants same-user processes synthetic-keyboard access through an owner-only socket.\nAutomatic insertion is unavailable while GNOME toolkit accessibility is off.\nEnable it before launching Mluva with: gsettings set org.gnome.desktop.interface toolkit-accessibility true\nApplications already open when it is enabled may need to be restarted before they expose text targets.\nChoose your speech and rewrite providers in Settings and supply their credentials through the application environment.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\ngnome-extensions info recording-status@mluva.local\ngsettings get org.gnome.desktop.interface toolkit-accessibility\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "live-gnome-ready",
+      "result": {
+        "code": 0,
+        "stdout": "Mluva is installed. Launch it from the application menu or run $CASE/home/.local/bin/mluva.\nOn first launch, approve the F9 recording toggle and Ctrl+Alt+Escape cancellation shortcuts.\nNo logout is required for the application or shortcut changes. Change the recording key between F1 and F24 from the Capture page.\nFor automatic paste in apps without native accessibility editing, install the optional keyboard-only helper:\n  mluva-input-helper install\nThis requires sudo once and grants same-user processes synthetic-keyboard access through an owner-only socket.\nChoose your speech and rewrite providers in Settings and supply their credentials through the application environment.\n",
+        "error": "",
+        "commands": "update-desktop-database $CASE/home/.local/share/applications\ngnome-extensions info recording-status@mluva.local\ngsettings get org.gnome.desktop.interface toolkit-accessibility\n",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "d6c669f2e1f747aa528dbd77077499fe9f04f8ba5ee1583beb45d9317cda735a",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "bae9fbafbb0646345c5772a9fa519aa06698120500628d6372e5e917d9027dd0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "application": "prepared",
+            "mode": 493
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "app-foreign",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "error": "unrecognized application",
+        "commands": "",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "b50a2691bb3c4c1a5138c6aea37ac9626779ee5994fe644f93318c67e509165e",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "da68fb921b9b83f5edbdf19cf8c8cec4d31bfa3737ac7f343fb3b7897fa2a4c0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app/payload": {
+            "sha256": "ac26f3c5c9cc9b1166bd53d179680e8d449048768a0d82b698a72f430677d5ea",
+            "mode": 420
+          },
+          "home/.local/share/mluva/app/pyproject.toml": {
+            "sha256": "3720f4c509ccde53e79e39c5e20f4a8327db871efc50b1a200e229221f6a5edf",
+            "mode": 420
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "app-link",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "error": "unrecognized application",
+        "commands": "",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "b50a2691bb3c4c1a5138c6aea37ac9626779ee5994fe644f93318c67e509165e",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "da68fb921b9b83f5edbdf19cf8c8cec4d31bfa3737ac7f343fb3b7897fa2a4c0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app": {
+            "link": "$CASE/foreign/app"
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/app": {
+            "directory": 493
+          },
+          "foreign/app/payload": {
+            "sha256": "ac26f3c5c9cc9b1166bd53d179680e8d449048768a0d82b698a72f430677d5ea",
+            "mode": 420
+          },
+          "foreign/app/pyproject.toml": {
+            "sha256": "45e2a5ac97001eb0a98514f2b5ac883916f22487a2dce46aa6d4f2e24f9be0e7",
+            "mode": 420
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "launcher-foreign",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "error": "unrelated command",
+        "commands": "",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "sha256": "bca1cbaa18691cb65766ab4547c1b2a5face434ad8cfe0228143e5af0416cfdf",
+            "mode": 493
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "b50a2691bb3c4c1a5138c6aea37ac9626779ee5994fe644f93318c67e509165e",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "da68fb921b9b83f5edbdf19cf8c8cec4d31bfa3737ac7f343fb3b7897fa2a4c0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app/payload": {
+            "sha256": "ac26f3c5c9cc9b1166bd53d179680e8d449048768a0d82b698a72f430677d5ea",
+            "mode": 420
+          },
+          "home/.local/share/mluva/app/pyproject.toml": {
+            "sha256": "45e2a5ac97001eb0a98514f2b5ac883916f22487a2dce46aa6d4f2e24f9be0e7",
+            "mode": 420
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "helper-foreign",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "error": "unrelated command",
+        "commands": "",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "sha256": "6abb6374c33ff0cd0b80959f4aba708215d3b960a7e8320e2900cc0a83019439",
+            "mode": 420
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "b50a2691bb3c4c1a5138c6aea37ac9626779ee5994fe644f93318c67e509165e",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "da68fb921b9b83f5edbdf19cf8c8cec4d31bfa3737ac7f343fb3b7897fa2a4c0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app/payload": {
+            "sha256": "ac26f3c5c9cc9b1166bd53d179680e8d449048768a0d82b698a72f430677d5ea",
+            "mode": 420
+          },
+          "home/.local/share/mluva/app/pyproject.toml": {
+            "sha256": "45e2a5ac97001eb0a98514f2b5ac883916f22487a2dce46aa6d4f2e24f9be0e7",
+            "mode": 420
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "home-root",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "error": "absolute non-root",
+        "commands": "",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "b50a2691bb3c4c1a5138c6aea37ac9626779ee5994fe644f93318c67e509165e",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "da68fb921b9b83f5edbdf19cf8c8cec4d31bfa3737ac7f343fb3b7897fa2a4c0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app/payload": {
+            "sha256": "ac26f3c5c9cc9b1166bd53d179680e8d449048768a0d82b698a72f430677d5ea",
+            "mode": 420
+          },
+          "home/.local/share/mluva/app/pyproject.toml": {
+            "sha256": "45e2a5ac97001eb0a98514f2b5ac883916f22487a2dce46aa6d4f2e24f9be0e7",
+            "mode": 420
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "xdg-root",
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "error": "unsafe XDG root",
+        "commands": "",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "b50a2691bb3c4c1a5138c6aea37ac9626779ee5994fe644f93318c67e509165e",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "da68fb921b9b83f5edbdf19cf8c8cec4d31bfa3737ac7f343fb3b7897fa2a4c0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app/payload": {
+            "sha256": "ac26f3c5c9cc9b1166bd53d179680e8d449048768a0d82b698a72f430677d5ea",
+            "mode": 420
+          },
+          "home/.local/share/mluva/app/pyproject.toml": {
+            "sha256": "45e2a5ac97001eb0a98514f2b5ac883916f22487a2dce46aa6d4f2e24f9be0e7",
+            "mode": 420
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    },
+    {
+      "name": "dependency-failure",
+      "result": {
+        "code": 73,
+        "stdout": "",
+        "error": "dependency-failed",
+        "commands": "",
+        "tree": {
+          "home": {
+            "directory": 493
+          },
+          "home/.config": {
+            "directory": 493
+          },
+          "home/.config/autostart": {
+            "directory": 493
+          },
+          "home/.config/autostart/com.mluva.Linux.desktop": {
+            "sha256": "21100633f720e942ee2499f3632e9fbe26069d7cc1ccb3a599196c2d4b52a084",
+            "mode": 420
+          },
+          "home/.config/mluva": {
+            "directory": 493
+          },
+          "home/.config/mluva/config.json": {
+            "sha256": "f91637e259d31beccf9f0dc2c7e589ee4fe33893b63d51c73a5171f527c899ca",
+            "mode": 420
+          },
+          "home/.local": {
+            "directory": 493
+          },
+          "home/.local/bin": {
+            "directory": 493
+          },
+          "home/.local/bin/mluva": {
+            "command": "mluva"
+          },
+          "home/.local/bin/mluva-input-helper": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-input-helper.sh"
+          },
+          "home/.local/bin/mluva-narrate": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-narrate"
+          },
+          "home/.local/bin/mluva-overlay": {
+            "link": "$CASE/home/.local/share/mluva/app/configure-recording-overlay.sh"
+          },
+          "home/.local/bin/mluva-screenshot-editor": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/mluva-shell": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-shell"
+          },
+          "home/.local/bin/mluva-uninstall": {
+            "link": "$CASE/home/.local/share/mluva/app/uninstall.sh"
+          },
+          "home/.local/bin/tensaku-edit": {
+            "link": "$CASE/home/.local/share/mluva/app/mluva-screenshot-editor"
+          },
+          "home/.local/bin/unrelated": {
+            "sha256": "a6290a8e1b9155d27348ab1039f13ed20c87f41cd10e52ab132eab274599ee8f",
+            "mode": 420
+          },
+          "home/.local/share": {
+            "directory": 493
+          },
+          "home/.local/share/applications": {
+            "directory": 493
+          },
+          "home/.local/share/applications/com.mluva.Linux.desktop": {
+            "sha256": "b50a2691bb3c4c1a5138c6aea37ac9626779ee5994fe644f93318c67e509165e",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local": {
+            "directory": 493
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/extension.js": {
+            "sha256": "dff59cc21a031ceba583170fb4c15872853848047117514e902a5250a32f4035",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/metadata.json": {
+            "sha256": "ab83c8bac3bcae70465bdd569f212cba80f4ec24848c8452dc48993e1116b702",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/mluva-symbolic.svg": {
+            "sha256": "b486b15805157e3a69edd7dfb2457c67b112b49a5648d8997cf71d33cf0a0d34",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/recordingOverlay.js": {
+            "sha256": "d0c847da3840181f15748d6c2c6e057808203bbfa69b99bca444c4e8348c63dc",
+            "mode": 420
+          },
+          "home/.local/share/gnome-shell/extensions/recording-status@mluva.local/stylesheet.css": {
+            "sha256": "20c18d50b71f24309160fddd9a7672b056d5408a5ae482e27c6e8239dd8ee681",
+            "mode": 420
+          },
+          "home/.local/share/icons": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps": {
+            "directory": 493
+          },
+          "home/.local/share/icons/hicolor/scalable/apps/com.mluva.Linux.svg": {
+            "sha256": "da68fb921b9b83f5edbdf19cf8c8cec4d31bfa3737ac7f343fb3b7897fa2a4c0",
+            "mode": 420
+          },
+          "home/.local/share/mluva": {
+            "directory": 448
+          },
+          "home/.local/share/mluva/app": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/app/payload": {
+            "sha256": "ac26f3c5c9cc9b1166bd53d179680e8d449048768a0d82b698a72f430677d5ea",
+            "mode": 420
+          },
+          "home/.local/share/mluva/app/pyproject.toml": {
+            "sha256": "45e2a5ac97001eb0a98514f2b5ac883916f22487a2dce46aa6d4f2e24f9be0e7",
+            "mode": 420
+          },
+          "home/.local/share/mluva/history.sqlite3": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/models": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/models/model.onnx": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/recordings": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/recordings/audio.wav": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/scratchpad-draft.json": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/screenshots": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/screenshots/image.png": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva/tensaku": {
+            "directory": 493
+          },
+          "home/.local/share/mluva/tensaku/preferences": {
+            "sha256": "cc3105c4ea21ae0042a975813166fa458092ff4b65ca9c73f70d4fa58ebe2885",
+            "mode": 420
+          },
+          "home/.local/share/mluva-migration-backups": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned": {
+            "directory": 493
+          },
+          "home/.local/share/mluva-migration-backups/upgrade-owned/state": {
+            "sha256": "4275503c61099ec3fac27faca10ea6044d85583966ea093e115bfe6719756fe1",
+            "mode": 420
+          },
+          "foreign": {
+            "directory": 493
+          },
+          "foreign/sentinel": {
+            "sha256": "a376b223ec781cd2dc6fed2258ae0bd87edc670857e42ef8a6c0ae8e62ef0f43",
+            "mode": 420
+          },
+          "units": {
+            "directory": 493
+          }
+        }
+      }
+    }
+  ]
+}

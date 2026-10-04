@@ -158,7 +158,7 @@ for command_name in dbus-run-session gdbus gsettings import realpath seq uv xvfb
     }
 done
 [[ -x "${LINUX_ROOT}/.venv/bin/python" ]] || {
-    echo "Missing the prepared Linux environment; run make linux-setup first." >&2
+    echo "Missing the remaining Python test environment; run make linux-python-setup first." >&2
     exit 1
 }
 for executable_path in "${ATSPI_LIBEXEC}/at-spi-bus-launcher" "${ATSPI_LIBEXEC}/at-spi2-registryd"; do

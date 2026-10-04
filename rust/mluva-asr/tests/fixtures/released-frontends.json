@@ -1,0 +1,331 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "onnx_asr": "0.12.0",
+  "numpy": "2.5.3",
+  "source_sha256": "215b10e9549843feb5961f9a5c03bfa79270b5c08f7bfdd34388bce3f6f0a83f",
+  "fbanks_sha256": "7f3e3bd26f90946c5f91a3f60af6f4c5c2b07a94f2fb2da91bb325b9d26feb73",
+  "resources": [
+    {
+      "name": "whisper80-mel.f32le",
+      "shape": [
+        201,
+        80
+      ],
+      "sha256": "700694b8a6021bbf2f00065d4b8fb66a33ebbd587aaaced35c9cd6189e6603eb",
+      "size": 64320
+    },
+    {
+      "name": "nemo128-mel.f32le",
+      "shape": [
+        257,
+        128
+      ],
+      "sha256": "4ccc73bb690d3acc717e7d8ce614cdf162d9326e887689a6e2ec618514281ee6",
+      "size": 131584
+    },
+    {
+      "name": "whisper80-window.f32le",
+      "shape": [
+        400
+      ],
+      "sha256": "2b66ad855bb20e73e657a4df6d8f4a4c840a18431c35cf323f29143f04796c7e",
+      "size": 1600
+    },
+    {
+      "name": "nemo128-window.f64le",
+      "shape": [
+        512
+      ],
+      "sha256": "411a0d369f0ca96d8e5f8cf70504f1aecad2c918c338407429ca186148d07e37",
+      "size": 4096
+    }
+  ],
+  "cases": [
+    {
+      "name": "nemo-noise-0",
+      "engine": "nemo",
+      "frames": 0,
+      "shape": [
+        1,
+        128,
+        1
+      ],
+      "feature_length": 0,
+      "pcm_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "features_sha256": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560"
+    },
+    {
+      "name": "nemo-noise-1",
+      "engine": "nemo",
+      "frames": 1,
+      "shape": [
+        1,
+        128,
+        1
+      ],
+      "feature_length": 0,
+      "pcm_sha256": "857b915078ad488cff951bded73cfb4021129efb943c37604781c79f0726bb41",
+      "features_sha256": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560"
+    },
+    {
+      "name": "nemo-noise-159",
+      "engine": "nemo",
+      "frames": 159,
+      "shape": [
+        1,
+        128,
+        1
+      ],
+      "feature_length": 0,
+      "pcm_sha256": "a97bd80791b907fd0f15172adfd99d47cca181feb79c5a66b17fb1dc880b9f1e",
+      "features_sha256": "076a27c79e5ace2a3d47f9dd2e83e4ff6ea8872b3c2218f66c92b89b55f36560"
+    },
+    {
+      "name": "nemo-noise-160",
+      "engine": "nemo",
+      "frames": 160,
+      "shape": [
+        1,
+        128,
+        2
+      ],
+      "feature_length": 1,
+      "pcm_sha256": "6beb9220632888fb3055ba6971d9b0b627c6e8d6ce93396436061f528bfa76f1",
+      "features_sha256": "7db9de17ecf38010b10ce638a9e2bc4763c0d2ef0e53ca409bf429f92277fc92"
+    },
+    {
+      "name": "nemo-noise-161",
+      "engine": "nemo",
+      "frames": 161,
+      "shape": [
+        1,
+        128,
+        2
+      ],
+      "feature_length": 1,
+      "pcm_sha256": "42c6713b84ce7762f5d9bc9304b36ccedc0adc35d484a92eacee9f8a94a6b62c",
+      "features_sha256": "7db9de17ecf38010b10ce638a9e2bc4763c0d2ef0e53ca409bf429f92277fc92"
+    },
+    {
+      "name": "nemo-noise-319",
+      "engine": "nemo",
+      "frames": 319,
+      "shape": [
+        1,
+        128,
+        2
+      ],
+      "feature_length": 1,
+      "pcm_sha256": "73d5e63d026af683f10eb7d118f42a985d7365e2b2ba3de52d55ceb5cbc2c8aa",
+      "features_sha256": "7db9de17ecf38010b10ce638a9e2bc4763c0d2ef0e53ca409bf429f92277fc92"
+    },
+    {
+      "name": "nemo-noise-320",
+      "engine": "nemo",
+      "frames": 320,
+      "shape": [
+        1,
+        128,
+        3
+      ],
+      "feature_length": 2,
+      "pcm_sha256": "a181154a1aad318298e8317d84704c7cb5f2d1e7bae17112a391fa8f59681f9e",
+      "features_sha256": "545e2088649bc27b09227e10bebb6bdf565e9c52de63ca2b27a9e592cff04d4f"
+    },
+    {
+      "name": "nemo-noise-511",
+      "engine": "nemo",
+      "frames": 511,
+      "shape": [
+        1,
+        128,
+        4
+      ],
+      "feature_length": 3,
+      "pcm_sha256": "282d4afa4840ea3fb5cd32a5e343377ef0d0527b4c185e24ba1383bb5ed4731a",
+      "features_sha256": "5e2844cf6bb747a02d2729ed00c32dfee46a509fc19b4282af899fc372e43011"
+    },
+    {
+      "name": "nemo-noise-512",
+      "engine": "nemo",
+      "frames": 512,
+      "shape": [
+        1,
+        128,
+        4
+      ],
+      "feature_length": 3,
+      "pcm_sha256": "0871504547fff5b96fff66a51fd3f759fa0c06a8f19401a8ae7da739d77390d7",
+      "features_sha256": "dd9df16680c47c1cc1bc9b4721e556b9dc4eec07397e149ffad948c4a2abb6eb"
+    },
+    {
+      "name": "nemo-noise-1001",
+      "engine": "nemo",
+      "frames": 1001,
+      "shape": [
+        1,
+        128,
+        7
+      ],
+      "feature_length": 6,
+      "pcm_sha256": "3ef50fbc2b0caa53440faa74c42b876756eff8c2b52756ba0ca44177c52f5d5e",
+      "features_sha256": "dbbdd85a2851ac72bf84fa2d5bfe3ce735f63f0df65ec8b75e4c70e2b5ec4b56"
+    },
+    {
+      "name": "nemo-noise-4123",
+      "engine": "nemo",
+      "frames": 4123,
+      "shape": [
+        1,
+        128,
+        26
+      ],
+      "feature_length": 25,
+      "pcm_sha256": "31a800b59203b06764da965b01702b07c7c2942e64108e000d5a6aad0fc9d1ea",
+      "features_sha256": "e366c4c5b42691b86ffe37451af033a933d0b14b1dbdb0e669ea913a76758938"
+    },
+    {
+      "name": "nemo-silence-4000",
+      "engine": "nemo",
+      "frames": 4000,
+      "shape": [
+        1,
+        128,
+        26
+      ],
+      "feature_length": 25,
+      "pcm_sha256": "668946bab9868b28489bb906205ee1026045c8bcd3ca62a1bdf733c65491351b",
+      "features_sha256": "ed247be7450804fb3b71a38c00c6a288c983c7be654b1d6fd39f9e6d33fe5603"
+    },
+    {
+      "name": "nemo-noise-400000",
+      "engine": "nemo",
+      "frames": 400000,
+      "shape": [
+        1,
+        128,
+        2501
+      ],
+      "feature_length": 2500,
+      "pcm_sha256": "00bd3c86ebc2f1f20f7f98d6f7db33d245e5f0d34c3383fc20492f5adb019dad",
+      "features_sha256": "4d90d89b503df63969e011b39bcc4da049257b102ef0732f852a4133ba7a47db"
+    },
+    {
+      "name": "whisper-silence",
+      "engine": "whisper",
+      "frames": 0,
+      "shape": [
+        1,
+        80,
+        3000
+      ],
+      "feature_length": 3000,
+      "pcm_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "features_sha256": "4b777554af992aff759ca248bd261622ca21616649637ecc23ec5d4e94659a91"
+    },
+    {
+      "name": "whisper-noise-4123",
+      "engine": "whisper",
+      "frames": 4123,
+      "shape": [
+        1,
+        80,
+        3000
+      ],
+      "feature_length": 3000,
+      "pcm_sha256": "31a800b59203b06764da965b01702b07c7c2942e64108e000d5a6aad0fc9d1ea",
+      "features_sha256": "731d5404abf2f4d627e12d9b22f2a514988b5f5cdffde5d9223d14b5043f0546"
+    },
+    {
+      "name": "whisper-noise-400000",
+      "engine": "whisper",
+      "frames": 400000,
+      "shape": [
+        1,
+        80,
+        3000
+      ],
+      "feature_length": 3000,
+      "pcm_sha256": "00bd3c86ebc2f1f20f7f98d6f7db33d245e5f0d34c3383fc20492f5adb019dad",
+      "features_sha256": "e72aa9c2a554f79fe13be1bddb4983ac53556568992137e1475acf129038decc"
+    },
+    {
+      "name": "whisper-impulses",
+      "engine": "whisper",
+      "frames": 1001,
+      "shape": [
+        1,
+        80,
+        3000
+      ],
+      "feature_length": 3000,
+      "pcm_sha256": "82425b9495e764839d9b15f322109030eedc93f4b6cee0c6029169a2b1e48523",
+      "features_sha256": "76dafcf30a9072ed70c6b8fff7cedd4c5e0e64e674cbe9da8ca984786c69db6e"
+    },
+    {
+      "name": "nemo-impulses",
+      "engine": "nemo",
+      "frames": 1001,
+      "shape": [
+        1,
+        128,
+        7
+      ],
+      "feature_length": 6,
+      "pcm_sha256": "82425b9495e764839d9b15f322109030eedc93f4b6cee0c6029169a2b1e48523",
+      "features_sha256": "6f6362e7eeecabfc6710744181368c18b412feb06500572fc66765748741e031"
+    },
+    {
+      "name": "whisper-public-en",
+      "engine": "whisper",
+      "frames": 240820,
+      "shape": [
+        1,
+        80,
+        3000
+      ],
+      "feature_length": 3000,
+      "pcm_sha256": "6b358de4826842f192a25fee6cd7be3a30f4a609ec74e69b6274c9a6fc265c91",
+      "features_sha256": "aba3f06a04c69f4e281d8428f734aaaddc59fcf6b873fefef7729b20f5297e51"
+    },
+    {
+      "name": "nemo-public-en",
+      "engine": "nemo",
+      "frames": 240820,
+      "shape": [
+        1,
+        128,
+        1506
+      ],
+      "feature_length": 1505,
+      "pcm_sha256": "6b358de4826842f192a25fee6cd7be3a30f4a609ec74e69b6274c9a6fc265c91",
+      "features_sha256": "8abc3eab2552fc4ed02312fe38c14d731248d602ede4ddc74c87d42bfe6318e6"
+    },
+    {
+      "name": "whisper-public-zh",
+      "engine": "whisper",
+      "frames": 67263,
+      "shape": [
+        1,
+        80,
+        3000
+      ],
+      "feature_length": 3000,
+      "pcm_sha256": "c2a9473f527a99737e16e5de5f7fd7bbdec48a7ada9be12512a01cbd6a6ce724",
+      "features_sha256": "7b6db75a47aba384f7300d5aaeea98bd0b1a81853c604b9a7e5dbd4968649fa5"
+    },
+    {
+      "name": "nemo-public-zh",
+      "engine": "nemo",
+      "frames": 67263,
+      "shape": [
+        1,
+        128,
+        421
+      ],
+      "feature_length": 420,
+      "pcm_sha256": "c2a9473f527a99737e16e5de5f7fd7bbdec48a7ada9be12512a01cbd6a6ce724",
+      "features_sha256": "9f3f65e9ba0ab74efa839be511fb88ee4c16a66828fd23e44c0c0e7be64c3ab1"
+    }
+  ]
+}

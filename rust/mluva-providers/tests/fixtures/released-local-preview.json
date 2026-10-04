@@ -1,0 +1,5630 @@
+{
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_hashes": {
+    "local_preview.py": "950c02b44dafb7e683f90bce0c898282eccd2283dafe80d8158bdcdd02e50bea",
+    "batch_preview.py": "4967f87db5da340a9bbc261a7bb7d3654a310ca6de96bb427a6ee16fb22474cb",
+    "local_asr.py": "b6e12ae9e7d2024cb5ff3733a5ee15cbf9d28eca2f6eeb84e6d1c1ad6353a666",
+    "qwen_asr.py": "6c13709686a4df1e26d206a1e61866e31d0287736f60e79dbd7c635c2ee3abf1",
+    "local_qwen.py": "55206f578df5dbeba034cc7cc8fab7ae0a1ccf33a250dd91a953fd8cbf95e353",
+    "local_models.py": "760b3154a0c5ecddadf7d655ef080d827b89e654ee7a5058018a79479ae73f3c",
+    "local_models.json": "cc675485a4f06ceff422d3cb5090d3c3279d08db6d72f584933fb6538b00ae30",
+    "qwen_runtime.json": "4e4799425e8335b31d82a3a3b16d90f5af0d5c5053dd42025cf4521fd6fab7e9"
+  },
+  "boundaries": [
+    "actual released local/batch sessions and speech clients",
+    "controlled native child/loopback endpoints",
+    "synthetic PCM and sparse model readiness"
+  ],
+  "cases": [
+    {
+      "name": "qwen3-1.7b-cpu-idle-cancel",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-0"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-1"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "audio": [],
+      "requests": [],
+      "processes": 0
+    },
+    {
+      "name": "qwen3-1.7b-cpu-final-only",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 32044,
+                      "sha256": "643f8a8dc8bd9c19225afffad2becfec5426180b3749cb208abdf1a6c8354efc",
+                      "header_hex": "52494646247d000057415645666d74201000000001000100803e0000007d00000200100064617461007d0000"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cpu-reuse-and-final",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-0"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-1"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0 preview-1"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0 preview-1",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 192000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0 preview-1",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        },
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        },
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 192044,
+                      "sha256": "47b589098cc9e4b92774cd5b6a57ccca0713c02396bf755b2318f7e81cdc534e",
+                      "header_hex": "5249464624ee020057415645666d74201000000001000100803e0000007d0000020010006461746100ee0200"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cpu-rewrite-paused",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-0"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "enabled": false
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        },
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cpu-cancel-idle-worker",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-0"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-1"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": [
+              false
+            ]
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cpu-preview-failure",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-0"
+                    }
+                  }
+                ]
+              }
+            ],
+            "status": 500
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-1"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000
+        },
+        {
+          "wait_unhealthy": true
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": [
+              false
+            ]
+          }
+        }
+      ],
+      "terminal": {
+        "error": "Preview unavailable; use the finalized recording."
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cpu-finish-active-worker",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>recovered whole"
+                    }
+                  }
+                ]
+              }
+            ],
+            "hold_first_process": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait_request": true
+        },
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "recovered whole",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": [
+            false,
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": [
+            false,
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        },
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 128044,
+                      "sha256": "f751fd7094be088dc785125e4a1a0222a17c2bd20469aa31728ca5e515ed5809",
+                      "header_hex": "5249464624f4010057415645666d74201000000001000100803e0000007d0000020010006461746100f40100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 2
+    },
+    {
+      "name": "qwen3-1.7b-cpu-partial-cancel",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cpu",
+        "observe_fragments": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>partial only"
+                    }
+                  }
+                ]
+              },
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": " must never deliver"
+                    }
+                  }
+                ]
+              }
+            ],
+            "fragment": 84,
+            "fragment_delay_ms": 300
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait_partial": "partial only"
+        },
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "partial only",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": [
+              false
+            ]
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cuda-idle-cancel",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-0"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-1"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "audio": [],
+      "requests": [],
+      "processes": 0
+    },
+    {
+      "name": "qwen3-1.7b-cuda-final-only",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 32044,
+                      "sha256": "643f8a8dc8bd9c19225afffad2becfec5426180b3749cb208abdf1a6c8354efc",
+                      "header_hex": "52494646247d000057415645666d74201000000001000100803e0000007d00000200100064617461007d0000"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cuda-reuse-and-final",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-0"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-1"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0 preview-1"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0 preview-1",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 192000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0 preview-1",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        },
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        },
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 192044,
+                      "sha256": "47b589098cc9e4b92774cd5b6a57ccca0713c02396bf755b2318f7e81cdc534e",
+                      "header_hex": "5249464624ee020057415645666d74201000000001000100803e0000007d0000020010006461746100ee0200"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cuda-rewrite-paused",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-0"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "enabled": false
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        },
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cuda-cancel-idle-worker",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-0"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-1"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": [
+              false
+            ]
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cuda-preview-failure",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-0"
+                    }
+                  }
+                ]
+              }
+            ],
+            "status": 500
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>preview-1"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>authoritative full"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000
+        },
+        {
+          "wait_unhealthy": true
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": [
+              false
+            ]
+          }
+        }
+      ],
+      "terminal": {
+        "error": "Preview unavailable; use the finalized recording."
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "qwen3-1.7b-cuda-finish-active-worker",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>recovered whole"
+                    }
+                  }
+                ]
+              }
+            ],
+            "hold_first_process": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait_request": true
+        },
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "recovered whole",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": [
+            false,
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": [
+            false,
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        },
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 128044,
+                      "sha256": "f751fd7094be088dc785125e4a1a0222a17c2bd20469aa31728ca5e515ed5809",
+                      "header_hex": "5249464624f4010057415645666d74201000000001000100803e0000007d0000020010006461746100f40100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 2
+    },
+    {
+      "name": "qwen3-1.7b-cuda-partial-cancel",
+      "spec": {
+        "model": "qwen3-1.7b",
+        "device": "cuda",
+        "observe_fragments": true,
+        "responses": [
+          {
+            "events": [
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": "language English<asr_text>partial only"
+                    }
+                  }
+                ]
+              },
+              {
+                "choices": [
+                  {
+                    "delta": {
+                      "content": " must never deliver"
+                    }
+                  }
+                ]
+              }
+            ],
+            "fragment": 84,
+            "fragment_delay_ms": 300
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait_partial": "partial only"
+        },
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "partial only",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": [
+              true
+            ]
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": [
+              false
+            ]
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": [
+            false
+          ]
+        }
+      },
+      "audio": [],
+      "requests": [
+        {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "input_audio",
+                  "input_audio": {
+                    "data": {
+                      "bytes": 96044,
+                      "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+                      "header_hex": "524946462477010057415645666d74201000000001000100803e0000007d0000020010006461746100770100"
+                    },
+                    "format": "wav"
+                  }
+                }
+              ]
+            }
+          ],
+          "temperature": 0,
+          "max_tokens": 512,
+          "stream": true,
+          "cache_prompt": false
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cpu-idle-cancel",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "audio": [],
+      "requests": [],
+      "processes": 0
+    },
+    {
+      "name": "whisper-tiny-cpu-final-only",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 32044,
+          "sha256": "643f8a8dc8bd9c19225afffad2becfec5426180b3749cb208abdf1a6c8354efc",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cpu-reuse-and-final",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0 preview-1"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0 preview-1",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 192000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0 preview-1",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 192044,
+          "sha256": "47b589098cc9e4b92774cd5b6a57ccca0713c02396bf755b2318f7e81cdc534e",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cpu-rewrite-paused",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "enabled": false
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cpu-cancel-idle-worker",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cpu-preview-failure",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            },
+            "raw": "malformed private result"
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000
+        },
+        {
+          "wait_unhealthy": true
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "error": "Preview unavailable; use the finalized recording."
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cpu-finish-active-worker",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "recovered whole"
+            },
+            "hold_first_process": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait_request": true
+        },
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "recovered whole",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 128044,
+          "sha256": "f751fd7094be088dc785125e4a1a0222a17c2bd20469aa31728ca5e515ed5809",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 2
+    },
+    {
+      "name": "whisper-tiny-cuda-idle-cancel",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "audio": [],
+      "requests": [],
+      "processes": 0
+    },
+    {
+      "name": "whisper-tiny-cuda-final-only",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 32044,
+          "sha256": "643f8a8dc8bd9c19225afffad2becfec5426180b3749cb208abdf1a6c8354efc",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cuda-reuse-and-final",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0 preview-1"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0 preview-1",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 192000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0 preview-1",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 192044,
+          "sha256": "47b589098cc9e4b92774cd5b6a57ccca0713c02396bf755b2318f7e81cdc534e",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cuda-rewrite-paused",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "enabled": false
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cuda-cancel-idle-worker",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cuda-preview-failure",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            },
+            "raw": "malformed private result"
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000
+        },
+        {
+          "wait_unhealthy": true
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "error": "Preview unavailable; use the finalized recording."
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "whisper-tiny-cuda-finish-active-worker",
+      "spec": {
+        "model": "whisper-tiny",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "recovered whole"
+            },
+            "hold_first_process": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait_request": true
+        },
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "recovered whole",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 128044,
+          "sha256": "f751fd7094be088dc785125e4a1a0222a17c2bd20469aa31728ca5e515ed5809",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 2
+    },
+    {
+      "name": "parakeet-v3-cpu-idle-cancel",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "audio": [],
+      "requests": [],
+      "processes": 0
+    },
+    {
+      "name": "parakeet-v3-cpu-final-only",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 32044,
+          "sha256": "643f8a8dc8bd9c19225afffad2becfec5426180b3749cb208abdf1a6c8354efc",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "parakeet-v3-cpu-reuse-and-final",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0 preview-1"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0 preview-1",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 192000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0 preview-1",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 192044,
+          "sha256": "47b589098cc9e4b92774cd5b6a57ccca0713c02396bf755b2318f7e81cdc534e",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "parakeet-v3-cpu-rewrite-paused",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "enabled": false
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "parakeet-v3-cpu-cancel-idle-worker",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "parakeet-v3-cpu-preview-failure",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            },
+            "raw": "malformed private result"
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000
+        },
+        {
+          "wait_unhealthy": true
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "error": "Preview unavailable; use the finalized recording."
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "parakeet-v3-cpu-finish-active-worker",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cpu",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "recovered whole"
+            },
+            "hold_first_process": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait_request": true
+        },
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "recovered whole",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 128044,
+          "sha256": "f751fd7094be088dc785125e4a1a0222a17c2bd20469aa31728ca5e515ed5809",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 2
+    },
+    {
+      "name": "parakeet-v3-cuda-idle-cancel",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 0,
+          "alive": [],
+          "keys_exist": []
+        }
+      },
+      "audio": [],
+      "requests": [],
+      "processes": 0
+    },
+    {
+      "name": "parakeet-v3-cuda-final-only",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 0,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 32044,
+          "sha256": "643f8a8dc8bd9c19225afffad2becfec5426180b3749cb208abdf1a6c8354efc",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "parakeet-v3-cuda-reuse-and-final",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0 preview-1"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0 preview-1",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 192000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0 preview-1",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 192000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 192044,
+          "sha256": "47b589098cc9e4b92774cd5b6a57ccca0713c02396bf755b2318f7e81cdc534e",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "parakeet-v3-cuda-rewrite-paused",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "enabled": false
+        },
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "authoritative full",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "preview-0",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "parakeet-v3-cuda-cancel-idle-worker",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            }
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait": "preview-0"
+        },
+        {
+          "cancel": true
+        }
+      ],
+      "finish": false,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "preview-0",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": null,
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "parakeet-v3-cuda-preview-failure",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "preview-0"
+            },
+            "raw": "malformed private result"
+          },
+          {
+            "json": {
+              "text": "preview-1"
+            }
+          },
+          {
+            "json": {
+              "text": "authoritative full"
+            }
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000
+        },
+        {
+          "wait_unhealthy": true
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 0,
+          "state": {
+            "processes": 0,
+            "alive": [],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": false,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              false
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "error": "Preview unavailable; use the finalized recording."
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 1,
+          "alive": [
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 1
+    },
+    {
+      "name": "parakeet-v3-cuda-finish-active-worker",
+      "spec": {
+        "model": "parakeet-v3",
+        "device": "cuda",
+        "observe_wav": true,
+        "responses": [
+          {
+            "json": {
+              "text": "recovered whole"
+            },
+            "hold_first_process": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "submit": 96000,
+          "wait_request": true
+        },
+        {
+          "submit": 32000
+        }
+      ],
+      "finish": true,
+      "observations": [
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        },
+        {
+          "preview": {
+            "committed_text": "",
+            "volatile_text": ""
+          },
+          "healthy": true,
+          "bytes_sent": 96000,
+          "state": {
+            "processes": 1,
+            "alive": [
+              true
+            ],
+            "keys_exist": []
+          }
+        }
+      ],
+      "terminal": {
+        "ok": {
+          "text": "recovered whole",
+          "language_code": "auto",
+          "language_probability": null,
+          "transcription_id": null,
+          "speaker_segments": [],
+          "audio_duration_seconds": null
+        }
+      },
+      "finished": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": true,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "closed": {
+        "preview": {
+          "committed_text": "",
+          "volatile_text": ""
+        },
+        "healthy": false,
+        "bytes_sent": 96000,
+        "state": {
+          "processes": 2,
+          "alive": [
+            false,
+            false
+          ],
+          "keys_exist": []
+        }
+      },
+      "audio": [
+        {
+          "bytes": 96044,
+          "sha256": "d303811b8c84619667cd0501342f84ec6cbe69f7aa3856dcf52fabda374c92b8",
+          "mode": 384,
+          "directory_mode": 448
+        },
+        {
+          "bytes": 128044,
+          "sha256": "f751fd7094be088dc785125e4a1a0222a17c2bd20469aa31728ca5e515ed5809",
+          "mode": 384,
+          "directory_mode": 448
+        }
+      ],
+      "requests": [
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        },
+        {
+          "path": "$AUDIO",
+          "language": "auto"
+        }
+      ],
+      "processes": 2
+    }
+  ]
+}

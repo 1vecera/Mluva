@@ -1,0 +1,1354 @@
+{
+  "schema": 1,
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "text_target_sha256": "a916b65519d33b3401ebfee910c392560b86d5e70d6131aa3e6702394fef02c7",
+  "gtk_version": "4.22.4",
+  "cases": [
+    {
+      "input": {
+        "name": "cold-active-window",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "cold": true
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek.původní 🐎 konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 1,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-caret",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek.původní 🐎 konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 1,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-selection",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 16,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek. konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 2,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-reverse-selection",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 16,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek. konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 2,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-restore-moved-caret",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "before": {
+          "operation": "caret",
+          "offset": 0
+        }
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek.původní 🐎 konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 1,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-restore-cleared-selection",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 16,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "before": {
+          "operation": "caret",
+          "offset": 0
+        }
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek. konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 2,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-restore-changed-selection",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 16,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "before": {
+          "operation": "selection",
+          "start": 0,
+          "end": 2
+        }
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek. konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 2,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-restore-after-focus-change",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "before": {
+          "operation": "button"
+        }
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": false,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek.původní 🐎 konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 1,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-restore-after-own-focus",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "own_focus": true
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "own_capture": null,
+        "restored": false,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek.původní 🐎 konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 1,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-retained-after-close",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "close": true
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek.původní 🐎 konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 1,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-empty",
+        "setup": {
+          "kind": "entry",
+          "text": "",
+          "start": 0,
+          "end": 0,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 0,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 0,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Příliš žluťoučký 😀\nDruhý řádek.",
+          "caret": 31,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 1,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-empty-insertion",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: původní 🐎 konec",
+          "caret": 7,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 0,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "entry-nul-insertion",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 16,
+          "editable": true
+        },
+        "payload": "nul\u0000tail",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: nul konec",
+          "caret": 15,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 2,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "textview-caret",
+        "setup": {
+          "kind": "textview",
+          "text": "První 🐎 řádek.\nDruhý konec.",
+          "start": 8,
+          "end": 8,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 8,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 8,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "První 🐎 Příliš žluťoučký 😀\nDruhý řádek.řádek.\nDruhý konec.",
+          "caret": 39,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 1,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "textview-selection",
+        "setup": {
+          "kind": "textview",
+          "text": "První 🐎 řádek.\nDruhý konec.",
+          "start": 4,
+          "end": 18,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            4,
+            18
+          ],
+          "caret": 18,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            4,
+            18
+          ],
+          "caret": 18,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "PrvnPříliš žluťoučký 😀\nDruhý řádek.hý konec.",
+          "caret": 35,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 2,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "command-selected-unicode",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 16,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "command"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": "původní 🐎",
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek. konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 2,
+        "text_reads": [
+          [
+            7,
+            16
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "command-no-selection",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "command"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek.původní 🐎 konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 1,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "command-exact-limit",
+        "setup": {
+          "kind": "entry",
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "start": 0,
+          "end": 2000,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "command"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "selection": [
+            0,
+            2000
+          ],
+          "caret": 2000,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            0,
+            2000
+          ],
+          "caret": 2000,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Příliš žluťoučký 😀\nDruhý řádek.",
+          "caret": 31,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 2,
+        "text_reads": [
+          [
+            0,
+            2000
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "command-exceeds-limit",
+        "setup": {
+          "kind": "entry",
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "start": 0,
+          "end": 2001,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "command"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "error": "The selected text is 2,001 characters; Command mode allows at most 2,000. Shorten the selection before recording.",
+        "tracker_identity_matches": true,
+        "observed": {
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "caret": 2001,
+          "selection": [
+            0,
+            2001
+          ],
+          "editable": true
+        },
+        "edits": 0,
+        "text_reads": [
+          [
+            0,
+            2001
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "delivery-large-selection",
+        "setup": {
+          "kind": "entry",
+          "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+          "start": 0,
+          "end": 2100,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            0,
+            2100
+          ],
+          "caret": 2100,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            0,
+            2100
+          ],
+          "caret": 2100,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Příliš žluťoučký 😀\nDruhý řádek.",
+          "caret": 31,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 2,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "command-negative-limit",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 16,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": -1000,
+        "mode": "command"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "error": "The selected text is 9 characters; Command mode allows at most -1,000. Shorten the selection before recording.",
+        "tracker_identity_matches": true,
+        "observed": {
+          "text": "Mluva: původní 🐎 konec",
+          "caret": 16,
+          "selection": [
+            7,
+            16
+          ],
+          "editable": true
+        },
+        "edits": 0,
+        "text_reads": [
+          [
+            7,
+            16
+          ]
+        ]
+      }
+    },
+    {
+      "input": {
+        "name": "readonly-current",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": false
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": null,
+        "confirmed": false,
+        "observed": {
+          "text": "Mluva: původní 🐎 konec",
+          "caret": 7,
+          "selection": null,
+          "editable": false
+        },
+        "edits": 0,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "readonly-focus-change",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": false
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "before": {
+          "operation": "button"
+        }
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": false,
+        "inserted": null,
+        "confirmed": false,
+        "observed": {
+          "text": "Mluva: původní 🐎 konec",
+          "caret": 7,
+          "selection": null,
+          "editable": false
+        },
+        "edits": 0,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "readonly-own-focus",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": false
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "own_focus": true
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": false,
+          "identity_matches": true
+        },
+        "own_capture": null,
+        "restored": false,
+        "inserted": null,
+        "confirmed": false,
+        "observed": {
+          "text": "Mluva: původní 🐎 konec",
+          "caret": 7,
+          "selection": null,
+          "editable": false
+        },
+        "edits": 0,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "readonly-retained-after-close",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": false
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "close": true
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": false,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": false,
+          "identity_matches": true
+        },
+        "restored": false,
+        "inserted": null,
+        "confirmed": false,
+        "observed": {
+          "text": "Mluva: původní 🐎 konec",
+          "caret": 7,
+          "selection": null,
+          "editable": false
+        },
+        "edits": 0,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "concealed-entry",
+        "setup": {
+          "kind": "concealed",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 16,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": [
+            7,
+            16
+          ],
+          "caret": 16,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": true,
+        "inserted": true,
+        "confirmed": true,
+        "observed": {
+          "text": "Mluva: Příliš žluťoučký 😀\nDruhý řádek. konec",
+          "caret": 38,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 2,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "password-entry",
+        "setup": {
+          "kind": "password",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 16,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery"
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": null,
+        "tracker_identity_matches": false,
+        "observed": {
+          "text": "Mluva: původní 🐎 konec",
+          "caret": 16,
+          "selection": [
+            7,
+            16
+          ],
+          "editable": true
+        },
+        "edits": 0,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "nontext-event",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "nontext": true
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": null,
+        "tracker_identity_matches": true,
+        "observed": {
+          "text": "Mluva: původní 🐎 konec",
+          "caret": 7,
+          "selection": null,
+          "editable": true
+        },
+        "edits": 0,
+        "text_reads": []
+      }
+    },
+    {
+      "input": {
+        "name": "disabled-status-owner-present",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "disabled": true
+      },
+      "expected": {
+        "desktop_enabled": false,
+        "error": "Desktop accessibility is disabled"
+      }
+    },
+    {
+      "input": {
+        "name": "exited-target",
+        "setup": {
+          "kind": "entry",
+          "text": "Mluva: původní 🐎 konec",
+          "start": 7,
+          "end": 7,
+          "editable": true
+        },
+        "payload": "Příliš žluťoučký 😀\nDruhý řádek.",
+        "maximum": 2000,
+        "mode": "delivery",
+        "kill": true
+      },
+      "expected": {
+        "desktop_enabled": true,
+        "snapshot": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "tracker_identity_matches": true,
+        "without_selection": {
+          "selected_text": null,
+          "selection": null,
+          "caret": 7,
+          "editable": true,
+          "identity_matches": true
+        },
+        "restored": false,
+        "inserted": false,
+        "confirmed": null,
+        "text_reads": []
+      }
+    }
+  ],
+  "status_after_owner_exit": {
+    "enabled": false,
+    "error": "Desktop accessibility is disabled"
+  }
+}

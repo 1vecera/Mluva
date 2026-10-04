@@ -1,0 +1,261 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "native_commit": "44e22cae90d039339933073776a1c9fbd322ab24",
+  "native_sha256": "472fa8e8503458189b2d62a2cbeed3def052ea0ce0522935ec58c3fe31966aca",
+  "reference_app_sha256": "1456c6af104ff95433b1d20ead793f628fada4ef9a67d76b5cf1dc4431885d67",
+  "observer_sha256": "48a36c3fb5036f540b0695502cac4b765e778691f8b2c735f49ded4dc945880c",
+  "kernel": "7.1.9-arch1-2",
+  "python": "3.14.7",
+  "conditions": {
+    "host": "Intel Core i7-12700H, 62.5 GiB reported RAM",
+    "desktop": "private Xvfb/Openbox, software renderer and AT-SPI bus",
+    "build": "Rust 1.95, cargo release defaults",
+    "iterations_per_version": 6,
+    "excluded_warmups_per_version": 1,
+    "ordering": "alternating Python/Rust then Rust/Python",
+    "startup_boundary": "first visible X11 window",
+    "startup_scope": "fresh processes with warmed application and filesystem caches",
+    "idle_settle_seconds": 2,
+    "idle_sample_seconds": 3,
+    "speech": "compatible route to inactive private loopback",
+    "rewriting": "none",
+    "global_shortcuts": "disabled in both",
+    "content": "empty synthetic stores"
+  },
+  "rows": [
+    {
+      "variant": "python",
+      "round": -1,
+      "warmup": true,
+      "bus_ms": 746.8048440059647,
+      "visible_ms": 1047.5243350083474,
+      "rss_kib": 287664,
+      "pss_kib": 141848,
+      "processes": 1,
+      "idle_cpu_percent": 1.332295109505849,
+      "quit_ms": 32.84560499014333
+    },
+    {
+      "variant": "rust",
+      "round": -1,
+      "warmup": true,
+      "bus_ms": 38.26726299303118,
+      "visible_ms": 278.81059399805963,
+      "rss_kib": 260632,
+      "pss_kib": 119804,
+      "processes": 1,
+      "idle_cpu_percent": 1.3323738624886494,
+      "quit_ms": 34.03982399322558
+    },
+    {
+      "variant": "python",
+      "round": 0,
+      "warmup": false,
+      "bus_ms": 207.66578300390393,
+      "visible_ms": 466.2662359914975,
+      "rss_kib": 262824,
+      "pss_kib": 116928,
+      "processes": 1,
+      "idle_cpu_percent": 1.3322894286145253,
+      "quit_ms": 32.868159003555775
+    },
+    {
+      "variant": "rust",
+      "round": 0,
+      "warmup": false,
+      "bus_ms": 40.79671901126858,
+      "visible_ms": 234.83779300295282,
+      "rss_kib": 240720,
+      "pss_kib": 99538,
+      "processes": 1,
+      "idle_cpu_percent": 0.9993360471266903,
+      "quit_ms": 33.65317400312051
+    },
+    {
+      "variant": "rust",
+      "round": 1,
+      "warmup": false,
+      "bus_ms": 40.03236899734475,
+      "visible_ms": 243.65114499232732,
+      "rss_kib": 240296,
+      "pss_kib": 99594,
+      "processes": 1,
+      "idle_cpu_percent": 0.9992979522159784,
+      "quit_ms": 34.17216899106279
+    },
+    {
+      "variant": "python",
+      "round": 1,
+      "warmup": false,
+      "bus_ms": 198.1346849934198,
+      "visible_ms": 419.19735400006175,
+      "rss_kib": 264732,
+      "pss_kib": 118922,
+      "processes": 1,
+      "idle_cpu_percent": 1.3323520919947744,
+      "quit_ms": 64.94862299587112
+    },
+    {
+      "variant": "python",
+      "round": 2,
+      "warmup": false,
+      "bus_ms": 198.56733101187274,
+      "visible_ms": 427.54085701017175,
+      "rss_kib": 264672,
+      "pss_kib": 118840,
+      "processes": 1,
+      "idle_cpu_percent": 0.99866018318365,
+      "quit_ms": 33.09107599488925
+    },
+    {
+      "variant": "rust",
+      "round": 2,
+      "warmup": false,
+      "bus_ms": 41.33094000280835,
+      "visible_ms": 255.4595419933321,
+      "rss_kib": 240356,
+      "pss_kib": 99540,
+      "processes": 1,
+      "idle_cpu_percent": 0.9994131222915663,
+      "quit_ms": 33.79710399894975
+    },
+    {
+      "variant": "rust",
+      "round": 3,
+      "warmup": false,
+      "bus_ms": 39.671022008406,
+      "visible_ms": 251.96182999934535,
+      "rss_kib": 240360,
+      "pss_kib": 99529,
+      "processes": 1,
+      "idle_cpu_percent": 0.9993638359659818,
+      "quit_ms": 34.106788007193245
+    },
+    {
+      "variant": "python",
+      "round": 3,
+      "warmup": false,
+      "bus_ms": 191.28015599562787,
+      "visible_ms": 420.9762319951551,
+      "rss_kib": 266896,
+      "pss_kib": 120922,
+      "processes": 1,
+      "idle_cpu_percent": 0.9993257908653976,
+      "quit_ms": 32.83234799164347
+    },
+    {
+      "variant": "python",
+      "round": 4,
+      "warmup": false,
+      "bus_ms": 217.01747200859245,
+      "visible_ms": 453.03707499988377,
+      "rss_kib": 264640,
+      "pss_kib": 118891,
+      "processes": 1,
+      "idle_cpu_percent": 1.3323728009077946,
+      "quit_ms": 32.586059998720884
+    },
+    {
+      "variant": "rust",
+      "round": 4,
+      "warmup": false,
+      "bus_ms": 39.057193003827706,
+      "visible_ms": 252.34062000527047,
+      "rss_kib": 242304,
+      "pss_kib": 101526,
+      "processes": 1,
+      "idle_cpu_percent": 1.3325094560605384,
+      "quit_ms": 34.24020799866412
+    },
+    {
+      "variant": "rust",
+      "round": 5,
+      "warmup": false,
+      "bus_ms": 38.24308900220785,
+      "visible_ms": 250.6364150031004,
+      "rss_kib": 242296,
+      "pss_kib": 101426,
+      "processes": 1,
+      "idle_cpu_percent": 1.3324365196089751,
+      "quit_ms": 33.84309299872257
+    },
+    {
+      "variant": "python",
+      "round": 5,
+      "warmup": false,
+      "bus_ms": 245.92403598944657,
+      "visible_ms": 521.9654359971173,
+      "rss_kib": 264444,
+      "pss_kib": 118655,
+      "processes": 1,
+      "idle_cpu_percent": 0.9992691834838321,
+      "quit_ms": 32.89226398919709
+    }
+  ],
+  "summary": {
+    "python": {
+      "visible_ms": {
+        "median": 440.28896600502776,
+        "minimum": 419.19735400006175,
+        "maximum": 521.9654359971173
+      },
+      "bus_ms": {
+        "median": 203.11655700788833,
+        "minimum": 191.28015599562787,
+        "maximum": 245.92403598944657
+      },
+      "rss_kib": {
+        "median": 264656.0,
+        "minimum": 262824,
+        "maximum": 266896
+      },
+      "pss_kib": {
+        "median": 118865.5,
+        "minimum": 116928,
+        "maximum": 120922
+      },
+      "idle_cpu_percent": {
+        "median": 1.1658076097399614,
+        "minimum": 0.99866018318365,
+        "maximum": 1.3323728009077946
+      },
+      "quit_ms": {
+        "median": 32.88021149637643,
+        "minimum": 32.586059998720884,
+        "maximum": 64.94862299587112
+      }
+    },
+    "rust": {
+      "visible_ms": {
+        "median": 251.29912250122288,
+        "minimum": 234.83779300295282,
+        "maximum": 255.4595419933321
+      },
+      "bus_ms": {
+        "median": 39.85169550287537,
+        "minimum": 38.24308900220785,
+        "maximum": 41.33094000280835
+      },
+      "rss_kib": {
+        "median": 240540.0,
+        "minimum": 240296,
+        "maximum": 242304
+      },
+      "pss_kib": {
+        "median": 99567.0,
+        "minimum": 99529,
+        "maximum": 101526
+      },
+      "idle_cpu_percent": {
+        "median": 0.999388479128774,
+        "minimum": 0.9992979522159784,
+        "maximum": 1.3325094560605384
+      },
+      "quit_ms": {
+        "median": 33.97494050295791,
+        "minimum": 33.65317400312051,
+        "maximum": 34.24020799866412
+      }
+    }
+  }
+}

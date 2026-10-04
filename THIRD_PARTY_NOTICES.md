@@ -2,6 +2,8 @@
 
 Mluva itself is available under the Apache License 2.0 in `LICENSE`. The Linux installer resolves the exact Python dependency versions in `linux/uv.lock`. Each dependency remains governed by its own license, and any future binary distributor must preserve the license and notice files shipped by the resolved package rather than treating this summary as a replacement.
 
+The in-progress Rust candidate ships its own [native notice summary](rust/mluva-install/resources/THIRD_PARTY_NOTICES.md), complete upstream Cargo and standard-library notices, and a generated dependency inventory. Its [archive evidence](rust/mluva-install/tests/fixtures/archive-evidence.md) records checksum verification and scope. The sections below continue to describe the released Python application until the full port is accepted.
+
 ## Linux runtime packages
 
 The unchanged JetBrains Mono Regular, Medium, Bold and Italic font binaries from upstream commit [`19371302`](https://github.com/JetBrains/JetBrainsMono/tree/19371302b95d218af43299bce79ddbddd0bc364d) are bundled for app, recorder and diagram text under [SIL OFL 1.1](linux/quickshell/mluva.dictation/fonts/OFL.txt). The Mluva logo set in [docs/brand](docs/brand/README.md) is original artwork with its own [source provenance](docs/brand/source/provenance.json); the wordmark no longer derives from a font. The former [Adwaita Sans notice](docs/assets/brand-source/Adwaita-Sans-LICENSE.txt) remains for the previously published launch-film assets. Figma symbol and production-media rights are documented in the [video-kit attribution](docs/design/video-kit/ATTRIBUTION.md).

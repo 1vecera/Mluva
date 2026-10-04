@@ -1,0 +1,63 @@
+[package]
+name = "mluva-workflows"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Native recording, delivery and recovery orchestration"
+
+[dependencies]
+mluva-core = { path = "../mluva-core" }
+mluva-providers = { path = "../mluva-providers" }
+mluva-audio = { path = "../mluva-audio" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+chrono.workspace = true
+libc.workspace = true
+tempfile.workspace = true
+
+[dev-dependencies]
+rusqlite.workspace = true
+base64.workspace = true
+
+[[bin]]
+name = "segment-cleanup-fixture-peer"
+path = "tests/support/segment_peer.rs"
+test = false
+bench = false
+
+# Reuse the owned synthetic audio peer and native memory cleanup implementation;
+# these test endpoints are never selected by distribution tooling.
+[[bin]]
+name = "meeting-audio-fixture-peer"
+path = "../mluva-audio/tests/support/peer.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "meeting-cleanup-fixture-peer"
+path = "../mluva-audio/src/bin/cleanup.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "screenshot-picker-fixture-peer"
+path = "tests/support/screenshot_picker_peer.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "screenshot-capture-fixture-driver"
+path = "tests/support/screenshot_capture_driver.rs"
+test = false
+doc = false
+bench = false

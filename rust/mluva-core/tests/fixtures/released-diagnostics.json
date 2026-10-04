@@ -1,0 +1,246 @@
+{
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source_sha256": "bb7d1e58016a24fac3d16c00c9170c274da7bb87659b61141de92ccf76ee283a",
+  "session": "aaaabbbb-cccc-4ddd-8eee-ffffffffffff",
+  "inputs": [
+    {
+      "mode": "dictation",
+      "stage": "capture-ready",
+      "provider": "pipewire",
+      "outcome": "completed",
+      "duration_seconds": 0
+    },
+    {
+      "mode": "command",
+      "stage": "capture",
+      "provider": "pipewire",
+      "outcome": "cancelled",
+      "duration_seconds": 0.0005
+    },
+    {
+      "mode": "scratchpad",
+      "stage": "recognition",
+      "provider": "elevenlabs-scribe-v2",
+      "outcome": "safe-fallback",
+      "duration_seconds": 0.0015
+    },
+    {
+      "mode": "meeting",
+      "stage": "enhancement",
+      "provider": "codex-app-server",
+      "outcome": "raw-fallback",
+      "duration_seconds": 0.1235
+    },
+    {
+      "mode": "dictation",
+      "stage": "delivery",
+      "provider": "desktop",
+      "outcome": "failed",
+      "duration_seconds": 86400
+    },
+    {
+      "mode": "command",
+      "stage": "enhancement",
+      "provider": "litellm",
+      "outcome": "deferred",
+      "duration_seconds": 3.5
+    }
+  ],
+  "recorded_timings": [
+    0,
+    0,
+    2,
+    124,
+    86400000,
+    3500
+  ],
+  "invalid": [
+    {
+      "name": "invalid-session",
+      "session": "not-a-uuid",
+      "mode": "dictation",
+      "duration_seconds": 0,
+      "rejected": true,
+      "unchanged": true
+    },
+    {
+      "name": "invalid-mode",
+      "session": "aaaabbbb-cccc-4ddd-8eee-ffffffffffff",
+      "mode": "private-mode",
+      "duration_seconds": 0,
+      "rejected": true,
+      "unchanged": true
+    },
+    {
+      "name": "negative-duration",
+      "session": "aaaabbbb-cccc-4ddd-8eee-ffffffffffff",
+      "mode": "dictation",
+      "duration_seconds": -1,
+      "rejected": true,
+      "unchanged": true
+    },
+    {
+      "name": "oversized-duration",
+      "session": "aaaabbbb-cccc-4ddd-8eee-ffffffffffff",
+      "mode": "dictation",
+      "duration_seconds": 86400.001,
+      "rejected": true,
+      "unchanged": true
+    }
+  ],
+  "recent": [
+    {
+      "created_at": "generated",
+      "session_identifier": "aaaabbbb-cccc-4ddd-8eee-ffffffffffff",
+      "mode": "command",
+      "stage": "enhancement",
+      "provider": "litellm",
+      "outcome": "deferred",
+      "duration_ms": 3500
+    },
+    {
+      "created_at": "generated",
+      "session_identifier": "aaaabbbb-cccc-4ddd-8eee-ffffffffffff",
+      "mode": "dictation",
+      "stage": "delivery",
+      "provider": "desktop",
+      "outcome": "failed",
+      "duration_ms": 86400000
+    },
+    {
+      "created_at": "generated",
+      "session_identifier": "aaaabbbb-cccc-4ddd-8eee-ffffffffffff",
+      "mode": "meeting",
+      "stage": "enhancement",
+      "provider": "codex-app-server",
+      "outcome": "raw-fallback",
+      "duration_ms": 124
+    }
+  ],
+  "zero": [],
+  "negative_limit": [],
+  "configuration": {
+    "language_code": "eng",
+    "transcription_model": "scribe_v2",
+    "codex_model": "private-model",
+    "rewrite_model": null,
+    "rewrite_fast_mode": false,
+    "rewrite_reasoning_effort": null,
+    "litellm_reasoning_effort": null,
+    "rewrite_provider": "codex",
+    "litellm_base_url": "http://localhost:4000/v1",
+    "litellm_model": null,
+    "litellm_api_key_env": "LITELLM_API_KEY",
+    "transcription_provider": "elevenlabs",
+    "transcription_base_url": "http://localhost:4000/v1",
+    "transcription_api_key_env": "LITELLM_API_KEY",
+    "transcription_remote_model": "whisper",
+    "local_model": "qwen3-1.7b",
+    "local_device": "cpu",
+    "transcription_chunk_seconds": 8,
+    "auto_copy_dictation": true,
+    "auto_copy_rewrite": true,
+    "show_copy_action": true,
+    "show_save_action": true,
+    "review_timeout_seconds": 4,
+    "smooth_scrolling": true,
+    "scroll_duration_ms": 800,
+    "scroll_lookahead_lines": 2,
+    "widget_position": "bottom-center",
+    "widget_lines": 5,
+    "widget_opacity": 82,
+    "history_sidebar_visible": false,
+    "welcome_completed": false,
+    "time_format": "24h",
+    "live_rewrite_enabled": false,
+    "live_rewrite_continuous": true,
+    "live_rewrite_template": "grilling",
+    "live_rewrite_custom_instructions": "",
+    "live_rewrite_min_characters": 160,
+    "live_rewrite_interval_seconds": 4,
+    "microphone_target": "private-device",
+    "system_audio_target": "private-system",
+    "default_mode": "dictation",
+    "global_recording_key": "F9",
+    "auto_paste": false,
+    "automatic_titles": true,
+    "spoken_commands_enabled": true,
+    "remember_per_application": false,
+    "audio_retention_policy": "failures",
+    "incognito_mode": false,
+    "history_retention_days": 0
+  },
+  "exported": {
+    "schema": "mluva-diagnostics-v1",
+    "generated_at": "generated",
+    "configuration": {
+      "language_code": "eng",
+      "transcription_model": "scribe_v2",
+      "codex_model_configured": true,
+      "microphone_target_configured": true,
+      "system_audio_target_configured": true,
+      "default_mode": "dictation",
+      "global_recording_key": "F9",
+      "auto_paste": false,
+      "spoken_commands_enabled": true,
+      "remember_per_application": false,
+      "audio_retention_policy": "failures",
+      "incognito_mode": false,
+      "history_retention_days": 0
+    },
+    "events": [
+      {
+        "created_at": "generated",
+        "session_identifier": "aaaabbbb-cccc-4ddd-8eee-ffffffffffff",
+        "mode": "meeting",
+        "stage": "enhancement",
+        "provider": "codex-app-server",
+        "outcome": "raw-fallback",
+        "duration_ms": 124
+      },
+      {
+        "created_at": "generated",
+        "session_identifier": "aaaabbbb-cccc-4ddd-8eee-ffffffffffff",
+        "mode": "dictation",
+        "stage": "delivery",
+        "provider": "desktop",
+        "outcome": "failed",
+        "duration_ms": 86400000
+      },
+      {
+        "created_at": "generated",
+        "session_identifier": "aaaabbbb-cccc-4ddd-8eee-ffffffffffff",
+        "mode": "command",
+        "stage": "enhancement",
+        "provider": "litellm",
+        "outcome": "deferred",
+        "duration_ms": 3500
+      }
+    ],
+    "excluded": [
+      "audio",
+      "audio paths",
+      "transcript text",
+      "selected text",
+      "clipboard content",
+      "application identity",
+      "window titles",
+      "credentials",
+      "raw exception messages"
+    ]
+  },
+  "filename_matches_generated_at": true,
+  "columns": [
+    "sequence",
+    "created_at",
+    "session_identifier",
+    "mode",
+    "stage",
+    "provider",
+    "outcome",
+    "duration_ms"
+  ],
+  "file_mode": 384,
+  "export_mode": 384,
+  "directory_mode": 448
+}

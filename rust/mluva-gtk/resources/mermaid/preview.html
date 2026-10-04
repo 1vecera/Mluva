@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'nonce-mluva';
+style-src 'unsafe-inline'; img-src 'none'; connect-src 'none'; font-src data:; frame-src 'none';
+object-src 'none'; base-uri 'none'; form-action 'none'">
+<style>@font-face { font-family:'JetBrains Mono'; src:url(data:font/ttf;base64,__FONT_DATA__); }
+html,body { margin:0; padding:0; background:transparent; font:12px 'JetBrains Mono'; }
+section { margin:8px 0; } svg { display:block; max-width:100%; height:auto; margin:auto; }
+</style><script src="mermaid.min.js"></script></head><body>
+<script nonce="mluva">
+let latest = 0;
+async function draw(revision, diagrams, dark, ink, accent) {
+  latest = revision;
+  await document.fonts.load('12px "JetBrains Mono"');
+  if (latest !== revision) return;
+  mermaid.initialize({startOnLoad:false, securityLevel:'strict', suppressErrorRendering:true,
+    logLevel:'fatal', maxTextSize:12000, maxEdges:100, theme:'base', look:'classic',
+    fontFamily:'JetBrains Mono', htmlLabels:false,
+    themeVariables:{darkMode:dark, fontFamily:'JetBrains Mono', primaryColor:'transparent',
+      primaryTextColor:ink, primaryBorderColor:accent, lineColor:ink, textColor:ink,
+      secondaryColor:'transparent', secondaryTextColor:ink, tertiaryColor:'transparent', tertiaryTextColor:ink,
+      titleColor:ink, clusterBorder:ink, edgeLabelBackground:'transparent', background:'transparent',
+      actorBkg:'transparent', actorBorder:ink, actorTextColor:ink, signalColor:ink, signalTextColor:ink,
+      noteBkgColor:'transparent', noteTextColor:ink, noteBorderColor:ink},
+    flowchart:{htmlLabels:false}, sequence:{useMaxWidth:true},
+    secure:['securityLevel','startOnLoad','maxTextSize','maxEdges','suppressErrorRendering']});
+  const content = document.createDocumentFragment(), images = [];
+  for (let index=0; index<diagrams.length; index++) {
+    if (latest !== revision) return;
+    const source = diagrams[index];
+    try {
+      if (source.includes('%%{') || source.trimStart().startsWith('---')) throw new Error('configuration');
+      const result = await mermaid.render('sketch' + revision + '-' + index, source);
+      if (latest !== revision) return;
+      const section = document.createElement('section');
+      section.innerHTML = result.svg;
+      const svg = section.firstElementChild, box = svg.viewBox.baseVal;
+      const scale = Math.min(1, 1200/box.width, 1200/box.height);
+      svg.setAttribute('width', Math.max(1, Math.ceil(box.width*scale)));
+      svg.setAttribute('height', Math.max(1, Math.ceil(box.height*scale)));
+      images.push({index, svg:svg.outerHTML});
+      content.appendChild(section);
+    } catch (_) { /* Keep failed and partial source in the native editor. */ }
+  }
+  if (latest !== revision) return;
+  document.body.replaceChildren(content);
+  window.webkit.messageHandlers.rendered.postMessage(JSON.stringify({revision, images}));
+}
+</script></body></html>

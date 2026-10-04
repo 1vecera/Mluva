@@ -1,0 +1,30 @@
+[package]
+name = "mluva-asr"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Offline native Whisper and Parakeet inference"
+
+[dependencies]
+mluva-core = { path = "../mluva-core" }
+mluva-audio = { path = "../mluva-audio" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+libc.workspace = true
+rustfft = "=6.4.1"
+ort = { version = "=2.0.0-rc.13", default-features = false, features = ["std", "load-dynamic", "api-26", "cuda"] }
+
+[dev-dependencies]
+mluva-providers = { path = "../mluva-providers" }
+tempfile.workspace = true
+tokio.workspace = true
+flate2 = "1.1.10"
+sha2 = "0.11.0"
+
+[[bin]]
+name = "mluva-asr-worker"
+path = "src/bin/worker.rs"

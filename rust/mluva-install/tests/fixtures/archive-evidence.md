@@ -1,0 +1,36 @@
+# Native archive and dependency notices
+
+`mluva-package --archive SOURCE_DIRECTORY BINARY_DIRECTORY OUTPUT_PATH` now produces a gzip-compressed tar archive with one `mluva-1.6.0/` root. Directory output remains available without `--archive`. Both forms use the same explicit nine-executable runtime, content receipt, normalized modes and private staging; `RENAME_NOREPLACE` preserves existing or concurrently created destinations. Neither command installs or launches Mluva.
+
+The archive stores sorted paths with tar's deterministic headers and a zero gzip timestamp. Managed symlinks remain links. Reproducibility here means identical archive bytes from identical compiled executables and resource/notice inputs; it does not establish reproducible compilation across machines or compilers. Build and package with the repository's pinned compiler and populated Cargo cache:
+
+```sh
+cargo build --locked --release --workspace --bins --target-dir tmp/native-build
+tmp/native-build/release/mluva-package --archive . tmp/native-build/release tmp/mluva-native.tar.gz
+```
+
+## Notice sources and scope
+
+The package includes the original `onnx-asr` MIT notice for the derived native decoder/preprocessing data, plus native `THIRD_PARTY_NOTICES.md` and `RUST-DEPENDENCIES.json`. The collector uses [Cargo metadata](https://doc.rust-lang.org/cargo/commands/cargo-metadata.html) with locked, offline resolution for the builder's native Linux target. Normal/build edges cover all workspace members; dev-only edges are excluded. Cargo metadata also retains resolved optional dependencies that the current binaries do not use, so this is deliberately a conservative notice inventory, not a minimal binary dependency list.
+
+Each registry archive must match its exact Cargo.lock SHA-256 before notices are read. The collector reads complete notice files, including nested upstream notices, from the verified `.crate` archive in [Cargo's cache](https://doc.rust-lang.org/cargo/guide/cargo-home.html). It does not trust a modified extracted source cache. The pinned toolchain's cache layout and crates.io registry are supported; other source types fail for review. Missing archives/licenses, invalid paths, duplicate or nonregular selected files, oversized notices and Python helpers prevent publication. Relative `CARGO_HOME` resolves against the package caller before the metadata process changes directory.
+
+The statically linked Rust standard library is outside Cargo.lock. Its complete `COPYRIGHT-library.html` and twelve accompanying license texts are copied byte for byte from the matching pinned Rust 1.95.0 installation, with compiler identity recorded in the inventory. This upstream report covers standard-library dependencies and other targets too. The native payload contains **240 crate records, 436 crate notice files, 13 standard-library notice files and the onnx-asr notice**. Font, Mermaid and optional Tensaku notices retain their existing locations. System libraries and separately downloaded models/runtimes remain outside this archive inventory.
+
+## Independent verification
+
+The existing ignored package test exercises the actual optimized builder and production ELF files in the guarded disposable session. Its independent file walk validates all receipt hashes, modes, links and absence of development/Python payloads. Independent `cargo tree --edges normal,build` output selects 228 external packages; every identity is covered by the conservative 240-record metadata inventory. Every record agrees with Cargo.lock and has nonempty upstream notice bytes. GNU tar independently extracts ring's root and nested once_cell license files; their exact bytes match the shipped copies. The standard-library payload is independently compared to the actual compiler installation.
+
+A child mount namespace overlays every matching cached ring archive with corrupt bytes. Packaging refuses the checksum mismatch, publishes no output, removes staging and leaves the real cache digest unchanged. Source/asset, umask and occupied/racing-destination checks remain part of the same test. A relative-cache invocation from a different working directory produces the same archive as the ordinary absolute-cache invocation.
+
+GNU tar extracts the archive into a fresh private directory. Every extracted file hash/mode, managed link and content receipt matches directory output. Repeating archive construction produces an identical SHA-256; attempting to reuse its destination preserves the original bytes. The extracted archive then installs the native app and activates/upgrades the real Tensaku editor with Python blocked. The resident comparison passes **38 states, 13 actions and five CLI contracts**, forwarding, cold synthetic-PCM Record/quit and three startup faults. These are existing independent reference comparisons, now run from the extracted archive; the test's microphone wording refers to its private synthetic audio peer.
+
+Accepted evidence is `tmp/native-package-complete.log` and `tmp/native-package-complete-evidence/session.nTRwaa/`. The actual archive is 17,269,610 bytes, mode 0644. Its SHA-256 and that of the repeated archive are `16a0b8f0bdc734bcf53742557462f479e8151e4fa862922e9100a5663490ebf2`. The payload receipt is `16e9404e4fead097e5c844200f74f318295fc6ed6a1e94234c0a9f34fdd938a6`; the dependency inventory is `77ac24e78a5344e914341c9c40163e196ebdc26558dcd0eeeb1136428c6ced6d`. The development-only package builder is `e93166bfb750d37ae79faa0c0b007c3bf3733b039ad42fd1d10fc68c44cc2c19` and is not shipped.
+
+The intended missing-notice failures are retained in `tmp/package-notices-before.log` and `tmp/native-stdlib-before.log`. `tmp/native-package-relative-before.log` reproduces the cache-directory regression before its repair. Earlier development failures include a cleared PATH missing rustc, incorrect TOML parsing, a blank-line Cargo-tree observer and an incorrect assumption that metadata's optional edges exactly equal the build tree. The observer now preserves proc-macro dependencies and requires full build-tree coverage while documenting optional extras; no released behavior fixture changed. Those development runs are not substituted for the accepted archive evidence.
+
+## Remaining acceptance
+
+The final native workspace passes **139 tests, zero failures and 61 ignored environment checks across 97 suites** in `tmp/native-package-final-workspace.log`. The affected ignored package, editor-install and resident tests were explicitly executed above. Strict all-target Clippy passes in `tmp/native-package-final-clippy.log`; formatting, diff checks and the documented ShellCheck gate also pass. Existing legacy tooling checks retain their previous evidence because no Python, Make or shell behavior changed in this checkpoint.
+
+This is local x86_64 Linux packaging evidence, not a published release or clean Fedora/Omarchy dependency/ABI acceptance. Source/build/download entry-point conversion, complete joined application workflows, private Wayland selection/widget upgrade, broader targets/themes/scales, physical keys/microphone, interaction/capture/processing measurements and final maintained Python removal remain open. No whole-workflow parity row is promoted. The verified installed 1.6.0 app/widget, live desktop and user data remain unchanged.

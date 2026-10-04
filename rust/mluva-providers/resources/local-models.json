@@ -1,0 +1,90 @@
+[
+  {
+    "id": "whisper-tiny",
+    "label": "Whisper Tiny",
+    "repo": "onnx-community/whisper-tiny",
+    "revision": "ff4177021cc41f7db950912b73ea4fdf7d01d8e7",
+    "quantization": "quantized",
+    "engine": "whisper",
+    "files": [
+      {
+        "name": "config.json",
+        "size": 2243,
+        "sha256": "46aeea0a406afbeb563fc8e59ca10609203df4299af6a83f73752fef369efd2d"
+      },
+      {
+        "name": "vocab.json",
+        "size": 1036584,
+        "sha256": "50d6a919f0a0601d56a04eb583c780d18553aa388254ba3158eb6a00f13e2c1a"
+      },
+      {
+        "name": "added_tokens.json",
+        "size": 34604,
+        "sha256": "9715fd2243b6f06a5858b5e32950d2853f73dd5bc201aafcf76f5082a2d8acd1"
+      },
+      {
+        "name": "onnx/encoder_model_quantized.onnx",
+        "size": 10124990,
+        "sha256": "2af4a414ca47aa30f61246017e5fe82b0a8d229281d1255ba666a2a7f6b84d19"
+      },
+      {
+        "name": "onnx/decoder_model_merged_quantized.onnx",
+        "size": 30719241,
+        "sha256": "25e807a962b6349356d0ea5d0dfe530b7e5bf0e2a484aeca0359d03143faddd3"
+      }
+    ],
+    "ram_mb": 500
+  },
+  {
+    "id": "parakeet-v3",
+    "label": "Parakeet v3",
+    "repo": "istupakov/parakeet-tdt-0.6b-v3-onnx",
+    "revision": "8f23f0c03c8761650bdb5b40aaf3e40d2c15f1ce",
+    "quantization": "int8",
+    "engine": "nemo-parakeet-tdt-0.6b-v3",
+    "files": [
+      {
+        "name": "config.json",
+        "size": 97,
+        "sha256": "666903c76b9798caf2c210afd4f6cd60b08a8dbf9800ec8d7a3bc0d2148ac466"
+      },
+      {
+        "name": "vocab.txt",
+        "size": 93939,
+        "sha256": "d58544679ea4bc6ac563d1f545eb7d474bd6cfa467f0a6e2c1dc1c7d37e3c35d"
+      },
+      {
+        "name": "encoder-model.int8.onnx",
+        "size": 652183999,
+        "sha256": "6139d2fa7e1b086097b277c7149725edbab89cc7c7ae64b23c741be4055aff09"
+      },
+      {
+        "name": "decoder_joint-model.int8.onnx",
+        "size": 18202004,
+        "sha256": "eea7483ee3d1a30375daedc8ed83e3960c91b098812127a0d99d1c8977667a70"
+      }
+    ],
+    "ram_mb": 2000
+  },
+  {
+    "id": "qwen3-1.7b",
+    "label": "Qwen3-ASR 1.7B · recommended",
+    "repo": "getonit/Qwen3-ASR-1.7B-Q4_0-GGUF",
+    "revision": "bdff9f9b31f387d6eb797a8d827c08904048c57c",
+    "engine": "qwen3-asr",
+    "quantization": "Q4_0",
+    "ram_mb": 3500,
+    "files": [
+      {
+        "name": "Qwen3-ASR-1.7B-Q4_0.gguf",
+        "size": 1229449152,
+        "sha256": "adf2c487fcce3993bb30c9406748f5ef111a3a28b0a6c26f34223185011427c7"
+      },
+      {
+        "name": "mmproj-Qwen3-ASR-1.7B-Q8_0.gguf",
+        "size": 355709344,
+        "sha256": "46c1d533af3f354ceb37ce855dbceff7da7fa7cf1e6a523df3b13440bd164c0d"
+      }
+    ]
+  }
+]

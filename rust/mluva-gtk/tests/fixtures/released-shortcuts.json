@@ -1,0 +1,2834 @@
+{
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "modules": {
+    "linux/mluva_linux/__init__.py": "c242d7dde99d2636421fdca795ddcb0898788a06492ebbea5c770a8e4a506813",
+    "linux/mluva_linux/brand.py": "fe29d90483027e03b95652378b1d251d82deeb152f04924706da6eb9773ef6c4",
+    "linux/mluva_linux/config.py": "1a1f5244733323b2a2acd7d94c49bcc41b4ec0a79fcef5fec42c36dc0ae77a4f",
+    "linux/mluva_linux/global_shortcuts.py": "f37f8ade401c1566179765990ce5ffcf00d0b6326034a033a3039940a8405e21",
+    "linux/mluva_linux/private_files.py": "7fe39eac13e1f4bcfd248a8cab514818dc0ab4445f7be10bfa1f79a95a10a905",
+    "linux/mluva_linux/prompt_defaults.py": "2fdf23766603ec9e0f24ee1a43d562f3dd57f44c0706223822e9c740961ff5e8"
+  },
+  "workflows": [
+    {
+      "name": "normal",
+      "scenario": "normal",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "toggle-recording-f9"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "toggle-recording-f9"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Deactivated",
+            "id": "toggle-recording-f9"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "toggle-recording-f9"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "cancel-capture"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "open-rewrite"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "open-rewrite"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Deactivated",
+            "id": "open-rewrite"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "open-rewrite"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "unknown"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "toggle-recording-f8"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "cancel-capture",
+            "foreign": true
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "changed",
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "trigger": "\u001c  F12  \u001f"
+              },
+              {
+                "id": "open-rewrite",
+                "trigger": "  CTRL+R "
+              }
+            ]
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "binding",
+              "F9",
+              "F12"
+            ],
+            [
+              "rewrite-binding",
+              "CTRL+R"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "changed",
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "trigger": " \t "
+              }
+            ]
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "binding",
+              "F9",
+              "F12"
+            ],
+            [
+              "rewrite-binding",
+              "CTRL+R"
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ],
+            [
+              "rewrite-binding",
+              null
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "changed",
+            "foreign": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "trigger": "F1"
+              }
+            ]
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "binding",
+              "F9",
+              "F12"
+            ],
+            [
+              "rewrite-binding",
+              "CTRL+R"
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ],
+            [
+              "rewrite-binding",
+              null
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "malformed-activation"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "binding",
+              "F9",
+              "F12"
+            ],
+            [
+              "rewrite-binding",
+              "CTRL+R"
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ],
+            [
+              "rewrite-binding",
+              null
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut activation."
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "malformed-change"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "binding",
+              "F9",
+              "F12"
+            ],
+            [
+              "rewrite-binding",
+              "CTRL+R"
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ],
+            [
+              "rewrite-binding",
+              null
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut activation."
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut list."
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "closed",
+            "foreign": true
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "binding",
+              "F9",
+              "F12"
+            ],
+            [
+              "rewrite-binding",
+              "CTRL+R"
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ],
+            [
+              "rewrite-binding",
+              null
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut activation."
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut list."
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Deactivated",
+            "id": "toggle-recording-f9"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "binding",
+              "F9",
+              "F12"
+            ],
+            [
+              "rewrite-binding",
+              "CTRL+R"
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ],
+            [
+              "rewrite-binding",
+              null
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut activation."
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut list."
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "closed"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "binding",
+              "F9",
+              "F12"
+            ],
+            [
+              "rewrite-binding",
+              "CTRL+R"
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ],
+            [
+              "rewrite-binding",
+              null
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut activation."
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut list."
+            ],
+            [
+              "error",
+              "The desktop closed Mluva's global shortcut session."
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "untyped-activation",
+            "id": "toggle-recording-f9"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ],
+            [
+              "record"
+            ],
+            [
+              "cancel"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "rewrite"
+            ],
+            [
+              "binding",
+              "F9",
+              "F12"
+            ],
+            [
+              "rewrite-binding",
+              "CTRL+R"
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ],
+            [
+              "rewrite-binding",
+              null
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut activation."
+            ],
+            [
+              "error",
+              "The portal returned an invalid shortcut list."
+            ],
+            [
+              "error",
+              "The desktop closed Mluva's global shortcut session."
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "binding",
+          "F9",
+          "F9"
+        ],
+        [
+          "rewrite-binding",
+          "SHIFT+F9"
+        ],
+        [
+          "record"
+        ],
+        [
+          "record"
+        ],
+        [
+          "cancel"
+        ],
+        [
+          "rewrite"
+        ],
+        [
+          "rewrite"
+        ],
+        [
+          "binding",
+          "F9",
+          "F12"
+        ],
+        [
+          "rewrite-binding",
+          "CTRL+R"
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ],
+        [
+          "rewrite-binding",
+          null
+        ],
+        [
+          "error",
+          "The portal returned an invalid shortcut activation."
+        ],
+        [
+          "error",
+          "The portal returned an invalid shortcut list."
+        ],
+        [
+          "error",
+          "The desktop closed Mluva's global shortcut session."
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "rebind",
+      "scenario": "normal",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "key",
+            "key": "F9"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "key",
+            "key": "F10"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "binding",
+              "F10",
+              "F10"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "toggle-recording-f9",
+            "session": 1
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "binding",
+              "F10",
+              "F10"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "toggle-recording-f9"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "binding",
+              "F10",
+              "F10"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "toggle-recording-f10"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "binding",
+              "F10",
+              "F10"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "binding",
+          "F9",
+          "F9"
+        ],
+        [
+          "rewrite-binding",
+          "SHIFT+F9"
+        ],
+        [
+          "binding",
+          "F10",
+          "F10"
+        ],
+        [
+          "rewrite-binding",
+          "SHIFT+F9"
+        ],
+        [
+          "record"
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          },
+          {
+            "method": "Register",
+            "client": 2,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 2,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 2,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f10",
+                "description": "Start or stop Mluva recording with F10",
+                "trigger": "F10"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 2,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "name": "queued-key",
+      "scenario": "queued-key",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": []
+        },
+        {
+          "action": {
+            "op": "key",
+            "key": "F10"
+          },
+          "events": []
+        },
+        {
+          "action": {
+            "op": "key",
+            "key": "F11"
+          },
+          "events": []
+        },
+        {
+          "action": {
+            "op": "approve"
+          },
+          "events": [
+            [
+              "binding",
+              "F11",
+              "F11"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "toggle-recording-f9",
+            "session": 1
+          },
+          "events": [
+            [
+              "binding",
+              "F11",
+              "F11"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "Activated",
+            "id": "toggle-recording-f11"
+          },
+          "events": [
+            [
+              "binding",
+              "F11",
+              "F11"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ],
+            [
+              "record"
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "binding",
+          "F11",
+          "F11"
+        ],
+        [
+          "rewrite-binding",
+          "SHIFT+F9"
+        ],
+        [
+          "record"
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          },
+          {
+            "method": "Register",
+            "client": 2,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 2,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 2,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f11",
+                "description": "Start or stop Mluva recording with F11",
+                "trigger": "F11"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 2,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "name": "prestart-key",
+      "scenario": "normal",
+      "steps": [
+        {
+          "action": {
+            "op": "key",
+            "key": "F24"
+          },
+          "events": []
+        },
+        {
+          "action": {
+            "op": "invalid-key",
+            "key": "f9"
+          },
+          "events": [
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "invalid-key",
+            "key": "F0"
+          },
+          "events": [
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "invalid-key",
+            "key": "F25"
+          },
+          "events": [
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "invalid-key",
+            "key": "F09"
+          },
+          "events": [
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "invalid-key",
+            "key": " F9"
+          },
+          "events": [
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ]
+          ]
+        },
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "invalid-key",
+              "function_key must be one of F1 through F24"
+            ],
+            [
+              "binding",
+              "F24",
+              "F24"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "invalid-key",
+          "function_key must be one of F1 through F24"
+        ],
+        [
+          "invalid-key",
+          "function_key must be one of F1 through F24"
+        ],
+        [
+          "invalid-key",
+          "function_key must be one of F1 through F24"
+        ],
+        [
+          "invalid-key",
+          "function_key must be one of F1 through F24"
+        ],
+        [
+          "invalid-key",
+          "function_key must be one of F1 through F24"
+        ],
+        [
+          "binding",
+          "F24",
+          "F24"
+        ],
+        [
+          "rewrite-binding",
+          "SHIFT+F9"
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f24",
+                "description": "Start or stop Mluva recording with F24",
+                "trigger": "F24"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "early",
+      "scenario": "early",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "binding",
+          "F9",
+          "F9"
+        ],
+        [
+          "rewrite-binding",
+          "SHIFT+F9"
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "alternate-early",
+      "scenario": "alternate-early",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "binding",
+          "F9",
+          "F9"
+        ],
+        [
+          "rewrite-binding",
+          "SHIFT+F9"
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "registry-error",
+      "scenario": "registry-error",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "binding",
+              "F9",
+              "F9"
+            ],
+            [
+              "rewrite-binding",
+              "SHIFT+F9"
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "binding",
+          "F9",
+          "F9"
+        ],
+        [
+          "rewrite-binding",
+          "SHIFT+F9"
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "cancel-create",
+      "scenario": "cancel-create",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "Global shortcut approval was cancelled."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "Global shortcut approval was cancelled."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "deny-bind",
+      "scenario": "deny-bind",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "The desktop could not complete global shortcut approval."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "The desktop could not complete global shortcut approval."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "missing-session",
+      "scenario": "missing-session",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "The portal did not return a valid shortcut session handle."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "The portal did not return a valid shortcut session handle."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "bad-session",
+      "scenario": "bad-session",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "The portal returned an unexpected shortcut session handle."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "The portal returned an unexpected shortcut session handle."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "bad-request",
+      "scenario": "bad-request",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "Global shortcut CreateSession returned an invalid request handle."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "Global shortcut CreateSession returned an invalid request handle."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "foreign-request",
+      "scenario": "foreign-request",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "Global shortcut CreateSession returned an unexpected request handle."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "Global shortcut CreateSession returned an unexpected request handle."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "missing-shortcuts",
+      "scenario": "missing-shortcuts",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "The portal did not return its approved shortcuts."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "The portal did not return its approved shortcuts."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "invalid-shortcuts",
+      "scenario": "invalid-shortcuts",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "The portal returned an invalid shortcut list."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "The portal returned an invalid shortcut list."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "dictionary-shortcuts",
+      "scenario": "dictionary-shortcuts",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "The portal returned an invalid shortcut list."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "The portal returned an invalid shortcut list."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "invalid-description",
+      "scenario": "invalid-description",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "The portal returned an invalid description property."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "The portal returned an invalid description property."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "invalid-response",
+      "scenario": "invalid-response",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "The portal returned an invalid request response."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "The portal returned an invalid request response."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "method-error",
+      "scenario": "method-error",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": [
+            [
+              "error",
+              "Global shortcut CreateSession failed (org.freedesktop.portal.Error.NotAllowed)."
+            ],
+            [
+              "binding",
+              "F9",
+              null
+            ]
+          ]
+        }
+      ],
+      "events_before_close": [
+        [
+          "error",
+          "Global shortcut CreateSession failed (org.freedesktop.portal.Error.NotAllowed)."
+        ],
+        [
+          "binding",
+          "F9",
+          null
+        ]
+      ],
+      "shutdown_notifications": [],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "pending-create",
+      "scenario": "pending-create",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": []
+        }
+      ],
+      "events_before_close": [],
+      "shutdown_notifications": [
+        [
+          "error",
+          "The global shortcut request was closed."
+        ]
+      ],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "request",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    },
+    {
+      "name": "pending-bind",
+      "scenario": "pending-bind",
+      "steps": [
+        {
+          "action": {
+            "op": "start"
+          },
+          "events": []
+        }
+      ],
+      "events_before_close": [],
+      "shutdown_notifications": [
+        [
+          "error",
+          "The global shortcut request was closed."
+        ]
+      ],
+      "portal": {
+        "trace": [
+          {
+            "method": "Register",
+            "client": 1,
+            "body": "com.mluva.Linux",
+            "signature": "(sa{sv})"
+          },
+          {
+            "method": "CreateSession",
+            "client": 1,
+            "signature": "(a{sv})",
+            "tokens_valid": true
+          },
+          {
+            "method": "BindShortcuts",
+            "client": 1,
+            "signature": "(oa(sa{sv})sa{sv})",
+            "session_owned": true,
+            "parent": "",
+            "token_valid": true,
+            "shortcuts": [
+              {
+                "id": "toggle-recording-f9",
+                "description": "Start or stop Mluva recording with F9",
+                "trigger": "F9"
+              },
+              {
+                "id": "cancel-capture",
+                "description": "Cancel active Mluva capture",
+                "trigger": "CTRL+ALT+ESCAPE"
+              },
+              {
+                "id": "open-rewrite",
+                "description": "Open the latest Mluva conversation for rewriting",
+                "trigger": "SHIFT+F9"
+              }
+            ]
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "request",
+            "owned": true
+          },
+          {
+            "method": "Close",
+            "client": 1,
+            "kind": "session",
+            "owned": true
+          }
+        ],
+        "disconnected": [
+          1
+        ]
+      }
+    }
+  ]
+}
