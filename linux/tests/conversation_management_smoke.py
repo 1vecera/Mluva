@@ -7,9 +7,8 @@ import traceback
 from pathlib import Path
 from unittest.mock import patch
 
-from conversation_ui_smoke import IsolatedApplication, render_widget
+from conversation_ui_smoke import IsolatedApplication, paint, render_widget, settle
 from gi.repository import Gdk, GLib, Gtk
-from live_workspace_smoke import paint, settle
 
 from mluva_linux.conversation_titles import save_generated_title
 from mluva_linux.pipewire import PipeWireDeviceCatalog

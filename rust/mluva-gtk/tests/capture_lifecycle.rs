@@ -204,7 +204,6 @@ fn page(
             copy_scratchpad: Rc::new(|| {}),
             delete_scratchpad: Rc::new(|| {}),
             output_changed: Rc::new(|_| {}),
-            live_draft_edited: Rc::new(|| {}),
             announce: Rc::new(|_| {}),
         },
     )

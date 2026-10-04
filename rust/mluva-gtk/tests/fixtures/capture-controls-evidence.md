@@ -1,13 +1,15 @@
 # Native capture page and rewrite controls
 
-The comparison reference is unchanged Mluva 1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. The temporary collector imports the frozen downloaded release outside the maintained Rust tree and verifies the relevant application, GTK, catalog and document source bytes against that commit. [Released observations](released-capture-controls.json) have SHA-256 `1745f06fbeff6b52f7371005e9de7aa4ef380b7c87a4ae37b3fb05431aeb36ae`.
+The comparison reference is unchanged Mluva 1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. The temporary collector imports the frozen downloaded release outside the maintained Rust tree and verifies the relevant application, GTK, catalog and document source bytes against that commit. [Released observations](released-capture-controls.json) have SHA-256 `19215f9e0e5fe8d6dbd9837ff8c687376da868c5b181d82f031f7ffa2f4ee989`.
+
+The [assembled Live editor repair](live-editor-evidence.md) removes the duplicate draft-edit callback and its one substituted callback-only case. Revision protection is now checked through the actual Live controller and full application request/save path. The other 77 observations are unchanged and pass in the current rerun; the 78-state count below describes the original checkpoint.
 
 The ignored native owner constructs the actual production `RewriteSettings`, `ThinkingRow` and `CapturePage`, including its real `ConversationWorkspace`, compatible empty SQLite stores, recovery editor and recording dock. Ordinary public GTK fields and signals drive the comparison; there is no production test seam or interpreter in the native check.
 
 | Surface | Independently released observations |
 | --- | --- |
 | Rewrite model/thinking controls | 38 states: discovery/loading/failure, default/explicit/hidden/stale selections, identifier aliases, unavailable reasoning levels, Fast support and stale-Fast removal, provider/endpoint/key-variable changes, compatible-server aliases/defaults, selected-model effort reset, refresh/show callbacks and Unicode labels |
-| Capture controls/recovery | 40 states: Off/Once/Continuous cycle, template choice and rejected changes, Skip, returned shortcut descriptions and tracking availability, status/error/retry callouts, hidden Dictation results, unresolved Command/Notes actions, Unicode whitespace, edits and callback dispatch |
+| Capture controls/recovery | 39 states: Off/Once/Continuous cycle, template choice and rejected changes, Skip, returned shortcut descriptions and tracking availability, status/error/retry callouts, hidden Dictation results, unresolved Command/Notes actions, Unicode whitespace, edits and callback dispatch |
 
 The same actual released application builder constructs its capture page. Provider discovery, persistence, recording/review services, settings-page construction and window announcements are explicit external boundaries in this component comparison. The collector retains the original Live-control, status, error and output-visibility methods; controlled callbacks record requests, accept/reject a settings change and publish the accepted configuration. Native callbacks use the same boundary contract. A record click proves callback dispatch, not microphone capture or an asynchronous capture transaction. This comparison does not claim the remaining services or controllers were replaced or verified.
 

@@ -9,9 +9,8 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
-from conversation_ui_smoke import IsolatedApplication
+from conversation_ui_smoke import IsolatedApplication, paint, settle
 from gi.repository import GLib
-from live_workspace_smoke import paint, settle
 from screenshot_fixture import png
 
 from mluva_linux.codex_client import CodexAppServerClient

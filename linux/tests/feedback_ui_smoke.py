@@ -7,9 +7,8 @@ import traceback
 from dataclasses import replace
 from pathlib import Path
 
-from conversation_ui_smoke import IsolatedApplication
+from conversation_ui_smoke import IsolatedApplication, paint, settle
 from gi.repository import Gdk, GLib, Gtk, Pango
-from live_workspace_smoke import paint, settle
 
 from mluva_linux.config import load_config
 

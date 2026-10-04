@@ -9,9 +9,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from unittest.mock import patch
 
-from conversation_ui_smoke import IsolatedApplication
+from conversation_ui_smoke import IsolatedApplication, paint, settle
 from gi.repository import GLib, Gtk
-from live_workspace_smoke import paint, settle
 
 from mluva_linux.codex_client import CodexAppServerClient
 from mluva_linux.config import load_config

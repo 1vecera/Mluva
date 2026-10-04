@@ -9,9 +9,8 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
-from conversation_ui_smoke import IsolatedApplication
+from conversation_ui_smoke import IsolatedApplication, paint, settle
 from gi.repository import Adw, GLib, Gtk
-from live_workspace_smoke import paint, settle
 
 from mluva_linux.command_palette import application_commands
 from mluva_linux.pipewire import PipeWireDeviceCatalog

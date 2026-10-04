@@ -163,7 +163,6 @@ impl ApplicationDesktop {
                 copy_scratchpad: bind!(link, |app| app.pending.copy_notes()),
                 delete_scratchpad: bind!(link, |app| app.pending.confirm_delete_notes()),
                 output_changed: bind!(link, |app, value| app.pending.edit_notes(value)),
-                live_draft_edited: bind!(link, |app| app.refresh_review()),
                 announce: bind!(link, |app, text| app.announce(text)),
             },
         )?;

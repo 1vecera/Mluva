@@ -339,7 +339,6 @@ fn capture_page_and_catalog_controls_match_released_widgets() {
         copy_scratchpad: event("copy-scratchpad"),
         delete_scratchpad: event("delete-scratchpad"),
         output_changed: text_event("output"),
-        live_draft_edited: event("draft-edit"),
         announce: Rc::new(|_| {}),
     };
     let page = CapturePage::new(workspace, settings, config, callbacks).unwrap();
@@ -392,11 +391,6 @@ fn capture_page_and_catalog_controls_match_released_widgets() {
             "discard" => page.discard_command.emit_clicked(),
             "copy-scratchpad" => page.copy_scratchpad.emit_clicked(),
             "delete-scratchpad" => page.delete_scratchpad.emit_clicked(),
-            "draft" => page
-                .workspace
-                .live_draft_text
-                .buffer()
-                .set_text(action["text"].as_str().unwrap()),
             op => panic!("unknown reference capture action: {op}"),
         }
         settle();

@@ -93,8 +93,8 @@ linux-conversation-management-test: linux-python-setup
 			> "tmp/chat-management/$$scenario.log" 2>&1; \
 	done
 
-linux-live-rewrite-test: linux-python-setup
-	MLUVA_SMOKE=live bash linux/tests/run_native_text_target_smoke.sh tmp/live-workspace
+linux-live-rewrite-test: linux-live-workspace-test
+	bash linux/tests/run_application_smoke.sh live-controllers
 
 .PHONY: linux-provider-settings-test
 linux-provider-settings-test: linux-python-setup

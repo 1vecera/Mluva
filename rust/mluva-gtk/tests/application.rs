@@ -29,6 +29,8 @@ mod application_commands;
 mod application_compact;
 #[path = "support/application_continuation.rs"]
 mod application_continuation;
+#[path = "support/application_live_editor.rs"]
+mod application_live_editor;
 #[path = "support/application_live_workspace.rs"]
 mod application_live_workspace;
 #[path = "support/capture_ui.rs"]
@@ -366,7 +368,17 @@ fn released_assembled_application_and_shutdown() {
     .unwrap();
     let compact: Value =
         serde_json::from_str(include_str!("fixtures/released-application-compact.json")).unwrap();
-    for additional in [&commands, &continuation, &live_workspace, &compact] {
+    let live_editor: Value = serde_json::from_str(include_str!(
+        "fixtures/released-application-live-editor.json"
+    ))
+    .unwrap();
+    for additional in [
+        &commands,
+        &continuation,
+        &live_workspace,
+        &compact,
+        &live_editor,
+    ] {
         for key in ["reference", "gtk", "pango"] {
             assert_eq!(additional[key], fixture[key]);
         }
@@ -386,6 +398,7 @@ fn released_assembled_application_and_shutdown() {
             .unwrap()
             .iter()
             .chain([&commands, &continuation, &live_workspace])
+            .chain(live_editor["cases"].as_array().unwrap())
             .collect()
     };
     let workflows = cases.len();
@@ -463,6 +476,25 @@ fn released_assembled_application_and_shutdown() {
                 || owner.capture.page.view_state().initialization_failed
         });
         settle();
+        if params["live_editor"] == true {
+            let pids = application_live_editor::exercise(
+                &owner, &services, row, &tools, &root, &evidence, &events,
+            );
+            shutdown(&owner, &platform_closed, &evidence, &pids);
+            assert_eq!(
+                application_continuation::requests(peer.finish()),
+                row["requests"],
+                "Live editor HTTP"
+            );
+            assert_eq!(
+                application_continuation::turns(&evidence),
+                row["turns"],
+                "Live editor Codex"
+            );
+            count += row["stages"].as_array().unwrap().len();
+            release_application(owner, application);
+            continue;
+        }
         if params["compact"] == true {
             let pids =
                 application_compact::exercise(&owner, &services, row, &tools, &root, &evidence);

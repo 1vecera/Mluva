@@ -11,6 +11,7 @@ mode="${1:-application}"
 case "$mode" in
     application) suites=(application application_shell) ;;
     live-components) suites=(conversation_page document_surfaces) ;;
+    live-controllers) suites=(live_controller review_controller) ;;
     compact) suites=(application); compact_case="${2:-}" ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
 esac
@@ -21,6 +22,14 @@ done
 
 if "$inside"; then
     test -n "${OFFSCREEN_SESSION_ROOT:-}"
+    if [[ "$mode" == live-controllers ]]; then
+        for suite in "${suites[@]}"; do
+            env PATH="$OFFSCREEN_SESSION_ROOT/${suite%_controller}-codex-tools:$PATH" TZ=UTC CARGO_NET_OFFLINE=true \
+                cargo test --locked -p mluva-gtk --test "$suite" -- \
+                --ignored --test-threads=1 --nocapture
+        done
+        exit
+    fi
     export PATH="$OFFSCREEN_SESSION_ROOT/application-tools:$PATH"
     export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true
     if [[ "$mode" == compact ]]; then

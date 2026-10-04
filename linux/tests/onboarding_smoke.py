@@ -8,9 +8,9 @@ import traceback
 from pathlib import Path
 from unittest.mock import patch
 
+from conversation_ui_smoke import paint, settle
 from feedback_ui_smoke import FirstRunApplication
 from gi.repository import GLib
-from live_workspace_smoke import paint, settle
 
 from mluva_linux.config import load_config
 

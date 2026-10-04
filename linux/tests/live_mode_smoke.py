@@ -6,9 +6,8 @@ import traceback
 from pathlib import Path
 from unittest.mock import patch
 
-from conversation_ui_smoke import IsolatedApplication, render_widget
+from conversation_ui_smoke import IsolatedApplication, paint, render_widget
 from gi.repository import GLib
-from live_workspace_smoke import paint
 
 from mluva_linux.config import load_config
 from mluva_linux.live_rewrite import TEMPLATE_CHOICES

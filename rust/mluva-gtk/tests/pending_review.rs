@@ -342,7 +342,6 @@ fn released_command_and_notes_decisions() {
                         }
                     })
                 },
-                live_draft_edited: Rc::new(|| {}),
                 announce: Rc::new(|_| {}),
             },
         );

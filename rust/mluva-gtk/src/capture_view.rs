@@ -27,7 +27,6 @@ pub struct CaptureCallbacks {
     pub copy_scratchpad: Rc<dyn Fn()>,
     pub delete_scratchpad: Rc<dyn Fn()>,
     pub output_changed: Rc<dyn Fn(&str)>,
-    pub live_draft_edited: Rc<dyn Fn()>,
     pub announce: Rc<dyn Fn(&str)>,
 }
 
@@ -388,11 +387,6 @@ impl CapturePage {
                 page.refresh_output_visibility();
             }
         });
-        let changed = self.callbacks.live_draft_edited.clone();
-        self.workspace
-            .live_draft_text
-            .buffer()
-            .connect_changed(move |_| changed());
     }
 
     pub fn config(&self) -> AppConfig {

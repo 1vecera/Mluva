@@ -32,6 +32,49 @@ gi.require_version("Graphene", "1.0")
 from gi.repository import Adw, Gdk, GLib, Graphene, Gsk, Gtk  # noqa: E402, F401
 
 
+def settle(predicate, timeout: float = 6) -> None:
+    """Wait for a bounded asynchronous GTK completion while dispatching its actual callbacks."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        while GLib.MainContext.default().pending():
+            GLib.MainContext.default().iteration(False)
+        if predicate():
+            return
+        time.sleep(0.01)
+    raise AssertionError("The fixture did not settle")
+
+
+def paint(window, path):
+    """Capture only after GTK has allocated and painted the edited widgets."""
+    frames = []
+
+    def tick(_widget, _clock):
+        """Count two actual frame-clock updates before retaining pixels."""
+        frames.append(True)
+        return len(frames) < 3
+
+    window.add_tick_callback(tick)
+    settle(lambda: len(frames) >= 3)
+    paintable = Gtk.WidgetPaintable.new(window)
+    textures = []
+
+    def capture():
+        """Wait for a complete render node after a window resize invalidates the previous frame."""
+        snapshot = Gtk.Snapshot()
+        width, height = window.get_width(), window.get_height()
+        paintable.snapshot(snapshot, width, height)
+        node = snapshot.to_node()
+        if node is None:
+            window.queue_draw()
+            return False
+        viewport = Graphene.Rect().init(0, 0, width, height)
+        textures.append(window.get_native().get_renderer().render_texture(node, viewport))
+        return True
+
+    settle(capture)
+    textures[-1].save_to_png(str(path))
+
+
 def render_widget(widget: Gtk.Widget) -> Gdk.Texture:
     """Keep the native render bounds and alpha, including for a separate popover surface."""
     snapshot = Gtk.Snapshot()

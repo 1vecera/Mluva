@@ -10,9 +10,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from conversation_ui_smoke import IsolatedApplication
+from conversation_ui_smoke import IsolatedApplication, paint, settle
 from gi.repository import GLib
-from live_workspace_smoke import paint, settle
 
 from mluva_linux.codex_client import CodexAppServerClient
 from mluva_linux.realtime import RealtimePreview
