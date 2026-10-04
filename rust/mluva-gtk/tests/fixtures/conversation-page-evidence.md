@@ -1,5 +1,7 @@
 # Native conversation workspace and offline documents
 
+The subsequent [Live workspace comparison](live-workspace-evidence.md) adds ten stability observations to this same conversation owner and nine rendering transitions to the same document owner, bringing their totals to 123 page/scroll/stability states and fifteen actual render states. The earlier observations and evidence below remain unchanged. Both owners now run through `make linux-live-workspace-test` alongside the assembled application.
+
 The comparison reference is unchanged Mluva 1.6.0, commit `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. Temporary collectors import the downloaded release outside the maintained Rust tree and compare imported source bytes against that commit. The JSON fixtures record those source digests. Native tests use the production `ConversationWorkspace`, compatible SQLite stores and ordinary GTK widgets without an interpreter, source replacement or a production test seam.
 
 | Frozen reference | Observations | SHA-256 |

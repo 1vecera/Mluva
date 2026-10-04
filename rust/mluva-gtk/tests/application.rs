@@ -27,6 +27,8 @@ use std::{
 mod application_commands;
 #[path = "support/application_continuation.rs"]
 mod application_continuation;
+#[path = "support/application_live_workspace.rs"]
+mod application_live_workspace;
 #[path = "support/capture_ui.rs"]
 #[allow(dead_code)]
 mod capture_ui;
@@ -345,16 +347,20 @@ fn released_assembled_application_and_shutdown() {
         "fixtures/released-application-continuation.json"
     ))
     .unwrap();
-    for additional in [&commands, &continuation] {
+    let live_workspace: Value = serde_json::from_str(include_str!(
+        "fixtures/released-application-live-workspace.json"
+    ))
+    .unwrap();
+    for additional in [&commands, &continuation, &live_workspace] {
         for key in ["reference", "gtk", "pango"] {
             assert_eq!(additional[key], fixture[key]);
         }
     }
-    let cases = fixture["cases"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .chain([&commands, &continuation]);
+    let cases = fixture["cases"].as_array().unwrap().iter().chain([
+        &commands,
+        &continuation,
+        &live_workspace,
+    ]);
     let mut count = 0;
     for (index, row) in cases.enumerate() {
         events.borrow_mut().clear();
@@ -459,6 +465,31 @@ fn released_assembled_application_and_shutdown() {
                 "continuation Codex"
             );
             count += row["stages"].as_array().unwrap().len();
+            continue;
+        }
+        if params["live_workspace"] == true {
+            let pids = application_live_workspace::exercise(
+                &owner, &services, row, &tools, &root, &evidence,
+            );
+            shutdown(&owner, &platform_closed, &evidence, &pids);
+            assert_eq!(
+                application_continuation::requests(peer.finish()),
+                row["requests"],
+                "Live workspace HTTP"
+            );
+            assert_eq!(
+                application_continuation::turns(&evidence),
+                row["turns"],
+                "Live workspace Codex"
+            );
+            count += row["stages"].as_array().unwrap().len();
+            // WebKit tears down its renderers asynchronously. Release the last
+            // application references while the GTK owner loop is still running.
+            let released = Rc::downgrade(&owner);
+            drop(owner);
+            drop(application);
+            until(|| released.upgrade().is_none());
+            settle_for(Duration::from_millis(500));
             continue;
         }
         gtk::gdk::Display::default()
@@ -584,6 +615,6 @@ fn released_assembled_application_and_shutdown() {
     }
     println!(
         "Assembled application: {} workflows, {count} GTK/store states, acknowledged owner shutdown",
-        fixture["cases"].as_array().unwrap().len() + 2
+        fixture["cases"].as_array().unwrap().len() + 3
     );
 }

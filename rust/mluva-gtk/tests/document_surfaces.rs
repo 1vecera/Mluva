@@ -11,6 +11,8 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::thread;
 use std::time::{Duration, Instant};
+#[path = "support/diagram_transitions.rs"]
+mod diagram_transitions;
 
 fn reference() -> Value {
     serde_json::from_str(include_str!("fixtures/released-document-surfaces.json")).unwrap()
@@ -165,6 +167,7 @@ fn offline_mermaid_textures_and_lossless_documents_match_released_rendering() {
         drop(preview);
         settle();
     }
+    diagram_transitions::exercise(&body, &resources, &root);
     window.close();
     settle();
 }

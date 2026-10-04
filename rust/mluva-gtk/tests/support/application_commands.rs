@@ -125,6 +125,10 @@ fn choose(owner: &ApplicationDesktop, title: &str) {
     key("Return");
     until(|| owner.shell.window.visible_dialog().is_none());
 }
+pub(super) fn choose_action(owner: &ApplicationDesktop, title: &str) {
+    Panel::open(owner);
+    choose(owner, title);
+}
 struct Flow<'a> {
     owner: &'a ApplicationDesktop,
     services: &'a ApplicationServices,

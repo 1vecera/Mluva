@@ -19,6 +19,8 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::thread;
 use std::time::{Duration, Instant};
+#[path = "support/conversation_stability.rs"]
+mod conversation_stability;
 
 fn settle() {
     let deadline = Instant::now() + Duration::from_millis(120);
@@ -536,6 +538,7 @@ fn conversation_page_matches_released_editing_navigation_privacy_and_live_observ
         eprintln!("conversation_action={index} {op} PASS");
     }
     exercise_scrolling(w);
+    conversation_stability::exercise(w, &window, &root);
     window.close();
     drop(workspace);
     settle();

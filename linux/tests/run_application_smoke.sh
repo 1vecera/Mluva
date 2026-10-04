@@ -1,12 +1,28 @@
 #!/usr/bin/env bash
-# Verify actual application commands and continuation on a private desktop and clipboard.
+# Verify application and Live owners on a private desktop, clipboard and network.
 set -euo pipefail
 
+inside=false
 if [[ "${1:-}" == --inside-session ]]; then
+    inside=true
+    shift
+fi
+mode="${1:-application}"
+case "$mode" in
+    application) suites=(application application_shell) ;;
+    live-components) suites=(conversation_page document_surfaces) ;;
+    *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
+esac
+test_arguments=()
+for suite in "${suites[@]}"; do
+    test_arguments+=(--test "$suite")
+done
+
+if "$inside"; then
     test -n "${OFFSCREEN_SESSION_ROOT:-}"
     export PATH="$OFFSCREEN_SESSION_ROOT/application-tools:$PATH"
     export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true
-    exec cargo test --locked -p mluva-gtk --test application --test application_shell -- \
+    exec cargo test --locked -p mluva-gtk "${test_arguments[@]}" -- \
         --ignored --test-threads=1 --nocapture
 fi
 
@@ -23,12 +39,14 @@ RUSTUP_HOME="$(realpath -m -- "${RUSTUP_HOME:-$HOME/.rustup}")"
 CARGO_TARGET_DIR="$(realpath -m -- "${CARGO_TARGET_DIR:-$project_root/tmp/native-build}")"
 export CARGO_HOME RUSTUP_HOME CARGO_TARGET_DIR
 cd -- "$project_root"
-cargo build --locked -p mluva-gtk --example private_input \
-    -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
-    -p mluva-providers --bin codex-fixture-peer
-cargo test --locked -p mluva-gtk --test application --test application_shell --no-run
+if [[ "$mode" == application ]]; then
+    cargo build --locked -p mluva-gtk --example private_input \
+        -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
+        -p mluva-providers --bin codex-fixture-peer
+fi
+cargo test --locked -p mluva-gtk "${test_arguments[@]}" --no-run
 mkdir -p tmp/application
 evidence="$(mktemp -d "$project_root/tmp/application/run.XXXXXX")"
 exec bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
     bash dev/run-isolated-browser.sh "$evidence" -- \
-    bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session
+    bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session "$mode"
