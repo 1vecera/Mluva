@@ -22,7 +22,10 @@ pub struct Peer {
 }
 impl Peer {
     pub fn new(responses: &[Value]) -> Self {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        Self::bind("127.0.0.1:0", responses)
+    }
+    pub fn bind(address: &str, responses: &[Value]) -> Self {
+        let listener = TcpListener::bind(address).unwrap();
         listener.set_nonblocking(true).unwrap();
         let address = format!("http://{}", listener.local_addr().unwrap());
         let remaining = Arc::new(Mutex::new(
@@ -108,6 +111,14 @@ fn exchange(
         }
     };
     let header = std::str::from_utf8(&bytes[..header_end])?.to_owned();
+    let mut request = header
+        .lines()
+        .next()
+        .ok_or("missing request")?
+        .split_whitespace();
+    let method = request.next().ok_or("missing method")?;
+    let path = request.next().ok_or("missing request path")?;
+    let catalog = method == "GET" && path.ends_with("/models");
     let length: usize = header
         .lines()
         .find_map(|line| {
@@ -115,6 +126,7 @@ fn exchange(
                 .strip_prefix("content-length:")
                 .map(|value| value.trim().parse())
         })
+        .or_else(|| catalog.then_some(Ok(0)))
         .ok_or("missing content length")??;
     if length > 1_000_000 {
         return Err("oversized request".into());
@@ -128,11 +140,6 @@ fn exchange(
         bytes.extend_from_slice(&buffer[..count]);
     }
     let body = &bytes[header_end..header_end + length];
-    let path = header
-        .lines()
-        .next()
-        .and_then(|line| line.split_whitespace().nth(1))
-        .ok_or("missing request path")?;
     let response = pending
         .lock()
         .unwrap()
@@ -157,10 +164,15 @@ fn exchange(
         }
     }
     let speech = path == "/speech-to-text" || path.ends_with("/audio/transcriptions");
-    if speech != (response["route"] == "speech") {
+    if speech != (response["route"] == "speech")
+        || catalog != (response["route"] == "catalog")
+        || (!catalog && method != "POST")
+    {
         return Err("provider request order differs".into());
     }
-    if speech {
+    if catalog {
+        wire.lock().unwrap().push(json!({"path":path,"authorization":header.lines().any(|line|line.to_ascii_lowercase().starts_with("authorization:"))}));
+    } else if speech {
         wire.lock()
             .unwrap()
             .push(json!({"path": path, "fields": multipart_fields(body)?}));
@@ -172,7 +184,7 @@ fn exchange(
             .unwrap()
             .push(json!({"path": path, "json": serde_json::from_slice::<Value>(body)?}));
     }
-    let body = if speech {
+    let body = if speech || catalog {
         serde_json::to_vec(&response["payload"])?
     } else if response["malformed"] == true {
         b"data: {broken}\n\n".to_vec()
@@ -188,7 +200,7 @@ fn exchange(
             "HTTP/1.1 {} Fixture\r\nContent-Length: {}\r\nContent-Type: {}\r\nConnection: close\r\n\r\n",
             response["status"].as_u64().unwrap(),
             body.len(),
-            if speech {
+            if speech || catalog {
                 "application/json"
             } else {
                 "text/event-stream"
@@ -204,6 +216,9 @@ fn exchange(
             ))
     {
         return Err(error.into());
+    }
+    if let Some(path) = response["completed_file"].as_str() {
+        std::fs::write(path, b"response finished")?;
     }
     Ok(())
 }

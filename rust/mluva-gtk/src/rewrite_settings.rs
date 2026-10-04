@@ -372,6 +372,12 @@ impl RewriteSettings {
         self.status.set_label("Loading models…");
     }
 
+    pub fn reset_catalog(&self) {
+        self.models.borrow_mut().clear();
+        let config = self.config.borrow().clone();
+        self.set_config(config);
+    }
+
     pub fn set_models(&self, models: Option<Vec<Model>>) {
         self.refresh.set_sensitive(true);
         let Some(models) = models.filter(|models| !models.is_empty()) else {

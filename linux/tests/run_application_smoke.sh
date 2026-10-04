@@ -13,6 +13,7 @@ case "$mode" in
     live-components) suites=(conversation_page document_surfaces) ;;
     live-controllers) suites=(live_controller review_controller) ;;
     compact) suites=(application); compact_case="${2:-}" ;;
+    providers) suites=(application); provider_case="${2:-}" ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
 esac
 test_arguments=()
@@ -36,6 +37,11 @@ if "$inside"; then
         export MLUVA_COMPACT_CASE="$compact_case" GDK_SCALE=1
         if [[ "$compact_case" == tiled ]]; then export GDK_SCALE=2; fi
     fi
+    if [[ "$mode" == providers ]]; then
+        export MLUVA_PROVIDER_CASE="$provider_case"
+        export CREDENTIAL_FIXTURE_ROOT="$OFFSCREEN_SESSION_ROOT/provider-keyring"
+        export FIXTURE_SPEECH_KEY=synthetic-http-key FIXTURE_REWRITE_KEY=synthetic-http-key
+    fi
     exec cargo test --locked -p mluva-gtk "${test_arguments[@]}" -- \
         --ignored --test-threads=1 --nocapture
 fi
@@ -56,11 +62,21 @@ cd -- "$project_root"
 if [[ "$mode" != live-components ]]; then
     cargo build --locked -p mluva-gtk --example private_input \
         -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
-        -p mluva-providers --bin codex-fixture-peer
+        -p mluva-providers --bin codex-fixture-peer --bin credential-fixture-peer
 fi
 cargo test --locked -p mluva-gtk "${test_arguments[@]}" --no-run
 mkdir -p tmp/application
 evidence="$(mktemp -d "$project_root/tmp/application/run.XXXXXX")"
+if [[ "$mode" == providers ]]; then
+    provider_cases=(flow minimum narrow wide details error)
+    if [[ -n "$provider_case" ]]; then provider_cases=("$provider_case"); fi
+    for provider_case in "${provider_cases[@]}"; do
+        bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
+            bash dev/run-isolated-browser.sh "$evidence/$provider_case" -- \
+            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session providers "$provider_case"
+    done
+    exit
+fi
 if [[ "$mode" == compact ]]; then
     export OFFSCREEN_SCREEN_SPEC=2200x2500x24
     compact_cases=(minimum narrow tiled wide empty rewriting recording processing live-draft finalizing finalizing-empty)

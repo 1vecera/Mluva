@@ -209,7 +209,7 @@ impl ApplicationDesktop {
             SettingsKind::Providers => {
                 self.titles.cancel();
                 self.cancel_catalog();
-                self.page().rewrite_settings.set_models(Some(vec![]));
+                self.page().rewrite_settings.reset_catalog();
                 self.meeting.sync_config(true);
                 self.initialize_services(false);
             }

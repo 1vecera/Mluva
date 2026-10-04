@@ -97,13 +97,8 @@ linux-live-rewrite-test: linux-live-workspace-test
 	bash linux/tests/run_application_smoke.sh live-controllers
 
 .PHONY: linux-provider-settings-test
-linux-provider-settings-test: linux-python-setup
-	@set -e; for spec in flow:1060:780 minimum:420:520 narrow:480:640 wide:1060:780 details:480:640 error:480:640; do \
-		scenario=$${spec%%:*}; dimensions=$${spec#*:}; \
-		MLUVA_SMOKE=providers MLUVA_PROVIDER_SCENARIO="$$scenario" \
-		MLUVA_UI_WIDTH="$${dimensions%:*}" MLUVA_UI_HEIGHT="$${dimensions#*:}" \
-			bash linux/tests/run_native_text_target_smoke.sh "tmp/provider-settings-smoke/$$scenario"; \
-	done
+linux-provider-settings-test:
+	bash linux/tests/run_application_smoke.sh providers
 
 linux-run:
 	bash linux/native-source-command.sh run

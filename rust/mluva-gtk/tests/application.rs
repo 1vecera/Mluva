@@ -33,6 +33,8 @@ mod application_continuation;
 mod application_live_editor;
 #[path = "support/application_live_workspace.rs"]
 mod application_live_workspace;
+#[path = "support/application_providers.rs"]
+mod application_providers;
 #[path = "support/capture_ui.rs"]
 #[allow(dead_code)]
 mod capture_ui;
@@ -300,6 +302,9 @@ fn released_assembled_application_and_shutdown() {
     )
     .unwrap();
     fs::set_permissions(tools.join("codex"), fs::Permissions::from_mode(0o700)).unwrap();
+    if std::env::var_os("MLUVA_PROVIDER_CASE").is_some() {
+        application_providers::prepare_credentials(&root, &tools, &target);
+    }
     gtk::init().unwrap();
     adw::init().unwrap();
     gtk::Settings::default()
@@ -372,18 +377,30 @@ fn released_assembled_application_and_shutdown() {
         "fixtures/released-application-live-editor.json"
     ))
     .unwrap();
+    let providers: Value =
+        serde_json::from_str(include_str!("fixtures/released-application-providers.json")).unwrap();
     for additional in [
         &commands,
         &continuation,
         &live_workspace,
         &compact,
         &live_editor,
+        &providers,
     ] {
         for key in ["reference", "gtk", "pango"] {
             assert_eq!(additional[key], fixture[key]);
         }
     }
-    let cases = if let Ok(name) = std::env::var("MLUVA_COMPACT_CASE") {
+    let cases = if let Ok(name) = std::env::var("MLUVA_PROVIDER_CASE") {
+        let selected = providers["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|case| case["name"] == name)
+            .collect::<Vec<_>>();
+        assert_eq!(selected.len(), 1, "select one released provider scenario");
+        selected
+    } else if let Ok(name) = std::env::var("MLUVA_COMPACT_CASE") {
         let selected = compact["cases"]
             .as_array()
             .unwrap()
@@ -432,10 +449,22 @@ fn released_assembled_application_and_shutdown() {
                 response["wait_for_file"] = json!(evidence.join("provider.release"));
                 response["incoming_file"] = json!(evidence.join("speech.arrived"));
             }
+            if response["held"] == true {
+                response["wait_for_file"] = json!(evidence.join("catalog.release"));
+                response["incoming_file"] = json!(evidence.join("catalog.arrived"));
+                response["completed_file"] = json!(evidence.join("catalog.sent"));
+            }
         }
-        let mut peer = http::Peer::new(&responses);
+        // A fixed private endpoint keeps expanded URL fields pixel-comparable.
+        let mut peer = if params["providers"] == true {
+            http::Peer::bind("127.0.0.1:48117", &responses)
+        } else {
+            http::Peer::new(&responses)
+        };
         let mut document = row["config"].clone();
-        document["transcription_base_url"] = json!(format!("{}/v1", peer.address));
+        if params["providers"] != true {
+            document["transcription_base_url"] = json!(format!("{}/v1", peer.address));
+        }
         let config: AppConfig = serde_json::from_value(document).unwrap();
         let paths = AppPaths {
             config: directory.path().join("config/mluva"),
@@ -443,6 +472,9 @@ fn released_assembled_application_and_shutdown() {
             runtime: directory.path().join("runtime/mluva"),
         };
         config.save(&paths.config.join("config.json")).unwrap();
+        if params["providers"] == true {
+            application_providers::prepare_model(&paths.data);
+        }
         let services = ApplicationServices::open(paths.clone()).unwrap();
         let application = adw::Application::builder()
             .application_id(format!("com.mluva.Acceptance{index}"))
@@ -476,6 +508,21 @@ fn released_assembled_application_and_shutdown() {
                 || owner.capture.page.view_state().initialization_failed
         });
         settle();
+        if params["providers"] == true {
+            let pids = application_providers::exercise(
+                &owner, &services, row, &tools, &root, &evidence, &peer,
+            );
+            shutdown(&owner, &platform_closed, &evidence, &pids);
+            assert_eq!(json!(peer.finish()), row["requests"], "provider HTTP");
+            let methods = records(&evidence.join("requests.jsonl"))
+                .into_iter()
+                .filter_map(|r| r["message"]["method"].as_str().map(String::from))
+                .collect::<Vec<_>>();
+            assert_eq!(json!(methods), row["methods"], "provider Codex");
+            count += row["stages"].as_array().unwrap().len();
+            release_application(owner, application);
+            continue;
+        }
         if params["live_editor"] == true {
             let pids = application_live_editor::exercise(
                 &owner, &services, row, &tools, &root, &evidence, &events,
