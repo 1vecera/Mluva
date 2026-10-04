@@ -22,6 +22,8 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+#[path = "support/application_commands.rs"]
+mod application_commands;
 #[path = "support/capture_ui.rs"]
 #[allow(dead_code)]
 mod capture_ui;
@@ -67,6 +69,17 @@ fn clipboard() -> Option<String> {
         });
     until(|| value.borrow().is_some());
     value.borrow_mut().take().unwrap()
+}
+fn shutdown(owner: &Rc<ApplicationDesktop>) {
+    let drained = Rc::new(Cell::new(false));
+    let done = drained.clone();
+    let shutdown = owner.shutdown();
+    glib::MainContext::default().spawn_local(async move {
+        shutdown.await.unwrap();
+        done.set(true);
+    });
+    until(|| drained.get());
+    settle();
 }
 struct Observer {
     identities: BTreeMap<String, String>,
@@ -279,8 +292,18 @@ fn released_assembled_application_and_shutdown() {
         ])
     );
     assert_eq!(fixture["pango"], gtk::pango::version_string().as_str());
+    let commands: Value =
+        serde_json::from_str(include_str!("fixtures/released-application-commands.json")).unwrap();
+    assert_eq!(commands["reference"], fixture["reference"]);
+    assert_eq!(commands["gtk"], fixture["gtk"]);
+    assert_eq!(commands["pango"], fixture["pango"]);
+    let cases = fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .chain(std::iter::once(&commands));
     let mut count = 0;
-    for (index, row) in fixture["cases"].as_array().unwrap().iter().enumerate() {
+    for (index, row) in cases.enumerate() {
         events.borrow_mut().clear();
         let name = row["name"].as_str().unwrap();
         let params = &row["params"];
@@ -341,6 +364,30 @@ fn released_assembled_application_and_shutdown() {
                 || owner.capture.page.view_state().initialization_failed
         });
         settle();
+        if params["commands"] == true {
+            let pid =
+                application_commands::exercise(&owner, &services, &application, row, &tools, &root);
+            shutdown(&owner);
+            assert!(platform_closed.get());
+            assert!(!Path::new(&format!("/proc/{pid}")).exists());
+            assert_eq!(json!(peer.finish()), row["requests"], "command HTTP");
+            let turns = records(&evidence.join("requests.jsonl"))
+                .into_iter()
+                .filter(|record| record["message"]["method"] == "turn/start")
+                .map(|record| record["message"].clone())
+                .collect::<Vec<_>>();
+            assert_eq!(
+                json!(turns),
+                row["turns"],
+                "stale commands must not dispatch a provider turn"
+            );
+            for child in records(&evidence.join("process.jsonl")) {
+                assert!(!Path::new(&format!("/proc/{}", child["pid"])).exists());
+                assert!(!Path::new(child["cwd"].as_str().unwrap()).exists());
+            }
+            count += row["stages"].as_array().unwrap().len();
+            continue;
+        }
         gtk::gdk::Display::default()
             .unwrap()
             .clipboard()
@@ -451,16 +498,8 @@ fn released_assembled_application_and_shutdown() {
             fs::remove_file(paths.config.join("config.json")).unwrap();
             fs::create_dir(paths.config.join("config.json")).unwrap();
         }
-        let drained = Rc::new(Cell::new(false));
-        let done = drained.clone();
-        let shutdown = owner.shutdown();
-        glib::MainContext::default().spawn_local(async move {
-            shutdown.await.unwrap();
-            done.set(true);
-        });
-        until(|| drained.get());
+        shutdown(&owner);
         assert!(platform_closed.get());
-        settle();
         assert!(!Path::new(&format!("/proc/{pid}")).exists());
         for child in records(&evidence.join("process.jsonl")) {
             assert!(!Path::new(&format!("/proc/{}", child["pid"])).exists());
@@ -478,6 +517,6 @@ fn released_assembled_application_and_shutdown() {
     }
     println!(
         "Assembled application: {} workflows, {count} GTK/store states, acknowledged owner shutdown",
-        fixture["cases"].as_array().unwrap().len()
+        fixture["cases"].as_array().unwrap().len() + 1
     );
 }

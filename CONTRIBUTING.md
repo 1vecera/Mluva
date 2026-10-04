@@ -62,6 +62,8 @@ Keep a test when it would catch an observable regression: lost text, an incorrec
 
 Theme changes use the [native theme comparison](rust/mluva-gtk/tests/fixtures/theme-evidence.md), which includes its guarded command. It preserves open-window symlink switching, applied colors, recovery and cleanup and runs alongside the independent document-widget comparison. It needs no Python.
 
+`make linux-command-test` joins private Ctrl+P/Enter/Escape input to the actual native application, capture, clipboard and stores, and runs the existing command/settings component comparison. The [command evidence](rust/mluva-gtk/tests/fixtures/application-commands-evidence.md) maps the retired Python checks and records independent released layouts. The runner uses `dev/run-isolated-browser.sh` prerequisites plus ImageMagick, prepares its native peers before isolation and needs no Python. Captures and receipts are written to a fresh directory under `tmp/application-commands/`.
+
 The following checks still exercise Python during the port. Their Make targets prepare that environment automatically; run `make linux-python-setup` before a direct `uv` command:
 
 | Remaining Python owner | Focused check |
@@ -71,7 +73,6 @@ The following checks still exercise Python during the port. Their Make targets p
 | Codex capability restrictions | `make linux-codex-isolation-test` exercises the installed CLI against a loopback model fixture, including an unsolicited command, inherited MCP and global instructions; it does not use a real account or provider |
 | Recording, cleanup or delivery | `(cd linux && uv run --locked pytest -q tests/test_app_capture.py tests/test_workflow.py tests/test_segment_cleanup.py tests/test_delivery.py)` |
 | Prompt configuration or editor | `make linux-prompt-test` (hover/focus, Ctrl+P deep links, local files, Save/Cancel/reset, restart and recording snapshots) |
-| Ctrl+P action or availability | `make linux-command-test` (real native editor, stale actions, lossless Copy/Save, dismissal and keyboard navigation) |
 | Live editor or finalization | `make linux-live-rewrite-test` (manual edits, late results, final transcript and clipboard gates) |
 | Continue recording, Live activation or thinking controls | `make linux-continuation-test` (real capture lifecycle with fake device/provider boundaries, edits, cancellation, persistence and narrow layout) |
 | Conversation layout | `make linux-compact-workspace-test` (minimum, narrow, wide and 360-pixel tiles at 2× scaling; checks visible control bounds in saved, empty, rewrite and recording states) |

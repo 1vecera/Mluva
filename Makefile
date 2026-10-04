@@ -44,10 +44,8 @@ linux-test-fast:
 	cargo test --locked -p mluva-core --test reference_contracts --test persistence_contracts \
 		--test prompt_and_draft_contracts --test live_policy
 
-linux-command-test: linux-python-setup
-	bash dev/run-isolated.sh tmp/command-palette -- env PYTHONPATH=linux:linux/tests \
-		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
-		uv run --project linux --locked python linux/tests/command_palette_smoke.py
+linux-command-test:
+	bash linux/tests/run_application_commands_smoke.sh
 
 linux-fluid-workspace-test: linux-python-setup
 	OFFSCREEN_ENABLE_ATSPI=1 bash dev/run-isolated.sh tmp/fluid-workspace -- env PYTHONPATH=linux:linux/tests \

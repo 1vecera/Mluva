@@ -51,8 +51,7 @@ pub fn prompt_control(
     let edit = gtk::Button::builder()
         .icon_name("emblem-system-symbolic")
         .build();
-    edit.add_css_class("flat");
-    edit.add_css_class("ml-prompt-settings");
+    edit.set_css_classes(&["flat", "ml-prompt-settings"]);
     let label = format!("Edit prompt · {name}");
     edit.set_tooltip_text(Some(&label));
     edit.update_property(&[gtk::accessible::Property::Label(&label)]);

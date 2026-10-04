@@ -266,7 +266,7 @@ impl ConversationWorkspace {
         let content = gtk::Box::new(gtk::Orientation::Vertical, 0);
         content.add_css_class("ml-conversation");
         split.set_content(Some(&content));
-        let heading = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        let heading = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         margins(&heading, 16);
         heading.set_margin_bottom(8);
         heading.set_size_request(-1, 32);
