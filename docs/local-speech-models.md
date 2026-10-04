@@ -1,16 +1,14 @@
 # Local speech models for Mluva
 
-The five-stop slider is ordered by model storage and estimated CPU working RAM. Qwen3-ASR 1.7B is the default local selection. CPU remains the portable default; NVIDIA acceleration is optional. Selecting a model does not download it. Continue and Apply wait for verified files and a supported recognition language.
+The three-stop slider is ordered by model storage and estimated CPU working RAM. Qwen3-ASR 1.7B is the default local selection. CPU remains the portable default; NVIDIA acceleration is optional. Selecting a model does not download it. Continue and Apply wait for verified files and a supported recognition language.
 
 | Slider choice | Model download | Estimated CPU RAM | Runtime |
 | --- | ---: | ---: | --- |
 | Whisper Tiny | 42 MB | 0.5 GB | ONNX |
-| Whisper Base | 78 MB | 0.75 GB | ONNX |
-| Whisper Small | 250 MB | 1.5 GB | ONNX |
 | Parakeet TDT 0.6B v3 INT8 | 670 MB | 2 GB | ONNX |
 | Qwen3-ASR 1.7B Q4_0, recommended | 1,585 MB | 3.5 GB | llama.cpp |
 
-The RAM values include headroom; they are not guaranteed peaks or total computer requirements. Whisper Turbo remains a benchmark/compatibility catalog entry but is no longer a sixth slider stop. An old Turbo configuration reopens setup with Qwen selected and requires its download before continuing.
+The RAM values include headroom; they are not guaranteed peaks or total computer requirements. Whisper Base, Small and Turbo selections migrate to Qwen3-ASR 1.7B without deleting their old caches. Continue requires the retained model files to be ready. Those retired models remain in the historical benchmark below, not the current application catalog.
 
 ## What “live” means here
 
@@ -24,7 +22,7 @@ Mluva owns weights and runtimes in its XDG data directory. It does not borrow an
 
 Weights load on the first audio chunk, remain available during that recording, and unload at Stop or Cancel. The process is not a persistent system service. CPU ONNX workers have a 5-billion-byte address-space limit; GPU and Qwen workers have a resident-memory watchdog. No local failure switches to a paid provider.
 
-Managed models, runtimes and the Qwen shader cache count toward the 5-billion-byte download storage guard. The base app environment and temporary installation space are separate. All five CPU choices fit together. ONNX NVIDIA support adds approximately 3.36 GB, so installing every GPU model together would exceed the managed budget; download only the models needed. Tests use separate model stores for that reason.
+Managed models, runtimes and the Qwen shader cache count toward the 5-billion-byte download storage guard. The base app environment and temporary installation space are separate. All three CPU choices fit together. ONNX NVIDIA support adds approximately 3.36 GB, so installing every GPU model together would exceed the managed budget; download only the models needed. Tests use separate model stores for that reason.
 
 Qwen uses pinned llama.cpp b11011 binaries: CPU or Vulkan for NVIDIA. Device discovery selects the NVIDIA device by name, rather than assuming Vulkan device zero is the dedicated GPU. The model is the pinned `getonit/Qwen3-ASR-1.7B-Q4_0-GGUF` conversion, with the upstream Q8 audio projector. Release and model sizes and SHA-256 hashes are verified before use. The Qwen runtime listens only on an ephemeral loopback port with a temporary random credential, disables its web UI, ignores inherited HTTP proxies and redirects, and inherits no cloud credentials. The process and credential are removed together.
 
@@ -42,9 +40,9 @@ Research refreshed 17 September 2026 with Exa and primary maintainer documentati
 - [Whisper models](https://github.com/openai/whisper) and [Turbo model card](https://huggingface.co/openai/whisper-large-v3-turbo).
 - [Moonshine model catalog](https://moonshine-voice.readthedocs.io/en/stable/models/available-models/) and [Voxtral Realtime](https://huggingface.co/mistralai/Voxtral-Mini-4B-Realtime-2602): native-streaming alternatives considered, but not implemented in this compact multilingual slider.
 
-## Paced microphone-path verification on this PC
+## Historical Python microphone-path benchmark on this PC
 
-All six catalog entries were downloaded through the production size/hash verification path and run on CPU and NVIDIA GPU. A public 15.05125-second sample was repeated twice and fed in 50 ms frames at microphone speed. Each run used a new worker, the production three-second preview threshold, and final full-recording recognition. No microphone or paid speech provider was used. Hardware: i7-12700H, 62 GiB RAM, RTX A1000 Laptop GPU with 4 GiB VRAM. Runs were sequential under ordinary desktop/development load; these are single-run observations, not a controlled performance distribution.
+These observations describe the pre-port implementation on 17 September 2026, not native 2.0.0 performance. All six former catalog entries were downloaded through the production size/hash verification path and run on CPU and NVIDIA GPU. A public 15.05125-second sample was repeated twice and fed in 50 ms frames at microphone speed. Each run used a new worker, the production three-second preview threshold, and final full-recording recognition. No microphone or paid speech provider was used. Hardware: i7-12700H, 62 GiB RAM, RTX A1000 Laptop GPU with 4 GiB VRAM. Runs were sequential under ordinary desktop/development load; these are single-run observations, not a controlled performance distribution.
 
 | Model | First text CPU / GPU | Stop-to-final CPU / GPU | Peak worker RAM CPU / GPU |
 | --- | ---: | ---: | ---: |
