@@ -122,3 +122,8 @@ linux-recording-overlay-remove:
 linux-prompt-test:
 	bash linux/tests/run_application_smoke.sh prompts
 	bash linux/tests/run_application_smoke.sh prompt-editor
+
+.PHONY: linux-screenshot-test
+linux-screenshot-test:
+	bash linux/tests/run_application_smoke.sh images
+	bash linux/tests/run_application_smoke.sh screenshots

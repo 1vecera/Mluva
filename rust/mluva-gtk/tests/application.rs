@@ -23,12 +23,17 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+#[path = "support/accessibility.rs"]
+#[allow(dead_code)]
+mod accessibility;
 #[path = "support/application_commands.rs"]
 mod application_commands;
 #[path = "support/application_compact.rs"]
 mod application_compact;
 #[path = "support/application_continuation.rs"]
 mod application_continuation;
+#[path = "support/application_images.rs"]
+mod application_images;
 #[path = "support/application_live_editor.rs"]
 mod application_live_editor;
 #[path = "support/application_live_workspace.rs"]
@@ -44,6 +49,8 @@ mod application_providers;
 mod capture_ui;
 #[path = "../../mluva-workflows/tests/support/http.rs"]
 mod http;
+#[path = "support/screenshot_wire.rs"]
+mod screenshot_wire;
 fn drain() {
     while glib::MainContext::default().pending() {
         glib::MainContext::default().iteration(false);
@@ -395,6 +402,8 @@ fn released_assembled_application_and_shutdown() {
     .unwrap();
     let prompts: Value =
         serde_json::from_str(include_str!("fixtures/released-application-prompts.json")).unwrap();
+    let images: Value =
+        serde_json::from_str(include_str!("fixtures/released-application-images.json")).unwrap();
     for additional in [
         &commands,
         &continuation,
@@ -404,12 +413,26 @@ fn released_assembled_application_and_shutdown() {
         &providers,
         &management,
         &prompts,
+        &images,
     ] {
         for key in ["reference", "gtk", "pango"] {
             assert_eq!(additional[key], fixture[key]);
         }
     }
-    let cases = if let Ok(name) = std::env::var("MLUVA_PROMPT_CASE") {
+    let cases = if let Ok(name) = std::env::var("MLUVA_IMAGE_CASE") {
+        let selected = images["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|case| case["name"] == name)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            selected.len(),
+            1,
+            "select one released image workspace scenario"
+        );
+        selected
+    } else if let Ok(name) = std::env::var("MLUVA_PROMPT_CASE") {
         let selected = prompts["cases"]
             .as_array()
             .unwrap()
@@ -491,6 +514,10 @@ fn released_assembled_application_and_shutdown() {
             codex["document_controls"] =
                 json!({"External style instructions":{"deltas":["A concise style response."]}});
         }
+        if params["images"] == true {
+            codex["deltas"] = json!(["More words."]);
+            codex["document_controls"] = json!({"Use these screenshots to explain the visible controls.":{"deltas":["The image says Narration selected area 71."]}});
+        }
         fs::write(
             root.join("application-codex.json"),
             serde_json::to_vec(&codex).unwrap(),
@@ -535,7 +562,7 @@ fn released_assembled_application_and_shutdown() {
                 fs::write(paths.config.join("config.json"), "{malformed configuration").unwrap();
             }
         }
-        if params["prompts"] == true {
+        if params["prompts"] == true || params["images"] == true {
             adw::StyleManager::default().set_color_scheme(if params["theme"] == "dark" {
                 adw::ColorScheme::ForceDark
             } else {
@@ -546,16 +573,28 @@ fn released_assembled_application_and_shutdown() {
             application_providers::prepare_model(&paths.data);
         }
         let services = ApplicationServices::open(paths.clone()).unwrap();
+        let screenshot_editor = if params["images"] == true {
+            application_images::prepare(&tools, directory.path(), &target, row)
+        } else {
+            target.join("mluva-screenshot-editor")
+        };
         let application = adw::Application::builder()
-            .application_id(format!("com.mluva.Acceptance{index}"))
-            .flags(gio::ApplicationFlags::NON_UNIQUE)
+            .application_id(if params["images"] == true {
+                "com.mluva.Linux".into()
+            } else {
+                format!("com.mluva.Acceptance{index}")
+            })
+            .flags(if params["images"] == true {
+                gio::ApplicationFlags::FLAGS_NONE
+            } else {
+                gio::ApplicationFlags::NON_UNIQUE
+            })
             .build();
         application.register(None::<&gio::Cancellable>).unwrap();
         let runtime = DesktopRuntime::new().unwrap();
         let platform_closed = Rc::new(Cell::new(false));
         let closing = platform_closed.clone();
         // Compositor presentation/bootstrap remain distribution boundaries.
-        // Screenshot workflows have their own assembled-application comparison.
         let owner = ApplicationDesktop::new(
             &application,
             services.clone(),
@@ -564,7 +603,7 @@ fn released_assembled_application_and_shutdown() {
             NativeBinaries {
                 asr_worker: target.join("mluva-asr-worker"),
                 audio_cleanup: target.join("mluva-audio-cleanup"),
-                screenshot_editor: target.join("mluva-screenshot-editor"),
+                screenshot_editor,
             },
             ApplicationPlatform {
                 compact_recording: Rc::new(|_| {}),
@@ -578,6 +617,29 @@ fn released_assembled_application_and_shutdown() {
                 || owner.capture.page.view_state().initialization_failed
         });
         settle();
+        if params["images"] == true {
+            let mut flow = application_images::Flow::new(
+                &owner, &services, row, &tools, &root, &evidence, &peer,
+            );
+            flow.exercise();
+            shutdown(&owner, &platform_closed, &evidence, &flow.audio_pids());
+            flow.closed();
+            drop(flow);
+            assert_eq!(
+                json!(peer.finish()),
+                row["requests"],
+                "image workspace HTTP"
+            );
+            let mut turns = application_continuation::turns(&evidence);
+            screenshot_wire::normalize(&mut turns);
+            assert_eq!(
+                turns, row["turns"],
+                "image workspace Codex image bytes and order"
+            );
+            count += row["stages"].as_array().unwrap().len();
+            release_application(owner, application);
+            continue;
+        }
         if params["prompts"] == true {
             let pids = application_prompts::exercise(
                 &owner, &services, row, &tools, &root, &evidence, reopening,

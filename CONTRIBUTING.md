@@ -76,6 +76,8 @@ Theme changes use the [native theme comparison](rust/mluva-gtk/tests/fixtures/th
 
 `make linux-prompt-test` runs the native application in minimum, narrow, wide and malformed-configuration sessions, each followed by a separate process reopening the saved files. The [prompt comparison](rust/mluva-gtk/tests/fixtures/application-prompts-evidence.md) covers 53 states and fourteen exact images, real hover/keyboard entry points, local files, Save/Cancel/reset, recording snapshots, saved styles and Incognito restart. The existing native prompt-editor owner adds validation and single-editor lifecycle cases. It needs no Python; a focused replay is `bash linux/tests/run_application_smoke.sh prompts wide`.
 
+`MLUVA_TEST_EDITOR=/absolute/path/to/verified/tensaku make linux-screenshot-test` runs four fresh native application sessions and the existing screenshot lifecycle owner. The [joined comparison](rust/mluva-gtk/tests/fixtures/application-images-evidence.md) covers simultaneous main/annotation recording, actual editor first use, exact PNG/OCR and provider image context, frozen conversation ownership, preparation-failure recovery and minimum/narrow/wide layouts. It requires the pinned v1.6.0 Tensaku artifact and Tesseract in addition to the application runner prerequisites; no Python is needed. A focused replay is `bash linux/tests/run_application_smoke.sh images wide /absolute/path/to/tensaku`.
+
 The following checks still exercise Python during the port. Their Make targets prepare that environment automatically; run `make linux-python-setup` before a direct `uv` command:
 
 | Remaining Python owner | Focused check |

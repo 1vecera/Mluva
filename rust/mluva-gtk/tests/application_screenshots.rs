@@ -31,6 +31,9 @@ use std::{
 mod capture_ui;
 #[path = "../../mluva-workflows/tests/support/http.rs"]
 mod http;
+#[path = "support/screenshot_wire.rs"]
+mod screenshot_wire;
+use screenshot_wire::normalize as normalize_wire;
 
 fn drain() {
     while glib::MainContext::default().pending() {
@@ -228,24 +231,6 @@ impl Observer {
             state["clipboard"] = json!(clipboard());
         }
         state
-    }
-}
-fn normalize_wire(value: &mut Value) {
-    match value {
-        Value::Array(values) => values.iter_mut().for_each(normalize_wire),
-        Value::Object(values) => values.values_mut().for_each(normalize_wire),
-        Value::String(text) if text.contains("The attached screenshots are visual context") => {
-            let (before, after) = text.rsplit_once('\n').unwrap();
-            let mut metadata: Value = serde_json::from_str(after).unwrap();
-            for image in metadata.as_array_mut().unwrap() {
-                if let Some(offset) = image["captured_after_seconds"].as_f64() {
-                    assert!((0.0..8.0).contains(&offset));
-                    image["captured_after_seconds"] = json!("sampled");
-                }
-            }
-            *text = format!("{before}\n{}", mluva_core::json::spaced(&metadata));
-        }
-        _ => {}
     }
 }
 fn isolated() -> PathBuf {

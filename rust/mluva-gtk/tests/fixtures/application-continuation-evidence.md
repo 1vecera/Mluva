@@ -6,7 +6,7 @@
 
 At this continuation checkpoint, the shared application harness reached ten workflows/100 states. The subsequent [Live workspace extension](live-workspace-evidence.md) brings it to eleven workflows/122 states. The original eight-workflow, command and continuation fixtures remain byte-for-byte unchanged. Shared assembly, shutdown, process reaping, GTK traversal, settling and window capture replace duplicated setup. There is no new production API for tests.
 
-The retired `linux/tests/continuation_controls_smoke.py` was introduced with continuation/rewrite controls in `4bcf12a` and strengthened by `1c2609f` and subsequent Live/cancellation changes. Its executable owner was the Make target. Two still-used microphone/speech stand-ins move unchanged into their sole remaining consumer, `screenshot_workspace_smoke.py`; its actual scenario still passes. The 330-line obsolete script and its preview/handler/delivery mocks are removed, with these contracts retained:
+The retired `linux/tests/continuation_controls_smoke.py` was introduced with continuation/rewrite controls in `4bcf12a` and strengthened by `1c2609f` and subsequent Live/cancellation changes. Its executable owner was the Make target. At this checkpoint, two microphone/speech stand-ins moved unchanged into their remaining consumer, `screenshot_workspace_smoke.py`; the later [native image comparison](application-images-evidence.md) retires that consumer too. The 330-line obsolete continuation script and its preview/handler/delivery mocks are removed, with these contracts retained:
 
 | Contract | Native observation |
 | --- | --- |

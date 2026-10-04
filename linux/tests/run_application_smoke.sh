@@ -17,6 +17,8 @@ case "$mode" in
     management) suites=(application); management_case="${2:-}" ;;
     prompts) suites=(application); prompt_case="${2:-}" ;;
     prompt-editor) suites=(prompt_editor) ;;
+    images) suites=(application); image_case="${2:-}"; editor="${3:-${MLUVA_TEST_EDITOR:-}}" ;;
+    screenshots) suites=(application_screenshots) ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
 esac
 test_arguments=()
@@ -36,6 +38,13 @@ if "$inside"; then
     fi
     export PATH="$OFFSCREEN_SESSION_ROOT/application-tools:$PATH"
     export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true
+    if [[ "$mode" == images ]]; then
+        export MLUVA_IMAGE_CASE="$image_case" MLUVA_TEST_EDITOR="$editor" GDK_SCALE=1 GSETTINGS_BACKEND=memory
+    fi
+    if [[ "$mode" == screenshots ]]; then
+        export MLUVA_SCREENSHOT_FIXTURE_ROOT="$OFFSCREEN_SESSION_ROOT/application-screenshot-case"
+        export PATH="$MLUVA_SCREENSHOT_FIXTURE_ROOT/tools:$PATH"
+    fi
     if [[ "$mode" == prompts ]]; then
         export MLUVA_PROMPT_CASE="$prompt_case" GDK_SCALE=1
         cargo test --locked -p mluva-gtk "${test_arguments[@]}" -- --ignored --test-threads=1 --nocapture
@@ -71,14 +80,35 @@ RUSTUP_HOME="$(realpath -m -- "${RUSTUP_HOME:-$HOME/.rustup}")"
 CARGO_TARGET_DIR="$(realpath -m -- "${CARGO_TARGET_DIR:-$project_root/tmp/native-build}")"
 export CARGO_HOME RUSTUP_HOME CARGO_TARGET_DIR
 cd -- "$project_root"
+if [[ "$mode" == images ]]; then
+    editor="$(realpath -m -- "${editor:-$project_root/tmp/narrated-editor/tensaku}")"
+    if [[ ! -x "$editor" ]]; then
+        echo "Set MLUVA_TEST_EDITOR to the verified v1.6.0 Tensaku artifact before this check." >&2
+        exit 3
+    fi
+fi
 if [[ "$mode" != live-components ]]; then
     cargo build --locked -p mluva-gtk --example private_input \
         -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
         -p mluva-providers --bin codex-fixture-peer --bin credential-fixture-peer
 fi
+if [[ "$mode" == images || "$mode" == screenshots ]]; then
+    cargo build --locked -p mluva-workflows --bin screenshot-picker-fixture-peer --bin mluva-narrate \
+        -p mluva-shell --bin mluva-shell -p mluva-gtk --example screenshot_editor_peer
+fi
 cargo test --locked -p mluva-gtk "${test_arguments[@]}" --no-run
 mkdir -p tmp/application
 evidence="$(mktemp -d "$project_root/tmp/application/run.XXXXXX")"
+if [[ "$mode" == images ]]; then
+    image_cases=(minimum narrow wide preparation-failure)
+    if [[ -n "$image_case" ]]; then image_cases=("$image_case"); fi
+    for image_case in "${image_cases[@]}"; do
+        bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
+            bash dev/run-isolated-browser.sh "$evidence/$image_case" -- \
+            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session images "$image_case" "$editor"
+    done
+    exit
+fi
 if [[ "$mode" == prompts ]]; then
     prompt_cases=(minimum narrow wide bad-config)
     if [[ -n "$prompt_case" ]]; then prompt_cases=("$prompt_case"); fi
