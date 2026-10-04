@@ -39,13 +39,15 @@ linux-codex-isolation-test: linux-python-setup
 	cd linux && PYTHONPATH=. uv run --locked python tests/codex_isolation_smoke.py ../tmp/codex-isolation
 
 # Fast deterministic config/text/storage/Live feedback; linux-test is the native gate.
-.PHONY: linux-test-fast linux-command-test linux-fluid-workspace-test linux-live-stability-test
+.PHONY: linux-test-fast linux-application-test linux-command-test linux-continuation-test linux-fluid-workspace-test linux-live-stability-test
 linux-test-fast:
 	cargo test --locked -p mluva-core --test reference_contracts --test persistence_contracts \
 		--test prompt_and_draft_contracts --test live_policy
 
-linux-command-test:
-	bash linux/tests/run_application_commands_smoke.sh
+linux-command-test linux-continuation-test: linux-application-test
+
+linux-application-test:
+	bash linux/tests/run_application_smoke.sh
 
 linux-fluid-workspace-test: linux-python-setup
 	OFFSCREEN_ENABLE_ATSPI=1 bash dev/run-isolated.sh tmp/fluid-workspace -- env PYTHONPATH=linux:linux/tests \
@@ -56,12 +58,6 @@ linux-live-stability-test: linux-python-setup
 	OFFSCREEN_ENABLE_ATSPI=1 bash dev/run-isolated.sh tmp/live-stability -- env PYTHONPATH=linux:linux/tests \
 		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
 		uv run --project linux --locked python linux/tests/live_stability_smoke.py
-
-.PHONY: linux-continuation-test
-linux-continuation-test: linux-python-setup
-	OFFSCREEN_ENABLE_ATSPI=1 bash dev/run-isolated.sh tmp/continuation-controls -- env PYTHONPATH=linux:linux/tests \
-		ADW_DISABLE_PORTAL=1 GTK_A11Y=none GSK_RENDERER=cairo \
-		uv run --project linux --locked python linux/tests/continuation_controls_smoke.py
 
 .PHONY: linux-omarchy-test
 linux-omarchy-test:

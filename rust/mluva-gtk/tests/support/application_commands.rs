@@ -1,28 +1,12 @@
 //! Joined command routing through the actual application, private keys, clipboard and stores.
-use super::{clipboard, settle, until};
+use super::{capture_window, clipboard, settle, settle_for, until, widgets};
 use adw::prelude::*;
 use mluva_core::history::HistoryInput;
 use mluva_gtk::application::ApplicationDesktop;
 use mluva_workflows::{capture::CapturePhase, services::ApplicationServices};
 use serde_json::{Value, json};
-use std::{
-    fs,
-    path::Path,
-    process::Command,
-    rc::Rc,
-    thread,
-    time::{Duration, Instant},
-};
+use std::{fs, path::Path, process::Command, rc::Rc, time::Duration};
 
-fn widgets(widget: &impl IsA<gtk::Widget>) -> Vec<gtk::Widget> {
-    let mut result = vec![widget.as_ref().clone()];
-    let mut child = widget.as_ref().first_child();
-    while let Some(current) = child {
-        result.extend(widgets(&current));
-        child = current.next_sibling();
-    }
-    result
-}
 fn key(chord: &str) {
     let program = std::env::current_exe()
         .unwrap()
@@ -37,11 +21,7 @@ fn key(chord: &str) {
         "{}",
         String::from_utf8_lossy(&output.stderr)
     );
-    let end = Instant::now() + Duration::from_millis(150);
-    while Instant::now() < end {
-        super::drain();
-        thread::sleep(Duration::from_millis(2));
-    }
+    settle_for(Duration::from_millis(150));
 }
 struct Panel {
     dialog: adw::Dialog,
@@ -215,22 +195,7 @@ impl Flow<'_> {
         .unwrap();
         assert_eq!(observation, *expected, "command layout {name}");
         self.layouts.push(observation);
-        let result = Command::new("xdotool")
-            .args(["search", "--onlyvisible", "--name", "^Mluva$"])
-            .output()
-            .unwrap();
-        assert!(result.status.success());
-        let windows = String::from_utf8(result.stdout).unwrap();
-        let windows = windows.lines().collect::<Vec<_>>();
-        assert_eq!(windows.len(), 1);
-        assert!(
-            Command::new("import")
-                .args(["-window", windows[0]])
-                .arg(self.root.join(format!("{name}.png")))
-                .status()
-                .unwrap()
-                .success()
-        );
+        capture_window(&self.root.join(format!("{name}.png")));
     }
 }
 

@@ -8,9 +8,11 @@ The independent legacy-caption cases exposed capitalization after underscores an
 
 Run the desktop check inside the disposable helper with its documented native environment:
 
+The fixed timestamps were observed in `Europe/Prague`; select that timezone explicitly when replaying the date-format assertions.
+
 ```sh
 bash dev/run-isolated-browser.sh tmp/native-history-page -- \
-  cargo test --locked -p mluva-gtk --test history_page -- --ignored --test-threads=1 --nocapture
+  env TZ=Europe/Prague cargo test --locked -p mluva-gtk --test history_page -- --ignored --test-threads=1 --nocapture
 ```
 
 The executed check passed all 64 states on a private display with separate HOME/XDG, session/accessibility buses, network/PID/mount namespaces and masked input/audio/GPU devices. No host input, installed settings, real credentials or user content were used. Copy/delivery/retry/reprocess and deletion eligibility are explicit parent callback boundaries here; the actual database deletion and page mutations run normally. Full parent recovery actions, visual/accessibility comparisons across sizes/scales and complete application acceptance remain pending. This does not establish complete History or application parity, and every full-workflow acceptance row remains Pending.

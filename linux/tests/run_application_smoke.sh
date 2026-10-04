@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Join command keys to the actual application on a private desktop and clipboard.
+# Verify actual application commands and continuation on a private desktop and clipboard.
 set -euo pipefail
 
 if [[ "${1:-}" == --inside-session ]]; then
@@ -13,7 +13,7 @@ fi
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 for prerequisite in cargo bwrap import realpath mktemp; do
     command -v "$prerequisite" >/dev/null || {
-        echo "Missing native command check prerequisite: $prerequisite." >&2
+        echo "Missing native application check prerequisite: $prerequisite." >&2
         exit 3
     }
 done
@@ -27,8 +27,8 @@ cargo build --locked -p mluva-gtk --example private_input \
     -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
     -p mluva-providers --bin codex-fixture-peer
 cargo test --locked -p mluva-gtk --test application --test application_shell --no-run
-mkdir -p tmp/application-commands
-evidence="$(mktemp -d "$project_root/tmp/application-commands/run.XXXXXX")"
+mkdir -p tmp/application
+evidence="$(mktemp -d "$project_root/tmp/application/run.XXXXXX")"
 exec bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
     bash dev/run-isolated-browser.sh "$evidence" -- \
-    bash "$project_root/linux/tests/run_application_commands_smoke.sh" --inside-session
+    bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session

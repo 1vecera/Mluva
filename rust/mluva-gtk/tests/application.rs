@@ -18,12 +18,15 @@ use std::{
     fs,
     os::unix::fs::{PermissionsExt, symlink},
     path::{Path, PathBuf},
+    process::Command,
     rc::Rc,
     thread,
     time::{Duration, Instant},
 };
 #[path = "support/application_commands.rs"]
 mod application_commands;
+#[path = "support/application_continuation.rs"]
+mod application_continuation;
 #[path = "support/capture_ui.rs"]
 #[allow(dead_code)]
 mod capture_ui;
@@ -45,7 +48,10 @@ fn until(mut predicate: impl FnMut() -> bool) {
     drain();
 }
 fn settle() {
-    let end = Instant::now() + Duration::from_millis(40);
+    settle_for(Duration::from_millis(40));
+}
+fn settle_for(duration: Duration) {
+    let end = Instant::now() + duration;
     while Instant::now() < end {
         drain();
         thread::sleep(Duration::from_millis(2));
@@ -70,7 +76,39 @@ fn clipboard() -> Option<String> {
     until(|| value.borrow().is_some());
     value.borrow_mut().take().unwrap()
 }
-fn shutdown(owner: &Rc<ApplicationDesktop>) {
+fn widgets(widget: &impl IsA<gtk::Widget>) -> Vec<gtk::Widget> {
+    let mut result = vec![widget.as_ref().clone()];
+    let mut child = widget.as_ref().first_child();
+    while let Some(current) = child {
+        result.extend(widgets(&current));
+        child = current.next_sibling();
+    }
+    result
+}
+fn capture_window(path: &Path) {
+    let result = Command::new("xdotool")
+        .args(["search", "--onlyvisible", "--name", "^Mluva$"])
+        .output()
+        .unwrap();
+    assert!(result.status.success());
+    let windows = String::from_utf8(result.stdout).unwrap();
+    let windows = windows.lines().collect::<Vec<_>>();
+    assert_eq!(windows.len(), 1);
+    assert!(
+        Command::new("import")
+            .args(["-window", windows[0]])
+            .arg(path)
+            .status()
+            .unwrap()
+            .success()
+    );
+}
+fn shutdown(
+    owner: &Rc<ApplicationDesktop>,
+    platform_closed: &Cell<bool>,
+    evidence: &Path,
+    pids: &[u64],
+) {
     let drained = Rc::new(Cell::new(false));
     let done = drained.clone();
     let shutdown = owner.shutdown();
@@ -80,10 +118,19 @@ fn shutdown(owner: &Rc<ApplicationDesktop>) {
     });
     until(|| drained.get());
     settle();
+    assert!(platform_closed.get());
+    for pid in pids {
+        assert!(!Path::new(&format!("/proc/{pid}")).exists());
+    }
+    for child in records(&evidence.join("process.jsonl")) {
+        assert!(!Path::new(&format!("/proc/{}", child["pid"])).exists());
+        assert!(!Path::new(child["cwd"].as_str().unwrap()).exists());
+    }
 }
+type Signals = Rc<RefCell<Vec<(String, glib::Variant)>>>;
 struct Observer {
     identities: BTreeMap<String, String>,
-    events: Rc<RefCell<Vec<(String, glib::Variant)>>>,
+    events: Signals,
 }
 impl Observer {
     fn snapshot(
@@ -294,14 +341,20 @@ fn released_assembled_application_and_shutdown() {
     assert_eq!(fixture["pango"], gtk::pango::version_string().as_str());
     let commands: Value =
         serde_json::from_str(include_str!("fixtures/released-application-commands.json")).unwrap();
-    assert_eq!(commands["reference"], fixture["reference"]);
-    assert_eq!(commands["gtk"], fixture["gtk"]);
-    assert_eq!(commands["pango"], fixture["pango"]);
+    let continuation: Value = serde_json::from_str(include_str!(
+        "fixtures/released-application-continuation.json"
+    ))
+    .unwrap();
+    for additional in [&commands, &continuation] {
+        for key in ["reference", "gtk", "pango"] {
+            assert_eq!(additional[key], fixture[key]);
+        }
+    }
     let cases = fixture["cases"]
         .as_array()
         .unwrap()
         .iter()
-        .chain(std::iter::once(&commands));
+        .chain([&commands, &continuation]);
     let mut count = 0;
     for (index, row) in cases.enumerate() {
         events.borrow_mut().clear();
@@ -316,7 +369,15 @@ fn released_assembled_application_and_shutdown() {
             serde_json::to_vec(&row["pcm"]).unwrap(),
         )
         .unwrap();
-        fs::write(root.join("application-codex.json"),serde_json::to_vec(&json!({"scenario":"clean","evidence":evidence,"title_controls":{"Narration keeps 12 files.":{"deltas":["Generated conversation"]}}})).unwrap()).unwrap();
+        let mut codex = json!({"scenario":"clean","evidence":evidence,"title_controls":{"Narration keeps 12 files.":{"deltas":["Generated conversation"]}}});
+        if let Some(catalog) = row.get("catalog") {
+            codex["catalog"] = catalog.clone();
+        }
+        fs::write(
+            root.join("application-codex.json"),
+            serde_json::to_vec(&codex).unwrap(),
+        )
+        .unwrap();
         let mut responses = row["responses"].as_array().unwrap().clone();
         for response in &mut responses {
             response["delay_ms"] = json!(350);
@@ -367,9 +428,7 @@ fn released_assembled_application_and_shutdown() {
         if params["commands"] == true {
             let pid =
                 application_commands::exercise(&owner, &services, &application, row, &tools, &root);
-            shutdown(&owner);
-            assert!(platform_closed.get());
-            assert!(!Path::new(&format!("/proc/{pid}")).exists());
+            shutdown(&owner, &platform_closed, &evidence, &[pid]);
             assert_eq!(json!(peer.finish()), row["requests"], "command HTTP");
             let turns = records(&evidence.join("requests.jsonl"))
                 .into_iter()
@@ -381,10 +440,24 @@ fn released_assembled_application_and_shutdown() {
                 row["turns"],
                 "stale commands must not dispatch a provider turn"
             );
-            for child in records(&evidence.join("process.jsonl")) {
-                assert!(!Path::new(&format!("/proc/{}", child["pid"])).exists());
-                assert!(!Path::new(child["cwd"].as_str().unwrap()).exists());
-            }
+            count += row["stages"].as_array().unwrap().len();
+            continue;
+        }
+        if params["continuation"] == true {
+            let pids = application_continuation::exercise(
+                &owner, &services, row, &tools, &root, &evidence, &events,
+            );
+            shutdown(&owner, &platform_closed, &evidence, &pids);
+            assert_eq!(
+                application_continuation::requests(peer.finish()),
+                row["requests"],
+                "continuation HTTP"
+            );
+            assert_eq!(
+                application_continuation::turns(&evidence),
+                row["turns"],
+                "continuation Codex"
+            );
             count += row["stages"].as_array().unwrap().len();
             continue;
         }
@@ -498,13 +571,7 @@ fn released_assembled_application_and_shutdown() {
             fs::remove_file(paths.config.join("config.json")).unwrap();
             fs::create_dir(paths.config.join("config.json")).unwrap();
         }
-        shutdown(&owner);
-        assert!(platform_closed.get());
-        assert!(!Path::new(&format!("/proc/{pid}")).exists());
-        for child in records(&evidence.join("process.jsonl")) {
-            assert!(!Path::new(&format!("/proc/{}", child["pid"])).exists());
-            assert!(!Path::new(child["cwd"].as_str().unwrap()).exists());
-        }
+        shutdown(&owner, &platform_closed, &evidence, &[pid]);
         assert_eq!(
             json!({"live":services.config().live_rewrite_enabled,"audio_child_alive":false,"history_count":services.history.recent(100).unwrap().len(),"audio_exists":audio.exists()}),
             row["closed"],
@@ -517,6 +584,6 @@ fn released_assembled_application_and_shutdown() {
     }
     println!(
         "Assembled application: {} workflows, {count} GTK/store states, acknowledged owner shutdown",
-        fixture["cases"].as_array().unwrap().len() + 1
+        fixture["cases"].as_array().unwrap().len() + 2
     );
 }

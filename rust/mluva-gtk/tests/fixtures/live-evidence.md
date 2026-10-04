@@ -19,7 +19,7 @@ The ten joined captures run real preparation, recording and Stop/cancel callback
 The existing joined capture owner was rerun after the Live/continuation changes: all 46 transactions, 218 states and three native exit/privacy faults still pass. The complete ordinary workspace passes 125 tests with nineteen environment-dependent checks ignored; the new ignored Live owner and existing capture owner were executed separately. Strict workspace Clippy and formatting pass. GTK 4.22.4 and Pango 1.58.2 are pinned by the observations.
 
 ```sh
-cargo build --locked -p mluva-audio --bins -p mluva-providers --bins
+cargo build --locked -p mluva-audio -p mluva-providers --bins
 bash dev/run-isolated-browser.sh tmp/native-live -- bash -c '
   export PATH="$OFFSCREEN_SESSION_ROOT/live-codex-tools:$PATH"
   export TZ=UTC
@@ -27,4 +27,4 @@ bash dev/run-isolated-browser.sh tmp/native-live -- bash -c '
 '
 ```
 
-The runner isolates display, session/accessibility buses, HOME/XDG, network/PID/mount namespaces and memory-backed staging, masks input/audio/GPU devices and selects software rendering. No host input, real microphone, provider account, credential or user content is used. Serialize GUI runs. Application-level provider discovery, welcome/settings, review announcements and shutdown assembly remain unimplemented; complete Grilling/template interaction, compatible/local Live capture, screenshot waiting/context, finalizing-exit behavior, other layouts/scales/platforms, real microphone/delivery, packaging/Python removal and whole-app performance still require acceptance. Component success does not close any complete-workflow row or authorize installing the Rust app.
+The runner isolates display, session/accessibility buses, HOME/XDG, network/PID/mount namespaces and memory-backed staging, masks input/audio/GPU devices and selects software rendering. No host input, real microphone, provider account, credential or user content is used. Serialize GUI runs. The [assembled application](application-evidence.md) and [continuation extension](application-continuation-evidence.md) now provide bounded root-service, settings, archive, review-action and shutdown comparisons. Complete Grilling/template interaction, all compatible/local Live paths, joined screenshots/context, finalizing-exit behavior, other layouts/scales/platforms, real microphone/delivery, packaging/Python removal and whole-app performance still require acceptance. Component success does not close any complete-workflow row or authorize installing the Rust app.

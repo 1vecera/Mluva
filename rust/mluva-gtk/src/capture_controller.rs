@@ -623,13 +623,11 @@ impl CaptureController {
                         let _ = controller.page.workspace.show_transient("", &preserved_draft);
                         controller.page.workspace.notice.set_label("No speech detected. Your live draft is still here.");
                     }
-                    if result.mode == "dictation"
-                        && !result.incognito
-                        && !controller.page.config().incognito_mode
-                        && let Some(entry) = result.history_entry.as_ref().filter(|entry| !text::trim(&entry.raw_text).is_empty())
-                    {
-                        (controller.callbacks.queue_title)(entry);
-                    }
+                    let title_entry = result.history_entry.as_ref().filter(|entry| {
+                        result.mode == "dictation" && !result.incognito
+                            && !controller.page.config().incognito_mode
+                            && !text::trim(&entry.raw_text).is_empty()
+                    }).cloned();
                     (controller.callbacks.phase_changed)(CapturePhase::Completed);
                     if finishing_live && let Some(live) = &live {
                         let entry = result.history_entry.as_ref().expect("final Live entry");
@@ -642,6 +640,11 @@ impl CaptureController {
                         session: session.clone(),
                         delivery_target: target,
                     });
+                    // Completion first refreshes the archive. Released title updates
+                    // then change its existing row without rebuilding raw recordings.
+                    if let Some(entry) = title_entry {
+                        (controller.callbacks.queue_title)(&entry);
+                    }
                 }
                 Err(error) => {
                     if let WorkflowError::Failure(failure) = &error {

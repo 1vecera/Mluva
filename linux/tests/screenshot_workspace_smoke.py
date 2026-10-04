@@ -9,7 +9,6 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
-from continuation_controls_smoke import SyntheticRecorder, SyntheticSpeech
 from conversation_ui_smoke import IsolatedApplication
 from gi.repository import GLib
 from live_workspace_smoke import paint, settle
@@ -17,7 +16,42 @@ from screenshot_fixture import png
 
 from mluva_linux.codex_client import CodexAppServerClient
 from mluva_linux.config import AudioRetentionPolicy
+from mluva_linux.elevenlabs import TranscriptionResult
 from mluva_linux.workflow import DictationWorkflow
+
+
+class SyntheticRecorder:
+    """Replace microphone IO while running the production capture and completion lifecycle."""
+
+    process = None
+    audio_level = 0
+    path = None
+
+    def start(self, path, _callback=None):
+        """Create an owner-local audio stand-in without touching sound devices."""
+        self.path = path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"synthetic audio")
+        self.process = object()
+
+    def stop(self):
+        """Hand the same finalized path to the real workflow."""
+        self.process = None
+        return self.path
+
+    def cancel(self):
+        """Erase only this fixture's current audio."""
+        self.process = None
+        if self.path:
+            self.path.unlink(missing_ok=True)
+
+
+class SyntheticSpeech:
+    """Return a complete transcript without uploading audio."""
+
+    def transcribe(self, *_args, **_kwargs):
+        """Add predictable words for each continuation."""
+        return TranscriptionResult("More words.", "eng", None, None)
 
 
 def main() -> int:
