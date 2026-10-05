@@ -436,13 +436,62 @@ async fn main() {
         observe_parent_crash(Path::new(&args[2]));
         return;
     }
-    let path = if args[1] == "app-server" {
+    let path = if args[1] == "app-server" || args[1] == "debug" {
         PathBuf::from(std::env::var_os("CODEX_HOME").unwrap()).join("fixture.json")
     } else {
         PathBuf::from(&args[2])
     };
     let spec: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    if args.windows(2).any(|pair| pair == ["debug", "models"]) {
+        let evidence = PathBuf::from(spec["evidence"].as_str().unwrap());
+        let scenario = spec["scenario"].as_str().unwrap_or("clean");
+        mluva_core::private_files::atomic_write_private(
+            &evidence.join("catalog-started.json"),
+            &serde_json::to_vec(
+                &json!({"pid":std::process::id(),"workspace":std::env::current_dir().unwrap()}),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        if scenario.starts_with("catalog-held") {
+            loop {
+                std::thread::sleep(Duration::from_millis(2));
+            }
+        }
+        if scenario == "catalog-invalid" {
+            send(json!({"models":[]}));
+            return;
+        }
+        if scenario == "catalog-oversized" {
+            send(json!({"models":[],"oversized":"x".repeat(5*1024*1024)}));
+            return;
+        }
+        send(
+            json!({"models":[{"slug":"fixture-model","description":"preserve metadata","tool_mode":"code_mode_only","multi_agent_version":"v2","experimental_supported_tools":["clock"]}]}),
+        );
+        return;
+    }
     if args[1] == "serve" || args[1] == "app-server" {
+        if let Some(catalog) = args
+            .iter()
+            .find_map(|arg| arg.strip_prefix("model_catalog_json="))
+        {
+            let path: PathBuf = serde_json::from_str(catalog).unwrap();
+            let value: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+            assert_eq!(
+                value,
+                json!({"models":[{"slug":"fixture-model","description":"preserve metadata","tool_mode":"direct","multi_agent_version":"disabled","experimental_supported_tools":[]}]})
+            );
+            assert_eq!(
+                fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+                0o600
+            );
+            assert_eq!(
+                path.parent(),
+                Some(std::env::current_dir().unwrap().as_path())
+            );
+            assert!(mluva_audio::volatile::memory_backed(path.parent().unwrap()));
+        }
         server(&spec);
         return;
     }
@@ -482,6 +531,36 @@ async fn main() {
     let mut deltas = vec![];
     let mut callback = |text: &str| deltas.push(text.to_owned());
     let value = match operation {
+        "catalog-failure" => {
+            assert_eq!(
+                unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) },
+                0
+            );
+            let starting_client = client.clone();
+            let pending = tokio::spawn(async move { starting_client.list_models().await });
+            let evidence = PathBuf::from(spec["evidence"].as_str().unwrap());
+            let deadline = tokio::time::Instant::now() + Duration::from_secs(3);
+            while !evidence.join("catalog-started.json").exists() {
+                assert!(tokio::time::Instant::now() < deadline);
+                tokio::time::sleep(Duration::from_millis(2)).await;
+            }
+            let metadata: Value =
+                serde_json::from_slice(&fs::read(evidence.join("catalog-started.json")).unwrap())
+                    .unwrap();
+            if spec["scenario"] == "catalog-held-cancel" {
+                client.cancel();
+            }
+            let value = result(pending.await.unwrap());
+            client.close().await;
+            let pid = metadata["pid"].as_i64().unwrap() as libc::pid_t;
+            while Path::new(&format!("/proc/{pid}")).exists() {
+                let mut status = 0;
+                let _ = unsafe { libc::waitpid(pid, &mut status, libc::WNOHANG) };
+                assert!(tokio::time::Instant::now() < deadline);
+                tokio::time::sleep(Duration::from_millis(2)).await;
+            }
+            json!({"start":value,"workspace_removed":!Path::new(metadata["workspace"].as_str().unwrap()).exists(),"snapshot_reaped":true,"server_not_started":!evidence.join("process.jsonl").exists()})
+        }
         "cancel-workspace-startup" => {
             let evidence = PathBuf::from(spec["evidence"].as_str().unwrap());
             let starting_client = client.clone();

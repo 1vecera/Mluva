@@ -291,6 +291,15 @@ async fn actual_jsonl_process_requests_results_and_isolation_match_released_sess
             assert!(!Path::new(process["cwd"].as_str().unwrap()).exists(),"private workspace leaked");
             assert!(!Path::new(&format!("/proc/{}",process["pid"].as_u64().unwrap())).exists(),"child was not reaped");
             let mut argv=process["argv"].clone();normalize(&mut argv,&workspaces,&case.path);
+            if argv.as_array().unwrap().last().is_some_and(|arg| arg.as_str().is_some_and(|arg| arg.starts_with("model_catalog_json="))) {
+                let args=argv.as_array_mut().unwrap();
+                assert_eq!(args.pop().unwrap(), "model_catalog_json=\"<workspace>/text-only-models.json\"");
+                assert_eq!(args.pop().unwrap(), "-c");
+                for feature in ["deferred_executor", "send_message_to_user_async", "current_time_reminder", "code_mode_only"] {
+                    assert_eq!(args.pop().unwrap(), format!("features.{feature}=false"));
+                    assert_eq!(args.pop().unwrap(), "-c");
+                }
+            }
             json!({"mode":process["mode"],"argv":argv,"environment":process["environment"],"instructions":process["instructions"]})
         }).collect::<Vec<_>>();
         assert_eq!(
@@ -314,6 +323,34 @@ async fn actual_jsonl_process_requests_results_and_isolation_match_released_sess
 
 #[tokio::test]
 async fn cancellation_cleans_up_pending_work_and_missing_commands_do_not_echo_paths() {
+    for scenario in [
+        "catalog-invalid",
+        "catalog-oversized",
+        "catalog-held-cancel",
+        "catalog-held-timeout",
+    ] {
+        let case = Fixture::new(
+            &json!({"scenario":scenario,"masked":true,"operation":"catalog-failure","request_ms":1000}),
+        );
+        let mut spec: Value = serde_json::from_slice(&std::fs::read(&case.path).unwrap()).unwrap();
+        spec["command"] = json!([
+            env!("CARGO_BIN_EXE_codex-fixture-peer"),
+            "app-server",
+            "--listen",
+            "stdio://"
+        ]);
+        std::fs::write(&case.path, serde_json::to_vec(&spec).unwrap()).unwrap();
+        let error = if scenario == "catalog-held-cancel" {
+            "Codex app-server work was cancelled."
+        } else {
+            "Codex could not establish text-only permissions."
+        };
+        assert_eq!(
+            case.run().await["result"],
+            json!({"start":{"error":error},"workspace_removed":true,"snapshot_reaped":true,"server_not_started":true}),
+            "{scenario}"
+        );
+    }
     let mut preparing =
         Fixture::new(&json!({"scenario":"clean","operation":"cancel-workspace-startup"}));
     let copied = preparing.directory.path().join("bin/private-client");
@@ -390,19 +427,23 @@ fn model_response(tool: bool, marker: &Path) -> Vec<u8> {
 #[tokio::test]
 #[ignore = "requires installed Codex and working bubblewrap; all model traffic stays loopback"]
 async fn installed_codex_preserves_reference_behavior_without_tools_or_instruction_leaks() {
-    let baseline: Value =
-        serde_json::from_str(include_str!("fixtures/released-installed-codex.json")).unwrap();
     let executable = mluva_core::executables::find_executable("codex").expect("installed Codex");
     let version = std::process::Command::new(&executable)
         .arg("--version")
         .output()
         .unwrap();
-    assert_eq!(
-        String::from_utf8(version.stdout).unwrap().trim(),
-        baseline["reference"]["installed_cli"],
-        "renew installed CLI observations before accepting another version"
-    );
-    for (index, tool) in [false, true].into_iter().enumerate() {
+    assert!(version.status.success());
+    let version = String::from_utf8(version.stdout).unwrap();
+    let baseline = [
+        include_str!("fixtures/released-installed-codex.json"),
+        include_str!("fixtures/released-installed-codex-0160.json"),
+    ]
+    .into_iter()
+    .map(|fixture| serde_json::from_str::<Value>(fixture).unwrap())
+    .find(|fixture| fixture["reference"]["installed_cli"] == version.trim())
+    .expect("renew independent installed CLI observations before accepting another version");
+    for row in baseline["cases"].as_array().unwrap() {
+        let tool = row["backend_tool_call"].as_bool().unwrap();
         let case = Fixture::new(&json!({"scenario":"clean","masked":true}));
         let root = case.directory.path();
         let mcp = root.join("mcp-started");
@@ -410,7 +451,7 @@ async fn installed_codex_preserves_reference_behavior_without_tools_or_instructi
         std::fs::write(
             root.join("codex/config.toml"),
             format!(
-                "[mcp_servers.canary]\ncommand=\"/usr/bin/touch\"\nargs=[\"{}\"]\n",
+                "[mcp_servers.canary]\ncommand=\"/usr/bin/touch\"\nargs=[\"{}\"]\n[features]\ncode_mode_only=true\ncurrent_time_reminder=true\nsend_message_to_user_async=true\ndeferred_executor=true\nmulti_agent_v2=true\nshell_tool=true\nunified_exec=true\n",
                 mcp.display()
             ),
         )
@@ -435,7 +476,10 @@ async fn installed_codex_preserves_reference_behavior_without_tools_or_instructi
         ] {
             command.extend(["-c".into(), value]);
         }
-        let spec = json!({"scenario":"clean","evidence":case.evidence,"command":command,"model":"gpt-5.4","request_ms":10000,"turn_ms":10000});
+        let mut spec = json!({"scenario":"clean","evidence":case.evidence,"command":command,"model":"gpt-5.4","request_ms":10000,"turn_ms":10000});
+        if let Some(input) = row["input"].as_object() {
+            spec.as_object_mut().unwrap().extend(input.clone());
+        }
         std::fs::write(&case.path, serde_json::to_vec(&spec).unwrap()).unwrap();
         let requests = Arc::new(Mutex::new(vec![]));
         let captured = requests.clone();
@@ -473,14 +517,59 @@ async fn installed_codex_preserves_reference_behavior_without_tools_or_instructi
         let result: Value = serde_json::from_slice(&output.stdout).unwrap();
         server.abort();
         let _ = server.await;
-        assert_eq!(result, baseline["cases"][index]["observed"]);
+        assert_eq!(result, row["observed"], "{}", row["name"]);
         let requests = requests.lock().unwrap();
-        assert!(!requests.is_empty(), "{result}");
-        assert_eq!(
-            requests.len(),
-            baseline["cases"][index]["requests"].as_u64().unwrap() as usize
+        assert_eq!(requests.len(), row["requests"].as_u64().unwrap() as usize);
+        assert!(
+            requests.iter().all(|request| request["input"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|item| (item["type"] != "additional_tools"
+                    && item["type"] != "tool_search_output")
+                    || item["tools"] == json!([]))),
+            "model-input capabilities must also be empty: {}",
+            row["name"]
         );
-        assert!(requests.iter().all(|request| request["tools"] == json!([])));
+        assert!(
+            requests
+                .iter()
+                .all(|request| request.get("tools").is_none_or(|tools| *tools == json!([])))
+        );
+        if let Some(expected) = row.get("rewrite_inputs") {
+            let inputs = requests
+                .iter()
+                .map(|request| {
+                    request["input"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .filter(|item| {
+                            item["type"] == "message"
+                                && item["role"] == "user"
+                                && item["content"].as_array().unwrap().iter().any(|part| {
+                                    part["type"] == "input_text"
+                                        && part["text"]
+                                            .as_str()
+                                            .is_some_and(|text| text.starts_with("Clean this 🙂"))
+                                })
+                        })
+                        .map(|item| item["content"].clone())
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>();
+            assert_eq!(json!(inputs), *expected);
+            assert_eq!(
+                json!(
+                    requests
+                        .iter()
+                        .map(|request| &request["model"])
+                        .collect::<Vec<_>>()
+                ),
+                row["model_identifiers"]
+            );
+            assert_eq!(json!(requests.iter().map(|request| json!({"reasoning":request["reasoning"],"service_tier":request["service_tier"]})).collect::<Vec<_>>()), row["request_settings"]);
+        }
         let serialized = serde_json::to_string(&*requests).unwrap();
         assert!(!serialized.contains("PRIVATE_INSTRUCTION_CANARY"));
         assert!(!serialized.contains("PRIVATE_OVERRIDE_CANARY"));
@@ -493,6 +582,10 @@ async fn installed_codex_preserves_reference_behavior_without_tools_or_instructi
         assert_eq!(
             std::fs::read_to_string(root.join("codex/AGENTS.override.md")).unwrap(),
             "PRIVATE_OVERRIDE_CANARY"
+        );
+        println!(
+            "{}",
+            json!({"installed_cli":version.trim(),"case":row.get("name").cloned().unwrap_or_else(||json!(format!("legacy-tool-{tool}"))),"observed":result,"requests":*requests,"mcp_started":mcp.exists(),"command_started":marker.exists(),"instructions_unchanged":true})
         );
     }
 }

@@ -10,7 +10,7 @@ use mluva_core::{
     screenshots::{image_context, validate_images},
 };
 use serde_json::{Value, json};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
@@ -19,7 +19,7 @@ use std::sync::{
     atomic::{AtomicBool, AtomicU64, Ordering},
 };
 use std::time::Duration;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::process::{Child, ChildStdin, ChildStdout, Command};
 use tokio::sync::{Notify, mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
@@ -29,6 +29,103 @@ pub const MAX_MODEL_PAGES: usize = 10;
 const SERVER_EXITED: &str = "_mluva/serverExited";
 const UNEXPECTED_REQUEST: &str = "_mluva/unexpectedRequest";
 const MALFORMED: &str = "Codex app-server returned a malformed response.";
+
+fn private_process(
+    command: Vec<OsString>,
+    environment: &BTreeMap<OsString, OsString>,
+    workspace: &Path,
+) -> Result<Command> {
+    let command = codex_policy::isolated_command(command, environment)?;
+    let mut process = Command::new(&command[0]);
+    process
+        .args(&command[1..])
+        .env_clear()
+        .envs(environment)
+        .current_dir(workspace)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .kill_on_drop(true);
+    crate::process_lifetime::kill_with_parent(&mut process);
+    Ok(process)
+}
+
+async fn private_catalog(
+    command: &[OsString],
+    environment: &BTreeMap<OsString, OsString>,
+    workspace: &Path,
+    stop: &CancellationToken,
+    timeout: Duration,
+) -> Result<Option<PathBuf>> {
+    // A custom JSONL transport need not implement Codex CLI subcommands.
+    let Some(server) = command.iter().position(|argument| argument == "app-server") else {
+        return Ok(None);
+    };
+    let failure = || ProviderError::message("Codex could not establish text-only permissions.");
+    let mut snapshot = command[..server].to_vec();
+    snapshot.extend(["debug".into(), "models".into()]);
+    let mut arguments = command[server + 1..].iter();
+    while let Some(argument) = arguments.next() {
+        if matches!(
+            argument.to_str(),
+            Some("-c" | "--config" | "--enable" | "--disable")
+        ) {
+            snapshot.push(argument.clone());
+            snapshot.push(arguments.next().ok_or_else(failure)?.clone());
+        } else if argument.to_str().is_some_and(|argument| {
+            ["--config=", "--enable=", "--disable="]
+                .iter()
+                .any(|prefix| argument.starts_with(prefix))
+        }) {
+            snapshot.push(argument.clone());
+        }
+    }
+    let mut process = private_process(snapshot, environment, workspace)?
+        .stdin(Stdio::null())
+        .spawn()
+        .map_err(|_| failure())?;
+    const MAXIMUM: u64 = 4 * 1024 * 1024;
+    let mut output = process.stdout.take().unwrap().take(MAXIMUM + 1);
+    let completed = tokio::select! {
+        biased;
+        _ = stop.cancelled() => Err(ProviderError::message("Codex app-server work was cancelled.")),
+        result = tokio::time::timeout(timeout, async {
+            let mut bytes = Vec::new();
+            output.read_to_end(&mut bytes).await.map_err(|_| failure())?;
+            if bytes.len() as u64 > MAXIMUM { return Err(failure()); }
+            let status = process.wait().await.map_err(|_| failure())?;
+            if !status.success() { return Err(failure()); }
+            Ok(bytes)
+        }) => result.map_err(|_| failure()).and_then(|result| result),
+    };
+    if completed.is_err() {
+        let _ = process.kill().await;
+    }
+    let mut catalog: Value = serde_json::from_slice(&completed?).map_err(|_| failure())?;
+    let models = catalog
+        .get_mut("models")
+        .and_then(Value::as_array_mut)
+        .filter(|models| !models.is_empty())
+        .ok_or_else(failure)?;
+    for model in models {
+        let model = model.as_object_mut().ok_or_else(failure)?;
+        if model.get("slug").and_then(Value::as_str).is_none() {
+            return Err(failure());
+        }
+        // Model metadata takes precedence over feature flags in current Codex.
+        // Preserve its catalog/effort/context settings and override only tools.
+        model.insert("tool_mode".into(), json!("direct"));
+        model.insert("multi_agent_version".into(), json!("disabled"));
+        model.insert("experimental_supported_tools".into(), json!([]));
+    }
+    let path = workspace.join("text-only-models.json");
+    mluva_core::private_files::atomic_write_private(
+        &path,
+        &serde_json::to_vec(&catalog).map_err(|_| failure())?,
+    )
+    .map_err(|_| failure())?;
+    Ok(Some(path))
+}
 
 #[derive(Clone, Debug)]
 pub struct CodexOptions {
@@ -257,19 +354,41 @@ impl CodexAppServerClient {
                 format!("{key}={}", serde_json::to_string(value).unwrap()).into(),
             ]);
         }
+        if command.iter().any(|argument| argument == "app-server") {
+            for feature in [
+                "code_mode_only",
+                "current_time_reminder",
+                "send_message_to_user_async",
+                "deferred_executor",
+            ] {
+                command.extend(["-c".into(), format!("features.{feature}=false").into()]);
+            }
+        }
         let environment = codex_policy::child_environment(std::env::vars_os());
-        let command = codex_policy::isolated_command(command, &environment)?;
-        let mut process_command = Command::new(&command[0]);
-        process_command
-            .args(&command[1..])
-            .env_clear()
-            .envs(environment)
-            .current_dir(&workspace_path)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::null())
-            .kill_on_drop(true);
-        crate::process_lifetime::kill_with_parent(&mut process_command);
+        if let Some(catalog) = private_catalog(
+            &command,
+            &environment,
+            &workspace_path,
+            &stop,
+            self.options.request_timeout,
+        )
+        .await?
+        {
+            command.extend([
+                "-c".into(),
+                format!(
+                    "model_catalog_json={}",
+                    serde_json::to_string(&catalog).unwrap()
+                )
+                .into(),
+            ]);
+        }
+        if stop.is_cancelled() {
+            return Err(ProviderError::message(
+                "Codex app-server work was cancelled.",
+            ));
+        }
+        let mut process_command = private_process(command, &environment, &workspace_path)?;
         let mut process = process_command.spawn().map_err(|_| failure())?;
         let stdout = process.stdout.take().unwrap();
         let stdin = process.stdin.take().unwrap();
