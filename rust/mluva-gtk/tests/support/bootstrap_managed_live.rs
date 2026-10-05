@@ -146,7 +146,7 @@ fn provider(root: &Path, fixture: &Value, edited: bool) {
         "live_controls":{
             format!("preview|{speech}"):{"deltas":[draft]},
             format!("preview|{speech} {speech}"):{"deltas":[draft]},
-            format!("final|{speech}"):{"deltas":[final_text],"gate":root.join("codex-evidence/final.release")}}}),
+            format!("final|{speech}"):{"deltas":[final_text],"gate":root.join("codex-evidence").join(fixture["final_gate"].as_str().unwrap_or("final.release"))}}}),
     );
 }
 fn turns(root: &Path) -> Vec<Value> {
@@ -199,9 +199,16 @@ fn snapshot(
     let mut saved = replies(root);
     let raw_history = history(root);
     for reply in &mut saved {
-        assert_eq!(reply["history_identifier"], raw_history[0]["identifier"]);
+        let index = raw_history
+            .iter()
+            .position(|entry| entry["identifier"] == reply["history_identifier"])
+            .unwrap();
         chrono::DateTime::parse_from_rfc3339(reply["created_at"].as_str().unwrap()).unwrap();
-        reply["history_identifier"] = json!("$ENTRY");
+        reply["history_identifier"] = json!(if index == 0 {
+            "$ENTRY".to_owned()
+        } else {
+            format!("$ENTRY-{}", index + 1)
+        });
         reply["created_at"] = json!("$CREATED_AT");
     }
     let review = events
@@ -222,7 +229,8 @@ fn snapshot(
     state["texts"] = json!(texts);
     state["controls"] = json!(controls);
     state["clipboard"] = json!(clipboard());
-    if let Some(entry) = raw_history.first() {
+    let mut audio = vec![];
+    for entry in &raw_history {
         let mut wave = mluva_audio::wav::WaveReader::open(Path::new(
             entry["retained_audio_path"].as_str().unwrap(),
         ))
@@ -236,13 +244,36 @@ fn snapshot(
             (1, 2, 16000)
         );
         let pcm = wave.read_frames(128001).unwrap();
-        state["retained_pcm"] = json!({"bytes":pcm.len(),"sha256":hash(&pcm)});
+        audio.push(json!({"bytes":pcm.len(),"sha256":hash(&pcm)}));
     }
-    if matches!(stage, "terminal" | "copied-final") {
+    if let Some(first) = audio.first() {
+        state["retained_pcm"] = first.clone();
+    }
+    if audio.len() > 1 {
+        state["additional_pcm"] = json!(&audio[1..]);
+    }
+    if matches!(stage, "terminal" | "copied-final" | "fresh-terminal") {
         state["frame"] = frame(root, window, stage)
     }
     write(&root.join(format!("live-{stage}.json")), &state);
     state
+}
+fn record_draft(root: &Path, bus: &Bus, accessibility: &Accessibility, draft: &str) {
+    bus.action("record");
+    // Eight seconds of external pacing exceed the UI acknowledgement deadline.
+    let end = Instant::now() + Duration::from_secs(15);
+    while !root.join("tools/raw.ready.json").exists() {
+        assert!(Instant::now() < end);
+        settle();
+    }
+    until(|| {
+        elements(accessibility)
+            .iter()
+            .any(|element| element.name == "Live draft" && element.text == draft)
+    });
+    for _ in 0..3 {
+        settle();
+    }
 }
 pub(super) fn exercise(
     binary: &Path,
@@ -253,10 +284,34 @@ pub(super) fn exercise(
     pcm: &[u8],
     binaries: &Path,
 ) {
-    let fixture: Value = serde_json::from_str(include_str!(
+    let mut fixture: Value = serde_json::from_str(include_str!(
         "../fixtures/released-bootstrap-managed-live.json"
     ))
     .unwrap();
+    let restart: Value = serde_json::from_str(include_str!(
+        "../fixtures/released-bootstrap-managed-live-restart.json"
+    ))
+    .unwrap();
+    assert_eq!(
+        hash(include_bytes!(
+            "../fixtures/released-bootstrap-managed-live.json"
+        )),
+        restart["prefix"]["sha256"].as_str().unwrap()
+    );
+    let mut states = fixture["cases"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|case| case["name"] == restart["prefix"]["case"])
+        .unwrap()["result"]["states"]
+        .as_array()
+        .unwrap()
+        .clone();
+    states.extend(restart["result"]["states"].as_array().unwrap().clone());
+    let mut case = json!({"name":restart["name"],"result":restart["result"]});
+    case["result"]["states"] = json!(states);
+    fixture["cases"].as_array_mut().unwrap().push(case);
+    fixture["fresh"] = restart["fresh"].clone();
     let mut setup_fixture = capture_fixture.clone();
     for (key, value) in fixture["config_overrides"].as_object().unwrap() {
         setup_fixture["config"][key] = value.clone()
@@ -312,23 +367,12 @@ pub(super) fn exercise(
             let stage = expected["stage"].as_str().unwrap();
             match stage {
                 "recording-draft" => {
-                    bus.action("record");
-                    // Eight seconds of external pacing need a larger wait than
-                    // the ordinary UI acknowledgement deadline.
-                    let end = Instant::now() + Duration::from_secs(15);
-                    while !root.join("tools/raw.ready.json").exists() {
-                        assert!(Instant::now() < end);
-                        settle();
-                    }
-                    until(|| {
-                        elements(&accessibility).iter().any(|element| {
-                            element.name == "Live draft"
-                                && element.text == fixture["draft"].as_str().unwrap()
-                        })
-                    });
-                    for _ in 0..3 {
-                        settle()
-                    }
+                    record_draft(
+                        &root,
+                        bus,
+                        &accessibility,
+                        fixture["draft"].as_str().unwrap(),
+                    );
                 }
                 "final-pending" => {
                     bus.action("record");
@@ -425,6 +469,41 @@ pub(super) fn exercise(
                     }
                     for _ in 0..3 {
                         settle()
+                    }
+                }
+                "fresh-recording-draft" => {
+                    fs::remove_file(root.join("codex-evidence/final.release")).unwrap();
+                    let mut spec = fixture["fresh"]["runtime_spec"].clone();
+                    spec["root"] = json!(&root);
+                    let runtime = QWEN_RUNTIME.binary(&root.join("data/mluva"), "cpu");
+                    write(&runtime.with_file_name("fixture.json"), &spec);
+                    provider(&root, &fixture["fresh"], false);
+                    reset_audio_receipts(&root);
+                    record_draft(
+                        &root,
+                        bus,
+                        &accessibility,
+                        fixture["fresh"]["draft"].as_str().unwrap(),
+                    );
+                }
+                "abandoned-final-released" => {
+                    fs::write(root.join("codex-evidence/final.release"), []).unwrap();
+                    for _ in 0..3 {
+                        settle();
+                    }
+                }
+                "fresh-final-pending" => {
+                    bus.action("record");
+                    until(|| history(&root).len() == 2 && turns(&root).len() == 6);
+                }
+                "fresh-terminal" => {
+                    fs::write(root.join("codex-evidence/fresh.release"), []).unwrap();
+                    until(|| {
+                        replies(&root).len() == 1
+                            && clipboard() == fixture["fresh"]["final"].as_str().unwrap()
+                    });
+                    for _ in 0..3 {
+                        settle();
                     }
                 }
                 other => panic!("unknown released Live action {other}"),

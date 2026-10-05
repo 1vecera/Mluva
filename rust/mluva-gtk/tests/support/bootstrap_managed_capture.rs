@@ -86,21 +86,36 @@ fn protocol(root: &Path) -> (Vec<Value>, Vec<u64>) {
 }
 fn normalized_history(root: &Path) -> Value {
     let mut rows = history(root);
+    let audio_paths: std::collections::BTreeSet<_> = rows
+        .iter()
+        .map(|row| row["retained_audio_path"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        audio_paths.len(),
+        rows.len(),
+        "distinct captured audio owners"
+    );
     let identifier =
         regex::Regex::new(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
             .unwrap();
     let filename = regex::Regex::new(r"^\d{8}T\d{12}\.wav$").unwrap();
-    for row in &mut rows {
+    for (index, row) in rows.iter_mut().enumerate() {
         assert!(identifier.is_match(row["identifier"].as_str().unwrap()));
         chrono::DateTime::parse_from_rfc3339(row["created_at"].as_str().unwrap()).unwrap();
         let path = Path::new(row["retained_audio_path"].as_str().unwrap());
         assert!(path.starts_with(root.join("data/mluva/recordings")));
         assert!(filename.is_match(path.file_name().unwrap().to_str().unwrap()));
         assert!(row["recognition_ms"].as_u64().unwrap() <= 2000);
-        row["identifier"] = json!("$ENTRY");
+        let suffix = if index == 0 {
+            String::new()
+        } else {
+            format!("-{}", index + 1)
+        };
+        row["identifier"] = json!(format!("$ENTRY{suffix}"));
         row["created_at"] = json!("$CREATED_AT");
         row["recognition_ms"] = json!("$SAMPLED");
-        row["retained_audio_path"] = json!("$ROOT/data/mluva/recordings/$AUDIO.wav");
+        row["retained_audio_path"] =
+            json!(format!("$ROOT/data/mluva/recordings/$AUDIO{suffix}.wav"));
     }
     json!(rows)
 }
@@ -271,6 +286,14 @@ fn setup(root: &Path, fixture: &Value, pcm: &[u8], binaries: &Path, close_delay_
     spec["root"] = json!(root);
     write(&runtime.with_file_name("fixture.json"), &spec);
 }
+fn reset_audio_receipts(root: &Path) {
+    for file in ["raw.ready.json", "dump.ready.json", "signal.receipt"] {
+        let path = root.join("tools").join(file);
+        if path.exists() {
+            fs::remove_file(path).unwrap();
+        }
+    }
+}
 
 pub fn exercise(binary: &Path, base: &Path, bus: &Bus, events: &RefCell<Vec<Value>>) {
     let fixture: Value = serde_json::from_str(include_str!(
@@ -323,12 +346,7 @@ pub fn exercise(binary: &Path, base: &Path, bus: &Bus, events: &RefCell<Vec<Valu
             });
             settle();
             states.push(checkpoint(&root, bus, events, &window, "cancelled"));
-            for file in ["raw.ready.json", "dump.ready.json", "signal.receipt"] {
-                let path = root.join("tools").join(file);
-                if path.exists() {
-                    fs::remove_file(path).unwrap();
-                }
-            }
+            reset_audio_receipts(&root);
             bus.action("record");
             until(|| resources(&root)["processes"] == 2);
             until(|| root.join("tools/raw.ready.json").exists());
