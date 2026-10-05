@@ -175,6 +175,7 @@ pub struct ConversationWorkspace {
     pub screenshot_shelf: ScreenshotShelf,
     pub screenshot_buttons: [gtk::Button; 2],
     pub composer: gtk::Box,
+    pub rewrite_toggle: gtk::ToggleButton,
     pub actions: gtk::FlowBox,
     pub quick_polish: gtk::Button,
     pub structured_note: gtk::Button,
@@ -448,7 +449,28 @@ impl ConversationWorkspace {
         let live_draft_follower =
             TailFollower::new(&live_draft_scroll, Some(live_draft_text.upcast_ref()));
         content.append(&live_box);
+        let rewrite_expanded = std::fs::read(
+            store
+                .history
+                .database
+                .path
+                .with_file_name("rewrite-panel-expanded.json"),
+        )
+        .ok()
+        .and_then(|bytes| serde_json::from_slice::<bool>(&bytes).ok())
+        .unwrap_or(false);
+        let rewrite_toggle = gtk::ToggleButton::builder()
+            .label("Rewrite")
+            .tooltip_text("Show or hide manual rewrite controls")
+            .active(rewrite_expanded)
+            .halign(gtk::Align::Start)
+            .margin_start(16)
+            .margin_top(8)
+            .margin_bottom(8)
+            .build();
+        content.append(&rewrite_toggle);
         let composer = gtk::Box::new(gtk::Orientation::Vertical, 8);
+        composer.set_visible(rewrite_expanded);
         composer.add_css_class("ml-composer");
         margins(&composer, 16);
         composer.set_margin_top(8);
@@ -498,6 +520,7 @@ impl ConversationWorkspace {
         let prompt = gtk::TextView::builder()
             .wrap_mode(gtk::WrapMode::WordChar)
             .accepts_tab(false)
+            .cursor_visible(false)
             .css_classes(["ml-prompt"])
             .tooltip_text("Write a custom instruction, then press Ctrl+Enter to send")
             .build();
@@ -586,6 +609,7 @@ impl ConversationWorkspace {
             screenshot_shelf,
             screenshot_buttons,
             composer,
+            rewrite_toggle,
             actions,
             quick_polish,
             structured_note,
@@ -727,9 +751,39 @@ impl ConversationWorkspace {
             }
         });
         let placeholder = self.prompt_placeholder.downgrade();
+        let prompt = self.prompt.downgrade();
         self.prompt.buffer().connect_changed(move |b| {
             if let Some(label) = placeholder.upgrade() {
                 label.set_visible(b.char_count() == 0);
+            }
+            if let Some(prompt) = prompt.upgrade() {
+                prompt.set_cursor_visible(b.char_count() != 0);
+            }
+        });
+        let weak = Rc::downgrade(self);
+        self.rewrite_toggle.connect_toggled(move |button| {
+            if let Some(w) = weak.upgrade() {
+                w.composer
+                    .set_visible(button.is_active() && !w.is_viewing_live());
+                let path = w
+                    .store
+                    .history
+                    .database
+                    .path
+                    .with_file_name("rewrite-panel-expanded.json");
+                if mluva_core::private_files::atomic_write_private_durable(
+                    &path,
+                    if button.is_active() {
+                        b"true\n"
+                    } else {
+                        b"false\n"
+                    },
+                )
+                .is_err()
+                {
+                    w.notice
+                        .set_label("Could not save the rewrite panel preference.");
+                }
             }
         });
         let keys = gtk::EventControllerKey::new();
@@ -1065,7 +1119,8 @@ impl ConversationWorkspace {
         true
     }
     pub fn focus_prompt(&self) {
-        if self.composer.get_visible() {
+        if !self.is_viewing_live() {
+            self.rewrite_toggle.set_active(true);
             self.prompt.grab_focus();
         }
     }
@@ -1755,6 +1810,9 @@ impl ConversationWorkspace {
         // Changing GtkTextView properties can invoke document formatting, but never changes stored source.
         let editors = s.editors.values().cloned().collect::<Vec<_>>();
         self.cancel.set_visible(s.busy);
+        self.composer
+            .set_visible(!s.viewing_live && (s.busy || self.rewrite_toggle.is_active()));
+        self.rewrite_toggle.set_sensitive(!s.busy);
         self.live_cancel_slot
             .set_visible_child_name(if s.busy { "cancel" } else { "idle" });
         for button in [&self.quick_polish, &self.structured_note]
@@ -1896,7 +1954,9 @@ impl ConversationWorkspace {
         self.live_box.set_visible(visible);
         self.live_header.set_visible(visible);
         self.scroll.set_visible(!visible);
-        self.composer.set_visible(!visible);
+        self.rewrite_toggle.set_visible(!visible);
+        self.composer
+            .set_visible(!visible && (self.state.borrow().busy || self.rewrite_toggle.is_active()));
         self.heading.set_visible(!visible);
         self.live_navigation.set_css_classes(if visible {
             &["flat", "ml-live-current"]

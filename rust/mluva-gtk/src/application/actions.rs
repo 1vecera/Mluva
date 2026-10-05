@@ -451,7 +451,10 @@ impl ApplicationDesktop {
         match command {
             CommandAction::ToggleRecording => self.toggle_recording(CaptureOrigin::Manual),
             CommandAction::CycleLive => self.page().live_mode.emit_clicked(),
-            CommandAction::Polish => workspace.quick_polish.emit_clicked(),
+            CommandAction::Polish => {
+                workspace.focus_prompt();
+                workspace.quick_polish.emit_clicked();
+            }
             CommandAction::FocusRewrite => workspace.focus_prompt(),
             CommandAction::CopyOutput => {
                 workspace.copy_current_output();

@@ -1,0 +1,39 @@
+[
+  {
+    "case": "legacy-native-auto-paste",
+    "bytes_hex": "16",
+    "result": "raw Ctrl+V, wrong image action",
+    "receipt": "copied=true dispatched=true confirmed=None"
+  },
+  {
+    "case": "repaired-native-auto-paste",
+    "bracketed_pastes": 1,
+    "text": "Příliš žluťoučký 👋\nSecond line.",
+    "receipt": "copied=true dispatched=true confirmed=None"
+  },
+  {
+    "case": "stale-window-or-process",
+    "paste_events": 0
+  },
+  {
+    "case": "super-v-text",
+    "bracketed_pastes": 1,
+    "text": "Příliš žluťoučký 👋\nSecond line."
+  },
+  {
+    "case": "super-v-image",
+    "key_hex": "16",
+    "clipboard_sha256": "4e0298090ba1019fbc3fa309067c429b49116b2a5d61cc6a463e243e83c69dfd",
+    "result": "literal Ctrl+V, image preserved"
+  },
+  {
+    "case": "actual-codex-super-v-image",
+    "sdk": "0.160.0",
+    "image_size": [
+      8,
+      8
+    ],
+    "pixels_sha256": "205c5d6f849bb6b9d79ad8c04e0778a28f945d1e533e2c16e7083a1317625856",
+    "result": "actual TUI attachment; no prompt sent"
+  }
+]

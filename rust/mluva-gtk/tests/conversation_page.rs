@@ -233,7 +233,7 @@ fn conversation_page_matches_released_editing_navigation_privacy_and_live_observ
         .unwrap();
     let events = Rc::new(RefCell::new(Vec::new()));
     let handle = Rc::new(RefCell::new(None::<std::rc::Weak<ConversationWorkspace>>));
-    let mut callbacks = ConversationCallbacks {
+    let new_callbacks = || ConversationCallbacks {
         copy: event_callback(&events, "copy"),
         rewrite: event_callback(&events, "rewrite"),
         paste: event_callback(&events, "paste"),
@@ -249,6 +249,7 @@ fn conversation_page_matches_released_editing_navigation_privacy_and_live_observ
         remove_screenshot: event_callback(&events, "remove-image"),
         edit_prompt: event_callback(&events, "edit-prompt"),
     };
+    let mut callbacks = new_callbacks();
     let e = events.clone();
     callbacks.open_archive = Rc::new(move || e.borrow_mut().push(json!(["archive"])));
     let e = events.clone();
@@ -317,9 +318,46 @@ fn conversation_page_matches_released_editing_navigation_privacy_and_live_observ
         w.refresh_history().unwrap();
         true
     });
-    let workspace = ConversationWorkspace::new(store, callbacks, resources).unwrap();
+    let workspace = ConversationWorkspace::new(store, callbacks, resources.clone()).unwrap();
     *handle.borrow_mut() = Some(Rc::downgrade(&workspace));
     let w = &workspace;
+    assert!(!w.composer.get_visible(), "manual rewrite starts collapsed");
+    assert!(
+        !w.prompt.is_cursor_visible(),
+        "an empty placeholder has no caret"
+    );
+    w.rewrite_toggle.set_active(true);
+    assert!(w.composer.get_visible());
+    w.prompt.buffer().set_text("Keep this unsent request.");
+    assert!(w.prompt.is_cursor_visible());
+    assert!(!w.prompt_placeholder.get_visible());
+    for expanded in [false, true] {
+        w.rewrite_toggle.set_active(expanded);
+        assert_eq!(w.composer.get_visible(), expanded);
+        assert_eq!(w.prompt_text(), "Keep this unsent request.");
+        let reopened = ConversationWorkspace::new(
+            ConversationStore::new(history.clone()),
+            new_callbacks(),
+            resources.clone(),
+        )
+        .unwrap();
+        assert_eq!(reopened.rewrite_toggle.is_active(), expanded);
+        assert_eq!(reopened.composer.get_visible(), expanded);
+    }
+    w.prompt.buffer().set_text("");
+    assert!(!w.prompt.is_cursor_visible());
+    assert!(w.prompt_placeholder.get_visible());
+    w.rewrite_toggle.set_active(false);
+    let idle_notice = w.notice.label();
+    w.set_busy(true, "Rewriting…");
+    assert!(w.composer.get_visible() && w.cancel.get_visible());
+    assert!(!w.rewrite_toggle.is_sensitive());
+    assert!(!w.rewrite_toggle.is_active());
+    w.set_busy(false, &idle_notice);
+    assert!(!w.composer.get_visible());
+    w.focus_prompt();
+    assert!(w.rewrite_toggle.is_active());
+    assert!(w.composer.get_visible());
     let mut cfg = w.config();
     cfg.rewrite_provider = "codex".into();
     w.set_config(cfg.clone()).unwrap();
