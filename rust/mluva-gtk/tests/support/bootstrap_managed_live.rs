@@ -2,6 +2,8 @@
 use super::*;
 use std::collections::VecDeque;
 use std::os::unix::process::ExitStatusExt;
+#[path = "bootstrap_current_codex.rs"]
+mod current_codex;
 
 struct Element {
     node: (String, String),
@@ -154,6 +156,13 @@ fn turns(root: &Path) -> Vec<Value> {
     let mut model = Value::Null;
     let mut result = vec![];
     for row in records(root, "requests.jsonl") {
+        if let Some(request) = row.get("json") {
+            result.push(
+                json!({"input":[{"type":"text","text":current_codex::input(request)}],
+                "model":request["model"],"effort":request["reasoning"]["effort"]}),
+            );
+            continue;
+        }
         let message = &row["message"];
         if message["method"] == "thread/start" {
             model = message["params"]["model"].clone()
@@ -400,6 +409,7 @@ pub(super) fn exercise(
         .as_array_mut()
         .unwrap()
         .push(json!({"name":crashed["name"],"clipboard":crashed["clipboard"],"result":result}));
+    let installed = current_codex::extend(&mut fixture);
     let mut setup_fixture = capture_fixture.clone();
     for (key, value) in fixture["config_overrides"].as_object().unwrap() {
         setup_fixture["config"][key] = value.clone()
@@ -408,6 +418,7 @@ pub(super) fn exercise(
     let accessibility = Accessibility::open();
     for case in fixture["cases"].as_array().unwrap() {
         let name = case["name"].as_str().unwrap();
+        let behavior = case["behavior"].as_str().unwrap_or(name);
         let root = base.join(format!("managed-live-{name}"));
         setup(&root, &setup_fixture, pcm, binaries, 0);
         fs::create_dir(root.join("codex-evidence")).unwrap();
@@ -427,8 +438,16 @@ pub(super) fn exercise(
         )
         .unwrap();
         fs::set_permissions(root.join("tools/codex"), fs::Permissions::from_mode(0o700)).unwrap();
+        let mut sdk_peer = case.get("sdk").map(|_| {
+            current_codex::setup(&root, installed.as_ref().unwrap(), binaries, &fixture, case)
+        });
         events.borrow_mut().clear();
+        let mut previous_subreaper: libc::c_int = 0;
         if name == "crash-reopen" {
+            assert_eq!(
+                unsafe { libc::prctl(libc::PR_GET_CHILD_SUBREAPER, &mut previous_subreaper) },
+                0
+            );
             assert_eq!(
                 unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) },
                 0
@@ -458,6 +477,9 @@ pub(super) fn exercise(
                 "final-pending" => {
                     bus.action("record");
                     until(|| history(&root).len() == 1 && turns(&root).len() == 3);
+                    if sdk_peer.is_some() {
+                        current_codex::held_server(&root, installed.as_ref().unwrap());
+                    }
                 }
                 "copy-refused" | "copied-final" => {
                     if stage == "copied-final" {
@@ -537,7 +559,7 @@ pub(super) fn exercise(
                 }
                 "terminal" => {
                     fs::write(root.join("codex-evidence/final.release"), []).unwrap();
-                    if name == "manual-edit" {
+                    if behavior == "manual-edit" {
                         until(|| {
                             replies(&root).len() == 1
                                 && clipboard()
@@ -576,6 +598,9 @@ pub(super) fn exercise(
                 "fresh-final-pending" => {
                     bus.action("record");
                     until(|| history(&root).len() == 2 && turns(&root).len() == 6);
+                    if sdk_peer.is_some() {
+                        current_codex::held_server(&root, installed.as_ref().unwrap());
+                    }
                 }
                 "fresh-terminal" => {
                     fs::write(root.join("codex-evidence/fresh.release"), []).unwrap();
@@ -664,6 +689,9 @@ pub(super) fn exercise(
         until(|| bus.owner().is_none());
         assert_eq!(exit, 0);
         assert_eq!(fs::read(root.join("application.log")).unwrap(), b"");
+        if let Some(peer) = &mut sdk_peer {
+            current_codex::finish(&root, peer, case);
+        }
         let (trace, health_statuses) = protocol(&root);
         let mut actual = json!({"states":states,"trace":trace,"health_statuses":health_statuses,"turns":turns(&root),
             "post_exit_resources":owned(&root),"exit_code":exit,"app_log_bytes":0});
@@ -679,6 +707,14 @@ pub(super) fn exercise(
             actual, case["result"],
             "managed Live {name}: complete process/store/transport and revision ownership"
         );
+        if name == "crash-reopen" {
+            // Adoption belongs only to the intentional app-crash observation.
+            // Later SDK cases must keep the ordinary namespace-init reaper.
+            assert_eq!(
+                unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, previous_subreaper, 0, 0, 0) },
+                0
+            );
+        }
         eprintln!(
             "matched managed Live {name}: {} states and actual edited/cancelled finalization",
             states.len()

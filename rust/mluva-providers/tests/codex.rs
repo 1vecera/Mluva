@@ -11,6 +11,8 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tokio::net::TcpListener;
 use tokio::process::Command;
+#[path = "support/codex_response.rs"]
+mod codex_response;
 mod support;
 
 fn observed<T: serde::Serialize, E: std::fmt::Display>(result: Result<T, E>) -> Value {
@@ -393,35 +395,8 @@ async fn cancellation_cleans_up_pending_work_and_missing_commands_do_not_echo_pa
 }
 
 fn model_response(tool: bool, marker: &Path) -> Vec<u8> {
-    let item = json!({"id":"msg_fixture","type":"message","role":"assistant","status":"completed","content":[{"type":"output_text","text":"Synthetic transformed text.","annotations":[]}]});
-    let mut events = vec![
-        json!({"type":"response.created","response":{"id":"resp_fixture","object":"response","status":"in_progress"}}),
-    ];
-    if tool {
-        let call = json!({"id":"tool_fixture","type":"function_call","name":"exec_command","call_id":"call_fixture","arguments":json!({"cmd":format!("touch {}",marker.display())}).to_string()});
-        events.extend([json!({"type":"response.output_item.done","output_index":0,"item":call}),json!({"type":"response.completed","response":{"id":"resp_fixture","object":"response","status":"completed","output":[call]}})]);
-    } else {
-        let mut pending = item.clone();
-        pending["status"] = json!("in_progress");
-        pending["content"] = json!([]);
-        events.extend([
-            json!({"type":"response.output_item.added","output_index":0,"item":pending}),
-            json!({"type":"response.content_part.added","item_id":"msg_fixture","output_index":0,"content_index":0,"part":{"type":"output_text","text":"","annotations":[]}}),
-            json!({"type":"response.output_text.delta","item_id":"msg_fixture","output_index":0,"content_index":0,"delta":"Synthetic transformed text."}),
-            json!({"type":"response.output_item.done","output_index":0,"item":item}),
-            json!({"type":"response.completed","response":{"id":"resp_fixture","object":"response","status":"completed","output":[item],"usage":{"input_tokens":10,"output_tokens":4,"total_tokens":14}}}),
-        ]);
-    }
-    events
-        .into_iter()
-        .map(|event| {
-            format!(
-                "event: {}\ndata: {event}\n\n",
-                event["type"].as_str().unwrap()
-            )
-        })
-        .collect::<String>()
-        .into_bytes()
+    let call = tool.then(|| json!({"id":"tool_fixture","type":"function_call","name":"exec_command","call_id":"call_fixture","arguments":json!({"cmd":format!("touch {}",marker.display())}).to_string()}));
+    codex_response::encode(&codex_response::events("Synthetic transformed text.", call))
 }
 
 #[tokio::test]

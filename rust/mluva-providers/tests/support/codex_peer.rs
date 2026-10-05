@@ -348,9 +348,21 @@ fn observe_parent_crash(path: &Path) {
         let mut status = 0;
         loop {
             let reaped = unsafe { libc::waitpid(pid, &mut status, libc::WNOHANG) };
-            assert!(reaped >= 0);
             if reaped == pid {
+                assert_eq!(libc::WTERMSIG(status), libc::SIGKILL);
                 break;
+            }
+            if reaped < 0 {
+                let error = io::Error::last_os_error().raw_os_error();
+                assert!(
+                    matches!(error, Some(libc::ECHILD | libc::EINTR)),
+                    "waitpid: {error:?}"
+                );
+                // Bubblewrap may reap its child before this subreaper adopts it.
+                // Missing ownership alone is not evidence that it stopped.
+                if error == Some(libc::ECHILD) && !Path::new(&format!("/proc/{pid}")).exists() {
+                    break;
+                }
             }
             assert!(
                 before.elapsed() < Duration::from_secs(2),
@@ -358,7 +370,6 @@ fn observe_parent_crash(path: &Path) {
             );
             std::thread::sleep(Duration::from_millis(2));
         }
-        assert_eq!(libc::WTERMSIG(status), libc::SIGKILL);
         assert!(!Path::new(&format!("/proc/{pid}")).exists());
         owned = None;
         let before = Instant::now();
@@ -410,6 +421,26 @@ fn observe_parent_crash(path: &Path) {
 #[tokio::main(flavor = "multi_thread", worker_threads = 2)]
 async fn main() {
     let args = std::env::args().collect::<Vec<_>>();
+    if args[1] == "exec-installed" {
+        let spec: Value = serde_json::from_slice(&fs::read(&args[2]).unwrap()).unwrap();
+        let arguments = &args[4..];
+        let kind = if arguments.iter().any(|arg| arg == "app-server") {
+            "process.jsonl"
+        } else {
+            "catalog.jsonl"
+        };
+        record(
+            &Path::new(spec["evidence"].as_str().unwrap()).join(kind),
+            &json!({"pid":std::process::id(),"cwd":std::env::current_dir().unwrap()}),
+        );
+        let mut command = std::process::Command::new(&args[3]);
+        command.args(arguments);
+        for value in spec["config"].as_array().unwrap() {
+            command.args(["-c", value.as_str().unwrap()]);
+        }
+        use std::os::unix::process::CommandExt;
+        panic!("installed CLI exec failed: {}", command.exec());
+    }
     if args.len() == 2 {
         let gate = std::env::current_exe()
             .unwrap()

@@ -12,6 +12,9 @@ use std::{
     thread,
     time::Duration,
 };
+#[path = "../../../mluva-providers/tests/support/codex_response.rs"]
+#[allow(dead_code)]
+pub mod codex_response;
 pub struct Peer {
     pub address: String,
     remaining: Arc<Mutex<VecDeque<Value>>>,
@@ -145,6 +148,31 @@ fn exchange(
         .unwrap()
         .pop_front()
         .ok_or("unexpected provider request")?;
+    let codex = path == "/responses";
+    let speech = path == "/speech-to-text" || path.ends_with("/audio/transcriptions");
+    let validate_route = || -> Result<(), Box<dyn std::error::Error>> {
+        if speech != (response["route"] == "speech")
+            || catalog != (response["route"] == "catalog")
+            || codex != (response["route"] == "codex")
+            || (!catalog && method != "POST")
+        {
+            return Err("provider request order differs".into());
+        }
+        Ok(())
+    };
+    if codex {
+        validate_route()?;
+        let value = json!({"path":path,"json":serde_json::from_slice::<Value>(body)?});
+        let path = response["request_log"]
+            .as_str()
+            .ok_or("missing SDK request log")?;
+        std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)?
+            .write_all(format!("{value}\n").as_bytes())?;
+        wire.lock().unwrap().push(value);
+    }
     // An independent endpoint can hold a request before observing its body.
     // This exposes ordering against actual picker/editor processes, without
     // changing an application callback or its clocks.
@@ -163,12 +191,8 @@ fn exchange(
             thread::sleep(Duration::from_millis(2));
         }
     }
-    let speech = path == "/speech-to-text" || path.ends_with("/audio/transcriptions");
-    if speech != (response["route"] == "speech")
-        || catalog != (response["route"] == "catalog")
-        || (!catalog && method != "POST")
-    {
-        return Err("provider request order differs".into());
+    if !codex {
+        validate_route()?;
     }
     if catalog {
         wire.lock().unwrap().push(json!({"path":path,"authorization":header.lines().any(|line|line.to_ascii_lowercase().starts_with("authorization:"))}));
@@ -176,7 +200,7 @@ fn exchange(
         wire.lock()
             .unwrap()
             .push(json!({"path": path, "fields": multipart_fields(body)?}));
-    } else {
+    } else if !codex {
         if path != "/chat/completions" {
             return Err("unexpected rewrite endpoint".into());
         }
@@ -184,7 +208,9 @@ fn exchange(
             .unwrap()
             .push(json!({"path": path, "json": serde_json::from_slice::<Value>(body)?}));
     }
-    let body = if speech || catalog {
+    let body = if codex {
+        codex_response::encode(response["events"].as_array().ok_or("missing SDK events")?)
+    } else if speech || catalog {
         serde_json::to_vec(&response["payload"])?
     } else if response["malformed"] == true {
         b"data: {broken}\n\n".to_vec()
