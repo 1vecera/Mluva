@@ -4,6 +4,7 @@ use crate::{
     compatible::RewriteOptions,
     models::{Model, select_codex_model, truthy},
 };
+use mluva_audio::volatile::VolatileAudioStore;
 use mluva_core::{
     executables::find_executable,
     screenshots::{image_context, validate_images},
@@ -11,7 +12,6 @@ use mluva_core::{
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::ffi::OsString;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::sync::{
@@ -74,6 +74,12 @@ struct Connection {
 struct Registration {
     connection: Arc<Connection>,
     id: u64,
+}
+struct Starting<'a>(&'a Mutex<Option<CancellationToken>>);
+impl Drop for Starting<'_> {
+    fn drop(&mut self) {
+        self.0.lock().unwrap().take();
+    }
 }
 impl Drop for Registration {
     fn drop(&mut self) {
@@ -161,6 +167,7 @@ pub struct CodexAppServerClient {
     cancelled: CancellationToken,
     next_id: Arc<AtomicU64>,
     current: Mutex<Option<Arc<Connection>>>,
+    starting: Mutex<Option<CancellationToken>>,
     start_gate: tokio::sync::Mutex<()>,
     last_model: Mutex<Option<String>>,
 }
@@ -171,6 +178,7 @@ impl CodexAppServerClient {
             cancelled: CancellationToken::new(),
             next_id: Arc::new(AtomicU64::new(0)),
             current: Mutex::new(None),
+            starting: Mutex::new(None),
             start_gate: tokio::sync::Mutex::new(()),
             last_model: Mutex::new(None),
         }
@@ -209,14 +217,31 @@ impl CodexAppServerClient {
             {
                 return Ok(connection);
             }
-            self.close().await;
+            self.close_current().await;
         }
         let failure = || ProviderError::message("Codex app-server could not start.");
-        let workspace = tempfile::Builder::new()
-            .prefix("mluva-codex-")
-            .permissions(std::fs::Permissions::from_mode(0o700))
-            .tempdir()
+        let cleanup = std::env::current_exe()
+            .ok()
+            .and_then(|executable| {
+                executable
+                    .parent()
+                    .and_then(|directory| find_executable(directory.join("mluva-audio-cleanup")))
+            })
+            .or_else(|| find_executable("mluva-audio-cleanup"))
+            .ok_or_else(failure)?;
+        let stop = self.cancelled.child_token();
+        *self.starting.lock().unwrap() = Some(stop.clone());
+        let _starting = Starting(&self.starting);
+        let mut workspace = tokio::task::spawn_blocking(move || VolatileAudioStore::open(&cleanup))
+            .await
+            .map_err(|_| failure())?
             .map_err(|_| failure())?;
+        if stop.is_cancelled() {
+            return Err(ProviderError::message(
+                "Codex app-server work was cancelled.",
+            ));
+        }
+        let workspace_path = workspace.directory().map_err(|_| failure())?.to_owned();
         let mut command = self.options.command.clone();
         let executable = command
             .first()
@@ -239,7 +264,7 @@ impl CodexAppServerClient {
             .args(&command[1..])
             .env_clear()
             .envs(environment)
-            .current_dir(workspace.path())
+            .current_dir(&workspace_path)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
@@ -252,12 +277,12 @@ impl CodexAppServerClient {
         let (notify, notifications) = mpsc::unbounded_channel();
         let connection = Arc::new(Connection {
             pid: process.id().unwrap(),
-            workspace: workspace.path().into(),
+            workspace: workspace_path,
             writes,
             responses: Mutex::new(HashMap::new()),
             notifications: tokio::sync::Mutex::new(notifications),
             next_id: self.next_id.clone(),
-            stop: self.cancelled.child_token(),
+            stop,
             alive: AtomicBool::new(true),
             process_alive: AtomicBool::new(true),
             done: AtomicBool::new(false),
@@ -275,14 +300,14 @@ impl CodexAppServerClient {
         ));
         let initialized=connection.request("initialize",json!({"clientInfo":{"name":"mluva-linux","title":"Mluva","version":env!("CARGO_PKG_VERSION")},"capabilities":{"experimentalApi":true}}),self.options.request_timeout).await;
         if let Err(error) = initialized {
-            self.close().await;
+            self.close_current().await;
             return Err(error);
         }
         if !connection
             .send(json!({"method":"initialized","params":{}}))
             .await
         {
-            self.close().await;
+            self.close_current().await;
             return Err(ProviderError::message("Codex app-server is not running."));
         }
         Ok(connection)
@@ -291,6 +316,16 @@ impl CodexAppServerClient {
         self.connection().await.map(|_| ())
     }
     pub async fn close(&self) {
+        if let Some(starting) = self.starting.lock().unwrap().as_ref() {
+            starting.cancel();
+        }
+        if let Some(connection) = self.current.lock().unwrap().as_ref() {
+            connection.stop.cancel();
+        }
+        let _gate = self.start_gate.lock().await;
+        self.close_current().await;
+    }
+    async fn close_current(&self) {
         let connection = self.current.lock().unwrap().take();
         if let Some(connection) = connection {
             connection.shutdown().await;
@@ -644,7 +679,7 @@ async fn read_messages(
 }
 async fn lifecycle(
     mut process: Child,
-    workspace: tempfile::TempDir,
+    workspace: VolatileAudioStore,
     input: ChildStdin,
     output: ChildStdout,
     frames: mpsc::Receiver<Frame>,

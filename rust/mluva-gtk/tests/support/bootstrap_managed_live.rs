@@ -201,6 +201,25 @@ fn launch(binary: &Path, root: &Path, name: &str) -> Process {
             .unwrap(),
     )
 }
+fn janitor(parent: u32, workspace: &Path) -> libc::pid_t {
+    let mut found = None;
+    for task in fs::read_dir(format!("/proc/{parent}/task")).unwrap() {
+        let children =
+            fs::read_to_string(task.unwrap().path().join("children")).unwrap_or_default();
+        for child in children.split_whitespace() {
+            let pid = child.parse::<libc::pid_t>().unwrap();
+            let arguments = fs::read(format!("/proc/{pid}/cmdline")).unwrap_or_default();
+            let arguments: Vec<_> = arguments
+                .split(|byte| *byte == 0)
+                .filter(|part| !part.is_empty())
+                .collect();
+            if arguments.len() == 2 && arguments[1] == workspace.as_os_str().as_encoded_bytes() {
+                assert!(found.replace(pid).is_none());
+            }
+        }
+    }
+    found.expect("the app must own its private workspace janitor")
+}
 fn snapshot(
     root: &Path,
     bus: &Bus,
@@ -349,6 +368,22 @@ pub(super) fn exercise(
     );
     result["crash"]["resources"]["codex"]["alive"] =
         crashed["native_safety"]["codex_alive_after_crash"].clone();
+    // The existing EOF janitor now owns this memory-backed workspace. Preserve
+    // its observed reference leak, then apply the explicit filesystem repair.
+    assert_eq!(
+        result["crash"]["resources"]["codex"]["workspaces_exist"][2],
+        true
+    );
+    result["crash"]["resources"]["codex"]["workspaces_exist"][2] = json!(false);
+    for state in result["states"].as_array_mut().unwrap().iter_mut().skip(2) {
+        assert_eq!(state["resources"]["codex"]["workspaces_exist"][2], true);
+        state["resources"]["codex"]["workspaces_exist"][2] = json!(false);
+    }
+    assert_eq!(
+        result["post_exit_resources"]["codex"]["workspaces_exist"][2],
+        true
+    );
+    result["post_exit_resources"]["codex"]["workspaces_exist"][2] = json!(false);
     let reopened = result["states"]
         .as_array_mut()
         .unwrap()
@@ -553,15 +588,48 @@ pub(super) fn exercise(
                     }
                 }
                 "reopened" => {
-                    let pid = records(&root, "process.jsonl").last().unwrap()["pid"]
-                        .as_i64()
-                        .unwrap() as libc::pid_t;
+                    let server = records(&root, "process.jsonl").last().unwrap().clone();
+                    let pid = server["pid"].as_i64().unwrap() as libc::pid_t;
+                    let workspace = Path::new(server["cwd"].as_str().unwrap());
+                    let cleanup = janitor(process.0.id(), workspace);
+                    let memory = mluva_audio::volatile::memory_backed(workspace);
+                    let private =
+                        workspace.metadata().unwrap().permissions().mode() & 0o777 == 0o700;
+                    let empty_environment = fs::read(format!("/proc/{cleanup}/environ"))
+                        .unwrap()
+                        .is_empty();
+                    let own_session = unsafe { libc::getsid(cleanup) } == cleanup;
+                    assert!(memory && private && empty_environment && own_session);
+                    fs::write(
+                        workspace.join("private-image-canary.png"),
+                        b"private test image",
+                    )
+                    .unwrap();
+                    let foreign = root.join("unrelated-image.png");
+                    fs::write(&foreign, b"preserve unrelated bytes").unwrap();
+                    std::os::unix::fs::symlink(&foreign, workspace.join("foreign-image.png"))
+                        .unwrap();
                     process.0.kill().unwrap();
                     assert_eq!(process.0.wait().unwrap().signal(), Some(libc::SIGKILL));
                     until(|| bus.owner().is_none() && !visible(process.0.id()));
                     let mut status = 0;
                     until(|| unsafe { libc::waitpid(pid, &mut status, libc::WNOHANG) } == pid);
                     assert_eq!(libc::WTERMSIG(status), libc::SIGKILL);
+                    until(
+                        || unsafe { libc::waitpid(cleanup, &mut status, libc::WNOHANG) } == cleanup,
+                    );
+                    assert!(libc::WIFEXITED(status));
+                    assert_eq!(libc::WEXITSTATUS(status), 0);
+                    assert!(
+                        !workspace.exists() && !Path::new(&format!("/proc/{cleanup}")).exists()
+                    );
+                    assert_eq!(fs::read(foreign).unwrap(), b"preserve unrelated bytes");
+                    write(
+                        &root.join("live-crash-cleanup.json"),
+                        &json!({"memory_backed":memory,"private_mode":private,
+                        "empty_environment":empty_environment,"independent_session":own_session,"helper_exit_code":0,
+                        "helper_reaped":true,"workspace_removed":true,"foreign_preserved":true}),
+                    );
                     let observed = json!({"resources":owned(&root),"store":stored(&root),"clipboard":clipboard(),
                         "name_released":true,"window_gone":true,"exit_code":-9});
                     write(&root.join("live-crash.json"), &observed);

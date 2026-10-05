@@ -103,10 +103,11 @@ struct Fixture {
     directory: tempfile::TempDir,
     path: PathBuf,
     evidence: PathBuf,
+    executable: PathBuf,
 }
 
 #[test]
-fn abrupt_client_failure_reaps_the_held_rewrite_server() {
+fn abrupt_client_failure_reaps_the_held_rewrite_and_private_workspace() {
     for masked in [false, true] {
         let case = Fixture::new(&json!({"scenario":"clean","masked":masked}));
         let mut spec: Value = serde_json::from_slice(&std::fs::read(&case.path).unwrap()).unwrap();
@@ -131,7 +132,7 @@ fn abrupt_client_failure_reaps_the_held_rewrite_server() {
         );
         assert_eq!(
             serde_json::from_slice::<Value>(&output.stdout).unwrap(),
-            json!({"held_rewrite_reaped_after_client_crash":true})
+            json!({"held_rewrite_reaped_after_client_crash":true,"private_workspace_removed":true})
         );
     }
 }
@@ -145,6 +146,11 @@ impl Fixture {
         std::os::unix::fs::symlink(
             env!("CARGO_BIN_EXE_codex-fixture-peer"),
             root.join("bin/codex"),
+        )
+        .unwrap();
+        std::os::unix::fs::symlink(
+            env!("CARGO_BIN_EXE_codex-fixture-peer"),
+            root.join("bin/mluva-audio-cleanup"),
         )
         .unwrap();
         if spec["masked"] == true {
@@ -164,11 +170,12 @@ impl Fixture {
             directory,
             path,
             evidence,
+            executable: env!("CARGO_BIN_EXE_codex-fixture-peer").into(),
         }
     }
     fn command(&self) -> Command {
         let root = self.directory.path();
-        let mut command = Command::new(env!("CARGO_BIN_EXE_codex-fixture-peer"));
+        let mut command = Command::new(&self.executable);
         command
             .env_clear()
             .env(
@@ -307,6 +314,29 @@ async fn actual_jsonl_process_requests_results_and_isolation_match_released_sess
 
 #[tokio::test]
 async fn cancellation_cleans_up_pending_work_and_missing_commands_do_not_echo_paths() {
+    let mut preparing =
+        Fixture::new(&json!({"scenario":"clean","operation":"cancel-workspace-startup"}));
+    let copied = preparing.directory.path().join("bin/private-client");
+    std::fs::copy(&preparing.executable, &copied).unwrap();
+    preparing.executable = copied.clone();
+    let helper = preparing.directory.path().join("bin/mluva-audio-cleanup");
+    std::fs::remove_file(&helper).unwrap();
+    std::os::unix::fs::symlink(copied, helper).unwrap();
+    std::fs::write(
+        preparing.directory.path().join("bin/cleanup-gate.json"),
+        serde_json::to_vec(&json!({"evidence":preparing.evidence})).unwrap(),
+    )
+    .unwrap();
+    let startup = preparing.run().await["result"].clone();
+    assert_eq!(
+        startup["waited_for_setup"], true,
+        "close acknowledged while startup resource remained"
+    );
+    assert_eq!(
+        startup,
+        json!({"waited_for_setup":true,"directory_removed":true,"helper_reaped":true,
+        "server_not_started":true,"cancelled_result":{"error":"Codex app-server work was cancelled."}})
+    );
     let case =
         Fixture::new(&json!({"scenario":"turn-stall","operation":"cancel-during","turn_ms":10000}));
     let result = case.run().await;

@@ -290,6 +290,7 @@ fn observe_parent_crash(path: &Path) {
         .spawn()
         .unwrap();
     let mut owned = None;
+    let mut cleanup = None;
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let before = Instant::now();
         while !fs::read_to_string(evidence.join("requests.jsonl"))
@@ -311,7 +312,36 @@ fn observe_parent_crash(path: &Path) {
         let pid = process["pid"].as_u64().unwrap() as libc::pid_t;
         owned = Some(pid);
         assert!(Path::new(&format!("/proc/{pid}")).exists());
-        assert!(Path::new(process["cwd"].as_str().unwrap()).is_dir());
+        let workspace = Path::new(process["cwd"].as_str().unwrap());
+        assert!(workspace.is_dir());
+        let memory = mluva_audio::volatile::memory_backed(workspace);
+        let private = workspace.metadata().unwrap().permissions().mode() & 0o777 == 0o700;
+        fs::write(
+            workspace.join("private-image-canary.png"),
+            b"private test image",
+        )
+        .unwrap();
+        let foreign = evidence.join("unrelated-image.png");
+        fs::write(&foreign, b"preserve unrelated bytes").unwrap();
+        std::os::unix::fs::symlink(&foreign, workspace.join("foreign-image.png")).unwrap();
+        for task in fs::read_dir(format!("/proc/{}/task", parent.id())).unwrap() {
+            let task = task.unwrap().path();
+            for child in fs::read_to_string(task.join("children"))
+                .unwrap()
+                .split_whitespace()
+            {
+                let child = child.parse::<libc::pid_t>().unwrap();
+                let arguments = fs::read(format!("/proc/{child}/cmdline")).unwrap_or_default();
+                let arguments: Vec<_> = arguments
+                    .split(|byte| *byte == 0)
+                    .filter(|part| !part.is_empty())
+                    .collect();
+                if arguments.len() == 2 && arguments[1] == workspace.as_os_str().as_encoded_bytes()
+                {
+                    assert!(cleanup.replace(child).is_none());
+                }
+            }
+        }
         parent.kill().unwrap();
         assert!(!parent.wait().unwrap().success());
         let before = Instant::now();
@@ -331,11 +361,39 @@ fn observe_parent_crash(path: &Path) {
         assert_eq!(libc::WTERMSIG(status), libc::SIGKILL);
         assert!(!Path::new(&format!("/proc/{pid}")).exists());
         owned = None;
-        println!("{}", json!({"held_rewrite_reaped_after_client_crash":true}));
+        let before = Instant::now();
+        while workspace.exists() {
+            assert!(
+                before.elapsed() < Duration::from_secs(2),
+                "private workspace outlived its crashed client"
+            );
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        assert_eq!(fs::read(&foreign).unwrap(), b"preserve unrelated bytes");
+        let janitor = cleanup.expect("workspace cleanup needs an independent owner");
+        assert!(memory && private);
+        let before = Instant::now();
+        loop {
+            let reaped = unsafe { libc::waitpid(janitor, &mut status, libc::WNOHANG) };
+            assert!(reaped >= 0);
+            if reaped == janitor {
+                break;
+            }
+            assert!(before.elapsed() < Duration::from_secs(2));
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        assert!(libc::WIFEXITED(status));
+        assert_eq!(libc::WEXITSTATUS(status), 0);
+        assert!(!Path::new(&format!("/proc/{janitor}")).exists());
+        cleanup = None;
+        println!(
+            "{}",
+            json!({"held_rewrite_reaped_after_client_crash":true,"private_workspace_removed":true})
+        );
     }));
     let _ = parent.kill();
     let _ = parent.wait();
-    if let Some(pid) = owned {
+    for pid in [owned, cleanup].into_iter().flatten() {
         // Kill only this known adopted child, never a reused unrelated PID.
         if unsafe { libc::waitpid(pid, std::ptr::null_mut(), libc::WNOHANG) } == 0 {
             unsafe {
@@ -352,6 +410,28 @@ fn observe_parent_crash(path: &Path) {
 #[tokio::main(flavor = "multi_thread", worker_threads = 2)]
 async fn main() {
     let args = std::env::args().collect::<Vec<_>>();
+    if args.len() == 2 {
+        let gate = std::env::current_exe()
+            .unwrap()
+            .with_file_name("cleanup-gate.json");
+        if gate.is_file() {
+            let config: Value = serde_json::from_slice(&fs::read(gate).unwrap()).unwrap();
+            let evidence = Path::new(config["evidence"].as_str().unwrap());
+            mluva_core::private_files::atomic_write_private(
+                &evidence.join("cleanup-started.json"),
+                &serde_json::to_vec(&json!({"pid":std::process::id(),"directory":args[1]}))
+                    .unwrap(),
+            )
+            .unwrap();
+            while !evidence.join("cleanup.release").exists() {
+                std::thread::sleep(Duration::from_millis(2));
+            }
+        }
+        if mluva_audio::volatile::run_cleanup(Path::new(&args[1])).is_err() {
+            std::process::exit(1);
+        }
+        return;
+    }
     if args.last().is_some_and(|arg| arg == "observe-parent-crash") {
         observe_parent_crash(Path::new(&args[2]));
         return;
@@ -402,6 +482,35 @@ async fn main() {
     let mut deltas = vec![];
     let mut callback = |text: &str| deltas.push(text.to_owned());
     let value = match operation {
+        "cancel-workspace-startup" => {
+            let evidence = PathBuf::from(spec["evidence"].as_str().unwrap());
+            let starting_client = client.clone();
+            let starting = tokio::spawn(async move { starting_client.start().await });
+            let deadline = tokio::time::Instant::now() + Duration::from_secs(3);
+            while !evidence.join("cleanup-started.json").exists() {
+                assert!(tokio::time::Instant::now() < deadline);
+                tokio::time::sleep(Duration::from_millis(2)).await;
+            }
+            let cleanup: Value =
+                serde_json::from_slice(&fs::read(evidence.join("cleanup-started.json")).unwrap())
+                    .unwrap();
+            client.cancel();
+            let closing_client = client.clone();
+            let mut closing = tokio::spawn(async move { closing_client.close().await });
+            let waited = tokio::time::timeout(Duration::from_millis(50), &mut closing)
+                .await
+                .is_err();
+            // Release even on the negative route so a failed assertion cannot
+            // strand this private external readiness endpoint.
+            fs::write(evidence.join("cleanup.release"), []).unwrap();
+            let cancelled = result(starting.await.unwrap());
+            if waited {
+                closing.await.unwrap();
+            }
+            json!({"waited_for_setup":waited,"directory_removed":!Path::new(cleanup["directory"].as_str().unwrap()).exists(),
+                "helper_reaped":!Path::new(&format!("/proc/{}", cleanup["pid"].as_u64().unwrap())).exists(),
+                "server_not_started":!evidence.join("process.jsonl").exists(),"cancelled_result":cancelled})
+        }
         "park-for-parent-crash" => result(
             client
                 .transform(
