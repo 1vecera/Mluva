@@ -202,7 +202,11 @@ pub(super) fn exercise(
             let mut actual = recovery_state(&root, bus, events, &accessibility, &window, stage);
             actual["store"] = stored(&root);
             write(&root.join(format!("history-{stage}.json")), &actual);
-            assert_eq!(actual, expected, "assembled History {name}: {stage}");
+            assert_eq!(
+                actual,
+                rewrite::source_snapshot(binary, &expected),
+                "assembled History {name}: {stage}"
+            );
             if let Some(failed) = &failed {
                 let entry = history(&root)[0].clone();
                 for field in ["identifier", "created_at", "retained_audio_path"] {

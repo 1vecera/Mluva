@@ -4,7 +4,7 @@
 
 ## Runtime interfaces
 
-Both desktops use GTK 4, Libadwaita, distribution Python/PyGObject and PipeWire. Omarchy supports native Hyprland bindings or the XDG Global Shortcuts portal; GNOME uses the portal. The [setup guide](../linux/README.md#supported-desktop-contract) lists packages. The [combined installer](../README.md#install) also installs the Omarchy widget when the plugin manager is available.
+Both desktops use native Rust executables, GTK 4, Libadwaita and PipeWire, with no Python runtime. Omarchy supports native Hyprland bindings or the XDG Global Shortcuts portal; GNOME uses the portal. The [setup guide](../linux/README.md#supported-desktop-contract) lists packages. The [combined installer](../README.md#install) also installs the Omarchy widget when the plugin manager is available.
 
 | Capability | Omarchy | Fedora GNOME compatibility |
 | --- | --- | --- |
@@ -35,6 +35,8 @@ On startup, focus tracking seeds an existing field only inside one active extern
 Text-field compatibility depends on applications publishing a usable accessibility interface. Hyprland terminal capture identifies the window and process, not tabs, panes or shell input mode. Browser, terminal and rich-text behavior should be checked in the actual target application before relying on insertion. The [automatic paste verification](verification/automatic-paste/README.md) records the tested targets and limits.
 
 For a captured terminal target, symbolic keyboard fallback uses `Ctrl+Shift+V`, based on the captured executable rather than the active window title. This selects the clipboard, including on default Foot where `Shift+Insert` selects the primary selection. Other targets use symbolic `Ctrl+V` through `wtype` or X11 `xdotool`. Clipboard and input tools follow the session type, so installed Wayland tools cannot intercept X11 delivery. The physical-keycode `ydotool` fallback is limited to terminal `Shift+Insert` with an explicit clipboard binding; Mluva cannot infer its virtual keyboard's letter layout from another keyboard. Terminals without either supported capture path and ordinary targets with only `ydotool` remain copy-only. An unconfirmed key dispatch is never reported as confirmed insertion.
+
+Ghostty's custom bindings must preserve `Ctrl+Shift+V` for clipboard text and literal `Ctrl+V` for TUI images. The [verified workstation repair](verification/ghostty-format-paste/README.md) also makes Omarchy's Super+V select the image chord only for an advertised image format, with a fresh window/process check before dispatch.
 
 Mluva supports explicitly spoken snippets. It stores portable typed-trigger definitions but runs no desktop-wide typed-trigger listener and does not read raw keyboard devices for text expansion.
 

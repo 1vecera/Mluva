@@ -1,0 +1,1018 @@
+{
+  "date": "2026-10-05",
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "current_version": "2.0.2",
+  "binary": {
+    "path": "tmp/local-upgrade-2.0.2/candidate-final/bin/mluva",
+    "sha256": "37e6628f0e29abe1b147eaeb976501ab34e1411ccefecab9efa14205c4f9bca0"
+  },
+  "installed_binary": {
+    "path": "/home/vecera/.local/share/mluva/app/bin/mluva",
+    "sha256": "37e6628f0e29abe1b147eaeb976501ab34e1411ccefecab9efa14205c4f9bca0"
+  },
+  "driver": {
+    "path": "tmp/rewrite-root/owner-candidate",
+    "sha256": "7aee3e3bebb079810ff6938b365a24808dcc453732e9865212545ebff012a037"
+  },
+  "manifest": {
+    "path": "tmp/local-upgrade-2.0.2/candidate-final/.mluva-native.json",
+    "sha256": "ef3c339d528bbc2c3126077cf7b994ba976a4d0320ca69b49f1d7653f046e336"
+  },
+  "scope": {
+    "rewrite_launches": 3,
+    "rewrite_observations": 5,
+    "bootstrap_states": 38,
+    "actions": 13,
+    "cli": 5,
+    "cold_record": true,
+    "meeting_states": 38,
+    "managed_preview_states": 10,
+    "recovery_history_states": 37,
+    "live_states": 42,
+    "startup_faults": 3
+  },
+  "full_current_owner": {
+    "log": {
+      "path": "tmp/rewrite-root/keeper-current-complete.log",
+      "sha256": "9955a583934d31589edc7560a0f6578d39afcdfa241465fadd8a1d417b017f7e"
+    },
+    "elapsed_seconds": 804.18,
+    "private_session": "tmp/rewrite-root/keeper/session.MMowwV",
+    "result": "passed",
+    "absolute_interpreter_traps": "positive controls exercised; unchanged after native owner"
+  },
+  "focused_live_owner": {
+    "log": {
+      "path": "tmp/rewrite-root/keeper-live-source-reference.log",
+      "sha256": "fad30b1c1eed2f2576196625f41d5d416e07b2a9a874a5723e147dbf9cd3d42b"
+    },
+    "elapsed_seconds": 147.25,
+    "private_session": "tmp/rewrite-root/keeper-live/session.CUCrm0",
+    "result": "passed",
+    "absolute_interpreter_traps": "positive controls exercised; unchanged after native owner"
+  },
+  "make_owner": {
+    "log": {
+      "path": "tmp/rewrite-root/keeper-make.log",
+      "sha256": "835e79a13a1faee86f2554230d2d5b6ed98741f957051a2b4110d75404697a20"
+    },
+    "elapsed_seconds": 3.37,
+    "private_session": "tmp/rewrite-root/keeper-make/session.e4HCIQ",
+    "result": "passed",
+    "absolute_interpreter_traps": "positive controls exercised; unchanged after native owner"
+  },
+  "rewrite_default_restart": {
+    "observed": {
+      "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/rewrite-disclosure/observed.json",
+      "sha256": "7abaa8947acbba9ba3282f2f30685c8fc53e99cb87bdfc4fb979b4bacadf1c86"
+    },
+    "expansion_sequence": [
+      false,
+      true,
+      true,
+      false,
+      false
+    ],
+    "normal_quits": 3,
+    "private_preference_mode": "0600",
+    "app_log_bytes": 0
+  },
+  "source_viewport_study": {
+    "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+    "source_input_count": 91,
+    "raw": {
+      "path": "tmp/rewrite-root/collection/session.bdd4Ms/rewrite-root/results.json",
+      "sha256": "9ce92f12aee0a6e428a8ff82f8db5913a1d80a79181e90323f0858b1625f845c"
+    },
+    "observer": {
+      "path": "tmp/rewrite-root/observe.py",
+      "sha256": "35d05dd6256711818700d095ac6334b8444e4c3f31da22dab4efd2afd2cc2697"
+    },
+    "analysis": {
+      "path": "tmp/rewrite-root/pixel-study.py",
+      "sha256": "2420d91b5b8d3d82aba73fc942df332e5981a58f5a6cfe95045073dd4101f850"
+    },
+    "canonical_2_0_0": {
+      "same_raw_pixels": true,
+      "same_named_widgets": true,
+      "source_frame": {
+        "channels": 3,
+        "height": 800,
+        "path": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/rewrite-root/collection/session.bdd4Ms/rewrite-root/python/default.png",
+        "sha256": "344ac7842618e7e198fe927bb1338946876dee0af8085f7b21c80f2af5d4a5ad",
+        "width": 1100
+      }
+    },
+    "current_2_0_2": {
+      "expanded_same_size": {
+        "changed_pixels": 2935,
+        "bounds": [
+          21,
+          529,
+          102,
+          653
+        ]
+      },
+      "missing_source_widgets": [],
+      "added_widgets": [
+        [
+          "label",
+          "Rewrite"
+        ],
+        [
+          "toggle button",
+          "Rewrite"
+        ]
+      ],
+      "raw_equivalent_viewport": {
+        "channels": 3,
+        "height": 852,
+        "path": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/rewrite-root/collection/session.bdd4Ms/rewrite-root/current/expanded-equivalent-viewport.png",
+        "sha256": "df67e1d6a55004fc59a545f55a32a6a6e77920d5a8e6750a452359f8914a0a43",
+        "width": 1100
+      },
+      "public_disclosure_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_row_interval": [
+        573,
+        625
+      ],
+      "projected_sha256": "ae14ab44a0ae3d658f2a519209f24db4ea4128ec82fb79d76f87085178c06309",
+      "remaining_difference": {
+        "changed_pixels": 19,
+        "bounds": [
+          32,
+          634,
+          33,
+          653
+        ]
+      }
+    },
+    "scope": "Independent synthetic retained transcript. Raw captures stay unmodified. The new disclosure and empty caret are deliberate user-requested changes; original workflow fixture hashes are unchanged."
+  },
+  "source_only_repaint_reference": {
+    "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+    "reason": "The older post-Live reference clipped one row of the final g in Continue recording. Reopening the unchanged v1.6.0 process renders the complete glyph at identical public bounds. The copied notice also has two source rasters differing by two pixels at the period; select the source manual-edit notice consistently. These source-only widget references support the requested 2.0.2 layout; original raw fixtures stay unchanged.",
+    "heading_source": {
+      "record": {
+        "path": "tmp/rewrite-root/header/session.R294oB/rewrite-live-header/results.json",
+        "sha256": "666f4c3e2d568828456c8d86076e3ab80c92482be9dfd9727032dd3dfb62f278"
+      },
+      "observer": {
+        "path": "tmp/rewrite-root/observe-live-header.py",
+        "sha256": "ea5da9025dd8f7ce3b4b9a1505a374406d44a50dedf200aa46be2dc71317a665"
+      },
+      "verified_source_inputs": 91,
+      "frame": {
+        "channels": 3,
+        "height": 800,
+        "path": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/rewrite-root/header/session.R294oB/rewrite-live-header/python/default.png",
+        "sha256": "3ed5f4b2a2e0260df96ac9b8654bd90e445de86da8d65aa0507c0596e3056221",
+        "width": 1100
+      },
+      "button_window_bounds": [
+        849,
+        53,
+        174,
+        36
+      ],
+      "pixel_rectangle": [
+        859,
+        63,
+        174,
+        36
+      ]
+    },
+    "notice_source": {
+      "png": {
+        "path": "tmp/qwen-joined-live-clipboard/session.hYzsaG/qwen-joined-live/python-manual-edit/terminal.png",
+        "sha256": "64a8c02f6e635aedeef3567abdd191435b1518c4b6b3422f509a5e9fbf7fb025"
+      },
+      "original_rgb_sha256": "29c274f9980f3ae749763a88f5bb640c8a4f0ef78f9244b425c02cd832de4de3",
+      "pixel_rectangle": [
+        21,
+        687,
+        199,
+        40
+      ]
+    },
+    "collector": {
+      "path": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/rewrite-root/freeze-source-heading.py",
+      "sha256": "431dbdd8de26efb66ce9bcdb1046d646a3a060966395b0f91cfa965a8690ecc0"
+    },
+    "observations": [
+      {
+        "source_png": {
+          "path": "tmp/qwen-joined-live-clipboard/session.hYzsaG/qwen-joined-live/python-manual-edit/terminal.png",
+          "sha256": "64a8c02f6e635aedeef3567abdd191435b1518c4b6b3422f509a5e9fbf7fb025"
+        },
+        "original_rgb_sha256": "29c274f9980f3ae749763a88f5bb640c8a4f0ef78f9244b425c02cd832de4de3",
+        "complete_heading_rgb_sha256": "af52b02bbeac9bb361c1bef221c1c040dc092864332328d6537186d2f5dc0bce",
+        "changed_source_pixels": [
+          [
+            1014,
+            88
+          ],
+          [
+            1015,
+            88
+          ],
+          [
+            1016,
+            88
+          ],
+          [
+            1017,
+            88
+          ],
+          [
+            1018,
+            88
+          ]
+        ],
+        "notice_source_pixels": []
+      },
+      {
+        "source_png": {
+          "path": "tmp/qwen-joined-live-clipboard/session.hYzsaG/qwen-joined-live/python-cancel/terminal.png",
+          "sha256": "8808c810adf655b5db72bf164d726bb425ea6b7bccc28d47c4b80fac28aa1678"
+        },
+        "original_rgb_sha256": "0bd29c1b410ffd3f2d47bba069d165eb63953fceb3e7a0fff33d4b6251b69246",
+        "complete_heading_rgb_sha256": "0043ef939a653d0d0fc29ee5b9c93d7f97501d96fae3df8e8567c1143610e623",
+        "changed_source_pixels": [
+          [
+            1014,
+            88
+          ],
+          [
+            1015,
+            88
+          ],
+          [
+            1016,
+            88
+          ],
+          [
+            1017,
+            88
+          ],
+          [
+            1018,
+            88
+          ]
+        ],
+        "notice_source_pixels": []
+      },
+      {
+        "source_png": {
+          "path": "tmp/qwen-live-restart-original/session.n1vham/qwen-live-restart/python-restart/fresh-terminal.png",
+          "sha256": "03008a7f0b5b4c05cd1c15433053a8ed5c734ac9755c45148f60feebf8b44b45"
+        },
+        "original_rgb_sha256": "50a2480cfdbf419ffefbbfc5ebe3157a46edc28c692102510bdb172f1d906c52",
+        "complete_heading_rgb_sha256": "4a84ecc013360cc90c26384d0a4a5663195f6e32206b492d52b2c93fb886569e",
+        "changed_source_pixels": [
+          [
+            1014,
+            88
+          ],
+          [
+            1015,
+            88
+          ],
+          [
+            1016,
+            88
+          ],
+          [
+            1017,
+            88
+          ],
+          [
+            1018,
+            88
+          ]
+        ],
+        "notice_source_pixels": [
+          [
+            179,
+            708
+          ],
+          [
+            179,
+            709
+          ]
+        ]
+      },
+      {
+        "source_png": {
+          "path": "tmp/qwen-live-crash-original/session.X7QtWw/qwen-live-crash/python/fresh-terminal.png",
+          "sha256": "03008a7f0b5b4c05cd1c15433053a8ed5c734ac9755c45148f60feebf8b44b45"
+        },
+        "original_rgb_sha256": "50a2480cfdbf419ffefbbfc5ebe3157a46edc28c692102510bdb172f1d906c52",
+        "complete_heading_rgb_sha256": "4a84ecc013360cc90c26384d0a4a5663195f6e32206b492d52b2c93fb886569e",
+        "changed_source_pixels": [
+          [
+            1014,
+            88
+          ],
+          [
+            1015,
+            88
+          ],
+          [
+            1016,
+            88
+          ],
+          [
+            1017,
+            88
+          ],
+          [
+            1018,
+            88
+          ]
+        ],
+        "notice_source_pixels": [
+          [
+            179,
+            708
+          ],
+          [
+            179,
+            709
+          ]
+        ]
+      }
+    ]
+  },
+  "fixtures": [
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap.json",
+      "sha256": "120eaf3f25719658745d02f5207f5860237335a21bcd462eb0bd02f25c5ef12a"
+    },
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-record.json",
+      "sha256": "8942e5472a83d6e801b2783042c22bc1e4165dbc012c0915165e17dc4997c755"
+    },
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-managed-capture.json",
+      "sha256": "3de193467c4c89b3ed372fecf7ad2cd74adb09021e69f784b9e3b9627bdbe29a"
+    },
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-managed-recovery.json",
+      "sha256": "300af948dd2dfb6731f8c0ba84d553b5f1a860e059c7c9fe9802ea4ec1158f1a"
+    },
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-history-lifecycle.json",
+      "sha256": "08d2f926114031fd8a35d64e6b4249cf50e123ed9765b1482035a082069d4013"
+    },
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-meeting.json",
+      "sha256": "2291652fbc22703b6512790adf02c2c1fb16f9e8488b255af5da30f6ed77e8f6"
+    },
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-managed-live.json",
+      "sha256": "224f46bed6231de3d43a71d8115906978c072b8d241e711aae4672192a19142a"
+    },
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-managed-live-restart.json",
+      "sha256": "2cc45898cf2d4a006beeb2bbfb406f50b3d5373420ec77805108a28937e414f1"
+    },
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-managed-live-crash.json",
+      "sha256": "40332ba7c03fbabe7dcec61c352a07a61b48efca3a7007a23243f330b160a880"
+    },
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-current-codex.json",
+      "sha256": "0f6dc78cb82f8a32b8b5f007c64efe3d9665963f7b0f05285105e7ddfe9849ca"
+    },
+    {
+      "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-complete-heading.json",
+      "sha256": "9bea7b1b061773c14ba8cf9ee02f5cad49e971c612252d884c9cef19fa4ab4ed"
+    }
+  ],
+  "projected_frames": [
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-cancel-0/managed-cancelled-projection.json",
+        "sha256": "c0aebfef2eb7216ed98efdf3f3140732860ba430966818bead560d0ec9408d8b"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "2132bb04a97b09209ab4b216c1b6286c13e8743576b115735b5d605b57e586be"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "b5c44b24fb2c57525e1b8afdf5286c0007c644d1ffbf169910d303bfeab9f6c0"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-cancel-0/managed-final-projection.json",
+        "sha256": "6b391daa918167b83c77582637f7d39296ccf911a54bdd5d6794de16536d9fa7"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "2ed86bedaf9c779e69cd987442269d27b34e0b204363f2b6d93b1b2476e316df"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "3ff2e89d650231aeb3576df4284959e02ed07f433fc8509b844f0d74364d55ac"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-cancel-500/managed-cancelled-projection.json",
+        "sha256": "c0aebfef2eb7216ed98efdf3f3140732860ba430966818bead560d0ec9408d8b"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "2132bb04a97b09209ab4b216c1b6286c13e8743576b115735b5d605b57e586be"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "b5c44b24fb2c57525e1b8afdf5286c0007c644d1ffbf169910d303bfeab9f6c0"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-cancel-500/managed-final-projection.json",
+        "sha256": "6b391daa918167b83c77582637f7d39296ccf911a54bdd5d6794de16536d9fa7"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "2ed86bedaf9c779e69cd987442269d27b34e0b204363f2b6d93b1b2476e316df"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "3ff2e89d650231aeb3576df4284959e02ed07f433fc8509b844f0d74364d55ac"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-history-quit-reopen/managed-expired-projection.json",
+        "sha256": "74be95b448759e8ee85020c1bf1c08ea4f3454575f85f6b1a8a274f10c2b35eb"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "c1dfca4d438456669ba00359bb1e3e731a6a6b2f82b10f50f1db708443851212"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "82c5141adc3cc10470def21b432ee219fc950c0173b772be7084a93c33d691b3"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-history-retry-failure/managed-expired-projection.json",
+        "sha256": "74be95b448759e8ee85020c1bf1c08ea4f3454575f85f6b1a8a274f10c2b35eb"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "c1dfca4d438456669ba00359bb1e3e731a6a6b2f82b10f50f1db708443851212"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "82c5141adc3cc10470def21b432ee219fc950c0173b772be7084a93c33d691b3"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-cancel/managed-terminal-projection.json",
+        "sha256": "6ce7bf3fdced2c450739d189b0b797196633d47f510c2e5987a7043fe959243a"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "c6f575c0194c010f098a0cb99655677527a6fa23736ebbd924873032a2d4e71f"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "0043ef939a653d0d0fc29ee5b9c93d7f97501d96fae3df8e8567c1143610e623"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-crash-reopen/managed-fresh-terminal-projection.json",
+        "sha256": "732c87ac8ad41f157144340435050bae011a31014da27b0901ed811e1dd417d3"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "1b3474e709d6773768500c909e3796ec755edfab8519c8998082caee7f878bfb"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "4a84ecc013360cc90c26384d0a4a5663195f6e32206b492d52b2c93fb886569e"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-current-codex-manual-edit/managed-copied-final-projection.json",
+        "sha256": "c2fb1ac03293eb2c0ec983c6d8e1b384d6e9f2bf4eb9cc834129f709b135d662"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "c4e5cf0472fe0474ceaf0abbfd9875c8935beefb14c1d24eb5d15fc13b75aa99"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "af52b02bbeac9bb361c1bef221c1c040dc092864332328d6537186d2f5dc0bce"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-current-codex-manual-edit/managed-terminal-projection.json",
+        "sha256": "c2fb1ac03293eb2c0ec983c6d8e1b384d6e9f2bf4eb9cc834129f709b135d662"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "c4e5cf0472fe0474ceaf0abbfd9875c8935beefb14c1d24eb5d15fc13b75aa99"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "af52b02bbeac9bb361c1bef221c1c040dc092864332328d6537186d2f5dc0bce"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-current-codex-restart/managed-fresh-terminal-projection.json",
+        "sha256": "732c87ac8ad41f157144340435050bae011a31014da27b0901ed811e1dd417d3"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "1b3474e709d6773768500c909e3796ec755edfab8519c8998082caee7f878bfb"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "4a84ecc013360cc90c26384d0a4a5663195f6e32206b492d52b2c93fb886569e"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-current-codex-restart/managed-terminal-projection.json",
+        "sha256": "6ce7bf3fdced2c450739d189b0b797196633d47f510c2e5987a7043fe959243a"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "c6f575c0194c010f098a0cb99655677527a6fa23736ebbd924873032a2d4e71f"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "0043ef939a653d0d0fc29ee5b9c93d7f97501d96fae3df8e8567c1143610e623"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-manual-edit/managed-copied-final-projection.json",
+        "sha256": "c2fb1ac03293eb2c0ec983c6d8e1b384d6e9f2bf4eb9cc834129f709b135d662"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "c4e5cf0472fe0474ceaf0abbfd9875c8935beefb14c1d24eb5d15fc13b75aa99"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "af52b02bbeac9bb361c1bef221c1c040dc092864332328d6537186d2f5dc0bce"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-manual-edit/managed-terminal-projection.json",
+        "sha256": "c2fb1ac03293eb2c0ec983c6d8e1b384d6e9f2bf4eb9cc834129f709b135d662"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "c4e5cf0472fe0474ceaf0abbfd9875c8935beefb14c1d24eb5d15fc13b75aa99"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "af52b02bbeac9bb361c1bef221c1c040dc092864332328d6537186d2f5dc0bce"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-restart/managed-fresh-terminal-projection.json",
+        "sha256": "732c87ac8ad41f157144340435050bae011a31014da27b0901ed811e1dd417d3"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "1b3474e709d6773768500c909e3796ec755edfab8519c8998082caee7f878bfb"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "4a84ecc013360cc90c26384d0a4a5663195f6e32206b492d52b2c93fb886569e"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-restart/managed-terminal-projection.json",
+        "sha256": "6ce7bf3fdced2c450739d189b0b797196633d47f510c2e5987a7043fe959243a"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "c6f575c0194c010f098a0cb99655677527a6fa23736ebbd924873032a2d4e71f"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "0043ef939a653d0d0fc29ee5b9c93d7f97501d96fae3df8e8567c1143610e623"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-recovery-http-failure/managed-expired-projection.json",
+        "sha256": "74be95b448759e8ee85020c1bf1c08ea4f3454575f85f6b1a8a274f10c2b35eb"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "c1dfca4d438456669ba00359bb1e3e731a6a6b2f82b10f50f1db708443851212"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "82c5141adc3cc10470def21b432ee219fc950c0173b772be7084a93c33d691b3"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-recovery-incomplete-deadline/managed-expired-projection.json",
+        "sha256": "75dec7a113b90c365008f55501fd40b0e1f9e28af7eb6360eaf241ebe44fcdeb"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "d30c84fa0e4697ea905f93ddc82f060bfe32ac58d6905cfb69349e807fe6df2e"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "c3adf94c325ed6f4de8ac680b9db1b05e7bc845756e8cd83cd1b286a23a6d0aa"
+      }
+    },
+    {
+      "receipt": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-stop-0/managed-final-projection.json",
+        "sha256": "6b391daa918167b83c77582637f7d39296ccf911a54bdd5d6794de16536d9fa7"
+      },
+      "raw": {
+        "width": 1100,
+        "height": 852,
+        "channels": 3,
+        "sha256": "2ed86bedaf9c779e69cd987442269d27b34e0b204363f2b6d93b1b2476e316df"
+      },
+      "disclosure_window_bounds": [
+        11,
+        571,
+        81,
+        36
+      ],
+      "removed_rows": [
+        573,
+        625
+      ],
+      "legacy_viewport": {
+        "width": 1100,
+        "height": 800,
+        "channels": 3,
+        "sha256": "3ff2e89d650231aeb3576df4284959e02ed07f433fc8509b844f0d74364d55ac"
+      }
+    }
+  ],
+  "app_logs_checked": 26,
+  "app_log_bytes_at_acknowledged_quit": 0,
+  "display_teardown_tails": [
+    {
+      "log": {
+        "path": "tmp/rewrite-root/keeper/session.MMowwV/native-bootstrap/managed-live-current-codex-restart/application.log",
+        "sha256": "305a7b37c893290f6b4ff7b85d46025b01d6d2591c8203fefb346660861fcb28"
+      },
+      "bytes": 65,
+      "origin": "private X11 clipboard selection helper inheriting the app log descriptor; emitted after display teardown, after owner checked empty app diagnostics at acknowledged Quit"
+    }
+  ],
+  "native_gate": {
+    "log": {
+      "path": "tmp/rewrite-root/full-gate.log",
+      "sha256": "71def1e99a5a1bc928fa9d8498d5c60e218855d2561e3320bb3c0ac132f1adb1"
+    },
+    "suites": 98,
+    "passed": 142,
+    "failed": 0,
+    "ignored": 71,
+    "strict_clippy_configurations": 2,
+    "format_and_generated_consistency": true,
+    "warnings": 0
+  },
+  "excluded_attempts": [
+    {
+      "log": {
+        "path": "tmp/rewrite-root/keeper-first.log",
+        "sha256": "58eb8144eed011224968345361fb49626a37303867110f045dcfa085096d2c8f"
+      },
+      "reason": "managed Live manual-edit: terminal",
+      "accepted": false
+    },
+    {
+      "log": {
+        "path": "tmp/rewrite-root/keeper-live-accepted.log",
+        "sha256": "e4a01b25e34fa2b3af7867144891952d0e0a8a08af6f55e3a1acd4cead5a0dc1"
+      },
+      "reason": "managed Live restart: fresh-terminal",
+      "accepted": false
+    },
+    {
+      "log": {
+        "path": "tmp/rewrite-root/keeper-live-complete.log",
+        "sha256": "2726b50700dbc8fbe4bc8bfbe31309fbe50b4c0f993fa9d86af350365ca4bc3a"
+      },
+      "reason": "managed Live cancel: terminal",
+      "accepted": false
+    },
+    {
+      "log": {
+        "path": "tmp/rewrite-root/keeper-live-final.log",
+        "sha256": "4426af7b3b66a85ba0e2ba681c2c518e0956e5ada97882f1cb9d428eda9573ae"
+      },
+      "reason": "managed Live manual-edit: complete process/store/transport and revision ownership",
+      "accepted": false
+    },
+    {
+      "log": {
+        "path": "tmp/rewrite-root/keeper-live-first.log",
+        "sha256": "ddc6f9329eb581c2700f44a59d36f4e8bb3f03cc4abf8d416ebae6502824bce1"
+      },
+      "reason": "managed Live manual-edit: terminal",
+      "accepted": false
+    },
+    {
+      "log": {
+        "path": "tmp/rewrite-root/keeper-live-glyph-complete.log",
+        "sha256": "e9e3b43ca08bc8e0d27fee786a93ec8b2e9e03135fe3bf810dbcf8ec8bee26bd"
+      },
+      "reason": "managed Live restart: fresh-terminal",
+      "accepted": false
+    }
+  ],
+  "production_changes": 0,
+  "new_test_owners": 0,
+  "new_dependencies": 0,
+  "shipped_helpers": 0,
+  "release_or_install_performed_in_this_checkpoint": false,
+  "limits": [
+    "private X11, scale 1 and controlled CPU Qwen runtime; no physical microphone/keys/system audio or live Wayland/portal acceptance",
+    "no full platform/theme/scale/account or every provider/session/revision interleaving claim",
+    "owner elapsed times are verification durations, not application-performance measurements",
+    "full Rust one-to-one parity goal remains active"
+  ]
+}

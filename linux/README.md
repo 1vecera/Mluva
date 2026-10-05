@@ -1,6 +1,6 @@
 # Mluva for Linux
 
-Mluva 2.0.0 uses Rust, GTK 4, Libadwaita and PipeWire. Its source, tests and runtime workers contain no Python. See the [native overview](../rust/README.md) and [cutover verification](../docs/verification/rust-cutover/README.md) for the remaining acceptance limits. **Omarchy is the primary platform**. Fedora GNOME compatibility is retained without recent desktop acceptance.
+Mluva uses Rust, GTK 4, Libadwaita and PipeWire. Its source, tests and runtime workers contain no Python. See the [native overview](../rust/README.md) and [cutover verification](../docs/verification/rust-cutover/README.md) for the remaining acceptance limits. **Omarchy is the primary platform**. Fedora GNOME compatibility is retained without recent desktop acceptance.
 
 For the shortest path, use the [combined installer or agent prompt](../README.md#install). The [Omarchy guide](../docs/omarchy-integration.md) explains the widget; the [platform profile](../docs/linux-platform-profile.md) describes desktop differences.
 

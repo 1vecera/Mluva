@@ -4,7 +4,7 @@
 
 Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
 
-**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/tag/v2.0.0)**
+**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/latest)**
 
 ## Meet Mluva
 
@@ -31,7 +31,7 @@ Live rewrite is opt-in and Experimental. It marks missing information, preserves
 
 ## Install
 
-Mluva 2.0.0 uses [native Rust executables](rust/README.md), with no Python runtime. Download the prepared Omarchy x86_64 bundle for an installation without a compiler. Source builds require the pinned Rust toolchain and a C compiler before setup provisions the remaining [development prerequisites](CONTRIBUTING.md#local-setup). See the [cutover verification and remaining acceptance limits](docs/verification/rust-cutover/README.md).
+Mluva uses [native Rust executables](rust/README.md), with no Python runtime. Download the prepared Omarchy x86_64 bundle for an installation without a compiler. Source builds require the pinned Rust toolchain and a C compiler before setup provisions the remaining [development prerequisites](CONTRIBUTING.md#local-setup). See the [cutover verification and remaining acceptance limits](docs/verification/rust-cutover/README.md).
 
 Run the setup from a source checkout or extracted [release archive](https://github.com/1vecera/Mluva/releases/latest). On **Omarchy Quattro**, it installs the desktop dependencies, native application and bundled shell widget together. Both parts share one repository, version and package. It shows the installation plan first; system packages may request your sudo password.
 
