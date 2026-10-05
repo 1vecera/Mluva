@@ -833,7 +833,7 @@ impl ApplicationDesktop {
             timer.remove();
         }
     }
-    fn clear_overlay(&self) {
+    pub(super) fn clear_overlay(&self) {
         self.clear_overlay_timer();
         if let Some(publisher) = self.overlay.borrow_mut().as_mut() {
             publisher.clear();

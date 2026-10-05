@@ -201,7 +201,10 @@ impl ApplicationDesktop {
                 activity: bind!(link, |app| app.activity()),
                 pending_command: bind!(link, |app| app.pending.command_identifier()),
                 changed: bind!(link, |app| app.history_changed()),
-                idle: bind!(link, |app| app.idle()),
+                idle: bind!(link, |app| {
+                    app.idle();
+                    app.clear_overlay();
+                }),
                 queue_title: bind!(link, |app, entry| app.titles.enqueue(entry)),
                 close_screenshot: {
                     let link = link.clone();

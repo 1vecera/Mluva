@@ -5,14 +5,14 @@ use std::os::unix::process::ExitStatusExt;
 #[path = "bootstrap_current_codex.rs"]
 mod current_codex;
 
-struct Element {
-    node: (String, String),
-    name: String,
-    role: String,
-    sensitive: bool,
-    text: String,
+pub(super) struct Element {
+    pub(super) node: (String, String),
+    pub(super) name: String,
+    pub(super) role: String,
+    pub(super) sensitive: bool,
+    pub(super) text: String,
 }
-fn elements(accessibility: &Accessibility) -> Vec<Element> {
+pub(super) fn elements(accessibility: &Accessibility) -> Vec<Element> {
     let mut queue = VecDeque::from([(
         "org.a11y.atspi.Registry".into(),
         "/org/a11y/atspi/accessible/root".into(),
@@ -109,7 +109,7 @@ fn owned(root: &Path) -> Value {
 fn replies(root: &Path) -> Vec<Value> {
     table(root, "conversation_rewrites", "identifier")
 }
-fn clipboard() -> String {
+pub(super) fn clipboard() -> String {
     let output = Command::new("xclip")
         .args(["-selection", "clipboard", "-o"])
         .output()
@@ -117,7 +117,7 @@ fn clipboard() -> String {
     assert!(output.status.success());
     String::from_utf8(output.stdout).unwrap()
 }
-fn set_clipboard(text: &str) {
+pub(super) fn set_clipboard(text: &str) {
     let mut child = Command::new("xclip")
         .args(["-selection", "clipboard"])
         .stdin(Stdio::piped())

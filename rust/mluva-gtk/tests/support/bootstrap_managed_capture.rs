@@ -105,7 +105,14 @@ fn normalized_history(root: &Path) -> Value {
         let path = Path::new(row["retained_audio_path"].as_str().unwrap());
         assert!(path.starts_with(root.join("data/mluva/recordings")));
         assert!(filename.is_match(path.file_name().unwrap().to_str().unwrap()));
-        assert!(row["recognition_ms"].as_u64().unwrap() <= 2000);
+        let milliseconds = row["recognition_ms"].as_u64().unwrap();
+        let sampled = if milliseconds > 2000 {
+            assert_eq!(row["delivery_outcome"], "recognition-failed");
+            assert!((177_000..=195_000).contains(&milliseconds));
+            "$DEADLINE"
+        } else {
+            "$SAMPLED"
+        };
         let suffix = if index == 0 {
             String::new()
         } else {
@@ -113,7 +120,7 @@ fn normalized_history(root: &Path) -> Value {
         };
         row["identifier"] = json!(format!("$ENTRY{suffix}"));
         row["created_at"] = json!("$CREATED_AT");
-        row["recognition_ms"] = json!("$SAMPLED");
+        row["recognition_ms"] = json!(sampled);
         row["retained_audio_path"] =
             json!(format!("$ROOT/data/mluva/recordings/$AUDIO{suffix}.wav"));
     }
@@ -392,5 +399,358 @@ pub fn exercise(binary: &Path, base: &Path, bus: &Bus, events: &RefCell<Vec<Valu
             states.len()
         );
     }
+    recovery(binary, base, bus, events, &fixture, &full, binaries);
     live::exercise(binary, base, bus, events, &fixture, pcm, binaries);
+}
+
+fn recovery(
+    binary: &Path,
+    base: &Path,
+    bus: &Bus,
+    events: &RefCell<Vec<Value>>,
+    capture: &Value,
+    full_pcm: &[u8],
+    binaries: &Path,
+) {
+    let fixture: Value = serde_json::from_str(include_str!(
+        "../fixtures/released-bootstrap-managed-recovery.json"
+    ))
+    .unwrap();
+    assert_eq!(
+        hash(include_bytes!(
+            "../fixtures/released-bootstrap-managed-capture.json"
+        )),
+        fixture["base"]["sha256"]
+    );
+    let first = &full_pcm[..capture["pcm"]["first_bytes"].as_u64().unwrap() as usize];
+    let fresh =
+        &full_pcm[full_pcm.len() - fixture["fresh"]["last_bytes"].as_u64().unwrap() as usize..];
+    assert_eq!(hash(fresh), fixture["fresh"]["sha256"]);
+    let accessibility = Accessibility::open();
+    for case in fixture["cases"].as_array().unwrap() {
+        let name = case["name"].as_str().unwrap();
+        let root = base.join(format!("managed-recovery-{name}"));
+        let mut configuration = capture.clone();
+        configuration["runtime_spec"] = case["runtime_spec"].clone();
+        setup(&root, &configuration, first, binaries, 0);
+        let clip = std::env::split_paths(&std::env::var_os("PATH").unwrap())
+            .map(|path| path.join("xclip"))
+            .find(|path| path.is_file())
+            .unwrap();
+        symlink(clip, root.join("tools/xclip")).unwrap();
+        events.borrow_mut().clear();
+        let log = fs::File::create(root.join("application.log")).unwrap();
+        let mut process = Process(
+            application(binary, &root)
+                .env("HOME", root.join("home"))
+                .env("XDG_CACHE_HOME", root.join("cache"))
+                .env("TMPDIR", root.join("tmp"))
+                .env_remove("LANG")
+                .env(
+                    "PATH",
+                    format!("{}:/usr/bin:/bin", root.join("tools").display()),
+                )
+                .stdout(log.try_clone().unwrap())
+                .stderr(log)
+                .spawn()
+                .unwrap(),
+        );
+        until(|| bus.owner().is_some() && visible(process.0.id()));
+        let window = place_window(process.0.id());
+        live::set_clipboard("untouched timeout recovery clipboard");
+        let mut first_deadline = None;
+        let mut fallback_deadline = None;
+        let mut failed = None;
+        let mut states = vec![];
+        for index in case["states"].as_array().unwrap() {
+            let mut expected = fixture["observations"][index.as_u64().unwrap() as usize].clone();
+            expected["widgets"] =
+                fixture["widgets"][expected["widgets"].as_u64().unwrap() as usize].clone();
+            expected["store"] =
+                fixture["stores"][expected["store"].as_u64().unwrap() as usize].clone();
+            let stage = expected["stage"].as_str().unwrap();
+            match stage {
+                "recording" | "fresh-recording" => {
+                    if stage == "fresh-recording" {
+                        reset_audio_receipts(&root);
+                        let mut audio: Value = serde_json::from_slice(
+                            &fs::read(root.join("tools/test-config.json")).unwrap(),
+                        )
+                        .unwrap();
+                        audio["pcm_hex"] = json!(
+                            fresh
+                                .iter()
+                                .map(|byte| format!("{byte:02x}"))
+                                .collect::<String>()
+                        );
+                        write(&root.join("tools/test-config.json"), &audio);
+                    }
+                    bus.action("record");
+                    let end = Instant::now() + Duration::from_secs(15);
+                    while !root.join("tools/raw.ready.json").exists() {
+                        assert!(Instant::now() < end, "actual complete paced PCM");
+                        settle();
+                    }
+                }
+                "processing" => {
+                    bus.action("record");
+                    until(|| trace(&root).iter().any(|row| row["kind"] == "fragment"));
+                    first_deadline = Some(Instant::now());
+                }
+                "fallback-processing" | "expired" => {
+                    let start = if stage == "fallback-processing" {
+                        first_deadline.unwrap()
+                    } else {
+                        fallback_deadline.unwrap_or(first_deadline.unwrap())
+                    };
+                    let end = start + Duration::from_secs(195);
+                    while if stage == "fallback-processing" {
+                        resources(&root)["processes"] != 3
+                    } else {
+                        status(events)[1] != "error"
+                    } {
+                        assert!(
+                            Instant::now() < end,
+                            "{name}: {stage}: actual 180-second recognition deadline"
+                        );
+                        settle();
+                    }
+                    if name == "incomplete-deadline" {
+                        assert!((177.0..=195.0).contains(&start.elapsed().as_secs_f64()));
+                    }
+                    if stage == "fallback-processing" {
+                        fallback_deadline = Some(Instant::now());
+                    } else {
+                        failed = Some(history(&root)[0].clone());
+                    }
+                }
+                "failure-history" => {
+                    let mut spec = fixture["fresh"]["runtime_spec"].clone();
+                    spec["root"] = json!(&root);
+                    let runtime = QWEN_RUNTIME.binary(&root.join("data/mluva"), "cpu");
+                    write(&runtime.with_file_name("fixture.json"), &spec);
+                    bus.action("history");
+                    until(|| {
+                        live::elements(&accessibility)
+                            .iter()
+                            .any(|node| node.role == "button" && node.name == "Retry transcription")
+                    });
+                }
+                "retried-history" => {
+                    let node = live::elements(&accessibility)
+                        .into_iter()
+                        .find(|node| node.role == "button" && node.name == "Retry transcription")
+                        .unwrap()
+                        .node;
+                    assert_eq!(
+                        accessibility
+                            .call(
+                                &node,
+                                "org.a11y.atspi.Action",
+                                "DoAction",
+                                Some(&(0_i32,).to_variant())
+                            )
+                            .unwrap()
+                            .get::<(bool,)>(),
+                        Some((true,))
+                    );
+                    until(|| {
+                        history(&root)[0]["raw_text"] == "hello"
+                            && resources(&root)["alive"] == json!([false, false, false, false])
+                    });
+                }
+                "retried-document" => key("Escape"),
+                "fresh-terminal" => {
+                    bus.action("record");
+                    until(|| {
+                        history(&root).len() == 2
+                            && resources(&root)["alive"]
+                                == json!([false, false, false, false, false])
+                    });
+                    for _ in 0..5 {
+                        settle();
+                    }
+                }
+                other => panic!("unknown observed recovery action {other}"),
+            }
+            let actual = recovery_state(&root, bus, events, &accessibility, &window, stage);
+            write(&root.join(format!("recovery-{stage}.json")), &actual);
+            assert_eq!(actual, expected, "managed recovery {name}: {stage}");
+            if matches!(
+                stage,
+                "retried-history" | "retried-document" | "fresh-recording" | "fresh-terminal"
+            ) {
+                let entry = history(&root)[0].clone();
+                for field in ["identifier", "created_at", "retained_audio_path"] {
+                    assert_eq!(
+                        entry[field],
+                        failed.as_ref().unwrap()[field],
+                        "same recovered recording owner"
+                    );
+                }
+            }
+            states.push(actual);
+        }
+        let fragments: Vec<_> = trace(&root)
+            .into_iter()
+            .filter(|row| row["kind"] == "fragment")
+            .collect();
+        if name == "incomplete-deadline" {
+            assert!(
+                (350..=390).contains(&fragments.iter().filter(|row| row["bytes"] == 1).count())
+            );
+        }
+        bus.action("quit");
+        assert_eq!(process.finish(), 0);
+        until(|| bus.owner().is_none());
+        assert_eq!(fs::read(root.join("application.log")).unwrap(), b"");
+        let (mut rows, health_statuses) = protocol(&root);
+        rows.retain(|row| row["kind"] != "fragment");
+        let actual = json!({"trace":rows,"health_statuses":health_statuses,"exit_code":0,"post_exit_resources":resources(&root),"app_log_bytes":0});
+        assert_eq!(
+            actual, fixture["protocol"],
+            "full independent released transport/recovery contract"
+        );
+        write(
+            &root.join("recovery-observed.json"),
+            &json!({"states":states,"protocol":actual}),
+        );
+        eprintln!(
+            "matched managed recovery {name}: {} states, actual expiry/error, retained-audio Retry and fresh capture",
+            states.len()
+        );
+    }
+}
+
+fn recovery_state(
+    root: &Path,
+    bus: &Bus,
+    events: &RefCell<Vec<Value>>,
+    accessibility: &Accessibility,
+    window: &str,
+    stage: &str,
+) -> Value {
+    bus.action("status");
+    for _ in 0..2 {
+        settle();
+    }
+    let rows = history(root);
+    let dates: Vec<_> = rows
+        .iter()
+        .map(|row| {
+            chrono::DateTime::parse_from_rfc3339(row["created_at"].as_str().unwrap())
+                .unwrap()
+                .with_timezone(&chrono::Utc)
+                .format("%a %-d %b · %H:%M")
+                .to_string()
+        })
+        .collect();
+    let normalize = |value: &str| {
+        let mut value = value.to_owned();
+        for (index, row) in rows.iter().enumerate() {
+            let suffix = if index == 0 {
+                String::new()
+            } else {
+                format!("-{}", index + 1)
+            };
+            value = value
+                .replace(
+                    row["identifier"].as_str().unwrap(),
+                    &format!("$ENTRY{suffix}"),
+                )
+                .replace(
+                    row["retained_audio_path"].as_str().unwrap(),
+                    &format!("$ROOT/data/mluva/recordings/$AUDIO{suffix}.wav"),
+                );
+        }
+        for date in &dates {
+            value = value.replace(date, "$DATE");
+        }
+        if regex::Regex::new(r"^Recording [0-9]+:[0-9]+$")
+            .unwrap()
+            .is_match(&value)
+        {
+            assert!(
+                [
+                    "Recording 00:07",
+                    "Recording 00:08",
+                    "Recording 00:09",
+                    "Recording 00:10"
+                ]
+                .contains(&value.as_str())
+            );
+            value = "Recording $SAMPLED".into();
+        }
+        value.replace(root.to_str().unwrap(), "$ROOT")
+    };
+    let (names, items) = accessibility.visible_content();
+    let mut names: Vec<_> = names
+        .iter()
+        .map(|(role, name)| (role.clone(), normalize(name)))
+        .collect();
+    names.sort();
+    let elements = live::elements(accessibility);
+    let mut controls: Vec<_> = elements
+        .iter()
+        .filter(|node| node.role == "button")
+        .map(|node| (normalize(&node.name), node.sensitive))
+        .collect();
+    controls.sort();
+    let texts: Vec<_> = elements
+        .iter()
+        .filter(|node| node.role == "text box")
+        .map(|node| json!({"name":normalize(&node.name),"text":normalize(&node.text)}))
+        .collect();
+    let mut current = status(events);
+    let mut shell = events
+        .borrow()
+        .iter()
+        .rev()
+        .find(|row| row["name"] == "ShellStateChanged")
+        .unwrap()["values"][0]
+        .clone();
+    if current[1] == "recording" {
+        assert!((7..=10).contains(&current[3].as_u64().unwrap()));
+        assert!((0.0..=1.0).contains(&current[6].as_f64().unwrap()));
+        current[3] = json!("$SAMPLED");
+        current[6] = json!("$SAMPLED");
+        assert!((7..=10).contains(&shell["elapsed"].as_u64().unwrap()));
+        assert!((0.0..=1.0).contains(&shell["level"].as_f64().unwrap()));
+        shell["elapsed"] = json!("$SAMPLED");
+        shell["level"] = json!("$SAMPLED");
+    }
+    if let Some(identifier) = shell.get("identifier") {
+        shell["identifier"] = json!(normalize(identifier.as_str().unwrap()));
+    }
+    let mut audio = vec![];
+    for file in data_files(&root.join("data/mluva/recordings")) {
+        let path = root.join("data/mluva/recordings").join(file);
+        if current[1] == "recording"
+            && !rows
+                .iter()
+                .any(|row| row["retained_audio_path"].as_str().unwrap() == path.to_str().unwrap())
+        {
+            continue;
+        }
+        let mut reader = mluva_audio::wav::WaveReader::open(&path).unwrap();
+        assert_eq!(
+            (
+                reader.metadata.channels,
+                reader.metadata.sample_width,
+                reader.metadata.sample_rate
+            ),
+            (1, 2, 16000)
+        );
+        let pcm = reader.read_frames(128001).unwrap();
+        assert_eq!(pcm.len(), 256000);
+        let bytes = fs::read(&path).unwrap();
+        assert_eq!(bytes.len(), 256044);
+        audio.push(json!({"file_sha256":hash(&bytes),"bytes":bytes.len(),"parameters":[1,2,16000],"pcm_bytes":pcm.len(),"pcm_sha256":hash(&pcm)}));
+    }
+    let mut state = json!({"stage":stage,"status":current,"shell":shell,"resources":resources(root),"store":{"history":normalized_history(root),"replies":table(root,"conversation_rewrites","identifier")},"clipboard":live::clipboard(),
+        "widgets":{"names":names,"items":items.iter().map(|item|normalize(item)).collect::<Vec<_>>(),"controls":controls,"texts":texts},"retained_audio":audio});
+    if stage == "expired" {
+        state["frame"] = frame(root, window, stage);
+    }
+    state
 }
