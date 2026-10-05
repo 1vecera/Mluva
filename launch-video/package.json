@@ -7,7 +7,7 @@
     "render": "remotion render src/index.ts MluvaIntro out/mluva-intro-live.mp4 --muted --concurrency=4",
     "preview": "remotion render src/index.ts MluvaIntro out/mluva-intro-live-preview.mp4 --muted --scale=0.5 --concurrency=4",
     "lint": "tsc --noEmit",
-    "highlight:render": "remotion render src/index.ts MluvaRustHighlight out/mluva-rust-highlight.mp4 --muted --crf=14 --concurrency=8",
+    "highlight:render": "remotion render src/index.ts MluvaRustHighlight out/mluva-rust-highlight-silent.mp4 --muted --crf=14 --concurrency=8 && bash highlight/master.sh",
     "showreel:render": "remotion render src/index.ts MluvaShowreel out/mluva-showreel.mp4 --muted --crf=14 --concurrency=10"
   },
   "type": "module",

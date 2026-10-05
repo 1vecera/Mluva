@@ -1,1 +1,0 @@
-Release notes for Friday. The new build is a native Rust app. It opens faster, uses less memory, and runs speech recognition right on this machine.

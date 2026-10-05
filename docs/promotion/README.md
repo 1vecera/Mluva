@@ -16,4 +16,4 @@ The [composition and render instructions](../../launch-video/README.md) describe
 
 ## Rust release highlight
 
-A 27-second silent highlight of the native Rust release (dictate, polish, measured startup and memory, local models) is built by [launch-video/highlight](../../launch-video/highlight/README.md). It plays real footage of the published 2.0.0 window with synthetic speech and states the scope of its numbers: first window 456 → 260 ms and resident memory 260.3 → 236.5 MiB, startup and idle memory only, from the [same-host measurements](../verification/rust-release-performance/README.md). The rewrite text is a prepared example. The rendered movie stays outside Git.
+A 23.5-second film about the native Rust release opening sooner is built by [launch-video/highlight](../../launch-video/highlight/README.md): first window 456 → 260 ms (1.75×), D-Bus ready 217 → 42 ms (5.2×) and about 161 → 49 MiB installed (3.3×), each cut on a drop of a generated ElevenLabs score. The numbers compare Python 1.6.0 with published Rust 2.0.0 on one host and state their scope; none is an inference-speed claim. The rendered movie and score stay outside Git.

@@ -1,62 +1,44 @@
 # Native Rust release highlight
 
-A 27-second, 1920×1080, 60 fps, silent H.264 highlight of the native Rust release. It reuses the showreel's identity (black surface, Adwaita Sans, JetBrains Mono, one red accent) and tells one story: dictate, polish, measured startup wins, local models, install.
+A 23.5-second, 1920×1080, 60 fps H.264 film with AAC sound about one thing: the native Rust release opens sooner. It reuses the showreel's identity (black surface, Adwaita Sans, JetBrains Mono, one red accent) and cuts on the drops of a generated score.
 
 | Scene | Seconds | Content |
 | --- | --- | --- |
-| Title | 0–2.5 | "Now native Rust." with the glossy mark |
-| Dictate | 2.5–9.5 | Real footage of the published 2.0.0 window with Qwen3-ASR 1.7B recognizing synthetic speech |
-| Polish | 9.5–14.5 | Real footage of the Polish action; the rewrite text is a prepared example |
-| Measured | 14.5–20 | First window 456 → 260 ms and resident memory 260.3 → 236.5 MiB |
-| On device | 20–24 | Real Settings page with the local-model choice |
-| End card | 24–27 | Lockup, `github.com/1vecera/Mluva`, release 2.0.0 |
+| Title | 0–3.75 | "Opens faster." and the glossy mark, building to the first drop |
+| First window | 3.75–11.25 | 1.75× sooner: 456 → 260 ms |
+| Ready on the bus | 11.25–15.5 | 5.2× sooner: 217 → 42 ms |
+| On disk | 15.5–19.25 | 3.3× smaller: about 161 → 49 MiB |
+| End card | 19.25–23.5 | Lockup and `github.com/1vecera/Mluva` |
 
-## What each claim rests on
+## What each number rests on
 
-| On screen | Source |
+All three compare Python 1.6.0 with published Rust 2.0.0. They are startup and footprint figures, not inference speed.
+
+| On screen | Source and arithmetic |
 | --- | --- |
-| First window 456 → 260 ms, −43% | Median of six measured starts per version in [release-startup.json](../../docs/verification/rust-release-performance/release-startup.json): 455.6 → 259.8 ms |
-| Resident memory 260.3 → 236.5 MiB, −9% | Same file, median process-tree RSS: 260.31 → 236.46 MiB |
-| Scope | Released Python 1.6.0 against published Rust 2.0.0, same host, warm cache, startup and idle memory only. [The performance report](../../docs/verification/rust-release-performance/README.md) states that it establishes no general decoder or UI speedup |
+| First window 456 → 260 ms (−43%, 1.75×) | Median of six measured starts per version in [release-startup.json](../../docs/verification/rust-release-performance/release-startup.json): 455.6 → 259.8 ms (455.6 / 259.8 = 1.75). Same host, warm cache. Rust's slowest start (298 ms) beat Python's fastest (402 ms), per the report's ranges |
+| Ready on D-Bus 217 → 42 ms (5.2×) | Same file, `bus_ms` medians: 216.5 → 41.8 ms. This is D-Bus name ownership, which precedes the visible window; the report says it is not recording readiness |
+| Install about 161 → 49 MiB (3.3×) | Measured for this film, see below. Models and caches are excluded on both sides |
 | No Python runtime | The shipped application is native Rust ([install notes](../../README.md#install)) |
-| Qwen3-ASR 1.7B default, Parakeet v3, Whisper Tiny | [CHANGELOG](../../CHANGELOG.md) 2.0.1 entry and the Settings page in the footage |
 
-The video does not claim 2.0.1 as public (2.0.0 is the latest GitHub release), universal inference speedups or complete platform parity.
+Install size: 1.6.0 is its app files plus the Python environment its installer builds (`uv sync --no-dev --frozen`, verified in `linux/install.sh` at the `release/1.6.0` tag). I built that environment offline from the tag's lockfile and measured it with `du -sm`: 151 MiB environment, plus 4 MiB of `mluva_linux` and 6 MiB of `resources`, so about 161 MiB. 2.0.0 is the unpacked published bundle (`mluva-2.0.0-omarchy-x86_64.tar.gz`, 17 MB compressed) at 49 MiB. The 1.6.0 environment reuses the system PyGObject, which is not counted; the Rust bundle likewise relies on system GTK. This is one measurement on one machine, not a statistical sample.
 
-## Footage
+The film does not claim 2.0.1 as public (2.0.0 is the latest GitHub release), universal inference speedups or complete platform parity.
 
-The frames are the published 2.0.0 application (`bin/mluva`, SHA-256 `7ae478a038e66f52c807783928b590161d72491bb4f8f258af7052c2d0cea080`), recorded in a disposable offscreen session: private Xvfb display, session bus and XDG state, the Vantablack Omarchy palette, no real microphone, content or provider. `capture/drive.py` runs the real window with these substitutions only:
+## Sound
 
-- `capture/fake-pw-record` stands in for `pw-record` and streams a synthetic speech file in real time. The speech is `capture/dictation.txt` spoken by Fish Audio's default voice (`generate-voice-note`, free model); no private recording is used.
-- Recognition is real: the local Qwen3-ASR 1.7B CPU runtime from an existing private model cache, inside a network namespace with only loopback.
-- Polish calls `capture/fake_rewrite.py`, a loopback OpenAI-compatible peer that streams one prepared sentence. The film says so; it shows the workflow, not rewrite quality or provider latency.
-- The recorder and rewrite status lines are cropped out. The 2.0.0 status text under recording reads "Scribe v2 realtime" even for local recognition, which would mislabel the local-model story.
-- The dictation scene is a time-lapse: speech ×2, the wait for the final transcript ×4, the finished page at 1×. It shows the workflow, not recognition latency.
-
-`xinput.py` clicks inside the private Xvfb display only (it refuses to run without `OFFSCREEN_SESSION_ROOT`).
+The score is ElevenLabs Music v2.5 (take B of two, prompted for instrumental electronic at 128 BPM; it came out at about 130 BPM). A Scribe pass found no speech. `analyze_score.py` and the energy/onset checks put its drops at 3.75 s (first hit from silence), 11.25 s (bass returns four bars later), 15.5 s (low-end jump) and 19.25 s (final hit after a 0.7 s gap). The composition reads those times from `src/highlight/score.json`, so every scene change and flash lands on a drop, and the kick pulse on the multiplier and Rust bar follows the 0.4615 s beat. The render is silent; `master.sh` trims the score to the film, fades the last 1.1 s, masters it to about −14 LUFS and muxes AAC without touching the video stream. The score file stays out of Git. If you regenerate the music, run `analyze_score.py`, update `score.json` and re-render; the structure of a new take will differ.
 
 ## Render
 
-Requires Node/npm, FFmpeg, Xvfb, D-Bus, the offscreen runner from the `run-offscreen-linux-verification` skill, a published 2.0.0 bundle and the local Qwen assets. The private model cache and clips stay outside Git; `public/highlight/` is ignored, and the showreel's `public/showreel/{brand,fonts}` staging is reused.
+Needs Node/npm, FFmpeg, uv, the local score at `public/highlight/score.mp3` and the showreel's staged `public/showreel/{brand,fonts}`.
 
 ```sh
-# From the repository root. 1. Synthetic speech: speak dictation.txt, then convert to 16 kHz s16le mono.
-ffmpeg -i dictation.mp3 -ar 16000 -ac 1 -f s16le tmp/highlight/dictation.pcm
-
-# 2. Capture (about two minutes). Paths below are the maintainer's; point them at your bundle and assets.
-MLUVA_BUNDLE=/path/to/mluva-2.0.0 MLUVA_QWEN_ASSETS=/path/to/qwen-assets \
-MLUVA_CAPTURE_PCM=$PWD/tmp/highlight/dictation.pcm \
-HIGHLIGHT_REWRITE=1 HIGHLIGHT_SCENES=settings,history \
-HIGHLIGHT_POLISHED="Release notes for Friday: the new build is a native Rust app. It opens faster, uses less memory, and runs speech recognition on this machine." \
-OFFSCREEN_SCREEN_SPEC=2200x1600x24 \
-  bash "$SKILL/scripts/run_isolated_x11.sh" tmp/highlight/capture -- python3 launch-video/highlight/capture/drive.py
-
-# 3. Cut the clips, then render.
 cd launch-video
 npm ci --ignore-scripts
-highlight/prepare.sh ../tmp/highlight/capture/session.*/out/take.mkv
+uv run --with numpy highlight/analyze_score.py public/highlight/score.mp3   # check the drops against score.json
 npm run lint
 npm run highlight:render
 ```
 
-The result is `out/mluva-rust-highlight.mp4`. The clip cut times in `prepare.sh` follow the timeline of one capture; re-check them against `timeline.json` and the footage after a new take. Scene lengths and the clip frame counts are constants at the top of `src/highlight/Highlight.tsx`.
+The result is `out/mluva-rust-highlight.mp4`.

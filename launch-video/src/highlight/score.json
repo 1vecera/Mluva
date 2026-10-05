@@ -1,0 +1,15 @@
+{
+  "file": "highlight/score.mp3",
+  "fps": 60,
+  "duration_s": 23.5,
+  "bpm": 130,
+  "kick_s": 4.25,
+  "beat_s": 0.4615,
+  "drops_s": {
+    "d1": 3.75,
+    "d2": 11.25,
+    "d3": 15.5,
+    "end": 19.25
+  },
+  "note": "Measured on ElevenLabs Music v2.5 take B by highlight/analyze_score.py and bands/onsets inspection: first hit from silence 3.75 s; bass swell returns 11.25 s (4 bars later); riser and low jump 15.5 s; final hit after a 0.7 s gap 19.25 s."
+}
