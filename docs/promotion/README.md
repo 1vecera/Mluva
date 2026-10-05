@@ -13,3 +13,7 @@ Daniel supplied the camera recording. The voice is cleaned and enhanced, with it
 GitHub plays the standalone attachment URL inline. The same uploaded movie serves the README and website, keeping large video binaries out of new repository commits. [GitHub's attachment guide](https://docs.github.com/en/github-cli/github-cli/attaching-files-with-github-cli) documents the upload and video-reference behavior.
 
 The [composition and render instructions](../../launch-video/README.md) describe the current source. Original recordings, private render inputs and earlier edits remain in local source archives. The superseded film, old subtitle files and unused capture fixtures have been removed; Git history preserves their prior versions.
+
+## Rust release highlight
+
+A 27-second silent highlight of the native Rust release (dictate, polish, measured startup and memory, local models) is built by [launch-video/highlight](../../launch-video/highlight/README.md). It plays real footage of the published 2.0.0 window with synthetic speech and states the scope of its numbers: first window 456 → 260 ms and resident memory 260.3 → 236.5 MiB, startup and idle memory only, from the [same-host measurements](../verification/rust-release-performance/README.md). The rewrite text is a prepared example. The rendered movie stays outside Git.

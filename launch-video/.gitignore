@@ -7,3 +7,5 @@ public/live/
 public/audio/
 # Showreel captures, score and effects are staged by showreel/prepare.py.
 public/showreel/
+# Rust-release highlight clips are cut from a private offscreen capture by highlight/prepare.sh.
+public/highlight/

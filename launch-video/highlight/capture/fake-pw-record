@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""Stand-in for pw-record: streams a synthetic PCM file at real time (16 kHz s16 mono)."""
+import os, sys, time, signal
+if os.path.basename(sys.argv[0]) == "pw-dump":
+    print("[]"); sys.exit(0)
+pcm = open(os.environ["MLUVA_CAPTURE_PCM"], "rb").read()
+stop = []
+signal.signal(signal.SIGINT, lambda *a: stop.append(1)); signal.signal(signal.SIGTERM, lambda *a: stop.append(1))
+root = os.environ["MLUVA_CAPTURE_EVIDENCE"]
+open(os.path.join(root, "input-started"), "w").write(str(time.time()))
+start = time.monotonic(); sent = 0; out = sys.stdout.buffer
+for i in range(0, len(pcm), 320):
+    if stop: break
+    out.write(pcm[i:i+320]); out.flush(); sent += 320
+    delay = sent / 32000 - (time.monotonic() - start)
+    if delay > 0: time.sleep(delay)
+open(os.path.join(root, "input-finished"), "w").write(str(time.time()))
+while not stop: time.sleep(0.01)
