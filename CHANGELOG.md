@@ -2,6 +2,14 @@
 
 This file records user-visible Mluva releases.
 
+## 2.1.0 — 2026-10-05
+
+- Release a matching native app and Omarchy widget with expanded verification of Meeting title/export/deletion, History recovery and Live rewriting through the installed Codex SDK.
+- Verify the collapsed Rewrite default and both remembered choices across normal Quit/relaunch processes. Retain the 2.0.2 paste and Rewrite behavior, settings, History and the three local models, with Qwen3-ASR 1.7B as the default.
+- Publish renewed startup, navigation and paced Qwen recording measurements against immutable 1.6.0. Startup time and application memory are lower in the recorded sample; navigation and recording do not establish a general speedup. [Evidence and limits](docs/verification/rust-release-performance/README.md).
+
+This minor release is a verification milestone. Physical inputs, broader platform acceptance and complete Rust UX parity remain open; experimental feature labels are unchanged.
+
 ## 2.0.2 — 2026-10-05
 
 - Hide manual Rewrite controls by default and remember the last expanded or collapsed choice. Collapsing preserves an unsent request; explicit rewrite commands reveal the controls.
