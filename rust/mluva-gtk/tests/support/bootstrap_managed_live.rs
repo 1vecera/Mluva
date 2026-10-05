@@ -11,8 +11,15 @@ pub(super) struct Element {
     pub(super) role: String,
     pub(super) sensitive: bool,
     pub(super) text: String,
+    pub(super) has_text: bool,
 }
 pub(super) fn elements(accessibility: &Accessibility) -> Vec<Element> {
+    observed_elements(accessibility, false)
+}
+pub(super) fn inventory(accessibility: &Accessibility) -> Vec<Element> {
+    observed_elements(accessibility, true)
+}
+fn observed_elements(accessibility: &Accessibility, full: bool) -> Vec<Element> {
     let mut queue = VecDeque::from([(
         "org.a11y.atspi.Registry".into(),
         "/org/a11y/atspi/accessible/root".into(),
@@ -64,10 +71,22 @@ pub(super) fn elements(accessibility: &Accessibility) -> Vec<Element> {
             .str()
             .unwrap()
             .to_owned();
-        if !matches!(role.as_str(), "text box" | "button") {
+        if !full && !matches!(role.as_str(), "text box" | "button") {
             continue;
         }
-        let text = if role == "text box" {
+        let has_text = if full {
+            accessibility
+                .call(&node, "org.a11y.atspi.Accessible", "GetInterfaces", None)
+                .unwrap()
+                .child_value(0)
+                .get::<Vec<String>>()
+                .unwrap()
+                .iter()
+                .any(|name| name == "org.a11y.atspi.Text")
+        } else {
+            role == "text box"
+        };
+        let text = if has_text {
             accessibility
                 .call(
                     &node,
@@ -89,6 +108,7 @@ pub(super) fn elements(accessibility: &Accessibility) -> Vec<Element> {
             role,
             sensitive: state[0] & (1 << 24) != 0,
             text,
+            has_text,
         });
     }
     result
@@ -195,20 +215,25 @@ pub(super) fn launch(binary: &Path, root: &Path, name: &str) -> Process {
     // A genuine X11 selection owner can inherit these descriptors past app exit.
     let log = fs::File::create(root.join(name)).unwrap();
     Process(
-        application(binary, root)
-            .env("HOME", root.join("home"))
-            .env("XDG_CACHE_HOME", root.join("cache"))
-            .env("TMPDIR", root.join("tmp"))
-            .env_remove("LANG")
-            .env(
-                "PATH",
-                format!("{}:/usr/bin:/bin", root.join("tools").display()),
-            )
+        command(binary, root)
             .stdout(log.try_clone().unwrap())
             .stderr(log)
             .spawn()
             .unwrap(),
     )
+}
+pub(super) fn command(binary: &Path, root: &Path) -> Command {
+    let mut command = application(binary, root);
+    command
+        .env("HOME", root.join("home"))
+        .env("XDG_CACHE_HOME", root.join("cache"))
+        .env("TMPDIR", root.join("tmp"))
+        .env_remove("LANG")
+        .env(
+            "PATH",
+            format!("{}:/usr/bin:/bin", root.join("tools").display()),
+        );
+    command
 }
 fn janitor(parent: u32, workspace: &Path) -> libc::pid_t {
     let mut found = None;

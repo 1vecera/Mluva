@@ -6,6 +6,8 @@ use rusqlite::types::ValueRef;
 mod history_lifecycle;
 #[path = "bootstrap_managed_live.rs"]
 mod live;
+#[path = "bootstrap_meeting.rs"]
+mod meeting;
 
 fn write(path: &Path, value: &Value) {
     fs::write(path, serde_json::to_vec(value).unwrap()).unwrap();
@@ -316,6 +318,7 @@ pub fn exercise(binary: &Path, base: &Path, bus: &Bus, events: &RefCell<Vec<Valu
     let pcm = &full[..fixture["pcm"]["first_bytes"].as_u64().unwrap() as usize];
     assert_eq!(hash(pcm), fixture["pcm"]["sha256"]);
     let binaries = Path::new(env!("CARGO_BIN_EXE_mluva")).parent().unwrap();
+    meeting::exercise(binary, base, bus, events, &full, binaries);
     let cases = fixture["cases"].as_array().unwrap();
     for (case, close_delay_ms) in [(&cases[0], 0), (&cases[1], 0), (&cases[1], 500)] {
         let name = case["name"].as_str().unwrap();

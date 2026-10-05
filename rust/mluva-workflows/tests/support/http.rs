@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 use std::{
     collections::VecDeque,
     io::{Read, Write},
-    net::{TcpListener, TcpStream},
+    net::TcpListener,
     sync::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
@@ -47,6 +47,12 @@ impl Peer {
             while !stopping.load(Ordering::Acquire) {
                 match listener.accept() {
                     Ok((stream, _)) => {
+                        stream
+                            .set_read_timeout(Some(Duration::from_secs(3)))
+                            .unwrap();
+                        stream
+                            .set_write_timeout(Some(Duration::from_secs(3)))
+                            .unwrap();
                         if let Err(error) = exchange(stream, &pending, &wire) {
                             errors.lock().unwrap().push(error.to_string());
                         }
@@ -94,13 +100,11 @@ impl Drop for Peer {
     }
 }
 
-fn exchange(
-    mut stream: TcpStream,
+pub fn exchange(
+    mut stream: impl Read + Write,
     pending: &Mutex<VecDeque<Value>>,
     wire: &Mutex<Vec<Value>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    stream.set_read_timeout(Some(Duration::from_secs(3)))?;
-    stream.set_write_timeout(Some(Duration::from_secs(3)))?;
     let mut bytes = vec![];
     let header_end = loop {
         let mut buffer = [0; 4096];
@@ -149,7 +153,27 @@ fn exchange(
         .pop_front()
         .ok_or("unexpected provider request")?;
     let codex = path == "/responses";
-    let speech = path == "/speech-to-text" || path.ends_with("/audio/transcriptions");
+    let speech = matches!(path, "/speech-to-text" | "/v1/speech-to-text")
+        || path.ends_with("/audio/transcriptions");
+    if let Some(expected) = response["expected_path"].as_str()
+        && path != expected
+    {
+        return Err("unexpected fixed provider endpoint".into());
+    }
+    if let Some(expected) = response["expected_headers"].as_object() {
+        for (name, value) in expected {
+            let values: Vec<_> = header
+                .lines()
+                .filter_map(|line| {
+                    let (key, value) = line.split_once(':')?;
+                    key.eq_ignore_ascii_case(name).then_some(value.trim())
+                })
+                .collect();
+            if values != [value.as_str().ok_or("invalid expected header")?] {
+                return Err("provider authentication header differs".into());
+            }
+        }
+    }
     let validate_route = || -> Result<(), Box<dyn std::error::Error>> {
         if speech != (response["route"] == "speech")
             || catalog != (response["route"] == "catalog")
@@ -207,6 +231,28 @@ fn exchange(
         wire.lock()
             .unwrap()
             .push(json!({"path": path, "json": serde_json::from_slice::<Value>(body)?}));
+    }
+    // Preserve the earlier pre-observation gate. This separate gate records
+    // the actual parsed body before holding the ordinary HTTPS response.
+    if let Some(gate) = response["wait_after_body"].as_str() {
+        let receipt = std::path::Path::new(
+            response["body_receipt"]
+                .as_str()
+                .ok_or("missing body receipt")?,
+        );
+        let pending_receipt = receipt.with_extension("part");
+        std::fs::write(
+            &pending_receipt,
+            serde_json::to_vec(wire.lock().unwrap().last().ok_or("missing observed body")?)?,
+        )?;
+        std::fs::rename(pending_receipt, receipt)?;
+        let deadline = std::time::Instant::now() + Duration::from_secs(8);
+        while !std::path::Path::new(gate).exists() {
+            if std::time::Instant::now() >= deadline {
+                return Err("observed provider gate expired".into());
+            }
+            thread::sleep(Duration::from_millis(2));
+        }
     }
     let body = if codex {
         codex_response::encode(response["events"].as_array().ok_or("missing SDK events")?)

@@ -22,7 +22,7 @@ The initial full-process native comparison failed on an extra `processing` phase
 Build the native prerequisites, reuse the already frozen public English frontend input, then run the process owner. The decompressed full PCM must have SHA-256 `6b358de4826842f192a25fee6cd7be3a30f4a609ec74e69b6274c9a6fc265c91`:
 
 ```sh
-cargo build --locked -p mluva-gtk --bin mluva \
+cargo build --locked -p mluva-gtk --bin mluva --example artifact_https_peer \
   -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
   -p mluva-providers --bin credential-fixture-peer --bin qwen-fixture-peer
 mkdir -p tmp/native-bootstrap-input
