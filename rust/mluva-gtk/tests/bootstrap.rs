@@ -24,10 +24,18 @@ mod accessibility;
 mod http;
 #[path = "support/bootstrap_managed_capture.rs"]
 mod managed_capture;
+#[path = "support/bootstrap_rewrite.rs"]
+mod rewrite;
 use accessibility::Accessibility;
 
 const NAME: &str = "com.mluva.Linux";
 const OBJECT: &str = "/com/mluva/Linux";
+
+fn hash(bytes: &[u8]) -> String {
+    glib::compute_checksum_for_data(glib::ChecksumType::Sha256, bytes)
+        .unwrap()
+        .into()
+}
 
 fn settle() {
     let end = Instant::now() + Duration::from_millis(250);
@@ -293,7 +301,7 @@ fn cold_recording(
     assert!(clip.wait().unwrap().success());
     events.borrow_mut().clear();
     let mut process = Process(
-        application(binary, &directory)
+        rewrite::source_application(binary, &directory)
             .arg("--gapplication-service")
             .env(
                 "PATH",
@@ -363,7 +371,7 @@ fn cold_recording(
         serde_json::to_vec_pretty(&result).unwrap(),
     )
     .unwrap();
-    assert_eq!(result, fixture["result"]);
+    assert_eq!(result, rewrite::source_snapshot(binary, &fixture["result"]));
     eprintln!("matched first cold Record through actual microphone and quit cleanup");
 }
 
@@ -402,7 +410,7 @@ fn startup_faults(
         fs::write(directory.join("config/mluva/config.json"), br#"{"transcription_provider":"elevenlabs","rewrite_provider":"none","welcome_completed":true,"automatic_titles":false}"#).unwrap();
         events.borrow_mut().clear();
         let mut process = Process(
-            application(binary, &directory)
+            rewrite::source_application(binary, &directory)
                 .arg("--gapplication-service")
                 .env(
                     "PATH",
@@ -626,7 +634,14 @@ fn source_make_build_and_run_without_python() {
     });
     let expected =
         &reference["snapshots"][case["states"][0]["snapshot"].as_u64().unwrap() as usize];
-    assert_eq!(json!(content.0), expected["names"]);
+    if rewrite::disclosure(&executable) {
+        rewrite::activate(&accessibility);
+        content = accessibility.visible_content();
+    }
+    assert_eq!(
+        json!(content.0),
+        rewrite::source_snapshot(&executable, expected)["names"]
+    );
     assert_eq!(json!(content.1), expected["items"]);
     let actions = bus
         .call(&owner, OBJECT, "org.gtk.Actions", "DescribeAll", None)
@@ -703,10 +718,23 @@ fn released_process_actions_residency_and_headless_dispatch() {
         },
     );
     bus.0.flush_sync(gio::Cancellable::NONE).unwrap();
-    if std::env::var_os("MLUVA_TEST_MEETING_ONLY").is_some() {
-        managed_capture::exercise(&binary, &root, &bus, &events, true);
+    let meeting_only = std::env::var_os("MLUVA_TEST_MEETING_ONLY").is_some();
+    let live_only = std::env::var_os("MLUVA_TEST_LIVE_ONLY").is_some();
+    assert!(
+        !(meeting_only && live_only),
+        "choose one focused application flow"
+    );
+    if meeting_only || live_only {
+        managed_capture::exercise(&binary, &root, &bus, &events, meeting_only);
         return;
     }
+    rewrite::exercise(
+        &binary,
+        &root,
+        &bus,
+        &accessibility,
+        &fixture["cases"][0]["config"],
+    );
     for case in fixture["cases"].as_array().unwrap() {
         events.borrow_mut().clear();
         let name = case["name"].as_str().unwrap();
@@ -725,7 +753,7 @@ fn released_process_actions_residency_and_headless_dispatch() {
             .map(|v| v.as_str().unwrap())
             .collect();
         let mut process = Process(
-            application(&binary, &directory)
+            rewrite::source_application(&binary, &directory)
                 .args(&flags)
                 .stdout(log.try_clone().unwrap())
                 .stderr(log)
@@ -807,7 +835,11 @@ fn released_process_actions_residency_and_headless_dispatch() {
             )
             .unwrap();
             let expected = &fixture["snapshots"][state["snapshot"].as_u64().unwrap() as usize];
-            assert_eq!(&actual, expected, "{name}: {stage}");
+            assert_eq!(
+                actual,
+                rewrite::source_snapshot(&binary, expected),
+                "{name}: {stage}"
+            );
         }
         bus.action("quit");
         assert_eq!(json!(process.finish()), case["exit"], "{name} shutdown");

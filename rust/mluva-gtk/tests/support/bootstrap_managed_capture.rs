@@ -8,14 +8,10 @@ mod history_lifecycle;
 mod live;
 #[path = "bootstrap_meeting.rs"]
 mod meeting;
+use rewrite::frame;
 
 fn write(path: &Path, value: &Value) {
     fs::write(path, serde_json::to_vec(value).unwrap()).unwrap();
-}
-fn hash(bytes: &[u8]) -> String {
-    glib::compute_checksum_for_data(glib::ChecksumType::Sha256, bytes)
-        .unwrap()
-        .into()
 }
 fn trace(root: &Path) -> Vec<Value> {
     fs::read_to_string(root.join("trace.jsonl"))
@@ -179,20 +175,6 @@ fn place_window(pid: u32) -> String {
     settle();
     window
 }
-fn frame(root: &Path, window: &str, stage: &str) -> Value {
-    let path = root.join(format!("managed-{stage}.png"));
-    assert!(
-        Command::new("/usr/bin/import")
-            .args(["-window", window])
-            .arg(&path)
-            .status()
-            .unwrap()
-            .success()
-    );
-    let image = gtk::gdk_pixbuf::Pixbuf::from_file(path).unwrap();
-    json!({"width":image.width(),"height":image.height(),"channels":image.n_channels(),
-        "sha256":hash(image.read_pixel_bytes().as_ref())})
-}
 fn checkpoint(
     root: &Path,
     bus: &Bus,
@@ -324,6 +306,10 @@ pub fn exercise(
     let pcm = &full[..fixture["pcm"]["first_bytes"].as_u64().unwrap() as usize];
     assert_eq!(hash(pcm), fixture["pcm"]["sha256"]);
     let binaries = Path::new(env!("CARGO_BIN_EXE_mluva")).parent().unwrap();
+    if std::env::var_os("MLUVA_TEST_LIVE_ONLY").is_some() {
+        live::exercise(binary, base, bus, events, &fixture, pcm, binaries);
+        return;
+    }
     meeting::exercise(binary, base, bus, events, &full, binaries);
     if meeting_only {
         return;
@@ -337,7 +323,7 @@ pub fn exercise(
         setup(&root, &fixture, pcm, binaries, close_delay_ms);
         events.borrow_mut().clear();
         let mut process = Process(
-            application(binary, &root)
+            rewrite::source_application(binary, &root)
                 .env("HOME", root.join("home"))
                 .env("XDG_CACHE_HOME", root.join("cache"))
                 .env("TMPDIR", root.join("tmp"))
@@ -548,7 +534,11 @@ fn recovery(
             }
             let actual = recovery_state(&root, bus, events, &accessibility, &window, stage);
             write(&root.join(format!("recovery-{stage}.json")), &actual);
-            assert_eq!(actual, expected, "managed recovery {name}: {stage}");
+            assert_eq!(
+                actual,
+                rewrite::source_snapshot(binary, &expected),
+                "managed recovery {name}: {stage}"
+            );
             if matches!(
                 stage,
                 "retried-history" | "retried-document" | "fresh-recording" | "fresh-terminal"

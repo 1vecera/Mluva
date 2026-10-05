@@ -1,0 +1,31 @@
+# Current Rewrite through application processes
+
+The immutable reference remains v1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. Daniel requested the 2.0.2 default: manual Rewrite starts collapsed, remembers the last choice, and shows no caret beside the empty placeholder. The original root snapshots assumed an always-open composer and stopped the current-package owner before its recording workflows. This checkpoint makes that intentional difference explicit without modifying the old reference fixtures.
+
+## Default and restart contract
+
+The existing `released_process_actions_residency_and_headless_dispatch` owner now starts the actual relocated package three times against one private profile. The first launch has no seeded Rewrite preference. It checks the public toggle's selection/availability and the visibility of the request, Polish, Structure and More controls, selects the toggle through AT-SPI, normally quits, then verifies the next process. The five observations are collapsed → expanded → reopened expanded → collapsed → reopened collapsed. Both writes are private mode `0600`; all three exits succeed, release the application owner/window and produce empty logs.
+
+The existing workspace owner retains its separate caret/placeholder, unsent-text, explicit focus and busy-Cancel contracts. The new checks cover real process persistence; they do not duplicate that in-process widget coverage or add a test-only production API.
+
+Historical source workflows use an explicitly expanded private profile. Their expected widget inventories retain every source role/name and add only the literal Rewrite label and toggle when the source composer is visible. Signals, item order, text, stores, clipboard, providers and requests keep their existing assertions. The Make launcher opens Rewrite through its public toggle before comparing the expanded source inventory.
+
+## Source viewport and repaint references
+
+An independent probe verifies all 91 source inputs and launches the unchanged v1.6.0 package, canonical prepared native 2.0.0 and published 2.0.2 with one synthetic retained transcript. The source and 2.0.0 startup frames and named widgets match completely. Expanded 2.0.2 preserves every source widget, adds the disclosure label/toggle and changes only the new button plus nineteen deliberately removed caret pixels.
+
+The row requires 52 pixels: a 36-pixel button and eight pixels above and below. For stable legacy frame comparisons the owner captures the current window at 1100×852 and removes only this declared row, preserving the original 1100×800 document/composer viewport. Public button bounds, dimensions, channels and row stride are asserted. The full unmodified PNG, raw RGB digest, public bounds, exact excluded row interval and resulting viewport digest remain on disk. Other pages retain raw capture. This is a declared viewport comparison, not raw full-window equality or a fuzzy image threshold.
+
+The original post-Live images also contain tiny clipping differences already present in v1.6.0. Reopening the unchanged reference renders five additional pixels at the final “g” of Continue recording, at the same public button bounds; both prepared 2.0.0 and current 2.0.2 reproduce that source heading. Two original source cases render the identical copied notice differently at two period pixels. The [source repaint fixture](released-bootstrap-complete-heading.json) records these inputs and selects the reopened source heading plus the source manual-edit copied notice consistently. The collector reads only source images, not native pixels. Exact source composition changes five pixels in the original edited/cancelled frame and seven in the fresh frame. All original fixture hashes and original captures remain retained.
+
+The current expected frame digests are derived from those independently observed source widgets. Every other pixel remains exact. The three original raw RGB hashes continue to be the immutable starting inputs; prepared 2.0.0 retains the original unadapted expectation. No current native image is used to regenerate an expected value.
+
+## Executed scope
+
+The [current process report](../../../../docs/verification/rust-worker-lifecycle/current-rewrite-process.json) records exact binary/driver/fixture fingerprints, completed owner logs, frame metadata, source-only derivation and excluded attempts. The 2.0.2 executable matches the installed executable. The full owner covers the three restart processes, 38 bootstrap states/thirteen actions/five CLI contracts, cold Record, 38 Meeting states, ten managed preview states, 37 recovery/History states, 42 Live states including both installed Codex SDK paths, and three startup faults. The separate existing Make owner verifies actual setup/run/forwarding/Quit and runtime cleanup. Native execution positively tests absolute Python/python3/uv traps before running and leaves their counter unchanged afterward.
+
+Build the existing HTTPS peer and bootstrap owner through the locked toolchain, then use the private runner prerequisites from [the managed capture recipe](bootstrap-managed-capture-evidence.md). `MLUVA_TEST_NATIVE_BUNDLE` selects the relocated package; `MLUVA_TEST_QWEN_PCM` supplies the pinned public PCM; `MLUVA_TEST_INSTALLED_CODEX` enables the verified installed-SDK cases. Run the existing owner with `--ignored --exact --nocapture`. `MLUVA_TEST_LIVE_ONLY=1` selects its same 42 Live assertions for focused diagnosis; `MLUVA_TEST_MEETING_ONLY=1` selects Meeting. These selectors are mutually exclusive, and neither focused pass certifies the full owner.
+
+The native gate remains `make linux-test`, including both strict Clippy configurations, formatting and generated consistency. No maintained implementation, dependency, shipped binary, Python helper, test count or ignored owner is added. Published/installed 2.0.2 is unchanged by this test/documentation checkpoint.
+
+The evidence uses private X11, network/PID/devices/HOME/session/accessibility, scale 1, a controlled CPU Qwen runtime and synthetic/public audio. It does not establish physical microphone/keys/system audio, live Wayland/portal permissions, other platform/scale/theme behavior, all provider/session interleavings or current-package performance. Those limits and the complete Rust parity goal remain open.

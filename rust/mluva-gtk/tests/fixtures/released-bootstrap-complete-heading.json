@@ -1,0 +1,195 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "reason": "The older post-Live reference clipped one row of the final g in Continue recording. Reopening the unchanged v1.6.0 process renders the complete glyph at identical public bounds. The copied notice also has two source rasters differing by two pixels at the period; select the source manual-edit notice consistently. These source-only widget references support the requested 2.0.2 layout; original raw fixtures stay unchanged.",
+  "heading_source": {
+    "record": {
+      "path": "tmp/rewrite-root/header/session.R294oB/rewrite-live-header/results.json",
+      "sha256": "666f4c3e2d568828456c8d86076e3ab80c92482be9dfd9727032dd3dfb62f278"
+    },
+    "observer": {
+      "path": "tmp/rewrite-root/observe-live-header.py",
+      "sha256": "ea5da9025dd8f7ce3b4b9a1505a374406d44a50dedf200aa46be2dc71317a665"
+    },
+    "verified_source_inputs": 91,
+    "frame": {
+      "channels": 3,
+      "height": 800,
+      "path": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/rewrite-root/header/session.R294oB/rewrite-live-header/python/default.png",
+      "sha256": "3ed5f4b2a2e0260df96ac9b8654bd90e445de86da8d65aa0507c0596e3056221",
+      "width": 1100
+    },
+    "button_window_bounds": [
+      849,
+      53,
+      174,
+      36
+    ],
+    "pixel_rectangle": [
+      859,
+      63,
+      174,
+      36
+    ]
+  },
+  "notice_source": {
+    "png": {
+      "path": "tmp/qwen-joined-live-clipboard/session.hYzsaG/qwen-joined-live/python-manual-edit/terminal.png",
+      "sha256": "64a8c02f6e635aedeef3567abdd191435b1518c4b6b3422f509a5e9fbf7fb025"
+    },
+    "original_rgb_sha256": "29c274f9980f3ae749763a88f5bb640c8a4f0ef78f9244b425c02cd832de4de3",
+    "pixel_rectangle": [
+      21,
+      687,
+      199,
+      40
+    ]
+  },
+  "collector": {
+    "path": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/rewrite-root/freeze-source-heading.py",
+    "sha256": "431dbdd8de26efb66ce9bcdb1046d646a3a060966395b0f91cfa965a8690ecc0"
+  },
+  "observations": [
+    {
+      "source_png": {
+        "path": "tmp/qwen-joined-live-clipboard/session.hYzsaG/qwen-joined-live/python-manual-edit/terminal.png",
+        "sha256": "64a8c02f6e635aedeef3567abdd191435b1518c4b6b3422f509a5e9fbf7fb025"
+      },
+      "original_rgb_sha256": "29c274f9980f3ae749763a88f5bb640c8a4f0ef78f9244b425c02cd832de4de3",
+      "complete_heading_rgb_sha256": "af52b02bbeac9bb361c1bef221c1c040dc092864332328d6537186d2f5dc0bce",
+      "changed_source_pixels": [
+        [
+          1014,
+          88
+        ],
+        [
+          1015,
+          88
+        ],
+        [
+          1016,
+          88
+        ],
+        [
+          1017,
+          88
+        ],
+        [
+          1018,
+          88
+        ]
+      ],
+      "notice_source_pixels": []
+    },
+    {
+      "source_png": {
+        "path": "tmp/qwen-joined-live-clipboard/session.hYzsaG/qwen-joined-live/python-cancel/terminal.png",
+        "sha256": "8808c810adf655b5db72bf164d726bb425ea6b7bccc28d47c4b80fac28aa1678"
+      },
+      "original_rgb_sha256": "0bd29c1b410ffd3f2d47bba069d165eb63953fceb3e7a0fff33d4b6251b69246",
+      "complete_heading_rgb_sha256": "0043ef939a653d0d0fc29ee5b9c93d7f97501d96fae3df8e8567c1143610e623",
+      "changed_source_pixels": [
+        [
+          1014,
+          88
+        ],
+        [
+          1015,
+          88
+        ],
+        [
+          1016,
+          88
+        ],
+        [
+          1017,
+          88
+        ],
+        [
+          1018,
+          88
+        ]
+      ],
+      "notice_source_pixels": []
+    },
+    {
+      "source_png": {
+        "path": "tmp/qwen-live-restart-original/session.n1vham/qwen-live-restart/python-restart/fresh-terminal.png",
+        "sha256": "03008a7f0b5b4c05cd1c15433053a8ed5c734ac9755c45148f60feebf8b44b45"
+      },
+      "original_rgb_sha256": "50a2480cfdbf419ffefbbfc5ebe3157a46edc28c692102510bdb172f1d906c52",
+      "complete_heading_rgb_sha256": "4a84ecc013360cc90c26384d0a4a5663195f6e32206b492d52b2c93fb886569e",
+      "changed_source_pixels": [
+        [
+          1014,
+          88
+        ],
+        [
+          1015,
+          88
+        ],
+        [
+          1016,
+          88
+        ],
+        [
+          1017,
+          88
+        ],
+        [
+          1018,
+          88
+        ]
+      ],
+      "notice_source_pixels": [
+        [
+          179,
+          708
+        ],
+        [
+          179,
+          709
+        ]
+      ]
+    },
+    {
+      "source_png": {
+        "path": "tmp/qwen-live-crash-original/session.X7QtWw/qwen-live-crash/python/fresh-terminal.png",
+        "sha256": "03008a7f0b5b4c05cd1c15433053a8ed5c734ac9755c45148f60feebf8b44b45"
+      },
+      "original_rgb_sha256": "50a2480cfdbf419ffefbbfc5ebe3157a46edc28c692102510bdb172f1d906c52",
+      "complete_heading_rgb_sha256": "4a84ecc013360cc90c26384d0a4a5663195f6e32206b492d52b2c93fb886569e",
+      "changed_source_pixels": [
+        [
+          1014,
+          88
+        ],
+        [
+          1015,
+          88
+        ],
+        [
+          1016,
+          88
+        ],
+        [
+          1017,
+          88
+        ],
+        [
+          1018,
+          88
+        ]
+      ],
+      "notice_source_pixels": [
+        [
+          179,
+          708
+        ],
+        [
+          179,
+          709
+        ]
+      ]
+    }
+  ]
+}

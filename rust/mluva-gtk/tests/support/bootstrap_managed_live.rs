@@ -223,7 +223,7 @@ pub(super) fn launch(binary: &Path, root: &Path, name: &str) -> Process {
     )
 }
 pub(super) fn command(binary: &Path, root: &Path) -> Command {
-    let mut command = application(binary, root);
+    let mut command = rewrite::source_application(binary, root);
     command
         .env("HOME", root.join("home"))
         .env("XDG_CACHE_HOME", root.join("cache"))
@@ -707,7 +707,11 @@ pub(super) fn exercise(
             }
             let actual = snapshot(&root, bus, events, &accessibility, &window, stage);
             states.push(actual.clone());
-            assert_eq!(actual, *expected, "managed Live {name}: {stage}");
+            assert_eq!(
+                actual,
+                rewrite::source_snapshot(binary, expected),
+                "managed Live {name}: {stage}"
+            );
         }
         bus.action("quit");
         let exit = process.finish();
@@ -729,7 +733,8 @@ pub(super) fn exercise(
         }
         write(&root.join("managed-live-observed.json"), &actual);
         assert_eq!(
-            actual, case["result"],
+            actual,
+            rewrite::source_snapshot(binary, &case["result"]),
             "managed Live {name}: complete process/store/transport and revision ownership"
         );
         if name == "crash-reopen" {
