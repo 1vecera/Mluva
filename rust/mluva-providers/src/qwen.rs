@@ -30,6 +30,7 @@ const CANCELLED: &str = "Local transcription cancelled.";
 const FAILED: &str = "Qwen transcription failed. Try CPU or a smaller model.";
 const START_FAILED: &str = "Qwen could not start. Try CPU or download the runtime again.";
 const OUTPUT_LIMIT: &str = "Local transcription returned too much data.";
+const TIME_LIMIT: &str = "Local transcription timed out or returned too much data.";
 const MEMORY_LIMIT: &str = "Local model exceeded 5 GB RAM. Choose a smaller model.";
 const LANGUAGE_NAMES: [&str; 30] = [
     "English",
@@ -509,7 +510,9 @@ impl QwenSpeechClient {
             let response = tokio::select! {
                 biased;
                 _ = session.stop.cancelled() => return Err(self.stopped(session)),
-                response = request.send() => response.map_err(|_| session.failure(FAILED))?,
+                response = tokio::time::timeout_at(deadline, request.send()) => response
+                    .map_err(|_| session.failure(FAILED))?
+                    .map_err(|_| session.failure(FAILED))?,
             };
             if !response.status().is_success() {
                 return Err(session.failure(FAILED));
@@ -518,18 +521,19 @@ impl QwenSpeechClient {
             let mut text = String::new();
             let mut transcript = String::new();
             let mut count = 0;
-            while let Some(line) = lines
-                .next(65_537, &session.stop)
-                .await
-                .map_err(|_| self.stopped(session))?
-            {
+            // Bound the await itself: incomplete lines reset the network read timeout.
+            while let Some(line) = tokio::select! {
+                biased;
+                _ = session.stop.cancelled() => return Err(self.stopped(session)),
+                line = tokio::time::timeout_at(deadline, lines.next(65_537, &session.stop)) => line
+                    .map_err(|_| ProviderError::message(TIME_LIMIT))?
+                    .map_err(|_| self.stopped(session))?,
+            } {
                 if self.cancelled.is_cancelled() {
                     return Err(ProviderError::message(CANCELLED));
                 }
                 if tokio::time::Instant::now() > deadline || line.len() > 65_536 {
-                    return Err(ProviderError::message(
-                        "Local transcription timed out or returned too much data.",
-                    ));
+                    return Err(ProviderError::message(TIME_LIMIT));
                 }
                 let mut stripped = line.as_slice();
                 while stripped

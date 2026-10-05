@@ -198,7 +198,11 @@ async fn invoke_driver(
     })
     .await
     .expect("bounded actual Qwen client");
-    assert!(output.status.success(), "Qwen fixture process");
+    assert!(
+        output.status.success(),
+        "Qwen fixture process: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(
         output.stderr.is_empty(),
         "silent Qwen fixture process: {}",
@@ -323,22 +327,29 @@ async fn actual_qwen_resident_overflow_matches_release_and_reaps_owned_resources
 }
 
 #[tokio::test]
-#[ignore = "observes incomplete response lines for 195 real seconds before public cancellation"]
-async fn actual_qwen_incomplete_stream_cancel_and_fresh_capture_match_release() {
+#[ignore = "waits for the real 180-second incomplete-line deadline; also checks public cancellation"]
+async fn actual_qwen_incomplete_stream_deadline_cancel_and_recovery() {
     let fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-qwen-interruption.json")).unwrap();
     let cases = fixture["cases"].as_array().unwrap();
     assert_eq!(cases.len(), 2);
-    futures_util::future::join_all(cases.iter().map(|case| async move {
+    futures_util::future::join_all(cases.iter().flat_map(|case| [false, true].map(move |timeout| async move {
         let directory = tempfile::Builder::new()
             .prefix("actual-qwen-interruption-")
             .permissions(fs::Permissions::from_mode(0o700))
             .tempdir()
             .unwrap();
         let root = directory.path();
-        setup(root, &case["spec"]);
+        let mut spec = case["spec"].clone();
+        let call = &mut spec["calls"][0];
+        if timeout {
+            call["wait_for_timeout"] = json!(true);
+        } else {
+            call["observe_seconds"] = json!(1);
+        }
+        setup(root, &spec);
         let (mut actual, elapsed, _) =
-            invoke_driver(root, &case["spec"], Duration::from_secs(215), false).await;
+            invoke_driver(root, &spec, Duration::from_secs(215), false).await;
         let observations = actual
             .as_object_mut()
             .unwrap()
@@ -346,26 +357,46 @@ async fn actual_qwen_incomplete_stream_cancel_and_fresh_capture_match_release() 
             .unwrap();
         let observation = &observations.as_array().unwrap()[0];
         assert_eq!(observations.as_array().unwrap().len(), 1);
-        assert!(
-            (195.0..=205.0).contains(&observation["seconds_from_first_fragment"].as_f64().unwrap())
-        );
-        assert!((190..=205).contains(&observation["fragments"].as_u64().unwrap()));
+        let seconds = observation["seconds_from_first_fragment"].as_f64().unwrap();
+        let fragments = observation["fragments"].as_u64().unwrap();
+        if timeout {
+            assert!((177.0..=195.0).contains(&seconds));
+            assert!((175..=195).contains(&fragments));
+            assert!((177.0..=200.0).contains(&elapsed.as_secs_f64()));
+        } else {
+            assert!((1.0..=5.0).contains(&seconds));
+            assert!((1..=5).contains(&fragments));
+            assert!(elapsed.as_secs_f64() < 10.0);
+        }
         assert!(observation["cancellation_seconds"].as_f64().unwrap() < 5.0);
         assert_eq!(observation["temporary_entries_after_cancel"], 0);
-        assert!((195.0..=210.0).contains(&elapsed.as_secs_f64()));
+        let mut expected = case["result"].clone();
+        if timeout {
+            // Keep the independently observed source defect in the fixture.
+            // Only deadline expiry and its already-completed cleanup improve.
+            assert_eq!(expected["results"][0]["pending_before_cancel"], true);
+            expected["results"][0]["error"] = json!(
+                "Local transcription timed out or returned too much data."
+            );
+            expected["results"][0]["pending_before_cancel"] = json!(false);
+            expected["results"][0]["state_before_cancel"]["alive"] = json!([false]);
+            expected["results"][0]["state_before_cancel"]["keys_exist"] = json!([false]);
+        }
+        let observed = normalize_guard_result(actual);
         assert_eq!(
-            normalize_guard_result(actual),
-            case["result"],
-            "{}: actual incomplete read, cancellation/no output, reaping and new-client recovery",
+            observed,
+            expected,
+            "{}: incomplete read, expiry or cancellation/no output, reaping and new-client recovery",
             case["name"]
         );
         assert_eq!(fs::read_dir(root.join("tmp")).unwrap().count(), 0);
         eprintln!(
             "{}",
             json!({"name":case["name"],"elapsed_seconds":elapsed.as_secs_f64(),
-            "stream_observation":observation,"released_protocol_and_recovery_match":true})
+            "deadline_enforced":timeout,"stream_observation":observation,
+            "released_protocol_and_recovery_match":true,"observed":observed})
         );
-    }))
+    })))
     .await;
 }
 

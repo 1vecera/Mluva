@@ -306,7 +306,7 @@ async fn driver(spec: Value, root: &Path) {
                         .count()
                 };
                 let fragments_before = fragments();
-                let working =
+                let mut working =
                     tokio::spawn(
                         async move { transcribe(&worker, &working_root, &json!({})).await },
                     );
@@ -322,10 +322,20 @@ async fn driver(spec: Value, root: &Path) {
                 .await
                 .expect("runtime writes an actual response fragment");
                 let before = std::time::Instant::now();
-                tokio::time::sleep(Duration::from_secs(
-                    call["observe_seconds"].as_u64().unwrap(),
-                ))
-                .await;
+                let wait = Duration::from_secs(call["observe_seconds"].as_u64().unwrap());
+                let completed = if call["wait_for_timeout"] == true {
+                    Some(
+                        tokio::time::timeout(wait, &mut working)
+                            .await
+                            .expect(
+                                "incomplete stream must return within its real 180-second deadline",
+                            )
+                            .unwrap(),
+                    )
+                } else {
+                    tokio::time::sleep(wait).await;
+                    None
+                };
                 let seconds = before.elapsed().as_secs_f64();
                 let received = fragments() - fragments_before;
                 let pending = !working.is_finished();
@@ -334,10 +344,13 @@ async fn driver(spec: Value, root: &Path) {
                 tokio::time::timeout(Duration::from_secs(5), client.cancel())
                     .await
                     .expect("public cancellation reaps the owned runtime");
-                let (mut result, observed) = tokio::time::timeout(Duration::from_secs(5), working)
-                    .await
-                    .expect("cancelled transcription returns")
-                    .unwrap();
+                let (mut result, observed) = match completed {
+                    Some(result) => result,
+                    None => tokio::time::timeout(Duration::from_secs(5), working)
+                        .await
+                        .expect("cancelled transcription returns")
+                        .unwrap(),
+                };
                 stream_observations.push(json!({"seconds_from_first_fragment":seconds,"fragments":received,
                     "cancellation_seconds":before.elapsed().as_secs_f64(),
                     "temporary_entries_after_cancel":fs::read_dir(root.join("tmp")).unwrap().count()}));
