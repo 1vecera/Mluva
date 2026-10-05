@@ -1,6 +1,6 @@
 # Current Wayland screenshot verification
 
-6 October 2026: the exact installed Rust 2.1.0 application matches unchanged v1.6.0 for a saved conversation's real Omarchy region selection and fresh Tensaku narration on a private Wayland desktop. Earlier joined image checks used synthetic selection; this check runs the actual installed Omarchy scripts, Hyprpicker, Slurp and Grim. It adds evidence only and does not establish complete platform or physical-key parity.
+6 October 2026: the exact installed Rust 2.1.0 application matches unchanged v1.6.0 for real Omarchy region selection and fresh Tensaku narration on a private Wayland desktop. A saved-conversation flow compares eight states; a continued-recording flow compares twelve further states, including annotation Escape and Stop with the picker still open. Earlier joined image checks used synthetic selection; these checks run the actual installed Omarchy scripts, Hyprpicker, Slurp and Grim. They add evidence only and do not establish complete platform or physical-key parity.
 
 The [compact receipts](receipts.json) preserve identities, all eight compared states, requests and full image hashes. The source is commit `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`; all 91 released Linux modules/resources are byte-verified against its Git archive before and after collection. A fresh private copy of the installed 2.1.0 bundle retains all 520 payload hashes and four links, verified before and after execution. Its app and narration helper are the actual packaged ELFs, not a rebuilt application harness. Both versions launch the same released Tensaku ELF, SHA-256 `79de63b635ec5a711bb250bb4fa7cd2dd69aeeb70dffe735a39c3669f7082831`.
 
@@ -27,7 +27,34 @@ The complete annotated PNGs match exactly: 9,900 bytes, SHA-256 `a3427fc3715bd26
 
 ![Independently captured narrated screenshot](annotated.png)
 
-Every state checks the complete original History row is unchanged and the actual Wayland clipboard retains its sentinel. The screenshot remains owned by that History item with no capture owner or narration offset. Omarchy restores the cursor option's integer value; restoring it makes the option explicitly set, which is retained in raw observations. Normal Quit leaves the independent editor running; only subsequent private-namespace teardown ends it.
+Every saved-conversation state checks the complete original History row is unchanged and the actual Wayland clipboard retains its sentinel. The screenshot remains owned by that History item with no capture owner or narration offset. Omarchy restores the cursor option's integer value; restoring it makes the option explicitly set, which is retained in raw observations. Normal Quit leaves the independent editor running; only subsequent private-namespace teardown ends it.
+
+## Continued recording, annotation Escape and Stop
+
+The additional [recording receipts](recording-receipts.json) compare the same unchanged release and installed payload. The actual accessible Continue recording button starts the main recorder. Its external PCM process remains alive through real F10 selection, two annotation sessions and the second picker. Each snapshot retains every raw SQLite column and generated identifier in ignored evidence; a separate auditor maps those identifiers consistently and compares all four affected tables.
+
+| State | Compared observation |
+| --- | --- |
+| Ready | Continued main recorder alive; original History and clipboard intact |
+| Selection active | Actual Slurp and Hyprpicker while the main recorder remains alive |
+| Selected | One image owned by the current capture, with a frozen narration offset |
+| Narrating | Separate annotation helper/PCM process and mode-0600 private WAV; main recording continues |
+| Annotation cancelled and saved | Escape reaps annotation helper/audio and erases its WAV without an upload; ordinary Ctrl+S exports no empty box |
+| Fresh narrating | New helper/audio process identities and private WAV; the main recorder still runs |
+| Annotated | One annotation upload, fresh readable phrase and identical full PNG; annotation resources gone |
+| Cancel active | Second real F10 picker with the existing annotation intact |
+| Stop recognizing | Public Record/Stop action finalizes the main recorder; its complete speech upload awaits the controlled response |
+| Stop waiting for picker | Speech response consumed and staging erased, but processing remains active with one original History row and the image still capture-owned |
+| Main completed | Escape reaps selector/freeze; one new immutable recording segment is appended and the annotated image binds to the original conversation |
+| Closed | Normal Quit preserves both History rows, combined source, image and clipboard; the independent editor remains open |
+
+Escape followed by Save preserves every selected RGBA byte. Tensaku re-encodes Grim's PNG, changing it from 3,832 to 3,907 bytes; the cancelled export matches between source and native, SHA-256 `014219f3256294cd5c4897eb44d28a4b10eeb17ec8a465a97cdb16574c12b11a`. The fresh annotation matches the saved-conversation image above in both complete PNG and RGBA bytes. Independent OCR again reads `Private Wayland narration 82`.
+
+Distinct signed PCM identifies the main and annotation audio independently. A private external adapter selects the existing native PCM peer by its actual parent process; application, editor and narration launchers are unchanged. The fresh annotation uploads the same WAV as above; the main capture uploads one separate 3,244-byte WAV, SHA-256 `9e6626c6578d40f346ba9b59a506b4aa16a08b20dc3367d9407d1fa3940b1f17`, and receives `Continued main narration 83.`. Cancelled annotation sends neither request. Both peers provide only 100 ms of synthetic samples; this does not test a real microphone or inference quality.
+
+The unchanged application finishes speech recognition before waiting for an open picker. The observer first holds the main HTTP response, then releases it while Slurp/Hyprpicker stay alive. After the speech staging disappears, both applications still report processing and retain the unchanged original History and capture owner. Only picker Escape allows completion. The final combined source is `Private screenshot context 82\n\nContinued main narration 83.`; the original raw/delivered words remain unchanged. Both versions persist the same local fallback title during completion, even with automatic model-generated titles disabled. This expected title write is preserved in the comparison.
+
+Final source evidence is `tmp/wayland-capture-narration/source.X1sHlF/results.json`; native evidence is `tmp/wayland-capture-narration/native.iq6TcE/results.json`. The receipts fingerprint both original results, all twelve raw SQLite snapshots per version, the shared observer/runner, reused pointer driver and independent auditor. `source-identities.log` and `native-identities.log` record terminal success; `audit.json` and `audit.log` record the separate comparison of all source/payload hashes, raw ownership, full images, PCM/WAV, OCR, process routes, interpreter traps and cleanup. Earlier calibration failures remain separate: the status action has no JSON stdout, Save changes PNG encoding, title persistence is legitimate, and batch speech finishes before the picker wait. The first native audio-boundary adapter did not reach the packaged sibling editor; the corrected external parent-based audio routing works without changing package bytes. No production repair was needed.
 
 ## Isolation and review
 
@@ -37,6 +64,8 @@ The native application and its descendants run with absolute Python, Python 3 an
 
 The actual Omarchy scripts and system tool hashes are in the receipts. A transparent private `hyprpicker` adapter retains normally discarded diagnostics and execs `/usr/bin/hyprpicker` with the unchanged `-r -z` arguments. No Omarchy source or user configuration is modified. The checked packages are Omarchy 4.0.2, Hyprland 0.56.2, Hyprpicker 0.4.7, Grim/Slurp 1.5.0, imv 5.0.1 and wtype 0.4.
 
+The continued-recording study positively reads the actual private registry Cache before application launch. Both versions still emit bounded client-cache `GetItems` warnings during application/editor discovery; their counts are retained in the recording receipts. Actual editor actions, private registry reads and exports succeed. Clean diagnostics remain unclaimed.
+
 Initial observer failures are retained under ignored `tmp/current-wayland-screenshots/`: the Lua binding argument is a callback identifier, the virtual pointer needed a persistent seat device, and the nested app mount needed the already private device tree to keep `/dev/null` and the render node usable. Moving the pointer outside the selection removed cursor contamination from the expected frame. Independent review also corrected an assumed SQLite path column and expanded the WAV observation from `/run/q` to include its actual `/dev/shm` staging. These are excluded calibration failures, not Mluva repairs.
 
 Final source evidence is `tmp/current-wayland-screenshots/source.FTaQyO/results.json` and native evidence is `tmp/current-wayland-screenshots/native.kJHjvF/results.json`. Their original sizes/hashes and the shared observer/input-driver fingerprints are in the receipts. `source-memory-audio.log` and `native-memory-audio.log` record successful terminal runs. A separate read-only audit checks the Git/source and installed/copy inventories, raw state equality, direct SQLite ownership, whole PNG/RGBA bytes, pre-picker crop, WAV samples, OCR, real tool identities, positive interpreter traps and normal shutdown. Its successful record is `tmp/current-wayland-screenshots/audit.json`; the audit SHA-256 is `c956a2787aea49a145769d39907763c8b6f9d69b97e5654336ca54a22042d402`.
@@ -45,4 +74,4 @@ Only documentation, compact receipts and two synthetic source images are tracked
 
 ## Remaining limits
 
-Virtual F10 does not prove physical F10/F9. This saved-conversation flow does not exercise a simultaneous main recording, real microphone/provider, Wayland annotation Escape, every display scale/theme, GNOME or performance. The existing [joined image owner](../../../rust/mluva-gtk/tests/fixtures/application-images-evidence.md), [screenshot lifecycle owner](../../../rust/mluva-gtk/tests/fixtures/application-screenshots-evidence.md) and [narration/editor owner](../../../rust/mluva-workflows/tests/fixtures/narration-evidence.md) retain their separately bounded coverage. The [complete Rust acceptance matrix](../../rust-port-parity.md) stays open; this does not authorize or publish another release.
+Virtual F10 does not prove physical F10/F9. These two flows do not exercise real microphone/provider behavior, every display scale/theme, GNOME, Wayland Undo/Redo or performance. The existing [joined image owner](../../../rust/mluva-gtk/tests/fixtures/application-images-evidence.md), [screenshot lifecycle owner](../../../rust/mluva-gtk/tests/fixtures/application-screenshots-evidence.md) and [narration/editor owner](../../../rust/mluva-workflows/tests/fixtures/narration-evidence.md) retain their separately bounded coverage. The [complete Rust acceptance matrix](../../rust-port-parity.md) stays open; this does not authorize or publish another release.
