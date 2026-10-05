@@ -2,6 +2,8 @@
 use super::*;
 use mluva_providers::local_assets::{MODEL_CATALOG, QWEN_RUNTIME};
 use rusqlite::types::ValueRef;
+#[path = "bootstrap_history_lifecycle.rs"]
+mod history_lifecycle;
 #[path = "bootstrap_managed_live.rs"]
 mod live;
 
@@ -400,6 +402,7 @@ pub fn exercise(binary: &Path, base: &Path, bus: &Bus, events: &RefCell<Vec<Valu
         );
     }
     recovery(binary, base, bus, events, &fixture, &full, binaries);
+    history_lifecycle::exercise(binary, base, bus, events, &fixture, &full, binaries);
     live::exercise(binary, base, bus, events, &fixture, pcm, binaries);
 }
 
@@ -439,22 +442,7 @@ fn recovery(
             .unwrap();
         symlink(clip, root.join("tools/xclip")).unwrap();
         events.borrow_mut().clear();
-        let log = fs::File::create(root.join("application.log")).unwrap();
-        let mut process = Process(
-            application(binary, &root)
-                .env("HOME", root.join("home"))
-                .env("XDG_CACHE_HOME", root.join("cache"))
-                .env("TMPDIR", root.join("tmp"))
-                .env_remove("LANG")
-                .env(
-                    "PATH",
-                    format!("{}:/usr/bin:/bin", root.join("tools").display()),
-                )
-                .stdout(log.try_clone().unwrap())
-                .stderr(log)
-                .spawn()
-                .unwrap(),
-        );
+        let mut process = live::launch(binary, &root, "application.log");
         until(|| bus.owner().is_some() && visible(process.0.id()));
         let window = place_window(process.0.id());
         live::set_clipboard("untouched timeout recovery clipboard");
@@ -472,18 +460,7 @@ fn recovery(
             match stage {
                 "recording" | "fresh-recording" => {
                     if stage == "fresh-recording" {
-                        reset_audio_receipts(&root);
-                        let mut audio: Value = serde_json::from_slice(
-                            &fs::read(root.join("tools/test-config.json")).unwrap(),
-                        )
-                        .unwrap();
-                        audio["pcm_hex"] = json!(
-                            fresh
-                                .iter()
-                                .map(|byte| format!("{byte:02x}"))
-                                .collect::<String>()
-                        );
-                        write(&root.join("tools/test-config.json"), &audio);
+                        set_recording_audio(&root, fresh);
                     }
                     bus.action("record");
                     let end = Instant::now() + Duration::from_secs(15);
@@ -537,23 +514,7 @@ fn recovery(
                     });
                 }
                 "retried-history" => {
-                    let node = live::elements(&accessibility)
-                        .into_iter()
-                        .find(|node| node.role == "button" && node.name == "Retry transcription")
-                        .unwrap()
-                        .node;
-                    assert_eq!(
-                        accessibility
-                            .call(
-                                &node,
-                                "org.a11y.atspi.Action",
-                                "DoAction",
-                                Some(&(0_i32,).to_variant())
-                            )
-                            .unwrap()
-                            .get::<(bool,)>(),
-                        Some((true,))
-                    );
+                    click_retry(&accessibility);
                     until(|| {
                         history(&root)[0]["raw_text"] == "hello"
                             && resources(&root)["alive"] == json!([false, false, false, false])
@@ -722,10 +683,20 @@ fn recovery_state(
     if let Some(identifier) = shell.get("identifier") {
         shell["identifier"] = json!(normalize(identifier.as_str().unwrap()));
     }
+    let audio = recovery_audio(root, &rows, current[1] == "recording");
+    let mut state = json!({"stage":stage,"status":current,"shell":shell,"resources":resources(root),"store":{"history":normalized_history(root),"replies":table(root,"conversation_rewrites","identifier")},"clipboard":live::clipboard(),
+        "widgets":{"names":names,"items":items.iter().map(|item|normalize(item)).collect::<Vec<_>>(),"controls":controls,"texts":texts},"retained_audio":audio});
+    if stage == "expired" {
+        state["frame"] = frame(root, window, stage);
+    }
+    state
+}
+
+fn recovery_audio(root: &Path, rows: &[Value], recording: bool) -> Vec<Value> {
     let mut audio = vec![];
     for file in data_files(&root.join("data/mluva/recordings")) {
         let path = root.join("data/mluva/recordings").join(file);
-        if current[1] == "recording"
+        if recording
             && !rows
                 .iter()
                 .any(|row| row["retained_audio_path"].as_str().unwrap() == path.to_str().unwrap())
@@ -747,10 +718,37 @@ fn recovery_state(
         assert_eq!(bytes.len(), 256044);
         audio.push(json!({"file_sha256":hash(&bytes),"bytes":bytes.len(),"parameters":[1,2,16000],"pcm_bytes":pcm.len(),"pcm_sha256":hash(&pcm)}));
     }
-    let mut state = json!({"stage":stage,"status":current,"shell":shell,"resources":resources(root),"store":{"history":normalized_history(root),"replies":table(root,"conversation_rewrites","identifier")},"clipboard":live::clipboard(),
-        "widgets":{"names":names,"items":items.iter().map(|item|normalize(item)).collect::<Vec<_>>(),"controls":controls,"texts":texts},"retained_audio":audio});
-    if stage == "expired" {
-        state["frame"] = frame(root, window, stage);
-    }
-    state
+    audio
+}
+
+fn set_recording_audio(root: &Path, pcm: &[u8]) {
+    reset_audio_receipts(root);
+    let mut audio: Value =
+        serde_json::from_slice(&fs::read(root.join("tools/test-config.json")).unwrap()).unwrap();
+    audio["pcm_hex"] = json!(
+        pcm.iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    );
+    write(&root.join("tools/test-config.json"), &audio);
+}
+
+fn click_retry(accessibility: &Accessibility) {
+    let node = live::elements(accessibility)
+        .into_iter()
+        .find(|node| node.role == "button" && node.name == "Retry transcription")
+        .unwrap()
+        .node;
+    assert_eq!(
+        accessibility
+            .call(
+                &node,
+                "org.a11y.atspi.Action",
+                "DoAction",
+                Some(&(0_i32,).to_variant())
+            )
+            .unwrap()
+            .get::<(bool,)>(),
+        Some((true,))
+    );
 }

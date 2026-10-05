@@ -191,7 +191,7 @@ fn stored(root: &Path) -> Value {
     }
     json!({"history":normalized_history(root),"replies":saved})
 }
-fn launch(binary: &Path, root: &Path, name: &str) -> Process {
+pub(super) fn launch(binary: &Path, root: &Path, name: &str) -> Process {
     // A genuine X11 selection owner can inherit these descriptors past app exit.
     let log = fs::File::create(root.join(name)).unwrap();
     Process(
