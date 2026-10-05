@@ -2,6 +2,8 @@
 use super::*;
 use mluva_providers::local_assets::{MODEL_CATALOG, QWEN_RUNTIME};
 use rusqlite::types::ValueRef;
+#[path = "bootstrap_managed_live.rs"]
+mod live;
 
 fn write(path: &Path, value: &Value) {
     fs::write(path, serde_json::to_vec(value).unwrap()).unwrap();
@@ -22,17 +24,20 @@ fn resources(root: &Path) -> Value {
     let rows = trace(root);
     let starts: Vec<_> = rows.iter().filter(|row| row["kind"] == "start").collect();
     json!({"processes":starts.len(),
-        "alive":starts.iter().map(|row|alive(row["pid"].as_u64().unwrap() as u32)).collect::<Vec<_>>(),
+        "alive":starts.iter().map(|row|Path::new(&format!("/proc/{}",row["pid"].as_u64().unwrap())).exists()).collect::<Vec<_>>(),
         "keys_exist":starts.iter().map(|row|Path::new(row["key_path"].as_str().unwrap()).exists()).collect::<Vec<_>>()})
 }
 fn history(root: &Path) -> Vec<Value> {
+    table(root, "transcription_history", "created_at")
+}
+fn table(root: &Path, name: &str, order: &str) -> Vec<Value> {
     let path = root.join("data/mluva/history.sqlite3");
     if !path.exists() {
         return vec![];
     }
     let store = rusqlite::Connection::open(path).unwrap();
     let mut query = store
-        .prepare("SELECT * FROM transcription_history ORDER BY created_at")
+        .prepare(&format!("SELECT * FROM {name} ORDER BY {order}"))
         .unwrap();
     let names: Vec<_> = query
         .column_names()
@@ -57,6 +62,27 @@ fn history(root: &Path) -> Vec<Value> {
         .unwrap()
         .map(Result::unwrap)
         .collect()
+}
+fn protocol(root: &Path) -> (Vec<Value>, Vec<u64>) {
+    let mut rows = trace(root);
+    let mut statuses = vec![];
+    rows.retain_mut(|row| {
+        if row["kind"] == "health" {
+            assert_eq!(row["authenticated"], false);
+            statuses.push(row["status"].as_u64().unwrap());
+            false
+        } else {
+            if row["kind"] == "start" {
+                row.as_object_mut().unwrap().shift_remove("pid");
+                row.as_object_mut().unwrap().shift_remove("key_path");
+            }
+            true
+        }
+    });
+    statuses.sort();
+    statuses.dedup();
+    assert!(!statuses.is_empty());
+    (rows, statuses)
 }
 fn normalized_history(root: &Path) -> Value {
     let mut rows = history(root);
@@ -86,6 +112,46 @@ fn status(events: &RefCell<Vec<Value>>) -> Value {
         .find(|row| row["name"] == "StateChanged")
         .unwrap()["values"]
         .clone()
+}
+fn place_window(pid: u32) -> String {
+    let output = Command::new("xdotool")
+        .args(["search", "--onlyvisible", "--pid", &pid.to_string()])
+        .output()
+        .unwrap();
+    let window = String::from_utf8(output.stdout)
+        .unwrap()
+        .lines()
+        .next()
+        .unwrap()
+        .to_owned();
+    assert!(
+        Command::new("xdotool")
+            .args([
+                "windowsize",
+                &window,
+                "1100",
+                "800",
+                "windowmove",
+                &window,
+                "30",
+                "30",
+                "windowactivate",
+                "--sync",
+                &window,
+            ])
+            .status()
+            .unwrap()
+            .success()
+    );
+    assert!(
+        Command::new("xdotool")
+            .args(["mousemove", "1270", "890"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    settle();
+    window
 }
 fn frame(root: &Path, window: &str, stage: &str) -> Value {
     let path = root.join(format!("managed-{stage}.png"));
@@ -242,48 +308,7 @@ pub fn exercise(binary: &Path, base: &Path, bus: &Bus, events: &RefCell<Vec<Valu
                 .unwrap(),
         );
         until(|| bus.owner().is_some() && visible(process.0.id()));
-        let output = Command::new("xdotool")
-            .args([
-                "search",
-                "--onlyvisible",
-                "--pid",
-                &process.0.id().to_string(),
-            ])
-            .output()
-            .unwrap();
-        let window = String::from_utf8(output.stdout)
-            .unwrap()
-            .lines()
-            .next()
-            .unwrap()
-            .to_owned();
-        assert!(
-            Command::new("xdotool")
-                .args([
-                    "windowsize",
-                    &window,
-                    "1100",
-                    "800",
-                    "windowmove",
-                    &window,
-                    "30",
-                    "30",
-                    "windowactivate",
-                    "--sync",
-                    &window
-                ])
-                .status()
-                .unwrap()
-                .success()
-        );
-        assert!(
-            Command::new("xdotool")
-                .args(["mousemove", "1270", "890"])
-                .status()
-                .unwrap()
-                .success()
-        );
-        settle();
+        let window = place_window(process.0.id());
         events.borrow_mut().clear();
         bus.action("record");
         until(|| trace(&root).iter().any(|row| row["kind"] == "request"));
@@ -336,24 +361,7 @@ pub fn exercise(binary: &Path, base: &Path, bus: &Bus, events: &RefCell<Vec<Valu
         until(|| bus.owner().is_none());
         assert_eq!(output["stdout"], "");
         assert_eq!(output["stderr"], "");
-        let mut rows = trace(&root);
-        let mut statuses = vec![];
-        rows.retain_mut(|row| {
-            if row["kind"] == "health" {
-                assert_eq!(row["authenticated"], false);
-                statuses.push(row["status"].as_u64().unwrap());
-                false
-            } else {
-                if row["kind"] == "start" {
-                    row.as_object_mut().unwrap().shift_remove("pid");
-                    row.as_object_mut().unwrap().shift_remove("key_path");
-                }
-                true
-            }
-        });
-        statuses.sort();
-        statuses.dedup();
-        assert!(!statuses.is_empty());
+        let (rows, statuses) = protocol(&root);
         let actual = json!({"states":states,"trace":rows,"phases":phases,"health_statuses":statuses,
             "health_requests_unauthenticated":true,"exit_code":output["exit"],"post_exit_resources":resources(&root),"app_log_bytes":0});
         write(&root.join("managed-observed.json"), &actual);
@@ -366,4 +374,5 @@ pub fn exercise(binary: &Path, base: &Path, bus: &Bus, events: &RefCell<Vec<Valu
             states.len()
         );
     }
+    live::exercise(binary, base, bus, events, &fixture, pcm, binaries);
 }
