@@ -2,6 +2,8 @@
 
 Start with the [code map and focused checks](CONTRIBUTING.md#code-map). It maps the runtime modules, isolated GUI runners and required checks. The [product contract](docs/product-contract.md) and [Linux platform profile](docs/linux-platform-profile.md) define behavior and platform limits. Omarchy is primary; Fedora GNOME compatibility has not been tested recently.
 
+Daniel's standing [authorization to restart Mluva](AGENTS.md) applies to local development, verification and upgrades.
+
 - Use `make linux-setup` for the locked Linux environment with distribution PyGObject access.
 - Use `make linux-test-fast` for text/editing feedback and `make linux-test` for all Linux tests, Ruff and generated-feature consistency. Follow the contribution guide for native integration checks.
 - Run GUI acceptance only through isolated offscreen runners; never drive the active desktop.

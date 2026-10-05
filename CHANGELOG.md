@@ -2,10 +2,11 @@
 
 This file records user-visible Mluva releases.
 
-## 2.0.2 — Unreleased
+## 2.0.2 — 2026-10-05
 
 - Hide manual Rewrite controls by default and remember the last expanded or collapsed choice. Collapsing preserves an unsent request; explicit rewrite commands reveal the controls.
 - Hide the caret while the empty rewrite request shows its placeholder. Typing restores normal editing.
+- Verify native automatic text delivery and Codex screenshot attachment with the accompanying Ghostty/Omarchy workstation fix: restore distinct text and image shortcuts, and route Super+V by clipboard format. This configuration repair is maintained in [mac-bootstrap](https://github.com/1vecera/mac-bootstrap/pull/22), separately from the app package.
 
 ## 2.0.1 — 2026-10-05 (local release)
 
