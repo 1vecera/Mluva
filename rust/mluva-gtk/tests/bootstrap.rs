@@ -703,6 +703,10 @@ fn released_process_actions_residency_and_headless_dispatch() {
         },
     );
     bus.0.flush_sync(gio::Cancellable::NONE).unwrap();
+    if std::env::var_os("MLUVA_TEST_MEETING_ONLY").is_some() {
+        managed_capture::exercise(&binary, &root, &bus, &events, true);
+        return;
+    }
     for case in fixture["cases"].as_array().unwrap() {
         events.borrow_mut().clear();
         let name = case["name"].as_str().unwrap();
@@ -820,7 +824,7 @@ fn released_process_actions_residency_and_headless_dispatch() {
         eprintln!("matched {name}");
     }
     cold_recording(&binary, &root, &bus, &accessibility, &events);
-    managed_capture::exercise(&binary, &root, &bus, &events);
+    managed_capture::exercise(&binary, &root, &bus, &events, false);
     startup_faults(&binary, &root, &bus, &accessibility, &events);
     drop(subscription);
     for (index, case) in fixture["cli"].as_array().unwrap().iter().enumerate() {

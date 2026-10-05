@@ -1,0 +1,305 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "date": "2026-10-05",
+  "scope": "Actual isolated GTK application, controlled capture children and fixed certificate-validated ElevenLabs HTTPS API: held Retry deletion, Unicode title save/clear, explicit Copy, private Markdown/JSON export/re-export, cancellation, confirmed owned deletion and normal Quit.",
+  "source": {
+    "result": {
+      "path": "tmp/joined-meeting-archive/collection-stable/session.J06L9b/joined-meeting-archive/results.json",
+      "sha256": "60f9b368f58011dd4310e339624586b2d7c44eff3272caa4101a7af0e48e5d82"
+    },
+    "retained_case": {
+      "path": "tmp/joined-meeting-archive/collection-stable/session.J06L9b/joined-meeting-archive/python-retained-retry/result.json",
+      "sha256": "d74e312a95ce843a95bd2195683941fe88b4cb6593872b985518c6d40713c138"
+    },
+    "observer": {
+      "path": "tmp/joined-meeting-archive/stable-observe.py",
+      "sha256": "d3f41cb57130e4e219ba4d9a11dcaf0f34399488ede7250cee2a642882ba7f6b"
+    },
+    "projection": {
+      "path": "tmp/joined-meeting-archive/stable-compare.py",
+      "sha256": "0d0ce1ffc1d41576d9b4202187454f99b02ba3ee9f40f2e985023404820a3adf"
+    },
+    "independent_review": {
+      "path": "tmp/joined-meeting-archive/fixture-independent-review.json",
+      "sha256": "5aec1cc4132deeaacd4ee538e7497a1156d877aab6617ebd4905a9df050722b3"
+    },
+    "review_script": {
+      "path": "tmp/joined-meeting-archive/review-source.py",
+      "sha256": "cdb468e04ef3c5e97da89708b859334b671006bca739964c68c7ebd8332c71a3"
+    },
+    "inputs_verified": 91,
+    "retained_states": 26,
+    "native_2_0_0_independent_states": 26,
+    "full_state_differences": 0,
+    "post_quit_export_bytes_and_configuration_values_verified": true
+  },
+  "fixture": {
+    "path": "rust/mluva-gtk/tests/fixtures/released-bootstrap-meeting.json",
+    "sha256": "2291652fbc22703b6512790adf02c2c1fb16f9e8488b255af5da30f6ed77e8f6",
+    "bytes": 103420,
+    "executed_states": 38,
+    "widget_items": 93,
+    "widget_inventories": 26,
+    "stored_observations": 38,
+    "export_values": 5,
+    "original_array_prefixes_preserved": true,
+    "incognito_and_fallback_unchanged": true
+  },
+  "current": {
+    "version": "2.0.2",
+    "app": {
+      "path": "tmp/local-upgrade-2.0.2/candidate-final/bin/mluva",
+      "sha256": "37e6628f0e29abe1b147eaeb976501ab34e1411ccefecab9efa14205c4f9bca0"
+    },
+    "receipt": {
+      "path": "tmp/local-upgrade-2.0.2/candidate-final/.mluva-native.json",
+      "sha256": "ef3c339d528bbc2c3126077cf7b994ba976a4d0320ca69b49f1d7653f046e336"
+    },
+    "payloads_verified": 520,
+    "links_verified": 4,
+    "owner": {
+      "path": "tmp/joined-meeting-archive/owner-candidate",
+      "sha256": "478e1ce2b4a1db4c805467cd9de72996420b50584bd9ec14bfedf7dbba030564"
+    },
+    "log": {
+      "path": "tmp/joined-meeting-archive/keeper-current-final.log",
+      "sha256": "d67166aa21dd37e051f1caa8a83f1e6968e0b607abaaf7bab28d138301699bb1"
+    },
+    "seconds": 69.5,
+    "scope": "Meeting-only selection of the unchanged primary owner",
+    "states": 38,
+    "requests": 4,
+    "normal_quits": 3,
+    "cases": [
+      {
+        "name": "incognito-failure",
+        "observation": {
+          "path": "tmp/joined-meeting-archive/keeper-current/session.8RLIF6/native-bootstrap/meeting-incognito-failure/meeting-observed.json",
+          "sha256": "69d18d6de126e5d67b1a322e5d43388232c9b3dc1f51a72dc01a4a2c01de8069"
+        },
+        "states": 6,
+        "requests": 1,
+        "exit_code": 0,
+        "application_log_bytes": 0,
+        "timer_samples": [
+          {
+            "stage": "dictation-guard",
+            "minimum_seconds": 7,
+            "maximum_seconds": 9,
+            "observed_seconds": [
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9
+            ]
+          },
+          {
+            "stage": "recording",
+            "minimum_seconds": 7,
+            "maximum_seconds": 9,
+            "observed_seconds": [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ]
+          }
+        ]
+      },
+      {
+        "name": "microphone-fallback",
+        "observation": {
+          "path": "tmp/joined-meeting-archive/keeper-current/session.8RLIF6/native-bootstrap/meeting-microphone-fallback/meeting-observed.json",
+          "sha256": "3911a5b898b7e169bd8ecc911e5083e4993f02ca758281658d22a498d57b28db"
+        },
+        "states": 6,
+        "requests": 1,
+        "exit_code": 0,
+        "application_log_bytes": 0,
+        "timer_samples": [
+          {
+            "stage": "dictation-guard",
+            "minimum_seconds": 8,
+            "maximum_seconds": 10,
+            "observed_seconds": [
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9
+            ]
+          },
+          {
+            "stage": "recording",
+            "minimum_seconds": 7,
+            "maximum_seconds": 9,
+            "observed_seconds": [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ]
+          }
+        ]
+      },
+      {
+        "name": "retained-retry",
+        "observation": {
+          "path": "tmp/joined-meeting-archive/keeper-current/session.8RLIF6/native-bootstrap/meeting-retained-retry/meeting-observed.json",
+          "sha256": "a124b6ebaa39f6f11824761a39e7e80798157adc8427283173121d1e69f6a51c"
+        },
+        "states": 26,
+        "requests": 2,
+        "exit_code": 0,
+        "application_log_bytes": 0,
+        "timer_samples": [
+          {
+            "stage": "dictation-guard",
+            "minimum_seconds": 7,
+            "maximum_seconds": 9,
+            "observed_seconds": [
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9,
+              9
+            ]
+          },
+          {
+            "stage": "recording",
+            "minimum_seconds": 7,
+            "maximum_seconds": 9,
+            "observed_seconds": [
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8,
+              8
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "normal_gate": {
+    "log": {
+      "path": "tmp/joined-meeting-archive/full-gate-final.log",
+      "sha256": "1bb189cf4448edc2e26b8989fadada828904a7ab46ab0c97c0925b6e9395a359"
+    },
+    "passed": 142,
+    "failed": 0,
+    "ignored": 71,
+    "suites": 98,
+    "strict_clippy_variants": 2,
+    "formatting": true,
+    "generated_consistency": true
+  },
+  "preserved": {
+    "production_source": true,
+    "earlier_oracles": true,
+    "complete_workflow_matrix_statuses": true,
+    "new_tests": 0,
+    "new_ignored_owners": 0,
+    "new_dependencies": 0,
+    "new_binaries": 0,
+    "production_test_seams": 0
+  },
+  "release_install_performed_in_this_checkpoint": false,
+  "remaining": [
+    "Current-version whole-root composer/pixel baseline adaptation for approved Rewrite changes",
+    "Meeting reconfiguration/readiness and broader index/revision interleavings",
+    "Wider provider/Live/History/current SDK/account acceptance",
+    "Physical F9/F10/microphone/system audio/Wayland/portals and other platform acceptance"
+  ],
+  "excluded_observations": [
+    {
+      "reason": "Current whole-root run stops at the approved collapsed Rewrite default; old public-widget and pixel oracles are retained.",
+      "log": {
+        "path": "tmp/joined-meeting-archive/keeper-first.log",
+        "sha256": "9c9acf149cd1b1bf85f6cc9654c1854394c60f2c162ee801252e89127456a92d"
+      }
+    },
+    {
+      "reason": "The provider response gate expired after eight seconds during extended held-Retry dialog observations.",
+      "log": {
+        "path": "tmp/joined-meeting-archive/keeper-legacy.log",
+        "sha256": "f8b076995997e083f7526ee3480a4bbce8b044473cd9b4f69b0a36eb9a7f7834"
+      }
+    },
+    {
+      "reason": "Fixed 7..10-second recording sample excludes actual 11-second public-tree observation; replaced in the maintained owner with independently measured timer bounds.",
+      "log": {
+        "path": "tmp/joined-meeting-archive/keeper-legacy-final.log",
+        "sha256": "0c38a5939b80ca4672fd0bcce271d105247dbe7957ea0982ea2a5b996c69db37"
+      }
+    },
+    {
+      "reason": "Current independent collector otherwise agrees across all 26 states but includes an 11-second sample; diagnostic allowance is not counted as a strict pass.",
+      "log": {
+        "path": "tmp/joined-meeting-archive/current-collection.log",
+        "sha256": "be9ce434c112e3c903b747935a0b88a9117f849a8618be9c0e673dc1f18c4c93"
+      }
+    },
+    {
+      "reason": "Dialog removal invalidated an accessibility node while the observer polled the complete tree; direct actual-button wait repairs the observer.",
+      "log": {
+        "path": "tmp/joined-meeting-archive/keeper-current-meeting.log",
+        "sha256": "c3bf8cad3762b614d627eaa72a5fe915d2731d7079cb042bb0450e869ecc0573"
+      }
+    }
+  ],
+  "legacy_full_owner": {
+    "scope": "Canonical prepared native 2.0.0 package; preserves historical whole-root UI/pixel oracles, without a current-version full-root pass claim.",
+    "app": {
+      "path": "tmp/qwen-app-timeout/canonical/bin/mluva",
+      "sha256": "bf1082081c4f0c05dd09bb3793a3e4d85ad7e28c35f171e80aba58b359dacce1"
+    },
+    "receipt": {
+      "path": "tmp/qwen-app-timeout/canonical/.mluva-native.json",
+      "sha256": "4db7e54b0ccb4d64eed07c0969d74e5b5054e5fdaf1f3383b06e223b7eff0682"
+    },
+    "log": {
+      "path": "tmp/joined-meeting-archive/keeper-legacy-complete.log",
+      "sha256": "3864b97895d4d4d39cf5ca201faf79cfc693cdd39b0a431617bec864c477db03"
+    },
+    "seconds": 795.42,
+    "meeting_states": 38,
+    "bootstrap_states": 38,
+    "actions": 13,
+    "cli_contracts": 5,
+    "preview_states": 10,
+    "recovery_history_states": 37,
+    "live_states": 42,
+    "startup_faults": 3,
+    "absolute_interpreter_traps_unused_after_positive_probe": true
+  },
+  "source_fingerprints": {
+    "rust/mluva-gtk/tests/bootstrap.rs": "9f7f616ad71be8c575341f0eefcc86730e7e3f30eff5f01c3f7a7dc07879b2a0",
+    "rust/mluva-gtk/tests/support/bootstrap_meeting.rs": "2ac44698b7276428d3f70ec9867bf0e3d54e6612635fb2c3de25c9255f7ece47",
+    "rust/mluva-gtk/tests/support/bootstrap_managed_capture.rs": "b94c8e2a6d35dc8e540e35ff4e408bbb50214a6a217e7268601c58f02772657f",
+    "rust/mluva-gtk/examples/artifact_https_peer.rs": "234ba65f78831abf9edc1851f0dc37f63403d4f54920d90052fd004b668be06a",
+    "rust/mluva-workflows/tests/support/http.rs": "1d67ef45cb15f07a3b933c2018d2cb591ac686160404d3f2679a33e386a0ebaf"
+  },
+  "normalization": "Complete public widgets/status, capture argv/liveness, WAV metadata/hashes, archives, stores, config and UTF-8 exports remain exact. Only validated generated UUID/root/UTC date/top RAM/export-filename aliases normalize. The maintained owner checks recording status clocks against measured input/readiness-to-snapshot times plus the one-second GTK tick before aliasing them. Export bytes/hash are retained raw and derived from full UTF-8 text; normalized complete text and private modes compare exactly. No image masks or whole-window equality claim."
+}

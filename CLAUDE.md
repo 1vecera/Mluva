@@ -4,8 +4,8 @@ Start with the [code map and focused checks](CONTRIBUTING.md#code-map). It maps 
 
 Daniel's standing [authorization to restart Mluva](AGENTS.md) applies to local development, verification and upgrades.
 
-- Use `make linux-setup` for the locked Linux environment with distribution PyGObject access.
-- Use `make linux-test-fast` for text/editing feedback and `make linux-test` for all Linux tests, Ruff and generated-feature consistency. Follow the contribution guide for native integration checks.
+- Use `make linux-setup` to build the locked native application and prerequisites.
+- Use `make linux-test-fast` for focused configuration, text, storage and Live checks, and `make linux-test` for all native tests, both strict Clippy configurations, formatting and generated-feature consistency. Follow the contribution guide for native integration checks.
 - Run GUI acceptance only through isolated offscreen runners; never drive the active desktop.
 - Keep capture and delivery independent of provider choice. PCM is signed little-endian, 16 kHz, 16-bit, mono.
 - Keep raw recognition immutable and separate from working edits, processed text and delivered text. Never deliver volatile recognition.

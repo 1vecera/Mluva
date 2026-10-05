@@ -246,7 +246,8 @@ pub fn exchange(
             serde_json::to_vec(wire.lock().unwrap().last().ok_or("missing observed body")?)?,
         )?;
         std::fs::rename(pending_receipt, receipt)?;
-        let deadline = std::time::Instant::now() + Duration::from_secs(8);
+        let deadline = std::time::Instant::now()
+            + Duration::from_millis(response["after_body_timeout_ms"].as_u64().unwrap_or(8_000));
         while !std::path::Path::new(gate).exists() {
             if std::time::Instant::now() >= deadline {
                 return Err("observed provider gate expired".into());

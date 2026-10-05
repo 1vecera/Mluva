@@ -306,7 +306,13 @@ fn reset_audio_receipts(root: &Path) {
     }
 }
 
-pub fn exercise(binary: &Path, base: &Path, bus: &Bus, events: &RefCell<Vec<Value>>) {
+pub fn exercise(
+    binary: &Path,
+    base: &Path,
+    bus: &Bus,
+    events: &RefCell<Vec<Value>>,
+    meeting_only: bool,
+) {
     let fixture: Value = serde_json::from_str(include_str!(
         "../fixtures/released-bootstrap-managed-capture.json"
     ))
@@ -319,6 +325,9 @@ pub fn exercise(binary: &Path, base: &Path, bus: &Bus, events: &RefCell<Vec<Valu
     assert_eq!(hash(pcm), fixture["pcm"]["sha256"]);
     let binaries = Path::new(env!("CARGO_BIN_EXE_mluva")).parent().unwrap();
     meeting::exercise(binary, base, bus, events, &full, binaries);
+    if meeting_only {
+        return;
+    }
     let cases = fixture["cases"].as_array().unwrap();
     for (case, close_delay_ms) in [(&cases[0], 0), (&cases[1], 0), (&cases[1], 500)] {
         let name = case["name"].as_str().unwrap();

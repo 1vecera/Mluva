@@ -70,6 +70,24 @@ fn files(root: &Path) -> Vec<Value> {
     }
     result
 }
+fn exports(root: &Path) -> Value {
+    let directory = root.join("data/mluva/exports/meetings");
+    let mut files = vec![];
+    if directory.exists() {
+        let mut paths: Vec<_> = fs::read_dir(&directory)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .collect();
+        paths.sort();
+        for path in paths {
+            assert!(path.is_file());
+            let bytes = fs::read(&path).unwrap();
+            files.push(json!({"path":path,"mode":fs::metadata(&path).unwrap().permissions().mode()&0o777,
+                "text":String::from_utf8(bytes.clone()).unwrap(),"bytes":bytes.len(),"sha256":hash(&bytes)}));
+        }
+    }
+    json!({"directory_mode":directory.exists().then(||fs::metadata(&directory).unwrap().permissions().mode()&0o777),"files":files})
+}
 fn requests(root: &Path) -> Vec<Value> {
     let mut result = vec![];
     for index in 0..2 {
@@ -96,7 +114,16 @@ fn requests(root: &Path) -> Vec<Value> {
     }
     result
 }
-fn normalize(root: &Path, captures: &[Value], archive: &Value, value: &mut Value, stage: &str) {
+fn normalize(root: &Path, captures: &[Value], archive: &Value, value: &mut Value) {
+    if let Some(files) = value
+        .get_mut("exports")
+        .and_then(|value| value["files"].as_array_mut())
+    {
+        for file in files {
+            file.as_object_mut().unwrap().shift_remove("bytes");
+            file.as_object_mut().unwrap().shift_remove("sha256");
+        }
+    }
     let mut identities = BTreeSet::new();
     let mut volatile = BTreeSet::new();
     let mut replacements = vec![(root.to_str().unwrap().to_owned(), "$ROOT")];
@@ -141,47 +168,51 @@ fn normalize(root: &Path, captures: &[Value], archive: &Value, value: &mut Value
             assert_eq!(parsed.offset().local_minus_utc(), 0);
             replacements.push((timestamp.to_owned(), "$TIMESTAMP"));
             replacements.push((parsed.format("%a %-d %b · %H:%M").to_string(), "$DATE"));
+            replacements.push((
+                format!(
+                    "mluva-meeting-{}-{}",
+                    parsed.format("%Y-%m-%dT%H%M%S"),
+                    &identity[..8]
+                ),
+                "mluva-meeting-$EXPORT_STAMP-$SHORT_MEETING",
+            ));
         }
     }
     assert!(identities.len() <= 1 && volatile.len() <= 1);
     replacements.extend(identities.into_iter().map(|value| (value, "$MEETING")));
     replacements.extend(volatile.into_iter().map(|value| (value, "$MEMORY")));
-    fn apply(value: &mut Value, replacements: &[(String, &str)], stage: &str) {
+    fn apply(value: &mut Value, replacements: &[(String, &str)]) {
         match value {
             Value::String(text) => {
                 for (from, to) in replacements {
                     *text = text.replace(from, to);
                 }
-                for clock in ["00:07", "00:08", "00:09", "00:10"] {
-                    if text.contains(clock) {
-                        assert!(matches!(stage, "recording" | "dictation-guard"));
-                        *text = text.replace(clock, "$ELAPSED");
-                    }
-                }
             }
             Value::Array(values) => {
                 for value in values {
-                    apply(value, replacements, stage);
+                    apply(value, replacements);
                 }
             }
             Value::Object(values) => {
                 for value in values.values_mut() {
-                    apply(value, replacements, stage);
+                    apply(value, replacements);
                 }
             }
             _ => {}
         }
     }
-    apply(value, &replacements, stage);
+    apply(value, &replacements);
 }
 fn state(
     root: &Path,
     bus: &Bus,
     events: &RefCell<Vec<Value>>,
     accessibility: &Accessibility,
-    window: &str,
     stage: &str,
+    retained: Option<&Value>,
+    recording: Option<(Instant, Instant)>,
 ) -> Value {
+    let sample_started = Instant::now();
     bus.action("status");
     settle();
     settle();
@@ -193,12 +224,58 @@ fn state(
     let mut observed = json!({"stage":stage,"status":status(events),"archive":archive,"capture":captures,"audio":files(root),
         "history":{"history":history(root),"replies":table(root,"conversation_rewrites","identifier")},"clipboard":live::clipboard(),
         "memory_directories":memory(),"requests":requests(root),"widgets":widgets});
+    if stage.starts_with("archive-") || stage.starts_with("retry-delete-") {
+        observed["exports"] = exports(root);
+        observed["config"] = read(&root.join("config/mluva/config.json"));
+    }
     write(&root.join(format!("meeting-{stage}-raw.json")), &observed);
-    frame(root, window, stage);
+    if matches!(stage, "recording" | "dictation-guard") {
+        let (requested, ready) = recording.expect("actual capture start interval");
+        // The timer starts between the input and capture readiness. Allow its
+        // one-second GTK tick, and include time spent reading the public tree.
+        let minimum = sample_started
+            .duration_since(ready)
+            .as_secs()
+            .saturating_sub(1);
+        let maximum = requested.elapsed().as_secs();
+        let clock = regex::Regex::new(r"^Meeting ([0-9]{2}):([0-5][0-9]) · ").unwrap();
+        let mut seconds = vec![];
+        for widget in observed["widgets"].as_array_mut().unwrap() {
+            if widget["role"] != "status" {
+                continue;
+            }
+            for field in ["name", "text"] {
+                let Some(text) = widget[field].as_str() else {
+                    continue;
+                };
+                let Some(value) = clock.captures(text) else {
+                    continue;
+                };
+                let elapsed =
+                    value[1].parse::<u64>().unwrap() * 60 + value[2].parse::<u64>().unwrap();
+                assert!(
+                    (minimum..=maximum).contains(&elapsed),
+                    "{stage}: actual Meeting clock {elapsed} outside sampled {minimum}..={maximum}"
+                );
+                seconds.push(elapsed);
+                widget[field] = json!(text.replacen(&value[0], "Meeting $ELAPSED · ", 1));
+            }
+        }
+        assert!(!seconds.is_empty(), "actual recording timer observed");
+        write(
+            &root.join(format!("meeting-{stage}-timing.json")),
+            &json!({"minimum_seconds":minimum,"maximum_seconds":maximum,"observed_seconds":seconds}),
+        );
+    }
     for row in observed["capture"].as_array_mut().unwrap() {
         row.as_object_mut().unwrap().shift_remove("pid");
     }
-    normalize(root, &captures, &archive, &mut observed, stage);
+    let identity = if archive.as_array().is_some_and(Vec::is_empty) {
+        retained.map_or_else(|| archive.clone(), |owner| json!([owner]))
+    } else {
+        archive.clone()
+    };
+    normalize(root, &captures, &identity, &mut observed);
     widgets = observed["widgets"].as_array().unwrap().clone();
     widgets.sort_by_cached_key(|value| serde_json::to_string(value).unwrap());
     observed["widgets"] = json!(widgets);
@@ -222,6 +299,44 @@ fn click(accessibility: &Accessibility, name: &str) {
             .child_value(0)
             .get::<bool>(),
         Some(true)
+    );
+}
+fn dialog_open(accessibility: &Accessibility) -> bool {
+    accessibility.button("Delete permanently").is_some()
+}
+fn title(accessibility: &Accessibility, value: &str) {
+    let nodes: BTreeSet<_> = live::inventory(accessibility)
+        .into_iter()
+        .filter(|node| node.role == "text box")
+        .filter(|node| {
+            accessibility
+                .call(
+                    &node.node,
+                    "org.a11y.atspi.Accessible",
+                    "GetInterfaces",
+                    None,
+                )
+                .and_then(|value| value.child_value(0).get::<Vec<String>>())
+                .is_some_and(|interfaces| {
+                    interfaces
+                        .iter()
+                        .any(|name| name == "org.a11y.atspi.EditableText")
+                })
+        })
+        .map(|node| node.node)
+        .collect();
+    assert_eq!(nodes.len(), 1, "one editable Meeting title");
+    assert_eq!(
+        accessibility
+            .call(
+                nodes.first().unwrap(),
+                "org.a11y.atspi.EditableText",
+                "SetTextContents",
+                Some(&(value,).to_variant()),
+            )
+            .unwrap()
+            .get::<(bool,)>(),
+        Some((true,)),
     );
 }
 
@@ -262,7 +377,8 @@ fn tls_peer(base: &Path, fixture: &Value, binaries: &Path) -> (PathBuf, Child) {
             let failure = index == 0 && name != "microphone-fallback";
             responses.push(json!({"route":"speech","status":if failure {503} else {200},"payload":if failure {json!({"detail":"synthetic Meeting unavailable"})} else {fixture["payload"].clone()},
                 "expected_path":"/v1/speech-to-text","expected_headers":{"xi-api-key":"synthetic-meeting-key"},
-                "wait_after_body":directory.join(format!("release-{index}")),"body_receipt":directory.join(format!("body-{index}.json"))}));
+                "wait_after_body":directory.join(format!("release-{index}")),"body_receipt":directory.join(format!("body-{index}.json")),
+                "after_body_timeout_ms":60_000}));
         }
     }
     write(&proxy.join("spec.json"), &json!({"responses":responses}));
@@ -357,6 +473,7 @@ pub(super) fn exercise(
         let mut process = Process(
             live::command(binary, &root)
                 .env("ELEVENLABS_API_KEY", "synthetic-meeting-key")
+                .env("OPENAI_API_KEY", "synthetic-openai-key")
                 .env("SSL_CERT_FILE", tls.join("cert.pem"))
                 .env("https_proxy", "http://127.0.0.1:48118")
                 .env("HTTPS_PROXY", "http://127.0.0.1:48118")
@@ -374,6 +491,7 @@ pub(super) fn exercise(
         until(|| accessibility.button("Start Meeting capture").is_some());
         let mut states = vec![];
         let mut retained = None;
+        let mut recording = None;
         for index in case["states"].as_array().unwrap() {
             let mut expected = fixture["observations"][index.as_u64().unwrap() as usize].clone();
             let widgets = &fixture["widgets"][expected["widgets"].as_u64().unwrap() as usize];
@@ -385,12 +503,18 @@ pub(super) fn exercise(
                     .map(|index| fixture["widget_items"][index.as_u64().unwrap() as usize].clone())
                     .collect::<Vec<_>>()
             );
+            if let Some(index) = expected["exports"].as_u64() {
+                expected["exports"] = fixture["exports"][index as usize].clone();
+                expected["config"] = fixture["config"].clone();
+            }
             let stage = expected["stage"].as_str().unwrap().to_owned();
             match stage.as_str() {
                 "initial" => {}
                 "recording" => {
+                    let requested = Instant::now();
                     click(&accessibility, "Start Meeting capture");
                     until(|| capture(&root).len() == 2);
+                    recording = Some((requested, Instant::now()));
                     let deadline = Instant::now() + Duration::from_secs(8);
                     while Instant::now() < deadline {
                         settle();
@@ -469,19 +593,84 @@ pub(super) fn exercise(
                     click(&accessibility, "Retry transcription");
                     until(|| proxy.join("body-1.json").exists());
                 }
+                "retry-delete-dialog"
+                | "archive-delete-dialog"
+                | "archive-delete-confirm-dialog" => {
+                    click(&accessibility, "Delete");
+                    until(|| dialog_open(&accessibility));
+                }
+                "retry-delete-guard" | "archive-deleted" => {
+                    click(&accessibility, "Delete permanently");
+                    until(|| !dialog_open(&accessibility));
+                    if stage == "archive-deleted" {
+                        until(|| archive(&root) == json!([]) && files(&root).is_empty());
+                    }
+                }
+                "archive-delete-cancel" => {
+                    click(&accessibility, "Cancel");
+                    until(|| !dialog_open(&accessibility));
+                }
+                "archive-title-edit" => title(&accessibility, "  Release review — česky 📝  "),
+                "archive-title-clear-edit" => title(&accessibility, " \u{2003} \t "),
+                "archive-title-saved" | "archive-title-cleared" => {
+                    click(&accessibility, "Save title");
+                    let expected_title = if stage == "archive-title-saved" {
+                        json!("Release review — česky 📝")
+                    } else {
+                        Value::Null
+                    };
+                    until(|| archive(&root)[0]["title"] == expected_title);
+                }
+                "archive-copy" => {
+                    click(&accessibility, "Copy transcript");
+                    until(|| live::clipboard() == fixture["payload"]["text"].as_str().unwrap());
+                }
+                "archive-notice-dismissed" => {
+                    click(&accessibility, "Dismiss");
+                    until(|| accessibility.button("Dismiss").is_none());
+                }
+                "archive-export-markdown" | "archive-reexport-markdown" => {
+                    click(&accessibility, "Export Markdown");
+                    until(|| {
+                        exports(&root)["files"]
+                            .as_array()
+                            .is_some_and(|files| !files.is_empty())
+                    });
+                }
+                "archive-export-json" | "archive-reexport-json" => {
+                    click(&accessibility, "Export JSON");
+                    until(|| {
+                        exports(&root)["files"]
+                            .as_array()
+                            .is_some_and(|files| files.len() == 2)
+                    });
+                }
                 other => panic!("unknown released Meeting stage {other}"),
             }
-            let actual = state(&root, bus, events, &accessibility, &window, &stage);
+            let actual = state(
+                &root,
+                bus,
+                events,
+                &accessibility,
+                &stage,
+                retained.as_ref(),
+                recording,
+            );
+            frame(&root, &window, &stage);
             if name == "retained-retry" && stage == "terminal" {
                 retained = Some(archive(&root)[0].clone());
             }
             if let Some(original) = &retained {
-                let current = archive(&root)[0].clone();
-                for field in ["id", "timestamp", "recordingFilename"] {
-                    assert_eq!(
-                        current[field], original[field],
-                        "same original Meeting recovery owner"
-                    );
+                if stage == "archive-deleted" {
+                    assert_eq!(archive(&root), json!([]));
+                } else {
+                    let current = archive(&root)[0].clone();
+                    for field in ["id", "timestamp", "recordingFilename"] {
+                        assert_eq!(
+                            current[field], original[field],
+                            "same original Meeting recovery owner"
+                        );
+                    }
                 }
             }
             write(&root.join(format!("meeting-{stage}.json")), &actual);
@@ -502,12 +691,28 @@ pub(super) fn exercise(
         until(|| bus.owner().is_none());
         let mut observed = json!({"exit_code":exit,"application_name_absent":bus.owner().is_none(),"app_log_bytes":fs::metadata(root.join("application.log")).unwrap().len(),
             "capture":capture(&root),"audio":files(&root),"archive":archive(&root),"memory_directories":memory()});
+        let mut expected = case["exit"].clone();
+        if let Some(index) = expected["exports"].as_u64() {
+            expected["exports"] = fixture["exports"][index as usize].clone();
+            expected["config"] = fixture["config"].clone();
+            observed["exports"] = exports(&root);
+            observed["config"] = read(&root.join("config/mluva/config.json"));
+        }
+        write(&root.join("meeting-quit-raw.json"), &observed);
         for row in observed["capture"].as_array_mut().unwrap() {
             row.as_object_mut().unwrap().shift_remove("pid");
         }
-        normalize(&root, &captures, &archive(&root), &mut observed, "quit");
+        let current = archive(&root);
+        let identity = if current.as_array().is_some_and(Vec::is_empty) {
+            retained
+                .as_ref()
+                .map_or_else(|| current.clone(), |owner| json!([owner]))
+        } else {
+            current
+        };
+        normalize(&root, &captures, &identity, &mut observed);
         assert_eq!(
-            observed, case["exit"],
+            observed, expected,
             "acknowledged Meeting Quit preserves archive/audio and reaps capture/RAM"
         );
         assert_eq!(json!(requests(&root)), case["requests"]);
