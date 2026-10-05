@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "mluva.dictation",
   "name": "Mluva dictation",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": "Mluva contributors",
   "license": "Apache-2.0",
   "description": "Theme-aware dictation preview and direct conversation rewrites; requires the bundled Mluva app",

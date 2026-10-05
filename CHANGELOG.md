@@ -2,6 +2,11 @@
 
 This file records user-visible Mluva releases.
 
+## 2.0.2 — Unreleased
+
+- Hide manual Rewrite controls by default and remember the last expanded or collapsed choice. Collapsing preserves an unsent request; explicit rewrite commands reveal the controls.
+- Hide the caret while the empty rewrite request shows its placeholder. Typing restores normal editing.
+
 ## 2.0.1 — 2026-10-05 (local release)
 
 - Restricted inherited Codex model/tool capabilities during text-only rewriting.
