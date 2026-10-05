@@ -1,6 +1,7 @@
 //! Live revisions and final cancellation through independent managed GTK processes.
 use super::*;
 use std::collections::VecDeque;
+use std::os::unix::process::ExitStatusExt;
 
 struct Element {
     node: (String, String),
@@ -163,6 +164,43 @@ fn turns(root: &Path) -> Vec<Value> {
     }
     result
 }
+fn stored(root: &Path) -> Value {
+    let raw_history = history(root);
+    let mut saved = replies(root);
+    for reply in &mut saved {
+        let index = raw_history
+            .iter()
+            .position(|entry| entry["identifier"] == reply["history_identifier"])
+            .unwrap();
+        chrono::DateTime::parse_from_rfc3339(reply["created_at"].as_str().unwrap()).unwrap();
+        reply["history_identifier"] = json!(if index == 0 {
+            "$ENTRY".to_owned()
+        } else {
+            format!("$ENTRY-{}", index + 1)
+        });
+        reply["created_at"] = json!("$CREATED_AT");
+    }
+    json!({"history":normalized_history(root),"replies":saved})
+}
+fn launch(binary: &Path, root: &Path, name: &str) -> Process {
+    // A genuine X11 selection owner can inherit these descriptors past app exit.
+    let log = fs::File::create(root.join(name)).unwrap();
+    Process(
+        application(binary, root)
+            .env("HOME", root.join("home"))
+            .env("XDG_CACHE_HOME", root.join("cache"))
+            .env("TMPDIR", root.join("tmp"))
+            .env_remove("LANG")
+            .env(
+                "PATH",
+                format!("{}:/usr/bin:/bin", root.join("tools").display()),
+            )
+            .stdout(log.try_clone().unwrap())
+            .stderr(log)
+            .spawn()
+            .unwrap(),
+    )
+}
 fn snapshot(
     root: &Path,
     bus: &Bus,
@@ -196,21 +234,7 @@ fn snapshot(
         .map(|element| (element.name.clone(), element.sensitive))
         .collect();
     controls.sort();
-    let mut saved = replies(root);
     let raw_history = history(root);
-    for reply in &mut saved {
-        let index = raw_history
-            .iter()
-            .position(|entry| entry["identifier"] == reply["history_identifier"])
-            .unwrap();
-        chrono::DateTime::parse_from_rfc3339(reply["created_at"].as_str().unwrap()).unwrap();
-        reply["history_identifier"] = json!(if index == 0 {
-            "$ENTRY".to_owned()
-        } else {
-            format!("$ENTRY-{}", index + 1)
-        });
-        reply["created_at"] = json!("$CREATED_AT");
-    }
     let review = events
         .borrow()
         .iter()
@@ -220,12 +244,8 @@ fn snapshot(
         .clone();
     state["review"] = json!({"phase":review["phase"],"message":review["message"],"preview":review["preview"],"show_copy":review["show_copy"]});
     state["resources"] = owned(root);
-    let normalized = state
-        .as_object_mut()
-        .unwrap()
-        .shift_remove("history")
-        .unwrap();
-    state["store"] = json!({"history":normalized,"replies":saved});
+    state.as_object_mut().unwrap().shift_remove("history");
+    state["store"] = stored(root);
     state["texts"] = json!(texts);
     state["controls"] = json!(controls);
     state["clipboard"] = json!(clipboard());
@@ -312,6 +332,39 @@ pub(super) fn exercise(
     case["result"]["states"] = json!(states);
     fixture["cases"].as_array_mut().unwrap().push(case);
     fixture["fresh"] = restart["fresh"].clone();
+    let crashed: Value = serde_json::from_str(include_str!(
+        "../fixtures/released-bootstrap-managed-live-crash.json"
+    ))
+    .unwrap();
+    assert_eq!(crashed["parent"]["sha256"], restart["prefix"]["sha256"]);
+    assert_eq!(crashed["speech"], fixture["speech"]);
+    assert_eq!(crashed["draft"], fixture["draft"]);
+    assert_eq!(crashed["fresh"], fixture["fresh"]);
+    let mut result = crashed["result"].clone();
+    // Keep the released oracle's surviving process visible. Only this explicit
+    // safety repair changes its lifetime observation after SIGKILL/reopening.
+    assert_eq!(
+        result["crash"]["resources"]["codex"]["alive"],
+        json!([false, false, true])
+    );
+    result["crash"]["resources"]["codex"]["alive"] =
+        crashed["native_safety"]["codex_alive_after_crash"].clone();
+    let reopened = result["states"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|state| state["stage"] == "reopened")
+        .unwrap();
+    assert_eq!(
+        reopened["resources"]["codex"]["alive"],
+        json!([false, false, true])
+    );
+    reopened["resources"]["codex"]["alive"] =
+        crashed["native_safety"]["codex_alive_after_crash"].clone();
+    fixture["cases"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"name":crashed["name"],"clipboard":crashed["clipboard"],"result":result}));
     let mut setup_fixture = capture_fixture.clone();
     for (key, value) in fixture["config_overrides"].as_object().unwrap() {
         setup_fixture["config"][key] = value.clone()
@@ -340,29 +393,22 @@ pub(super) fn exercise(
         .unwrap();
         fs::set_permissions(root.join("tools/codex"), fs::Permissions::from_mode(0o700)).unwrap();
         events.borrow_mut().clear();
-        // X11's external selection owner can inherit these descriptors and
-        // remain alive after Mluva exits. Observe quit without waiting for that
-        // clipboard owner's eventual EOF.
-        let log = fs::File::create(root.join("application.log")).unwrap();
-        let mut process = Process(
-            application(binary, &root)
-                .env("HOME", root.join("home"))
-                .env("XDG_CACHE_HOME", root.join("cache"))
-                .env("TMPDIR", root.join("tmp"))
-                .env_remove("LANG")
-                .env(
-                    "PATH",
-                    format!("{}:/usr/bin:/bin", root.join("tools").display()),
-                )
-                .stdout(log.try_clone().unwrap())
-                .stderr(log)
-                .spawn()
-                .unwrap(),
-        );
+        if name == "crash-reopen" {
+            assert_eq!(
+                unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) },
+                0
+            );
+        }
+        let mut process = launch(binary, &root, "application.log");
         until(|| bus.owner().is_some() && visible(process.0.id()));
-        let window = place_window(process.0.id());
-        set_clipboard("untouched joined Live clipboard");
+        let mut window = place_window(process.0.id());
+        set_clipboard(
+            case["clipboard"]
+                .as_str()
+                .unwrap_or("untouched joined Live clipboard"),
+        );
         let mut states = vec![];
+        let mut crash = None;
         for expected in case["result"]["states"].as_array().unwrap() {
             let stage = expected["stage"].as_str().unwrap();
             match stage {
@@ -506,6 +552,39 @@ pub(super) fn exercise(
                         settle();
                     }
                 }
+                "reopened" => {
+                    let pid = records(&root, "process.jsonl").last().unwrap()["pid"]
+                        .as_i64()
+                        .unwrap() as libc::pid_t;
+                    process.0.kill().unwrap();
+                    assert_eq!(process.0.wait().unwrap().signal(), Some(libc::SIGKILL));
+                    until(|| bus.owner().is_none() && !visible(process.0.id()));
+                    let mut status = 0;
+                    until(|| unsafe { libc::waitpid(pid, &mut status, libc::WNOHANG) } == pid);
+                    assert_eq!(libc::WTERMSIG(status), libc::SIGKILL);
+                    let observed = json!({"resources":owned(&root),"store":stored(&root),"clipboard":clipboard(),
+                        "name_released":true,"window_gone":true,"exit_code":-9});
+                    write(&root.join("live-crash.json"), &observed);
+                    assert_eq!(
+                        observed, case["result"]["crash"],
+                        "actual crash resources and durable state"
+                    );
+                    crash = Some(observed);
+                    assert_eq!(fs::read(root.join("application.log")).unwrap(), b"");
+                    events.borrow_mut().clear();
+                    process = launch(binary, &root, "application-reopened.log");
+                    until(|| bus.owner().is_some() && visible(process.0.id()));
+                    window = place_window(process.0.id());
+                    for _ in 0..3 {
+                        settle();
+                    }
+                }
+                "old-final-released" => {
+                    fs::write(root.join("codex-evidence/final.release"), []).unwrap();
+                    for _ in 0..3 {
+                        settle();
+                    }
+                }
                 other => panic!("unknown released Live action {other}"),
             }
             let actual = snapshot(&root, bus, events, &accessibility, &window, stage);
@@ -518,8 +597,15 @@ pub(super) fn exercise(
         assert_eq!(exit, 0);
         assert_eq!(fs::read(root.join("application.log")).unwrap(), b"");
         let (trace, health_statuses) = protocol(&root);
-        let actual = json!({"states":states,"trace":trace,"health_statuses":health_statuses,"turns":turns(&root),
+        let mut actual = json!({"states":states,"trace":trace,"health_statuses":health_statuses,"turns":turns(&root),
             "post_exit_resources":owned(&root),"exit_code":exit,"app_log_bytes":0});
+        if let Some(crash) = crash {
+            assert_eq!(
+                fs::read(root.join("application-reopened.log")).unwrap(),
+                b""
+            );
+            actual["crash"] = crash;
+        }
         write(&root.join("managed-live-observed.json"), &actual);
         assert_eq!(
             actual, case["result"],

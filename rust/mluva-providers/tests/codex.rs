@@ -104,6 +104,37 @@ struct Fixture {
     path: PathBuf,
     evidence: PathBuf,
 }
+
+#[test]
+fn abrupt_client_failure_reaps_the_held_rewrite_server() {
+    for masked in [false, true] {
+        let case = Fixture::new(&json!({"scenario":"clean","masked":masked}));
+        let mut spec: Value = serde_json::from_slice(&std::fs::read(&case.path).unwrap()).unwrap();
+        spec["operation"] = json!("park-for-parent-crash");
+        spec["turn_ms"] = json!(30_000);
+        spec["request_ms"] = json!(5000);
+        spec["crash_prompt"] = json!(
+            "You are an editor updating a draft as someone dictates.\n{\"transcript_status\":\"final committed recognition\",\"transcript\":\"held crash rewrite\"}"
+        );
+        spec["live_controls"] = json!({"final|held crash rewrite":{"gate":case.directory.path().join("never.release"),"deltas":["Never deliver this."]}});
+        std::fs::write(&case.path, serde_json::to_vec(&spec).unwrap()).unwrap();
+        let output = case
+            .command()
+            .as_std_mut()
+            .arg("observe-parent-crash")
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "masked={masked}: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(
+            serde_json::from_slice::<Value>(&output.stdout).unwrap(),
+            json!({"held_rewrite_reaped_after_client_crash":true})
+        );
+    }
+}
 impl Fixture {
     fn new(spec: &Value) -> Self {
         let directory = tempfile::tempdir().unwrap();

@@ -273,9 +273,89 @@ fn server(spec: &Value) {
     }
 }
 
+fn observe_parent_crash(path: &Path) {
+    use std::process::{Command, Stdio};
+    use std::time::Instant;
+    assert_eq!(
+        unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) },
+        0
+    );
+    let spec: Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
+    let evidence = PathBuf::from(spec["evidence"].as_str().unwrap());
+    let mut parent = Command::new(std::env::current_exe().unwrap())
+        .args(["drive", path.to_str().unwrap()])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    let mut owned = None;
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let before = Instant::now();
+        while !fs::read_to_string(evidence.join("requests.jsonl"))
+            .unwrap_or_default()
+            .contains("turn/start")
+        {
+            assert!(parent.try_wait().unwrap().is_none());
+            assert!(before.elapsed() < Duration::from_secs(8));
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        let process: Value = serde_json::from_str(
+            fs::read_to_string(evidence.join("process.jsonl"))
+                .unwrap()
+                .lines()
+                .last()
+                .unwrap(),
+        )
+        .unwrap();
+        let pid = process["pid"].as_u64().unwrap() as libc::pid_t;
+        owned = Some(pid);
+        assert!(Path::new(&format!("/proc/{pid}")).exists());
+        assert!(Path::new(process["cwd"].as_str().unwrap()).is_dir());
+        parent.kill().unwrap();
+        assert!(!parent.wait().unwrap().success());
+        let before = Instant::now();
+        let mut status = 0;
+        loop {
+            let reaped = unsafe { libc::waitpid(pid, &mut status, libc::WNOHANG) };
+            assert!(reaped >= 0);
+            if reaped == pid {
+                break;
+            }
+            assert!(
+                before.elapsed() < Duration::from_secs(2),
+                "held rewrite outlived its crashed client"
+            );
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        assert_eq!(libc::WTERMSIG(status), libc::SIGKILL);
+        assert!(!Path::new(&format!("/proc/{pid}")).exists());
+        owned = None;
+        println!("{}", json!({"held_rewrite_reaped_after_client_crash":true}));
+    }));
+    let _ = parent.kill();
+    let _ = parent.wait();
+    if let Some(pid) = owned {
+        // Kill only this known adopted child, never a reused unrelated PID.
+        if unsafe { libc::waitpid(pid, std::ptr::null_mut(), libc::WNOHANG) } == 0 {
+            unsafe {
+                libc::kill(pid, libc::SIGKILL);
+                libc::waitpid(pid, std::ptr::null_mut(), 0);
+            }
+        }
+    }
+    if let Err(error) = result {
+        std::panic::resume_unwind(error);
+    }
+}
+
 #[tokio::main(flavor = "multi_thread", worker_threads = 2)]
 async fn main() {
     let args = std::env::args().collect::<Vec<_>>();
+    if args.last().is_some_and(|arg| arg == "observe-parent-crash") {
+        observe_parent_crash(Path::new(&args[2]));
+        return;
+    }
     let path = if args[1] == "app-server" {
         PathBuf::from(std::env::var_os("CODEX_HOME").unwrap()).join("fixture.json")
     } else {
@@ -322,6 +402,19 @@ async fn main() {
     let mut deltas = vec![];
     let mut callback = |text: &str| deltas.push(text.to_owned());
     let value = match operation {
+        "park-for-parent-crash" => result(
+            client
+                .transform(
+                    spec["crash_prompt"].as_str().unwrap(),
+                    Path::new("/never-use-client-cwd"),
+                    RewriteOptions {
+                        model: Some("fixture-model"),
+                        ..Default::default()
+                    },
+                    None,
+                )
+                .await,
+        ),
         "catalog" => result(client.list_models().await),
         "resolve" => result(client.resolve_model(spec["model"].as_str()).await),
         "cancel-before" => {

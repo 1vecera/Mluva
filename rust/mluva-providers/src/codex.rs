@@ -234,7 +234,8 @@ impl CodexAppServerClient {
         }
         let environment = codex_policy::child_environment(std::env::vars_os());
         let command = codex_policy::isolated_command(command, &environment)?;
-        let mut process = Command::new(&command[0])
+        let mut process_command = Command::new(&command[0]);
+        process_command
             .args(&command[1..])
             .env_clear()
             .envs(environment)
@@ -242,9 +243,9 @@ impl CodexAppServerClient {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
-            .kill_on_drop(true)
-            .spawn()
-            .map_err(|_| failure())?;
+            .kill_on_drop(true);
+        crate::process_lifetime::kill_with_parent(&mut process_command);
+        let mut process = process_command.spawn().map_err(|_| failure())?;
         let stdout = process.stdout.take().unwrap();
         let stdin = process.stdin.take().unwrap();
         let (writes, writing) = mpsc::channel(32);
