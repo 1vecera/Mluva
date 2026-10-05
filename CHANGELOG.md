@@ -2,6 +2,14 @@
 
 This file records user-visible Mluva releases.
 
+## 2.0.1 — 2026-10-05 (local release)
+
+- Restricted inherited Codex model/tool capabilities during text-only rewriting.
+- Bound Qwen and Codex processes and their private resources to the application's lifetime. Incomplete Qwen responses now respect the overall recognition timeout.
+- Restored released Capture shortcut guidance, recording feedback during cancellation and recovery audio filenames.
+- Fixed the recording error widget remaining visible after successful History Retry.
+- Kept existing settings, History and model caches. The three local model choices remain Whisper Tiny, Parakeet v3 and default Qwen3-ASR 1.7B. Complete UX and physical/platform acceptance remain open.
+
 ## 1.6.0 — 2026-09-30
 
 - Fixed automatic paste from Omarchy keyboard recording: bind F9 to `mluva-shell global-record` to capture the target at Start. Bar/button recording remains clipboard-only, including when stopped from another control.
