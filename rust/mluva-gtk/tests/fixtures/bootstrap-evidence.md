@@ -1,5 +1,7 @@
 # Resident native application process
 
+5 October 2026 follow-up: the same process owner now also guards [managed-Qwen Stop, Cancel and fresh recording](bootstrap-managed-capture-evidence.md), including complete stable window pixels, actual History/audio/protocol and a delayed-microphone cancellation fault. Its prerequisites include `qwen-fixture-peer` and the pinned public English PCM through `MLUVA_TEST_QWEN_PCM`. The dated worker lifecycle record retains current validation; historical checkpoint counts and installation status below describe the original bootstrap delivery. Published/installed 2.0.0 remains unchanged by this follow-up.
+
 The Rust `mluva` executable now owns the assembled application, its theme, native I/O runtime and shutdown. It uses the released `com.mluva.Linux` application identity and registers all actions before activation. Normal launch initializes local stores and the window once; service launch waits without opening a window. A second invocation forwards to the first process. Resources resolve from the relocated executable's `../resources` directory, with no checkout or Python fallback. The exact `--narrate` invocation dispatches before GTK startup or resource loading.
 
 The immutable reference is Mluva v1.6.0 at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. [The process fixture](released-bootstrap.json), SHA-256 `120eaf3f25719658745d02f5207f5860237335a21bcd462eb0bd02f25c5ef12a`, records eight actual released processes, 38 public states, all 13 action descriptors and five command-line cases. The external observer verifies every released module against the commit and launches the unchanged module entry point. It observes the real application name owner, `org.gtk.Actions`, both recording-status signals, window visibility, public accessible names/roles and list order. Repeated identical snapshots are stored once; observations are not generated from the native implementation.
@@ -21,8 +23,12 @@ Build the ordinary native process dependencies, then run the explicit process ac
 ```sh
 cargo build --locked -p mluva-gtk --bin mluva \
   -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
-  -p mluva-providers --bin credential-fixture-peer
+  -p mluva-providers --bin credential-fixture-peer --bin qwen-fixture-peer
+mkdir -p tmp/native-bootstrap-input
+gzip -dc rust/mluva-asr/tests/fixtures/nemo-public-en.pcm16le.gz \
+  > tmp/native-bootstrap-input/asr-en.pcm
 bash dev/run-isolated-browser.sh tmp/native-bootstrap -- \
+  env MLUVA_TEST_QWEN_PCM="$PWD/tmp/native-bootstrap-input/asr-en.pcm" \
   cargo test --locked -p mluva-gtk --test bootstrap -- --ignored --test-threads=1 --nocapture
 bash dev/run-isolated-browser.sh tmp/native-main-narration -- \
   env MLUVA_TEST_APP_NARRATION=/absolute/path/to/cargo-target/debug/mluva \
