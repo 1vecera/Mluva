@@ -563,7 +563,7 @@ impl ApplicationDesktop {
                         CapturePhase::Preparing | CapturePhase::Recording
                     ));
                 }
-                if matches!(phase, CapturePhase::Processing | CapturePhase::Cancelling) {
+                if phase == CapturePhase::Processing {
                     self.publish_terminal("processing", "Finishing your dictation…");
                 } else {
                     self.publish_capture();
@@ -739,6 +739,11 @@ impl ApplicationDesktop {
             return;
         };
         let phase = current.session.phase();
+        // Cancellation drains audio/providers asynchronously. The released app
+        // keeps its recording feedback until that cleanup clears the overlay.
+        if phase == CapturePhase::Cancelling {
+            return;
+        }
         let config = self.services.config();
         let mut state = OverlayState {
             phase: match phase {
@@ -828,7 +833,7 @@ impl ApplicationDesktop {
             timer.remove();
         }
     }
-    fn clear_overlay(&self) {
+    pub(super) fn clear_overlay(&self) {
         self.clear_overlay_timer();
         if let Some(publisher) = self.overlay.borrow_mut().as_mut() {
             publisher.clear();

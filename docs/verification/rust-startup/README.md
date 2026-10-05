@@ -1,5 +1,7 @@
 # Native startup and idle measurements
 
+This record concerns the earlier `44e22ca` candidate. The [published 2.0.0 startup and later interaction observations](../rust-release-performance/README.md) identify their own exact binaries; these historical measurements are not relabeled as release results.
+
 On this host, the optimized native candidate reaches its first visible window sooner and uses less resident memory than released 1.6.0. These are bounded startup/idle observations, not a claim that recording, inference or every interaction is faster. Full UX and performance acceptance remain unfinished.
 
 | Metric | Released Python 1.6.0 | Native Rust candidate |
@@ -30,4 +32,4 @@ The optimized renderer separately repeats all six frozen diagram states and five
 
 ## Remaining acceptance
 
-This comparison does not measure physical microphone behavior, local/cloud recognition throughput, paced Live processing, loaded histories, diagram-heavy documents, GUI action-to-paint latency or native Wayland/compositor costs. The shortcut portal is deliberately disabled in both versions, so startup including real portal approval is also outside this evidence. Those workloads and complete parity remain required before live replacement or a Rust release.
+This comparison does not measure physical microphone behavior, local/cloud recognition throughput, paced Live processing, loaded histories, diagram-heavy documents, GUI action-to-paint latency or native Wayland/compositor costs. The shortcut portal is deliberately disabled in both versions, so startup including real portal approval is also outside this evidence. Daniel subsequently authorized the [2.0.0 cutover](../rust-cutover/README.md) with those risks outstanding. Complete parity and the unmeasured workloads remain acceptance obligations.

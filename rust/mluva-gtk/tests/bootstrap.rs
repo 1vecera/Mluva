@@ -22,6 +22,8 @@ use std::{
 mod accessibility;
 #[path = "../../mluva-workflows/tests/support/http.rs"]
 mod http;
+#[path = "support/bootstrap_managed_capture.rs"]
+mod managed_capture;
 use accessibility::Accessibility;
 
 const NAME: &str = "com.mluva.Linux";
@@ -654,7 +656,7 @@ fn source_make_build_and_run_without_python() {
 }
 
 #[test]
-#[ignore = "requires the private X11/session/accessibility runner and native cleanup binary"]
+#[ignore = "requires private X11/session/accessibility, native peers and pinned MLUVA_TEST_QWEN_PCM"]
 fn released_process_actions_residency_and_headless_dispatch() {
     let private = private_session();
     let fixture: Value =
@@ -818,6 +820,7 @@ fn released_process_actions_residency_and_headless_dispatch() {
         eprintln!("matched {name}");
     }
     cold_recording(&binary, &root, &bus, &accessibility, &events);
+    managed_capture::exercise(&binary, &root, &bus, &events);
     startup_faults(&binary, &root, &bus, &accessibility, &events);
     drop(subscription);
     for (index, case) in fixture["cli"].as_array().unwrap().iter().enumerate() {

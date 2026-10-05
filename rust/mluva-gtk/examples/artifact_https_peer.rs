@@ -1,7 +1,8 @@
-//! Private HTTPS proxy serving public pinned artifacts; no application implementation or outbound sockets.
+//! Private HTTPS peer serving pinned artifacts/audio; no application implementation or outbound sockets.
 use native_tls::{Identity, TlsAcceptor};
 use serde_json::{Value, json};
 use std::{
+    collections::VecDeque,
     fs,
     io::{self, Read, Write},
     net::{TcpListener, TcpStream},
@@ -10,6 +11,9 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+#[path = "../../mluva-workflows/tests/support/http.rs"]
+#[allow(dead_code)]
+mod http;
 
 fn read_json(path: &Path) -> Value {
     serde_json::from_slice(&fs::read(path).unwrap()).unwrap()
@@ -51,13 +55,30 @@ fn connection(mut socket: TcpStream, tls: TlsAcceptor, root: PathBuf, next: Arc<
     let mut connect = proxy.lines().next().unwrap().split_whitespace();
     assert_eq!(connect.next(), Some("CONNECT"));
     let authority = connect.next().unwrap();
-    assert!(matches!(authority, "huggingface.co:443" | "github.com:443"));
+    assert!(matches!(
+        authority,
+        "huggingface.co:443" | "github.com:443" | "api.elevenlabs.io:443"
+    ));
     assert!(matches!(connect.next(), Some("HTTP/1.0" | "HTTP/1.1")));
     assert!(!proxy.to_ascii_lowercase().contains("authorization:"));
     socket
         .write_all(b"HTTP/1.1 200 Connection established\r\n\r\n")
         .unwrap();
     let mut stream = tls.accept(socket).unwrap();
+    if authority == "api.elevenlabs.io:443" {
+        let response = {
+            let mut next = next.lock().unwrap();
+            let spec = read_json(&root.join("spec.json"));
+            let response = spec["responses"][*next].clone();
+            *next += 1;
+            response
+        };
+        let pending = Mutex::new(VecDeque::from([response]));
+        let observed = Mutex::new(vec![]);
+        http::exchange(stream, &pending, &observed).expect("private TLS audio exchange");
+        assert!(pending.lock().unwrap().is_empty());
+        return;
+    }
     let request = headers(&mut stream).unwrap();
     let mut parts = request.lines().next().unwrap().split_whitespace();
     assert_eq!(parts.next(), Some("GET"));

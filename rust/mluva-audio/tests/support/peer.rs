@@ -223,6 +223,7 @@ fn main() {
             .unwrap_or_else(|| vec![payload.len().max(1)]);
         let mut first = true;
         loop {
+            let before = Instant::now();
             let mut offset = 0;
             let mut index = 0;
             while offset < payload.len() {
@@ -234,6 +235,16 @@ fn main() {
                 io::stdout().flush().unwrap();
                 offset += size;
                 index += 1;
+                if let Some(rate) = config["bytes_per_second"].as_u64() {
+                    assert!(rate > 0);
+                    let due = Duration::from_secs_f64(offset as f64 / rate as f64);
+                    if let Some(delay) = due.checked_sub(before.elapsed()) {
+                        thread::sleep(delay);
+                    }
+                    if SIGNAL.load(Ordering::Relaxed) != 0 {
+                        break;
+                    }
+                }
             }
             if first {
                 ready(directory, "raw", &arguments);

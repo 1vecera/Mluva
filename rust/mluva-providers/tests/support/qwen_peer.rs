@@ -1,5 +1,8 @@
 //! External synthetic Qwen runtime and public native client driver; never installed.
-use mluva_providers::qwen::{QwenOptions, QwenSpeechClient};
+use mluva_providers::{
+    local_assets::QWEN_RUNTIME,
+    qwen::{QwenOptions, QwenSpeechClient},
+};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::fs;
@@ -169,7 +172,16 @@ async fn runtime(arguments: &[String]) {
             let specification = &config["responses"]
                 [requests.min(config["responses"].as_array().unwrap().len() - 1)];
             requests += 1;
-            if first_process && specification["hold_first_process"] == true {
+            let memory = if let Some(bytes) = specification["memory_bytes"].as_u64() {
+                append(&trace, json!({"kind":"allocation","bytes":bytes}));
+                Some(vec![1_u8; bytes as usize])
+            } else {
+                None
+            };
+            std::hint::black_box(&memory);
+            if specification["hold"] == true
+                || (first_process && specification["hold_first_process"] == true)
+            {
                 std::future::pending::<()>().await;
             }
             response.status = specification["status"].as_u64().unwrap_or(200) as u16;
@@ -239,16 +251,138 @@ fn state(root: &Path) -> Value {
         .collect();
     json!({"processes":values.len(),"alive":values.iter().map(|value|Path::new("/proc").join(value["pid"].as_u64().unwrap().to_string()).exists()).collect::<Vec<_>>(),"keys_exist":values.iter().map(|value|Path::new(value["key_path"].as_str().unwrap()).exists()).collect::<Vec<_>>(),"probes":probes.len(),"probe_alive":probes.iter().map(|value|Path::new("/proc").join(value["pid"].as_u64().unwrap().to_string()).exists()).collect::<Vec<_>>()})
 }
+async fn transcribe(client: &QwenSpeechClient, root: &Path, call: &Value) -> (Value, Vec<Value>) {
+    let mut observed = vec![];
+    let mut callback = |value: String| {
+        observed.push(text(&value));
+        if call["cancel_at_partial"]
+            .as_u64()
+            .is_some_and(|count| observed.len() as u64 >= count)
+        {
+            drop(client.cancel());
+        }
+    };
+    let path = root.join(call["path"].as_str().unwrap_or("audio.wav"));
+    let result = client
+        .transcribe(
+            &path,
+            call["language"].as_str().unwrap_or("auto"),
+            if call["partials"] == false {
+                None
+            } else {
+                Some(&mut callback)
+            },
+        )
+        .await;
+    let result = match result {
+        Ok(result) => {
+            json!({"ok":{"text":text(&result.text),"language_code":result.language_code,"language_probability":result.language_probability,"transcription_id":result.transcription_id,"speaker_segments":result.speaker_segments,"audio_duration_seconds":result.audio_duration_seconds}})
+        }
+        Err(error) => json!({"error":error.to_string()}),
+    };
+    (result, observed)
+}
 async fn driver(spec: Value, root: &Path) {
     let mut options = QwenOptions::new(root.join("xdg-data/mluva"));
     options.device = spec["device"].as_str().unwrap_or("cpu").into();
     options.keep_alive = spec["keep_alive"] == true;
-    let client = Arc::new(QwenSpeechClient::new(options).unwrap());
-    let mut results = vec![];
+    let mut client = Arc::new(QwenSpeechClient::new(options.clone()).unwrap());
+    let mut results: Vec<Value> = vec![];
     let mut states = vec![];
     let mut partials = vec![];
+    let mut stream_observations = vec![];
     for call in spec["calls"].as_array().unwrap() {
         match call["action"].as_str().unwrap_or("transcribe") {
+            "cancel_incomplete_stream" => {
+                let worker = client.clone();
+                let working_root = root.to_owned();
+                let fragments = || {
+                    fs::read_to_string(root.join("trace.jsonl"))
+                        .unwrap_or_default()
+                        .lines()
+                        .filter(|line| {
+                            serde_json::from_str::<Value>(line).unwrap()["kind"] == "fragment"
+                        })
+                        .count()
+                };
+                let fragments_before = fragments();
+                let mut working =
+                    tokio::spawn(
+                        async move { transcribe(&worker, &working_root, &json!({})).await },
+                    );
+                tokio::time::timeout(Duration::from_secs(5), async {
+                    while fragments() == fragments_before {
+                        assert!(
+                            !working.is_finished(),
+                            "actual incomplete stream was reached"
+                        );
+                        tokio::time::sleep(Duration::from_millis(5)).await;
+                    }
+                })
+                .await
+                .expect("runtime writes an actual response fragment");
+                let before = std::time::Instant::now();
+                let wait = Duration::from_secs(call["observe_seconds"].as_u64().unwrap());
+                let completed = if call["wait_for_timeout"] == true {
+                    Some(
+                        tokio::time::timeout(wait, &mut working)
+                            .await
+                            .expect(
+                                "incomplete stream must return within its real 180-second deadline",
+                            )
+                            .unwrap(),
+                    )
+                } else {
+                    tokio::time::sleep(wait).await;
+                    None
+                };
+                let seconds = before.elapsed().as_secs_f64();
+                let received = fragments() - fragments_before;
+                let pending = !working.is_finished();
+                let state_before = state(root);
+                let before = std::time::Instant::now();
+                tokio::time::timeout(Duration::from_secs(5), client.cancel())
+                    .await
+                    .expect("public cancellation reaps the owned runtime");
+                let (mut result, observed) = match completed {
+                    Some(result) => result,
+                    None => tokio::time::timeout(Duration::from_secs(5), working)
+                        .await
+                        .expect("cancelled transcription returns")
+                        .unwrap(),
+                };
+                stream_observations.push(json!({"seconds_from_first_fragment":seconds,"fragments":received,
+                    "cancellation_seconds":before.elapsed().as_secs_f64(),
+                    "temporary_entries_after_cancel":fs::read_dir(root.join("tmp")).unwrap().count()}));
+                result["pending_before_cancel"] = json!(pending);
+                result["state_before_cancel"] = state_before;
+                results.push(result);
+                partials.push(observed);
+                states.push(state(root));
+                // Only the external runtime changes after cancellation. A new
+                // public client must recognize successfully with the same settings.
+                let config_path = QWEN_RUNTIME
+                    .binary(&options.data_dir, &options.device)
+                    .with_file_name("fixture.json");
+                let mut config: Value =
+                    serde_json::from_slice(&fs::read(&config_path).unwrap()).unwrap();
+                config["responses"] = json!([call["recovery_response"]]);
+                fs::write(config_path, serde_json::to_vec(&config).unwrap()).unwrap();
+                client = Arc::new(QwenSpeechClient::new(options.clone()).unwrap());
+                let (result, observed) = tokio::time::timeout(
+                    Duration::from_secs(5),
+                    transcribe(&client, root, &json!({})),
+                )
+                .await
+                .expect("fresh capture completes");
+                results.push(result);
+                partials.push(observed);
+            }
+            "park_for_parent_crash" => {
+                assert_eq!(results.last().unwrap()["ok"]["text"], "hello");
+                fs::write(root.join("parent-crash-ready"), b"ready").unwrap();
+                std::future::pending::<()>().await;
+            }
             "close_during_startup" => {
                 let worker = client.clone();
                 let path = root.join("audio.wav");
@@ -305,29 +439,8 @@ async fn driver(spec: Value, root: &Path) {
                 partials.push(vec![]);
             }
             _ => {
-                let mut observed = vec![];
-                let mut callback = |value: String| {
-                    observed.push(text(&value));
-                    if call["cancel_at_partial"]
-                        .as_u64()
-                        .is_some_and(|count| observed.len() as u64 >= count)
-                    {
-                        drop(client.cancel());
-                    }
-                };
-                let path = root.join(call["path"].as_str().unwrap_or("audio.wav"));
-                let result = client
-                    .transcribe(
-                        &path,
-                        call["language"].as_str().unwrap_or("auto"),
-                        if call["partials"] == false {
-                            None
-                        } else {
-                            Some(&mut callback)
-                        },
-                    )
-                    .await;
-                results.push(match result{Ok(result)=>json!({"ok":{"text":text(&result.text),"language_code":result.language_code,"language_probability":result.language_probability,"transcription_id":result.transcription_id,"speaker_segments":result.speaker_segments,"audio_duration_seconds":result.audio_duration_seconds}}),Err(error)=>json!({"error":error.to_string()})});
+                let (result, observed) = transcribe(&client, root, call).await;
+                results.push(result);
                 partials.push(observed);
             }
         }
@@ -348,14 +461,134 @@ async fn driver(spec: Value, root: &Path) {
         }
     }
     let cache = root.join("xdg-data/mluva/qwen-cache");
-    println!(
-        "{}",
-        json!({"results":results,"partials":partials,"states":states,"closed":state(root),"trace":trace,"cache_mode":fs::metadata(cache).ok().map(|metadata|metadata.permissions().mode()&0o777)})
-    );
+    let mut output = json!({"results":results,"partials":partials,"states":states,"closed":state(root),"trace":trace,"cache_mode":fs::metadata(cache).ok().map(|metadata|metadata.permissions().mode()&0o777)});
+    if !stream_observations.is_empty() {
+        output["stream_observations"] = json!(stream_observations);
+    }
+    println!("{output}");
 }
+
+fn observe_parent_crash(root: &Path) {
+    use std::os::fd::AsRawFd;
+    use std::process::{Command, Stdio};
+    assert_eq!(
+        unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) },
+        0
+    );
+    let device = std::env::var("QWEN_CRASH_DEVICE").unwrap();
+    let phase = std::env::var("QWEN_CRASH_PHASE").unwrap();
+    let spec = json!({"device":device,"keep_alive":true,"calls":[
+        {"action":"transcribe"},{"action":"park_for_parent_crash"}
+    ]});
+    let mut parent = Command::new(std::env::current_exe().unwrap())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    parent
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(&serde_json::to_vec(&spec).unwrap())
+        .unwrap();
+    let mut owned = None;
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let before = std::time::Instant::now();
+        let stage_ready = || {
+            if phase == "ready" {
+                root.join("parent-crash-ready").exists()
+            } else {
+                fs::read_to_string(root.join("trace.jsonl"))
+                    .unwrap_or_default()
+                    .lines()
+                    .any(|line| serde_json::from_str::<Value>(line).unwrap()["kind"] == "probe")
+            }
+        };
+        while !stage_ready() {
+            assert!(
+                parent.try_wait().unwrap().is_none(),
+                "client exited before its verified request"
+            );
+            assert!(before.elapsed() < Duration::from_secs(5));
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        let started: Value = fs::read_to_string(root.join("trace.jsonl"))
+            .unwrap()
+            .lines()
+            .map(|line| serde_json::from_str::<Value>(line).unwrap())
+            .find(|value| value["kind"] == if phase == "ready" { "start" } else { "probe" })
+            .unwrap();
+        let pid = started["pid"].as_u64().unwrap() as libc::pid_t;
+        owned = Some(pid);
+        let key = started["key_path"].as_str().map(PathBuf::from);
+        let anonymous = key.as_ref().is_some_and(|key| {
+            let file = fs::File::open(key).unwrap();
+            let seals = unsafe { libc::fcntl(file.as_raw_fd(), libc::F_GET_SEALS) };
+            let required =
+                libc::F_SEAL_SEAL | libc::F_SEAL_SHRINK | libc::F_SEAL_GROW | libc::F_SEAL_WRITE;
+            // Drop this descriptor before crashing the credential's real owner.
+            fs::read_link(key).is_ok() && seals >= 0 && seals & required == required
+        });
+        parent.kill().unwrap();
+        assert!(!parent.wait().unwrap().success());
+        let before = std::time::Instant::now();
+        let mut status = 0;
+        loop {
+            let reaped = unsafe { libc::waitpid(pid, &mut status, libc::WNOHANG) };
+            assert!(reaped >= 0);
+            if reaped == pid {
+                break;
+            }
+            assert!(
+                before.elapsed() < Duration::from_secs(2),
+                "owned model outlived its crashed parent"
+            );
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        owned = None;
+        assert_eq!(libc::WTERMSIG(status), libc::SIGKILL);
+        assert!(
+            key.as_ref().is_none_or(|key| !key.exists()),
+            "no readable key survives its owner"
+        );
+        assert!(
+            phase != "ready" || anonymous,
+            "temporary authentication uses immutable anonymous memory"
+        );
+        println!(
+            "{}",
+            json!({"phase":phase,"worker_killed_after_parent_crash":true,"key_revoked":true,
+            "anonymous_key_sealed":anonymous,"normal_request_completed":phase == "ready"})
+        );
+    }));
+    let _ = parent.kill();
+    let _ = parent.wait();
+    if let Some(pid) = owned {
+        let args = fs::read(format!("/proc/{pid}/cmdline")).unwrap_or_default();
+        if args
+            .split(|byte| *byte == 0)
+            .any(|arg| arg.starts_with(root.as_os_str().as_encoded_bytes()))
+        {
+            unsafe {
+                libc::kill(pid, libc::SIGKILL);
+                libc::waitpid(pid, std::ptr::null_mut(), 0);
+            }
+        }
+    }
+    if let Err(error) = result {
+        std::panic::resume_unwind(error);
+    }
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     let arguments: Vec<String> = std::env::args().skip(1).collect();
+    if arguments == ["--observe-parent-crash"] {
+        let root = PathBuf::from(std::env::var_os("QWEN_FIXTURE_ROOT").unwrap());
+        observe_parent_crash(&root);
+        return;
+    }
     if !arguments.is_empty() {
         runtime(&arguments).await;
         return;

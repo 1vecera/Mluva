@@ -273,16 +273,256 @@ fn server(spec: &Value) {
     }
 }
 
+fn observe_parent_crash(path: &Path) {
+    use std::process::{Command, Stdio};
+    use std::time::Instant;
+    assert_eq!(
+        unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) },
+        0
+    );
+    let spec: Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
+    let evidence = PathBuf::from(spec["evidence"].as_str().unwrap());
+    let mut parent = Command::new(std::env::current_exe().unwrap())
+        .args(["drive", path.to_str().unwrap()])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    let mut owned = None;
+    let mut cleanup = None;
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let before = Instant::now();
+        while !fs::read_to_string(evidence.join("requests.jsonl"))
+            .unwrap_or_default()
+            .contains("turn/start")
+        {
+            assert!(parent.try_wait().unwrap().is_none());
+            assert!(before.elapsed() < Duration::from_secs(8));
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        let process: Value = serde_json::from_str(
+            fs::read_to_string(evidence.join("process.jsonl"))
+                .unwrap()
+                .lines()
+                .last()
+                .unwrap(),
+        )
+        .unwrap();
+        let pid = process["pid"].as_u64().unwrap() as libc::pid_t;
+        owned = Some(pid);
+        assert!(Path::new(&format!("/proc/{pid}")).exists());
+        let workspace = Path::new(process["cwd"].as_str().unwrap());
+        assert!(workspace.is_dir());
+        let memory = mluva_audio::volatile::memory_backed(workspace);
+        let private = workspace.metadata().unwrap().permissions().mode() & 0o777 == 0o700;
+        fs::write(
+            workspace.join("private-image-canary.png"),
+            b"private test image",
+        )
+        .unwrap();
+        let foreign = evidence.join("unrelated-image.png");
+        fs::write(&foreign, b"preserve unrelated bytes").unwrap();
+        std::os::unix::fs::symlink(&foreign, workspace.join("foreign-image.png")).unwrap();
+        for task in fs::read_dir(format!("/proc/{}/task", parent.id())).unwrap() {
+            let task = task.unwrap().path();
+            for child in fs::read_to_string(task.join("children"))
+                .unwrap()
+                .split_whitespace()
+            {
+                let child = child.parse::<libc::pid_t>().unwrap();
+                let arguments = fs::read(format!("/proc/{child}/cmdline")).unwrap_or_default();
+                let arguments: Vec<_> = arguments
+                    .split(|byte| *byte == 0)
+                    .filter(|part| !part.is_empty())
+                    .collect();
+                if arguments.len() == 2 && arguments[1] == workspace.as_os_str().as_encoded_bytes()
+                {
+                    assert!(cleanup.replace(child).is_none());
+                }
+            }
+        }
+        parent.kill().unwrap();
+        assert!(!parent.wait().unwrap().success());
+        let before = Instant::now();
+        let mut status = 0;
+        loop {
+            let reaped = unsafe { libc::waitpid(pid, &mut status, libc::WNOHANG) };
+            if reaped == pid {
+                assert_eq!(libc::WTERMSIG(status), libc::SIGKILL);
+                break;
+            }
+            if reaped < 0 {
+                let error = io::Error::last_os_error().raw_os_error();
+                assert!(
+                    matches!(error, Some(libc::ECHILD | libc::EINTR)),
+                    "waitpid: {error:?}"
+                );
+                // Bubblewrap may reap its child before this subreaper adopts it.
+                // Missing ownership alone is not evidence that it stopped.
+                if error == Some(libc::ECHILD) && !Path::new(&format!("/proc/{pid}")).exists() {
+                    break;
+                }
+            }
+            assert!(
+                before.elapsed() < Duration::from_secs(2),
+                "held rewrite outlived its crashed client"
+            );
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        assert!(!Path::new(&format!("/proc/{pid}")).exists());
+        owned = None;
+        let before = Instant::now();
+        while workspace.exists() {
+            assert!(
+                before.elapsed() < Duration::from_secs(2),
+                "private workspace outlived its crashed client"
+            );
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        assert_eq!(fs::read(&foreign).unwrap(), b"preserve unrelated bytes");
+        let janitor = cleanup.expect("workspace cleanup needs an independent owner");
+        assert!(memory && private);
+        let before = Instant::now();
+        loop {
+            let reaped = unsafe { libc::waitpid(janitor, &mut status, libc::WNOHANG) };
+            assert!(reaped >= 0);
+            if reaped == janitor {
+                break;
+            }
+            assert!(before.elapsed() < Duration::from_secs(2));
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        assert!(libc::WIFEXITED(status));
+        assert_eq!(libc::WEXITSTATUS(status), 0);
+        assert!(!Path::new(&format!("/proc/{janitor}")).exists());
+        cleanup = None;
+        println!(
+            "{}",
+            json!({"held_rewrite_reaped_after_client_crash":true,"private_workspace_removed":true})
+        );
+    }));
+    let _ = parent.kill();
+    let _ = parent.wait();
+    for pid in [owned, cleanup].into_iter().flatten() {
+        // Kill only this known adopted child, never a reused unrelated PID.
+        if unsafe { libc::waitpid(pid, std::ptr::null_mut(), libc::WNOHANG) } == 0 {
+            unsafe {
+                libc::kill(pid, libc::SIGKILL);
+                libc::waitpid(pid, std::ptr::null_mut(), 0);
+            }
+        }
+    }
+    if let Err(error) = result {
+        std::panic::resume_unwind(error);
+    }
+}
+
 #[tokio::main(flavor = "multi_thread", worker_threads = 2)]
 async fn main() {
     let args = std::env::args().collect::<Vec<_>>();
-    let path = if args[1] == "app-server" {
+    if args[1] == "exec-installed" {
+        let spec: Value = serde_json::from_slice(&fs::read(&args[2]).unwrap()).unwrap();
+        let arguments = &args[4..];
+        let kind = if arguments.iter().any(|arg| arg == "app-server") {
+            "process.jsonl"
+        } else {
+            "catalog.jsonl"
+        };
+        record(
+            &Path::new(spec["evidence"].as_str().unwrap()).join(kind),
+            &json!({"pid":std::process::id(),"cwd":std::env::current_dir().unwrap()}),
+        );
+        let mut command = std::process::Command::new(&args[3]);
+        command.args(arguments);
+        for value in spec["config"].as_array().unwrap() {
+            command.args(["-c", value.as_str().unwrap()]);
+        }
+        use std::os::unix::process::CommandExt;
+        panic!("installed CLI exec failed: {}", command.exec());
+    }
+    if args.len() == 2 {
+        let gate = std::env::current_exe()
+            .unwrap()
+            .with_file_name("cleanup-gate.json");
+        if gate.is_file() {
+            let config: Value = serde_json::from_slice(&fs::read(gate).unwrap()).unwrap();
+            let evidence = Path::new(config["evidence"].as_str().unwrap());
+            mluva_core::private_files::atomic_write_private(
+                &evidence.join("cleanup-started.json"),
+                &serde_json::to_vec(&json!({"pid":std::process::id(),"directory":args[1]}))
+                    .unwrap(),
+            )
+            .unwrap();
+            while !evidence.join("cleanup.release").exists() {
+                std::thread::sleep(Duration::from_millis(2));
+            }
+        }
+        if mluva_audio::volatile::run_cleanup(Path::new(&args[1])).is_err() {
+            std::process::exit(1);
+        }
+        return;
+    }
+    if args.last().is_some_and(|arg| arg == "observe-parent-crash") {
+        observe_parent_crash(Path::new(&args[2]));
+        return;
+    }
+    let path = if args[1] == "app-server" || args[1] == "debug" {
         PathBuf::from(std::env::var_os("CODEX_HOME").unwrap()).join("fixture.json")
     } else {
         PathBuf::from(&args[2])
     };
     let spec: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    if args.windows(2).any(|pair| pair == ["debug", "models"]) {
+        let evidence = PathBuf::from(spec["evidence"].as_str().unwrap());
+        let scenario = spec["scenario"].as_str().unwrap_or("clean");
+        mluva_core::private_files::atomic_write_private(
+            &evidence.join("catalog-started.json"),
+            &serde_json::to_vec(
+                &json!({"pid":std::process::id(),"workspace":std::env::current_dir().unwrap()}),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        if scenario.starts_with("catalog-held") {
+            loop {
+                std::thread::sleep(Duration::from_millis(2));
+            }
+        }
+        if scenario == "catalog-invalid" {
+            send(json!({"models":[]}));
+            return;
+        }
+        if scenario == "catalog-oversized" {
+            send(json!({"models":[],"oversized":"x".repeat(5*1024*1024)}));
+            return;
+        }
+        send(
+            json!({"models":[{"slug":"fixture-model","description":"preserve metadata","tool_mode":"code_mode_only","multi_agent_version":"v2","experimental_supported_tools":["clock"]}]}),
+        );
+        return;
+    }
     if args[1] == "serve" || args[1] == "app-server" {
+        if let Some(catalog) = args
+            .iter()
+            .find_map(|arg| arg.strip_prefix("model_catalog_json="))
+        {
+            let path: PathBuf = serde_json::from_str(catalog).unwrap();
+            let value: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+            assert_eq!(
+                value,
+                json!({"models":[{"slug":"fixture-model","description":"preserve metadata","tool_mode":"direct","multi_agent_version":"disabled","experimental_supported_tools":[]}]})
+            );
+            assert_eq!(
+                fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+                0o600
+            );
+            assert_eq!(
+                path.parent(),
+                Some(std::env::current_dir().unwrap().as_path())
+            );
+            assert!(mluva_audio::volatile::memory_backed(path.parent().unwrap()));
+        }
         server(&spec);
         return;
     }
@@ -322,6 +562,78 @@ async fn main() {
     let mut deltas = vec![];
     let mut callback = |text: &str| deltas.push(text.to_owned());
     let value = match operation {
+        "catalog-failure" => {
+            assert_eq!(
+                unsafe { libc::prctl(libc::PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) },
+                0
+            );
+            let starting_client = client.clone();
+            let pending = tokio::spawn(async move { starting_client.list_models().await });
+            let evidence = PathBuf::from(spec["evidence"].as_str().unwrap());
+            let deadline = tokio::time::Instant::now() + Duration::from_secs(3);
+            while !evidence.join("catalog-started.json").exists() {
+                assert!(tokio::time::Instant::now() < deadline);
+                tokio::time::sleep(Duration::from_millis(2)).await;
+            }
+            let metadata: Value =
+                serde_json::from_slice(&fs::read(evidence.join("catalog-started.json")).unwrap())
+                    .unwrap();
+            if spec["scenario"] == "catalog-held-cancel" {
+                client.cancel();
+            }
+            let value = result(pending.await.unwrap());
+            client.close().await;
+            let pid = metadata["pid"].as_i64().unwrap() as libc::pid_t;
+            while Path::new(&format!("/proc/{pid}")).exists() {
+                let mut status = 0;
+                let _ = unsafe { libc::waitpid(pid, &mut status, libc::WNOHANG) };
+                assert!(tokio::time::Instant::now() < deadline);
+                tokio::time::sleep(Duration::from_millis(2)).await;
+            }
+            json!({"start":value,"workspace_removed":!Path::new(metadata["workspace"].as_str().unwrap()).exists(),"snapshot_reaped":true,"server_not_started":!evidence.join("process.jsonl").exists()})
+        }
+        "cancel-workspace-startup" => {
+            let evidence = PathBuf::from(spec["evidence"].as_str().unwrap());
+            let starting_client = client.clone();
+            let starting = tokio::spawn(async move { starting_client.start().await });
+            let deadline = tokio::time::Instant::now() + Duration::from_secs(3);
+            while !evidence.join("cleanup-started.json").exists() {
+                assert!(tokio::time::Instant::now() < deadline);
+                tokio::time::sleep(Duration::from_millis(2)).await;
+            }
+            let cleanup: Value =
+                serde_json::from_slice(&fs::read(evidence.join("cleanup-started.json")).unwrap())
+                    .unwrap();
+            client.cancel();
+            let closing_client = client.clone();
+            let mut closing = tokio::spawn(async move { closing_client.close().await });
+            let waited = tokio::time::timeout(Duration::from_millis(50), &mut closing)
+                .await
+                .is_err();
+            // Release even on the negative route so a failed assertion cannot
+            // strand this private external readiness endpoint.
+            fs::write(evidence.join("cleanup.release"), []).unwrap();
+            let cancelled = result(starting.await.unwrap());
+            if waited {
+                closing.await.unwrap();
+            }
+            json!({"waited_for_setup":waited,"directory_removed":!Path::new(cleanup["directory"].as_str().unwrap()).exists(),
+                "helper_reaped":!Path::new(&format!("/proc/{}", cleanup["pid"].as_u64().unwrap())).exists(),
+                "server_not_started":!evidence.join("process.jsonl").exists(),"cancelled_result":cancelled})
+        }
+        "park-for-parent-crash" => result(
+            client
+                .transform(
+                    spec["crash_prompt"].as_str().unwrap(),
+                    Path::new("/never-use-client-cwd"),
+                    RewriteOptions {
+                        model: Some("fixture-model"),
+                        ..Default::default()
+                    },
+                    None,
+                )
+                .await,
+        ),
         "catalog" => result(client.list_models().await),
         "resolve" => result(client.resolve_model(spec["model"].as_str()).await),
         "cancel-before" => {

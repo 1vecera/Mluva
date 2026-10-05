@@ -632,6 +632,7 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         .chain(segments["cases"].as_array().unwrap())
     {
         let name = case["name"].as_str().unwrap();
+        let capture_began_at = chrono::Utc::now();
         let memory_before = memory_entries();
         let directory = tempfile::tempdir_in(&root).unwrap();
         let endpoint = directory.path().join("endpoint");
@@ -768,15 +769,8 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         let outcome = Rc::new(RefCell::new(Value::Null));
         let failure = Rc::new(RefCell::new(Value::Null));
         let last_audio = Rc::new(RefCell::new(None::<PathBuf>));
-        let (
-            creating_workflow,
-            creating_audio,
-            creating_recordings,
-            creating_config,
-            creating_cleanup,
-        ) = (
+        let (creating_workflow, creating_recordings, creating_config, creating_cleanup) = (
             workflow.clone(),
-            last_audio.clone(),
             recordings.clone(),
             config.clone(),
             cleanup.clone(),
@@ -810,8 +804,6 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
                         ..Default::default()
                     },
                 )?;
-                *creating_audio.borrow_mut() =
-                    Some(creating_recordings.join(format!("{}.wav", session.identifier)));
                 Ok(CaptureLaunch {
                     session,
                     delivery_target: None,
@@ -853,6 +845,20 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
         let mut index = 0;
         let mut compare = |stage: &str| {
             assert_eq!(stages[index]["stage"], stage);
+            if let Ok(files) = fs::read_dir(&recordings)
+                && let Some(path) = files
+                    .filter_map(Result::ok)
+                    .map(|entry| entry.path())
+                    .find(|path| path.extension().is_some_and(|extension| extension == "wav"))
+            {
+                let stamp = path.file_stem().unwrap().to_str().unwrap();
+                assert_eq!(stamp.len(), 21, "{name}: released UTC audio filename");
+                let captured = chrono::NaiveDateTime::parse_from_str(stamp, "%Y%m%dT%H%M%S%6f")
+                    .expect("released recording filenames contain six fractional UTC digits")
+                    .and_utc();
+                assert!(captured >= capture_began_at && captured <= chrono::Utc::now());
+                *last_audio.borrow_mut() = Some(path);
+            }
             check(
                 &root,
                 name,

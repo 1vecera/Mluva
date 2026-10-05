@@ -432,7 +432,10 @@ impl CaptureSession {
             .ok_or("This capture has no audio destination.")?;
         state.audio_path = Some(
             self.recorder
-                .prepare_destination(storage, format!("{}.wav", self.identifier))
+                .prepare_destination(
+                    storage,
+                    format!("{}.wav", chrono::Utc::now().format("%Y%m%dT%H%M%S%6f")),
+                )
                 .await
                 .map_err(|error| error.to_string())?,
         );
