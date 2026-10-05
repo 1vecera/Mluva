@@ -1,8 +1,38 @@
 # Released native performance and recording observations
 
-Published 2.0.0 starts sooner and uses less resident memory than immutable 1.6.0 in this same-host warm-cache sample. Five sampled UI endpoints have matching rendered output after restoring the released Capture shortcut guidance; their timing distributions overlap and do not establish a UI-speed improvement. Actual ONNX clients reach their first recognition sooner, while resident ONNX and Qwen measurements establish no general decoder speedup. Paced CPU Dictation now has matching final windows, persisted History and retained audio for all three retained models. Complete parity and broader capture/processing performance remain unfinished.
+Published/installed 2.0.2 starts sooner and uses less resident memory than immutable 1.6.0 in the current same-host warm-cache sample. Five sampled UI endpoints preserve complete reference frames and accessible names/roles, without a general UI-speed improvement; Personalization has a higher measured median. The older 2.0.0 and candidate measurements below remain unchanged. Actual ONNX clients reach their first recognition sooner in those earlier samples, while resident ONNX and Qwen measurements establish no general decoder speedup. Complete parity and broader current-package capture/processing performance remain unfinished.
 
-5 October 2026: the separate [worker lifecycle follow-up](../rust-worker-lifecycle/README.md) verifies active ONNX recognition cancellation/recovery and repairs a real Qwen parent-crash runtime/key leak. Real CPU/GPU Qwen outputs still match their independent oracles. A fresh canonical Qwen application/reference pair preserves final frames, History and WAV bytes after the repair; its timing observations are behavior checks, not a new performance series. First intermediate preview strings differ in that pair, so transient-preview parity is not claimed. Installed/published 2.0.0 and all historical performance measurements below remain unchanged.
+## Published 2.0.2 renewal
+
+The [current measurement report](current-release.json) checks the exact published/installed app, SHA-256 `37e6628f0e29abe1b147eaeb976501ab34e1411ccefecab9efa14205c4f9bca0`, from released commit `c6e1a2a4afb68cad058a2d7e71b93a2e5f67b05e`. Its complete receipt matches the installed receipt, SHA-256 `ef3c339d528bbc2c3126077cf7b994ba976a4d0320ca69b49f1d7653f046e336`. Both experiments verify all 520 native payload hashes/four links and all 91 immutable reference files before launching, using the same host, renderer and private boundaries described below. No application, production/test code, dependency, installed file or old measurement/oracle changes for this renewal; the external observer remains ignored scratch.
+
+Each experiment excludes one warmup per version, then measures six interleaved fresh processes per version in alternating order. Startup uses the same frozen normal-launch configuration, with welcome complete and inference disabled. Native has its actual collapsed Rewrite default with no seeded preference; source retains its original open controls. This comparison includes that intentional UX change and does not isolate the effect of the programming language. It measures warm filesystem caches, not a cold boot or first recording readiness.
+
+| Startup/idle metric | Immutable Python 1.6.0 | Published Rust 2.0.2 |
+| --- | --- | --- |
+| First visible window, median (range) | 501 ms (457–550) | 279 ms (248–321) |
+| D-Bus ownership, median (range) | 242 ms (224–251) | 45 ms (40–54) |
+| Process-tree RSS, median | 249.7 MiB | 225.9 MiB |
+| Process-tree PSS, median | 98.1 MiB | 78.9 MiB |
+| Idle CPU, observed range of one core | 0% | 0% |
+
+Median first-window latency is 44.4% lower and RSS 9.5% lower in this sample. PSS depends on shared pages; short tick-quantized idle samples support no CPU improvement claim. No cache is dropped or other host work suspended. Launcher-wrapper overhead is outside the observation; timing begins before the real application process is created.
+
+The separate interaction experiment explicitly expands native Rewrite through its private 0600 preference to retain the historical profile. Its five destination pages/dialogs need no viewport adjustment: every full 1100×800 RGB frame and each ordered named accessibility inventory matches the original reference targets unchanged. Commands retains both independently collected source raster variants described below. The source-only excluded warmup calibrates PNG/raw agreement; measured inputs have no fixed settling wait, no crop, projection, mask or tolerance.
+
+| Input to complete reference frame, median (range) | Immutable Python 1.6.0 | Published Rust 2.0.2 |
+| --- | --- | --- |
+| Open History | 86 ms (69–100) | 89 ms (71–100) |
+| Click Capture in Settings | 504 ms (493–550) | 505 ms (495–530) |
+| Open Personalization | 89 ms (63–110) | 127 ms (96–157) |
+| Open Meeting | 87 ms (68–109) | 96 ms (70–98) |
+| Press Ctrl+P | 655 ms (577–711) | 682 ms (595–737) |
+
+All observed ranges overlap, and these measurements do not demonstrate a general interaction improvement. Personalization has a higher frame median and public-action dispatch median (2.15 → 12.36 ms). Image readback medians vary from about 35–42 ms per endpoint, with a further 2 ms polling delay; timings include ordinary toolkit transitions. Other host work remains active, and the interaction series has higher startup/readback latency than the earlier startup series. Neither these observations nor the old candidate measurements establish the cause of those differences or certify every interaction.
+
+All 28 application processes exit normally through public Quit, release the application bus name and have empty application logs. The independent report audit recomputes every summary from original rows, verifies both profile choices, retains all warmups and validates 42 file receipts. Accepted raw roots are `tmp/current-release-performance/startup/session.yhWutM/` and `tmp/current-release-performance/interactions/session.bb8Quu/`, with their adjacent logs. The preceding passing two-process calibration is excluded; a missing private Openbox PATH entry stopped an earlier preflight before a session/app launch and is not a timing sample. Current recording/Stop/Live/inference, physical devices/keys, live Wayland permissions, platform/theme/scale and complete performance acceptance remain open.
+
+Earlier 5 October 2026 checkpoint: the separate [worker lifecycle follow-up](../rust-worker-lifecycle/README.md) verifies active ONNX recognition cancellation/recovery and repairs a real Qwen parent-crash runtime/key leak. Real CPU/GPU Qwen outputs still match their independent oracles. A fresh canonical Qwen application/reference pair preserves final frames, History and WAV bytes after the repair; its timing observations are behavior checks, not a new performance series. First intermediate preview strings differ in that pair, so transient-preview parity is not claimed. Installed/published 2.0.0 was unchanged at that checkpoint; all historical performance measurements below remain intact.
 
 ## Published 2.0.0 startup
 

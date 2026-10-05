@@ -1,0 +1,911 @@
+{
+  "observation_date_utc": "2026-10-05",
+  "scope": "Published/installed 2.0.2 warm-cache startup/idle and five sampled interaction endpoints; not complete performance or parity acceptance",
+  "host": {
+    "cpu": "Intel Core i7-12700H",
+    "memory_total_kib": 65526392,
+    "kernel": "7.1.9-arch1-2",
+    "gtk": "4.22.4",
+    "libadwaita": "1.9.3",
+    "pango": "1.58.2",
+    "reference_python": "3.14.7"
+  },
+  "method": {
+    "launches_per_experiment": 14,
+    "excluded_warmups_per_version": 1,
+    "measured_fresh_processes_per_version": 6,
+    "order": "alternating Python/Rust and Rust/Python pairs",
+    "idle_settle_seconds": 2,
+    "idle_sample_seconds": 3,
+    "display": "private Xvfb/Openbox X11, scale 1, Cairo/software rendering",
+    "isolated_boundaries": [
+      "network",
+      "PID",
+      "devices",
+      "HOME/XDG",
+      "display",
+      "session bus",
+      "accessibility bus"
+    ],
+    "config": "same frozen normal-hide-reopen profile; welcome complete; compatible speech at private loopback port 1; rewrite disabled; no content or inference",
+    "startup_rewrite_profile": "source always-open; current native actual collapsed default without a seeded preference",
+    "interaction_rewrite_profile": "native explicit expanded private preference, mode 0600; source unchanged",
+    "interaction_frame_geometry": [
+      1100,
+      800,
+      3
+    ],
+    "interaction_frame_comparison": "complete exact RGB frames and excluded-warmup ordered named accessibility roles; no crop, projection, mask or tolerance",
+    "commands": "both previously independently observed complete source raster variants retained",
+    "caret": "blinking disabled identically in private GTK settings; default toolkit transitions retained",
+    "measurement_limits": [
+      "warm filesystem caches, no cold-boot claim",
+      "other host work not suspended",
+      "first visible window and D-Bus ownership are not recording readiness",
+      "startup default includes intentional Rewrite UX change, no pure-language causal claim",
+      "input-to-frame includes default transitions and image readback",
+      "tick-quantized short idle CPU and shared-page PSS",
+      "no real audio, provider account, GPU inference, host input or live Wayland permission"
+    ]
+  },
+  "experiments": {
+    "startup": {
+      "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+      "native_commit": "c6e1a2a4afb68cad058a2d7e71b93a2e5f67b05e",
+      "native_sha256": "37e6628f0e29abe1b147eaeb976501ab34e1411ccefecab9efa14205c4f9bca0",
+      "scope": "startup/idle only",
+      "native_version": "2.0.2",
+      "expanded_rewrite_profile": false,
+      "native_profile_note": "actual collapsed 2.0.2 default, no seeded Rewrite choice",
+      "diagnostics_only": false,
+      "preparation_gap_seconds": 0.15,
+      "reference_command_variants": [],
+      "independent_command_reference_frames": null,
+      "native_receipt_sha256": "ef3c339d528bbc2c3126077cf7b994ba976a4d0320ca69b49f1d7653f046e336",
+      "verified_native_files": 520,
+      "verified_reference_files": 91,
+      "reference_inputs_sha256": "191441a8feea958939692047b6d4094f1daba4dd99a838247ade0899391b2f0e",
+      "observer_sha256": "931a9ef82d2acac32c30e7bee5026019699be27bd4c5d35f4a203ecf68a7f010",
+      "kernel": "7.1.9-arch1-2",
+      "native_bundle_path": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/local-upgrade-2.0.2/candidate-final",
+      "native_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "python": "3.14.7",
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "none",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "litellm",
+        "transcription_base_url": "http://127.0.0.1:1/v1",
+        "transcription_api_key_env": "BOOTSTRAP_NO_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": true,
+        "auto_copy_rewrite": true,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": true,
+        "time_format": "24h",
+        "live_rewrite_enabled": false,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": false,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "failures",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "actions": [
+        "cancel",
+        "commands",
+        "global-record",
+        "history",
+        "latest",
+        "meeting",
+        "personalization",
+        "quit",
+        "record",
+        "review",
+        "screenshot",
+        "settings",
+        "status"
+      ],
+      "rows": [
+        {"variant":"python","round":-1,"warmup":true,"bus_ms":749.198728997726,"visible_ms":1031.3510080013657,"rss_kib":273528,"pss_kib":118153,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":64.39922099525575,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":-1,"warmup":true,"bus_ms":44.44441899249796,"visible_ms":267.93204399291426,"rss_kib":243992,"pss_kib":93402,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":65.82948300638236,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":0,"warmup":false,"bus_ms":251.2470170040615,"visible_ms":550.2407869935269,"rss_kib":256192,"pss_kib":100899,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":32.13852399494499,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":0,"warmup":false,"bus_ms":41.34448998956941,"visible_ms":299.565523993806,"rss_kib":230744,"pss_kib":79927,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":33.648006996372715,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":1,"warmup":false,"bus_ms":40.35665499395691,"visible_ms":247.95157999324147,"rss_kib":231628,"pss_kib":80737,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":33.902431998285465,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":1,"warmup":false,"bus_ms":223.9018880063668,"visible_ms":456.93565800320357,"rss_kib":256992,"pss_kib":101879,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":64.84393498976715,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":2,"warmup":false,"bus_ms":233.3175130042946,"visible_ms":476.36786800285336,"rss_kib":256280,"pss_kib":100890,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":64.73900300625246,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":2,"warmup":false,"bus_ms":44.04962400440127,"visible_ms":249.39159300993197,"rss_kib":231412,"pss_kib":80797,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":34.49389699380845,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":3,"warmup":false,"bus_ms":46.757143005379476,"visible_ms":273.5635740100406,"rss_kib":231320,"pss_kib":80808,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":34.19993900752161,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":3,"warmup":false,"bus_ms":245.056277999538,"visible_ms":510.02109301043674,"rss_kib":255100,"pss_kib":99966,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":64.56538999918848,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":4,"warmup":false,"bus_ms":238.12668400933035,"visible_ms":497.75694400887005,"rss_kib":254636,"pss_kib":99276,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":65.58666699856985,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":4,"warmup":false,"bus_ms":48.831566993612796,"visible_ms":283.5957409988623,"rss_kib":231404,"pss_kib":80941,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":66.78206499782391,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":5,"warmup":false,"bus_ms":53.5701729968423,"visible_ms":321.3642219925532,"rss_kib":230196,"pss_kib":79749,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":35.15334198891651,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":5,"warmup":false,"bus_ms":245.38342699815985,"visible_ms":503.59530300193,"rss_kib":254724,"pss_kib":99258,"processes":1,"idle_cpu_percent":0.0,"interactions":{},"quit_ms":64.7860640019644,"application_exit_code":0,"application_log_bytes":0}
+      ],
+      "targets": {},
+      "summary": {
+        "python": {
+          "visible_ms": {
+            "median": 500.6761235054,
+            "minimum": 456.93565800320357,
+            "maximum": 550.2407869935269
+          },
+          "bus_ms": {
+            "median": 241.59148100443417,
+            "minimum": 223.9018880063668,
+            "maximum": 251.2470170040615
+          },
+          "rss_kib": {
+            "median": 255646.0,
+            "minimum": 254636,
+            "maximum": 256992
+          },
+          "pss_kib": {
+            "median": 100428.0,
+            "minimum": 99258,
+            "maximum": 101879
+          },
+          "idle_cpu_percent": {
+            "median": 0.0,
+            "minimum": 0.0,
+            "maximum": 0.0
+          },
+          "quit_ms": {
+            "median": 64.76253350410843,
+            "minimum": 32.13852399494499,
+            "maximum": 65.58666699856985
+          },
+          "interactions": {}
+        },
+        "rust": {
+          "visible_ms": {
+            "median": 278.57965750445146,
+            "minimum": 247.95157999324147,
+            "maximum": 321.3642219925532
+          },
+          "bus_ms": {
+            "median": 45.40338350489037,
+            "minimum": 40.35665499395691,
+            "maximum": 53.5701729968423
+          },
+          "rss_kib": {
+            "median": 231362.0,
+            "minimum": 230196,
+            "maximum": 231628
+          },
+          "pss_kib": {
+            "median": 80767.0,
+            "minimum": 79749,
+            "maximum": 80941
+          },
+          "idle_cpu_percent": {
+            "median": 0.0,
+            "minimum": 0.0,
+            "maximum": 0.0
+          },
+          "quit_ms": {
+            "median": 34.34691800066503,
+            "minimum": 33.648006996372715,
+            "maximum": 66.78206499782391
+          },
+          "interactions": {}
+        }
+      }
+    },
+    "interactions": {
+      "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+      "native_commit": "c6e1a2a4afb68cad058a2d7e71b93a2e5f67b05e",
+      "native_sha256": "37e6628f0e29abe1b147eaeb976501ab34e1411ccefecab9efa14205c4f9bca0",
+      "scope": "startup/idle and five input-to-full-frame endpoints",
+      "native_version": "2.0.2",
+      "expanded_rewrite_profile": true,
+      "native_profile_note": "explicit historical expanded Rewrite profile",
+      "diagnostics_only": false,
+      "preparation_gap_seconds": 0.8,
+      "reference_command_variants": [],
+      "independent_command_reference_frames": {
+        "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+        "reference_inputs_sha256": "191441a8feea958939692047b6d4094f1daba4dd99a838247ade0899391b2f0e",
+        "geometry": [
+          1100,
+          800,
+          3
+        ],
+        "frames": [
+          {
+            "file": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/command-reference-render-variance/session.1rJD4V/release-performance/reference-commands.png",
+            "format": "png",
+            "sha256": "f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303",
+            "source": "reference-only twenty-fresh-process comparison"
+          },
+          {
+            "file": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/source-command-timed-trace/session.0IKqQo/release-performance/trace-python-7-commands-1.1.rgb",
+            "format": "rgb",
+            "sha256": "cbcf84864af57728d1ef403b1354e6ae6731df5b9c72f491d697aa2415978013",
+            "source": "unchanged reference-only timed trace at 1.166315274 seconds"
+          }
+        ]
+      },
+      "native_receipt_sha256": "ef3c339d528bbc2c3126077cf7b994ba976a4d0320ca69b49f1d7653f046e336",
+      "verified_native_files": 520,
+      "verified_reference_files": 91,
+      "reference_inputs_sha256": "191441a8feea958939692047b6d4094f1daba4dd99a838247ade0899391b2f0e",
+      "observer_sha256": "931a9ef82d2acac32c30e7bee5026019699be27bd4c5d35f4a203ecf68a7f010",
+      "kernel": "7.1.9-arch1-2",
+      "native_bundle_path": "/home/vecera/.claude/worktrees/mluva-rust-port/tmp/local-upgrade-2.0.2/candidate-final",
+      "native_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "python": "3.14.7",
+      "config": {
+        "language_code": "eng",
+        "transcription_model": "scribe_v2",
+        "codex_model": null,
+        "rewrite_model": null,
+        "rewrite_fast_mode": false,
+        "rewrite_reasoning_effort": null,
+        "litellm_reasoning_effort": null,
+        "rewrite_provider": "none",
+        "litellm_base_url": "http://localhost:4000/v1",
+        "litellm_model": null,
+        "litellm_api_key_env": "LITELLM_API_KEY",
+        "transcription_provider": "litellm",
+        "transcription_base_url": "http://127.0.0.1:1/v1",
+        "transcription_api_key_env": "BOOTSTRAP_NO_KEY",
+        "transcription_remote_model": "whisper",
+        "local_model": "qwen3-1.7b",
+        "local_device": "cpu",
+        "transcription_chunk_seconds": 8,
+        "auto_copy_dictation": true,
+        "auto_copy_rewrite": true,
+        "show_copy_action": true,
+        "show_save_action": true,
+        "review_timeout_seconds": 4,
+        "smooth_scrolling": true,
+        "scroll_duration_ms": 800,
+        "scroll_lookahead_lines": 2,
+        "widget_position": "bottom-center",
+        "widget_lines": 5,
+        "widget_opacity": 82,
+        "history_sidebar_visible": false,
+        "welcome_completed": true,
+        "time_format": "24h",
+        "live_rewrite_enabled": false,
+        "live_rewrite_continuous": true,
+        "live_rewrite_template": "grilling",
+        "live_rewrite_custom_instructions": "",
+        "live_rewrite_min_characters": 160,
+        "live_rewrite_interval_seconds": 4,
+        "microphone_target": null,
+        "system_audio_target": null,
+        "default_mode": "dictation",
+        "global_recording_key": "F9",
+        "auto_paste": false,
+        "automatic_titles": false,
+        "spoken_commands_enabled": true,
+        "remember_per_application": false,
+        "audio_retention_policy": "failures",
+        "incognito_mode": false,
+        "history_retention_days": 0
+      },
+      "actions": [
+        "cancel",
+        "commands",
+        "global-record",
+        "history",
+        "latest",
+        "meeting",
+        "personalization",
+        "quit",
+        "record",
+        "review",
+        "screenshot",
+        "settings",
+        "status"
+      ],
+      "rows": [
+        {"variant":"python","round":-1,"warmup":true,"bus_ms":1136.2001649977174,"visible_ms":1509.8313390044495,"rss_kib":274472,"pss_kib":119145,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":null,"dispatch_ms":2.359306992730126,"readback_ms":27.040316999773495,"polls":null},"capture-settings":{"render_ms":null,"dispatch_ms":0.8586269977968186,"readback_ms":29.70964000269305,"polls":null},"personalization":{"render_ms":null,"dispatch_ms":1.2896639964310452,"readback_ms":31.580271999700926,"polls":null},"meeting":{"render_ms":null,"dispatch_ms":2.6755370054161176,"readback_ms":30.57267599797342,"polls":null},"commands":{"render_ms":null,"dispatch_ms":3.0180769972503185,"readback_ms":34.82599600101821,"polls":null}},"quit_ms":65.17960299970582,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":-1,"warmup":true,"bus_ms":48.76229100045748,"visible_ms":327.1890870091738,"rss_kib":243744,"pss_kib":93096,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":58.88872999639716,"dispatch_ms":2.2001750039635226,"readback_ms":25.396665005246177,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":503.40257099014707,"dispatch_ms":0.4303129971958697,"readback_ms":26.390824001282454,"polls":16,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":82.64468499692157,"dispatch_ms":6.139431992778555,"readback_ms":32.259158993838355,"polls":2,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":71.183412001119,"dispatch_ms":2.474620006978512,"readback_ms":31.092161007109098,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":575.4957010067301,"dispatch_ms":2.16447000275366,"readback_ms":28.844503991422243,"polls":17,"matched_frame_sha256":"f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303"}},"quit_ms":68.79386000218801,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":0,"warmup":false,"bus_ms":267.01426999352407,"visible_ms":562.3918469937053,"rss_kib":256180,"pss_kib":100920,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":68.5317129973555,"dispatch_ms":3.0051599896978587,"readback_ms":28.924695012392476,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":501.6294899978675,"dispatch_ms":0.2690779947442934,"readback_ms":30.93067200097721,"polls":16,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":62.74866200692486,"dispatch_ms":1.6038570029195398,"readback_ms":28.94062599807512,"polls":2,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":67.76838599762414,"dispatch_ms":1.8028579943347722,"readback_ms":28.625288003240712,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":577.2543140046764,"dispatch_ms":2.864898997358978,"readback_ms":24.440307010081597,"polls":18,"matched_frame_sha256":"f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303"}},"quit_ms":64.48542900034226,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":0,"warmup":false,"bus_ms":40.309632997377776,"visible_ms":244.03878199518658,"rss_kib":231556,"pss_kib":80914,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":71.03755000571255,"dispatch_ms":3.09017401013989,"readback_ms":28.001949001918547,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":495.95348999719135,"dispatch_ms":0.38138299714773893,"readback_ms":33.96565500588622,"polls":13,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":96.6575170023134,"dispatch_ms":10.891836005612276,"readback_ms":39.90994500054512,"polls":2,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":70.46007199096493,"dispatch_ms":1.9039939943468198,"readback_ms":29.34576998814009,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":595.4651600040961,"dispatch_ms":3.390614001546055,"readback_ms":40.16486399632413,"polls":16,"matched_frame_sha256":"f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303"}},"quit_ms":68.64438799675554,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":1,"warmup":false,"bus_ms":59.610793003230356,"visible_ms":315.15989800391253,"rss_kib":231768,"pss_kib":81076,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":100.14336800668389,"dispatch_ms":3.477289996226318,"readback_ms":48.06760299834423,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":509.35682299314067,"dispatch_ms":0.595470002735965,"readback_ms":39.124406001064926,"polls":11,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":147.47079998778645,"dispatch_ms":8.285600997623987,"readback_ms":48.73917200893629,"polls":3,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":96.84513900720049,"dispatch_ms":2.7009129989892244,"readback_ms":40.47223700035829,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":692.5905870011775,"dispatch_ms":3.1620060035493225,"readback_ms":46.30777399870567,"polls":14,"matched_frame_sha256":"f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303"}},"quit_ms":119.86693799553905,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":1,"warmup":false,"bus_ms":379.8619389999658,"visible_ms":856.1523829994258,"rss_kib":257080,"pss_kib":101615,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":83.14661600161344,"dispatch_ms":4.036090002045967,"readback_ms":36.50283000024501,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":493.11166600091383,"dispatch_ms":0.3720130043802783,"readback_ms":40.123002996551804,"polls":11,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":93.20739599934313,"dispatch_ms":2.3362169886240736,"readback_ms":41.84098799305502,"polls":2,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":93.08130100544076,"dispatch_ms":3.058387999772094,"readback_ms":40.28139400179498,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":659.2522059945622,"dispatch_ms":4.06811099674087,"readback_ms":32.72224600368645,"polls":17,"matched_frame_sha256":"f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303"}},"quit_ms":64.56932899891399,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":2,"warmup":false,"bus_ms":323.26995200128295,"visible_ms":683.9143599936506,"rss_kib":256344,"pss_kib":100974,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":85.204117000103,"dispatch_ms":3.7633829924743623,"readback_ms":37.166617999901064,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":492.94700399332214,"dispatch_ms":0.3900640003848821,"readback_ms":37.554171998635866,"polls":12,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":110.48627400305122,"dispatch_ms":1.8059550056932494,"readback_ms":54.799334990093485,"polls":2,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":80.45989299716894,"dispatch_ms":2.325262001249939,"readback_ms":35.60400700371247,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":640.5361090000952,"dispatch_ms":3.941060000215657,"readback_ms":33.83099900383968,"polls":16,"matched_frame_sha256":"cbcf84864af57728d1ef403b1354e6ae6731df5b9c72f491d697aa2415978013"}},"quit_ms":64.69043799734209,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":2,"warmup":false,"bus_ms":64.87959600053728,"visible_ms":412.06309299741406,"rss_kib":232472,"pss_kib":81984,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":86.45768499991391,"dispatch_ms":3.5939480003435165,"readback_ms":38.53776499454398,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":501.0332730016671,"dispatch_ms":0.5123119917698205,"readback_ms":42.09773500042502,"polls":12,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":107.22491699561942,"dispatch_ms":13.933924987213686,"readback_ms":48.484872007975355,"polls":2,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":97.69211099774111,"dispatch_ms":2.2294340014923364,"readback_ms":42.161763994954526,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":660.0400820025243,"dispatch_ms":4.483162992983125,"readback_ms":39.13347900379449,"polls":14,"matched_frame_sha256":"f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303"}},"quit_ms":68.67445900570601,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":3,"warmup":false,"bus_ms":70.01179899089038,"visible_ms":443.0093400005717,"rss_kib":232028,"pss_kib":81118,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":80.8736930048326,"dispatch_ms":3.1467450025957078,"readback_ms":35.54520999023225,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":514.1276740032481,"dispatch_ms":0.9137640008702874,"readback_ms":35.67499000928365,"polls":13,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":95.70796600019094,"dispatch_ms":9.871614005533047,"readback_ms":40.16285699617583,"polls":2,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":93.48852600669488,"dispatch_ms":2.079545010928996,"readback_ms":39.61860500567127,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":736.6616539948154,"dispatch_ms":3.621814990765415,"readback_ms":47.37631999887526,"polls":15,"matched_frame_sha256":"f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303"}},"quit_ms":119.91233000298962,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":3,"warmup":false,"bus_ms":330.1027759880526,"visible_ms":675.418072991306,"rss_kib":256280,"pss_kib":100849,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":99.98499900393654,"dispatch_ms":4.249887002515607,"readback_ms":41.003061007359065,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":549.6570240065921,"dispatch_ms":0.8685520006110892,"readback_ms":40.351065996219404,"polls":14,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":101.72753701044712,"dispatch_ms":2.3664440086577088,"readback_ms":40.80028599128127,"polls":2,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":108.94739101058803,"dispatch_ms":3.1837770075071603,"readback_ms":52.812404013820924,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":679.4806139951106,"dispatch_ms":4.749302999698557,"readback_ms":36.747653008205816,"polls":15,"matched_frame_sha256":"cbcf84864af57728d1ef403b1354e6ae6731df5b9c72f491d697aa2415978013"}},"quit_ms":114.55669499991927,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":4,"warmup":false,"bus_ms":382.18184298602864,"visible_ms":817.4778019892983,"rss_kib":257292,"pss_kib":101845,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":87.1429859980708,"dispatch_ms":3.7148209958104417,"readback_ms":36.25365500920452,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":506.8419220042415,"dispatch_ms":0.5231290124356747,"readback_ms":30.817094011581503,"polls":14,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":83.87693300028332,"dispatch_ms":2.444924000883475,"readback_ms":37.01415199611802,"polls":2,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":80.87833199533634,"dispatch_ms":3.4914249990833923,"readback_ms":36.039847997017205,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":651.2131639901781,"dispatch_ms":4.746342994621955,"readback_ms":35.62883200356737,"polls":15,"matched_frame_sha256":"f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303"}},"quit_ms":64.91381498926785,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":4,"warmup":false,"bus_ms":71.42302999272943,"visible_ms":442.9571889922954,"rss_kib":231908,"pss_kib":81308,"processes":1,"idle_cpu_percent":0.3326213003405951,"interactions":{"history":{"render_ms":92.05208199273329,"dispatch_ms":4.106427004444413,"readback_ms":38.219009002204984,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":495.4228100104956,"dispatch_ms":0.45313600276131183,"readback_ms":36.272381999879144,"polls":11,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":157.30510599678382,"dispatch_ms":13.822063003317453,"readback_ms":42.93764200701844,"polls":3,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":98.28163900237996,"dispatch_ms":3.1039400055306032,"readback_ms":39.09989599196706,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":688.4538369922666,"dispatch_ms":4.174600995611399,"readback_ms":40.60081399802584,"polls":14,"matched_frame_sha256":"f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303"}},"quit_ms":70.5364239984192,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"rust","round":5,"warmup":false,"bus_ms":68.67614800285082,"visible_ms":439.9345420097234,"rss_kib":231716,"pss_kib":81125,"processes":1,"idle_cpu_percent":0.0,"interactions":{"history":{"render_ms":98.23793300893158,"dispatch_ms":4.08299000991974,"readback_ms":43.33100200165063,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":530.0208429980557,"dispatch_ms":0.6541549955727533,"readback_ms":47.035670999321155,"polls":11,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":155.17338999779895,"dispatch_ms":14.870729995891452,"readback_ms":40.3701470058877,"polls":3,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":95.62100699986331,"dispatch_ms":2.6789760013343766,"readback_ms":39.56256200035568,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":674.9653529986972,"dispatch_ms":5.07394400483463,"readback_ms":43.98047899303492,"polls":14,"matched_frame_sha256":"cbcf84864af57728d1ef403b1354e6ae6731df5b9c72f491d697aa2415978013"}},"quit_ms":69.95284800359514,"application_exit_code":0,"application_log_bytes":0},
+        {"variant":"python","round":5,"warmup":false,"bus_ms":374.45603500236757,"visible_ms":801.7606319917832,"rss_kib":256160,"pss_kib":100925,"processes":1,"idle_cpu_percent":0.3329567132318955,"interactions":{"history":{"render_ms":98.41238798981067,"dispatch_ms":4.779276991030201,"readback_ms":40.20083000068553,"polls":2,"matched_frame_sha256":"3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf"},"capture-settings":{"render_ms":509.0475730103208,"dispatch_ms":0.5030060128774494,"readback_ms":44.529766993946396,"polls":11,"matched_frame_sha256":"57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd"},"personalization":{"render_ms":84.18472298944835,"dispatch_ms":1.9694239890668541,"readback_ms":36.756139001226984,"polls":2,"matched_frame_sha256":"482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449"},"meeting":{"render_ms":95.53807499469258,"dispatch_ms":2.685946994461119,"readback_ms":44.72090500348713,"polls":2,"matched_frame_sha256":"c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872"},"commands":{"render_ms":711.1992449936224,"dispatch_ms":3.460445994278416,"readback_ms":39.80932901322376,"polls":15,"matched_frame_sha256":"cbcf84864af57728d1ef403b1354e6ae6731df5b9c72f491d697aa2415978013"}},"quit_ms":115.00450599123724,"application_exit_code":0,"application_log_bytes":0}
+      ],
+      "targets": {
+        "history": {
+          "width": 1100,
+          "height": 800,
+          "channels": 3,
+          "sha256": "3bcf7c9380dea4b46b9a2826017010db69d2367325898f6d4111cd2d979f3ecf",
+          "file": "reference-history.png",
+          "named_roles_sha256": "bdc4925e6cb473c065b5040497d6a530636aba373e2d49aa6c8eb96a493d2ca4",
+          "named_roles_count": 45
+        },
+        "capture-settings": {
+          "width": 1100,
+          "height": 800,
+          "channels": 3,
+          "sha256": "57d5fba395f542791b2b5f02afba6adb987a455f9a6bef696eeaa061843abebd",
+          "file": "reference-capture-settings.png",
+          "named_roles_sha256": "658301d5b8cbb1dcd7753099d2ab10c0c7927deae866bc5a9d32a3e2dede4d53",
+          "named_roles_count": 176
+        },
+        "personalization": {
+          "width": 1100,
+          "height": 800,
+          "channels": 3,
+          "sha256": "482de6a0b29ba502bf89f9929aa623d657049ec788248dfd3379a14e6924a449",
+          "file": "reference-personalization.png",
+          "named_roles_sha256": "1e08ee996c73f33cec2dfba219c9823a13e9475bf2a5e737989de444a56d1e17",
+          "named_roles_count": 124
+        },
+        "meeting": {
+          "width": 1100,
+          "height": 800,
+          "channels": 3,
+          "sha256": "c761766cb639f32d1d4aa505bfae177f6a14a140c976da1008eeba317c723872",
+          "file": "reference-meeting.png",
+          "named_roles_sha256": "138c7eacf52f8957530393e8f5436703e458bf937b9e41a281297b97dbf7db9a",
+          "named_roles_count": 82
+        },
+        "commands": {
+          "width": 1100,
+          "height": 800,
+          "channels": 3,
+          "sha256": "f3df0a913b9a4a2d21ddeaa933fb50eb375082951b735240360557d33ab8e303",
+          "file": "reference-commands.png",
+          "named_roles_sha256": "b633e4d04b9b5998c16204728b2603be4ada47e82174853967e7659c1f64e913",
+          "named_roles_count": 391
+        }
+      },
+      "summary": {
+        "python": {
+          "visible_ms": {
+            "median": 742.8374959927169,
+            "minimum": 562.3918469937053,
+            "maximum": 856.1523829994258
+          },
+          "bus_ms": {
+            "median": 352.2794054952101,
+            "minimum": 267.01426999352407,
+            "maximum": 382.18184298602864
+          },
+          "rss_kib": {
+            "median": 256312.0,
+            "minimum": 256160,
+            "maximum": 257292
+          },
+          "pss_kib": {
+            "median": 100949.5,
+            "minimum": 100849,
+            "maximum": 101845
+          },
+          "idle_cpu_percent": {
+            "median": 0.0,
+            "minimum": 0.0,
+            "maximum": 0.3329567132318955
+          },
+          "quit_ms": {
+            "median": 64.80212649330497,
+            "minimum": 64.48542900034226,
+            "maximum": 115.00450599123724
+          },
+          "interactions": {
+            "history": {
+              "render_ms": {
+                "median": 86.1735514990869,
+                "minimum": 68.5317129973555,
+                "maximum": 99.98499900393654
+              },
+              "dispatch_ms": {
+                "median": 3.8997364972601645,
+                "minimum": 3.0051599896978587,
+                "maximum": 4.779276991030201
+              },
+              "readback_ms": {
+                "median": 36.83472400007304,
+                "minimum": 28.924695012392476,
+                "maximum": 41.003061007359065
+              },
+              "polls": {
+                "median": 2.0,
+                "minimum": 2,
+                "maximum": 2
+              }
+            },
+            "capture-settings": {
+              "render_ms": {
+                "median": 504.2357060010545,
+                "minimum": 492.94700399332214,
+                "maximum": 549.6570240065921
+              },
+              "dispatch_ms": {
+                "median": 0.44653500663116574,
+                "minimum": 0.2690779947442934,
+                "maximum": 0.8685520006110892
+              },
+              "readback_ms": {
+                "median": 38.838587497593835,
+                "minimum": 30.817094011581503,
+                "maximum": 44.529766993946396
+              },
+              "polls": {
+                "median": 13.0,
+                "minimum": 11,
+                "maximum": 16
+              }
+            },
+            "personalization": {
+              "render_ms": {
+                "median": 88.69605949439574,
+                "minimum": 62.74866200692486,
+                "maximum": 110.48627400305122
+              },
+              "dispatch_ms": {
+                "median": 2.152820488845464,
+                "minimum": 1.6038570029195398,
+                "maximum": 2.444924000883475
+              },
+              "readback_ms": {
+                "median": 38.907218993699644,
+                "minimum": 28.94062599807512,
+                "maximum": 54.799334990093485
+              },
+              "polls": {
+                "median": 2.0,
+                "minimum": 2,
+                "maximum": 2
+              }
+            },
+            "meeting": {
+              "render_ms": {
+                "median": 86.97981650038855,
+                "minimum": 67.76838599762414,
+                "maximum": 108.94739101058803
+              },
+              "dispatch_ms": {
+                "median": 2.8721674971166067,
+                "minimum": 1.8028579943347722,
+                "maximum": 3.4914249990833923
+              },
+              "readback_ms": {
+                "median": 38.16062099940609,
+                "minimum": 28.625288003240712,
+                "maximum": 52.812404013820924
+              },
+              "polls": {
+                "median": 2.0,
+                "minimum": 2,
+                "maximum": 2
+              }
+            },
+            "commands": {
+              "render_ms": {
+                "median": 655.2326849923702,
+                "minimum": 577.2543140046764,
+                "maximum": 711.1992449936224
+              },
+              "dispatch_ms": {
+                "median": 4.004585498478264,
+                "minimum": 2.864898997358978,
+                "maximum": 4.749302999698557
+              },
+              "readback_ms": {
+                "median": 34.72991550370352,
+                "minimum": 24.440307010081597,
+                "maximum": 39.80932901322376
+              },
+              "polls": {
+                "median": 15.5,
+                "minimum": 15,
+                "maximum": 18
+              }
+            }
+          }
+        },
+        "rust": {
+          "visible_ms": {
+            "median": 425.9988175035687,
+            "minimum": 244.03878199518658,
+            "maximum": 443.0093400005717
+          },
+          "bus_ms": {
+            "median": 66.77787200169405,
+            "minimum": 40.309632997377776,
+            "maximum": 71.42302999272943
+          },
+          "rss_kib": {
+            "median": 231838.0,
+            "minimum": 231556,
+            "maximum": 232472
+          },
+          "pss_kib": {
+            "median": 81121.5,
+            "minimum": 80914,
+            "maximum": 81984
+          },
+          "idle_cpu_percent": {
+            "median": 0.0,
+            "minimum": 0.0,
+            "maximum": 0.3326213003405951
+          },
+          "quit_ms": {
+            "median": 70.24463600100717,
+            "minimum": 68.64438799675554,
+            "maximum": 119.91233000298962
+          },
+          "interactions": {
+            "history": {
+              "render_ms": {
+                "median": 89.2548834963236,
+                "minimum": 71.03755000571255,
+                "maximum": 100.14336800668389
+              },
+              "dispatch_ms": {
+                "median": 3.5356189982849173,
+                "minimum": 3.09017401013989,
+                "maximum": 4.106427004444413
+              },
+              "readback_ms": {
+                "median": 38.37838699837448,
+                "minimum": 28.001949001918547,
+                "maximum": 48.06760299834423
+              },
+              "polls": {
+                "median": 2.0,
+                "minimum": 2,
+                "maximum": 2
+              }
+            },
+            "capture-settings": {
+              "render_ms": {
+                "median": 505.1950479974039,
+                "minimum": 495.4228100104956,
+                "maximum": 530.0208429980557
+              },
+              "dispatch_ms": {
+                "median": 0.5538909972528927,
+                "minimum": 0.38138299714773893,
+                "maximum": 0.9137640008702874
+              },
+              "readback_ms": {
+                "median": 37.698394000472035,
+                "minimum": 33.96565500588622,
+                "maximum": 47.035670999321155
+              },
+              "polls": {
+                "median": 11.5,
+                "minimum": 11,
+                "maximum": 13
+              }
+            },
+            "personalization": {
+              "render_ms": {
+                "median": 127.34785849170294,
+                "minimum": 95.70796600019094,
+                "maximum": 157.30510599678382
+              },
+              "dispatch_ms": {
+                "median": 12.356949504464865,
+                "minimum": 8.285600997623987,
+                "maximum": 14.870729995891452
+              },
+              "readback_ms": {
+                "median": 41.65389450645307,
+                "minimum": 39.90994500054512,
+                "maximum": 48.73917200893629
+              },
+              "polls": {
+                "median": 2.5,
+                "minimum": 2,
+                "maximum": 3
+              }
+            },
+            "meeting": {
+              "render_ms": {
+                "median": 96.2330730035319,
+                "minimum": 70.46007199096493,
+                "maximum": 98.28163900237996
+              },
+              "dispatch_ms": {
+                "median": 2.4542050014133565,
+                "minimum": 1.9039939943468198,
+                "maximum": 3.1039400055306032
+              },
+              "readback_ms": {
+                "median": 39.59058350301348,
+                "minimum": 29.34576998814009,
+                "maximum": 42.161763994954526
+              },
+              "polls": {
+                "median": 2.0,
+                "minimum": 2,
+                "maximum": 2
+              }
+            },
+            "commands": {
+              "render_ms": {
+                "median": 681.7095949954819,
+                "minimum": 595.4651600040961,
+                "maximum": 736.6616539948154
+              },
+              "dispatch_ms": {
+                "median": 3.8982079931884073,
+                "minimum": 3.1620060035493225,
+                "maximum": 5.07394400483463
+              },
+              "readback_ms": {
+                "median": 42.29064649553038,
+                "minimum": 39.13347900379449,
+                "maximum": 47.37631999887526
+              },
+              "polls": {
+                "median": 14.0,
+                "minimum": 14,
+                "maximum": 16
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "artifact_receipts": [
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/python/run--1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/rust/run--1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/python/run-0.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/rust/run-0.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/rust/run-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/python/run-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/python/run-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/rust/run-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/rust/run-3.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/python/run-3.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/python/run-4.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/rust/run-4.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/rust/run-5.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/python/run-5.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/startup/session.yhWutM/release-performance/results.json",
+      "bytes": 10145,
+      "sha256": "45942d5302333a88075b573a4ad2e77a1fb8c7bf2edef33d8b03364b68cd8a78"
+    },
+    {
+      "file": "tmp/current-release-performance/startup.log",
+      "bytes": 4712,
+      "sha256": "a856acac0b0116634c215715f0f15fa40c2e88f5400c88e34e08931df6f162bf"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/python/run--1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/rust/run--1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/python/run-0.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/rust/run-0.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/rust/run-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/python/run-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/python/run-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/rust/run-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/rust/run-3.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/python/run-3.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/python/run-4.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/rust/run-4.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/rust/run-5.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/python/run-5.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/reference-history.png",
+      "bytes": 36401,
+      "sha256": "d4ce214af91dbcacbddfb72f9998627f764882741006f5e644b023c44d77179a"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/native-history.png",
+      "bytes": 36401,
+      "sha256": "d4ce214af91dbcacbddfb72f9998627f764882741006f5e644b023c44d77179a"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/reference-capture-settings.png",
+      "bytes": 79601,
+      "sha256": "3ff408115a685f8c2dcfbcf4e012a8586c304dad81e93bf83ef5900cec5033a6"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/native-capture-settings.png",
+      "bytes": 79601,
+      "sha256": "3ff408115a685f8c2dcfbcf4e012a8586c304dad81e93bf83ef5900cec5033a6"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/reference-personalization.png",
+      "bytes": 44577,
+      "sha256": "8443dfd6a60d813d322660784f11c30f9e5e60530ebe2c0fbc96783df36bc055"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/native-personalization.png",
+      "bytes": 44577,
+      "sha256": "8443dfd6a60d813d322660784f11c30f9e5e60530ebe2c0fbc96783df36bc055"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/reference-meeting.png",
+      "bytes": 68939,
+      "sha256": "35911c8cb865e5aee3e7d6467bb411f2531a2698fb3ba8cf72393b738ef2dd5e"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/native-meeting.png",
+      "bytes": 68939,
+      "sha256": "35911c8cb865e5aee3e7d6467bb411f2531a2698fb3ba8cf72393b738ef2dd5e"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/reference-commands.png",
+      "bytes": 80623,
+      "sha256": "b572650cc9bb89486b1d9f3ee50c5580cc7f11dcba3a8a07849a0a4a3d71ee4c"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/native-commands.png",
+      "bytes": 80623,
+      "sha256": "b572650cc9bb89486b1d9f3ee50c5580cc7f11dcba3a8a07849a0a4a3d71ee4c"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions/session.bb8Quu/release-performance/results.json",
+      "bytes": 39176,
+      "sha256": "3973113bd95585713ed1c348f450cc01aaa7612cc1dcabad844bb17b069b9e84"
+    },
+    {
+      "file": "tmp/current-release-performance/interactions.log",
+      "bytes": 19766,
+      "sha256": "ba15aec057b6a1905af57e35ab5d4a49b08e726271dfdf4940c8def6b1659fbc"
+    }
+  ],
+  "calibration": {
+    "results": "tmp/current-release-performance/calibration/session.DVzQFt/release-performance/results.json",
+    "accepted_into_statistics": false,
+    "outcome": "both warmup processes exit zero, empty logs, five exact complete frames and role inventories match"
+  },
+  "excluded_runner_preflight": {
+    "log": "tmp/current-release-performance/runner-check.log",
+    "reason": "Openbox was outside PATH; stopped before creating a session or launching an application; private cached tool path restored"
+  },
+  "maintained_change": "documentation and compact measurement evidence only; observer remains ignored scratch; published/installed package and production/test code unchanged"
+}
