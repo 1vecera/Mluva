@@ -24,7 +24,7 @@ case "$mode" in
     screenshots) suites=(application_screenshots) ;;
     text-targets) suites=(text_target) ;;
     browser-targets) suites=(browser_target); browser_case="${2:-}"; browser_engine="${3:-firefox}"; browser_activation="${4:-enabled}" ;;
-    browser-application) suites=(application_shortcuts); browser_case=default ;;
+    browser-application) suites=(application_shortcuts); browser_case=default; browser_engine="${3:-firefox}" ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
 esac
 if [[ "$mode" == browser-targets ]]; then
@@ -53,8 +53,10 @@ if "$inside"; then
             test "$browser_case" == bus
         fi
     fi
-    if [[ "$mode" == browser-targets ]]; then
+    if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
         export MLUVA_BROWSER_ENGINE="$browser_engine"
+    fi
+    if [[ "$mode" == browser-targets ]]; then
         unset MLUVA_CHROMIUM_NATIVE_ACTIVATION MLUVA_CHROMIUM_LATE_START
         if [[ "$browser_activation" != enabled ]]; then
             export MLUVA_CHROMIUM_NATIVE_ACTIVATION=1
@@ -157,15 +159,17 @@ if [[ "$mode" == images ]]; then
     fi
     if [[ -n "$image_cli" ]]; then image_cli="$(realpath -e -- "$image_cli")"; fi
 fi
-if [[ "$mode" == text-targets ]]; then
-    cargo build --locked -p mluva-gtk --example text_target_peer
-elif [[ "$mode" == browser-targets ]]; then
+if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
     [[ "$browser_engine" == firefox || "$browser_engine" == chromium ]]
     if [[ "$browser_engine" == chromium ]]; then
         for prerequisite in chromium chromedriver; do
             command -v "$prerequisite" >/dev/null || { echo "Missing private Chromium prerequisite: $prerequisite." >&2; exit 3; }
         done
     fi
+fi
+if [[ "$mode" == text-targets ]]; then
+    cargo build --locked -p mluva-gtk --example text_target_peer
+elif [[ "$mode" == browser-targets ]]; then
     cargo build --locked -p mluva-gtk --example firefox_text_peer --example atspi_read_audit
 elif [[ "$mode" != live-components ]]; then
     cargo build --locked -p mluva-gtk --example private_input \

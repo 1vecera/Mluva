@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-06",
+  "base": "ca969fffdf7a71be45c710f58f5d270868cf3cde",
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "source": {"workflows":15,"states":102,"providerRequests":37},
+  "native": [
+    {"engine":"chromium","session":"/home/vecera/.claude/worktrees/mluva-rust-port/tmp/application/run.WvGCqe/default/session.OL8dfq","workflows":15,"states":102,"providerRequests":37,"explicitWorkflowReads":3,"positiveControls":15},
+    {"engine":"firefox","session":"/home/vecera/.claude/worktrees/mluva-rust-port/tmp/application/run.K69irV/default/session.iNe5Nh","workflows":15,"states":102,"providerRequests":37,"explicitWorkflowReads":3,"positiveControls":15}
+  ],
+  "gtk": {"workflows":8,"states":34,"readinessFault":true},
+  "workspace": {"passed":142,"failed":0,"ignored":71,"suites":98,"strictClippy":2,"formatting":true,"generated":true},
+  "outgoingReads": {"automatic":0,"explicitCommandPerBrowser":3,"positiveControlsPerBrowser":15,"chromiumControl":{"text":"CONTROL","start":7,"end":14,"caret":14}},
+  "negative": {"exit":101,"states":7,"observedRead":{"pid":69,"peer":true,"valid":true,"start":0,"end":0}},
+  "preserved": {"existingFixtures":68,"sourceModules":69,"maintainedPython":0,"installed":{"version":"2.1.0","files":520,"links":4,"pid":4173598}},
+  "limitations": [
+    "System accessibility is enabled by the private status service.",
+    "Named private X11 recording/Command/Live workflows; wider targets, Wayland, permissions and physical/platform acceptance remain open.",
+    "Chromium Unicode selection/replacement remains incorrect; both source and native preserve the observed defect.",
+    "No production behavior change, release, local installation or performance claim."
+  ],
+  "implementation": [
+    {"path":"rust/mluva-gtk/tests/application_shortcuts.rs","bytes":41543,"sha256":"5a970b77877fb1d8b28c07763c5ff93d51c505cefdee7b4f1382a4ff5a60505b"},
+    {"path":"rust/mluva-gtk/tests/fixtures/released-application-chromium.json","bytes":4175,"sha256":"80017e3fe8279df8bd57dbd8faf135abc5c390b398159d86e82ec5b4c1a68310"},
+    {"path":"linux/tests/run_application_smoke.sh","bytes":13879,"sha256":"22be72b499c60a7cd478d7310e1f4d073fafd624b8f0db4e8265ea2e6438597b"},
+    {"path":"Makefile","bytes":4657,"sha256":"36efd71774d2dd21d6ca9cf7c5792e73ecf17a48c1d06b2e7e8343e3befbd3e1"}
+  ],
+  "sourceObservations": [
+    {"path":"tmp/application-chromium/source-global-v4/session.e2lQjR/source-observations.json","bytes":43898,"sha256":"ab1dfbf7f2c04dffe83bf81d84c31b88ddec8f8fa7e8dfb8a58d94309b277a43","audit_sha256":"3da08d1c111bc6f6b18d1927ac7c88483a68402c33ba2f760b21126c01391808"},
+    {"path":"tmp/application-chromium/source-recording-1-v4/session.rk4pAK/source-observations.json","bytes":34136,"sha256":"e0084b4552c82832475812147e41fd1730656463e23650a44680f24b8d8ce142","audit_sha256":"3da08d1c111bc6f6b18d1927ac7c88483a68402c33ba2f760b21126c01391808"},
+    {"path":"tmp/application-chromium/source-recording-2-v4/session.x9mLYm/source-observations.json","bytes":28894,"sha256":"74fd61e917d2abbd50491b427b3c7164ca898ec15c165799d46bd6668301f938","audit_sha256":"3da08d1c111bc6f6b18d1927ac7c88483a68402c33ba2f760b21126c01391808"},
+    {"path":"tmp/application-chromium/source-recording-4-v4/session.QbdRUf/source-observations.json","bytes":34500,"sha256":"a949fbed89c835bc8907edc15bfbfbd386dd50fb050a06335a592f5097f8931e","audit_sha256":"15f7532777ce87376c1ab8170ed044069965b9a231df657f88a2b7b5aa8ff53a"},
+    {"path":"tmp/application-chromium/source-command-0-v4/session.X9UiZA/source-observations.json","bytes":43797,"sha256":"1fd7e3c01ac0b9f30aec464e1575c2d8c437f124ebf4847a3c874a0efa449167","audit_sha256":"339bbca62c96d634c529a69c1311681788494b7295ea99e82e901b4252800da3"},
+    {"path":"tmp/application-chromium/source-command-1-v4/session.xlBDf1/source-observations.json","bytes":43723,"sha256":"538e7bf5d63a3be1c7f84176c8dfd20f8eda81bf9d97bcf12f4dbb0f15bbdeaa","audit_sha256":"15f7532777ce87376c1ab8170ed044069965b9a231df657f88a2b7b5aa8ff53a"},
+    {"path":"tmp/application-chromium/source-command-2-v4/session.ef80d5/source-observations.json","bytes":42953,"sha256":"16fc75b688dad1ed222a0fadb06a021117bd463a17fc25121a3c7ac9e3870d3a","audit_sha256":"339bbca62c96d634c529a69c1311681788494b7295ea99e82e901b4252800da3"},
+    {"path":"tmp/application-chromium/source-command-3-v4/session.JSYl41/source-observations.json","bytes":46145,"sha256":"39d30c220852ab5aa7b09940e27252ea71e6c8e95325690cfbf9226abc2484d3","audit_sha256":"9f85bb3358aeeb2fcf4b167eb1ee9ef688dd8696c98bd116a55c46f6a0ad0aab"},
+    {"path":"tmp/application-chromium/source-command-4-v4/session.W9K1ug/source-observations.json","bytes":42806,"sha256":"5cff5d4a7aba35307994c46506350b83d903d835c9d224f507d5aab3159a313f","audit_sha256":"3da08d1c111bc6f6b18d1927ac7c88483a68402c33ba2f760b21126c01391808"},
+    {"path":"tmp/application-chromium/source-live-0-v4/session.DF5tUc/source-observations.json","bytes":44846,"sha256":"ce96c90991a3de6db0faa34e507b2d9d613feecf4c119a7f2c17e37783cfcceb","audit_sha256":"3da08d1c111bc6f6b18d1927ac7c88483a68402c33ba2f760b21126c01391808"},
+    {"path":"tmp/application-chromium/source-live-1-v4/session.O75jFz/source-observations.json","bytes":42894,"sha256":"588757942c8fa6fcd0a1f6fc8f12adabf6ab53c9612e55289d3c323688b52235","audit_sha256":"15f7532777ce87376c1ab8170ed044069965b9a231df657f88a2b7b5aa8ff53a"},
+    {"path":"tmp/application-chromium/source-live-2-v4/session.nmvIS8/source-observations.json","bytes":56324,"sha256":"b12caadbdbc5ab1bed8c5e73f8cff3613a8c9a2488867231c4620f3f55849841","audit_sha256":"3da08d1c111bc6f6b18d1927ac7c88483a68402c33ba2f760b21126c01391808"},
+    {"path":"tmp/application-chromium/source-live-3-v4/session.hJ9PXl/source-observations.json","bytes":50454,"sha256":"8fd1b279e0b4c7c4d838b7df20f2b73377719193be17f39a0bf282cab16495e8","audit_sha256":"e3eae5484f03fb90a5d58c19dca14cb2163e84eb2ed0db29611ae5652f8e339d"},
+    {"path":"tmp/application-chromium/source-live-4-v4/session.5hvBys/source-observations.json","bytes":46794,"sha256":"03f9ee5a56653eca421a1912f5e7c383daa2919880593c86f73707df8f8e76ad","audit_sha256":"3da08d1c111bc6f6b18d1927ac7c88483a68402c33ba2f760b21126c01391808"},
+    {"path":"tmp/application-chromium/source-live-5-v4/session.oG1jsl/source-observations.json","bytes":39942,"sha256":"618492f563b499079fa8de18fffcd95eec9e3e63efd03cbf91ece0e4865efc69","audit_sha256":"3da08d1c111bc6f6b18d1927ac7c88483a68402c33ba2f760b21126c01391808"}
+  ],
+  "evidence": [
+    {"path":"tmp/application-chromium/final-browser-gate.log","bytes":11511,"sha256":"26c66d7e4c1f65dcfc23520848cfab480f27aa01b1c9853b505fee08185efc8b"},
+    {"path":"tmp/application-chromium/gtk-regression.log","bytes":3547,"sha256":"f741661ea63cf2502a03ab07e42d5dacec9a9754b446a88ab08855cecc187865"},
+    {"path":"tmp/application-chromium/native-gate.log","bytes":43820,"sha256":"6a9f9fe8b384b33e268c706265006f580666ebe5a84a17551956bfb8eea37567"},
+    {"path":"tmp/application-chromium/shellcheck.log","bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"path":"tmp/application-chromium/empty-selection-control.log","bytes":1488,"sha256":"971a2ff4871e3e90bd245a6ab29db270ac1de3c85a2fc87347341629a35b1128"},
+    {"path":"tmp/application-chromium/empty-selection-control.patch","bytes":730,"sha256":"77409fa1d43519cbc042ef3d677d12743c16205efbe497685703b019a1f1bcf9"},
+    {"path":"tmp/application-chromium/source-adapter.json","bytes":6516,"sha256":"7981da448a25e13105773d313cd06ad771c1c7259db7e028fa12da51be8247e7"},
+    {"path":"tmp/application-chromium/source-receipts.json","bytes":4979,"sha256":"146f1eb4c5589efe1c9fc286f7b0bf0c0158ee3bc39591fba116e9ff1e5fa27b"},
+    {"path":"tmp/application-chromium/final-review.json","bytes":93294,"sha256":"43e3c5b18216166240516199f60a6f2ff8b2b4837cd4bb111f3e56e6bd11926b"}
+  ]
+}
