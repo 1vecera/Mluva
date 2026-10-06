@@ -1,8 +1,10 @@
 //! App-launched Tensaku, simultaneous narration and exact visual provider context.
 use super::{
-    accessibility::Accessibility, capture_window, clipboard, http, records, settle_for, until,
-    widgets, window_id,
+    accessibility::Accessibility, capture_window, clipboard, http, records, screenshot_wire,
+    settle_for, until, widgets, window_id,
 };
+#[path = "current_codex_profile.rs"]
+mod current_codex_profile;
 use adw::prelude::*;
 use glib::variant::ToVariant;
 use mluva_core::history::HistoryInput;
@@ -86,6 +88,176 @@ fn click(label: &str) {
     assert!(editor_button(label, true));
 }
 
+pub struct InstalledCodex {
+    peer: http::Peer,
+    reference: Value,
+    root: PathBuf,
+}
+impl InstalledCodex {
+    pub fn prepare(root: &Path, tools: &Path, target: &Path, row: &mut Value) -> Option<Self> {
+        if row["name"] != "wide" {
+            return None;
+        }
+        let cli = PathBuf::from(std::env::var_os("MLUVA_TEST_INSTALLED_CODEX")?);
+        let reference: Value = serde_json::from_str(include_str!(
+            "../fixtures/released-application-images-current-codex.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            sha(include_bytes!(
+                "../fixtures/released-application-images.json"
+            )),
+            reference["base"]["sha256"]
+        );
+        assert_eq!(sha(&fs::read(&cli).unwrap()), reference["sdk"]["sha256"]);
+        let version = Command::new(&cli).arg("--version").output().unwrap();
+        assert!(version.status.success());
+        assert_eq!(
+            String::from_utf8(version.stdout).unwrap().trim(),
+            reference["sdk"]["version"].as_str().unwrap()
+        );
+        for patch in reference["layout_patches"].as_array().unwrap() {
+            let field = row.pointer_mut(patch["pointer"].as_str().unwrap()).unwrap();
+            assert_eq!(*field, patch["old"]);
+            *field = patch["value"].clone();
+        }
+        let stages = row["stages"].as_array_mut().unwrap();
+        stages.insert(stages.len() - 1, reference["reopened_state"].clone());
+        let responses = reference["response_texts"].as_array().unwrap().iter().map(|text| {
+            json!({"route":"codex","status":200,"events":http::codex_response::events(text.as_str().unwrap(),None),
+                "request_log":root.join("codex-evidence/requests.jsonl")})
+        }).collect::<Vec<_>>();
+        let peer = http::Peer::new(&responses);
+        current_codex_profile::prepare(root, tools, target, &cli, &peer.address);
+        Some(Self {
+            peer,
+            reference,
+            root: root.into(),
+        })
+    }
+    pub fn evidence(&self) -> PathBuf {
+        self.root.join("codex-evidence")
+    }
+    pub fn finish(&mut self, row: &Value) {
+        let requests = self.peer.finish();
+        assert_eq!(
+            requests.len(),
+            self.reference["request_settings"].as_array().unwrap().len()
+        );
+        for (index, wire) in requests.iter().enumerate() {
+            assert_eq!(wire["path"], "/responses");
+            let request = &wire["json"];
+            assert_eq!(
+                json!({"model":request["model"],"reasoning":request["reasoning"],"service_tier":request["service_tier"]}),
+                self.reference["request_settings"][index]
+            );
+            let mut input = vec![];
+            let mut environments = 0;
+            for item in request["input"].as_array().unwrap() {
+                if item["type"] != "message" || item["role"] != "user" {
+                    continue;
+                }
+                for part in item["content"].as_array().unwrap() {
+                    if let Some(text) = part["text"]
+                        .as_str()
+                        .filter(|text| text.starts_with("<environment_context>\n"))
+                    {
+                        let date = text
+                            .split_once("<current_date>")
+                            .unwrap()
+                            .1
+                            .split_once("</current_date>")
+                            .unwrap()
+                            .0;
+                        chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d").unwrap();
+                        assert_eq!(
+                            text.replacen(date, "$UTC_DATE", 1),
+                            self.reference["sdk_environment_context"].as_str().unwrap()
+                        );
+                        environments += 1;
+                    } else {
+                        input.push(part.clone());
+                    }
+                }
+            }
+            assert_eq!(environments, 1, "one SDK-owned clock context");
+            let expected = row["turns"][index]["input"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|part| match part["type"].as_str().unwrap() {
+                    "text" => json!({"type":"input_text","text":part["text"]}),
+                    "image" => json!({"type":"input_image","image_url":part["url"]}),
+                    other => panic!("unexpected released image input {other}"),
+                })
+                .collect::<Vec<_>>();
+            let mut input = json!(input);
+            screenshot_wire::normalize(&mut input);
+            assert_eq!(
+                input,
+                json!(expected),
+                "ordered application text and exact image bytes"
+            );
+            let instruction = request["instructions"]
+                .as_str()
+                .or_else(|| {
+                    request["input"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .filter(|item| item["type"] == "message" && item["role"] == "developer")
+                        .flat_map(|item| item["content"].as_array().unwrap())
+                        .find_map(|part| {
+                            part["text"]
+                                .as_str()
+                                .filter(|text| text.starts_with("You transform dictated text."))
+                        })
+                })
+                .unwrap();
+            assert_eq!(
+                instruction,
+                self.reference["sdk"]["base_instructions"].as_str().unwrap()
+            );
+            assert!(request.get("tools").is_none_or(|tools| *tools == json!([])));
+            assert!(
+                request["input"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|item| !matches!(
+                        item["type"].as_str(),
+                        Some("additional_tools" | "tool_search_output")
+                    ) || item["tools"] == json!([]))
+            );
+            let encoded = request.to_string();
+            assert!(
+                !encoded.contains("PRIVATE_INSTRUCTION_CANARY")
+                    && !encoded.contains("PRIVATE_OVERRIDE_CANARY")
+            );
+        }
+        assert!(!self.root.join("mcp-started").exists());
+        for (file, text) in [
+            ("AGENTS.md", "PRIVATE_INSTRUCTION_CANARY"),
+            ("AGENTS.override.md", "PRIVATE_OVERRIDE_CANARY"),
+        ] {
+            assert_eq!(
+                fs::read_to_string(self.root.join("home/.codex").join(file)).unwrap(),
+                text
+            );
+        }
+        let catalog = records(&self.evidence().join("catalog.jsonl"));
+        assert!(
+            !catalog.is_empty(),
+            "actual CLI catalog snapshot was skipped"
+        );
+        for child in catalog {
+            assert!(!Path::new(&format!("/proc/{}", child["pid"].as_u64().unwrap())).exists());
+            assert!(!Path::new(child["cwd"].as_str().unwrap()).exists());
+        }
+        fs::write(self.root.join("native-application-images/actual-sdk.json"),serde_json::to_vec_pretty(&json!({"sdk":self.reference["sdk"],"requests":requests,"capabilities_empty":true,"canaries_preserved":true,"catalog_children_reaped":true})).unwrap()).unwrap();
+    }
+}
+
 pub fn prepare(tools: &Path, directory: &Path, target: &Path, reference: &Value) -> PathBuf {
     let editor = PathBuf::from(
         std::env::var_os("MLUVA_TEST_EDITOR").expect("verified released Tensaku required"),
@@ -167,6 +339,7 @@ pub struct Flow<'a> {
     tools: &'a Path,
     evidence: &'a Path,
     peer: &'a http::Peer,
+    sdk: Option<&'a InstalledCodex>,
     directory: PathBuf,
     spec: PathBuf,
     output: PathBuf,
@@ -185,7 +358,7 @@ impl<'a> Flow<'a> {
         reference: &'a Value,
         tools: &'a Path,
         root: &Path,
-        evidence: &'a Path,
+        codex: (&'a Path, Option<&'a InstalledCodex>),
         peer: &'a http::Peer,
     ) -> Self {
         let output = root.join("native-application-images");
@@ -195,8 +368,9 @@ impl<'a> Flow<'a> {
             services,
             reference,
             tools,
-            evidence,
+            evidence: codex.0,
             peer,
+            sdk: codex.1,
             spec: root.join("application-codex.json"),
             directory: services
                 .paths
@@ -224,6 +398,9 @@ impl<'a> Flow<'a> {
         self.ids.entry(id.into()).or_insert(next).clone()
     }
     fn turns(&self) -> usize {
+        if let Some(sdk) = self.sdk {
+            return sdk.peer.observed.lock().unwrap().len();
+        }
         records(&self.evidence.join("requests.jsonl"))
             .iter()
             .filter(|r| r["message"]["method"] == "turn/start")
@@ -301,6 +478,16 @@ impl<'a> Flow<'a> {
     }
     fn layout(&mut self, name: &str) {
         let win = &self.owner.shell.window;
+        let workspace = &self.owner.capture.page.workspace;
+        let width = self.reference["params"]["width"].as_i64().unwrap() as i32;
+        let height = self.reference["params"]["height"].as_i64().unwrap() as i32;
+        // The requested disclosure has its own persistence owner. Preserve the
+        // complete released viewport here by expanding it and giving its 52px
+        // row additional space; retain both the raw frame and exact projection.
+        workspace.rewrite_toggle.set_active(true);
+        win.set_size_request(width + 10, height + 62);
+        win.set_default_size(width + 10, height + 62);
+        until(|| win.width() == width && win.height() == height + 52);
         until(|| {
             !widgets(win)
                 .iter()
@@ -312,7 +499,7 @@ impl<'a> Flow<'a> {
             let r = w.compute_bounds(win).unwrap();
             [r.x(), r.y(), r.width(), r.height()]
         };
-        let mut value = json!({"name":name,"window":[win.width(),win.height()],"shelf":rect(shelf.upcast_ref()),"controls":widgets(shelf).into_iter().filter_map(|w|w.downcast::<gtk::Button>().ok()).filter(|b|b.is_mapped()).map(|b|json!({"tip":b.tooltip_text().map(String::from),"sensitive":b.get_sensitive(),"bounds":rect(b.upcast_ref())})).collect::<Vec<_>>()});
+        let mut value = json!({"name":name,"window":[width,height],"shelf":rect(shelf.upcast_ref()),"controls":widgets(shelf).into_iter().filter_map(|w|w.downcast::<gtk::Button>().ok()).filter(|b|b.is_mapped()).map(|b|json!({"tip":b.tooltip_text().map(String::from),"sensitive":b.get_sensitive(),"bounds":rect(b.upcast_ref())})).collect::<Vec<_>>()});
         let image = self.output.join(format!("{name}.png"));
         capture_window(&image);
         let pixels = Command::new("magick")
@@ -321,13 +508,40 @@ impl<'a> Flow<'a> {
             .output()
             .unwrap();
         assert!(pixels.status.success());
-        value["pixels"] = json!(sha(&pixels.stdout));
+        let bounds = workspace.rewrite_toggle.compute_bounds(win).unwrap();
+        assert_eq!(bounds.height(), 36.0);
+        assert!(workspace.prompt.is_mapped());
+        let stride = (width as usize + 10) * 4;
+        assert_eq!(pixels.stdout.len(), stride * (height as usize + 62));
+        // compute_bounds omits the 5px CSD inset present in import's raw frame.
+        let start = (bounds.y() as usize) + 5 - 8;
+        assert!(start > 42 && start + 52 < height as usize + 62);
+        let mut projected = pixels.stdout[..start * stride].to_vec();
+        projected.extend_from_slice(&pixels.stdout[(start + 52) * stride..]);
+        assert_eq!(projected.len(), stride * (height as usize + 10));
+        value["pixels"] = json!(sha(&projected));
+        fs::write(
+            self.output.join(format!("{name}-projection.json")),
+            serde_json::to_vec_pretty(&json!({"raw_frame":image,"raw_size":[width+10,height+62],
+                "raw_rgba_sha256":sha(&pixels.stdout),"disclosure_bounds":rect(workspace.rewrite_toggle.upcast_ref()),
+                "removed_rows":[start,start+52],"released_size":[width+10,height+10],"projected_rgba_sha256":sha(&projected)})).unwrap(),
+        ).unwrap();
         assert_eq!(
             value,
             self.reference["layouts"][self.layouts.len()],
             "image workspace layout {name}"
         );
         self.layouts.push(value);
+        win.set_size_request(width + 10, height + 10);
+        win.set_default_size(width + 10, height + 10);
+        command(&[
+            "windowsize",
+            "--sync",
+            &window_id(),
+            &(width + 10).to_string(),
+            &(height + 10).to_string(),
+        ]);
+        until(|| win.width() == width && win.height() == height);
     }
     pub fn exercise(&mut self) {
         let win = &self.owner.shell.window;
@@ -434,10 +648,24 @@ impl<'a> Flow<'a> {
             .unwrap();
         if self.reference["name"] == "wide" {
             w.continue_button.emit_clicked();
+            assert!(
+                self.owner.capture.phase().is_some(),
+                "Continue did not start: ready={}, entry={:?}, status={}",
+                self.owner.capture.page.record_button.get_sensitive(),
+                w.entry().map(|entry| entry.identifier),
+                self.owner.capture.page.status.text()
+            );
             until(|| {
-                self.owner.capture.phase() == Some(CapturePhase::Recording)
-                    && self.tools.join("raw.ready.json").exists()
+                (self.owner.capture.phase() == Some(CapturePhase::Recording)
+                    && self.tools.join("raw.ready.json").exists())
+                    || self.owner.capture.phase().is_none()
             });
+            assert_eq!(
+                self.owner.capture.phase(),
+                Some(CapturePhase::Recording),
+                "Continue failed: {}",
+                self.owner.capture.page.status.text()
+            );
             self.capture = self.owner.capture.session_identifier();
             self.main_pid = read(self.tools.join("raw.ready.json"))["pid"].as_u64();
             self.snapshot("recording");
@@ -574,6 +802,23 @@ impl<'a> Flow<'a> {
                         == 1
             });
             self.snapshot("follow-up");
+            if self.sdk.is_some() {
+                // Reopen through ordinary navigation so measured first-text
+                // timings cannot define the saved-view image oracle.
+                w.show_conversation(Some(entries[1].clone()), &[], false)
+                    .unwrap();
+                w.show_conversation(
+                    Some(parent.clone()),
+                    &self
+                        .services
+                        .conversations
+                        .replies(&parent.identifier)
+                        .unwrap(),
+                    false,
+                )
+                .unwrap();
+                self.snapshot("reopened");
+            }
             self.layout("rewritten");
         } else {
             self.services

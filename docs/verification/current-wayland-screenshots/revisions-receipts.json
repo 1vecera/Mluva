@@ -1,0 +1,451 @@
+{
+  "date": "2026-10-06",
+  "scope": "Actual Wayland Ctrl+Z/Ctrl+Y and normal Save during continued main recording",
+  "reference": {
+    "commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+    "files_verified": 91,
+    "raw": "tmp/wayland-editor-revisions/source.xoVQFW/results.json",
+    "fingerprint": {
+      "bytes": 42777,
+      "sha256": "8841cb5532071e64a12db75da640c8e584f31d53b732b3ecae8722d11f6febab"
+    }
+  },
+  "native": {
+    "version": "2.1.0",
+    "payload_files_verified": 520,
+    "links_verified": 4,
+    "receipt": {
+      "bytes": 68168,
+      "sha256": "3bf35523cd8b329fee2d0d244c781dc467b3b3ef198bce9949ddbf619c155d51"
+    },
+    "raw": "tmp/wayland-editor-revisions/native.Qxpftr/results.json",
+    "fingerprint": {
+      "bytes": 42913,
+      "sha256": "cb4bf0953c3bd228a03d71419c71b73f763cc6d13f80f9e5149604ebb58bcaf1"
+    },
+    "no_python_traps": {
+      "positive_invocations": [
+        "/usr/bin/python",
+        "/usr/bin/python3",
+        "/usr/bin/uv"
+      ],
+      "calls_after_start": 0
+    }
+  },
+  "prior_recording_receipt": {
+    "bytes": 22263,
+    "sha256": "f202e539379524497dd6f775b8bee6535b3bad7a2d3bc606e6e7955bc5383c18"
+  },
+  "observers": {
+    "observe.py": {
+      "bytes": 38175,
+      "sha256": "e308ce826ec6e1753c8f1fd6e73e01e36128c645da56487f34189251bb204ee2"
+    },
+    "run.sh": {
+      "bytes": 1227,
+      "sha256": "6844109cfed741db5814ca503e0c749b77c97f2023a70e3168312324c594cfbc"
+    },
+    "audit.py": {
+      "bytes": 14745,
+      "sha256": "1a85c806ac48f2aa1b01b9d521038abcf27f70c3f7bee3a2dae7aa8d76807824"
+    }
+  },
+  "outputs": {
+    "undone": {
+      "bytes": 3907,
+      "sha256": "014219f3256294cd5c4897eb44d28a4b10eeb17ec8a465a97cdb16574c12b11a"
+    },
+    "undone_rgba": {
+      "bytes": 925604,
+      "sha256": "5406f347f98443394e93d7ca8e277d83043cd3b8f5a3f35851405079b2cebe15"
+    },
+    "redone": {
+      "bytes": 9900,
+      "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+    },
+    "redone_rgba": {
+      "bytes": 1259168,
+      "sha256": "9ca2f8342e3340bce7b96bbdea6eda8e07134b71ada6398a79b08e11b473b2e9"
+    },
+    "ocr": "Private Wayland narration 82"
+  },
+  "comparison": {
+    "whole_png_rgba_equal": true,
+    "masks": false,
+    "total_states": 14,
+    "twelve_previous_sqlite_states_unchanged": true,
+    "all_states": {
+      "bytes": 18311,
+      "sha256": "7964f3ca7fab9454f310360a9e850b7f3d8b102e44bb54e843eaf85065445851"
+    },
+    "all_sqlite_states": {
+      "bytes": 14290,
+      "sha256": "0a5827b5b8faf8e049fd3c0207f05f17b2174ec6257c9d0a345ebb319bafe478"
+    }
+  },
+  "new_states": [
+    {
+      "name": "undo-saved",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "history": [
+        {
+          "identifier": "parent",
+          "created_at": "2026-03-17T13:40:00+00:00",
+          "raw_text": "Private screenshot context 82",
+          "delivered_text": "Private screenshot context 82",
+          "mode": "dictation",
+          "language_code": "eng",
+          "transcription_id": null,
+          "delivery_outcome": "saved",
+          "title": null,
+          "retained_audio_path": null,
+          "audio_retention_policy": null,
+          "application_identifier": null,
+          "correction_source_text": null,
+          "recognition_route": null,
+          "recognition_fallback_reason": null,
+          "enhancement_provider_id": null,
+          "enhancement_model_identifier": null,
+          "enhancement_context_sources": null,
+          "enhancement_outcome": null,
+          "recognition_ms": null,
+          "enhancement_ms": null,
+          "delivery_ms": null,
+          "title_revision": 0
+        }
+      ],
+      "images": [
+        {
+          "bytes": 3907,
+          "sha256": "014219f3256294cd5c4897eb44d28a4b10eeb17ec8a465a97cdb16574c12b11a"
+        }
+      ],
+      "owners": [
+        [
+          null,
+          "capture",
+          "sampled"
+        ]
+      ],
+      "sources": [],
+      "continuations": [],
+      "phase": "recording",
+      "main_recording_alive": true,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 1,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0
+    },
+    {
+      "name": "redo-saved",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "history": [
+        {
+          "identifier": "parent",
+          "created_at": "2026-03-17T13:40:00+00:00",
+          "raw_text": "Private screenshot context 82",
+          "delivered_text": "Private screenshot context 82",
+          "mode": "dictation",
+          "language_code": "eng",
+          "transcription_id": null,
+          "delivery_outcome": "saved",
+          "title": null,
+          "retained_audio_path": null,
+          "audio_retention_policy": null,
+          "application_identifier": null,
+          "correction_source_text": null,
+          "recognition_route": null,
+          "recognition_fallback_reason": null,
+          "enhancement_provider_id": null,
+          "enhancement_model_identifier": null,
+          "enhancement_context_sources": null,
+          "enhancement_outcome": null,
+          "recognition_ms": null,
+          "enhancement_ms": null,
+          "delivery_ms": null,
+          "title_revision": 0
+        }
+      ],
+      "images": [
+        {
+          "bytes": 9900,
+          "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+        }
+      ],
+      "owners": [
+        [
+          null,
+          "capture",
+          "sampled"
+        ]
+      ],
+      "sources": [],
+      "continuations": [],
+      "phase": "recording",
+      "main_recording_alive": true,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 1,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0
+    }
+  ],
+  "new_sqlite": {
+    "undo-saved": {
+      "transcription_history": [
+        {
+          "identifier": "parent",
+          "created_at": "2026-03-17T13:40:00+00:00",
+          "raw_text": "Private screenshot context 82",
+          "delivered_text": "Private screenshot context 82",
+          "mode": "dictation",
+          "language_code": "eng",
+          "transcription_id": null,
+          "delivery_outcome": "saved",
+          "title": null,
+          "retained_audio_path": null,
+          "audio_retention_policy": null,
+          "application_identifier": null,
+          "correction_source_text": null,
+          "recognition_route": null,
+          "recognition_fallback_reason": null,
+          "enhancement_provider_id": null,
+          "enhancement_model_identifier": null,
+          "enhancement_context_sources": null,
+          "enhancement_outcome": null,
+          "recognition_ms": null,
+          "enhancement_ms": null,
+          "delivery_ms": null,
+          "title_revision": 0
+        }
+      ],
+      "conversation_screenshots": [
+        {
+          "identifier": "image",
+          "history_identifier": null,
+          "capture_identifier": "capture",
+          "created_at": "generated",
+          "captured_after_seconds": "sampled"
+        }
+      ],
+      "conversation_sources": [],
+      "recording_continuations": []
+    },
+    "redo-saved": {
+      "transcription_history": [
+        {
+          "identifier": "parent",
+          "created_at": "2026-03-17T13:40:00+00:00",
+          "raw_text": "Private screenshot context 82",
+          "delivered_text": "Private screenshot context 82",
+          "mode": "dictation",
+          "language_code": "eng",
+          "transcription_id": null,
+          "delivery_outcome": "saved",
+          "title": null,
+          "retained_audio_path": null,
+          "audio_retention_policy": null,
+          "application_identifier": null,
+          "correction_source_text": null,
+          "recognition_route": null,
+          "recognition_fallback_reason": null,
+          "enhancement_provider_id": null,
+          "enhancement_model_identifier": null,
+          "enhancement_context_sources": null,
+          "enhancement_outcome": null,
+          "recognition_ms": null,
+          "enhancement_ms": null,
+          "delivery_ms": null,
+          "title_revision": 0
+        }
+      ],
+      "conversation_screenshots": [
+        {
+          "identifier": "image",
+          "history_identifier": null,
+          "capture_identifier": "capture",
+          "created_at": "generated",
+          "captured_after_seconds": "sampled"
+        }
+      ],
+      "conversation_sources": [],
+      "recording_continuations": []
+    }
+  },
+  "cache_readiness": {
+    "private_abstract_bus": true,
+    "registry_positive_before_launch": true,
+    "actual_app_editor_cache_positive_before_actions": true,
+    "source": {
+      "application-ready": {
+        "bytes": 14462,
+        "sha256": "e32a25eebea9b3a2a10f2fcc27b6305d44ec601b0aaea56620f9dfb544c84939"
+      },
+      "editor-before-actions": {
+        "bytes": 57067,
+        "sha256": "d209e91b669d7f30f4e4ed23a4d89163393239c72cb559fe30a2184c6679e211"
+      },
+      "editor-ready": {
+        "bytes": 129613,
+        "sha256": "678530ff63ddf20417ad6297280b4f248d8955b9dbbc1ab006163632c9359bfe"
+      }
+    },
+    "native": {
+      "application-ready": {
+        "bytes": 2152,
+        "sha256": "74a57f2c5cb094aa47ce56d0485f6a9ea1c23c0809ebbd20e4bd19c5923394de"
+      },
+      "editor-before-actions": {
+        "bytes": 54316,
+        "sha256": "9adc4f909ae07f2b45c0a500ab45e710d0e656dc3745b1683ab4b4a708fb9518"
+      },
+      "editor-ready": {
+        "bytes": 126902,
+        "sha256": "9e06094c35a54f03fe975520ae8c5de769cf1ba2656e5fb61c9265d5370b532b"
+      }
+    },
+    "warnings": 0,
+    "disable_cache": false,
+    "disable_p2p": false
+  },
+  "raw_sqlite": {
+    "source": {
+      "annotated.json": {
+        "bytes": 1789,
+        "sha256": "ea59da710f2bb3159baeece2ce75bc4b47155342702b114b8a8055ac422c1dff"
+      },
+      "annotation-cancelled-saved.json": {
+        "bytes": 1789,
+        "sha256": "ea59da710f2bb3159baeece2ce75bc4b47155342702b114b8a8055ac422c1dff"
+      },
+      "cancel-active.json": {
+        "bytes": 1789,
+        "sha256": "ea59da710f2bb3159baeece2ce75bc4b47155342702b114b8a8055ac422c1dff"
+      },
+      "closed.json": {
+        "bytes": 2545,
+        "sha256": "ce9dfb2761c30e99fa8da0ef010e502a2efe65e63e600acac7d85cb2fb510fee"
+      },
+      "fresh-narrating.json": {
+        "bytes": 1789,
+        "sha256": "ea59da710f2bb3159baeece2ce75bc4b47155342702b114b8a8055ac422c1dff"
+      },
+      "main-completed.json": {
+        "bytes": 2545,
+        "sha256": "ce9dfb2761c30e99fa8da0ef010e502a2efe65e63e600acac7d85cb2fb510fee"
+      },
+      "narrating.json": {
+        "bytes": 1789,
+        "sha256": "ea59da710f2bb3159baeece2ce75bc4b47155342702b114b8a8055ac422c1dff"
+      },
+      "ready.json": {
+        "bytes": 1587,
+        "sha256": "2ed7d9fcd2a2d1c19faea38a5e0f1abec20d628a6a2748379448282296d6d25e"
+      },
+      "redo-saved.json": {
+        "bytes": 1789,
+        "sha256": "ea59da710f2bb3159baeece2ce75bc4b47155342702b114b8a8055ac422c1dff"
+      },
+      "selected.json": {
+        "bytes": 1789,
+        "sha256": "ea59da710f2bb3159baeece2ce75bc4b47155342702b114b8a8055ac422c1dff"
+      },
+      "selection-active.json": {
+        "bytes": 1587,
+        "sha256": "2ed7d9fcd2a2d1c19faea38a5e0f1abec20d628a6a2748379448282296d6d25e"
+      },
+      "stop-recognizing.json": {
+        "bytes": 1789,
+        "sha256": "ea59da710f2bb3159baeece2ce75bc4b47155342702b114b8a8055ac422c1dff"
+      },
+      "stop-waiting-for-picker.json": {
+        "bytes": 1789,
+        "sha256": "ea59da710f2bb3159baeece2ce75bc4b47155342702b114b8a8055ac422c1dff"
+      },
+      "undo-saved.json": {
+        "bytes": 1789,
+        "sha256": "ea59da710f2bb3159baeece2ce75bc4b47155342702b114b8a8055ac422c1dff"
+      }
+    },
+    "native": {
+      "annotated.json": {
+        "bytes": 1782,
+        "sha256": "4546a1cda32e3ee44f57dad7169494c2131e593a13d95f622a500c497f2a61db"
+      },
+      "annotation-cancelled-saved.json": {
+        "bytes": 1782,
+        "sha256": "4546a1cda32e3ee44f57dad7169494c2131e593a13d95f622a500c497f2a61db"
+      },
+      "cancel-active.json": {
+        "bytes": 1782,
+        "sha256": "4546a1cda32e3ee44f57dad7169494c2131e593a13d95f622a500c497f2a61db"
+      },
+      "closed.json": {
+        "bytes": 2537,
+        "sha256": "b85f5c5bbc63caed918fa8d7e652c19bb9656b88cc7d3206454e0901ec44b52c"
+      },
+      "fresh-narrating.json": {
+        "bytes": 1782,
+        "sha256": "4546a1cda32e3ee44f57dad7169494c2131e593a13d95f622a500c497f2a61db"
+      },
+      "main-completed.json": {
+        "bytes": 2537,
+        "sha256": "b85f5c5bbc63caed918fa8d7e652c19bb9656b88cc7d3206454e0901ec44b52c"
+      },
+      "narrating.json": {
+        "bytes": 1782,
+        "sha256": "4546a1cda32e3ee44f57dad7169494c2131e593a13d95f622a500c497f2a61db"
+      },
+      "ready.json": {
+        "bytes": 1587,
+        "sha256": "cbd1a4387680a7bd1faf84e5a03f2439c77b463cfa48aca7d808a23fdce81ba5"
+      },
+      "redo-saved.json": {
+        "bytes": 1782,
+        "sha256": "4546a1cda32e3ee44f57dad7169494c2131e593a13d95f622a500c497f2a61db"
+      },
+      "selected.json": {
+        "bytes": 1782,
+        "sha256": "4546a1cda32e3ee44f57dad7169494c2131e593a13d95f622a500c497f2a61db"
+      },
+      "selection-active.json": {
+        "bytes": 1587,
+        "sha256": "cbd1a4387680a7bd1faf84e5a03f2439c77b463cfa48aca7d808a23fdce81ba5"
+      },
+      "stop-recognizing.json": {
+        "bytes": 1782,
+        "sha256": "4546a1cda32e3ee44f57dad7169494c2131e593a13d95f622a500c497f2a61db"
+      },
+      "stop-waiting-for-picker.json": {
+        "bytes": 1782,
+        "sha256": "4546a1cda32e3ee44f57dad7169494c2131e593a13d95f622a500c497f2a61db"
+      },
+      "undo-saved.json": {
+        "bytes": 1782,
+        "sha256": "4546a1cda32e3ee44f57dad7169494c2131e593a13d95f622a500c497f2a61db"
+      }
+    }
+  },
+  "limits": {
+    "physical_keys": false,
+    "real_microphone": false,
+    "real_cloud_provider": false,
+    "whole_platform_acceptance": false,
+    "performance": false
+  }
+}
