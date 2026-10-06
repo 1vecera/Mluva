@@ -64,6 +64,24 @@ pub struct Peer {
 }
 impl Peer {
     pub fn new(directory: PathBuf, example: &str) -> Self {
+        let mut peer = Self::launch(directory, example, false);
+        peer.wait_for("observed.json");
+        peer
+    }
+    /// Construct the actual client before Chromium registers its application root.
+    pub fn before_browser<T>(directory: PathBuf, client: impl FnOnce() -> T) -> (Self, T) {
+        let mut peer = Self::launch(directory, "firefox_text_peer", true);
+        peer.wait_for("status-ready.json");
+        let ready: Value =
+            serde_json::from_slice(&fs::read(peer.directory.join("status-ready.json")).unwrap())
+                .unwrap();
+        assert_eq!(ready["pid"], peer.process.id());
+        let client = client();
+        fs::write(peer.directory.join("start-browser"), "").unwrap();
+        peer.wait_for("observed.json");
+        (peer, client)
+    }
+    fn launch(directory: PathBuf, example: &str, wait_for_browser: bool) -> Self {
         fs::create_dir(&directory).unwrap();
         let executable = std::env::current_exe()
             .unwrap()
@@ -76,28 +94,30 @@ impl Peer {
             .canonicalize()
             .expect("build the requested native target example first");
         let log = fs::File::create(directory.join("target.log")).unwrap();
-        let process = Command::new(&executable)
+        let mut command = Command::new(&executable);
+        command
             .arg(&directory)
             .stdout(log.try_clone().unwrap())
             .stderr(log)
-            .spawn()
-            .unwrap();
-        let mut peer = Self {
+            .env_remove("MLUVA_BROWSER_WAIT_FOR_START");
+        if wait_for_browser {
+            command.env("MLUVA_BROWSER_WAIT_FOR_START", "1");
+        }
+        let process = command.spawn().unwrap();
+        Self {
             process,
             directory,
             executable,
             serial: 0,
-        };
+        }
+    }
+    fn wait_for(&mut self, name: &str) {
         let deadline = Instant::now() + Duration::from_secs(25);
-        while !peer.directory.join("observed.json").exists() {
-            assert!(peer.process.try_wait().unwrap().is_none(), "target exited");
-            assert!(
-                Instant::now() < deadline,
-                "target did not expose its observer"
-            );
+        while !self.directory.join(name).exists() {
+            assert!(self.process.try_wait().unwrap().is_none(), "target exited");
+            assert!(Instant::now() < deadline, "target did not expose {name}");
             settle(Duration::from_millis(25));
         }
-        peer
     }
     pub fn observed(&self) -> Value {
         serde_json::from_slice(&fs::read(self.directory.join("observed.json")).unwrap()).unwrap()
@@ -153,12 +173,24 @@ pub struct Monitor {
 }
 impl Monitor {
     pub fn new(path: PathBuf) -> Self {
+        Self::call(
+            path,
+            "type='method_call',interface='org.a11y.atspi.Text',member='GetText'",
+        )
+    }
+    pub fn deregistration(path: PathBuf) -> Self {
+        Self::call(
+            path,
+            "type='method_call',interface='org.a11y.atspi.Registry',member='DeregisterEvent'",
+        )
+    }
+    fn call(path: PathBuf, rule: &str) -> Self {
         let log = fs::File::create(&path).unwrap();
         let mut process = Command::new("dbus-monitor")
             .args([
                 "--address",
                 &std::env::var("AT_SPI_BUS_ADDRESS").unwrap(),
-                "type='method_call',interface='org.a11y.atspi.Text',member='GetText'",
+                rule,
             ])
             .stdout(log.try_clone().unwrap())
             .stderr(log)
@@ -182,14 +214,38 @@ impl Monitor {
         }
         Self { process, path }
     }
-    pub fn finish(mut self) -> Value {
+    fn finish_log(mut self) -> String {
         // SIGINT flushes dbus-monitor's private file before the exit is reaped.
         assert_eq!(
             unsafe { libc::kill(self.process.id() as i32, libc::SIGINT) },
             0
         );
         self.process.wait().unwrap();
-        let log = fs::read_to_string(&self.path).unwrap();
+        fs::read_to_string(&self.path).unwrap()
+    }
+    pub fn finish_deregistration(self) -> Vec<String> {
+        let mut events = Vec::new();
+        for message in self.finish_log().split("method call ").skip(1) {
+            assert!(
+                message
+                    .lines()
+                    .next()
+                    .unwrap()
+                    .contains("member=DeregisterEvent")
+            );
+            let arguments: Vec<_> = message
+                .lines()
+                .filter_map(|line| line.trim().strip_prefix("string \"")?.strip_suffix('"'))
+                .collect();
+            assert_eq!(arguments.len(), 2);
+            assert_eq!(arguments[1], "");
+            events.push(arguments[0].to_owned());
+        }
+        events.sort();
+        events
+    }
+    pub fn finish(self) -> Value {
+        let log = self.finish_log();
         let mut offsets = Vec::new();
         for message in log.split("method call ").skip(1) {
             if message.lines().next().unwrap().contains("member=GetText") {

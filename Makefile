@@ -68,6 +68,8 @@ linux-browser-target-test:
 .PHONY: linux-chromium-target-test
 linux-chromium-target-test:
 	bash linux/tests/run_application_smoke.sh browser-targets default chromium
+	bash linux/tests/run_application_smoke.sh browser-targets default chromium native
+	bash linux/tests/run_application_smoke.sh browser-targets default chromium native-late
 
 .PHONY: linux-browser-application-test
 linux-browser-application-test:

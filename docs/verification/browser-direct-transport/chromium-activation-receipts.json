@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-06",
+  "base": "08fdc32151418ce78bb5c399f81a9a08cec6ebd7",
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "checks": {
+    "native": {"passed":142,"failed":0,"ignored":71,"suites":98,"strictClippy":2,"formatting":true,"generated":true},
+    "browser": [
+      {"engine":"chromium","mode":"default","cases":21,"reads":3,"receipts":{"confirmed":11,"dispatched":2,"copy":7,"error":1}},
+      {"engine":"chromium","mode":"default-native","cases":21,"reads":3,"receipts":{"confirmed":11,"dispatched":2,"copy":7,"error":1}},
+      {"engine":"chromium","mode":"default-native-late","cases":21,"reads":3,"receipts":{"confirmed":11,"dispatched":2,"copy":7,"error":1}},
+      {"engine":"firefox","mode":"bus","cases":21,"reads":3,"receipts":{"confirmed":10,"dispatched":3,"copy":7,"error":1}},
+      {"engine":"firefox","mode":"default","cases":21,"reads":3,"receipts":{"confirmed":10,"dispatched":3,"copy":7,"error":1}}
+    ],
+    "gtkCases": 30,
+    "firefoxApplication": {"workflows":15,"states":102,"audits":15},
+    "originalFixtures": 65,
+    "mainFixtures": 68,
+    "sourceModules": 69,
+    "maintainedPython": 0,
+    "shellcheck": true
+  },
+  "installed": {"version":"2.1.0","files":520,"links":4,"pid":4173598},
+  "limitations": [
+    "System accessibility must already be enabled.",
+    "Private X11 standalone Chromium acceptance; assembled Chromium and Wayland remain open.",
+    "Chromium 151 converts selected Unicode offsets twice; 18 of 30 observed ranges are incorrect.",
+    "AT-SPI 2.60.6 retains global registry entries; local callback removal and exact deregistration requests are verified.",
+    "Browser resource impact is not measured."
+  ],
+  "production": [
+    {"path":"rust/mluva-gtk/src/atspi.rs","bytes":14963,"sha256":"3a249fb4cacb88328643f7c8dedfa70823ba66b4f974427d7d771f49c8726ec7"},
+    {"path":"rust/mluva-gtk/src/text_target.rs","bytes":21568,"sha256":"aedfbb5da665790530074b7d3619521256e7eacfba6546b0c2ea8b56e68532c1"},
+    {"path":"rust/mluva-gtk/tests/browser_target.rs","bytes":18414,"sha256":"684d18e4ffdf8c0c14aa6cc264480bba518439026904b92555dd82d69dce410d"},
+    {"path":"rust/mluva-gtk/tests/support/text_transport.rs","bytes":10569,"sha256":"72cf5d783ec489a6c7121df57dad13a9cb5634c2ceec589289b3299d6d2dd483"},
+    {"path":"rust/mluva-gtk/examples/firefox_text_peer.rs","bytes":16368,"sha256":"4304daf0177105e6d9fb4a92762677719f523e7e1a80cb4c154d6b9219064bb0"},
+    {"path":"linux/tests/run_application_smoke.sh","bytes":13681,"sha256":"0c46c4498a66561b8c11ae59fb5c882839db629865ad4a128b9bd62314d3a11d"}
+  ],
+  "evidence": [
+    {"path":"tmp/chromium-selection/final-desktop-gate.log","bytes":12697,"sha256":"2c84748b4e08cb4d2b77b46675071a9569ed3f5606f5324d1af8a42dffcc97ba","exit":0},
+    {"path":"tmp/chromium-selection/native-gate.log","bytes":43917,"sha256":"1ef6c32340a35c5d0f59ea815a1d304a9c09642665454bccc86cabd5fd87b253","exit":0},
+    {"path":"tmp/chromium-selection/shellcheck.log","bytes":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","exit":0},
+    {"path":"tmp/chromium-selection/native-before.log","bytes":31463,"sha256":"cf071a52e08534aa2ea532c6c2ddc263a9b36c3871136aa0bdbcce4e3a95d1db","exit":101},
+    {"path":"tmp/chromium-selection/native-no-announcement-control.log","bytes":3392,"sha256":"db502155ea4d3b30fa5cd27f1a4f58449c8732311ab6741d4486da578f6448c6","exit":101},
+    {"path":"tmp/chromium-selection/native-wrong-deregister-control.log","bytes":1895,"sha256":"f1de7038ea2a3dd044292c7abad1e8c567db398b9ea628baa87f84fbad5578b4","exit":101},
+    {"path":"/home/vecera/.claude/worktrees/mluva-rust-port/tmp/application/run.CoPwFS/default/session.ed96Vv/native-chromium-target-observations.json","bytes":29092,"sha256":"daf489eb53da280526ecb51cc481fe0f95a83bc3a7de8bb3a3807b04ab616b52"},
+    {"path":"/home/vecera/.claude/worktrees/mluva-rust-port/tmp/application/run.1ev1p8/default-native/session.z13fQa/native-chromium-target-observations.json","bytes":29091,"sha256":"49d53b16a5c7852c36e59a290a51f931fc54572ea291414dfc4313588dd8dd4f"},
+    {"path":"/home/vecera/.claude/worktrees/mluva-rust-port/tmp/application/run.cN140R/default-native-late/session.YrDFNg/native-chromium-target-observations.json","bytes":29187,"sha256":"2a22fdf5fa8dc25eed86268fbe0f09eacd5de3e7f81ac1be4681fbb244b47bed"},
+    {"path":"/home/vecera/.claude/worktrees/mluva-rust-port/tmp/application/run.fQx8Pc/bus/session.ud0FAB/native-firefox-target-observations.json","bytes":36099,"sha256":"eed67cd5f1633199e9bf3b0b01ff88dda716f1bd24e3df90f208dfe6300136ae"},
+    {"path":"/home/vecera/.claude/worktrees/mluva-rust-port/tmp/application/run.fQx8Pc/default/session.xO6TTJ/native-firefox-target-observations.json","bytes":36074,"sha256":"20dc3170129cec63533efa7134cd0aee80bcc73fc491d50817cb1acdd75a3a20"},
+    {"path":"/home/vecera/.claude/worktrees/mluva-rust-port/tmp/application/run.qy4CJC/session.n4ztyq/native-text-target-observations.json","bytes":30013,"sha256":"08ae171756784ecc176916ade2911939f523452d4616e98a0a07d9cdec5e7fca"},
+    {"path":"tmp/chromium-selection/activation-v1/session.zzWxOG/default-activation-observations.json","bytes":1598,"sha256":"ad2da41888633d14662984fe968a59a48fb5e1dfd8b1b4c39fd6efbfaa6b345a"},
+    {"path":"tmp/chromium-selection/wire-v2/session.TzF2jM/selection-wire-observations.json","bytes":51762,"sha256":"2aa7a7269bec873e9de24c9ed5fbba1e225b9d7b6d2deb50dc5c0535a091df00"},
+    {"path":"tmp/chromium-selection/no-announcement-control.patch","bytes":668,"sha256":"c0f330fbb0a60b1b3705709bd2920045628e8a183bd150f4fd12bc9eef214f7e"},
+    {"path":"tmp/chromium-selection/wrong-deregister-control.patch","bytes":413,"sha256":"821be9fe8cae1708d6457f297dbcbdba8d5838553cd68fc22f828a3e1dd941e2"},
+    {"path":"tmp/chromium-selection/final-review.json","bytes":37194,"sha256":"c61de76bcdaf7f30c351fdb755c51354e39b766d0f0f5c000d8a17a2ee73b4bd"}
+  ]
+}

@@ -120,6 +120,53 @@ fn fixture(engine: &str) -> Value {
     fixture
 }
 
+/// Observe the real registry, independently of the Rust listener wrapper.
+fn tracker_registrations(bus: &gio::DBusConnection) -> Vec<String> {
+    let registrations = bus
+        .call_sync(
+            Some("org.a11y.atspi.Registry"),
+            "/org/a11y/atspi/registry",
+            "org.a11y.atspi.Registry",
+            "GetRegisteredEvents",
+            None,
+            None,
+            gio::DBusCallFlags::NONE,
+            1_000,
+            gio::Cancellable::NONE,
+        )
+        .unwrap()
+        .get::<(Vec<(String, String)>,)>()
+        .unwrap()
+        .0;
+    let mut events = Vec::new();
+    for (owner, event) in registrations {
+        if event != "Object:StateChanged:Focused" && event != "Object:ChildrenChanged:Add" {
+            continue;
+        }
+        let pid = bus
+            .call_sync(
+                Some("org.freedesktop.DBus"),
+                "/org/freedesktop/DBus",
+                "org.freedesktop.DBus",
+                "GetConnectionUnixProcessID",
+                Some(&(owner,).to_variant()),
+                None,
+                gio::DBusCallFlags::NONE,
+                1_000,
+                gio::Cancellable::NONE,
+            )
+            .unwrap()
+            .get::<(u32,)>()
+            .unwrap()
+            .0;
+        if pid == std::process::id() {
+            events.push(event);
+        }
+    }
+    events.sort();
+    events
+}
+
 #[test]
 #[ignore = "requires private browser runner, Firefox or Chromium/ChromeDriver, xclip/xdotool/Openbox and built browser peer"]
 fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
@@ -144,10 +191,37 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
     settle(Duration::from_millis(400));
     own.set_visible(false);
     settle(Duration::from_millis(200));
-    let mut peer = Peer::new(
-        root.join(format!("native-{engine}-target")),
-        "firefox_text_peer",
-    );
+    let registry = gio::DBusConnection::for_address_sync(
+        &std::env::var("AT_SPI_BUS_ADDRESS").unwrap(),
+        gio::DBusConnectionFlags::AUTHENTICATION_CLIENT
+            | gio::DBusConnectionFlags::MESSAGE_BUS_CONNECTION,
+        None,
+        gio::Cancellable::NONE,
+    )
+    .unwrap();
+    assert!(tracker_registrations(&registry).is_empty());
+    let expected_registrations = ["Object:ChildrenChanged:Add", "Object:StateChanged:Focused"];
+    let mut lifecycle = Vec::new();
+    let native_activation = std::env::var_os("MLUVA_CHROMIUM_NATIVE_ACTIVATION").is_some();
+    let late_start = std::env::var_os("MLUVA_CHROMIUM_LATE_START").is_some();
+    let directory = root.join(format!("native-{engine}-target"));
+    let (mut peer, mut startup_tracker) = if late_start {
+        assert_eq!(engine, "chromium");
+        assert!(native_activation);
+        assert_eq!(fixture["cases"][0]["input"]["cold"], true);
+        let (peer, tracker) = Peer::before_browser(directory, || {
+            assert!(system_accessibility_enabled());
+            let tracker = FocusedTextTargetTracker::new().unwrap();
+            assert!(delivery(&tracker).is_none(), "no browser is running yet");
+            let events = tracker_registrations(&registry);
+            assert_eq!(events, expected_registrations);
+            lifecycle.push(json!({"stage":"before-browser","events":events}));
+            tracker
+        });
+        (peer, Some(tracker))
+    } else {
+        (Peer::new(directory, "firefox_text_peer"), None)
+    };
     let metadata = peer.observed()["metadata"].clone();
     assert_eq!(metadata["version"], fixture["browser"]["version"]);
     assert_eq!(metadata["build_id"], fixture["browser"]["build_id"]);
@@ -158,7 +232,7 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
     );
     assert!(system_accessibility_enabled());
     assert!(!bus_name_has_owner("org.freedesktop.portal.Desktop"));
-    if engine == "chromium" {
+    if engine == "chromium" && !native_activation {
         peer.request(json!({"operation":"enable_accessibility"}));
     }
     let mut results = Vec::new();
@@ -173,7 +247,14 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
         if input["cold"] == true {
             peer.request(setup.clone());
         }
-        let mut tracker = FocusedTextTargetTracker::new().unwrap();
+        let mut tracker = startup_tracker
+            .take()
+            .unwrap_or_else(|| FocusedTextTargetTracker::new().unwrap());
+        if results.is_empty() {
+            let events = tracker_registrations(&registry);
+            assert_eq!(events, expected_registrations);
+            lifecycle.push(json!({"stage":"first-target","events":events}));
+        }
         if input["cold"] != true {
             peer.request(setup);
         }
@@ -319,7 +400,30 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
             result["bus_text_requests"] = bus_reads;
         }
         results.push(result);
+        let deregistration = (results.len() == 1)
+            .then(|| Monitor::deregistration(peer.directory.join("tracker-close.log")));
         tracker.close();
+        if let Some(deregistration) = deregistration {
+            settle(Duration::from_millis(100));
+            let deregistered = deregistration.finish_deregistration();
+            assert_eq!(
+                deregistered,
+                [
+                    "object:children-changed:add",
+                    "object:state-changed:focused"
+                ]
+            );
+            // 2.60.6 retains global registry entries (NULL vs empty app-name matching),
+            // although libatspi removes the local callbacks before this synchronous call.
+            let remaining = tracker_registrations(&registry);
+            peer.request(json!({"operation":"focus","kind":"second"}));
+            assert!(
+                delivery(&tracker).is_none(),
+                "a closed tracker observed later focus"
+            );
+            lifecycle.push(json!({"stage":"first-close","deregistered":deregistered,
+                "registry_entries":remaining, "capture_after_focus":null}));
+        }
         if input["own_focus"] == true {
             own.set_visible(false);
             settle(Duration::from_millis(180));
@@ -349,7 +453,8 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
     }
     write(
         &root.join(format!("native-{engine}-target-observations.json")),
-        &json!({"cases":results,"browser":fixture["browser"]}),
+        &json!({"cases":results,"browser":fixture["browser"], "tracker_lifecycle":lifecycle,
+            "native_activation":native_activation, "late_start":late_start}),
     );
     assert!(
         failures.is_empty(),

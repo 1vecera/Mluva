@@ -3,7 +3,7 @@
 //! libatspi proxies and listeners stay on the GLib thread that first initializes them.
 //! Dispatch desktop capture/restoration there; send content-free receipts to workers.
 
-use crate::atspi::{self, EditableText, FocusListener, Node, Text};
+use crate::atspi::{self, EditableText, EventListener, Node, Text};
 use caseless::Caseless;
 use glib::variant::ToVariant;
 use mluva_core::terminal_target::{
@@ -96,7 +96,8 @@ pub struct FocusedTextTargetTracker {
     runtime: bool,
     own_process_id: u32,
     focus: Rc<RefCell<Focus>>,
-    listener: Option<FocusListener>,
+    listener: Option<EventListener>,
+    applications_listener: Option<EventListener>,
 }
 
 impl FocusedTextTargetTracker {
@@ -107,12 +108,13 @@ impl FocusedTextTargetTracker {
         }
         let own_process_id = std::process::id();
         let focus = Rc::new(RefCell::new(Focus::default()));
+        let mut applications_listener = None;
         let listener = if runtime {
             if !atspi::initialize() {
                 return Err(TrackerError::WrongThread);
             }
             let state = focus.clone();
-            let listener = FocusListener::new(Rc::new(move |source, detail| {
+            let listener = EventListener::focus(Rc::new(move |source, detail| {
                 // libatspi may dispatch nested events while querying the owner. Never hold a
                 // RefCell borrow across such a call, including in capture/restore/discovery.
                 let (source, process_id) = match source {
@@ -133,7 +135,28 @@ impl FocusedTextTargetTracker {
                 }
             }))
             .ok_or(TrackerError::RegistrationRejected)?;
-            let initial = Node::desktop().and_then(|root| find_focused(root, own_process_id, true));
+            let root = Node::desktop();
+            if let Some(root) = &root {
+                let watched = root.clone();
+                applications_listener = Some(
+                    EventListener::applications_added(Rc::new(move |source, index| {
+                        if source.as_ref() == Some(&watched) && index >= 0 {
+                            announce_accessibility_client(watched.child(index), own_process_id);
+                        }
+                    }))
+                    .ok_or(TrackerError::RegistrationRejected)?,
+                );
+                // Chromium exposes its web tree only after a normal extended-properties
+                // request. Query application roots only; discard all returned attributes.
+                for index in 0..root
+                    .child_count()
+                    .unwrap_or(0)
+                    .min(MAX_ACCESSIBLE_NODES as i32)
+                {
+                    announce_accessibility_client(root.child(index), own_process_id);
+                }
+            }
+            let initial = root.and_then(|root| find_focused(root, own_process_id, true));
             let mut state = focus.borrow_mut();
             if !state.event_received {
                 state.node = initial;
@@ -147,6 +170,7 @@ impl FocusedTextTargetTracker {
             own_process_id,
             focus,
             listener,
+            applications_listener,
         })
     }
 
@@ -198,8 +222,19 @@ impl FocusedTextTargetTracker {
     }
 
     pub fn close(&mut self) {
+        drop(self.applications_listener.take());
         drop(self.listener.take());
         self.focus.borrow_mut().node = None;
+    }
+}
+
+fn announce_accessibility_client(application: Option<Node>, own_pid: u32) {
+    if let Some(application) = application
+        && application
+            .process_id()
+            .is_some_and(|pid| pid != 0 && pid != own_pid)
+    {
+        application.request_attributes();
     }
 }
 impl Drop for FocusedTextTargetTracker {

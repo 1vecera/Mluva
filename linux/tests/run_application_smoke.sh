@@ -23,10 +23,17 @@ case "$mode" in
     images) suites=(application); image_case="${2:-}"; editor="${3:-${MLUVA_TEST_EDITOR:-}}"; image_cli="${4:-${MLUVA_TEST_INSTALLED_CODEX:-}}" ;;
     screenshots) suites=(application_screenshots) ;;
     text-targets) suites=(text_target) ;;
-    browser-targets) suites=(browser_target); browser_case="${2:-}"; browser_engine="${3:-firefox}" ;;
+    browser-targets) suites=(browser_target); browser_case="${2:-}"; browser_engine="${3:-firefox}"; browser_activation="${4:-enabled}" ;;
     browser-application) suites=(application_shortcuts); browser_case=default ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
 esac
+if [[ "$mode" == browser-targets ]]; then
+    case "$browser_activation" in
+        enabled) ;;
+        native|native-late) [[ "$browser_engine" == chromium && "$browser_case" == default ]] ;;
+        *) echo "Unknown browser accessibility verification: $browser_activation" >&2; exit 2 ;;
+    esac
+fi
 test_arguments=()
 for suite in "${suites[@]}"; do
     test_arguments+=(--test "$suite")
@@ -48,6 +55,13 @@ if "$inside"; then
     fi
     if [[ "$mode" == browser-targets ]]; then
         export MLUVA_BROWSER_ENGINE="$browser_engine"
+        unset MLUVA_CHROMIUM_NATIVE_ACTIVATION MLUVA_CHROMIUM_LATE_START
+        if [[ "$browser_activation" != enabled ]]; then
+            export MLUVA_CHROMIUM_NATIVE_ACTIVATION=1
+        fi
+        if [[ "$browser_activation" == native-late ]]; then
+            export MLUVA_CHROMIUM_LATE_START=1
+        fi
     fi
     if [[ "$mode" == browser-application ]]; then
         export PATH="$OFFSCREEN_SESSION_ROOT/application-shortcut-tools:$PATH"
@@ -174,9 +188,13 @@ if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
     if [[ -n "$browser_case" ]]; then browser_cases=("$browser_case"); fi
     for browser_case in "${browser_cases[@]}"; do
         [[ "$browser_case" == bus || "$browser_case" == default ]]
+        browser_evidence="$browser_case"
+        if [[ "${browser_activation:-enabled}" != enabled ]]; then
+            browser_evidence="$browser_case-$browser_activation"
+        fi
         bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
-            bash dev/run-isolated-browser.sh "$evidence/$browser_case" -- \
-            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session "$mode" "$browser_case" "${browser_engine:-firefox}"
+            bash dev/run-isolated-browser.sh "$evidence/$browser_evidence" -- \
+            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session "$mode" "$browser_case" "${browser_engine:-firefox}" "${browser_activation:-enabled}"
     done
     exit
 fi
