@@ -1,0 +1,368 @@
+{
+  "date": "2026-10-06",
+  "scope": "Actual Wayland edited images and immutable held requests through installed Codex CLI",
+  "reference": {
+    "commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+    "files_verified": 91,
+    "raw": "tmp/wayland-rewrite-context/source.utKhsO/results.json",
+    "fingerprint": {
+      "bytes": 136098,
+      "sha256": "e0da1c648b871c69f74cda3f9e74e62e71230fff40ad02d0ed1ea48b80fbee2e"
+    }
+  },
+  "native": {
+    "version": "2.1.0",
+    "payload_files_verified": 520,
+    "links_verified": 4,
+    "receipt": {
+      "bytes": 68168,
+      "sha256": "3bf35523cd8b329fee2d0d244c781dc467b3b3ef198bce9949ddbf619c155d51"
+    },
+    "raw": "tmp/wayland-rewrite-context/native.Yx43YO/results.json",
+    "fingerprint": {
+      "bytes": 93558,
+      "sha256": "40b59d15ac2b7d4cba60d7ff4688cc8b7346c73832c2d2585faa1195a522bc3c"
+    },
+    "no_python_traps": {
+      "positive_invocations": [
+        "/usr/bin/python",
+        "/usr/bin/python3",
+        "/usr/bin/uv"
+      ],
+      "calls_after_start": 0
+    }
+  },
+  "prior_recording_receipt": {
+    "bytes": 22263,
+    "sha256": "f202e539379524497dd6f775b8bee6535b3bad7a2d3bc606e6e7955bc5383c18"
+  },
+  "prior_revisions_receipt": {
+    "bytes": 14436,
+    "sha256": "88edc39f667f25306a6a86b44b70d14c4bd09235a455f8b5b00ed806b6ad3952"
+  },
+  "observers": {
+    "observe.py": {
+      "bytes": 45296,
+      "sha256": "3ecd6416e6ebe630327244c99fa7c8d984fbd7efe46f0eaeb04ee991f2984d36"
+    },
+    "run.sh": {
+      "bytes": 1226,
+      "sha256": "efd216d584d44b351df80a9005c0f37284218dba1aa6eb424fe55603ac2ced7d"
+    },
+    "audit.py": {
+      "bytes": 23459,
+      "sha256": "c3acc3a4a15dfa3edb5e2e4a58ae96cc31098ce74a34c66eccdb3fe168363642"
+    }
+  },
+  "sdk": {
+    "version": "0.160.0",
+    "cli": {
+      "bytes": 289101384,
+      "sha256": "12eb3e81114588aca3b7998f4f19e8997b056aca08e57a7ca7c8a3ec8c652aad"
+    },
+    "requests": {
+      "source": [
+        {
+          "request": 1,
+          "image": {
+            "bytes": 9900,
+            "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+          },
+          "prior_reply_count": 0,
+          "source": "Private screenshot context 82\n\nContinued main narration 83.",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "low",
+            "context": "all_turns"
+          },
+          "normalized_application_request": {
+            "bytes": 15316,
+            "sha256": "19d0b37a385144dcfb3f836a48a59555a9e05e549ee4f185a13d32791c1b7f85"
+          },
+          "raw_request": {
+            "bytes": 33651,
+            "sha256": "e0eb5ecf50dfb936f1e648e78260955cb8d68ec87da4c2d8744035fa22326333"
+          },
+          "private_process": 543
+        },
+        {
+          "request": 2,
+          "image": {
+            "bytes": 3907,
+            "sha256": "014219f3256294cd5c4897eb44d28a4b10eeb17ec8a465a97cdb16574c12b11a"
+          },
+          "prior_reply_count": 1,
+          "source": "Private screenshot context 82\n\nContinued main narration 83.",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "low",
+            "context": "all_turns"
+          },
+          "normalized_application_request": {
+            "bytes": 7676,
+            "sha256": "eb120452a96b5019f2da74e6ce6cec22a9f84399d05d68e108535fc2f7ff417c"
+          },
+          "raw_request": {
+            "bytes": 26011,
+            "sha256": "f67563824ae18c9705bc009fd659eb7fbacff91e8f36575f3d303249c66d4b28"
+          },
+          "private_process": 619
+        }
+      ],
+      "native": [
+        {
+          "request": 1,
+          "image": {
+            "bytes": 9900,
+            "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+          },
+          "prior_reply_count": 0,
+          "source": "Private screenshot context 82\n\nContinued main narration 83.",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "low",
+            "context": "all_turns"
+          },
+          "normalized_application_request": {
+            "bytes": 15316,
+            "sha256": "19d0b37a385144dcfb3f836a48a59555a9e05e549ee4f185a13d32791c1b7f85"
+          },
+          "raw_request": {
+            "bytes": 18310,
+            "sha256": "89329e2623538a4e1871a4b728fc591a7022f4fb2d5555caebd293ffa3f54e2a"
+          },
+          "private_process": 582
+        },
+        {
+          "request": 2,
+          "image": {
+            "bytes": 3907,
+            "sha256": "014219f3256294cd5c4897eb44d28a4b10eeb17ec8a465a97cdb16574c12b11a"
+          },
+          "prior_reply_count": 1,
+          "source": "Private screenshot context 82\n\nContinued main narration 83.",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "low",
+            "context": "all_turns"
+          },
+          "normalized_application_request": {
+            "bytes": 7676,
+            "sha256": "eb120452a96b5019f2da74e6ce6cec22a9f84399d05d68e108535fc2f7ff417c"
+          },
+          "raw_request": {
+            "bytes": 10670,
+            "sha256": "4d5ee236faff7574f27721f2c637bc1c5db5e5cea379596b9ffa1110fe085a1b"
+          },
+          "private_process": 687
+        }
+      ]
+    },
+    "entire_image_bytes_equal": true,
+    "model_reply": [
+      "Annotated screenshot context 82.",
+      "Original screenshot context 82."
+    ],
+    "requests_held_during_actual_save": true,
+    "mcp_not_started": true,
+    "instruction_canaries_not_uploaded": true,
+    "native_additional_tools_empty": true,
+    "intentional_policy_difference": "The unchanged reference exposes newer SDK functions/collaboration definitions; Rust disables these extra capabilities.",
+    "comparison_scope": "All request settings, base transformation instructions and entire user input, including both whole images and source/prior replies.",
+    "metadata_normalization": [
+      "generated UUIDs removed after relationship validation",
+      "capture offset sampled"
+    ]
+  },
+  "comparison": {
+    "whole_png_rgba_equal": true,
+    "masks": false,
+    "total_states": 20,
+    "fourteen_previous_sqlite_contracts_unchanged": true,
+    "all_states": {
+      "bytes": 30365,
+      "sha256": "c07f70bae956ec969e2563c0783bdf3211111841c92bfc37be1328f48e107fca"
+    },
+    "all_sqlite_states": {
+      "bytes": 28561,
+      "sha256": "1b97487a47fa3a50123a3d5a7ecf356908ca64cca5722ba7e88f3009096d5618"
+    }
+  },
+  "new_states": [
+    {
+      "name": "rewrite-annotated-pending",
+      "image": {
+        "bytes": 9900,
+        "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+      },
+      "phase": "idle",
+      "reply_count": 0,
+      "sqlite": {
+        "bytes": 1787,
+        "sha256": "870e227ff1b258f3f7d1beb184023b42750a5ee9f3b4a3ebc186506fe35abacf"
+      }
+    },
+    {
+      "name": "rewrite-undone-pending",
+      "image": {
+        "bytes": 3907,
+        "sha256": "014219f3256294cd5c4897eb44d28a4b10eeb17ec8a465a97cdb16574c12b11a"
+      },
+      "phase": "idle",
+      "reply_count": 0,
+      "sqlite": {
+        "bytes": 1787,
+        "sha256": "870e227ff1b258f3f7d1beb184023b42750a5ee9f3b4a3ebc186506fe35abacf"
+      }
+    },
+    {
+      "name": "rewrite-annotated-completed",
+      "image": {
+        "bytes": 3907,
+        "sha256": "014219f3256294cd5c4897eb44d28a4b10eeb17ec8a465a97cdb16574c12b11a"
+      },
+      "phase": "idle",
+      "reply_count": 1,
+      "sqlite": {
+        "bytes": 2216,
+        "sha256": "62343456c77026785a67a913f2a827e21f82a2fecbeac5c507e8c1884b457b12"
+      }
+    },
+    {
+      "name": "rewrite-undone-request-pending",
+      "image": {
+        "bytes": 3907,
+        "sha256": "014219f3256294cd5c4897eb44d28a4b10eeb17ec8a465a97cdb16574c12b11a"
+      },
+      "phase": "idle",
+      "reply_count": 1,
+      "sqlite": {
+        "bytes": 2216,
+        "sha256": "62343456c77026785a67a913f2a827e21f82a2fecbeac5c507e8c1884b457b12"
+      }
+    },
+    {
+      "name": "rewrite-redone-pending",
+      "image": {
+        "bytes": 9900,
+        "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+      },
+      "phase": "idle",
+      "reply_count": 1,
+      "sqlite": {
+        "bytes": 2216,
+        "sha256": "62343456c77026785a67a913f2a827e21f82a2fecbeac5c507e8c1884b457b12"
+      }
+    },
+    {
+      "name": "rewrite-undone-completed",
+      "image": {
+        "bytes": 9900,
+        "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+      },
+      "phase": "idle",
+      "reply_count": 2,
+      "sqlite": {
+        "bytes": 2645,
+        "sha256": "41a9d8d3d4a4ef08eb62f32d04234106e753c50324a853005b9090a884c2f756"
+      }
+    }
+  ],
+  "cache_readiness": {
+    "private_abstract_bus": true,
+    "registry_positive_before_launch": true,
+    "actual_app_editor_cache_positive_before_actions": true,
+    "source": {
+      "application-ready": {
+        "bytes": 14462,
+        "sha256": "cc452371201eaa087c1ae459ea6ea8e56ae83d75cf67f0b9f0524b8a9ccedf1c"
+      },
+      "editor-before-actions": {
+        "bytes": 57067,
+        "sha256": "b711b0f95dfbad4c351cab12414cf281a969d0b8574f6de8bd5209e6c18add10"
+      },
+      "editor-ready": {
+        "bytes": 129613,
+        "sha256": "4e5344347bcddef37d78c51803075b100caed63f5ca5a5ba41565f28a1bfe434"
+      }
+    },
+    "native": {
+      "application-ready": {
+        "bytes": 2152,
+        "sha256": "bec89a42aaecdbdcb13169162421e3f87c19261bf96db7eff6348fd334120694"
+      },
+      "editor-before-actions": {
+        "bytes": 54316,
+        "sha256": "f095c36ecb59008abf4c8a3b718c0a273687bf8465a21661567c3d5d4a78edba"
+      },
+      "editor-ready": {
+        "bytes": 126902,
+        "sha256": "ebd8d81853f6f2c4d2335df6c45d08e3e63bc56c7d8242f9692b154bdd4cdb2f"
+      }
+    },
+    "warnings": 0,
+    "disable_cache": false,
+    "disable_p2p": false
+  },
+  "raw_sqlite": {
+    "source": {
+      "rewrite-annotated-pending.json": {
+        "bytes": 2735,
+        "sha256": "f4079305768e9fb02cc011d230b113ec6b6cbce284a616967fedf967df626410"
+      },
+      "rewrite-undone-pending.json": {
+        "bytes": 2735,
+        "sha256": "f4079305768e9fb02cc011d230b113ec6b6cbce284a616967fedf967df626410"
+      },
+      "rewrite-annotated-completed.json": {
+        "bytes": 3214,
+        "sha256": "88540cfb09c9ac51d963e26a6247f17b7b438030704f3472fe1d9985f27490e6"
+      },
+      "rewrite-undone-request-pending.json": {
+        "bytes": 3214,
+        "sha256": "88540cfb09c9ac51d963e26a6247f17b7b438030704f3472fe1d9985f27490e6"
+      },
+      "rewrite-redone-pending.json": {
+        "bytes": 3214,
+        "sha256": "88540cfb09c9ac51d963e26a6247f17b7b438030704f3472fe1d9985f27490e6"
+      },
+      "rewrite-undone-completed.json": {
+        "bytes": 3688,
+        "sha256": "c747f85cb2364095f9532babeacae12aecf42c48e125a26bc04d8bedd87b7e0a"
+      }
+    },
+    "native": {
+      "rewrite-annotated-pending.json": {
+        "bytes": 2727,
+        "sha256": "7e1ca1f06671c1e0d03bfe2483a0b0c5f4cd641a53abf29555bc5cae5d57b2be"
+      },
+      "rewrite-undone-pending.json": {
+        "bytes": 2727,
+        "sha256": "7e1ca1f06671c1e0d03bfe2483a0b0c5f4cd641a53abf29555bc5cae5d57b2be"
+      },
+      "rewrite-annotated-completed.json": {
+        "bytes": 3206,
+        "sha256": "d00dc3345d21f4f488201213f9416b96bf11ea5d9dc04e71fc3f7afcee7b9c07"
+      },
+      "rewrite-undone-request-pending.json": {
+        "bytes": 3206,
+        "sha256": "d00dc3345d21f4f488201213f9416b96bf11ea5d9dc04e71fc3f7afcee7b9c07"
+      },
+      "rewrite-redone-pending.json": {
+        "bytes": 3206,
+        "sha256": "d00dc3345d21f4f488201213f9416b96bf11ea5d9dc04e71fc3f7afcee7b9c07"
+      },
+      "rewrite-undone-completed.json": {
+        "bytes": 3680,
+        "sha256": "2974b5715b803457171085bceb769e9c30fbdffa97f8141a2504dfa2aaf50c8b"
+      }
+    }
+  },
+  "limits": {
+    "physical_keys": false,
+    "real_microphone": false,
+    "real_cloud_provider": false,
+    "whole_platform_acceptance": false,
+    "performance": false
+  }
+}
