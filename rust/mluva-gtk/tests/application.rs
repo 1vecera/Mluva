@@ -499,6 +499,13 @@ fn released_assembled_application_and_shutdown() {
     let mut count = 0;
     for (index, row) in cases.into_iter().enumerate() {
         let row = if reopening { &row["reopen"] } else { row };
+        let mut image_row = row.clone();
+        let mut image_sdk = if row["params"]["images"] == true {
+            application_images::InstalledCodex::prepare(&root, &tools, &target, &mut image_row)
+        } else {
+            None
+        };
+        let row = if image_sdk.is_some() { &image_row } else { row };
         events.borrow_mut().clear();
         let name = row["name"].as_str().unwrap();
         let params = &row["params"];
@@ -655,10 +662,25 @@ fn released_assembled_application_and_shutdown() {
         }
         if params["images"] == true {
             let mut flow = application_images::Flow::new(
-                &owner, &services, row, &tools, &root, &evidence, &peer,
+                &owner,
+                &services,
+                row,
+                &tools,
+                &root,
+                (&evidence, image_sdk.as_ref()),
+                &peer,
             );
             flow.exercise();
-            shutdown(&owner, &platform_closed, &evidence, &flow.audio_pids());
+            let codex_evidence = image_sdk
+                .as_ref()
+                .map(|sdk| sdk.evidence())
+                .unwrap_or_else(|| evidence.clone());
+            shutdown(
+                &owner,
+                &platform_closed,
+                &codex_evidence,
+                &flow.audio_pids(),
+            );
             flow.closed();
             drop(flow);
             assert_eq!(
@@ -666,12 +688,16 @@ fn released_assembled_application_and_shutdown() {
                 row["requests"],
                 "image workspace HTTP"
             );
-            let mut turns = application_continuation::turns(&evidence);
-            screenshot_wire::normalize(&mut turns);
-            assert_eq!(
-                turns, row["turns"],
-                "image workspace Codex image bytes and order"
-            );
+            if let Some(sdk) = image_sdk.as_mut() {
+                sdk.finish(row);
+            } else {
+                let mut turns = application_continuation::turns(&evidence);
+                screenshot_wire::normalize(&mut turns);
+                assert_eq!(
+                    turns, row["turns"],
+                    "image workspace Codex image bytes and order"
+                );
+            }
             count += row["stages"].as_array().unwrap().len();
             release_application(owner, application);
             continue;
