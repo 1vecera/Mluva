@@ -14,7 +14,7 @@ use std::{
 
 #[path = "support/text_transport.rs"]
 pub mod transport;
-use transport::{Monitor, Peer, bus_name_has_owner, delivery, settle, snapshot, write};
+use transport::{Monitor, Peer, audit_rows, bus_name_has_owner, delivery, settle, snapshot, write};
 
 fn private_root() -> PathBuf {
     let root = PathBuf::from(std::env::var_os("OFFSCREEN_SESSION_ROOT").unwrap())
@@ -34,19 +34,7 @@ fn private_root() -> PathBuf {
     );
     assert_eq!(std::env::var("XDG_SESSION_TYPE").unwrap(), "x11");
     assert_eq!(std::env::var("GDK_BACKEND").unwrap(), "x11");
-    if let Some(path) = std::env::var_os("MLUVA_TEXT_READ_AUDIT") {
-        let path = PathBuf::from(path);
-        assert!(
-            path.parent()
-                .unwrap()
-                .canonicalize()
-                .unwrap()
-                .starts_with(&root)
-        );
-        if path.exists() {
-            assert!(path.canonicalize().unwrap().starts_with(&root));
-        }
-    }
+    let has_audit = audit_rows().is_some();
     if std::env::var_os("MLUVA_BROWSER_DEFAULT_TRANSPORT").is_some() {
         for name in [
             "ATSPI_DISABLE_P2P",
@@ -60,7 +48,7 @@ fn private_root() -> PathBuf {
             );
         }
         assert!(
-            audit_rows().is_some(),
+            has_audit,
             "default transport requires an outgoing-request observer"
         );
     } else {
@@ -94,20 +82,6 @@ fn clipboard() -> String {
         .unwrap();
     assert!(result.status.success());
     String::from_utf8(result.stdout).unwrap()
-}
-
-fn audit_rows() -> Option<Vec<Value>> {
-    let path = PathBuf::from(std::env::var_os("MLUVA_TEXT_READ_AUDIT")?);
-    let text = match fs::read_to_string(&path) {
-        Ok(text) => text,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
-        Err(error) => panic!("outgoing-request observer: {error}"),
-    };
-    Some(
-        text.lines()
-            .map(|line| serde_json::from_str(line).unwrap())
-            .collect(),
-    )
 }
 
 #[test]

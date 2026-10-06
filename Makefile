@@ -62,6 +62,10 @@ linux-text-target-test:
 linux-browser-target-test:
 	bash linux/tests/run_application_smoke.sh browser-targets
 
+.PHONY: linux-browser-application-test
+linux-browser-application-test:
+	bash linux/tests/run_application_smoke.sh browser-application
+
 linux-conversation-test:
 	bash linux/tests/run_conversation_smoke.sh
 

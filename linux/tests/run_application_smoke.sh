@@ -23,6 +23,7 @@ case "$mode" in
     screenshots) suites=(application_screenshots) ;;
     text-targets) suites=(text_target) ;;
     browser-targets) suites=(browser_target); browser_case="${2:-}" ;;
+    browser-application) suites=(application_shortcuts); browser_case=default ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
 esac
 test_arguments=()
@@ -32,7 +33,7 @@ done
 
 if "$inside"; then
     test -n "${OFFSCREEN_SESSION_ROOT:-}"
-    if [[ "$mode" == browser-targets ]]; then
+    if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
         export MLUVA_TEXT_READ_AUDIT="$OFFSCREEN_SESSION_ROOT/text-read-audit.jsonl"
         export LD_PRELOAD="$CARGO_TARGET_DIR/debug/examples/libatspi_read_audit.so"
         if [[ "$browser_case" == default ]]; then
@@ -41,6 +42,12 @@ if "$inside"; then
         else
             test "$browser_case" == bus
         fi
+    fi
+    if [[ "$mode" == browser-application ]]; then
+        export PATH="$OFFSCREEN_SESSION_ROOT/application-shortcut-tools:$PATH"
+        export MLUVA_APPLICATION_BROWSER=1 TZ=UTC CARGO_NET_OFFLINE=true
+        unset MLUVA_DISABLE_GLOBAL_SHORTCUT
+        exec cargo test --locked -p mluva-gtk "${test_arguments[@]}" -- --ignored --test-threads=1 --nocapture
     fi
     if [[ "$mode" == live-controllers ]]; then
         for suite in "${suites[@]}"; do
@@ -134,6 +141,9 @@ elif [[ "$mode" != live-components ]]; then
         -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
         -p mluva-providers --bin codex-fixture-peer --bin credential-fixture-peer
 fi
+if [[ "$mode" == browser-application ]]; then
+    cargo build --locked -p mluva-gtk --example firefox_text_peer --example atspi_read_audit
+fi
 if [[ "$mode" == images || "$mode" == screenshots ]]; then
     cargo build --locked -p mluva-workflows --bin screenshot-picker-fixture-peer --bin mluva-narrate \
         -p mluva-shell --bin mluva-shell -p mluva-gtk --example screenshot_editor_peer
@@ -141,14 +151,15 @@ fi
 cargo test --locked -p mluva-gtk "${test_arguments[@]}" --no-run
 mkdir -p tmp/application
 evidence="$(mktemp -d "$project_root/tmp/application/run.XXXXXX")"
-if [[ "$mode" == browser-targets ]]; then
+if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
     browser_cases=(bus default)
+    if [[ "$mode" == browser-application ]]; then browser_cases=(default); fi
     if [[ -n "$browser_case" ]]; then browser_cases=("$browser_case"); fi
     for browser_case in "${browser_cases[@]}"; do
         [[ "$browser_case" == bus || "$browser_case" == default ]]
         bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
             bash dev/run-isolated-browser.sh "$evidence/$browser_case" -- \
-            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session browser-targets "$browser_case"
+            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session "$mode" "$browser_case"
     done
     exit
 fi

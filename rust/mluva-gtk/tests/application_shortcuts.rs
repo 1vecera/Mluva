@@ -6,6 +6,7 @@ use mluva_gtk::{
     application::{ApplicationDesktop, ApplicationPlatform},
     async_runtime::DesktopRuntime,
     document_layout::DocumentResources,
+    text_target::FocusedTextTargetTracker,
     theme::ThemeController,
 };
 use mluva_workflows::{
@@ -127,10 +128,15 @@ fn snapshot(
     services: &ApplicationServices,
     peer: &text_transport::Peer,
     audio: Option<&Path>,
+    browser: bool,
 ) -> Value {
     let mut target = peer.observed();
-    target.as_object_mut().unwrap().remove("serial");
-    target.as_object_mut().unwrap().remove("pid");
+    if browser {
+        target = target["observed"].clone();
+    } else {
+        target.as_object_mut().unwrap().remove("serial");
+        target.as_object_mut().unwrap().remove("pid");
+    }
     let prefs = &owner.settings.capture;
     json!({"ui":capture_ui::observe(&owner.capture.page,audio),"hint":owner.capture.page.action_hint.label().as_str(),"approval":prefs.shortcut_status.subtitle().map(String::from),"latest":prefs.latest_shortcut_status.subtitle().map(String::from),"key":prefs.recording_key.selected(),"key_sensitive":prefs.recording_key.get_sensitive(),"saved_key":AppConfig::load(&services.paths.config.join("config.json")).unwrap().global_recording_key,"provider":services.config().transcription_provider,"page":owner.shell.stack.visible_child_name().map(String::from),"visible":owner.shell.window.get_visible(),"history":services.history.recent(100).unwrap().into_iter().rev().map(|e|json!({"raw":e.raw_text,"output":e.delivered_text,"outcome":e.delivery_outcome})).collect::<Vec<_>>(),"clipboard":clipboard(),"target":target})
 }
@@ -267,22 +273,54 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         assert!(!Path::new(path).exists());
     }
     assert!(std::env::var_os("MLUVA_DISABLE_GLOBAL_SHORTCUT").is_none());
+    let browser = std::env::var_os("MLUVA_APPLICATION_BROWSER").is_some();
+    let browser_fixture: Value =
+        serde_json::from_str(include_str!("fixtures/released-application-browser.json")).unwrap();
+    if browser {
+        for name in [
+            "ATSPI_DISABLE_P2P",
+            "ATSPI_IN_TESTS",
+            "ATSPI_NO_CACHE",
+            "PYATSPI_NOCACHE",
+        ] {
+            assert!(
+                std::env::var_os(name).is_none(),
+                "{name} changes default transport/cache"
+            );
+        }
+        assert!(text_transport::audit_rows().unwrap().is_empty());
+        assert!(!Path::new("/run/dbus/system_bus_socket").exists());
+    }
     let selected = std::env::var("MLUVA_APPLICATION_SHORTCUT_CASE").ok();
     let fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-application-shortcuts.json")).unwrap();
+    assert_eq!(browser_fixture["reference"], fixture["reference"]);
     if selected.is_none() {
-        let cases = fixture["cases"].as_array().unwrap().len();
-        for case in (0..cases)
-            .map(|index| index.to_string())
-            .chain(["readiness".into()])
-        {
+        let mut cases = fixture["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .enumerate()
+            .filter(|(_, row)| {
+                !browser
+                    || browser_fixture["cases"]
+                        .get(row["params"]["name"].as_str().unwrap())
+                        .is_some()
+            })
+            .map(|(index, _)| index.to_string())
+            .collect::<Vec<_>>();
+        if !browser {
+            cases.push("readiness".into());
+        }
+        for case in cases {
             // libatspi owns a process-global cache even after every tracker is
             // closed. Each cold application scenario needs a fresh client.
             let log_path = root.join(format!("shortcut-client-{case}.log"));
             let log = fs::File::create(&log_path).unwrap();
             // A clipboard owner can outlive the test client. Its inherited log
             // descriptor must not keep a stdout pipe's EOF waiter alive.
-            let status = Command::new(std::env::current_exe().unwrap())
+            let mut command = Command::new(std::env::current_exe().unwrap());
+            command
                 .args([
                     "--exact",
                     "released_application_portal_actions_settings_and_target_delivery",
@@ -292,9 +330,14 @@ fn released_application_portal_actions_settings_and_target_delivery() {
                 ])
                 .env("MLUVA_APPLICATION_SHORTCUT_CASE", &case)
                 .stdout(log.try_clone().unwrap())
-                .stderr(log)
-                .status()
-                .unwrap();
+                .stderr(log);
+            if browser {
+                command.env(
+                    "MLUVA_TEXT_READ_AUDIT",
+                    root.join(format!("text-read-audit-{case}.jsonl")),
+                );
+            }
+            let status = command.status().unwrap();
             let output = fs::read_to_string(log_path).unwrap();
             assert!(status.success(), "case {case}: {output}");
             assert!(
@@ -372,6 +415,8 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         }
         let params = &row["params"];
         let name = params["name"].as_str().unwrap();
+        let browser_case = browser.then(|| &browser_fixture["cases"][name]);
+        assert!(!browser || !browser_case.unwrap().is_null());
         portal.control("Reset", Some(params["portal"].as_str().unwrap_or("normal")));
         let directory = tempfile::tempdir_in(&root).unwrap();
         let _ = fs::remove_file(tools.join("raw.ready.json"));
@@ -395,7 +440,25 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         };
         config.save(&paths.config.join("config.json")).unwrap();
         let services = ApplicationServices::open(paths).unwrap();
-        let mut peer = text_transport::Peer::new(directory.path().join("peer"), "text_target_peer");
+        let mut peer = text_transport::Peer::new(
+            directory.path().join("peer"),
+            if browser {
+                "firefox_text_peer"
+            } else {
+                "text_target_peer"
+            },
+        );
+        let browser_pid = browser.then(|| {
+            let metadata = &peer.observed()["metadata"];
+            assert_eq!(metadata["version"], browser_fixture["browser"]["version"]);
+            assert_eq!(metadata["build_id"], browser_fixture["browser"]["build_id"]);
+            let pid = metadata["pid"].as_u64().unwrap();
+            assert_eq!(
+                fs::read_link(format!("/proc/{pid}/exe")).unwrap(),
+                PathBuf::from(metadata["identity"].as_str().unwrap())
+            );
+            pid
+        });
         let application = adw::Application::builder()
             .application_id(format!("com.mluva.ShortcutAcceptance{index}"))
             .flags(gio::ApplicationFlags::NON_UNIQUE)
@@ -454,14 +517,26 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             .set_text("untouched shortcut clipboard");
         let mut stage_index = 0;
         let mut stage = |label: &str, audio: Option<&Path>, peer: &text_transport::Peer| {
-            let actual = json!({"stage":label,"state":snapshot(&owner,&services,peer,audio)});
-            let expected = &row["stages"][stage_index];
+            let actual =
+                json!({"stage":label,"state":snapshot(&owner,&services,peer,audio,browser)});
+            let mut expected = row["stages"][stage_index].clone();
+            if let Some(browser_case) = browser_case {
+                let stage = &browser_case["stages"][stage_index];
+                assert_eq!(stage["stage"], label);
+                expected["state"]["target"] =
+                    browser_fixture["targets"][stage["target"].as_u64().unwrap() as usize].clone();
+                for field in ["status", "tooltip"] {
+                    if let Some(value) = stage.get(field) {
+                        expected["state"]["ui"][field] = value.clone();
+                    }
+                }
+            }
             fs::write(
                 root.join(format!("{name}-{label}-actual.json")),
                 serde_json::to_vec_pretty(&actual).unwrap(),
             )
             .unwrap();
-            assert_eq!(&actual, expected, "{name}: {label}");
+            assert_eq!(actual, expected, "{name}: {label}");
             stage_index += 1;
             count += 1;
         };
@@ -545,7 +620,7 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         let mut audio = None;
         let mut pid = None;
         if let Some(capture) = params["capture"].as_str() {
-            peer.request(json!({"operation":"setup","kind":"entry","text":"Before 🐎 after","start":7,"end":8,"editable":true}));
+            peer.request(json!({"operation":"setup","kind":"entry","text":"Before 🐎 after","start":7,"end":if browser {9} else {8},"editable":true}));
             stage("focused-target", None, &peer);
             if capture == "manual" {
                 application.activate_action("record", None);
@@ -584,19 +659,53 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             settle();
             stage("completed", audio.as_deref(), &peer);
             if capture == "global" {
-                assert_eq!(
-                    peer.observed()["entry"]["text"],
-                    "Before Portal dictation keeps 12 files. after"
-                );
+                if !browser {
+                    assert_eq!(
+                        peer.observed()["entry"]["text"],
+                        "Before Portal dictation keeps 12 files. after"
+                    );
+                }
                 application.activate_action("history", None);
                 settle();
                 portal.drive(json!({"op":"Activated","id":"open-rewrite"}));
                 until(|| owner.shell.stack.visible_child_name().as_deref() == Some("capture"));
                 settle();
                 stage("latest-conversation", audio.as_deref(), &peer);
-            } else {
+            } else if !browser {
                 assert_eq!(peer.observed()["entry"]["text"], "Before 🐎 after");
             }
+        }
+        if browser {
+            assert_eq!(
+                stage_index,
+                browser_case.unwrap()["stages"].as_array().unwrap().len()
+            );
+            assert!(
+                text_transport::audit_rows().unwrap().is_empty(),
+                "automatic recording must not read target text"
+            );
+            let mut probe = FocusedTextTargetTracker::new().unwrap();
+            peer.request(json!({"operation":"setup","kind":"textview","text":"Audit: 🐎 guard","start":7,"end":9}));
+            let selected = probe
+                .capture_text_target(2000)
+                .unwrap()
+                .expect("explicit read control");
+            assert_eq!(
+                json!({"text":selected.selected_text(),"start":selected.selection().unwrap().0,"end":selected.selection().unwrap().1,"caret":selected.caret_offset()}),
+                browser_fixture["control"]
+            );
+            probe.close();
+            let rows = text_transport::audit_rows().unwrap();
+            assert_eq!(
+                rows.len(),
+                1,
+                "explicit GetText control must observe one real request"
+            );
+            assert_eq!(rows[0]["pid"], std::process::id());
+            assert_eq!(rows[0]["valid"], true);
+            assert_eq!(rows[0]["start"], 7);
+            assert_eq!(rows[0]["end"], 9);
+            assert!(rows[0]["peer"].is_boolean());
         }
         assert_eq!(stage_index, row["stages"].as_array().unwrap().len());
         let drained = Rc::new(Cell::new(false));
@@ -614,7 +723,31 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         if let Some(audio) = audio {
             assert!(!audio.exists());
         }
-        assert_eq!(portal.snapshot(), row["portal"], "{name}: portal cleanup");
+        if browser {
+            assert_eq!(
+                portal.snapshot()["disconnected"],
+                json!([2]),
+                "Mluva disconnects before its browser"
+            );
+            peer.request(json!({"operation":"quit"}));
+            peer.await_successful_exit();
+            assert!(!Path::new(&format!("/proc/{}", browser_pid.unwrap())).exists());
+            until(|| portal.snapshot()["disconnected"] == json!([2, 1]));
+            assert_eq!(
+                portal.snapshot(),
+                browser_fixture["portals"]
+                    [browser_case.unwrap()["portal"].as_u64().unwrap() as usize],
+                "{name}: all portal owners close"
+            );
+            assert!(!text_transport::bus_name_has_owner("org.a11y.Bus"));
+            assert_eq!(
+                text_transport::audit_rows().unwrap().len(),
+                1,
+                "include all lifecycle reads"
+            );
+        } else {
+            assert_eq!(portal.snapshot(), row["portal"], "{name}: portal cleanup");
+        }
         assert_eq!(
             json!(http.finish()),
             row["requests"],
