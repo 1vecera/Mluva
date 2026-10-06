@@ -75,6 +75,10 @@ linux-chromium-target-test:
 linux-browser-application-test:
 	bash linux/tests/run_application_smoke.sh browser-application
 
+.PHONY: linux-chromium-application-test
+linux-chromium-application-test:
+	bash linux/tests/run_application_smoke.sh browser-application default chromium
+
 linux-conversation-test:
 	bash linux/tests/run_conversation_smoke.sh
 

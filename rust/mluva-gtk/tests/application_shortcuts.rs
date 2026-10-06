@@ -356,6 +356,30 @@ fn released_application_portal_actions_settings_and_target_delivery() {
     let browser = std::env::var_os("MLUVA_APPLICATION_BROWSER").is_some();
     let browser_fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-application-browser.json")).unwrap();
+    let chromium_fixture = browser
+        .then(|| {
+            let engine = std::env::var("MLUVA_BROWSER_ENGINE").unwrap_or_else(|_| "firefox".into());
+            assert!(engine == "firefox" || engine == "chromium");
+            (engine == "chromium").then(|| {
+                let fixture: Value = serde_json::from_str(include_str!(
+                    "fixtures/released-application-chromium.json"
+                ))
+                .unwrap();
+                assert_eq!(fixture["reference"], browser_fixture["reference"]);
+                assert_eq!(
+                    fixture["base_sha256"],
+                    glib::compute_checksum_for_data(
+                        glib::ChecksumType::Sha256,
+                        include_bytes!("fixtures/released-application-browser.json")
+                    )
+                    .unwrap()
+                    .as_str()
+                );
+                fixture
+            })
+        })
+        .flatten();
+    let browser_expected = chromium_fixture.as_ref().unwrap_or(&browser_fixture);
     if browser {
         for name in [
             "ATSPI_DISABLE_P2P",
@@ -501,7 +525,11 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         let command = params.get("decision").is_some();
         let live = params.get("live").is_some();
         let browser_case = browser.then(|| &browser_fixture["cases"][name]);
+        let chromium_case = chromium_fixture
+            .as_ref()
+            .map(|fixture| &fixture["cases"][name]);
         assert!(!browser || !browser_case.unwrap().is_null());
+        assert!(chromium_case.is_none_or(|case| !case.is_null()));
         portal.control("Reset", Some(params["portal"].as_str().unwrap_or("normal")));
         let directory = tempfile::tempdir_in(&root).unwrap();
         let evidence = directory.path().join("evidence");
@@ -545,8 +573,11 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         );
         let browser_pid = browser.then(|| {
             let metadata = &peer.observed()["metadata"];
-            assert_eq!(metadata["version"], browser_fixture["browser"]["version"]);
-            assert_eq!(metadata["build_id"], browser_fixture["browser"]["build_id"]);
+            assert_eq!(metadata["version"], browser_expected["browser"]["version"]);
+            assert_eq!(
+                metadata["build_id"],
+                browser_expected["browser"]["build_id"]
+            );
             let pid = metadata["pid"].as_u64().unwrap();
             assert_eq!(
                 fs::read_link(format!("/proc/{pid}/exe")).unwrap(),
@@ -635,6 +666,11 @@ fn released_application_portal_actions_settings_and_target_delivery() {
                         expected["state"]["ui"][field] = value.clone();
                     }
                 }
+            }
+            if let Some(chromium_case) = chromium_case {
+                let patch = &chromium_fixture.as_ref().unwrap()["state_patches"]
+                    [chromium_case["stages"][stage_index].as_u64().unwrap() as usize];
+                merge_observation(&mut expected["state"], patch);
             }
             fs::write(
                 root.join(format!("{name}-{label}-actual.json")),
@@ -828,14 +864,17 @@ fn released_application_portal_actions_settings_and_target_delivery() {
                 "only explicit Command selection may read target text"
             );
             let mut probe = FocusedTextTargetTracker::new().unwrap();
-            peer.request(json!({"operation":"setup","kind":"textview","text":"Audit: 🐎 guard","start":7,"end":9}));
+            peer.request(chromium_fixture.as_ref().map_or_else(
+                || json!({"operation":"setup","kind":"textview","text":"Audit: 🐎 guard","start":7,"end":9}),
+                |fixture| fixture["control_input"].clone(),
+            ));
             let selected = probe
                 .capture_text_target(2000)
                 .unwrap()
                 .expect("explicit read control");
             assert_eq!(
                 json!({"text":selected.selected_text(),"start":selected.selection().unwrap().0,"end":selected.selection().unwrap().1,"caret":selected.caret_offset()}),
-                browser_fixture["control"]
+                json!({"text":browser_expected["control"]["text"],"start":browser_expected["control"]["start"],"end":browser_expected["control"]["end"],"caret":browser_expected["control"]["caret"]})
             );
             probe.close();
             let rows = text_transport::audit_rows().unwrap();
@@ -844,12 +883,29 @@ fn released_application_portal_actions_settings_and_target_delivery() {
                 expected_reads + 1,
                 "explicit GetText control must observe one real request"
             );
-            for row in rows {
+            if let Some(chromium_case) = chromium_case {
+                assert_eq!(
+                    chromium_case["reads"].as_array().unwrap().len(),
+                    expected_reads
+                );
+            }
+            for (index, row) in rows.iter().enumerate() {
                 assert_eq!(row["pid"], std::process::id());
                 assert_eq!(row["valid"], true);
-                assert_eq!(row["start"], 7);
-                assert_eq!(row["end"], 9);
-                assert!(row["peer"].is_boolean());
+                if let Some(chromium_case) = chromium_case {
+                    let expected = if index < expected_reads {
+                        &chromium_case["reads"][index]
+                    } else {
+                        &browser_expected["control"]
+                    };
+                    for field in ["peer", "valid", "start", "end"] {
+                        assert_eq!(row[field], expected[field], "{name}: read {index}");
+                    }
+                } else {
+                    assert_eq!(row["start"], 7);
+                    assert_eq!(row["end"], 9);
+                    assert!(row["peer"].is_boolean());
+                }
             }
         }
         assert_eq!(stage_index, row["stages"].as_array().unwrap().len());
@@ -880,8 +936,9 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             until(|| portal.snapshot()["disconnected"] == json!([2, 1]));
             assert_eq!(
                 portal.snapshot(),
-                browser_fixture["portals"]
-                    [browser_case.unwrap()["portal"].as_u64().unwrap() as usize],
+                browser_expected["portals"][chromium_case.unwrap_or(browser_case.unwrap())["portal"]
+                    .as_u64()
+                    .unwrap() as usize],
                 "{name}: all portal owners close"
             );
             assert!(!text_transport::bus_name_has_owner("org.a11y.Bus"));
@@ -910,9 +967,21 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             serde_json::to_vec_pretty(&requests).unwrap(),
         )
         .unwrap();
+        let mut expected_requests = row["requests"].clone();
+        if let Some(chromium_case) = chromium_case {
+            let patches = chromium_case["requests"].as_array().unwrap();
+            assert_eq!(patches.len(), expected_requests.as_array().unwrap().len());
+            for (index, patch) in patches.iter().enumerate() {
+                merge_observation(
+                    &mut expected_requests[index],
+                    &chromium_fixture.as_ref().unwrap()["request_patches"]
+                        [patch.as_u64().unwrap() as usize],
+                );
+            }
+        }
         assert_eq!(
             json!(requests),
-            row["requests"],
+            expected_requests,
             "{name}: provider requests"
         );
         peer.stop();

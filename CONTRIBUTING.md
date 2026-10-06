@@ -61,7 +61,7 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | Exact-target paste / widget | `make linux-text-target-test` / `make linux-omarchy-test` |
 | Firefox paste and text-read privacy on bus/default transport | `make linux-browser-target-test` |
 | Chromium paste and privacy with manual accessibility controls, native activation and browser startup after the tracker | `make linux-chromium-target-test` |
-| Recording, Command and Live delivery through the actual application into Firefox | `make linux-browser-application-test` |
+| Recording, Command and Live delivery through the actual application into Firefox or Chromium | `make linux-browser-application-test linux-chromium-application-test` |
 | Installed Codex isolation | `make linux-codex-isolation-test` |
 | GNOME display extension | `make linux-overlay-test` in GNOME's headless test environment |
 
