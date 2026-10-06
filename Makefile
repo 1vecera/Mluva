@@ -29,7 +29,10 @@ linux-test-fast:
 	cargo test --locked -p mluva-core --test reference_contracts --test persistence_contracts \
 		--test prompt_and_draft_contracts --test live_policy
 
-linux-command-test linux-continuation-test: linux-application-test
+linux-command-test: linux-application-test
+
+linux-continuation-test:
+	bash linux/tests/run_application_smoke.sh continuation
 
 linux-application-test:
 	bash linux/tests/run_application_smoke.sh

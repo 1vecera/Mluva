@@ -10,6 +10,7 @@ fi
 mode="${1:-application}"
 case "$mode" in
     application) suites=(application application_shell) ;;
+    continuation) suites=(application) ;;
     conversation) suites=(conversation_page application_shell) ;;
     live-components) suites=(conversation_page document_surfaces) ;;
     live-controllers) suites=(live_controller review_controller) ;;
@@ -19,7 +20,7 @@ case "$mode" in
     prompts) suites=(application); prompt_case="${2:-}" ;;
     onboarding) suites=(application); onboarding_case="${2:-wide}"; onboarding_assets="${3:-${MLUVA_TEST_ONBOARDING_ASSETS:-}}" ;;
     prompt-editor) suites=(prompt_editor) ;;
-    images) suites=(application); image_case="${2:-}"; editor="${3:-${MLUVA_TEST_EDITOR:-}}" ;;
+    images) suites=(application); image_case="${2:-}"; editor="${3:-${MLUVA_TEST_EDITOR:-}}"; image_cli="${4:-${MLUVA_TEST_INSTALLED_CODEX:-}}" ;;
     screenshots) suites=(application_screenshots) ;;
     text-targets) suites=(text_target) ;;
     browser-targets) suites=(browser_target); browser_case="${2:-}"; browser_engine="${3:-firefox}" ;;
@@ -33,6 +34,8 @@ done
 
 if "$inside"; then
     test -n "${OFFSCREEN_SESSION_ROOT:-}"
+    # Test executables live in deps; native process helpers are siblings in debug.
+    export PATH="$CARGO_TARGET_DIR/debug:$PATH"
     if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
         export MLUVA_TEXT_READ_AUDIT="$OFFSCREEN_SESSION_ROOT/text-read-audit.jsonl"
         export LD_PRELOAD="$CARGO_TARGET_DIR/debug/examples/libatspi_read_audit.so"
@@ -62,6 +65,9 @@ if "$inside"; then
     fi
     export PATH="$OFFSCREEN_SESSION_ROOT/application-tools:$PATH"
     export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true
+    if [[ "$mode" == continuation ]]; then
+        export MLUVA_APPLICATION_CASE=continuation-controls
+    fi
     if [[ "$mode" == onboarding ]]; then
         export MLUVA_ONBOARDING_CASE="$onboarding_case" GDK_SCALE=1 GSETTINGS_BACKEND=memory
         export MLUVA_TEST_ONBOARDING_ASSETS="$onboarding_assets"
@@ -77,6 +83,7 @@ if "$inside"; then
     fi
     if [[ "$mode" == images ]]; then
         export MLUVA_IMAGE_CASE="$image_case" MLUVA_TEST_EDITOR="$editor" GDK_SCALE=1 GSETTINGS_BACKEND=memory
+        if [[ -n "$image_cli" ]]; then export MLUVA_TEST_INSTALLED_CODEX="$image_cli"; fi
     fi
     if [[ "$mode" == screenshots ]]; then
         export MLUVA_SCREENSHOT_FIXTURE_ROOT="$OFFSCREEN_SESSION_ROOT/application-screenshot-case"
@@ -134,6 +141,7 @@ if [[ "$mode" == images ]]; then
         echo "Set MLUVA_TEST_EDITOR to the verified v1.6.0 Tensaku artifact before this check." >&2
         exit 3
     fi
+    if [[ -n "$image_cli" ]]; then image_cli="$(realpath -e -- "$image_cli")"; fi
 fi
 if [[ "$mode" == text-targets ]]; then
     cargo build --locked -p mluva-gtk --example text_target_peer
@@ -183,7 +191,7 @@ if [[ "$mode" == images ]]; then
     for image_case in "${image_cases[@]}"; do
         bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
             bash dev/run-isolated-browser.sh "$evidence/$image_case" -- \
-            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session images "$image_case" "$editor"
+            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session images "$image_case" "$editor" "$image_cli"
     done
     exit
 fi

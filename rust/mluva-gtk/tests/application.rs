@@ -428,7 +428,7 @@ fn released_assembled_application_and_shutdown() {
             assert_eq!(additional[key], fixture[key]);
         }
     }
-    let cases = if let Ok(name) = std::env::var("MLUVA_ONBOARDING_CASE") {
+    let mut cases = if let Ok(name) = std::env::var("MLUVA_ONBOARDING_CASE") {
         let selected = onboarding["cases"]
             .as_array()
             .unwrap()
@@ -495,10 +495,21 @@ fn released_assembled_application_and_shutdown() {
             .chain(live_editor["cases"].as_array().unwrap())
             .collect()
     };
+    if let Ok(name) = std::env::var("MLUVA_APPLICATION_CASE") {
+        cases.retain(|case| case["name"] == name);
+        assert_eq!(cases.len(), 1, "select one released application scenario");
+    }
     let workflows = cases.len();
     let mut count = 0;
     for (index, row) in cases.into_iter().enumerate() {
         let row = if reopening { &row["reopen"] } else { row };
+        let mut image_row = row.clone();
+        let mut image_sdk = if row["params"]["images"] == true {
+            application_images::InstalledCodex::prepare(&root, &tools, &target, &mut image_row)
+        } else {
+            None
+        };
+        let row = if image_sdk.is_some() { &image_row } else { row };
         events.borrow_mut().clear();
         let name = row["name"].as_str().unwrap();
         let params = &row["params"];
@@ -633,6 +644,11 @@ fn released_assembled_application_and_shutdown() {
             },
         )
         .unwrap();
+        if params["commands"] == true || params["continuation"] == true {
+            // These immutable layout references predate the remembered disclosure.
+            // Compare their expanded controls; bootstrap owns the new default.
+            owner.capture.page.workspace.rewrite_toggle.set_active(true);
+        }
         owner.shell.present();
         until(|| {
             owner.capture.page.record_button.get_sensitive()
@@ -655,10 +671,25 @@ fn released_assembled_application_and_shutdown() {
         }
         if params["images"] == true {
             let mut flow = application_images::Flow::new(
-                &owner, &services, row, &tools, &root, &evidence, &peer,
+                &owner,
+                &services,
+                row,
+                &tools,
+                &root,
+                (&evidence, image_sdk.as_ref()),
+                &peer,
             );
             flow.exercise();
-            shutdown(&owner, &platform_closed, &evidence, &flow.audio_pids());
+            let codex_evidence = image_sdk
+                .as_ref()
+                .map(|sdk| sdk.evidence())
+                .unwrap_or_else(|| evidence.clone());
+            shutdown(
+                &owner,
+                &platform_closed,
+                &codex_evidence,
+                &flow.audio_pids(),
+            );
             flow.closed();
             drop(flow);
             assert_eq!(
@@ -666,12 +697,16 @@ fn released_assembled_application_and_shutdown() {
                 row["requests"],
                 "image workspace HTTP"
             );
-            let mut turns = application_continuation::turns(&evidence);
-            screenshot_wire::normalize(&mut turns);
-            assert_eq!(
-                turns, row["turns"],
-                "image workspace Codex image bytes and order"
-            );
+            if let Some(sdk) = image_sdk.as_mut() {
+                sdk.finish(row);
+            } else {
+                let mut turns = application_continuation::turns(&evidence);
+                screenshot_wire::normalize(&mut turns);
+                assert_eq!(
+                    turns, row["turns"],
+                    "image workspace Codex image bytes and order"
+                );
+            }
             count += row["stages"].as_array().unwrap().len();
             release_application(owner, application);
             continue;

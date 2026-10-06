@@ -613,6 +613,28 @@ fn actual_document_rewrites_and_review_actions_match_release() {
         );
         assert_eq!(json!(*actions.borrow()), case["actions"]);
         assert_eq!(opens.get(), u32::from(action == Some("open")));
+        if action == Some("open") {
+            assert!(!workspace.composer.is_visible());
+            assert!(
+                gtk::prelude::GtkWindowExt::focus(&window)
+                    .unwrap()
+                    .is_mapped(),
+                "Open must not focus the collapsed rewrite field"
+            );
+            for expanded in [true, false] {
+                workspace.rewrite_toggle.set_active(expanded);
+                owner.publish(&entry.identifier, "ready", "");
+                owner.action("open", &entry.identifier, "");
+                settle();
+                assert_eq!(workspace.rewrite_toggle.is_active(), expanded);
+                assert_eq!(workspace.composer.is_visible(), expanded);
+                let focused = gtk::prelude::GtkWindowExt::focus(&window).unwrap();
+                assert!(focused.is_mapped(), "Open keeps focus on a visible control");
+                if expanded {
+                    assert_eq!(focused, workspace.prompt);
+                }
+            }
+        }
         observed += stages.len();
         if case["cancel"] == true {
             fs::remove_file(&gate).unwrap();

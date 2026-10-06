@@ -1,5 +1,7 @@
 //! Actual SDK transport for the existing managed Live process owner.
 use super::*;
+#[path = "current_codex_profile.rs"]
+mod profile;
 
 pub(super) fn extend(fixture: &mut Value) -> Option<PathBuf> {
     let cli = PathBuf::from(std::env::var_os("MLUVA_TEST_INSTALLED_CODEX")?);
@@ -112,28 +114,7 @@ pub(super) fn setup(
         ]);
     }
     let peer = http::Peer::new(&responses);
-    write(
-        &root.join("sdk-exec.json"),
-        &json!({"evidence":root.join("codex-evidence"),"config":[
-        "features.remote_models=false","features.responses_websockets=false","features.responses_websockets_v2=false",
-        "features.enable_request_compression=false","model_provider=\"mock\"",
-        format!("model_providers.mock={{name=\"Mock\",base_url=\"{}\",wire_api=\"responses\"}}",peer.address)]}),
-    );
-    fs::write(
-        root.join("tools/codex"),
-        format!(
-            "#!/bin/sh\nexec '{}' exec-installed '{}' '{}' \"$@\"\n",
-            binaries.join("codex-fixture-peer").display(),
-            root.join("sdk-exec.json").display(),
-            cli.display()
-        ),
-    )
-    .unwrap();
-    let home = root.join("home/.codex");
-    fs::create_dir(&home).unwrap();
-    fs::write(home.join("AGENTS.md"), "PRIVATE_INSTRUCTION_CANARY").unwrap();
-    fs::write(home.join("AGENTS.override.md"), "PRIVATE_OVERRIDE_CANARY").unwrap();
-    fs::write(home.join("config.toml"),format!("[mcp_servers.canary]\ncommand=\"/usr/bin/touch\"\nargs=[\"{}\"]\n[features]\ncode_mode_only=true\ncurrent_time_reminder=true\nsend_message_to_user_async=true\ndeferred_executor=true\nmulti_agent_v2=true\nshell_tool=true\nunified_exec=true\n",root.join("mcp-started").display())).unwrap();
+    profile::prepare(root, &root.join("tools"), binaries, cli, &peer.address);
     peer
 }
 

@@ -1,0 +1,361 @@
+{
+  "date": "2026-10-06",
+  "scope": "Actual private Wayland picker and fresh narrated screenshot on installed Rust 2.1.0",
+  "reference": {
+    "version": "1.6.0",
+    "commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+    "files_verified": 91,
+    "manifest": {
+      "bytes": 9429,
+      "sha256": "84bfdf10814cf7e251642f04025f850931b2995be505041e3e5a60aadd27fc13"
+    },
+    "raw": "tmp/current-wayland-screenshots/source.FTaQyO/results.json",
+    "raw_fingerprint": {
+      "bytes": 16229,
+      "sha256": "dce2bada93505e99f72fe9d6fd63260686bdaf3a2cc8c43f85d0574364937907"
+    }
+  },
+  "native": {
+    "version": "2.1.0",
+    "base_commit": "4992946052653451b03120cf35ad86b6e78367ed",
+    "payload_files_verified": 520,
+    "links_verified": 4,
+    "receipt": {
+      "bytes": 68168,
+      "sha256": "3bf35523cd8b329fee2d0d244c781dc467b3b3ef198bce9949ddbf619c155d51"
+    },
+    "application_sha256": "4b15e162347c54ea5b5cf95dacea8fddc37f026256b72adec5480f6a2fe9e7df",
+    "narration_sha256": "b7dc9b05274c6dd120a463bf5e923a2ded6e69f214eac580b2bf3326020dce87",
+    "raw": "tmp/current-wayland-screenshots/native.kJHjvF/results.json",
+    "raw_fingerprint": {
+      "bytes": 16365,
+      "sha256": "e1d87a9da85add2cf0d7fd3404ea1ff8b68031b41f2bfe9b14c65a207682e17c"
+    },
+    "no_python_traps": {
+      "positive_invocations": [
+        "/usr/bin/python",
+        "/usr/bin/python3",
+        "/usr/bin/uv"
+      ],
+      "calls_after_start": 0
+    }
+  },
+  "observers": {
+    "observe.py": {
+      "bytes": 24113,
+      "sha256": "7fa681a068b56f916194cd114cf1750e3e3f3b8484e5035a76cdc04bf87c68a7"
+    },
+    "run.sh": {
+      "bytes": 1230,
+      "sha256": "ec3c6ecc9c0656bf4a9b3122e24e0d78439fde645e8b9fbba59f2616418f464f"
+    },
+    "private_pointer.c": {
+      "bytes": 3050,
+      "sha256": "0efd09b2098a931ab0e188f61ed332b3a8656dea5da6cee093fdee6be4c525bc"
+    },
+    "private_pointer": {
+      "bytes": 17784,
+      "sha256": "1d2cea0529c82fa3c7f139b3b365f1788b7b50f7f34cf591a8545ca5867bde82"
+    }
+  },
+  "components": {
+    "/usr/share/omarchy/bin/omarchy": {
+      "bytes": 27847,
+      "sha256": "b846c7cc6cb2fd6ff63f02c54c2d55a8e3f5b382becf19860c3fcb17f5525e58"
+    },
+    "/usr/share/omarchy/bin/omarchy-capture-screenshot": {
+      "bytes": 2546,
+      "sha256": "8c6200090912a6dc0f397de90bc6898960308cbc498ff5e8599e62c21e3075c5"
+    },
+    "/usr/share/omarchy/bin/omarchy-capture-region": {
+      "bytes": 11536,
+      "sha256": "aab486332834bbba5f880afd821c8fb4888e02bd0c95b1bf1265f8b741dfe25b"
+    },
+    "/usr/bin/hyprpicker": {
+      "bytes": 233808,
+      "sha256": "918d912b3d569fa5dda404dc4e66ee9e6a8adc12f139697b636d8155b0d20707"
+    },
+    "/usr/bin/slurp": {
+      "bytes": 35512,
+      "sha256": "39ebc5049bb634801b8b4070fe85a018e124891a6d301b5a8e91933a02e6e62b"
+    },
+    "/usr/bin/grim": {
+      "bytes": 43432,
+      "sha256": "d1c823ea8e341f179a3c864eb063653f1c01f017e2d427429ee134186fe034bf"
+    },
+    "/usr/bin/wtype": {
+      "bytes": 22712,
+      "sha256": "d760e193e31b65f6158462fdb295c101780495ae760852301a42cfb907357bc5"
+    },
+    "/usr/bin/Hyprland": {
+      "bytes": 16099752,
+      "sha256": "11781a4ea72fcf193f6f803d031c3c8494537a14f18583fe937609345277812c"
+    },
+    "/usr/bin/imv-wayland": {
+      "bytes": 118480,
+      "sha256": "6d193cfaa84b63efc56dae93efb159cc91cf1242494724e096d1ee2321da200b"
+    }
+  },
+  "packages": [
+    "omarchy 4.0.2-1",
+    "hyprland 0.56.2-1",
+    "hyprpicker 0.4.7-3",
+    "grim 1.5.0-2",
+    "slurp 1.5.0-2",
+    "imv 5.0.1-2",
+    "wtype 0.4-2"
+  ],
+  "editor_sha256": "79de63b635ec5a711bb250bb4fa7cd2dd69aeeb70dffe735a39c3669f7082831",
+  "images": {
+    "selection": {
+      "bytes": 3832,
+      "sha256": "1c12e9970ddc108e92596a705b36f16c2a6c79b49e6bc3ed0b7df145e32fe039"
+    },
+    "selection_rgba": {
+      "bytes": 925604,
+      "sha256": "5406f347f98443394e93d7ca8e277d83043cd3b8f5a3f35851405079b2cebe15"
+    },
+    "selection_dimensions": [
+      641,
+      361
+    ],
+    "selection_rectangle": [
+      80,
+      140,
+      641,
+      361
+    ],
+    "annotation": {
+      "bytes": 9900,
+      "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+    },
+    "annotation_rgba": {
+      "bytes": 1259168,
+      "sha256": "9ca2f8342e3340bce7b96bbdea6eda8e07134b71ada6398a79b08e11b473b2e9"
+    },
+    "annotation_dimensions": [
+      872,
+      361
+    ],
+    "ocr": "Private Wayland narration 82",
+    "whole_outputs_equal": true,
+    "masks": false
+  },
+  "speech_requests": [
+    {
+      "path": "/v1/audio/transcriptions",
+      "fields": {
+        "model": "wayland-narration-fixture",
+        "response_format": "json",
+        "language": "en",
+        "file": {
+          "bytes": 3244,
+          "sha256": "1abd052d6c854119b715c6dae474914f6207a0cf7dd041e91914e5c99850fcb3"
+        }
+      }
+    }
+  ],
+  "states": [
+    {
+      "name": "ready",
+      "history_unchanged": true,
+      "history_count": 1,
+      "images": [],
+      "owners": [],
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 0,
+      "volatile_wavs": 0,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0
+    },
+    {
+      "name": "selection-active",
+      "history_unchanged": true,
+      "history_count": 1,
+      "images": [],
+      "owners": [],
+      "clipboard_preserved": true,
+      "picker_temporary_files": 1,
+      "uploads": 0,
+      "volatile_wavs": 0,
+      "volatile_modes": [],
+      "freeze_active": true,
+      "selector_count": 1
+    },
+    {
+      "name": "selected",
+      "history_unchanged": true,
+      "history_count": 1,
+      "images": [
+        {
+          "bytes": 3832,
+          "sha256": "1c12e9970ddc108e92596a705b36f16c2a6c79b49e6bc3ed0b7df145e32fe039"
+        }
+      ],
+      "owners": [
+        [
+          "parent",
+          null,
+          null
+        ]
+      ],
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 0,
+      "volatile_wavs": 0,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0
+    },
+    {
+      "name": "narrating",
+      "history_unchanged": true,
+      "history_count": 1,
+      "images": [
+        {
+          "bytes": 3832,
+          "sha256": "1c12e9970ddc108e92596a705b36f16c2a6c79b49e6bc3ed0b7df145e32fe039"
+        }
+      ],
+      "owners": [
+        [
+          "parent",
+          null,
+          null
+        ]
+      ],
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 0,
+      "volatile_wavs": 1,
+      "volatile_modes": [
+        384
+      ],
+      "freeze_active": false,
+      "selector_count": 0
+    },
+    {
+      "name": "annotated",
+      "history_unchanged": true,
+      "history_count": 1,
+      "images": [
+        {
+          "bytes": 9900,
+          "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+        }
+      ],
+      "owners": [
+        [
+          "parent",
+          null,
+          null
+        ]
+      ],
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 1,
+      "volatile_wavs": 0,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0
+    },
+    {
+      "name": "cancel-active",
+      "history_unchanged": true,
+      "history_count": 1,
+      "images": [
+        {
+          "bytes": 9900,
+          "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+        }
+      ],
+      "owners": [
+        [
+          "parent",
+          null,
+          null
+        ]
+      ],
+      "clipboard_preserved": true,
+      "picker_temporary_files": 1,
+      "uploads": 1,
+      "volatile_wavs": 0,
+      "volatile_modes": [],
+      "freeze_active": true,
+      "selector_count": 1
+    },
+    {
+      "name": "cancelled",
+      "history_unchanged": true,
+      "history_count": 1,
+      "images": [
+        {
+          "bytes": 9900,
+          "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+        }
+      ],
+      "owners": [
+        [
+          "parent",
+          null,
+          null
+        ]
+      ],
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 1,
+      "volatile_wavs": 0,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0
+    },
+    {
+      "name": "closed",
+      "history_unchanged": true,
+      "history_count": 1,
+      "images": [
+        {
+          "bytes": 9900,
+          "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+        }
+      ],
+      "owners": [
+        [
+          "parent",
+          null,
+          null
+        ]
+      ],
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 1,
+      "volatile_wavs": 0,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0
+    }
+  ],
+  "cursor_option": {
+    "before": 2,
+    "after": 2,
+    "restore_sets_explicit_option": true
+  },
+  "quit": {
+    "application_exit": 0,
+    "annotation_helpers_reaped": true,
+    "external_editor_survives": true,
+    "selector_and_freeze_reaped": true,
+    "private_namespace_exit": 0
+  },
+  "limits": {
+    "physical_f10": false,
+    "real_microphone": false,
+    "real_cloud_provider": false,
+    "simultaneous_main_recording": false,
+    "wayland_annotation_cancel": false,
+    "gnome": false,
+    "performance": false
+  }
+}

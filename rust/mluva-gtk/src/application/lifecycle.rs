@@ -509,7 +509,7 @@ impl ApplicationDesktop {
             session: session.clone(),
         }));
         self.page().set_pending_mode(&mode);
-        self.review.dismiss();
+        self.review.clear_for_capture();
         Ok(CaptureLaunch {
             session,
             delivery_target: target.map(|target| {
