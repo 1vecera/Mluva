@@ -1,0 +1,250 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "native_version": "2.1.0",
+  "native_executable": {"bytes": 18052112, "sha256": "4b15e162347c54ea5b5cf95dacea8fddc37f026256b72adec5480f6a2fe9e7df"},
+  "native_receipt": {"bytes": 68168, "sha256": "3bf35523cd8b329fee2d0d244c781dc467b3b3ef198bce9949ddbf619c155d51"},
+  "public_states_per_version": 21,
+  "scenarios": 6,
+  "normal_quits_per_version": 2,
+  "packages": ["hyprland 0.56.2-1", "ghostty 1.3.1-2", "gtk4 1:4.22.4-1", "libadwaita 1:1.9.3-1", "omarchy 4.0.2-1", "wtype 0.4-2", "wl-clipboard 1:2.3.0-1"],
+  "monitor": {"name": "MLUVA_DELIVERY", "width": 1280, "height": 900},
+  "observer": {"bytes": 22824, "sha256": "b4a027bc7332f8bd2cc781fca20bcd9b3299f3d4cfb55edd04198f7437ac13ea"},
+  "auditor": {"bytes": 11960, "sha256": "74806b3b2311ddfe05b71cfe07517b481a2666e08419680434a020d275d5dbd4"},
+  "runner": {"bytes": 1203, "sha256": "ae483f0b6b47a9f3ed4eca17d41f03962fa563be42df6dff244b972cbdcad3ab"},
+  "complete_audit": {"bytes": 129809, "sha256": "ecec3b952ccebae2ac52ee3c9a781b14a023b11d66988579f316193357eb66e8"},
+  "source_inputs": {
+    "count": 91,
+    "sha256": "29859ecdcad2db54ad52340ee99fb71046feba0b43e6a5bdd159bb40dcb4d679"
+  },
+  "raw_results": {
+    "source": {
+      "path": "tmp/current-wayland-delivery/source.1yMR48/results.json",
+      "bytes": 37948,
+      "sha256": "90ce1d7d62548993667f1c15d895e68554636301152d5de9b5599da2b443dd70"
+    },
+    "native": {
+      "path": "tmp/current-wayland-delivery/native.kHClOT/results.json",
+      "bytes": 38658,
+      "sha256": "3aed0b3fbfcd8dbc805ecde3a68d7110d13c866ab8585399ab271a40e03d4b84"
+    }
+  },
+  "raw_sqlite_receipts_per_version": 21,
+  "tables_per_receipt": 5,
+  "normalized_columns": ["identifier", "created_at", "recognition_ms", "delivery_ms"],
+  "additional_normalizations": ["private endpoint port", "private process IDs", "UTC recording filenames"],
+  "config": {
+    "language_code": "eng",
+    "transcription_model": "scribe_v2",
+    "codex_model": null,
+    "rewrite_model": null,
+    "rewrite_fast_mode": false,
+    "rewrite_reasoning_effort": null,
+    "litellm_reasoning_effort": null,
+    "rewrite_provider": "none",
+    "litellm_base_url": "http://localhost:4000/v1",
+    "litellm_model": null,
+    "litellm_api_key_env": "LITELLM_API_KEY",
+    "transcription_provider": "litellm",
+    "transcription_base_url": "http://127.0.0.1:$PRIVATE_PORT/v1",
+    "transcription_api_key_env": "WAYLAND_SYNTHETIC_KEY",
+    "transcription_remote_model": "wayland-delivery-fixture",
+    "local_model": "qwen3-1.7b",
+    "local_device": "cpu",
+    "transcription_chunk_seconds": 8,
+    "auto_copy_dictation": true,
+    "auto_copy_rewrite": false,
+    "show_copy_action": true,
+    "show_save_action": true,
+    "review_timeout_seconds": 4,
+    "smooth_scrolling": true,
+    "scroll_duration_ms": 800,
+    "scroll_lookahead_lines": 2,
+    "widget_position": "bottom-center",
+    "widget_lines": 5,
+    "widget_opacity": 82,
+    "history_sidebar_visible": false,
+    "welcome_completed": true,
+    "time_format": "24h",
+    "live_rewrite_enabled": false,
+    "live_rewrite_continuous": true,
+    "live_rewrite_template": "grilling",
+    "live_rewrite_custom_instructions": "",
+    "live_rewrite_min_characters": 160,
+    "live_rewrite_interval_seconds": 4,
+    "microphone_target": null,
+    "system_audio_target": null,
+    "default_mode": "dictation",
+    "global_recording_key": "F9",
+    "auto_paste": true,
+    "automatic_titles": false,
+    "spoken_commands_enabled": true,
+    "remember_per_application": false,
+    "audio_retention_policy": "failures",
+    "incognito_mode": false,
+    "history_retention_days": 0
+  },
+  "ghostty_config": {"bytes": 766, "sha256": "a112dd92a92eeca09be9eaf70f67a95317ac2a07807bb181f0e7acab79b0e4d5"},
+  "python_traps": {
+    "scope": "PATH only; shared private process namespace",
+    "positive_controls": 6,
+    "app_invocations": 0
+  },
+  "zero_accessibility_errors": true,
+  "default_cache_and_p2p_enabled": true,
+  "limitations": ["synthetic PCM and loopback speech endpoint", "public global-record action, not physical key or portal approval", "normal startup then private compositor close-to-hide; not cold service global-record", "terminal window/process identity does not identify terminal panes or shell input mode", "PATH traps only in this run; absolute traps require a separate compatible process layout"],
+  "active_wav_difference": {
+    "source_recording_bytes": 0,
+    "native_recording_bytes": 3244,
+    "reason": "Observed source buffering versus immediate native file writes; complete uploaded WAVs match",
+    "uploaded_wav": {"bytes": 3244, "sha256": "11e83bd0416b82ba11d26cc830e226ed29be8b9ca0b06d15883d443860fd4331"}
+  },
+  "final_database": {
+    "transcription_history": {
+      "columns": ["identifier", "created_at", "raw_text", "delivered_text", "mode", "language_code", "transcription_id", "delivery_outcome", "title", "retained_audio_path", "audio_retention_policy", "application_identifier", "correction_source_text", "recognition_route", "recognition_fallback_reason", "enhancement_provider_id", "enhancement_model_identifier", "enhancement_context_sources", "enhancement_outcome", "recognition_ms", "enhancement_ms", "delivery_ms", "title_revision"],
+      "rows": [
+        ["entry-0", "$UTC_CAPTURE_TIME", "Příliš žluťoučký 👋 new line Private delivery 95.", "Příliš žluťoučký 👋\nPrivate delivery 95.", "dictation", "eng", null, "paste-unconfirmed", "Příliš žluťoučký 👋 new line Private delivery 95", null, "failures", "/usr/bin/ghostty", null, "litellm-batch", null, null, null, null, null, "$MEASURED_MS", 0, "$MEASURED_MS", 0],
+        ["entry-1", "$UTC_CAPTURE_TIME", "Příliš žluťoučký 👋 new line Private delivery 96.", "Příliš žluťoučký 👋\nPrivate delivery 96.", "dictation", "eng", null, "copied", "Příliš žluťoučký 👋 new line Private delivery 96", null, "failures", "/usr/bin/ghostty", null, "litellm-batch", null, null, null, null, null, "$MEASURED_MS", 0, "$MEASURED_MS", 0],
+        ["entry-2", "$UTC_CAPTURE_TIME", "Příliš žluťoučký 👋 new line Private delivery 97.", "Příliš žluťoučký 👋\nPrivate delivery 97.", "dictation", "eng", null, "copied", "Příliš žluťoučký 👋 new line Private delivery 97", null, "failures", null, null, "litellm-batch", null, null, null, null, null, "$MEASURED_MS", 0, "$MEASURED_MS", 0],
+        ["entry-3", "$UTC_CAPTURE_TIME", "Příliš žluťoučký 👋 new line Private delivery 98.", "Příliš žluťoučký 👋\nPrivate delivery 98.", "dictation", "eng", null, "paste-unconfirmed", "Příliš žluťoučký 👋 new line Private delivery 98", null, "failures", "/usr/bin/ghostty", null, "litellm-batch", null, null, null, null, null, "$MEASURED_MS", 0, "$MEASURED_MS", 0],
+        ["entry-4", "$UTC_CAPTURE_TIME", "Příliš žluťoučký 👋 new line Private delivery 99.", "Příliš žluťoučký 👋\nPrivate delivery 99.", "dictation", "eng", null, "paste-unconfirmed", "Příliš žluťoučký 👋 new line Private delivery 99", null, "failures", "/usr/bin/ghostty", null, "litellm-batch", null, null, null, null, null, "$MEASURED_MS", 0, "$MEASURED_MS", 0]
+      ]
+    },
+    "conversation_sources": {"columns": ["history_identifier", "text"], "rows": []},
+    "conversation_rewrites": {
+      "columns": ["identifier", "history_identifier", "instruction", "text", "model", "created_at"],
+      "rows": []
+    },
+    "conversation_screenshots": {
+      "columns": ["identifier", "history_identifier", "capture_identifier", "created_at", "captured_after_seconds"],
+      "rows": []
+    },
+    "recording_continuations": {"columns": ["segment_identifier", "history_identifier"], "rows": []}
+  },
+  "requests": [
+    {
+      "path": "/v1/audio/transcriptions",
+      "fields": {
+        "model": "wayland-delivery-fixture",
+        "response_format": "json",
+        "language": "en",
+        "file": {"bytes": 3244, "sha256": "11e83bd0416b82ba11d26cc830e226ed29be8b9ca0b06d15883d443860fd4331"}
+      },
+      "raw": "Příliš žluťoučký 👋 new line Private delivery 95.",
+      "phrase": "Příliš žluťoučký 👋\nPrivate delivery 95.",
+      "released": true
+    },
+    {
+      "path": "/v1/audio/transcriptions",
+      "fields": {
+        "model": "wayland-delivery-fixture",
+        "response_format": "json",
+        "language": "en",
+        "file": {"bytes": 3244, "sha256": "11e83bd0416b82ba11d26cc830e226ed29be8b9ca0b06d15883d443860fd4331"}
+      },
+      "raw": "Příliš žluťoučký 👋 new line Private delivery 96.",
+      "phrase": "Příliš žluťoučký 👋\nPrivate delivery 96.",
+      "released": true
+    },
+    {
+      "path": "/v1/audio/transcriptions",
+      "fields": {
+        "model": "wayland-delivery-fixture",
+        "response_format": "json",
+        "language": "en",
+        "file": {"bytes": 3244, "sha256": "11e83bd0416b82ba11d26cc830e226ed29be8b9ca0b06d15883d443860fd4331"}
+      },
+      "raw": "Příliš žluťoučký 👋 new line Private delivery 97.",
+      "phrase": "Příliš žluťoučký 👋\nPrivate delivery 97.",
+      "released": true
+    },
+    {
+      "path": "/v1/audio/transcriptions",
+      "fields": {
+        "model": "wayland-delivery-fixture",
+        "response_format": "json",
+        "language": "en",
+        "file": {"bytes": 3244, "sha256": "11e83bd0416b82ba11d26cc830e226ed29be8b9ca0b06d15883d443860fd4331"}
+      },
+      "raw": "Příliš žluťoučký 👋 new line Private delivery 98.",
+      "phrase": "Příliš žluťoučký 👋\nPrivate delivery 98.",
+      "released": true
+    },
+    {
+      "path": "/v1/audio/transcriptions",
+      "fields": {
+        "model": "wayland-delivery-fixture",
+        "response_format": "json",
+        "language": "en",
+        "file": {"bytes": 3244, "sha256": "11e83bd0416b82ba11d26cc830e226ed29be8b9ca0b06d15883d443860fd4331"}
+      },
+      "raw": "Příliš žluťoučký 👋 new line Private delivery 99.",
+      "phrase": "Příliš žluťoučký 👋\nPrivate delivery 99.",
+      "released": true
+    }
+  ],
+  "public_actions": {
+    "record": [true, "", []],
+    "cancel": [true, "", []],
+    "latest": [true, "", []],
+    "settings": [true, "", []],
+    "screenshot": [true, "", []],
+    "history": [true, "", []],
+    "quit": [true, "", []],
+    "commands": [true, "", []],
+    "global-record": [true, "", []],
+    "review": [true, "(sss)", []],
+    "meeting": [true, "", []],
+    "status": [true, "", []],
+    "personalization": [true, "", []]
+  },
+  "states": [
+    {"name": "ready-after-close-to-hide", "history_count": 0, "phase": "idle", "active_terminal": "A", "clipboard": "Private clipboard before dictation.", "request_count": 0, "audio_alive": false, "managed_audio_files": 0, "terminal_bytes": {"A": 0, "B": 0}, "terminal_sha256": {"A": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "global-same-recording", "history_count": 0, "phase": "recording", "active_terminal": "A", "clipboard": "Private clipboard before dictation.", "request_count": 0, "audio_alive": true, "managed_audio_files": 1, "terminal_bytes": {"A": 0, "B": 0}, "terminal_sha256": {"A": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "request-0-held", "history_count": 0, "phase": "processing", "active_terminal": "A", "clipboard": "Private clipboard before dictation.", "request_count": 1, "audio_alive": false, "managed_audio_files": 1, "terminal_bytes": {"A": 0, "B": 0}, "terminal_sha256": {"A": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "global-same-completed", "history_count": 1, "phase": "idle", "active_terminal": "A", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 95.", "request_count": 1, "audio_alive": false, "managed_audio_files": 0, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "moved-target-recording", "history_count": 1, "phase": "recording", "active_terminal": "A", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 95.", "request_count": 1, "audio_alive": true, "managed_audio_files": 1, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "request-1-held", "history_count": 1, "phase": "processing", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 95.", "request_count": 2, "audio_alive": false, "managed_audio_files": 1, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "moved-target-completed", "history_count": 2, "phase": "idle", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 96.", "request_count": 2, "audio_alive": false, "managed_audio_files": 0, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "copy-origin-recording", "history_count": 2, "phase": "recording", "active_terminal": "A", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 96.", "request_count": 2, "audio_alive": true, "managed_audio_files": 1, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "request-2-held", "history_count": 2, "phase": "processing", "active_terminal": "A", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 96.", "request_count": 3, "audio_alive": false, "managed_audio_files": 1, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "copy-origin-completed", "history_count": 3, "phase": "idle", "active_terminal": "A", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 97.", "request_count": 3, "audio_alive": false, "managed_audio_files": 0, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "cancel-recording", "history_count": 3, "phase": "recording", "active_terminal": "A", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 97.", "request_count": 3, "audio_alive": true, "managed_audio_files": 1, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "cancel-completed", "history_count": 3, "phase": "idle", "active_terminal": "A", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 97.", "request_count": 3, "audio_alive": false, "managed_audio_files": 0, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "fresh-global-recording", "history_count": 3, "phase": "recording", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 97.", "request_count": 3, "audio_alive": true, "managed_audio_files": 1, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "request-3-held", "history_count": 3, "phase": "processing", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 97.", "request_count": 4, "audio_alive": false, "managed_audio_files": 1, "terminal_bytes": {"A": 61, "B": 0}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}},
+    {"name": "fresh-global-completed", "history_count": 4, "phase": "idle", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 98.", "request_count": 4, "audio_alive": false, "managed_audio_files": 0, "terminal_bytes": {"A": 61, "B": 61}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "86f0298ec614c0278ea18e3ab34f775b7d85824d9f10096ed178bc1fbfa6aeb7"}},
+    {"name": "normal-quit", "history_count": 4, "phase": "stopped", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 98.", "request_count": 4, "audio_alive": false, "managed_audio_files": 0, "terminal_bytes": {"A": 61, "B": 61}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "86f0298ec614c0278ea18e3ab34f775b7d85824d9f10096ed178bc1fbfa6aeb7"}},
+    {"name": "reopened-after-close-to-hide", "history_count": 4, "phase": "idle", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 98.", "request_count": 4, "audio_alive": false, "managed_audio_files": 0, "terminal_bytes": {"A": 61, "B": 61}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "86f0298ec614c0278ea18e3ab34f775b7d85824d9f10096ed178bc1fbfa6aeb7"}},
+    {"name": "reopened-global-recording", "history_count": 4, "phase": "recording", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 98.", "request_count": 4, "audio_alive": true, "managed_audio_files": 1, "terminal_bytes": {"A": 61, "B": 61}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "86f0298ec614c0278ea18e3ab34f775b7d85824d9f10096ed178bc1fbfa6aeb7"}},
+    {"name": "request-4-held", "history_count": 4, "phase": "processing", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 98.", "request_count": 5, "audio_alive": false, "managed_audio_files": 1, "terminal_bytes": {"A": 61, "B": 61}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "86f0298ec614c0278ea18e3ab34f775b7d85824d9f10096ed178bc1fbfa6aeb7"}},
+    {"name": "reopened-global-completed", "history_count": 5, "phase": "idle", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 99.", "request_count": 5, "audio_alive": false, "managed_audio_files": 0, "terminal_bytes": {"A": 61, "B": 122}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "aca37e2d186d89440b0ff148840f1c2a0486d92bc4659bb7032dfaad6dff4a37"}},
+    {"name": "closed", "history_count": 5, "phase": "stopped", "active_terminal": "B", "clipboard": "Příliš žluťoučký 👋\nPrivate delivery 99.", "request_count": 5, "audio_alive": false, "managed_audio_files": 0, "terminal_bytes": {"A": 61, "B": 122}, "terminal_sha256": {"A": "7a61e04ff7affa6c3a0bc61f68f572a4274c4c3cfd200d437f385aae10636292", "B": "aca37e2d186d89440b0ff148840f1c2a0486d92bc4659bb7032dfaad6dff4a37"}}
+  ],
+  "logs": {
+    "source": {
+      "app-0.log": {"bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+      "app-1.log": {"bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+      "a11y-daemon.log": {"bytes": 237, "sha256": "3ed75359382903a840a0eb16005936dd668b034861c7f6bc6f1b84e184f70cac"},
+      "a11y-registry.log": {"bytes": 77, "sha256": "9d307ed556499f37fcb1517732638144b4ee8125619c1a443295c570b34c6bae"},
+      "ghostty-A.log": {"bytes": 2275, "sha256": "e77c5768f80a5ee0bf5b397bad2f041400cbf594c1784b3757823e247daf9552"},
+      "ghostty-B.log": {"bytes": 2389, "sha256": "20387914357054ff37ac85e04b8b10f8a182ff5dbe72b221e751f334a25d8a4d"}
+    },
+    "native": {
+      "app-0.log": {"bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+      "app-1.log": {"bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+      "a11y-daemon.log": {"bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+      "a11y-registry.log": {"bytes": 77, "sha256": "9d307ed556499f37fcb1517732638144b4ee8125619c1a443295c570b34c6bae"},
+      "ghostty-A.log": {"bytes": 2274, "sha256": "4a7991f632f8c324f666aa5d624ea720065172414fc5fef9f9a9b7a644014f97"},
+      "ghostty-B.log": {"bytes": 2389, "sha256": "44f423739936dad993febe82740c191207cce8fa65d504d4dbcdd8c3b5ae1d9e"}
+    }
+  },
+  "excluded_attempts": [
+    {"log": "probe-source.log", "accepted": false},
+    {"log": "probe-source-clipboard.log", "accepted": false},
+    {"log": "probe-source-resident.log", "accepted": false},
+    {"log": "probe-source-idle.log", "accepted": false},
+    {"log": "source-spoken-line.log", "accepted": false},
+    {"log": "native-spoken-line.log", "accepted": false},
+    {"log": "native-process-identity-probe.log", "accepted": false}
+  ]
+}
