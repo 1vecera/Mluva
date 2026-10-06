@@ -37,8 +37,8 @@ Omarchy's current plugin manager uses a full Git clone, including this project's
 `bash install.sh` installs both parts. Source installation requires the pinned Rust toolchain and a C compiler before dependency provisioning. [Native setup comparisons](../rust/mluva-install/tests/fixtures/source-setup-evidence.md) cover confirmation, fresh installs, upgrades, protected local edits and rollback after shell failures. Validate a clean checkout and staged widget with `omarchy plugin validate <path>` in the isolated environment; Omarchy rejects symlinks. Run the applicable native and Linux gates before delivery. Build a source archive from the exact reviewed release commit:
 
 ```sh
-git archive --format=tar.gz --prefix=mluva-2.2.0/ \
-  --output=tmp/mluva-2.2.0-source.tar.gz v2.2.0
+git archive --format=tar.gz --prefix=mluva-2.2.1/ \
+  --output=tmp/mluva-2.2.1-source.tar.gz v2.2.1
 ```
 
 The native [archive builder](../rust/mluva-install/tests/fixtures/archive-evidence.md) creates runtime archives with verified dependency notices. A source archive still requires a compiler. Release approval and a verified package do not establish complete application or physical/platform acceptance.

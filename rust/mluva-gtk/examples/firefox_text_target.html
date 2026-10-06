@@ -49,6 +49,10 @@
   window.change = spec => {
     const field = document.getElementById(spec.kind || "textview");
     if (spec.operation === "focus") field.focus();
+    else if (spec.operation === "replace") {
+      if (field.id === "rich") field.firstChild.replaceData(spec.start, spec.end - spec.start, spec.text);
+      else field.setRangeText(spec.text, spec.start, spec.end, "preserve");
+    }
     else select(field, spec.start, spec.end, spec.direction);
     return true;
   };

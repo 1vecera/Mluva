@@ -122,14 +122,23 @@ impl Peer {
     pub fn observed(&self) -> Value {
         serde_json::from_slice(&fs::read(self.directory.join("observed.json")).unwrap()).unwrap()
     }
-    pub fn request(&mut self, mut value: Value) {
+    pub fn request(&mut self, value: Value) {
+        self.request_with_dispatch(value, true);
+    }
+    /// Acknowledge the real browser change while its accessibility events stay queued.
+    pub fn request_unpumped(&mut self, value: Value) {
+        self.request_with_dispatch(value, false);
+    }
+    fn request_with_dispatch(&mut self, mut value: Value, dispatch: bool) {
         self.serial += 1;
         value["serial"] = self.serial.into();
         write(&self.directory.join("request.json"), &value);
         let deadline = Instant::now() + Duration::from_secs(5);
         loop {
             if self.observed()["serial"] == self.serial {
-                settle(Duration::from_millis(180));
+                if dispatch {
+                    settle(Duration::from_millis(180));
+                }
                 return;
             }
             assert!(
@@ -140,7 +149,11 @@ impl Peer {
                 self.process.try_wait().unwrap().is_none(),
                 "target exited during request"
             );
-            settle(Duration::from_millis(20));
+            if dispatch {
+                settle(Duration::from_millis(20));
+            } else {
+                thread::sleep(Duration::from_millis(20));
+            }
         }
     }
     pub fn stop(&mut self) {

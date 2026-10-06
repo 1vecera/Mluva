@@ -32,6 +32,8 @@ Completed dictation and successful rewrites copy automatically by default. Setti
 
 Automatic insertion is Experimental and off by default. It requires a restorable, nonsecure target. Unavailable or stale targets become copy-only. Uncertain insertion does not retry or fall through to a second delivery route. A failure preserves recognized text so copying it again does not repeat transcription.
 
+Automatic dictation and Live delivery preserve Chromium's actual highlight rather than restoring its unreliable Unicode offsets. Changing the field or selection makes delivery copy-only. Metadata that cannot confirm the complete insertion keeps an unconfirmed receipt and never triggers a retry. Explicit Command capture of mixed-Unicode Chromium selections remains unsupported by this repair. See the [browser verification and limits](verification/browser-direct-transport/README.md#chromium-selection-preserved-for-automatic-delivery).
+
 ## Local history and recovery
 
 Explicit screenshot context belongs to its recording or selected conversation. Captures use Omarchy's normal region picker and leave the clipboard unchanged. Saved PNGs remain editable in Tensaku; each AI request freezes complete saved image bytes and their narration offsets. The selected rewrite provider receives those pixels only during an explicit rewrite or the already enabled recording processing. Incognito rejects screenshot capture and image requests. A request accepts at most eight screenshots, 8 MiB per image and 24 MiB total. Images are retained, merged, removed and pruned with their conversation. Completed selection before an interrupted recording remains reviewable in History; unfinished selections are cancelled.

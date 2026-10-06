@@ -2,6 +2,15 @@
 
 This file records user-visible Mluva releases.
 
+## 2.2.1 — 2026-10-06
+
+- Fix automatic dictation and Live paste over Chromium selections whose accessibility offsets are incorrect, including emoji. Preserve the browser's actual highlight and send one guarded clipboard paste.
+- Keep changed selections, edited fields and stale targets clipboard-only. Track only numeric accessibility events and metadata; automatic delivery never reads field text.
+- Report a paste as unconfirmed when metadata cannot verify the complete insertion, including identical replacements. Keep the full text on the clipboard without an automatic retry.
+- Release a matching native app and Omarchy widget, preserving settings, History and the three local models. [Verification and limits](docs/verification/browser-direct-transport/README.md#chromium-selection-preserved-for-automatic-delivery).
+
+Explicit Command capture of mixed-Unicode selections in Chromium remains unresolved. Physical keys/audio, desktop permissions, Wayland Chromium and complete Rust UX parity remain unverified. Automatic paste, Live rewrite and screenshot context remain Experimental.
+
 ## 2.2.0 — 2026-10-06
 
 - Keep the Omarchy recorder visible when continuing a finished recording, including the continued text and correct recording controls.

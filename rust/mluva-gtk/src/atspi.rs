@@ -16,6 +16,9 @@ pub(crate) const FOCUSED: c_int = 12;
 pub(crate) const PASSWORD_TEXT: c_int = 40;
 const FOCUS_EVENT: &CStr = c"object:state-changed:focused";
 const APPLICATION_ADDED_EVENT: &CStr = c"object:children-changed:add";
+const TEXT_SELECTION_EVENT: &CStr = c"object:text-selection-changed";
+const TEXT_CARET_EVENT: &CStr = c"object:text-caret-moved";
+const TEXT_CHANGED_EVENT: &CStr = c"object:text-changed";
 
 /// libatspi maintains global proxy/cache/listener state without synchronization.
 pub(crate) fn initialize() -> bool {
@@ -26,6 +29,28 @@ pub(crate) fn initialize() -> bool {
     // Match the released binding: init's status does not substitute for actual query results.
     unsafe { ffi::atspi_init() };
     true
+}
+
+/// Synchronous delivery can leave bus events unread while direct peer queries succeed.
+/// Dispatch only this connection; the next libatspi query processes its deferred events.
+/// Do not re-enter GTK's main loop or use a proxy on another thread.
+pub(crate) fn read_pending_events() -> bool {
+    unsafe {
+        let connection = ffi::atspi_get_a11y_bus();
+        if connection.is_null() || ffi::dbus_connection_read_write(connection, 0) == 0 {
+            return false;
+        }
+        for _ in 0..256 {
+            match ffi::dbus_connection_get_dispatch_status(connection) {
+                ffi::DBUS_DISPATCH_COMPLETE => return true,
+                ffi::DBUS_DISPATCH_DATA_REMAINS => {
+                    ffi::dbus_connection_dispatch(connection);
+                }
+                _ => return false,
+            }
+        }
+        false
+    }
 }
 
 #[derive(Clone, PartialEq, Eq)]
@@ -71,6 +96,16 @@ impl Drop for ErrorSlot {
 }
 
 impl Node {
+    pub(crate) fn application(&self) -> Option<Self> {
+        let mut error = ErrorSlot::default();
+        let application = unsafe {
+            Proxy::full(ffi::atspi_accessible_get_application(
+                self.0.pointer(),
+                error.out(),
+            ))
+        };
+        error.result(application).flatten().map(Self)
+    }
     pub(crate) fn desktop() -> Option<Self> {
         unsafe { Proxy::full(ffi::atspi_get_desktop(0)) }.map(Self)
     }
@@ -134,6 +169,11 @@ impl Node {
 }
 
 impl Text {
+    pub(crate) fn character_count(&self) -> Option<i32> {
+        let mut error = ErrorSlot::default();
+        let count = unsafe { ffi::atspi_text_get_character_count(self.0.pointer(), error.out()) };
+        error.result(count).filter(|count| *count >= 0)
+    }
     pub(crate) fn caret(&self) -> Option<i32> {
         let mut error = ErrorSlot::default();
         let caret = unsafe { ffi::atspi_text_get_caret_offset(self.0.pointer(), error.out()) };
@@ -218,7 +258,7 @@ impl EditableText {
     }
 }
 
-type EventCallback = Rc<dyn Fn(Option<Node>, i32)>;
+type EventCallback = Rc<dyn Fn(Option<Node>, i32, i32, bool)>;
 type CallbackData = glib::thread_guard::ThreadGuard<EventCallback>;
 pub(crate) struct EventListener {
     object: Proxy,
@@ -229,12 +269,25 @@ pub(crate) struct EventListener {
 
 impl EventListener {
     pub(crate) fn focus(callback: EventCallback) -> Option<Self> {
-        Self::new(FOCUS_EVENT, callback)
+        Self::new(FOCUS_EVENT, callback, None)
     }
     pub(crate) fn applications_added(callback: EventCallback) -> Option<Self> {
-        Self::new(APPLICATION_ADDED_EVENT, callback)
+        Self::new(APPLICATION_ADDED_EVENT, callback, None)
     }
-    fn new(event: &'static CStr, callback: EventCallback) -> Option<Self> {
+    pub(crate) fn selection_changed(application: &Node, callback: EventCallback) -> Option<Self> {
+        Self::new(TEXT_SELECTION_EVENT, callback, Some(application))
+    }
+    pub(crate) fn caret_moved(application: &Node, callback: EventCallback) -> Option<Self> {
+        Self::new(TEXT_CARET_EVENT, callback, Some(application))
+    }
+    pub(crate) fn text_changed(application: &Node, callback: EventCallback) -> Option<Self> {
+        Self::new(TEXT_CHANGED_EVENT, callback, Some(application))
+    }
+    fn new(
+        event: &'static CStr,
+        callback: EventCallback,
+        application: Option<&Node>,
+    ) -> Option<Self> {
         let mut callback = Box::new(CallbackData::new(callback));
         let object = unsafe {
             Proxy::full(ffi::atspi_event_listener_new(
@@ -250,11 +303,22 @@ impl EventListener {
         };
         let mut error = ErrorSlot::default();
         let registered = unsafe {
-            ffi::atspi_event_listener_register(
-                listener.object.pointer(),
-                event.as_ptr(),
-                error.out(),
-            )
+            if let Some(application) = application {
+                // No cached field properties; events come from this provider only.
+                ffi::atspi_event_listener_register_with_app(
+                    listener.object.pointer(),
+                    event.as_ptr(),
+                    std::ptr::null_mut(),
+                    application.0.pointer(),
+                    error.out(),
+                )
+            } else {
+                ffi::atspi_event_listener_register(
+                    listener.object.pointer(),
+                    event.as_ptr(),
+                    error.out(),
+                )
+            }
         };
         error
             .result(registered != 0)
@@ -298,8 +362,17 @@ unsafe extern "C" fn accessible_event(event: *mut ffi::Event, userdata: *mut c_v
             .get_ref()
             .clone();
         let source = unsafe { Proxy::borrowed((*event.0).source) }.map(Node);
-        let detail = unsafe { (*event.0).detail1 };
-        callback(source, detail);
+        let (detail1, detail2, inserted) = unsafe {
+            let event = &*event.0;
+            (
+                event.detail1,
+                event.detail2,
+                !event.event_type.is_null()
+                    && CStr::from_ptr(event.event_type).to_bytes() == b"object:text-changed:insert",
+            )
+        };
+        // Text events can carry field content in any_data. Never inspect that payload.
+        callback(source, detail1, detail2, inserted);
     }));
 }
 
@@ -323,6 +396,7 @@ mod ffi {
     #[link(name = "atspi")]
     unsafe extern "C" {
         pub fn atspi_init() -> c_int;
+        pub fn atspi_get_a11y_bus() -> *mut c_void;
         pub fn atspi_get_desktop(index: c_int) -> *mut c_void;
         pub fn atspi_accessible_get_child_count(obj: *mut c_void, error: Error) -> c_int;
         pub fn atspi_accessible_get_child_at_index(
@@ -331,6 +405,7 @@ mod ffi {
             error: Error,
         ) -> *mut c_void;
         pub fn atspi_accessible_get_process_id(obj: *mut c_void, error: Error) -> c_uint;
+        pub fn atspi_accessible_get_application(obj: *mut c_void, error: Error) -> *mut c_void;
         pub fn atspi_accessible_get_role(obj: *mut c_void, error: Error) -> c_int;
         pub fn atspi_accessible_get_state_set(obj: *mut c_void) -> *mut c_void;
         pub fn atspi_accessible_get_attributes(
@@ -343,6 +418,7 @@ mod ffi {
         pub fn atspi_accessible_get_component_iface(obj: *mut c_void) -> *mut c_void;
         pub fn atspi_component_grab_focus(obj: *mut c_void, error: Error) -> c_int;
         pub fn atspi_text_get_caret_offset(obj: *mut c_void, error: Error) -> c_int;
+        pub fn atspi_text_get_character_count(obj: *mut c_void, error: Error) -> c_int;
         pub fn atspi_text_set_caret_offset(obj: *mut c_void, offset: c_int, error: Error) -> c_int;
         pub fn atspi_text_get_n_selections(obj: *mut c_void, error: Error) -> c_int;
         pub fn atspi_text_get_selection(obj: *mut c_void, index: c_int, error: Error)
@@ -385,6 +461,13 @@ mod ffi {
             userdata: *mut c_void,
             destroy: Option<unsafe extern "C" fn(*mut c_void)>,
         ) -> *mut c_void;
+        pub fn atspi_event_listener_register_with_app(
+            listener: *mut c_void,
+            event: *const c_char,
+            properties: *mut glib::ffi::GArray,
+            application: *mut c_void,
+            error: Error,
+        ) -> c_int;
         pub fn atspi_event_listener_register(
             obj: *mut c_void,
             event: *const c_char,
@@ -396,5 +479,13 @@ mod ffi {
             error: Error,
         ) -> c_int;
         pub fn atspi_event_get_type() -> glib::ffi::GType;
+    }
+    pub const DBUS_DISPATCH_DATA_REMAINS: c_int = 0;
+    pub const DBUS_DISPATCH_COMPLETE: c_int = 1;
+    #[link(name = "dbus-1")]
+    unsafe extern "C" {
+        pub fn dbus_connection_read_write(connection: *mut c_void, timeout: c_int) -> c_uint;
+        pub fn dbus_connection_get_dispatch_status(connection: *mut c_void) -> c_int;
+        pub fn dbus_connection_dispatch(connection: *mut c_void) -> c_int;
     }
 }
