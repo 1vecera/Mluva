@@ -45,7 +45,7 @@ if "$inside"; then
     fi
     if [[ "$mode" == browser-application ]]; then
         export PATH="$OFFSCREEN_SESSION_ROOT/application-shortcut-tools:$PATH"
-        export MLUVA_APPLICATION_BROWSER=1 TZ=UTC CARGO_NET_OFFLINE=true
+        export MLUVA_APPLICATION_BROWSER=1 TZ=UTC CARGO_NET_OFFLINE=true APP_SHORTCUT_SYNTHETIC_KEY=synthetic-key
         unset MLUVA_DISABLE_GLOBAL_SHORTCUT
         exec cargo test --locked -p mluva-gtk "${test_arguments[@]}" -- --ignored --test-threads=1 --nocapture
     fi

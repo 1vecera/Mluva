@@ -141,6 +141,56 @@ fn snapshot(
     json!({"ui":capture_ui::observe(&owner.capture.page,audio),"hint":owner.capture.page.action_hint.label().as_str(),"approval":prefs.shortcut_status.subtitle().map(String::from),"latest":prefs.latest_shortcut_status.subtitle().map(String::from),"key":prefs.recording_key.selected(),"key_sensitive":prefs.recording_key.get_sensitive(),"saved_key":AppConfig::load(&services.paths.config.join("config.json")).unwrap().global_recording_key,"provider":services.config().transcription_provider,"page":owner.shell.stack.visible_child_name().map(String::from),"visible":owner.shell.window.get_visible(),"history":services.history.recent(100).unwrap().into_iter().rev().map(|e|json!({"raw":e.raw_text,"output":e.delivered_text,"outcome":e.delivery_outcome})).collect::<Vec<_>>(),"clipboard":clipboard(),"target":target})
 }
 
+/// Expand independent browser differences without duplicating the original GTK states.
+fn merge_observation(base: &mut Value, patch: &Value) {
+    if base.is_object() && patch.is_object() {
+        for (key, value) in patch.as_object().unwrap() {
+            merge_observation(&mut base[key], value);
+        }
+    } else {
+        *base = patch.clone();
+    }
+}
+
+fn browser_commands(reference: &Value, browser: &Value) -> Vec<Value> {
+    let commands = &browser["commands"];
+    commands["names"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|name| {
+            let case = &browser["cases"][name.as_str().unwrap()];
+            let mut row = reference["cases"][0].clone();
+            row["params"] = case["params"].clone();
+            merge_observation(&mut row["config"], &commands["config_patch"]);
+            row["responses"] = commands["responses"].clone();
+            row["requests"] = json!([
+                reference["cases"][0]["requests"][0],
+                commands["requests"][case["rewrite_request"].as_u64().unwrap() as usize]
+            ]);
+            row["stages"] = json!(
+                case["stages"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|stage| {
+                        let state = &commands["states"][stage["state"].as_u64().unwrap() as usize];
+                        let mut observation = reference["cases"]
+                            [state["base"][0].as_u64().unwrap() as usize]["stages"]
+                            [state["base"][1].as_u64().unwrap() as usize]["state"]
+                            .clone();
+                        merge_observation(&mut observation, &state["patch"]);
+                        observation["target"] =
+                            browser["targets"][stage["target"].as_u64().unwrap() as usize].clone();
+                        json!({"stage":stage["stage"],"state":observation})
+                    })
+                    .collect::<Vec<_>>()
+            );
+            row
+        })
+        .collect()
+}
+
 fn platform() -> ApplicationPlatform {
     ApplicationPlatform {
         compact_recording: Rc::new(|_| {}),
@@ -295,10 +345,12 @@ fn released_application_portal_actions_settings_and_target_delivery() {
     let fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-application-shortcuts.json")).unwrap();
     assert_eq!(browser_fixture["reference"], fixture["reference"]);
+    let mut scenarios = fixture["cases"].as_array().unwrap().clone();
+    if browser {
+        scenarios.extend(browser_commands(&fixture, &browser_fixture));
+    }
     if selected.is_none() {
-        let mut cases = fixture["cases"]
-            .as_array()
-            .unwrap()
+        let mut cases = scenarios
             .iter()
             .enumerate()
             .filter(|(_, row)| {
@@ -355,7 +407,7 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             || selected
                 .as_ref()
                 .and_then(|case| case.parse::<usize>().ok())
-                .is_some_and(|index| index < fixture["cases"].as_array().unwrap().len())
+                .is_some_and(|index| index < scenarios.len())
     );
     let tools = root.join("application-shortcut-tools");
     assert_eq!(
@@ -409,12 +461,13 @@ fn released_application_portal_actions_settings_and_target_delivery() {
     );
     assert_eq!(fixture["pango"], gtk::pango::version_string().as_str());
     let mut count = 0;
-    for (index, row) in fixture["cases"].as_array().unwrap().iter().enumerate() {
+    for (index, row) in scenarios.iter().enumerate() {
         if selected.as_deref() != Some(index.to_string().as_str()) {
             continue;
         }
         let params = &row["params"];
         let name = params["name"].as_str().unwrap();
+        let command = params.get("decision").is_some();
         let browser_case = browser.then(|| &browser_fixture["cases"][name]);
         assert!(!browser || !browser_case.unwrap().is_null());
         portal.control("Reset", Some(params["portal"].as_str().unwrap_or("normal")));
@@ -432,6 +485,9 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         let mut http = http::Peer::new(&responses);
         let mut cfg = row["config"].clone();
         cfg["transcription_base_url"] = json!(format!("{}/v1", http.address));
+        if command {
+            cfg["litellm_base_url"] = json!(http.address);
+        }
         let config: AppConfig = serde_json::from_value(cfg).unwrap();
         let paths = AppPaths {
             config: directory.path().join("config/mluva"),
@@ -517,8 +573,15 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             .set_text("untouched shortcut clipboard");
         let mut stage_index = 0;
         let mut stage = |label: &str, audio: Option<&Path>, peer: &text_transport::Peer| {
-            let actual =
+            let mut actual =
                 json!({"stage":label,"state":snapshot(&owner,&services,peer,audio,browser)});
+            if command {
+                let page = &owner.capture.page;
+                actual["state"]["command"] = json!({"pending":owner.pending.has_command(),
+                    "source":{"visible":page.command_source.get_visible(),"text":page.command_source.label().as_str()},
+                    "actions":page.command_actions.get_visible(),"label":page.accept_command.label().map(String::from),
+                    "sensitive":page.accept_command.get_sensitive(),"editable":page.output_view.is_editable()});
+            }
             let mut expected = row["stages"][stage_index].clone();
             if let Some(browser_case) = browser_case {
                 let stage = &browser_case["stages"][stage_index];
@@ -620,7 +683,7 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         let mut audio = None;
         let mut pid = None;
         if let Some(capture) = params["capture"].as_str() {
-            peer.request(json!({"operation":"setup","kind":"entry","text":"Before 🐎 after","start":7,"end":if browser {9} else {8},"editable":true}));
+            peer.request(json!({"operation":"setup","kind":"entry","text":"Before 🐎 after","start":params.get("start").and_then(Value::as_u64).unwrap_or(7),"end":params.get("end").and_then(Value::as_u64).unwrap_or(if browser {9} else {8}),"editable":true}));
             stage("focused-target", None, &peer);
             if capture == "manual" {
                 application.activate_action("record", None);
@@ -640,7 +703,7 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             )));
             settle();
             stage("recording", audio.as_deref(), &peer);
-            if capture == "global" {
+            if capture == "global" && !command {
                 portal.drive(json!({"op":"Activated","id":"toggle-recording-f9"}));
                 settle();
                 stage("held-key-does-not-stop", audio.as_deref(), &peer);
@@ -657,8 +720,32 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             }
             until(|| owner.capture.phase().is_none());
             settle();
-            stage("completed", audio.as_deref(), &peer);
-            if capture == "global" {
+            stage(
+                if command { "preview" } else { "completed" },
+                audio.as_deref(),
+                &peer,
+            );
+            if command {
+                assert!(owner.pending.has_command());
+                application.activate_action("record", None);
+                settle();
+                stage("blocked-next-recording", audio.as_deref(), &peer);
+                if params["decision"] == "stale" {
+                    peer.request(json!({"operation":"focus","kind":"second"}));
+                    stage("target-changed", audio.as_deref(), &peer);
+                }
+                if params["decision"] == "discard" {
+                    owner.capture.page.discard_command.emit_clicked();
+                } else {
+                    owner.capture.page.accept_command.emit_clicked();
+                }
+                settle();
+                stage("resolved", audio.as_deref(), &peer);
+                assert!(!owner.pending.has_command());
+                owner.capture.page.accept_command.emit_clicked();
+                settle();
+                stage("duplicate-apply", audio.as_deref(), &peer);
+            } else if capture == "global" {
                 if !browser {
                     assert_eq!(
                         peer.observed()["entry"]["text"],
@@ -680,9 +767,11 @@ fn released_application_portal_actions_settings_and_target_delivery() {
                 stage_index,
                 browser_case.unwrap()["stages"].as_array().unwrap().len()
             );
-            assert!(
-                text_transport::audit_rows().unwrap().is_empty(),
-                "automatic recording must not read target text"
+            let expected_reads = browser_case.unwrap()["reads"].as_u64().unwrap_or(0) as usize;
+            assert_eq!(
+                text_transport::audit_rows().unwrap().len(),
+                expected_reads,
+                "only explicit Command selection may read target text"
             );
             let mut probe = FocusedTextTargetTracker::new().unwrap();
             peer.request(json!({"operation":"setup","kind":"textview","text":"Audit: 🐎 guard","start":7,"end":9}));
@@ -698,14 +787,16 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             let rows = text_transport::audit_rows().unwrap();
             assert_eq!(
                 rows.len(),
-                1,
+                expected_reads + 1,
                 "explicit GetText control must observe one real request"
             );
-            assert_eq!(rows[0]["pid"], std::process::id());
-            assert_eq!(rows[0]["valid"], true);
-            assert_eq!(rows[0]["start"], 7);
-            assert_eq!(rows[0]["end"], 9);
-            assert!(rows[0]["peer"].is_boolean());
+            for row in rows {
+                assert_eq!(row["pid"], std::process::id());
+                assert_eq!(row["valid"], true);
+                assert_eq!(row["start"], 7);
+                assert_eq!(row["end"], 9);
+                assert!(row["peer"].is_boolean());
+            }
         }
         assert_eq!(stage_index, row["stages"].as_array().unwrap().len());
         let drained = Rc::new(Cell::new(false));
@@ -742,7 +833,7 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             assert!(!text_transport::bus_name_has_owner("org.a11y.Bus"));
             assert_eq!(
                 text_transport::audit_rows().unwrap().len(),
-                1,
+                browser_case.unwrap()["reads"].as_u64().unwrap_or(0) as usize + 1,
                 "include all lifecycle reads"
             );
         } else {
