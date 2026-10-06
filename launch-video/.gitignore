@@ -7,3 +7,5 @@ public/live/
 public/audio/
 # Showreel captures, score and effects are staged by showreel/prepare.py.
 public/showreel/
+# The generated highlight score (ElevenLabs Music) stays local with the other staged media.
+public/highlight/

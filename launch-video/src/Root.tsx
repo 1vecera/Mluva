@@ -1,6 +1,7 @@
 import { CalculateMetadataFunction, Composition, staticFile } from "remotion";
 import { EditPlan, IntroProps, MluvaIntro } from "./MluvaIntro";
 import { MluvaShowreel } from "./showreel/Showreel";
+import { HIGHLIGHT_DURATION, MluvaRustHighlight } from "./highlight/Highlight";
 import { LockupCheck, LockupCheckMode } from "./showreel/LockupCheck";
 import { DURATION, FPS, HEIGHT, WIDTH } from "./showreel/timing";
 
@@ -30,6 +31,14 @@ export const Root: React.FC = () => (
       id="MluvaShowreel"
       component={MluvaShowreel}
       durationInFrames={DURATION}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+    />
+    <Composition
+      id="MluvaRustHighlight"
+      component={MluvaRustHighlight}
+      durationInFrames={HIGHLIGHT_DURATION}
       fps={FPS}
       width={WIDTH}
       height={HEIGHT}

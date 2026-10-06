@@ -13,3 +13,7 @@ Daniel supplied the camera recording. The voice is cleaned and enhanced, with it
 GitHub plays the standalone attachment URL inline. The same uploaded movie serves the README and website, keeping large video binaries out of new repository commits. [GitHub's attachment guide](https://docs.github.com/en/github-cli/github-cli/attaching-files-with-github-cli) documents the upload and video-reference behavior.
 
 The [composition and render instructions](../../launch-video/README.md) describe the current source. Original recordings, private render inputs and earlier edits remain in local source archives. The superseded film, old subtitle files and unused capture fixtures have been removed; Git history preserves their prior versions.
+
+## Rust release highlight
+
+A 23.5-second film about the native Rust release opening sooner is built by [launch-video/highlight](../../launch-video/highlight/README.md): first window 456 → 260 ms (1.75×), D-Bus ready 217 → 42 ms (5.2×) and about 161 → 49 MiB installed (3.3×), each cut on a drop of a generated ElevenLabs score. The numbers compare Python 1.6.0 with published Rust 2.0.0 on one host and state their scope; none is an inference-speed claim. The rendered movie and score stay outside Git.
