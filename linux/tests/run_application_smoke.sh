@@ -22,7 +22,7 @@ case "$mode" in
     images) suites=(application); image_case="${2:-}"; editor="${3:-${MLUVA_TEST_EDITOR:-}}" ;;
     screenshots) suites=(application_screenshots) ;;
     text-targets) suites=(text_target) ;;
-    browser-targets) suites=(browser_target); browser_case="${2:-}" ;;
+    browser-targets) suites=(browser_target); browser_case="${2:-}"; browser_engine="${3:-firefox}" ;;
     browser-application) suites=(application_shortcuts); browser_case=default ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
 esac
@@ -42,6 +42,9 @@ if "$inside"; then
         else
             test "$browser_case" == bus
         fi
+    fi
+    if [[ "$mode" == browser-targets ]]; then
+        export MLUVA_BROWSER_ENGINE="$browser_engine"
     fi
     if [[ "$mode" == browser-application ]]; then
         export PATH="$OFFSCREEN_SESSION_ROOT/application-shortcut-tools:$PATH"
@@ -135,6 +138,12 @@ fi
 if [[ "$mode" == text-targets ]]; then
     cargo build --locked -p mluva-gtk --example text_target_peer
 elif [[ "$mode" == browser-targets ]]; then
+    [[ "$browser_engine" == firefox || "$browser_engine" == chromium ]]
+    if [[ "$browser_engine" == chromium ]]; then
+        for prerequisite in chromium chromedriver; do
+            command -v "$prerequisite" >/dev/null || { echo "Missing private Chromium prerequisite: $prerequisite." >&2; exit 3; }
+        done
+    fi
     cargo build --locked -p mluva-gtk --example firefox_text_peer --example atspi_read_audit
 elif [[ "$mode" != live-components ]]; then
     cargo build --locked -p mluva-gtk --example private_input \
@@ -159,7 +168,7 @@ if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
         [[ "$browser_case" == bus || "$browser_case" == default ]]
         bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
             bash dev/run-isolated-browser.sh "$evidence/$browser_case" -- \
-            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session "$mode" "$browser_case"
+            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session "$mode" "$browser_case" "${browser_engine:-firefox}"
     done
     exit
 fi
