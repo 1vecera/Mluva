@@ -1,0 +1,501 @@
+{
+  "date": "2026-10-06",
+  "scope": "Exact installed Rust 2.1.0 and immutable 1.6.0 on private Wayland, inference disabled",
+  "reference": {
+    "commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+    "files": 91
+  },
+  "native": {
+    "version": "2.1.0",
+    "payloads": 520,
+    "links": 4,
+    "receipt": {
+      "bytes": 68168,
+      "sha256": "3bf35523cd8b329fee2d0d244c781dc467b3b3ef198bce9949ddbf619c155d51"
+    },
+    "executable": {
+      "bytes": 18052112,
+      "sha256": "4b15e162347c54ea5b5cf95dacea8fddc37f026256b72adec5480f6a2fe9e7df"
+    }
+  },
+  "machine": {
+    "kernel": "7.1.9-arch1-2",
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12700H",
+    "packages": [
+      "hyprland 0.56.2-1",
+      "gtk4 1:4.22.4-1",
+      "libadwaita 1:1.9.3-1",
+      "omarchy 4.0.2-1",
+      "grim 1.5.0-2"
+    ],
+    "python": "3.14.7"
+  },
+  "protocol": {
+    "rounds": 6,
+    "warmups_per_version": 1,
+    "order": [
+      [
+        "source",
+        -1
+      ],
+      [
+        "native",
+        -1
+      ],
+      [
+        "source",
+        0
+      ],
+      [
+        "native",
+        0
+      ],
+      [
+        "native",
+        1
+      ],
+      [
+        "source",
+        1
+      ],
+      [
+        "source",
+        2
+      ],
+      [
+        "native",
+        2
+      ],
+      [
+        "native",
+        3
+      ],
+      [
+        "source",
+        3
+      ],
+      [
+        "source",
+        4
+      ],
+      [
+        "native",
+        4
+      ],
+      [
+        "native",
+        5
+      ],
+      [
+        "source",
+        5
+      ]
+    ],
+    "fresh_processes": 14,
+    "fresh_profiles": true,
+    "warm_filesystem_cache": true,
+    "python_bytecode_cache_reused_after_warmup": true,
+    "frame_masks": false,
+    "startup_endpoint": "First private Hyprland registered application window",
+    "interaction_endpoint": "First externally observed showing accessible target; not first painted frame",
+    "native_default_rewrite_collapsed": true,
+    "source_original_rewrite_expanded": true,
+    "compositor_animations": false,
+    "gtk_animations": "unchanged defaults",
+    "idle_seconds": 3,
+    "clock_ticks": 100,
+    "private_watchdog_banner_disabled": true
+  },
+  "raw": {
+    "root": "tmp/current-wayland-performance/series.75Qc46",
+    "result": {
+      "bytes": 37441,
+      "sha256": "b414bdc50e28cdcfa76e47e6fd0c575fef01d04415f796b40c22e3b79be9ed66"
+    },
+    "observations": [
+      {
+        "source--1": {
+          "bytes": 1863,
+          "sha256": "9c15575b04e5658006de506b387dd9d8bb1e7e3de6778c9525d3b82a026d4287"
+        },
+        "cache": {
+          "bytes": 1439,
+          "sha256": "a84bf83f13fbe336a941be4ba6bb2b9cf7ad3b303a97387b146340d38a173af6"
+        }
+      },
+      {
+        "native--1": {
+          "bytes": 1868,
+          "sha256": "696e8bc82d62e2d5b576d4e85a526ffb43ae50d4ad766d6cae1f7bceddc7eda2"
+        },
+        "cache": {
+          "bytes": 1438,
+          "sha256": "2f5925a5ef263eb27d8b824d48c1841f306ea194b53f0e46f1ac3cf9989bfbef"
+        }
+      },
+      {
+        "source-0": {
+          "bytes": 1521,
+          "sha256": "a15881660e69836bd32f014de5fa2722e0c78ed1e81526d89362d2bd5a1981c0"
+        },
+        "cache": {
+          "bytes": 1440,
+          "sha256": "58bb4e6893946cabb446803051bd70dbdf380002e738bd2cf63cbd57c24c30ba"
+        }
+      },
+      {
+        "native-0": {
+          "bytes": 1523,
+          "sha256": "22f7bd95a91eff9eddf6e1422947949f2ff866ceed19a5d2f2ca89da089857b1"
+        },
+        "cache": {
+          "bytes": 1446,
+          "sha256": "6f47a8863e8a139f5ccf132c0c83e2718c7b0e82cafab0c8fb7dcd946e9ed385"
+        }
+      },
+      {
+        "native-1": {
+          "bytes": 1525,
+          "sha256": "c95623a27d3370b4e2001bcd7a6b3480297a8ad3ddd716f8623cb202c079a4e2"
+        },
+        "cache": {
+          "bytes": 1446,
+          "sha256": "96ab0ec430a240bdc265cf2d5d6badc961e50d3f95bd7cf703be054d485dd01d"
+        }
+      },
+      {
+        "source-1": {
+          "bytes": 1521,
+          "sha256": "94a2ce819676f1ddddff6884b2aad4af09a7f02a2a8dda43b617132c32ab92b8"
+        },
+        "cache": {
+          "bytes": 1448,
+          "sha256": "0cd35c22552aaf189beef60bbae1c5abfa91bce600b0fc09df4a4e3d3c0b7428"
+        }
+      },
+      {
+        "source-2": {
+          "bytes": 1521,
+          "sha256": "fde011dee9b6918f14f0412bbef6e9b00a73e8f373594f4c049ec0457f1e16d8"
+        },
+        "cache": {
+          "bytes": 1448,
+          "sha256": "0dc33b4a5d487369a6c735ddceb1f2b399375a054865f22a8b0194db1100af59"
+        }
+      },
+      {
+        "native-2": {
+          "bytes": 1524,
+          "sha256": "c580e95b966e7c1ab2c0281639c2662891c2f72c08122c48e8cba122b91699fc"
+        },
+        "cache": {
+          "bytes": 1446,
+          "sha256": "b8d1a85462aeddf3e9ba17d64e6c97a704ea39935e4809e8c51d24817bc13a9b"
+        }
+      },
+      {
+        "native-3": {
+          "bytes": 1538,
+          "sha256": "59be15b0e29a6924901728cfab1865d37f0bcfd06b521e22a3a192cd73d06cdd"
+        },
+        "cache": {
+          "bytes": 1446,
+          "sha256": "8b2f3ea02074eda8ccd1400aa09fe35779ceee45ea07d0f5ee564495fef03b6e"
+        }
+      },
+      {
+        "source-3": {
+          "bytes": 1521,
+          "sha256": "0746c159ecf665cd32816428003db7e1a67ccf709ca51a4627dae36ee21f4cd9"
+        },
+        "cache": {
+          "bytes": 1449,
+          "sha256": "42b574dd501969bfbc7a6ccfdbc14373f96a96f085ac792c85b40c5bfb44e5ee"
+        }
+      },
+      {
+        "source-4": {
+          "bytes": 1522,
+          "sha256": "ba3347551f6cc3f33851453ccf8a29d234f9da5a229afd056567f24c20459836"
+        },
+        "cache": {
+          "bytes": 1449,
+          "sha256": "a497476e10fc7d23c701a96e0620a6e364b298c31daba1fc723e6079ea099d7c"
+        }
+      },
+      {
+        "native-4": {
+          "bytes": 1521,
+          "sha256": "d1ff81690a4c3a5678fa4c5f7463ea9f0f0efd8486613ace32ee6b8ff443e613"
+        },
+        "cache": {
+          "bytes": 1447,
+          "sha256": "3cc0295a620109295900ddd8a9d234c05333245715951c55f9794a1dea03d80d"
+        }
+      },
+      {
+        "native-5": {
+          "bytes": 1524,
+          "sha256": "c70db6f92b389e6be3e4bbeeff8b3e8e35b43d075014e07b524fe38576589bb6"
+        },
+        "cache": {
+          "bytes": 1447,
+          "sha256": "15ce978913a1f55742977aa55f175c37a5076ee05bb4053d20ef55787f2e3e8e"
+        }
+      },
+      {
+        "source-5": {
+          "bytes": 1522,
+          "sha256": "84bcc164a89b37b90b22f697c7216544436b1de6b824d2ddd7ef590281ce19d6"
+        },
+        "cache": {
+          "bytes": 1449,
+          "sha256": "abd418d0fa4d596a7776a6ae3ab0fc69ac1bc2716018e4904549d31d95b99121"
+        }
+      }
+    ]
+  },
+  "observers": {
+    "observe.py": {
+      "bytes": 15781,
+      "sha256": "5deee4c67b289b877fe3916494b2717dad83b641b0e5fa0a8ee816572cb5c90c"
+    },
+    "run.sh": {
+      "bytes": 1219,
+      "sha256": "4d475cc32162c206c859ddf4cebd4fd09537e0a2fdc963bbbf863ae002836cda"
+    },
+    "audit.py": {
+      "bytes": 9128,
+      "sha256": "2df4eba685974eafef1ab47ad6fd84afaf55d230bd96ea36156f31e6ecf90a75"
+    }
+  },
+  "summary": {
+    "source": {
+      "bus_ms": {
+        "samples": 6,
+        "median": 187.78273200587137,
+        "min": 176.4824249985395,
+        "max": 193.04763300169725
+      },
+      "window_ms": {
+        "samples": 6,
+        "median": 706.8589285045164,
+        "min": 686.2008659954881,
+        "max": 734.0219259931473
+      },
+      "idle_cpu_percent": {
+        "samples": 6,
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "quit_ms": {
+        "samples": 6,
+        "median": 64.14465900161304,
+        "min": 32.10783800750505,
+        "max": 64.48064500000328
+      },
+      "rss_kib": {
+        "samples": 6,
+        "median": 369822.0,
+        "min": 369008,
+        "max": 370572
+      },
+      "pss_kib": {
+        "samples": 6,
+        "median": 136116.5,
+        "min": 135928,
+        "max": 136925
+      },
+      "interactions": {
+        "history": {
+          "dispatch_ms": {
+            "samples": 6,
+            "median": 6.763658006093465,
+            "min": 6.20745999913197,
+            "max": 9.597861993825063
+          },
+          "accessible_ms": {
+            "samples": 6,
+            "median": 34.19262500392506,
+            "min": 32.595633005257696,
+            "max": 45.02398600743618
+          }
+        },
+        "settings": {
+          "dispatch_ms": {
+            "samples": 6,
+            "median": 6.8150605002301745,
+            "min": 6.262370996410027,
+            "max": 7.737730993540026
+          },
+          "accessible_ms": {
+            "samples": 6,
+            "median": 203.22740499977954,
+            "min": 193.95585099118762,
+            "max": 233.55595400789753
+          }
+        },
+        "capture-settings": {
+          "dispatch_ms": {
+            "samples": 6,
+            "median": 0.11306550004519522,
+            "min": 0.0696420029271394,
+            "max": 0.23065999266691506
+          },
+          "accessible_ms": {
+            "samples": 6,
+            "median": 269.8318539914908,
+            "min": 264.9504230066668,
+            "max": 288.7960930092959
+          }
+        }
+      }
+    },
+    "native": {
+      "bus_ms": {
+        "samples": 6,
+        "median": 25.06479400472017,
+        "min": 21.89617599651683,
+        "max": 28.164397008367814
+      },
+      "window_ms": {
+        "samples": 6,
+        "median": 524.5103580018622,
+        "min": 486.5858359989943,
+        "max": 544.5510930003366
+      },
+      "idle_cpu_percent": {
+        "samples": 6,
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.3331222338855744
+      },
+      "quit_ms": {
+        "samples": 6,
+        "median": 33.99965000426164,
+        "min": 33.45594399434049,
+        "max": 65.81300900143106
+      },
+      "rss_kib": {
+        "samples": 6,
+        "median": 345558.0,
+        "min": 345448,
+        "max": 345672
+      },
+      "pss_kib": {
+        "samples": 6,
+        "median": 112132.5,
+        "min": 112038,
+        "max": 112284
+      },
+      "interactions": {
+        "history": {
+          "dispatch_ms": {
+            "samples": 6,
+            "median": 5.628508995869197,
+            "min": 5.309831001795828,
+            "max": 7.843443003366701
+          },
+          "accessible_ms": {
+            "samples": 6,
+            "median": 30.68151749903336,
+            "min": 27.76853399700485,
+            "max": 42.7095180057222
+          }
+        },
+        "settings": {
+          "dispatch_ms": {
+            "samples": 6,
+            "median": 5.5160055053420365,
+            "min": 4.983156002708711,
+            "max": 6.258185996557586
+          },
+          "accessible_ms": {
+            "samples": 6,
+            "median": 194.63384149275953,
+            "min": 189.06305999553297,
+            "max": 218.05675599898677
+          }
+        },
+        "capture-settings": {
+          "dispatch_ms": {
+            "samples": 6,
+            "median": 0.07562549581052735,
+            "min": 0.06406600004993379,
+            "max": 0.0877940037753433
+          },
+          "accessible_ms": {
+            "samples": 6,
+            "median": 269.43708850012626,
+            "min": 262.3400890006451,
+            "max": 275.59611899778247
+          }
+        }
+      }
+    }
+  },
+  "frames": {
+    "history": {
+      "source": {
+        "bytes": 65073,
+        "sha256": "2280373122643cfb2b51999c431acf4844978c2d4809a8d564def4226e99f2d6"
+      },
+      "native": {
+        "bytes": 65073,
+        "sha256": "2280373122643cfb2b51999c431acf4844978c2d4809a8d564def4226e99f2d6"
+      },
+      "rgba": {
+        "bytes": 4608000,
+        "sha256": "d84b9bfc2aea40b9558ef73efacbd3ee1a5b6da46def7bba17bcd467bacb27fa"
+      },
+      "geometry": [
+        1280,
+        900,
+        4
+      ],
+      "masks": false
+    },
+    "capture-settings": {
+      "source": {
+        "bytes": 84678,
+        "sha256": "c2db03899df5f6e50ece950d0e453644a2e9e7075557494ecb055dab3fa3fa62"
+      },
+      "native": {
+        "bytes": 84678,
+        "sha256": "c2db03899df5f6e50ece950d0e453644a2e9e7075557494ecb055dab3fa3fa62"
+      },
+      "rgba": {
+        "bytes": 4608000,
+        "sha256": "8597cf803b4e3a96badc76ec580e839e2d9e3839c629e6443c23f014b2ef2bf8"
+      },
+      "geometry": [
+        1280,
+        900,
+        4
+      ],
+      "masks": false
+    }
+  },
+  "integrity": {
+    "source_inputs_verified": true,
+    "native_payloads_verified": true,
+    "all_profiles_and_history_equal": true,
+    "all_actions_equal": true,
+    "normal_quits": 14,
+    "empty_application_logs": 14,
+    "positive_actual_cache_reads": 14,
+    "a11y_warnings": 0
+  },
+  "limits": {
+    "physical_keys": false,
+    "real_microphone": false,
+    "inference": false,
+    "live": false,
+    "whole_platform": false,
+    "cold_start": false,
+    "language_effect_isolated": false,
+    "interaction_paint_latency": false,
+    "workspace_preview_frame": "Animated; excluded from static pixel comparison"
+  }
+}

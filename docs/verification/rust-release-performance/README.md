@@ -1,6 +1,38 @@
 # Released native performance and recording observations
 
-Published/installed 2.1.0 now matches the bounded Whisper Tiny and Parakeet whole-application checks below. The earlier 2.0.2 warm-cache sample starts sooner and uses less resident memory than immutable 1.6.0; its five UI endpoints preserve complete reference frames and accessible names/roles, without a general UI-speed improvement. Personalization has a higher measured median. Earlier ONNX clients reach their first recognition sooner, while resident ONNX and Qwen samples establish no general decoder speedup. Historical measurements remain unchanged; complete parity and broader current-package capture/processing performance remain unfinished.
+Installed 2.1.0 starts sooner and uses less resident memory than immutable 1.6.0 in the same-host warm-cache Wayland sample below, and matches the bounded Whisper Tiny and Parakeet whole-application checks. Three public accessible endpoints match, with two complete static frames, without a general UI-speed improvement claim. Earlier 2.0.2 X11, 2.0.0 and candidate reports remain unchanged; Personalization has a higher median in the 2.0.2 X11 sample. Actual ONNX clients reach first recognition sooner in those earlier samples, while resident ONNX and Qwen measurements establish no general decoder speedup. Complete parity and broader current-package capture/processing performance remain unfinished.
+
+## Installed 2.1.0 on private Wayland
+
+6 October 2026: the [Wayland report](current-wayland.json) compares the exact installed Rust 2.1.0 ELF, SHA-256 `4b15e162347c54ea5b5cf95dacea8fddc37f026256b72adec5480f6a2fe9e7df`, with immutable v1.6.0 on this i7-12700H. All 91 reference modules/resources and all 520 native payload hashes/four links are verified before and after collection. Fourteen actual application processes run sequentially through one private Hyprland 0.56.2 session: one excluded warmup per version, then six alternating measured pairs. Each process has a fresh synthetic profile; Python's bytecode cache is shared after warmup and remains unchanged through every measured start. Filesystem caches are warm; host work stays active.
+
+Both profiles leave inference inactive, disable rewriting, automatic delivery and shortcut registration, complete welcome, and contain the same single synthetic History item. Native retains its actual collapsed Rewrite default; source retains its original expanded controls. GTK animations retain their defaults, compositor animations are disabled and cursor blinking is disabled equally. This measures the current applications with their authorized UX differences and does not isolate a programming-language effect. Direct process timing excludes the distribution launcher wrapper. First-window timing ends when the actual application PID has a registered private Wayland window; it is not a separate first-painted-frame measurement.
+
+| Metric, median [range] | Immutable Python 1.6.0 | Installed Rust 2.1.0 |
+| --- | --- | --- |
+| Registered Wayland window, ms | 706.9 [686.2–734.0] | 524.5 [486.6–544.6] |
+| Idle RSS, MiB | 361.2 [360.4–361.9] | 337.5 [337.4–337.6] |
+| Idle PSS, MiB | 132.9 [132.7–133.7] | 109.5 [109.4–109.7] |
+| Idle CPU, % of one CPU | 0.00 [0.00–0.00] | 0.00 [0.00–0.33] |
+| Normal Quit, ms | 64.1 [32.1–64.5] | 34.0 [33.5–65.8] |
+
+Window latency is 25.8% lower and RSS 6.6% lower in this sample. PSS depends on shared pages; three-second idle samples at 100 clock ticks per second support no CPU-improvement claim. These absolute memory/timing values are not directly comparable with the different X11 renderer/geometry samples below. No speech, Live, cloud-provider or cold-start improvement is inferred.
+
+Public History and Settings actions, then the actual Capture tab, reach the same showing accessibility endpoints in all fourteen processes. Timing ends at external observation of the named role, includes observer traversal/polling, and is distinct from first painted content. The paired ranges overlap for every sampled action.
+
+| Input to showing endpoint, median [range], ms | Python 1.6.0 | Rust 2.1.0 |
+| --- | --- | --- |
+| History heading | 34.2 [32.6–45.0] | 30.7 [27.8–42.7] |
+| Settings navigation | 203.2 [194.0–233.6] | 194.6 [189.1–218.1] |
+| Capture preferences group | 269.8 [265.0–288.8] | 269.4 [262.3–275.6] |
+
+The complete 1280×900 warmup [History](wayland-history.png) and [Capture-settings](wayland-capture-settings.png) frames match the independent source in every RGBA byte, without masks or cropping. Only source images are curated. The Workspace recorder preview animates and is excluded from this static comparison; its raw source/native frames remain in scratch evidence, with no claim that they are identical at different sampling times. All public action names, saved configuration and every column of the four inspected History/context tables match across all fourteen profiles, with valid databases and unchanged raw/delivered text.
+
+The private runner keeps the visible desktop, input devices, microphone, clipboard, session bus, credentials and network separate. It starts the actual accessibility daemon/registry on a private abstract address, exports it to both observer and children, and verifies each real application PID's nonempty Cache.GetItems before discovery. Neither cache nor P2P is disabled. All fourteen applications exit normally, release their name/window, and have empty logs; collected accessibility logs have no warning or error. A private virtual pointer remains outside the application. Hyprland's direct-launch watchdog banner is disabled only in this disposable compositor through its [documented source condition](https://github.com/hyprwm/Hyprland/blob/efb50993780079460b0cbed1363e2166a2de1d9f/src/Compositor.cpp#L903); the typed option readback is retained. Application diagnostics are not suppressed.
+
+Accepted raw evidence is `tmp/current-wayland-performance/series.75Qc46/results.json`, 37,441 bytes, SHA-256 `b414bdc50e28cdcfa76e47e6fd0c575fef01d04415f796b40c22e3b79be9ed66`. The successful collector log is `measured-six.log`; a separate auditor imports neither application and independently recomputes every statistic, checks all profile/database/action/readiness receipts and complete static frames, and verifies the immutable inventories. Its accepted record is `audit.json`, with log `audit-six-roles.log` and audit SHA-256 `2df4eba685974eafef1ab47ad6fd84afaf55d230bd96ea36156f31e6ecf90a75`. Probe attempts remain excluded: the first selected a preferences-group name before its tab was open; later probes exposed the changing compositor banner, corrected the typed Boolean readback, and established the shared source bytecode cache. The audit also corrected a label-versus-grouping role assumption. Production and historical reports remain unchanged.
+
+This evidence-only checkpoint does not rerun unchanged Cargo gates or establish physical keys/microphone, inference/Live timing, all display/theme/platform behavior or full Rust acceptance. No benchmark observer or interpreter helper is maintained or shipped.
 
 ## Published 2.0.2 renewal
 
