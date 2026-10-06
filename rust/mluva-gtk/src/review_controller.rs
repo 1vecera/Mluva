@@ -251,7 +251,7 @@ impl ReviewController {
                 }
                 if final_live.as_deref() == Some(identifier) {
                     self.workspace.live_draft_text.grab_focus();
-                } else {
+                } else if self.workspace.composer.is_visible() {
                     self.workspace.prompt.grab_focus();
                 }
                 self.dismiss();
