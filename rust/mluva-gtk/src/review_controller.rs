@@ -177,6 +177,10 @@ impl ReviewController {
         self.current.borrow_mut().take();
         (self.callbacks.publish)(OverlayState::default());
     }
+    /// Revoke completed-note actions while capture replaces the visible overlay.
+    pub fn clear_for_capture(&self) {
+        self.current.borrow_mut().take();
+    }
     pub fn action(self: &Rc<Self>, operation: &str, identifier: &str, option: &str) {
         if self.shutting_down.get()
             || self.config.borrow().incognito_mode

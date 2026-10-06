@@ -428,7 +428,7 @@ fn released_assembled_application_and_shutdown() {
             assert_eq!(additional[key], fixture[key]);
         }
     }
-    let cases = if let Ok(name) = std::env::var("MLUVA_ONBOARDING_CASE") {
+    let mut cases = if let Ok(name) = std::env::var("MLUVA_ONBOARDING_CASE") {
         let selected = onboarding["cases"]
             .as_array()
             .unwrap()
@@ -495,6 +495,10 @@ fn released_assembled_application_and_shutdown() {
             .chain(live_editor["cases"].as_array().unwrap())
             .collect()
     };
+    if let Ok(name) = std::env::var("MLUVA_APPLICATION_CASE") {
+        cases.retain(|case| case["name"] == name);
+        assert_eq!(cases.len(), 1, "select one released application scenario");
+    }
     let workflows = cases.len();
     let mut count = 0;
     for (index, row) in cases.into_iter().enumerate() {
@@ -633,6 +637,11 @@ fn released_assembled_application_and_shutdown() {
             },
         )
         .unwrap();
+        if params["commands"] == true || params["continuation"] == true {
+            // These immutable layout references predate the remembered disclosure.
+            // Compare their expanded controls; bootstrap owns the new default.
+            owner.capture.page.workspace.rewrite_toggle.set_active(true);
+        }
         owner.shell.present();
         until(|| {
             owner.capture.page.record_button.get_sensitive()

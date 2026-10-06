@@ -49,6 +49,7 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | Changed boundary | Private integration check |
 | --- | --- |
 | Full recording/application and desktop actions | `make linux-application-test` |
+| Continued recording and recorder review transition | `make linux-continuation-test` |
 | Conversation editing, navigation and scrolling | `make linux-conversation-test` |
 | Live workspace and controllers | `make linux-live-workspace-test linux-live-rewrite-test` |
 | Provider preferences and held discovery | `make linux-provider-settings-test` |
