@@ -1,4 +1,6 @@
-# Rust port requirement review
+# Historical Rust port requirement review
+
+Daniel superseded this exhaustive parity plan on 6 October 2026. The active requirement is working main functionality, preserved data, privacy and diagnostics, with small UX differences allowed. Use the [functional checklist](functional-checklist.md); this review remains an evidence index, not a release gate or an automatic work queue.
 
 The current 2.2.1 [automatic Chromium selection repair](verification/browser-direct-transport/README.md#chromium-selection-preserved-for-automatic-delivery) preserves actual highlights and rejects selection/content revisions, including changes that leave numeric metadata equal. Thirty complete Chromium cases and the assembled application workflows pass with no automatic target-text reads. Explicit Command selection of mixed Unicode, physical/permission/Wayland boundaries and strict whole-workflow parity remain open; dated earlier checkpoints retain their historical scope.
 
@@ -62,4 +64,4 @@ Fedora GNOME and clean-distribution checks remain external environment gaps. The
 
 Performance comparison work already measures the requested startup, memory, CPU and interaction categories. Native startup and resident memory improve in the named isolated warm-cache series. UI and resident-inference ranges often overlap; no further benchmark is needed merely to manufacture a larger speed claim. Renew a measurement when a relevant runtime change, regression or unmeasured claim justifies it.
 
-The full parity goal remains active. Daniel authorized merging the relevant open PRs on 6 October; this batch does not publish a release, replace the installation, change feature maturity or declare full parity. Installed 2.1.0 and its settings/History remain untouched. The next implementation change should be driven by a reproduced defect or a concrete uncovered contract, not by an unlimited checklist of hypothetical combinations.
+This paragraph originally recorded the strict parity goal and the 2.1.0 installation at that checkpoint. Daniel subsequently authorized the Rust releases and local upgrades, then explicitly replaced exhaustive parity with the short functional acceptance scope above. Further implementation should address a reproduced defect or a changed main workflow.

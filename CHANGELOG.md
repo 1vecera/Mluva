@@ -2,6 +2,13 @@
 
 This file records user-visible Mluva releases.
 
+## 2.2.2 — 2026-10-06
+
+- Release a matching native app and Omarchy widget with all existing 2.2.1 runtime fixes. This release changes version metadata and acceptance guidance; it adds no new runtime feature or paste repair.
+- Replace exhaustive Python and pixel-perfect parity requirements with a [short main-functionality checklist](docs/functional-checklist.md). Preserve existing tests, data protections, diagnostics and bounded platform limits.
+
+Settings, History and model caches remain upgrade-compatible. The managed models remain Whisper Tiny, Parakeet v3 and default Qwen3-ASR 1.7B. Existing Experimental labels and the Chromium Command mixed-Unicode limitation remain unchanged.
+
 ## 2.2.1 — 2026-10-06
 
 - Fix automatic dictation and Live paste over Chromium selections whose accessibility offsets are incorrect, including emoji. Preserve the browser's actual highlight and send one guarded clipboard paste.

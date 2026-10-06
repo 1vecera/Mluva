@@ -1,5 +1,9 @@
 # Rust port acceptance
 
+**Current scope, clarified by Daniel on 6 October 2026:** verify the main functionality, retained data, privacy protections and diagnostics. Small UX differences are acceptable. Pixel-perfect comparisons and exhaustive one-to-one Python equivalence are not required. The [short functional checklist](functional-checklist.md) is the active acceptance guide; required native checks and focused regression checks remain applicable.
+
+The matrix and dated checkpoints below are historical evidence. Their incomplete strict-parity statuses do not constitute release blockers or a backlog to finish. Preserve useful existing tests and observations; investigate further when a user reports a problem or a change affects that boundary.
+
 6 October 2026: [2.2.1 automatic Chromium delivery](verification/browser-direct-transport/README.md#chromium-selection-preserved-for-automatic-delivery) now preserves the actual Unicode highlight with exact-field and selection/content revision guards. Intentional correction deltas keep the released defect fixtures immutable. Thirty Chromium cases per activation mode and the existing assembled application workflows pass without automatic field-text reads. Explicit Command capture of mixed Unicode, physical/permission/Wayland acceptance and strict whole-workflow parity remain open.
 
 Reference: Mluva `v1.6.0`, commit `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f`. On 4 October 2026 Daniel authorized merging, removing Python, releasing 2.0.0 and installing locally while accepting the remaining acceptance risk. See the [cutover record](verification/rust-cutover/README.md). The matrix remains an honest record of unverified whole-workflow acceptance; the dated checkpoints below describe earlier installations and work. No complete one-to-one parity is claimed.
