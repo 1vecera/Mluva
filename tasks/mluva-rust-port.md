@@ -1,4 +1,19 @@
-# Port Mluva completely to Rust
+# Rust port — delivered under functional acceptance
+
+Daniel authorized the Rust cutover on 4 October 2026 and clarified on 6 October that acceptance means preserved main functionality and diagnostics, with small UX differences allowed. Pixel-perfect comparisons and exhaustive Python equivalence are not required. The active guide is the [main functionality checklist](../docs/functional-checklist.md); the original plan below is historical and must not drive further automatic continuation.
+
+## Current completion
+
+- [x] Ship native Rust application, workers, build/test/install tooling and runtime packages without Python. Retain three managed models with Qwen3-ASR 1.7B as the default.
+- [x] Verify core recording/delivery, edits/rewrite/Command, saved data/diagnostics, screenshots/narration and privacy through existing native checks and bounded isolated evidence. Reuse unchanged passing evidence rather than repeat full GUI comparisons.
+- [x] Release and reinstall matching app and widget 2.2.2, preserving settings, History, retained audio and models. Installed startup and public Quit pass; the current installation is resident and idle.
+- [x] Review the long session against the user's intent and run focused functionality checks afterward: 69 synthetic recording/delivery/recovery/privacy workflows and 16 settings/persistence/diagnostic tests pass. The release's 142-test native gate, both strict Clippy checks, formatting and generated checks also pass.
+
+Physical F9/F10, real microphone and optional Meeting system-audio checks remain deliberate device checks. Chromium Command capture of mixed-Unicode selections remains a known limitation, and Fedora GNOME has no recent desktop acceptance. These bounded limits and existing Experimental labels remain explicit; they do not reopen the original exhaustive parity goal.
+
+## Original plan — historical
+
+The remaining text records the original September plan, including its stricter unchecked requirements and former installation state. Later delivery authorizations and the current functional scope above supersede those requirements.
 
 ## Intent
 
