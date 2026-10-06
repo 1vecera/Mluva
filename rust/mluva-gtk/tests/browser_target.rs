@@ -34,7 +34,38 @@ fn private_root() -> PathBuf {
     );
     assert_eq!(std::env::var("XDG_SESSION_TYPE").unwrap(), "x11");
     assert_eq!(std::env::var("GDK_BACKEND").unwrap(), "x11");
-    assert_eq!(std::env::var("ATSPI_DISABLE_P2P").unwrap(), "1");
+    if let Some(path) = std::env::var_os("MLUVA_TEXT_READ_AUDIT") {
+        let path = PathBuf::from(path);
+        assert!(
+            path.parent()
+                .unwrap()
+                .canonicalize()
+                .unwrap()
+                .starts_with(&root)
+        );
+        if path.exists() {
+            assert!(path.canonicalize().unwrap().starts_with(&root));
+        }
+    }
+    if std::env::var_os("MLUVA_BROWSER_DEFAULT_TRANSPORT").is_some() {
+        for name in [
+            "ATSPI_DISABLE_P2P",
+            "ATSPI_IN_TESTS",
+            "ATSPI_NO_CACHE",
+            "PYATSPI_NOCACHE",
+        ] {
+            assert!(
+                std::env::var_os(name).is_none(),
+                "{name} changes default transport/cache"
+            );
+        }
+        assert!(
+            audit_rows().is_some(),
+            "default transport requires an outgoing-request observer"
+        );
+    } else {
+        assert_eq!(std::env::var("ATSPI_DISABLE_P2P").unwrap(), "1");
+    }
     assert!(std::env::var_os("WAYLAND_DISPLAY").is_none());
     assert!(std::env::var_os("HYPRLAND_INSTANCE_SIGNATURE").is_none());
     assert!(
@@ -63,6 +94,20 @@ fn clipboard() -> String {
         .unwrap();
     assert!(result.status.success());
     String::from_utf8(result.stdout).unwrap()
+}
+
+fn audit_rows() -> Option<Vec<Value>> {
+    let path = PathBuf::from(std::env::var_os("MLUVA_TEXT_READ_AUDIT")?);
+    let text = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(error) => panic!("outgoing-request observer: {error}"),
+    };
+    Some(
+        text.lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect(),
+    )
 }
 
 #[test]
@@ -132,6 +177,7 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
             .unwrap();
         assert!(control.wait().unwrap().success());
         let monitor = Monitor::new(peer.directory.join(format!("monitor-{name}.log")));
+        let audit_start = audit_rows().map(|rows| rows.len());
         let mut outcome = json!({});
         let target = if input["mode"] == "command" {
             match tracker.capture_text_target(input["maximum"].as_i64().unwrap()) {
@@ -208,9 +254,37 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
         let observed = peer.observed()["observed"].clone();
         outcome["observed"] = json!({"fields":observed["fields"],"focus":observed["focus"],"events":observed["events"]});
         outcome["clipboard"] = clipboard().into();
-        outcome["text_reads"] = monitor.finish();
+        let bus_reads = monitor.finish();
+        let audited = audit_start.map(|start| {
+            let rows = audit_rows().unwrap().split_off(start);
+            assert!(
+                rows.iter()
+                    .all(|row| row["pid"] == std::process::id() && row["valid"] == true)
+            );
+            let ranges = json!(
+                rows.iter()
+                    .map(|row| vec![row["start"].clone(), row["end"].clone()])
+                    .collect::<Vec<_>>()
+            );
+            if std::env::var_os("MLUVA_BROWSER_DEFAULT_TRANSPORT").is_none() {
+                assert_eq!(
+                    ranges, bus_reads,
+                    "observer agrees with the independent bus monitor"
+                );
+            }
+            (rows, ranges)
+        });
+        outcome["text_reads"] = if std::env::var_os("MLUVA_BROWSER_DEFAULT_TRANSPORT").is_some() {
+            audited.as_ref().unwrap().1.clone()
+        } else {
+            bus_reads.clone()
+        };
         if input["mode"] == "command" {
-            assert_eq!(outcome["text_reads"].as_array().unwrap().len(), 1);
+            assert_eq!(
+                outcome["text_reads"].as_array().unwrap().len(),
+                1,
+                "Command {name} must observe its actual GetText request"
+            );
             explicit_read_controls += 1;
         } else {
             assert!(outcome["text_reads"].as_array().unwrap().is_empty());
@@ -219,7 +293,12 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
             failures.push(name.to_owned());
             eprintln!("{name}: expected {}, actual {outcome}", case["expected"]);
         }
-        results.push(json!({"name":name,"actual":outcome}));
+        let mut result = json!({"name":name,"actual":outcome});
+        if let Some((rows, _)) = audited {
+            result["outgoing_text_requests"] = json!(rows);
+            result["bus_text_requests"] = bus_reads;
+        }
+        results.push(result);
         tracker.close();
         if input["own_focus"] == true {
             own.set_visible(false);
@@ -228,6 +307,17 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
     }
     assert!(!bus_name_has_owner("org.freedesktop.portal.Desktop"));
     assert_eq!(explicit_read_controls, 3);
+    if let Some(rows) = audit_rows() {
+        assert_eq!(
+            rows.len(),
+            3,
+            "include requests outside case observation intervals"
+        );
+        let direct = std::env::var_os("MLUVA_BROWSER_DEFAULT_TRANSPORT").is_some();
+        assert!(rows.iter().all(|row| row["pid"] == std::process::id()
+            && row["valid"] == true
+            && row["peer"] == direct));
+    }
     peer.request(json!({"operation":"quit"}));
     peer.await_successful_exit();
     assert!(!Path::new(&format!("/proc/{}", metadata["pid"])).exists());

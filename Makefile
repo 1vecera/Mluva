@@ -58,6 +58,10 @@ linux-overlay-test:
 linux-text-target-test:
 	bash linux/tests/run_application_smoke.sh text-targets
 
+.PHONY: linux-browser-target-test
+linux-browser-target-test:
+	bash linux/tests/run_application_smoke.sh browser-targets
+
 linux-conversation-test:
 	bash linux/tests/run_conversation_smoke.sh
 

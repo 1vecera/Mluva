@@ -58,6 +58,7 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | First-run model download/readiness and opt-ins | `MLUVA_TEST_ONBOARDING_ASSETS=/absolute/public-fixtures make linux-onboarding-test` |
 | Screenshot context and real editor narration | `MLUVA_TEST_EDITOR=/absolute/verified/tensaku make linux-screenshot-test` |
 | Exact-target paste / widget | `make linux-text-target-test` / `make linux-omarchy-test` |
+| Firefox paste and text-read privacy on bus/default transport | `make linux-browser-target-test` |
 | Installed Codex isolation | `make linux-codex-isolation-test` |
 | GNOME display extension | `make linux-overlay-test` in GNOME's headless test environment |
 
