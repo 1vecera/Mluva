@@ -1,4 +1,4 @@
-# Firefox recording and text-read privacy
+# Firefox application delivery and text-read privacy
 
 The existing bus monitor could not observe direct application connections. This comparison keeps the released v1.6.0 client at `5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f` unchanged and observes the distribution's libdbus send APIs instead. Default runs unset `ATSPI_DISABLE_P2P`, `ATSPI_IN_TESTS`, `ATSPI_NO_CACHE` and `PYATSPI_NOCACHE`; the browser and both clients retain normal cache/direct-connection behavior.
 
@@ -25,7 +25,7 @@ Retained session directories are local ignored scratch, not shipped fixtures. Th
 
 `make linux-test` passed 142 tests across 98 reported suites, with zero failures and 71 explicitly ignored environment-dependent tests. After the final audit-path validation and assertion-message edits, both affected native browser routes passed again, as did both strict Clippy configurations, formatting and ShellCheck. The generated-feature check passed in the workspace gate. All 65 original GTK JSON fixtures remain byte-identical to the main-branch baseline. The installed 2.1.0 manifest, all 520 files, four symlinks and running PID 4173598 remain unchanged.
 
-The following hashes identify the retained outputs and current rebuilt observer without copying the browser corpus or logs into the repository. The observer source is unchanged; the earlier run's binary identity remains in its local handoff.
+The following hashes identify the retained outputs and observer build without copying the browser corpus or logs into the repository. The observer source is unchanged; the earlier run's binary identity remains in its local handoff.
 
 | Local artifact | Bytes | SHA-256 |
 | --- | ---: | --- |
@@ -40,7 +40,7 @@ The following hashes identify the retained outputs and current rebuilt observer 
 | `tmp/browser-direct-transport/native-blind-control-v3.log` | 1391 | `5e25f6831ba8c4b4ba6c4de076a7331851910fdb9b0abbef549b944e2e5f0cec` |
 | `tmp/browser-direct-transport/native-gate.log` | 43901 | `4ad7b65d980fd0114021c5872b542bce99931c2c36a0b304142961d53013c4b1` |
 | `tmp/browser-direct-transport/final-static-checks.log` | 238 | `8a3219a008b3f41e35f4ec23ef48895ab6d486cf10c16ead25f4f6ffc06e531b` |
-| `tmp/target/debug/examples/libatspi_read_audit.so` | 4608272 | `a2840de2b54f624a3fc089d0a42ad634e33d2fbbd509dea2ec4d596c91f41dd7` |
+| `tmp/target/debug/examples/libatspi_read_audit-d1d58d7c5e4382d5.so` | 4608272 | `a2840de2b54f624a3fc089d0a42ad634e33d2fbbd509dea2ec4d596c91f41dd7` |
 
 ## Recording through the application
 
@@ -104,4 +104,43 @@ The five complete source outputs and final native receipts below remain local ig
 | `tmp/application-command-browser/gtk-regression.log` | 3561 | `b28b2013502477d1f4fd927258688e47a9d2179454d0bfc977c2354130dbedad` |
 | `tmp/application-command-browser/native-gate.log` | 43805 | `6ca781d00b833cfe174cbc89baaa8e6c56d73a2a739db19f47bd06a5d84ad710` |
 
-The standalone corpus establishes the named private X11 Firefox target cases, while the assembled application comparison establishes four recording and five Command workflows with the named providers. Broader Live/provider/session interleavings, remaining Command cases, Chromium/rich editors, Wayland focus, ambiguous/discovery-limit races, physical F9/F10/microphone and GNOME/clean-distribution acceptance remain separate requirements. The installed 2.1.0 app is unchanged. This does not establish full parity or authorize merge, release or installation.
+## Live through the application
+
+The existing application owner now compares six independently observed Live/browser workflows and 47 states against untouched v1.6.0: global delivery, manual recording stopped globally, editing during a held final rewrite, pausing with an edited draft and pending preview, changed browser focus before Stop, and cancellation with a pending preview. These run through actual application services, public controls/actions, private portal signals, native PCM and loopback compatible speech/rewrite clients. No application, provider-result, target, delivery, clock or revision callback is replaced.
+
+The committed transcript and finished Live draft have separate delivery rules. Global capture inserts the committed transcript exactly once into its captured browser selection. Manual capture and changed focus copy that transcript without changing either browser field. Provisional recognition and draft updates never change the clipboard or browser. Final reconciliation saves a reply and copies the finished draft without another paste. Complete raw/output/History, saved replies/models, editor text/status, copy controls, preferences/persistence, clipboard and every DOM/UTF-16/event field match the source observations.
+
+The endpoint holds an actual parsed final request while the public review Copy action is refused. Editing during that hold rejects the older returned draft and issues a fresh request containing the deliberate edit and committed recognition; a second external hold exposes that unchanged edit before final completion. Pausing preserves the edited draft and saves it with the unreconciled label at Stop, without automatic draft copying. Cancelled and paused preview responses arrive after the public action and cannot overwrite the draft, write a reply or deliver provisional text. Latest-conversation navigation retains each saved result.
+
+The browser fixture adds twenty shared state deltas, five complete request bodies and six response definitions. Deltas may refer only to an earlier full observation; reconstruction preserves literal nulls, arrays and text. It shares the original PCM with a declared thirty-fold repetition rather than copying audio hex. Exact uploaded WAV lengths/hashes and every other multipart field are independently compared. Ignored source-only curation verifies every reconstructed state before native execution; read-only review compares every source and native output again. All earlier recording/Command data, standalone fixtures and 65 original GTK JSON files remain unchanged. No new test owner, dependency, production test seam or maintained/shipped Python is added.
+
+All six source processes exit 0 and verify all 69 loaded source modules before root construction and after shutdown against the immutable commit. Normal caches and direct connections remain enabled. Automatic Live capture, streaming, finalization, saving and delivery issue zero outgoing `Text.GetText` requests. Each same-client positive control performs exactly one real `(7,9)` read and preserves `🐎\uFEFF`. Source controls use the registered bus and native controls use peer connections; actual caller PID/type/bounds/route metadata is retained. The observer source is unchanged. Its retained build variants are identified by stable artifact paths below and in the earlier receipt table.
+
+`make linux-browser-application-test` passes all fifteen workflows/102 observed states in `tmp/application/run.KR1Q23/default/session.uzMlCn`, exit 0, 319.38 seconds including fresh browser/client lifetimes, endpoint holds and positive controls. This is not performance evidence. Every positive case verifies normal Mluva/audio shutdown, recording-file removal, successful Firefox-peer exit, actual Firefox PID and accessibility status-owner disappearance, and the exact portal caller closure `[2,1]`.
+
+The new Live blind control reaches all seven source-identical global/final states, then exits 101 at `explicit GetText control must observe one real request`, observing zero with `LD_PRELOAD` absent. Its actual client exit is recorded before killing the verified private window manager to finish failed-test cleanup. This proves failure detection; it is not normal-shutdown acceptance. Positive runs independently verify cleanup.
+
+The original GTK comparison still passes all eight workflows/34 states plus its pending-readiness guard. `make linux-test` passes 142 tests, zero failures and 71 explicitly ignored across 98 reported suites; both strict Clippy configurations, formatting and generated consistency pass. ShellCheck and read-only final review pass. Accepted client, registry and portal logs have no accessibility warnings, dbind/cache or registration failures. The installed 2.1.0 manifest, all 520 files, four links and PID 4173598 remain unchanged.
+
+The first workspace attempt exposed an existing terminal fixture race: its real executable-transition wait unwrapped a missing `/proc/PID/exe` link during `exec`. The helper now tolerates that temporary absence within its unchanged two-second bound and checks that its owned child is still alive. Other I/O errors, a dead child and expiry remain failures. The unchanged 123 released terminal cases pass in the focused check and final workspace gate. A separate actual dead-child control exits 101 immediately with the required diagnostic, empty stdout and all query children gone; it cannot turn process death into a successful transition. The initial failed gate is retained separately. This affects only an unshipped test helper.
+
+Complete source/native observations, endpoint bodies, audit rows and exit receipts remain in ignored `tmp/application-live-browser/`. `review-receipts.json` binds all 102 native states to the independent source data and records the installation check. The source observations and final receipt hashes below identify the accepted scope without shipping collectors or browser profiles.
+
+| Local artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `tmp/application-live-browser/source-case0-v1/session.PGH2gG/source-observations.json` | 44824 | `b9ba91f7de3e6e1a27ae02e8d6aab8a03b894f206a94477ccc57c6dce0f1ce3a` |
+| `tmp/application-live-browser/source-case1-v1/session.ttlorL/source-observations.json` | 42888 | `dca620edd7bd131b81f2184a75fb735e25928a9cafc29b0ccdd12a8b8a24273d` |
+| `tmp/application-live-browser/source-case2-v1/session.mXJ6ot/source-observations.json` | 56294 | `5e542b49cd69c4ad42bb3b685ca6102e832a850b7614721b726d3d176aff4ba2` |
+| `tmp/application-live-browser/source-case3-v1/session.t1EnZp/source-observations.json` | 50440 | `e279f372bfd2bc3b9208830f82bd7a81523cc5bec82685aa80708485c052fc01` |
+| `tmp/application-live-browser/source-case4-v1/session.LKEIIn/source-observations.json` | 46788 | `bd8c958ad22411a832f21ec643903ebe0dcd6f817587e0d94a1c57f801afb8d8` |
+| `tmp/application-live-browser/source-case5-v1/session.wd3EBg/source-observations.json` | 39937 | `4f160fd62adf6a77fc42a72c0b6c15e4f500c417bdc4b2907a66cb4188b062f7` |
+| `tmp/application-live-browser/native-v1.log` | 5700 | `c9717b4f5a134518cf8b44627a5d8c74b97a4eea849d21ddc44ce7da1c3af645` |
+| `tmp/application-live-browser/blind-control.log` | 1097 | `fa3bb952078febf74d1702e9756f8c9012b9849ef83be27e4c5372b8ec8afda6` |
+| `tmp/application-live-browser/gtk-regression.log` | 3555 | `64e01640e85b0ad3cd4fb4d78aed6dbc950d1fc1c21238135aaedad16266d4af` |
+| `tmp/application-live-browser/native-gate-first.log` | 6831 | `78388b3225785dba89d2d92e261274bd9d4b07aa234f07b5b88bd387b6535a41` |
+| `tmp/application-live-browser/terminal-wait.log` | 471 | `7fc13e2c32310fcf02f90248f57bf975c911e2317601ef028c32bdeb0f127208` |
+| `tmp/application-live-browser/native-gate.log` | 43903 | `ab7122ea5c8c1b29787bf6666208394cd51353615eb63cc78af8802eb7600492` |
+| `tmp/application-live-browser/terminal-dead-control.json` | 395 | `1b1896c64b24e3626668c0ac5af558633501a26caa8b6ff6e2699d3c517baaa4` |
+| `tmp/target/debug/examples/libatspi_read_audit-7d8f94542ea0b4c3.so` | 4608272 | `9f7468f761de527c631ef3b1813007edcf09a3f9a478141c17d976fbdde91f30` |
+
+The standalone corpus establishes the named private X11 Firefox target cases, while the assembled application comparison establishes four recording, five Command and six Live workflows with the named providers. Broader Live/Command/provider/session interleavings, remaining Command cases, Chromium/rich editors, Wayland focus, ambiguous/discovery-limit races, physical F9/F10/microphone and GNOME/clean-distribution acceptance remain separate requirements. The installed 2.1.0 app is unchanged. This does not establish full parity or authorize merge, release or installation.

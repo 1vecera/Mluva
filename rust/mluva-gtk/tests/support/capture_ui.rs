@@ -39,7 +39,7 @@ pub fn titles(
     Rc::new(move |entry| jobs.enqueue(entry))
 }
 
-fn widgets(widget: &impl IsA<gtk::Widget>) -> Vec<gtk::Widget> {
+pub fn widgets(widget: &impl IsA<gtk::Widget>) -> Vec<gtk::Widget> {
     fn append(widget: gtk::Widget, result: &mut Vec<gtk::Widget>) {
         result.push(widget.clone());
         let mut child = widget.first_child();

@@ -202,10 +202,20 @@ pub(super) fn driver(root: &Path, spec: Value) {
                 let name = call["name"].as_str().unwrap();
                 fs::write(root.join(format!("switch-{}", pids[index])), name).unwrap();
                 let deadline = Instant::now() + Duration::from_secs(2);
-                while fs::read_link(Path::new("/proc").join(pids[index].to_string()).join("exe"))
-                    .unwrap()
-                    != root.join("bin").join(name)
-                {
+                loop {
+                    match fs::read_link(
+                        Path::new("/proc").join(pids[index].to_string()).join("exe"),
+                    ) {
+                        Ok(executable) if executable == root.join("bin").join(name) => break,
+                        Ok(_) => {}
+                        // /proc can briefly lose the executable link during exec.
+                        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                        Err(error) => panic!("actual fixture executable transition: {error}"),
+                    }
+                    assert!(
+                        processes[index].try_wait().unwrap().is_none(),
+                        "fixture terminal exited before its executable transition"
+                    );
                     assert!(
                         Instant::now() < deadline,
                         "actual fixture executable transition"

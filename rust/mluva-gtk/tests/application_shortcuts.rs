@@ -25,6 +25,8 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+#[path = "support/application_browser_live.rs"]
+mod browser_live;
 #[path = "support/capture_ui.rs"]
 #[allow(dead_code)]
 mod capture_ui;
@@ -152,9 +154,21 @@ fn merge_observation(base: &mut Value, patch: &Value) {
     }
 }
 
-fn browser_commands(reference: &Value, browser: &Value) -> Vec<Value> {
-    let commands = &browser["commands"];
-    commands["names"]
+fn browser_workflows(reference: &Value, browser: &Value, section: &str) -> Vec<Value> {
+    let workflows = &browser[section];
+    let mut states = Vec::<Value>::new();
+    for state in workflows["states"].as_array().unwrap() {
+        let mut observation = if let Some(previous) = state["from"].as_u64() {
+            states[previous as usize].clone()
+        } else {
+            reference["cases"][state["base"][0].as_u64().unwrap() as usize]["stages"]
+                [state["base"][1].as_u64().unwrap() as usize]["state"]
+                .clone()
+        };
+        merge_observation(&mut observation, &state["patch"]);
+        states.push(observation);
+    }
+    workflows["names"]
         .as_array()
         .unwrap()
         .iter()
@@ -162,24 +176,40 @@ fn browser_commands(reference: &Value, browser: &Value) -> Vec<Value> {
             let case = &browser["cases"][name.as_str().unwrap()];
             let mut row = reference["cases"][0].clone();
             row["params"] = case["params"].clone();
-            merge_observation(&mut row["config"], &commands["config_patch"]);
-            row["responses"] = commands["responses"].clone();
-            row["requests"] = json!([
-                reference["cases"][0]["requests"][0],
-                commands["requests"][case["rewrite_request"].as_u64().unwrap() as usize]
-            ]);
+            merge_observation(&mut row["config"], &workflows["config_patch"]);
+            if section == "commands" {
+                row["responses"] = workflows["responses"].clone();
+                row["requests"] = json!([
+                    reference["cases"][0]["requests"][0],
+                    workflows["requests"][case["rewrite_request"].as_u64().unwrap() as usize]
+                ]);
+            } else {
+                for key in ["responses", "requests"] {
+                    row[key] = json!(
+                        case[key]
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .map(|index| workflows[key][index.as_u64().unwrap() as usize].clone())
+                            .collect::<Vec<_>>()
+                    );
+                }
+                row["pcm"]["pcm_hex"] = json!(
+                    row["pcm"]["pcm_hex"]
+                        .as_str()
+                        .unwrap()
+                        .repeat(workflows["pcm_repeats"].as_u64().unwrap() as usize)
+                );
+                row["edit"] = workflows["edit"].clone();
+            }
             row["stages"] = json!(
                 case["stages"]
                     .as_array()
                     .unwrap()
                     .iter()
                     .map(|stage| {
-                        let state = &commands["states"][stage["state"].as_u64().unwrap() as usize];
-                        let mut observation = reference["cases"]
-                            [state["base"][0].as_u64().unwrap() as usize]["stages"]
-                            [state["base"][1].as_u64().unwrap() as usize]["state"]
-                            .clone();
-                        merge_observation(&mut observation, &state["patch"]);
+                        let mut observation =
+                            states[stage["state"].as_u64().unwrap() as usize].clone();
                         observation["target"] =
                             browser["targets"][stage["target"].as_u64().unwrap() as usize].clone();
                         json!({"stage":stage["stage"],"state":observation})
@@ -347,7 +377,8 @@ fn released_application_portal_actions_settings_and_target_delivery() {
     assert_eq!(browser_fixture["reference"], fixture["reference"]);
     let mut scenarios = fixture["cases"].as_array().unwrap().clone();
     if browser {
-        scenarios.extend(browser_commands(&fixture, &browser_fixture));
+        scenarios.extend(browser_workflows(&fixture, &browser_fixture, "commands"));
+        scenarios.extend(browser_workflows(&fixture, &browser_fixture, "live"));
     }
     if selected.is_none() {
         let mut cases = scenarios
@@ -468,10 +499,13 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         let params = &row["params"];
         let name = params["name"].as_str().unwrap();
         let command = params.get("decision").is_some();
+        let live = params.get("live").is_some();
         let browser_case = browser.then(|| &browser_fixture["cases"][name]);
         assert!(!browser || !browser_case.unwrap().is_null());
         portal.control("Reset", Some(params["portal"].as_str().unwrap_or("normal")));
         let directory = tempfile::tempdir_in(&root).unwrap();
+        let evidence = directory.path().join("evidence");
+        fs::create_dir(&evidence).unwrap();
         let _ = fs::remove_file(tools.join("raw.ready.json"));
         fs::write(
             tools.join("test-config.json"),
@@ -481,11 +515,16 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         let mut responses = row["responses"].as_array().unwrap().clone();
         for response in &mut responses {
             response["delay_ms"] = json!(350);
+            for field in ["wait_after_body", "body_receipt"] {
+                if let Some(path) = response[field].as_str() {
+                    response[field] = json!(path.replace("$EVIDENCE", evidence.to_str().unwrap()));
+                }
+            }
         }
         let mut http = http::Peer::new(&responses);
         let mut cfg = row["config"].clone();
         cfg["transcription_base_url"] = json!(format!("{}/v1", http.address));
-        if command {
+        if command || live {
             cfg["litellm_base_url"] = json!(http.address);
         }
         let config: AppConfig = serde_json::from_value(cfg).unwrap();
@@ -581,6 +620,9 @@ fn released_application_portal_actions_settings_and_target_delivery() {
                     "source":{"visible":page.command_source.get_visible(),"text":page.command_source.label().as_str()},
                     "actions":page.command_actions.get_visible(),"label":page.accept_command.label().map(String::from),
                     "sensitive":page.accept_command.get_sensitive(),"editable":page.output_view.is_editable()});
+            }
+            if live {
+                actual["state"]["live"] = browser_live::observe(&owner, &services);
             }
             let mut expected = row["stages"][stage_index].clone();
             if let Some(browser_case) = browser_case {
@@ -701,65 +743,77 @@ fn released_application_portal_actions_settings_and_target_delivery() {
                 "{}.wav",
                 owner.capture.session_identifier().unwrap()
             )));
-            settle();
-            stage("recording", audio.as_deref(), &peer);
-            if capture == "global" && !command {
-                portal.drive(json!({"op":"Activated","id":"toggle-recording-f9"}));
-                settle();
-                stage("held-key-does-not-stop", audio.as_deref(), &peer);
-                owner.settings.capture.recording_key.set_selected(10);
-                stage("active-key-change-rejected", audio.as_deref(), &peer);
-            }
-            if capture == "cancel" {
-                portal.drive(json!({"op":"Activated","id":"cancel-capture"}));
-            } else if params["portal"] == "deny-bind" {
-                owner.capture.page.record_button.emit_clicked();
+            if live {
+                browser_live::exercise(
+                    &owner,
+                    &portal,
+                    &mut peer,
+                    &evidence,
+                    row,
+                    audio.as_deref().unwrap(),
+                    &mut stage,
+                );
             } else {
-                portal.drive(json!({"op":"Deactivated","id":"toggle-recording-f9"}));
-                portal.drive(json!({"op":"Activated","id":"toggle-recording-f9"}));
-            }
-            until(|| owner.capture.phase().is_none());
-            settle();
-            stage(
-                if command { "preview" } else { "completed" },
-                audio.as_deref(),
-                &peer,
-            );
-            if command {
-                assert!(owner.pending.has_command());
-                application.activate_action("record", None);
                 settle();
-                stage("blocked-next-recording", audio.as_deref(), &peer);
-                if params["decision"] == "stale" {
-                    peer.request(json!({"operation":"focus","kind":"second"}));
-                    stage("target-changed", audio.as_deref(), &peer);
+                stage("recording", audio.as_deref(), &peer);
+                if capture == "global" && !command {
+                    portal.drive(json!({"op":"Activated","id":"toggle-recording-f9"}));
+                    settle();
+                    stage("held-key-does-not-stop", audio.as_deref(), &peer);
+                    owner.settings.capture.recording_key.set_selected(10);
+                    stage("active-key-change-rejected", audio.as_deref(), &peer);
                 }
-                if params["decision"] == "discard" {
-                    owner.capture.page.discard_command.emit_clicked();
+                if capture == "cancel" {
+                    portal.drive(json!({"op":"Activated","id":"cancel-capture"}));
+                } else if params["portal"] == "deny-bind" {
+                    owner.capture.page.record_button.emit_clicked();
                 } else {
+                    portal.drive(json!({"op":"Deactivated","id":"toggle-recording-f9"}));
+                    portal.drive(json!({"op":"Activated","id":"toggle-recording-f9"}));
+                }
+                until(|| owner.capture.phase().is_none());
+                settle();
+                stage(
+                    if command { "preview" } else { "completed" },
+                    audio.as_deref(),
+                    &peer,
+                );
+                if command {
+                    assert!(owner.pending.has_command());
+                    application.activate_action("record", None);
+                    settle();
+                    stage("blocked-next-recording", audio.as_deref(), &peer);
+                    if params["decision"] == "stale" {
+                        peer.request(json!({"operation":"focus","kind":"second"}));
+                        stage("target-changed", audio.as_deref(), &peer);
+                    }
+                    if params["decision"] == "discard" {
+                        owner.capture.page.discard_command.emit_clicked();
+                    } else {
+                        owner.capture.page.accept_command.emit_clicked();
+                    }
+                    settle();
+                    stage("resolved", audio.as_deref(), &peer);
+                    assert!(!owner.pending.has_command());
                     owner.capture.page.accept_command.emit_clicked();
+                    settle();
+                    stage("duplicate-apply", audio.as_deref(), &peer);
+                } else if capture == "global" {
+                    if !browser {
+                        assert_eq!(
+                            peer.observed()["entry"]["text"],
+                            "Before Portal dictation keeps 12 files. after"
+                        );
+                    }
+                    application.activate_action("history", None);
+                    settle();
+                    portal.drive(json!({"op":"Activated","id":"open-rewrite"}));
+                    until(|| owner.shell.stack.visible_child_name().as_deref() == Some("capture"));
+                    settle();
+                    stage("latest-conversation", audio.as_deref(), &peer);
+                } else if !browser {
+                    assert_eq!(peer.observed()["entry"]["text"], "Before 🐎 after");
                 }
-                settle();
-                stage("resolved", audio.as_deref(), &peer);
-                assert!(!owner.pending.has_command());
-                owner.capture.page.accept_command.emit_clicked();
-                settle();
-                stage("duplicate-apply", audio.as_deref(), &peer);
-            } else if capture == "global" {
-                if !browser {
-                    assert_eq!(
-                        peer.observed()["entry"]["text"],
-                        "Before Portal dictation keeps 12 files. after"
-                    );
-                }
-                application.activate_action("history", None);
-                settle();
-                portal.drive(json!({"op":"Activated","id":"open-rewrite"}));
-                until(|| owner.shell.stack.visible_child_name().as_deref() == Some("capture"));
-                settle();
-                stage("latest-conversation", audio.as_deref(), &peer);
-            } else if !browser {
-                assert_eq!(peer.observed()["entry"]["text"], "Before 🐎 after");
             }
         }
         if browser {
@@ -839,8 +893,25 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         } else {
             assert_eq!(portal.snapshot(), row["portal"], "{name}: portal cleanup");
         }
+        let mut requests = http.finish();
+        if live {
+            use base64::{Engine as _, engine::general_purpose::STANDARD};
+            for request in &mut requests {
+                if let Some(encoded) = request["fields"]["file"].as_str() {
+                    let wav = STANDARD.decode(encoded).unwrap();
+                    let digest =
+                        glib::compute_checksum_for_data(glib::ChecksumType::Sha256, &wav).unwrap();
+                    request["fields"]["file"] = json!({"bytes":wav.len(),"sha256":digest.as_str()});
+                }
+            }
+        }
+        fs::write(
+            root.join(format!("{name}-requests-actual.json")),
+            serde_json::to_vec_pretty(&requests).unwrap(),
+        )
+        .unwrap();
         assert_eq!(
-            json!(http.finish()),
+            json!(requests),
             row["requests"],
             "{name}: provider requests"
         );
