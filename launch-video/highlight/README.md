@@ -16,14 +16,14 @@ All three compare Python 1.6.0 with published Rust 2.0.0. They are startup and f
 
 | On screen | Source and arithmetic |
 | --- | --- |
-| First window 456 → 260 ms (−43%, 1.75×) | Median of six measured starts per version in [release-startup.json](../../../docs/verification/rust-release-performance/release-startup.json): 455.6 → 259.8 ms (455.6 / 259.8 = 1.75). Same host, warm cache. Rust's slowest start (298 ms) beat Python's fastest (402 ms), per the report's ranges |
+| First window 456 → 260 ms (−43%, 1.75×) | Median of six measured starts per version in [release-startup.json](../../docs/verification/rust-release-performance/release-startup.json): 455.6 → 259.8 ms (455.6 / 259.8 = 1.75). Same host, warm cache. Rust's slowest start (298 ms) beat Python's fastest (402 ms), per the report's ranges |
 | Ready on D-Bus 217 → 42 ms (5.2×) | Same file, `bus_ms` medians: 216.5 → 41.8 ms. This is D-Bus name ownership, which precedes the visible window; the report says it is not recording readiness |
 | Install about 161 → 49 MiB (3.3×) | Measured for this film, see below. Models and caches are excluded on both sides |
-| No Python runtime | The shipped application is native Rust ([install notes](../../../README.md#install)) |
+| No Python runtime | The shipped application is native Rust ([install notes](../../README.md#install)) |
 
 Install size: 1.6.0 is its app files plus the Python environment its installer builds (`uv sync --no-dev --frozen`, verified in `linux/install.sh` at the `release/1.6.0` tag). I built that environment offline from the tag's lockfile and measured it with `du -sm`: 151 MiB environment, plus 4 MiB of `mluva_linux` and 6 MiB of `resources`, so about 161 MiB. 2.0.0 is the unpacked published bundle (`mluva-2.0.0-omarchy-x86_64.tar.gz`, 17 MB compressed) at 49 MiB. The 1.6.0 environment reuses the system PyGObject, which is not counted; the Rust bundle likewise relies on system GTK. This is one measurement on one machine, not a statistical sample.
 
-This film records the 2.0.0 release comparison. Later releases have separate [performance measurements](../../../docs/verification/rust-release-performance/README.md); the film does not present its figures as current-release measurements, universal inference speedups or complete platform parity.
+This film records the 2.0.0 release comparison. Later releases have separate [performance measurements](../../docs/verification/rust-release-performance/README.md); the film does not present its figures as current-release measurements, universal inference speedups or complete platform parity.
 
 ## Sound
 
