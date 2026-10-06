@@ -1,0 +1,142 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "base": "533f8c657d7f3644b84b2deeb435637cb01ee2d9",
+  "version": "2.2.1",
+  "scope": "Automatic Chromium dictation/Live selection replacement; explicit mixed-Unicode Command and full physical/platform parity remain open.",
+  "existingFixtureFilesUnchanged": 260,
+  "cargoChangesOnlyEightWorkspaceVersions": true,
+  "chromium": {
+    "cases": 30,
+    "modes": [
+      "manual accessibility",
+      "native activation",
+      "native activation before browser startup"
+    ],
+    "automaticOutgoingTextReads": 0,
+    "explicitReadControls": 3
+  },
+  "firefox": {
+    "casesPerTransport": 21,
+    "transports": [
+      "bus",
+      "default"
+    ]
+  },
+  "gtk": {
+    "targetCases": 30,
+    "applicationWorkflows": 15,
+    "applicationStates": 147
+  },
+  "browserApplication": {
+    "workflowsPerBrowser": 15,
+    "statesPerBrowser": 102,
+    "providerRequestsPerBrowser": 37,
+    "explicitReadsPerBrowser": 3,
+    "positiveControlsPerBrowser": 15
+  },
+  "nativeGate": {
+    "workspacePassed": 142,
+    "failed": 0,
+    "ignored": 71,
+    "strictClippyConfigurations": 2,
+    "formatAndGeneratedCheck": true,
+    "portalWorkflows": 21,
+    "portalStates": 59,
+    "shellcheck": true
+  },
+  "negativeControls": [
+    {
+      "control": "before repair",
+      "exit": 101,
+      "failure": "incorrect Unicode replacement"
+    },
+    {
+      "control": "event drain removed",
+      "exit": 101,
+      "failure": "queued same-caret anchor change dispatches paste"
+    },
+    {
+      "control": "content revision flag removed",
+      "exit": 101,
+      "failure": "same-count/caret content edit dispatches paste"
+    }
+  ],
+  "correctiveCorpus": {
+    "originalLines": 934,
+    "prunedLines": 526,
+    "canonicalSha256": "714336164f27f46166560d94279f0dabf891b81e3632b0a42c4a2511fdfe7d83",
+    "completeInputsAndExpectedObservationsUnchanged": true
+  },
+  "artifacts": [
+    {
+      "file": "tmp/chromium-selection/retained-v1/session.B6IT5d/retained-selection-observations.json",
+      "bytes": 21069,
+      "sha256": "d8a982a98c2c104a0f26751c1ea5110e04ba2e49e4b43953f709f6bef08e2d62"
+    },
+    {
+      "file": "tmp/chromium-selection/metadata-v3/session.9Wnpu4/selection-metadata-observations.json",
+      "bytes": 16708,
+      "sha256": "e75300a9a5845c3bfc6496b83743c513d93ded504d9fb7ed43adbb3579a9d15f"
+    },
+    {
+      "file": "tmp/chromium-selection/retained-before-fix.log",
+      "bytes": 3856,
+      "sha256": "8b491c2c1c202f2a53e5180f7d9582470bafbfa1000e06d3504fabf431a9f11c"
+    },
+    {
+      "file": "tmp/chromium-selection/retained-no-event-pump.log",
+      "bytes": 27539,
+      "sha256": "6d2875602a7e33dfa579b15236aad75cfd73d12dd29d7a91b7a82fa1b65d24e5"
+    },
+    {
+      "file": "tmp/chromium-selection/retained-no-event-pump/session.P0mDEu/atspi-without-pump.rs",
+      "bytes": 18428,
+      "sha256": "5beac549a3dcaa23007738c536686d8ed6a8cdae35cdcde81de5c2a8c416324a"
+    },
+    {
+      "file": "tmp/chromium-selection/retained-no-content-guard.log",
+      "bytes": 3381,
+      "sha256": "33a76c6ba8af2a82d8a37b92962e90d22c5d521b858b11287f364c3fcbfc44d4"
+    },
+    {
+      "file": "tmp/chromium-selection/retained-no-content-guard/session.IKuse0/text-target-without-content-guard.rs",
+      "bytes": 27288,
+      "sha256": "7ee4234696129cf5b9953c0778c88b811107a3e4d48696e844afc6e08e82e596"
+    },
+    {
+      "file": "tmp/chromium-selection/retained-chromium-application.log",
+      "bytes": 6124,
+      "sha256": "f4eae90b1fdd9fc1186caab9ca7df3ac7ee58182a8a3312eee3281f7036370a4"
+    },
+    {
+      "file": "tmp/chromium-selection/release-desktop-gate.log",
+      "bytes": 18675,
+      "sha256": "23765c4635aa01b4a362890d1ddee2b07789ee19db06471ebb22a0d9645b6736"
+    },
+    {
+      "file": "tmp/chromium-selection/retained-pruned-final.log",
+      "bytes": 1154,
+      "sha256": "95fbdacb75214aeb7f986f8c496e34af2d8fd95842e6fef5e33bcc2c7c5f284b"
+    },
+    {
+      "file": "tmp/application/run.m0PzDE/default-native-late/session.HZzMhz/native-chromium-target-observations.json",
+      "bytes": 38683,
+      "sha256": "cf40066a9aaefefa6af957f007f0c86d8446f1f7c167f21e3606b7ebf77a1586"
+    },
+    {
+      "file": "tmp/release/native-gate.log",
+      "bytes": 47097,
+      "sha256": "def27ad1876c9ad34d375325af463f720a94ca99355b40e333ff4556c88d86cf"
+    },
+    {
+      "file": "rust/mluva-gtk/tests/fixtures/chromium-selection-corrections.json",
+      "bytes": 12687,
+      "sha256": "ffac0a9e5bb275aa862debc3e8a98e1f92b528d44d3505d548ff7cf910a40091"
+    },
+    {
+      "file": "rust/mluva-gtk/tests/fixtures/chromium-application-selection-corrections.json",
+      "bytes": 721,
+      "sha256": "8e1e78ce9944a52596cb14032fb3e4d38cc45f872e70a7c4570540cc590b25f3"
+    }
+  ]
+}

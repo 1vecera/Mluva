@@ -375,6 +375,27 @@ fn released_application_portal_actions_settings_and_target_delivery() {
                     .unwrap()
                     .as_str()
                 );
+                let corrected: Value = serde_json::from_str(include_str!(
+                    "fixtures/chromium-application-selection-corrections.json"
+                ))
+                .unwrap();
+                assert_eq!(corrected["reference"], fixture["reference"]);
+                assert_eq!(
+                    corrected["released_chromium_sha256"],
+                    glib::compute_checksum_for_data(
+                        glib::ChecksumType::Sha256,
+                        include_bytes!("fixtures/released-application-chromium.json")
+                    )
+                    .unwrap()
+                    .as_str()
+                );
+                let mut fixture = fixture;
+                for (index, patch) in corrected["state_patches"].as_object().unwrap() {
+                    merge_observation(
+                        &mut fixture["state_patches"][index.parse::<usize>().unwrap()],
+                        patch,
+                    );
+                }
                 fixture
             })
         })

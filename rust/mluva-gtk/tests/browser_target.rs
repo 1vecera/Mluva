@@ -113,6 +113,37 @@ fn fixture(engine: &str) -> Value {
         for (case, patch) in cases.iter_mut().zip(patches) {
             merge(case, patch);
         }
+        // Intentional fixes have independent expectations; preserve the released bug fixture.
+        let corrected: Value =
+            serde_json::from_str(include_str!("fixtures/chromium-selection-corrections.json"))
+                .unwrap();
+        assert_eq!(corrected["reference_commit"], delta["reference_commit"]);
+        assert_eq!(
+            corrected["released_chromium_sha256"],
+            glib::compute_checksum_for_data(
+                glib::ChecksumType::Sha256,
+                include_bytes!("fixtures/chromium-target-cases.json")
+            )
+            .unwrap()
+            .as_str()
+        );
+        for (name, expected) in corrected["cases"].as_object().unwrap() {
+            let case = cases
+                .iter_mut()
+                .find(|case| case["input"]["name"] == name.as_str())
+                .unwrap();
+            merge(&mut case["expected"], expected);
+        }
+        for extra in corrected["extra_cases"].as_array().unwrap() {
+            let mut case = cases
+                .iter()
+                .find(|case| case["input"]["name"] == extra["base"])
+                .unwrap()
+                .clone();
+            merge(&mut case["input"], &extra["input"]);
+            merge(&mut case["expected"], &extra["expected"]);
+            cases.push(case);
+        }
         fixture["browser"] = delta["browser"].clone();
     } else {
         assert_eq!(engine, "firefox");
@@ -169,7 +200,7 @@ fn tracker_registrations(bus: &gio::DBusConnection) -> Vec<String> {
 
 #[test]
 #[ignore = "requires private browser runner, Firefox or Chromium/ChromeDriver, xclip/xdotool/Openbox and built browser peer"]
-fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
+fn actual_browser_clipboard_edits_and_focus_guards() {
     let root = private_root();
     let engine = std::env::var("MLUVA_BROWSER_ENGINE").unwrap_or_else(|_| "firefox".into());
     let fixture = fixture(&engine);
@@ -320,10 +351,14 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
                 let mut insert = |text: &str| Ok(target.insert_text(text));
                 let mut confirm = || Ok(target.confirm_insertion(payload));
                 let mut authorize = || {
-                    if input["late_focus"] == true {
-                        peer.request(json!({"operation":"focus","kind":"second"}));
+                    if !input["late_selection"].is_null() {
+                        peer.request_unpumped(input["late_selection"].clone());
+                    } else {
+                        if input["late_focus"] == true {
+                            peer.request(json!({"operation":"focus","kind":"second"}));
+                        }
+                        settle(Duration::from_millis(30));
                     }
-                    settle(Duration::from_millis(30));
                     Ok(target.restore())
                 };
                 deliver_text(
@@ -458,6 +493,6 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
     );
     assert!(
         failures.is_empty(),
-        "released browser mismatches: {failures:?}"
+        "browser corpus mismatches: {failures:?}"
     );
 }

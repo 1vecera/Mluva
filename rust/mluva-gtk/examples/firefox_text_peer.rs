@@ -387,7 +387,7 @@ fn main() {
                         browser.focus();
                         browser.setup(request);
                     }
-                    "focus" | "caret" | "selection" => {
+                    "focus" | "caret" | "selection" | "replace" => {
                         if request["operation"] == "focus" {
                             browser.focus();
                         }

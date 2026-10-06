@@ -1,0 +1,526 @@
+{
+  "reference_commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "released_chromium_sha256": "4d8e74aaaf6111ff11e22803da8e2431c9426d1b41bbc4293ac64b8e59ef0bcb",
+  "cases": {
+    "textarea-utf16-selection": {
+      "observed": {
+        "fields": {
+          "textview": {
+            "end": 48,
+            "start": 48,
+            "text": "Mluva: Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek. konec"
+          }
+        }
+      }
+    },
+    "textarea-backward-selection": {
+      "observed": {
+        "fields": {
+          "textview": {
+            "end": 48,
+            "start": 48,
+            "text": "Mluva: Příliš žluťoučký 😀 👩‍💻 é\nDruhý řádek. konec"
+          }
+        }
+      }
+    },
+    "singleline-newline-normalization": {
+      "observed": {
+        "fields": {
+          "entry": {
+            "end": 48,
+            "start": 48,
+            "text": "Mluva: Příliš žluťoučký 😀 👩‍💻 é Druhý řádek. konec"
+          }
+        }
+      }
+    },
+    "rich-utf16-selection": {
+      "observed": {
+        "fields": {
+          "rich": {
+            "end": 21,
+            "start": 21,
+            "text": "Mluva: Nová 😀 fráze. konec"
+          }
+        }
+      }
+    },
+    "textarea-moved-caret": {
+      "restored": false,
+      "receipt": {
+        "pasted": false,
+        "guidance": "Copied. Paste in the target application.",
+        "paste_dispatched": false,
+        "paste_confirmed": null,
+        "history_outcome": "copied"
+      },
+      "confirmed_after": false,
+      "observed": {
+        "fields": {
+          "textview": {
+            "text": "Mluva: původní 🐎 konec",
+            "start": 0,
+            "end": 0
+          }
+        },
+        "events": []
+      }
+    },
+    "textarea-cleared-selection": {
+      "restored": false,
+      "receipt": {
+        "pasted": false,
+        "guidance": "Copied. Paste in the target application.",
+        "paste_dispatched": false,
+        "paste_confirmed": null,
+        "history_outcome": "copied"
+      },
+      "confirmed_after": false,
+      "observed": {
+        "fields": {
+          "textview": {
+            "text": "Mluva: původní 🐎 konec",
+            "start": 2,
+            "end": 2
+          }
+        },
+        "events": []
+      }
+    },
+    "textarea-changed-selection": {
+      "restored": false,
+      "receipt": {
+        "pasted": false,
+        "guidance": "Copied. Paste in the target application.",
+        "paste_dispatched": false,
+        "paste_confirmed": null,
+        "history_outcome": "copied"
+      },
+      "confirmed_after": false,
+      "observed": {
+        "fields": {
+          "textview": {
+            "text": "Mluva: původní 🐎 konec",
+            "start": 0,
+            "end": 2
+          }
+        },
+        "events": []
+      }
+    },
+    "textarea-refuses-paste": {
+      "observed": {
+        "fields": {
+          "textview": {
+            "start": 7,
+            "end": 17
+          }
+        }
+      }
+    },
+    "readonly-current": {
+      "observed": {
+        "fields": {
+          "textview": {
+            "start": 7,
+            "end": 17
+          }
+        }
+      }
+    },
+    "textarea-clipboard-nul": {
+      "observed": {
+        "fields": {
+          "textview": {
+            "text": "Mluva: nul\u0000tail😀 konec",
+            "start": 17,
+            "end": 17
+          }
+        }
+      }
+    },
+    "late-focus-change": {
+      "observed": {
+        "fields": {
+          "textview": {
+            "start": 7,
+            "end": 17
+          }
+        }
+      }
+    }
+  },
+  "extra_cases": [
+    {
+      "base": "textarea-utf16-selection",
+      "input": {
+        "name": "textview-same-caret-anchor-change",
+        "setup": {
+          "text": "😀😀😀😀",
+          "start": 2,
+          "end": 8
+        },
+        "before": {
+          "operation": "selection",
+          "kind": "textview",
+          "start": 6,
+          "end": 8
+        }
+      },
+      "expected": {
+        "snapshot": {
+          "caret": 4
+        },
+        "without_selection": {
+          "caret": 4
+        },
+        "restored": false,
+        "receipt": {
+          "pasted": false,
+          "guidance": "Copied. Paste in the target application.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "end": 8,
+              "start": 6,
+              "text": "😀😀😀😀"
+            }
+          },
+          "events": []
+        }
+      }
+    },
+    {
+      "base": "singleline-newline-normalization",
+      "input": {
+        "name": "entry-same-caret-anchor-change",
+        "setup": {
+          "text": "😀😀😀😀",
+          "start": 2,
+          "end": 8
+        },
+        "before": {
+          "operation": "selection",
+          "kind": "entry",
+          "start": 6,
+          "end": 8
+        }
+      },
+      "expected": {
+        "snapshot": {
+          "caret": 4
+        },
+        "without_selection": {
+          "caret": 4
+        },
+        "restored": false,
+        "receipt": {
+          "pasted": false,
+          "guidance": "Copied. Paste in the target application.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "entry": {
+              "end": 8,
+              "start": 6,
+              "text": "😀😀😀😀"
+            }
+          },
+          "events": []
+        }
+      }
+    },
+    {
+      "base": "rich-utf16-selection",
+      "input": {
+        "name": "rich-same-caret-anchor-change",
+        "setup": {
+          "text": "😀😀😀😀",
+          "start": 2,
+          "end": 8
+        },
+        "before": {
+          "operation": "selection",
+          "kind": "rich",
+          "start": 6,
+          "end": 8
+        }
+      },
+      "expected": {
+        "snapshot": {
+          "caret": 4
+        },
+        "without_selection": {
+          "caret": 4
+        },
+        "restored": false,
+        "receipt": {
+          "pasted": false,
+          "guidance": "Copied. Paste in the target application.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "rich": {
+              "end": 8,
+              "start": 6,
+              "text": "😀😀😀😀"
+            }
+          },
+          "events": []
+        }
+      }
+    },
+    {
+      "base": "textarea-utf16-selection",
+      "input": {
+        "name": "textarea-queued-same-caret-anchor-change",
+        "setup": {
+          "text": "😀😀😀😀",
+          "start": 2,
+          "end": 8
+        },
+        "late_selection": {
+          "operation": "selection",
+          "kind": "textview",
+          "start": 6,
+          "end": 8
+        }
+      },
+      "expected": {
+        "snapshot": {
+          "caret": 4
+        },
+        "without_selection": {
+          "caret": 4
+        },
+        "receipt": {
+          "pasted": false,
+          "guidance": "The captured target could not be revalidated immediately before keyboard delivery, so no paste was attempted. The complete text remains on the clipboard.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "end": 8,
+              "start": 6,
+              "text": "😀😀😀😀"
+            }
+          },
+          "events": []
+        }
+      }
+    },
+    {
+      "base": "textarea-utf16-selection",
+      "input": {
+        "name": "assembled-horse",
+        "setup": {
+          "text": "Before 🐎 after",
+          "end": 9
+        },
+        "payload": "Now 😀"
+      },
+      "expected": {
+        "snapshot": {
+          "caret": 8
+        },
+        "without_selection": {
+          "caret": 8
+        },
+        "observed": {
+          "fields": {
+            "textview": {
+              "end": 13,
+              "start": 13,
+              "text": "Before Now 😀 after"
+            }
+          }
+        },
+        "clipboard": "Now 😀"
+      }
+    },
+    {
+      "base": "textarea-utf16-selection",
+      "input": {
+        "name": "same-prefix-suffix",
+        "setup": {
+          "text": "A😀BC",
+          "start": 1,
+          "end": 4
+        },
+        "payload": "😀D"
+      },
+      "expected": {
+        "snapshot": {
+          "selection": [
+            1,
+            2
+          ],
+          "caret": 3
+        },
+        "without_selection": {
+          "selection": [
+            1,
+            2
+          ],
+          "caret": 3
+        },
+        "receipt": {
+          "pasted": false,
+          "guidance": "Paste was sent once, but this target could not confirm insertion. The complete text remains on the clipboard; inspect the target before any manual retry.",
+          "paste_confirmed": null,
+          "history_outcome": "paste-unconfirmed"
+        },
+        "confirmed_after": null,
+        "observed": {
+          "fields": {
+            "textview": {
+              "end": 4,
+              "start": 4,
+              "text": "A😀DC"
+            }
+          }
+        },
+        "clipboard": "😀D"
+      }
+    },
+    {
+      "base": "textarea-utf16-selection",
+      "input": {
+        "name": "identical-content-forward",
+        "setup": {
+          "text": "A😀BC",
+          "start": 1,
+          "end": 3
+        },
+        "payload": "😀"
+      },
+      "expected": {
+        "snapshot": {
+          "caret": 2
+        },
+        "without_selection": {
+          "caret": 2
+        },
+        "receipt": {
+          "pasted": false,
+          "guidance": "Paste was sent once, but this target could not confirm insertion. The complete text remains on the clipboard; inspect the target before any manual retry.",
+          "paste_confirmed": null,
+          "history_outcome": "paste-unconfirmed"
+        },
+        "confirmed_after": null,
+        "observed": {
+          "fields": {
+            "textview": {
+              "end": 3,
+              "start": 3,
+              "text": "A😀BC"
+            }
+          }
+        },
+        "clipboard": "😀"
+      }
+    },
+    {
+      "base": "textarea-utf16-selection",
+      "input": {
+        "name": "identical-content-backward",
+        "setup": {
+          "text": "A😀BC",
+          "start": 1,
+          "end": 3,
+          "direction": "backward"
+        },
+        "payload": "😀"
+      },
+      "expected": {
+        "snapshot": {
+          "caret": 1
+        },
+        "without_selection": {
+          "caret": 1
+        },
+        "receipt": {
+          "pasted": false,
+          "guidance": "Paste was sent once, but this target could not confirm insertion. The complete text remains on the clipboard; inspect the target before any manual retry.",
+          "paste_confirmed": null,
+          "history_outcome": "paste-unconfirmed"
+        },
+        "confirmed_after": null,
+        "observed": {
+          "fields": {
+            "textview": {
+              "end": 3,
+              "start": 3,
+              "text": "A😀BC"
+            }
+          }
+        },
+        "clipboard": "😀"
+      }
+    },
+    {
+      "base": "textarea-utf16-selection",
+      "input": {
+        "name": "same-count-caret-content-change",
+        "setup": {
+          "text": "Before 🐎 after",
+          "end": 9
+        },
+        "payload": "Now 😀",
+        "before": {
+          "operation": "replace",
+          "kind": "textview",
+          "text": "other",
+          "start": 10,
+          "end": 15
+        }
+      },
+      "expected": {
+        "snapshot": {
+          "caret": 8
+        },
+        "without_selection": {
+          "caret": 8
+        },
+        "restored": false,
+        "receipt": {
+          "pasted": false,
+          "guidance": "Copied. Paste in the target application.",
+          "paste_dispatched": false,
+          "paste_confirmed": null,
+          "history_outcome": "copied"
+        },
+        "confirmed_after": false,
+        "observed": {
+          "fields": {
+            "textview": {
+              "text": "Before 🐎 other",
+              "start": 7,
+              "end": 9
+            }
+          },
+          "events": []
+        },
+        "clipboard": "Now 😀"
+      }
+    }
+  ]
+}

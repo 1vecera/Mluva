@@ -114,7 +114,7 @@ impl FocusedTextTargetTracker {
                 return Err(TrackerError::WrongThread);
             }
             let state = focus.clone();
-            let listener = EventListener::focus(Rc::new(move |source, detail| {
+            let listener = EventListener::focus(Rc::new(move |source, detail, _, _| {
                 // libatspi may dispatch nested events while querying the owner. Never hold a
                 // RefCell borrow across such a call, including in capture/restore/discovery.
                 let (source, process_id) = match source {
@@ -139,7 +139,7 @@ impl FocusedTextTargetTracker {
             if let Some(root) = &root {
                 let watched = root.clone();
                 applications_listener = Some(
-                    EventListener::applications_added(Rc::new(move |source, index| {
+                    EventListener::applications_added(Rc::new(move |source, index, _, _| {
                         if source.as_ref() == Some(&watched) && index >= 0 {
                             announce_accessibility_client(watched.child(index), own_process_id);
                         }
@@ -254,6 +254,106 @@ pub struct TextTargetSnapshot {
     caret_offset: i32,
     application_identifier: Option<String>,
     current: Option<Rc<RefCell<Focus>>>,
+    retained_selection: Option<Rc<RetainedSelection>>,
+}
+
+#[derive(Default)]
+struct SelectionChanges {
+    changed: bool,
+    insertion: Option<(i32, i32)>,
+}
+
+/// Chromium's selection offsets can be converted twice. Keep the actual selection in place
+/// and watch only numeric changes to this exact node, never the text event payload.
+struct RetainedSelection {
+    characters: i32,
+    changes: Rc<RefCell<SelectionChanges>>,
+    _listeners: [EventListener; 3],
+}
+
+impl RetainedSelection {
+    fn capture(node: &Node, text: &Text) -> Option<Self> {
+        if !atspi::read_pending_events() {
+            return None;
+        }
+        // This query processes events already queued before the snapshot's listeners exist.
+        if text.selection_count()? != 1 {
+            return None;
+        }
+        let application = node.application()?;
+        let changes = Rc::new(RefCell::new(SelectionChanges::default()));
+        let changed = {
+            let node = node.clone();
+            let changes = changes.clone();
+            Rc::new(move |source: Option<Node>, _, _, _| {
+                if source.as_ref() == Some(&node) {
+                    changes.borrow_mut().changed = true;
+                }
+            })
+        };
+        let selection = EventListener::selection_changed(&application, changed.clone())?;
+        let caret = EventListener::caret_moved(&application, changed)?;
+        let content = {
+            let node = node.clone();
+            let changes = changes.clone();
+            EventListener::text_changed(
+                &application,
+                Rc::new(move |source, start, length, inserted| {
+                    if source.as_ref() == Some(&node) {
+                        let mut changes = changes.borrow_mut();
+                        changes.changed = true;
+                        changes.insertion = (inserted && start >= 0 && length > 0)
+                            .then(|| start.checked_add(length).map(|end| (start, end)))
+                            .flatten();
+                    }
+                }),
+            )?
+        };
+        Some(Self {
+            characters: text.character_count()?,
+            changes,
+            _listeners: [selection, caret, content],
+        })
+    }
+
+    fn unchanged(&self, text: &Text, caret: i32) -> Option<bool> {
+        if !atspi::read_pending_events() {
+            return Some(false);
+        }
+        if self.changes.borrow().changed {
+            return Some(false);
+        }
+        let unchanged = text.character_count()? == self.characters
+            && text.caret()? == caret
+            && text.selection_count()? == 1;
+        Some(unchanged && !self.changes.borrow().changed)
+    }
+
+    fn confirm(&self, text: &Text, caret_before: i32, inserted: &str) -> Option<bool> {
+        if !atspi::read_pending_events() {
+            return None;
+        }
+        let caret = i64::from(text.caret()?);
+        if text.selection_count()? != 0 {
+            return Some(false);
+        }
+        let length = i64::try_from(inserted.chars().count()).ok()?;
+        let lower = caret.checked_sub(length)?;
+        let removed = length - (i64::from(text.character_count()?) - i64::from(self.characters));
+        if lower < 0 || removed <= 0 || ![lower, lower + removed].contains(&i64::from(caret_before))
+        {
+            return Some(false);
+        }
+        let changes = self.changes.borrow();
+        if !changes.changed {
+            return Some(false);
+        }
+        // Chromium sometimes reports the preserved prefix in its insertion range. It must
+        // still cover the entire proposed insertion and agree with the collapsed caret.
+        // An identical replacement or a reduced diff cannot confirm the complete text.
+        let (start, end) = changes.insertion?;
+        (i64::from(start) <= lower && caret <= i64::from(end)).then_some(true)
+    }
 }
 impl fmt::Debug for TextTargetSnapshot {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -295,11 +395,25 @@ impl TextTargetSnapshot {
             caret_offset: self.caret_offset,
             application_identifier: self.application_identifier.clone(),
             current: self.current.clone(),
+            retained_selection: self.retained_selection.clone(),
         }
     }
 
     pub fn restore(&self) -> bool {
         let restore = || -> Option<bool> {
+            if let Some(retained) = &self.retained_selection {
+                let current = self.current.as_ref()?;
+                if current.borrow().node.as_ref() != Some(&self.accessible)
+                    || !self.accessible.has_state(atspi::FOCUSED)?
+                    || !retained.unchanged(&self.text, self.caret_offset)?
+                {
+                    return Some(false);
+                }
+                return Some(
+                    current.borrow().node.as_ref() == Some(&self.accessible)
+                        && !retained.changes.borrow().changed,
+                );
+            }
             if self.editable.is_none()
                 && self
                     .current
@@ -325,8 +439,14 @@ impl TextTargetSnapshot {
         restore().unwrap_or(false)
     }
 
-    /// Check only the caret. Gecko reports UTF-16 units; other targets use Unicode characters.
+    /// Check caret/range metadata without reading text. Gecko uses UTF-16; others use characters.
     pub fn confirm_insertion(&self, inserted: &str) -> Option<bool> {
+        if let Some(retained) = &self.retained_selection {
+            if self.current.as_ref()?.borrow().node.as_ref() != Some(&self.accessible) {
+                return Some(false);
+            }
+            return retained.confirm(&self.text, self.caret_offset, inserted);
+        }
         let start = i64::from(self.selection.map_or(self.caret_offset, |(start, _)| start));
         let length = if firefox(self.application_identifier()) {
             inserted.encode_utf16().count()
@@ -339,6 +459,9 @@ impl TextTargetSnapshot {
 
     /// A failed direct mutation is uncertain; callers must never retry it with keyboard input.
     pub fn insert_text(&self, inserted: &str) -> Option<bool> {
+        if self.retained_selection.is_some() {
+            return None;
+        }
         let editable = self.editable.as_ref()?;
         let insert = || -> Option<bool> {
             if let Some((start, end)) = self.selection
@@ -470,9 +593,19 @@ fn capture(
             return None;
         }
         let text = node.text()?;
+        let identifier = application_identifier(&node)?;
+        let selection_count = text.selection_count()?;
+        let retained_selection =
+            if !include_selection && selection_count == 1 && chromium(identifier.as_deref()) {
+                Some(Rc::new(RetainedSelection::capture(&node, &text)?))
+            } else {
+                None
+            };
         let editable = if node.has_state(atspi::EDITABLE)? {
             let editable = node.editable_text();
-            if editable.is_some() && firefox(application_identifier(&node)?.as_deref()) {
+            if editable.is_some()
+                && (firefox(identifier.as_deref()) || retained_selection.is_some())
+            {
                 None
             } else {
                 editable
@@ -481,7 +614,7 @@ fn capture(
             None
         };
         let caret_offset = text.caret()?;
-        let selection = if text.selection_count()? <= 0 {
+        let selection = if selection_count <= 0 {
             if caret_offset < 0 {
                 return None;
             }
@@ -493,6 +626,12 @@ fn capture(
             }
             Some((start, end))
         };
+        if retained_selection
+            .as_ref()
+            .is_some_and(|retained| retained.unchanged(&text, caret_offset) != Some(true))
+        {
+            return None;
+        }
         let selected_text = if include_selection {
             match selection {
                 Some((start, end)) => Some(text.get_text(start, end)?),
@@ -508,11 +647,12 @@ fn capture(
             caret_offset,
             selection,
             selected_text,
-            application_identifier: None,
+            application_identifier: identifier,
             current,
+            retained_selection,
         })
     };
-    let Some(mut snapshot) = prepare() else {
+    let Some(snapshot) = prepare() else {
         return Ok(None);
     };
     if let Some(selected) = snapshot.selected_text() {
@@ -524,10 +664,6 @@ fn capture(
             });
         }
     }
-    let Some(identifier) = application_identifier(&snapshot.accessible) else {
-        return Ok(None);
-    };
-    snapshot.application_identifier = identifier;
     Ok(Some(snapshot))
 }
 
@@ -562,19 +698,32 @@ fn application_identifier(node: &Node) -> Option<Option<String>> {
 }
 
 fn firefox(identifier: Option<&str>) -> bool {
+    matches!(
+        executable_name(identifier).as_str(),
+        "firefox" | "firefox-bin" | "firefox-esr"
+    )
+}
+
+fn chromium(identifier: Option<&str>) -> bool {
+    matches!(
+        executable_name(identifier).as_str(),
+        "chromium"
+            | "chromium-browser"
+            | "chrome"
+            | "google-chrome"
+            | "google-chrome-stable"
+            | "google-chrome-beta"
+            | "google-chrome-unstable"
+    )
+}
+
+fn executable_name(identifier: Option<&str>) -> String {
     let identifier = identifier.unwrap_or_default();
     let basename = Path::new(identifier.strip_prefix("process:").unwrap_or(identifier))
         .file_name()
         .and_then(|name| name.to_str())
         .unwrap_or_default();
-    matches!(
-        basename
-            .chars()
-            .default_case_fold()
-            .collect::<String>()
-            .as_str(),
-        "firefox" | "firefox-bin" | "firefox-esr"
-    )
+    basename.chars().default_case_fold().collect()
 }
 
 fn find_focused(root: Node, own_pid: u32, require_active: bool) -> Option<Node> {

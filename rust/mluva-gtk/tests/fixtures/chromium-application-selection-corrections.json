@@ -1,0 +1,10 @@
+{
+  "reference": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+  "released_chromium_sha256": "80017e3fe8279df8bd57dbd8faf135abc5c390b398159d86e82ec5b4c1a68310",
+  "state_patches": {
+    "2": {"target":{"fields":{"entry":{"text":"Before Portal dictation keeps 12 files. after","start":39,"end":39}}}},
+    "3": {"target":{"fields":{"entry":{"text":"Before Portal dictation keeps 12 files. after","start":39,"end":39}}}},
+    "6": {"target":{"fields":{"entry":{"text":"Before Keep the support portal requirements with 12 files and an API. after","start":69,"end":69}}}},
+    "7": {"target":{"fields":{"entry":{"text":"Before Keep the support portal requirements with 12 files and an API. after","start":69,"end":69}}}}
+  }
+}
