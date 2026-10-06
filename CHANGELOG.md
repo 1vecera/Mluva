@@ -2,6 +2,16 @@
 
 This file records user-visible Mluva releases.
 
+## 2.2.0 — 2026-10-06
+
+- Keep the Omarchy recorder visible when continuing a finished recording, including the continued text and correct recording controls.
+- Keep collapsed Rewrite controls out of startup and review focus. Opening Rewrite remains explicit, its last open/closed choice is remembered, and the empty request hides its caret.
+- Activate Chromium's accessible web fields from the native target tracker, including browsers started after Mluva. System accessibility must already be enabled; exact-target and text-read privacy guards remain in place.
+- Verify recording, Command and Live through Firefox and Chromium with fifteen workflows and 102 complete states per browser, plus installed Wayland app/widget, narrated screenshot, Codex SDK and local-model comparisons. [Evidence and remaining limits](docs/rust-port-acceptance-review.md).
+- Release a matching native app and Omarchy widget. Preserve settings, History and model caches, with Qwen3-ASR 1.7B as the default alongside Parakeet v3 and Whisper Tiny.
+
+Chromium's incorrect mixed-Unicode selection/replacement remains open. Physical keys/audio, desktop permissions and broader platform acceptance remain unverified; complete Rust UX parity and general performance improvements are not certified. Automatic paste, Live rewrite and screenshot context remain Experimental.
+
 ## 2.1.0 — 2026-10-05
 
 - Release a matching native app and Omarchy widget with expanded verification of Meeting title/export/deletion, History recovery and Live rewriting through the installed Codex SDK.
