@@ -1,4 +1,7 @@
-//! Disposable real Firefox target and independent DOM observer; never install this peer.
+//! Disposable Firefox/Chromium target and independent DOM observer; never install this peer.
+
+#[path = "support/chromium.rs"]
+mod chromium;
 
 use gio::prelude::*;
 use serde_json::{Value, json};
@@ -38,11 +41,18 @@ fn private_root() -> PathBuf {
     assert_ne!(
         fs::read_link("/proc/self/ns/net").unwrap().as_os_str(),
         std::env::var_os("MLUVA_HOST_NET_NS").unwrap(),
-        "Firefox must run in a separate network namespace"
+        "the browser must run in a separate network namespace"
     );
     for path in ["/dev/uinput", "/dev/input", "/dev/snd", "/dev/dri"] {
         assert!(!Path::new(path).exists(), "device access is forbidden");
     }
+    assert!(!Path::new("/run/dbus/system_bus_socket").exists());
+    assert_eq!(
+        PathBuf::from(std::env::var_os("XDG_RUNTIME_DIR").unwrap())
+            .canonicalize()
+            .unwrap(),
+        root.join("runtime").canonicalize().unwrap()
+    );
     root
 }
 
@@ -52,14 +62,14 @@ fn write(path: &Path, value: &Value) {
     fs::rename(temporary, path).unwrap();
 }
 
-struct Browser {
+struct Firefox {
     process: Child,
     stream: Option<TcpStream>,
     sequence: u32,
     capabilities: Value,
     window: String,
 }
-impl Browser {
+impl Firefox {
     fn start(directory: &Path) -> Self {
         let profile = directory.join("profile");
         fs::create_dir(&profile).unwrap();
@@ -218,7 +228,7 @@ impl Browser {
         );
     }
 }
-impl Drop for Browser {
+impl Drop for Firefox {
     fn drop(&mut self) {
         drop(self.stream.take());
         let group = -(self.process.id() as i32);
@@ -240,6 +250,63 @@ impl Drop for Browser {
     }
 }
 
+enum Browser {
+    Firefox(Firefox),
+    Chromium(chromium::Chromium),
+}
+impl Browser {
+    fn enable_accessibility(&self) {
+        match self {
+            Self::Chromium(browser) => browser.enable_accessibility(),
+            Self::Firefox(_) => panic!("Chromium accessibility setting requires Chromium"),
+        }
+    }
+    fn setup(&mut self, request: Value) {
+        if let Self::Chromium(browser) = self {
+            browser.script(
+                "return window.setup(arguments[0]);",
+                json!([request.clone()]),
+            );
+            browser.focus_field(request["kind"].as_str().unwrap());
+        }
+        self.script("return window.setup(arguments[0]);", json!([request]));
+    }
+    fn script(&mut self, script: &str, args: Value) -> Value {
+        match self {
+            Self::Firefox(browser) => browser.script(script, args),
+            Self::Chromium(browser) => browser.script(script, args),
+        }
+    }
+    fn window(&self) -> &str {
+        match self {
+            Self::Firefox(browser) => &browser.window,
+            Self::Chromium(browser) => &browser.window,
+        }
+    }
+    fn focus(&self) {
+        assert!(
+            Command::new("xdotool")
+                .args(["windowactivate", "--sync", self.window()])
+                .stdin(Stdio::null())
+                .status()
+                .unwrap()
+                .success()
+        );
+    }
+    fn metadata(&self) -> Value {
+        let (pid, version, build_id) = match self {
+            Self::Firefox(browser) => (
+                browser.process.id(),
+                &browser.capabilities["browserVersion"],
+                &browser.capabilities["moz:buildID"],
+            ),
+            Self::Chromium(browser) => (browser.pid, &browser.version, &browser.build_id),
+        };
+        let identity = fs::read_link(format!("/proc/{pid}/exe")).unwrap();
+        json!({"version":version,"build_id":build_id,"identity":identity.to_str().unwrap(),"pid":pid,"window":self.window()})
+    }
+}
+
 fn main() {
     let root = private_root();
     let directory = PathBuf::from(std::env::args_os().nth(1).unwrap())
@@ -247,10 +314,20 @@ fn main() {
         .unwrap();
     assert!(directory.starts_with(root));
     let session = gio::bus_get_sync(gio::BusType::Session, gio::Cancellable::NONE).unwrap();
-    let info = gio::DBusNodeInfo::for_xml("<node><interface name='org.a11y.Status'><property name='IsEnabled' type='b' access='read'/></interface></node>").unwrap();
+    let info = gio::DBusNodeInfo::for_xml("<node><interface name='org.a11y.Status'><property name='IsEnabled' type='b' access='read'/><property name='ScreenReaderEnabled' type='b' access='read'/></interface><interface name='org.a11y.Bus'><method name='GetAddress'><arg type='s' direction='out'/></method></interface></node>").unwrap();
     let registration = session
         .register_object("/org/a11y/bus", &info.interfaces()[0])
-        .property(|_, _, _, _, _| true.to_variant())
+        .property(|_, _, _, _, property| (property == "IsEnabled").to_variant())
+        .build()
+        .unwrap();
+    let address = session
+        .register_object("/org/a11y/bus", &info.interfaces()[1])
+        .method_call(|_, _, _, _, method, _, invocation| {
+            assert_eq!(method, "GetAddress");
+            invocation.return_value(Some(
+                &(std::env::var("AT_SPI_BUS_ADDRESS").unwrap(),).to_variant(),
+            ));
+        })
         .build()
         .unwrap();
     let ownership = session
@@ -269,10 +346,14 @@ fn main() {
         .get::<(u32,)>()
         .unwrap();
     assert_eq!(ownership.0, 1);
-    let mut browser = Browser::start(&directory);
-    let identity = fs::read_link(format!("/proc/{}/exe", browser.process.id())).unwrap();
-    let metadata = json!({"version":browser.capabilities["browserVersion"], "build_id":browser.capabilities["moz:buildID"],
-        "identity":identity.to_str().unwrap(), "pid":browser.process.id(), "window":browser.window});
+    let mut browser = match std::env::var("MLUVA_BROWSER_ENGINE").as_deref() {
+        Ok("chromium") => Browser::Chromium(chromium::Chromium::start(&directory)),
+        Ok("firefox") | Err(std::env::VarError::NotPresent) => {
+            Browser::Firefox(Firefox::start(&directory))
+        }
+        engine => panic!("unsupported private browser: {engine:?}"),
+    };
+    let metadata = browser.metadata();
     let request_path = directory.join("request.json");
     let observed_path = directory.join("observed.json");
     let loop_ = glib::MainLoop::new(None, false);
@@ -285,7 +366,7 @@ fn main() {
                 match request["operation"].as_str().unwrap() {
                     "setup" => {
                         browser.focus();
-                        browser.script("return window.setup(arguments[0]);", json!([request]));
+                        browser.setup(request);
                     }
                     "focus" | "caret" | "selection" => {
                         if request["operation"] == "focus" {
@@ -293,6 +374,7 @@ fn main() {
                         }
                         browser.script("return window.change(arguments[0]);", json!([request]));
                     }
+                    "enable_accessibility" => browser.enable_accessibility(),
                     "quit" => control.quit(),
                     _ => panic!("unknown browser target request"),
                 }
@@ -309,4 +391,5 @@ fn main() {
     loop_.run();
     source.remove();
     session.unregister_object(registration).unwrap();
+    session.unregister_object(address).unwrap();
 }

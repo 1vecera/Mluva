@@ -6,6 +6,7 @@ use mluva_gtk::{
     application::{ApplicationDesktop, ApplicationPlatform},
     async_runtime::DesktopRuntime,
     document_layout::DocumentResources,
+    text_target::FocusedTextTargetTracker,
     theme::ThemeController,
 };
 use mluva_workflows::{
@@ -24,6 +25,8 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+#[path = "support/application_browser_live.rs"]
+mod browser_live;
 #[path = "support/capture_ui.rs"]
 #[allow(dead_code)]
 mod capture_ui;
@@ -127,12 +130,95 @@ fn snapshot(
     services: &ApplicationServices,
     peer: &text_transport::Peer,
     audio: Option<&Path>,
+    browser: bool,
 ) -> Value {
     let mut target = peer.observed();
-    target.as_object_mut().unwrap().remove("serial");
-    target.as_object_mut().unwrap().remove("pid");
+    if browser {
+        target = target["observed"].clone();
+    } else {
+        target.as_object_mut().unwrap().remove("serial");
+        target.as_object_mut().unwrap().remove("pid");
+    }
     let prefs = &owner.settings.capture;
     json!({"ui":capture_ui::observe(&owner.capture.page,audio),"hint":owner.capture.page.action_hint.label().as_str(),"approval":prefs.shortcut_status.subtitle().map(String::from),"latest":prefs.latest_shortcut_status.subtitle().map(String::from),"key":prefs.recording_key.selected(),"key_sensitive":prefs.recording_key.get_sensitive(),"saved_key":AppConfig::load(&services.paths.config.join("config.json")).unwrap().global_recording_key,"provider":services.config().transcription_provider,"page":owner.shell.stack.visible_child_name().map(String::from),"visible":owner.shell.window.get_visible(),"history":services.history.recent(100).unwrap().into_iter().rev().map(|e|json!({"raw":e.raw_text,"output":e.delivered_text,"outcome":e.delivery_outcome})).collect::<Vec<_>>(),"clipboard":clipboard(),"target":target})
+}
+
+/// Expand independent browser differences without duplicating the original GTK states.
+fn merge_observation(base: &mut Value, patch: &Value) {
+    if base.is_object() && patch.is_object() {
+        for (key, value) in patch.as_object().unwrap() {
+            merge_observation(&mut base[key], value);
+        }
+    } else {
+        *base = patch.clone();
+    }
+}
+
+fn browser_workflows(reference: &Value, browser: &Value, section: &str) -> Vec<Value> {
+    let workflows = &browser[section];
+    let mut states = Vec::<Value>::new();
+    for state in workflows["states"].as_array().unwrap() {
+        let mut observation = if let Some(previous) = state["from"].as_u64() {
+            states[previous as usize].clone()
+        } else {
+            reference["cases"][state["base"][0].as_u64().unwrap() as usize]["stages"]
+                [state["base"][1].as_u64().unwrap() as usize]["state"]
+                .clone()
+        };
+        merge_observation(&mut observation, &state["patch"]);
+        states.push(observation);
+    }
+    workflows["names"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|name| {
+            let case = &browser["cases"][name.as_str().unwrap()];
+            let mut row = reference["cases"][0].clone();
+            row["params"] = case["params"].clone();
+            merge_observation(&mut row["config"], &workflows["config_patch"]);
+            if section == "commands" {
+                row["responses"] = workflows["responses"].clone();
+                row["requests"] = json!([
+                    reference["cases"][0]["requests"][0],
+                    workflows["requests"][case["rewrite_request"].as_u64().unwrap() as usize]
+                ]);
+            } else {
+                for key in ["responses", "requests"] {
+                    row[key] = json!(
+                        case[key]
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .map(|index| workflows[key][index.as_u64().unwrap() as usize].clone())
+                            .collect::<Vec<_>>()
+                    );
+                }
+                row["pcm"]["pcm_hex"] = json!(
+                    row["pcm"]["pcm_hex"]
+                        .as_str()
+                        .unwrap()
+                        .repeat(workflows["pcm_repeats"].as_u64().unwrap() as usize)
+                );
+                row["edit"] = workflows["edit"].clone();
+            }
+            row["stages"] = json!(
+                case["stages"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|stage| {
+                        let mut observation =
+                            states[stage["state"].as_u64().unwrap() as usize].clone();
+                        observation["target"] =
+                            browser["targets"][stage["target"].as_u64().unwrap() as usize].clone();
+                        json!({"stage":stage["stage"],"state":observation})
+                    })
+                    .collect::<Vec<_>>()
+            );
+            row
+        })
+        .collect()
 }
 
 fn platform() -> ApplicationPlatform {
@@ -267,22 +353,57 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         assert!(!Path::new(path).exists());
     }
     assert!(std::env::var_os("MLUVA_DISABLE_GLOBAL_SHORTCUT").is_none());
+    let browser = std::env::var_os("MLUVA_APPLICATION_BROWSER").is_some();
+    let browser_fixture: Value =
+        serde_json::from_str(include_str!("fixtures/released-application-browser.json")).unwrap();
+    if browser {
+        for name in [
+            "ATSPI_DISABLE_P2P",
+            "ATSPI_IN_TESTS",
+            "ATSPI_NO_CACHE",
+            "PYATSPI_NOCACHE",
+        ] {
+            assert!(
+                std::env::var_os(name).is_none(),
+                "{name} changes default transport/cache"
+            );
+        }
+        assert!(text_transport::audit_rows().unwrap().is_empty());
+        assert!(!Path::new("/run/dbus/system_bus_socket").exists());
+    }
     let selected = std::env::var("MLUVA_APPLICATION_SHORTCUT_CASE").ok();
     let fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-application-shortcuts.json")).unwrap();
+    assert_eq!(browser_fixture["reference"], fixture["reference"]);
+    let mut scenarios = fixture["cases"].as_array().unwrap().clone();
+    if browser {
+        scenarios.extend(browser_workflows(&fixture, &browser_fixture, "commands"));
+        scenarios.extend(browser_workflows(&fixture, &browser_fixture, "live"));
+    }
     if selected.is_none() {
-        let cases = fixture["cases"].as_array().unwrap().len();
-        for case in (0..cases)
-            .map(|index| index.to_string())
-            .chain(["readiness".into()])
-        {
+        let mut cases = scenarios
+            .iter()
+            .enumerate()
+            .filter(|(_, row)| {
+                !browser
+                    || browser_fixture["cases"]
+                        .get(row["params"]["name"].as_str().unwrap())
+                        .is_some()
+            })
+            .map(|(index, _)| index.to_string())
+            .collect::<Vec<_>>();
+        if !browser {
+            cases.push("readiness".into());
+        }
+        for case in cases {
             // libatspi owns a process-global cache even after every tracker is
             // closed. Each cold application scenario needs a fresh client.
             let log_path = root.join(format!("shortcut-client-{case}.log"));
             let log = fs::File::create(&log_path).unwrap();
             // A clipboard owner can outlive the test client. Its inherited log
             // descriptor must not keep a stdout pipe's EOF waiter alive.
-            let status = Command::new(std::env::current_exe().unwrap())
+            let mut command = Command::new(std::env::current_exe().unwrap());
+            command
                 .args([
                     "--exact",
                     "released_application_portal_actions_settings_and_target_delivery",
@@ -292,9 +413,14 @@ fn released_application_portal_actions_settings_and_target_delivery() {
                 ])
                 .env("MLUVA_APPLICATION_SHORTCUT_CASE", &case)
                 .stdout(log.try_clone().unwrap())
-                .stderr(log)
-                .status()
-                .unwrap();
+                .stderr(log);
+            if browser {
+                command.env(
+                    "MLUVA_TEXT_READ_AUDIT",
+                    root.join(format!("text-read-audit-{case}.jsonl")),
+                );
+            }
+            let status = command.status().unwrap();
             let output = fs::read_to_string(log_path).unwrap();
             assert!(status.success(), "case {case}: {output}");
             assert!(
@@ -312,7 +438,7 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             || selected
                 .as_ref()
                 .and_then(|case| case.parse::<usize>().ok())
-                .is_some_and(|index| index < fixture["cases"].as_array().unwrap().len())
+                .is_some_and(|index| index < scenarios.len())
     );
     let tools = root.join("application-shortcut-tools");
     assert_eq!(
@@ -366,14 +492,20 @@ fn released_application_portal_actions_settings_and_target_delivery() {
     );
     assert_eq!(fixture["pango"], gtk::pango::version_string().as_str());
     let mut count = 0;
-    for (index, row) in fixture["cases"].as_array().unwrap().iter().enumerate() {
+    for (index, row) in scenarios.iter().enumerate() {
         if selected.as_deref() != Some(index.to_string().as_str()) {
             continue;
         }
         let params = &row["params"];
         let name = params["name"].as_str().unwrap();
+        let command = params.get("decision").is_some();
+        let live = params.get("live").is_some();
+        let browser_case = browser.then(|| &browser_fixture["cases"][name]);
+        assert!(!browser || !browser_case.unwrap().is_null());
         portal.control("Reset", Some(params["portal"].as_str().unwrap_or("normal")));
         let directory = tempfile::tempdir_in(&root).unwrap();
+        let evidence = directory.path().join("evidence");
+        fs::create_dir(&evidence).unwrap();
         let _ = fs::remove_file(tools.join("raw.ready.json"));
         fs::write(
             tools.join("test-config.json"),
@@ -383,10 +515,18 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         let mut responses = row["responses"].as_array().unwrap().clone();
         for response in &mut responses {
             response["delay_ms"] = json!(350);
+            for field in ["wait_after_body", "body_receipt"] {
+                if let Some(path) = response[field].as_str() {
+                    response[field] = json!(path.replace("$EVIDENCE", evidence.to_str().unwrap()));
+                }
+            }
         }
         let mut http = http::Peer::new(&responses);
         let mut cfg = row["config"].clone();
         cfg["transcription_base_url"] = json!(format!("{}/v1", http.address));
+        if command || live {
+            cfg["litellm_base_url"] = json!(http.address);
+        }
         let config: AppConfig = serde_json::from_value(cfg).unwrap();
         let paths = AppPaths {
             config: directory.path().join("config/mluva"),
@@ -395,7 +535,25 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         };
         config.save(&paths.config.join("config.json")).unwrap();
         let services = ApplicationServices::open(paths).unwrap();
-        let mut peer = text_transport::Peer::new(directory.path().join("peer"), "text_target_peer");
+        let mut peer = text_transport::Peer::new(
+            directory.path().join("peer"),
+            if browser {
+                "firefox_text_peer"
+            } else {
+                "text_target_peer"
+            },
+        );
+        let browser_pid = browser.then(|| {
+            let metadata = &peer.observed()["metadata"];
+            assert_eq!(metadata["version"], browser_fixture["browser"]["version"]);
+            assert_eq!(metadata["build_id"], browser_fixture["browser"]["build_id"]);
+            let pid = metadata["pid"].as_u64().unwrap();
+            assert_eq!(
+                fs::read_link(format!("/proc/{pid}/exe")).unwrap(),
+                PathBuf::from(metadata["identity"].as_str().unwrap())
+            );
+            pid
+        });
         let application = adw::Application::builder()
             .application_id(format!("com.mluva.ShortcutAcceptance{index}"))
             .flags(gio::ApplicationFlags::NON_UNIQUE)
@@ -454,14 +612,36 @@ fn released_application_portal_actions_settings_and_target_delivery() {
             .set_text("untouched shortcut clipboard");
         let mut stage_index = 0;
         let mut stage = |label: &str, audio: Option<&Path>, peer: &text_transport::Peer| {
-            let actual = json!({"stage":label,"state":snapshot(&owner,&services,peer,audio)});
-            let expected = &row["stages"][stage_index];
+            let mut actual =
+                json!({"stage":label,"state":snapshot(&owner,&services,peer,audio,browser)});
+            if command {
+                let page = &owner.capture.page;
+                actual["state"]["command"] = json!({"pending":owner.pending.has_command(),
+                    "source":{"visible":page.command_source.get_visible(),"text":page.command_source.label().as_str()},
+                    "actions":page.command_actions.get_visible(),"label":page.accept_command.label().map(String::from),
+                    "sensitive":page.accept_command.get_sensitive(),"editable":page.output_view.is_editable()});
+            }
+            if live {
+                actual["state"]["live"] = browser_live::observe(&owner, &services);
+            }
+            let mut expected = row["stages"][stage_index].clone();
+            if let Some(browser_case) = browser_case {
+                let stage = &browser_case["stages"][stage_index];
+                assert_eq!(stage["stage"], label);
+                expected["state"]["target"] =
+                    browser_fixture["targets"][stage["target"].as_u64().unwrap() as usize].clone();
+                for field in ["status", "tooltip"] {
+                    if let Some(value) = stage.get(field) {
+                        expected["state"]["ui"][field] = value.clone();
+                    }
+                }
+            }
             fs::write(
                 root.join(format!("{name}-{label}-actual.json")),
                 serde_json::to_vec_pretty(&actual).unwrap(),
             )
             .unwrap();
-            assert_eq!(&actual, expected, "{name}: {label}");
+            assert_eq!(actual, expected, "{name}: {label}");
             stage_index += 1;
             count += 1;
         };
@@ -545,7 +725,7 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         let mut audio = None;
         let mut pid = None;
         if let Some(capture) = params["capture"].as_str() {
-            peer.request(json!({"operation":"setup","kind":"entry","text":"Before 🐎 after","start":7,"end":8,"editable":true}));
+            peer.request(json!({"operation":"setup","kind":"entry","text":"Before 🐎 after","start":params.get("start").and_then(Value::as_u64).unwrap_or(7),"end":params.get("end").and_then(Value::as_u64).unwrap_or(if browser {9} else {8}),"editable":true}));
             stage("focused-target", None, &peer);
             if capture == "manual" {
                 application.activate_action("record", None);
@@ -563,39 +743,113 @@ fn released_application_portal_actions_settings_and_target_delivery() {
                 "{}.wav",
                 owner.capture.session_identifier().unwrap()
             )));
-            settle();
-            stage("recording", audio.as_deref(), &peer);
-            if capture == "global" {
-                portal.drive(json!({"op":"Activated","id":"toggle-recording-f9"}));
-                settle();
-                stage("held-key-does-not-stop", audio.as_deref(), &peer);
-                owner.settings.capture.recording_key.set_selected(10);
-                stage("active-key-change-rejected", audio.as_deref(), &peer);
-            }
-            if capture == "cancel" {
-                portal.drive(json!({"op":"Activated","id":"cancel-capture"}));
-            } else if params["portal"] == "deny-bind" {
-                owner.capture.page.record_button.emit_clicked();
-            } else {
-                portal.drive(json!({"op":"Deactivated","id":"toggle-recording-f9"}));
-                portal.drive(json!({"op":"Activated","id":"toggle-recording-f9"}));
-            }
-            until(|| owner.capture.phase().is_none());
-            settle();
-            stage("completed", audio.as_deref(), &peer);
-            if capture == "global" {
-                assert_eq!(
-                    peer.observed()["entry"]["text"],
-                    "Before Portal dictation keeps 12 files. after"
+            if live {
+                browser_live::exercise(
+                    &owner,
+                    &portal,
+                    &mut peer,
+                    &evidence,
+                    row,
+                    audio.as_deref().unwrap(),
+                    &mut stage,
                 );
-                application.activate_action("history", None);
-                settle();
-                portal.drive(json!({"op":"Activated","id":"open-rewrite"}));
-                until(|| owner.shell.stack.visible_child_name().as_deref() == Some("capture"));
-                settle();
-                stage("latest-conversation", audio.as_deref(), &peer);
             } else {
-                assert_eq!(peer.observed()["entry"]["text"], "Before 🐎 after");
+                settle();
+                stage("recording", audio.as_deref(), &peer);
+                if capture == "global" && !command {
+                    portal.drive(json!({"op":"Activated","id":"toggle-recording-f9"}));
+                    settle();
+                    stage("held-key-does-not-stop", audio.as_deref(), &peer);
+                    owner.settings.capture.recording_key.set_selected(10);
+                    stage("active-key-change-rejected", audio.as_deref(), &peer);
+                }
+                if capture == "cancel" {
+                    portal.drive(json!({"op":"Activated","id":"cancel-capture"}));
+                } else if params["portal"] == "deny-bind" {
+                    owner.capture.page.record_button.emit_clicked();
+                } else {
+                    portal.drive(json!({"op":"Deactivated","id":"toggle-recording-f9"}));
+                    portal.drive(json!({"op":"Activated","id":"toggle-recording-f9"}));
+                }
+                until(|| owner.capture.phase().is_none());
+                settle();
+                stage(
+                    if command { "preview" } else { "completed" },
+                    audio.as_deref(),
+                    &peer,
+                );
+                if command {
+                    assert!(owner.pending.has_command());
+                    application.activate_action("record", None);
+                    settle();
+                    stage("blocked-next-recording", audio.as_deref(), &peer);
+                    if params["decision"] == "stale" {
+                        peer.request(json!({"operation":"focus","kind":"second"}));
+                        stage("target-changed", audio.as_deref(), &peer);
+                    }
+                    if params["decision"] == "discard" {
+                        owner.capture.page.discard_command.emit_clicked();
+                    } else {
+                        owner.capture.page.accept_command.emit_clicked();
+                    }
+                    settle();
+                    stage("resolved", audio.as_deref(), &peer);
+                    assert!(!owner.pending.has_command());
+                    owner.capture.page.accept_command.emit_clicked();
+                    settle();
+                    stage("duplicate-apply", audio.as_deref(), &peer);
+                } else if capture == "global" {
+                    if !browser {
+                        assert_eq!(
+                            peer.observed()["entry"]["text"],
+                            "Before Portal dictation keeps 12 files. after"
+                        );
+                    }
+                    application.activate_action("history", None);
+                    settle();
+                    portal.drive(json!({"op":"Activated","id":"open-rewrite"}));
+                    until(|| owner.shell.stack.visible_child_name().as_deref() == Some("capture"));
+                    settle();
+                    stage("latest-conversation", audio.as_deref(), &peer);
+                } else if !browser {
+                    assert_eq!(peer.observed()["entry"]["text"], "Before 🐎 after");
+                }
+            }
+        }
+        if browser {
+            assert_eq!(
+                stage_index,
+                browser_case.unwrap()["stages"].as_array().unwrap().len()
+            );
+            let expected_reads = browser_case.unwrap()["reads"].as_u64().unwrap_or(0) as usize;
+            assert_eq!(
+                text_transport::audit_rows().unwrap().len(),
+                expected_reads,
+                "only explicit Command selection may read target text"
+            );
+            let mut probe = FocusedTextTargetTracker::new().unwrap();
+            peer.request(json!({"operation":"setup","kind":"textview","text":"Audit: 🐎 guard","start":7,"end":9}));
+            let selected = probe
+                .capture_text_target(2000)
+                .unwrap()
+                .expect("explicit read control");
+            assert_eq!(
+                json!({"text":selected.selected_text(),"start":selected.selection().unwrap().0,"end":selected.selection().unwrap().1,"caret":selected.caret_offset()}),
+                browser_fixture["control"]
+            );
+            probe.close();
+            let rows = text_transport::audit_rows().unwrap();
+            assert_eq!(
+                rows.len(),
+                expected_reads + 1,
+                "explicit GetText control must observe one real request"
+            );
+            for row in rows {
+                assert_eq!(row["pid"], std::process::id());
+                assert_eq!(row["valid"], true);
+                assert_eq!(row["start"], 7);
+                assert_eq!(row["end"], 9);
+                assert!(row["peer"].is_boolean());
             }
         }
         assert_eq!(stage_index, row["stages"].as_array().unwrap().len());
@@ -614,9 +868,50 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         if let Some(audio) = audio {
             assert!(!audio.exists());
         }
-        assert_eq!(portal.snapshot(), row["portal"], "{name}: portal cleanup");
+        if browser {
+            assert_eq!(
+                portal.snapshot()["disconnected"],
+                json!([2]),
+                "Mluva disconnects before its browser"
+            );
+            peer.request(json!({"operation":"quit"}));
+            peer.await_successful_exit();
+            assert!(!Path::new(&format!("/proc/{}", browser_pid.unwrap())).exists());
+            until(|| portal.snapshot()["disconnected"] == json!([2, 1]));
+            assert_eq!(
+                portal.snapshot(),
+                browser_fixture["portals"]
+                    [browser_case.unwrap()["portal"].as_u64().unwrap() as usize],
+                "{name}: all portal owners close"
+            );
+            assert!(!text_transport::bus_name_has_owner("org.a11y.Bus"));
+            assert_eq!(
+                text_transport::audit_rows().unwrap().len(),
+                browser_case.unwrap()["reads"].as_u64().unwrap_or(0) as usize + 1,
+                "include all lifecycle reads"
+            );
+        } else {
+            assert_eq!(portal.snapshot(), row["portal"], "{name}: portal cleanup");
+        }
+        let mut requests = http.finish();
+        if live {
+            use base64::{Engine as _, engine::general_purpose::STANDARD};
+            for request in &mut requests {
+                if let Some(encoded) = request["fields"]["file"].as_str() {
+                    let wav = STANDARD.decode(encoded).unwrap();
+                    let digest =
+                        glib::compute_checksum_for_data(glib::ChecksumType::Sha256, &wav).unwrap();
+                    request["fields"]["file"] = json!({"bytes":wav.len(),"sha256":digest.as_str()});
+                }
+            }
+        }
+        fs::write(
+            root.join(format!("{name}-requests-actual.json")),
+            serde_json::to_vec_pretty(&requests).unwrap(),
+        )
+        .unwrap();
         assert_eq!(
-            json!(http.finish()),
+            json!(requests),
             row["requests"],
             "{name}: provider requests"
         );

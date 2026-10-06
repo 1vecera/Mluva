@@ -1,4 +1,4 @@
-//! Actual Firefox clipboard/key delivery, frozen release receipts and independent DOM observations.
+//! Actual browser clipboard/key delivery, frozen release receipts and independent DOM observations.
 
 use gtk::prelude::*;
 use mluva_core::delivery::{DeliveryOptions, deliver_text};
@@ -14,7 +14,7 @@ use std::{
 
 #[path = "support/text_transport.rs"]
 pub mod transport;
-use transport::{Monitor, Peer, bus_name_has_owner, delivery, settle, snapshot, write};
+use transport::{Monitor, Peer, audit_rows, bus_name_has_owner, delivery, settle, snapshot, write};
 
 fn private_root() -> PathBuf {
     let root = PathBuf::from(std::env::var_os("OFFSCREEN_SESSION_ROOT").unwrap())
@@ -34,7 +34,26 @@ fn private_root() -> PathBuf {
     );
     assert_eq!(std::env::var("XDG_SESSION_TYPE").unwrap(), "x11");
     assert_eq!(std::env::var("GDK_BACKEND").unwrap(), "x11");
-    assert_eq!(std::env::var("ATSPI_DISABLE_P2P").unwrap(), "1");
+    let has_audit = audit_rows().is_some();
+    if std::env::var_os("MLUVA_BROWSER_DEFAULT_TRANSPORT").is_some() {
+        for name in [
+            "ATSPI_DISABLE_P2P",
+            "ATSPI_IN_TESTS",
+            "ATSPI_NO_CACHE",
+            "PYATSPI_NOCACHE",
+        ] {
+            assert!(
+                std::env::var_os(name).is_none(),
+                "{name} changes default transport/cache"
+            );
+        }
+        assert!(
+            has_audit,
+            "default transport requires an outgoing-request observer"
+        );
+    } else {
+        assert_eq!(std::env::var("ATSPI_DISABLE_P2P").unwrap(), "1");
+    }
     assert!(std::env::var_os("WAYLAND_DISPLAY").is_none());
     assert!(std::env::var_os("HYPRLAND_INSTANCE_SIGNATURE").is_none());
     assert!(
@@ -65,12 +84,48 @@ fn clipboard() -> String {
     String::from_utf8(result.stdout).unwrap()
 }
 
+fn merge(base: &mut Value, patch: &Value) {
+    if let (Some(base), Some(patch)) = (base.as_object_mut(), patch.as_object()) {
+        for (key, value) in patch {
+            merge(base.entry(key).or_insert(Value::Null), value);
+        }
+    } else {
+        *base = patch.clone();
+    }
+}
+
+fn fixture(engine: &str) -> Value {
+    let base = include_str!("fixtures/firefox-target-cases.json");
+    let mut fixture: Value = serde_json::from_str(base).unwrap();
+    if engine == "chromium" {
+        let delta: Value =
+            serde_json::from_str(include_str!("fixtures/chromium-target-cases.json")).unwrap();
+        assert_eq!(delta["reference_commit"], fixture["reference_commit"]);
+        assert_eq!(
+            delta["base_sha256"],
+            glib::compute_checksum_for_data(glib::ChecksumType::Sha256, base.as_bytes())
+                .unwrap()
+                .as_str()
+        );
+        let cases = fixture["cases"].as_array_mut().unwrap();
+        let patches = delta["cases"].as_array().unwrap();
+        assert_eq!(cases.len(), patches.len());
+        for (case, patch) in cases.iter_mut().zip(patches) {
+            merge(case, patch);
+        }
+        fixture["browser"] = delta["browser"].clone();
+    } else {
+        assert_eq!(engine, "firefox");
+    }
+    fixture
+}
+
 #[test]
-#[ignore = "requires run-isolated-browser.sh, real Firefox/xclip/xdotool/Openbox and built firefox_text_peer"]
+#[ignore = "requires private browser runner, Firefox or Chromium/ChromeDriver, xclip/xdotool/Openbox and built browser peer"]
 fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
     let root = private_root();
-    let fixture: Value =
-        serde_json::from_str(include_str!("fixtures/firefox-target-cases.json")).unwrap();
+    let engine = std::env::var("MLUVA_BROWSER_ENGINE").unwrap_or_else(|_| "firefox".into());
+    let fixture = fixture(&engine);
     gtk::init().unwrap();
     let application = gtk::Application::new(
         Some("org.example.Mluva.BrowserClient"),
@@ -89,7 +144,10 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
     settle(Duration::from_millis(400));
     own.set_visible(false);
     settle(Duration::from_millis(200));
-    let mut peer = Peer::new(root.join("native-firefox-target"), "firefox_text_peer");
+    let mut peer = Peer::new(
+        root.join(format!("native-{engine}-target")),
+        "firefox_text_peer",
+    );
     let metadata = peer.observed()["metadata"].clone();
     assert_eq!(metadata["version"], fixture["browser"]["version"]);
     assert_eq!(metadata["build_id"], fixture["browser"]["build_id"]);
@@ -100,6 +158,9 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
     );
     assert!(system_accessibility_enabled());
     assert!(!bus_name_has_owner("org.freedesktop.portal.Desktop"));
+    if engine == "chromium" {
+        peer.request(json!({"operation":"enable_accessibility"}));
+    }
     let mut results = Vec::new();
     let mut failures = Vec::new();
     let mut explicit_read_controls = 0;
@@ -132,6 +193,7 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
             .unwrap();
         assert!(control.wait().unwrap().success());
         let monitor = Monitor::new(peer.directory.join(format!("monitor-{name}.log")));
+        let audit_start = audit_rows().map(|rows| rows.len());
         let mut outcome = json!({});
         let target = if input["mode"] == "command" {
             match tracker.capture_text_target(input["maximum"].as_i64().unwrap()) {
@@ -208,10 +270,42 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
         let observed = peer.observed()["observed"].clone();
         outcome["observed"] = json!({"fields":observed["fields"],"focus":observed["focus"],"events":observed["events"]});
         outcome["clipboard"] = clipboard().into();
-        outcome["text_reads"] = monitor.finish();
+        let bus_reads = monitor.finish();
+        let audited = audit_start.map(|start| {
+            let rows = audit_rows().unwrap().split_off(start);
+            assert!(
+                rows.iter()
+                    .all(|row| row["pid"] == std::process::id() && row["valid"] == true)
+            );
+            let ranges = json!(
+                rows.iter()
+                    .map(|row| vec![row["start"].clone(), row["end"].clone()])
+                    .collect::<Vec<_>>()
+            );
+            if std::env::var_os("MLUVA_BROWSER_DEFAULT_TRANSPORT").is_none() {
+                assert_eq!(
+                    ranges, bus_reads,
+                    "observer agrees with the independent bus monitor"
+                );
+            }
+            (rows, ranges)
+        });
+        outcome["text_reads"] = if std::env::var_os("MLUVA_BROWSER_DEFAULT_TRANSPORT").is_some() {
+            audited.as_ref().unwrap().1.clone()
+        } else {
+            bus_reads.clone()
+        };
         if input["mode"] == "command" {
-            assert_eq!(outcome["text_reads"].as_array().unwrap().len(), 1);
+            assert_eq!(
+                outcome["text_reads"].as_array().unwrap().len(),
+                1,
+                "Command {name} must observe its actual GetText request"
+            );
             explicit_read_controls += 1;
+            if name == "command-ascii-selection" {
+                assert_eq!(outcome["snapshot"]["selected_text"], "CONTROL");
+                assert_eq!(outcome["text_reads"], json!([[7, 14]]));
+            }
         } else {
             assert!(outcome["text_reads"].as_array().unwrap().is_empty());
         }
@@ -219,7 +313,12 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
             failures.push(name.to_owned());
             eprintln!("{name}: expected {}, actual {outcome}", case["expected"]);
         }
-        results.push(json!({"name":name,"actual":outcome}));
+        let mut result = json!({"name":name,"actual":outcome});
+        if let Some((rows, _)) = audited {
+            result["outgoing_text_requests"] = json!(rows);
+            result["bus_text_requests"] = bus_reads;
+        }
+        results.push(result);
         tracker.close();
         if input["own_focus"] == true {
             own.set_visible(false);
@@ -228,13 +327,28 @@ fn actual_browser_clipboard_edits_and_focus_guards_match_the_released_client() {
     }
     assert!(!bus_name_has_owner("org.freedesktop.portal.Desktop"));
     assert_eq!(explicit_read_controls, 3);
+    if let Some(rows) = audit_rows() {
+        assert_eq!(
+            rows.len(),
+            3,
+            "include requests outside case observation intervals"
+        );
+        let direct = std::env::var_os("MLUVA_BROWSER_DEFAULT_TRANSPORT").is_some();
+        assert!(rows.iter().all(|row| row["pid"] == std::process::id()
+            && row["valid"] == true
+            && row["peer"] == direct));
+    }
     peer.request(json!({"operation":"quit"}));
     peer.await_successful_exit();
     assert!(!Path::new(&format!("/proc/{}", metadata["pid"])).exists());
     assert!(!bus_name_has_owner("org.a11y.Bus"));
     own.close();
+    settle(Duration::from_millis(180));
+    if let Some(rows) = audit_rows() {
+        assert_eq!(rows.len(), 3, "include normal peer/client shutdown");
+    }
     write(
-        &root.join("native-firefox-target-observations.json"),
+        &root.join(format!("native-{engine}-target-observations.json")),
         &json!({"cases":results,"browser":fixture["browser"]}),
     );
     assert!(

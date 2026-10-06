@@ -38,6 +38,10 @@ tokio-tungstenite.workspace = true
 futures-util.workspace = true
 native-tls = "0.2"
 
+[[example]]
+name = "atspi_read_audit"
+crate-type = ["cdylib"]
+
 [[bin]]
 name = "managed-launcher-fixture-peer"
 path = "tests/support/managed_launcher_peer.rs"

@@ -61,6 +61,18 @@ linux-overlay-test:
 linux-text-target-test:
 	bash linux/tests/run_application_smoke.sh text-targets
 
+.PHONY: linux-browser-target-test
+linux-browser-target-test:
+	bash linux/tests/run_application_smoke.sh browser-targets
+
+.PHONY: linux-chromium-target-test
+linux-chromium-target-test:
+	bash linux/tests/run_application_smoke.sh browser-targets default chromium
+
+.PHONY: linux-browser-application-test
+linux-browser-application-test:
+	bash linux/tests/run_application_smoke.sh browser-application
+
 linux-conversation-test:
 	bash linux/tests/run_conversation_smoke.sh
 

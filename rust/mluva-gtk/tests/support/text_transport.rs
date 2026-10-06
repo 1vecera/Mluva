@@ -28,6 +28,34 @@ pub fn write(path: &Path, value: &Value) {
     fs::rename(temporary, path).unwrap();
 }
 
+/// Read only the outgoing-request log inside the current private session.
+pub fn audit_rows() -> Option<Vec<Value>> {
+    let path = PathBuf::from(std::env::var_os("MLUVA_TEXT_READ_AUDIT")?);
+    let root = PathBuf::from(std::env::var_os("OFFSCREEN_SESSION_ROOT").unwrap())
+        .canonicalize()
+        .unwrap();
+    assert!(
+        path.parent()
+            .unwrap()
+            .canonicalize()
+            .unwrap()
+            .starts_with(&root)
+    );
+    if path.exists() {
+        assert!(path.canonicalize().unwrap().starts_with(&root));
+    }
+    let text = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(error) => panic!("outgoing-request observer: {error}"),
+    };
+    Some(
+        text.lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect(),
+    )
+}
+
 pub struct Peer {
     process: Child,
     pub directory: PathBuf,

@@ -23,6 +23,8 @@ case "$mode" in
     images) suites=(application); image_case="${2:-}"; editor="${3:-${MLUVA_TEST_EDITOR:-}}"; image_cli="${4:-${MLUVA_TEST_INSTALLED_CODEX:-}}" ;;
     screenshots) suites=(application_screenshots) ;;
     text-targets) suites=(text_target) ;;
+    browser-targets) suites=(browser_target); browser_case="${2:-}"; browser_engine="${3:-firefox}" ;;
+    browser-application) suites=(application_shortcuts); browser_case=default ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
 esac
 test_arguments=()
@@ -34,6 +36,25 @@ if "$inside"; then
     test -n "${OFFSCREEN_SESSION_ROOT:-}"
     # Test executables live in deps; native process helpers are siblings in debug.
     export PATH="$CARGO_TARGET_DIR/debug:$PATH"
+    if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
+        export MLUVA_TEXT_READ_AUDIT="$OFFSCREEN_SESSION_ROOT/text-read-audit.jsonl"
+        export LD_PRELOAD="$CARGO_TARGET_DIR/debug/examples/libatspi_read_audit.so"
+        if [[ "$browser_case" == default ]]; then
+            unset ATSPI_DISABLE_P2P ATSPI_IN_TESTS ATSPI_NO_CACHE PYATSPI_NOCACHE
+            export MLUVA_BROWSER_DEFAULT_TRANSPORT=1
+        else
+            test "$browser_case" == bus
+        fi
+    fi
+    if [[ "$mode" == browser-targets ]]; then
+        export MLUVA_BROWSER_ENGINE="$browser_engine"
+    fi
+    if [[ "$mode" == browser-application ]]; then
+        export PATH="$OFFSCREEN_SESSION_ROOT/application-shortcut-tools:$PATH"
+        export MLUVA_APPLICATION_BROWSER=1 TZ=UTC CARGO_NET_OFFLINE=true APP_SHORTCUT_SYNTHETIC_KEY=synthetic-key
+        unset MLUVA_DISABLE_GLOBAL_SHORTCUT
+        exec cargo test --locked -p mluva-gtk "${test_arguments[@]}" -- --ignored --test-threads=1 --nocapture
+    fi
     if [[ "$mode" == live-controllers ]]; then
         for suite in "${suites[@]}"; do
             env PATH="$OFFSCREEN_SESSION_ROOT/${suite%_controller}-codex-tools:$PATH" TZ=UTC CARGO_NET_OFFLINE=true \
@@ -124,10 +145,21 @@ if [[ "$mode" == images ]]; then
 fi
 if [[ "$mode" == text-targets ]]; then
     cargo build --locked -p mluva-gtk --example text_target_peer
+elif [[ "$mode" == browser-targets ]]; then
+    [[ "$browser_engine" == firefox || "$browser_engine" == chromium ]]
+    if [[ "$browser_engine" == chromium ]]; then
+        for prerequisite in chromium chromedriver; do
+            command -v "$prerequisite" >/dev/null || { echo "Missing private Chromium prerequisite: $prerequisite." >&2; exit 3; }
+        done
+    fi
+    cargo build --locked -p mluva-gtk --example firefox_text_peer --example atspi_read_audit
 elif [[ "$mode" != live-components ]]; then
     cargo build --locked -p mluva-gtk --example private_input \
         -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
         -p mluva-providers --bin codex-fixture-peer --bin credential-fixture-peer
+fi
+if [[ "$mode" == browser-application ]]; then
+    cargo build --locked -p mluva-gtk --example firefox_text_peer --example atspi_read_audit
 fi
 if [[ "$mode" == images || "$mode" == screenshots ]]; then
     cargo build --locked -p mluva-workflows --bin screenshot-picker-fixture-peer --bin mluva-narrate \
@@ -136,6 +168,18 @@ fi
 cargo test --locked -p mluva-gtk "${test_arguments[@]}" --no-run
 mkdir -p tmp/application
 evidence="$(mktemp -d "$project_root/tmp/application/run.XXXXXX")"
+if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
+    browser_cases=(bus default)
+    if [[ "$mode" == browser-application ]]; then browser_cases=(default); fi
+    if [[ -n "$browser_case" ]]; then browser_cases=("$browser_case"); fi
+    for browser_case in "${browser_cases[@]}"; do
+        [[ "$browser_case" == bus || "$browser_case" == default ]]
+        bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
+            bash dev/run-isolated-browser.sh "$evidence/$browser_case" -- \
+            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session "$mode" "$browser_case" "${browser_engine:-firefox}"
+    done
+    exit
+fi
 if [[ "$mode" == onboarding ]]; then
     exec bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
         bash dev/run-isolated-browser.sh "$evidence/$onboarding_case" -- \
