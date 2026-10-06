@@ -36,6 +36,8 @@ GTK callbacks stay on the main thread; provider/audio work runs outside it. The 
 
 ## Verification
 
+Use the [functional checklist](docs/functional-checklist.md) for release acceptance. Run the required native gate and add integration checks for the behavior changed by the PR. Existing passing evidence can be reused when its runtime inputs are unchanged. Pixel-perfect comparisons, exhaustive Python equivalence and repeated full GUI batteries are not release requirements.
+
 Tests use synthetic content and local protocol peers. Never open a real microphone, inspect the live accessibility tree, change the host clipboard, inject host input or open host permission dialogs. GUI checks use `dev/run-isolated-browser.sh` with private display, HOME/XDG, D-Bus, accessibility, network and device isolation. See [dev/README.md](dev/README.md) for prerequisites. Image comparisons also require ImageMagick; Mermaid checks require WebKitGTK 6.0.
 
 ```sh

@@ -1,6 +1,6 @@
 # Development tools
 
-The [contributor guide](../CONTRIBUTING.md) covers native Rust builds and focused checks. `make` builds a native bundle; `make run` launches it; `make test` checks the native workspace. `make linux-shortcut-test` runs the native portal comparison without a display. Maintained build, test and install tooling uses Rust and shell, with no Python runtime dependency; complete native UX acceptance remains pending.
+The [contributor guide](../CONTRIBUTING.md) covers native Rust builds and focused checks. `make` builds a native bundle; `make run` launches it; `make test` checks the native workspace. `make linux-shortcut-test` runs the native portal comparison without a display. Maintained build, test and install tooling uses Rust and shell, with no Python runtime dependency. The [functional checklist](../docs/functional-checklist.md) defines current release acceptance.
 
 ## Isolated UI verification
 
@@ -28,7 +28,7 @@ Use `OFFSCREEN_ENABLE_ATSPI=1` for a fixture that exercises accessibility. Run v
 
 ## Unified release package
 
-The native app and widget share one release version and package. Build a prepared runtime bundle with `bash linux/build-native.sh /absolute/new/folder`; it contains no Python and needs no compiler to install. Full UX and platform acceptance remain pending; published releases state their verified scope and limits. The root `manifest.json` is the sole plugin manifest and points directly into `linux/quickshell/mluva.dictation`. Omarchy can clone this repository as a plugin; the app still needs explicit setup from that checkout. No plugin mirror, separate export or second website is needed.
+The native app and widget share one release version and package. Build a prepared runtime bundle with `bash linux/build-native.sh /absolute/new/folder`; it contains no Python and needs no compiler to install. Published releases state their verified functional scope and platform limits. The root `manifest.json` is the sole plugin manifest and points directly into `linux/quickshell/mluva.dictation`. Omarchy can clone this repository as a plugin; the app still needs explicit setup from that checkout. No plugin mirror, separate export or second website is needed.
 
 Omarchy's current plugin manager uses a full Git clone, including this project's older design and video history. On 29 September 2026 the checked-out source occupied about 29 MiB and local Git packs about 361 MiB; actual download size varies. The documented shallow clone or release archive with combined setup remains the smaller download. Keeping one repository avoids a publishing mirror; reducing historical clone size would require a separate, explicitly planned history migration.
 
@@ -37,8 +37,8 @@ Omarchy's current plugin manager uses a full Git clone, including this project's
 `bash install.sh` installs both parts. Source installation requires the pinned Rust toolchain and a C compiler before dependency provisioning. [Native setup comparisons](../rust/mluva-install/tests/fixtures/source-setup-evidence.md) cover confirmation, fresh installs, upgrades, protected local edits and rollback after shell failures. Validate a clean checkout and staged widget with `omarchy plugin validate <path>` in the isolated environment; Omarchy rejects symlinks. Run the applicable native and Linux gates before delivery. Build a source archive from the exact reviewed release commit:
 
 ```sh
-git archive --format=tar.gz --prefix=mluva-2.2.1/ \
-  --output=tmp/mluva-2.2.1-source.tar.gz v2.2.1
+git archive --format=tar.gz --prefix=mluva-2.2.2/ \
+  --output=tmp/mluva-2.2.2-source.tar.gz v2.2.2
 ```
 
 The native [archive builder](../rust/mluva-install/tests/fixtures/archive-evidence.md) creates runtime archives with verified dependency notices. A source archive still requires a compiler. Release approval and a verified package do not establish complete application or physical/platform acceptance.
