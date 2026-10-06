@@ -15,6 +15,7 @@ pub(crate) const EDITABLE: c_int = 7;
 pub(crate) const FOCUSED: c_int = 12;
 pub(crate) const PASSWORD_TEXT: c_int = 40;
 const FOCUS_EVENT: &CStr = c"object:state-changed:focused";
+const APPLICATION_ADDED_EVENT: &CStr = c"object:children-changed:add";
 
 /// libatspi maintains global proxy/cache/listener state without synchronization.
 pub(crate) fn initialize() -> bool {
@@ -121,6 +122,15 @@ impl Node {
         let focused = unsafe { ffi::atspi_component_grab_focus(component.pointer(), error.out()) };
         error.result(focused != 0)
     }
+    /// Announce an accessibility client at an application root, without keeping attributes.
+    pub(crate) fn request_attributes(&self) {
+        let mut error = ErrorSlot::default();
+        let attributes =
+            unsafe { ffi::atspi_accessible_get_attributes(self.0.pointer(), error.out()) };
+        if !attributes.is_null() {
+            unsafe { glib::ffi::g_hash_table_unref(attributes) };
+        }
+    }
 }
 
 impl Text {
@@ -208,33 +218,41 @@ impl EditableText {
     }
 }
 
-type FocusCallback = Rc<dyn Fn(Option<Node>, i32)>;
-type CallbackData = glib::thread_guard::ThreadGuard<FocusCallback>;
-pub(crate) struct FocusListener {
+type EventCallback = Rc<dyn Fn(Option<Node>, i32)>;
+type CallbackData = glib::thread_guard::ThreadGuard<EventCallback>;
+pub(crate) struct EventListener {
     object: Proxy,
+    event: &'static CStr,
     // libatspi 2.60.6 disables its destroy callback. Own the stable userdata ourselves.
     _callback: Box<CallbackData>,
 }
 
-impl FocusListener {
-    pub(crate) fn new(callback: FocusCallback) -> Option<Self> {
+impl EventListener {
+    pub(crate) fn focus(callback: EventCallback) -> Option<Self> {
+        Self::new(FOCUS_EVENT, callback)
+    }
+    pub(crate) fn applications_added(callback: EventCallback) -> Option<Self> {
+        Self::new(APPLICATION_ADDED_EVENT, callback)
+    }
+    fn new(event: &'static CStr, callback: EventCallback) -> Option<Self> {
         let mut callback = Box::new(CallbackData::new(callback));
         let object = unsafe {
             Proxy::full(ffi::atspi_event_listener_new(
-                focus_event,
+                accessible_event,
                 (&mut *callback as *mut CallbackData).cast(),
                 None,
             ))
         }?;
         let listener = Self {
             object,
+            event,
             _callback: callback,
         };
         let mut error = ErrorSlot::default();
         let registered = unsafe {
             ffi::atspi_event_listener_register(
                 listener.object.pointer(),
-                FOCUS_EVENT.as_ptr(),
+                event.as_ptr(),
                 error.out(),
             )
         };
@@ -245,7 +263,7 @@ impl FocusListener {
     }
 }
 
-impl Drop for FocusListener {
+impl Drop for EventListener {
     fn drop(&mut self) {
         let mut error = ErrorSlot::default();
         // Deregistration removes the local entry before making the remote call. During dispatch
@@ -253,7 +271,7 @@ impl Drop for FocusListener {
         unsafe {
             ffi::atspi_event_listener_deregister(
                 self.object.pointer(),
-                FOCUS_EVENT.as_ptr(),
+                self.event.as_ptr(),
                 error.out(),
             );
         }
@@ -268,7 +286,7 @@ impl Drop for OwnedEvent {
     }
 }
 
-unsafe extern "C" fn focus_event(event: *mut ffi::Event, userdata: *mut c_void) {
+unsafe extern "C" fn accessible_event(event: *mut ffi::Event, userdata: *mut c_void) {
     if event.is_null() {
         return;
     }
@@ -315,6 +333,10 @@ mod ffi {
         pub fn atspi_accessible_get_process_id(obj: *mut c_void, error: Error) -> c_uint;
         pub fn atspi_accessible_get_role(obj: *mut c_void, error: Error) -> c_int;
         pub fn atspi_accessible_get_state_set(obj: *mut c_void) -> *mut c_void;
+        pub fn atspi_accessible_get_attributes(
+            obj: *mut c_void,
+            error: Error,
+        ) -> *mut glib::ffi::GHashTable;
         pub fn atspi_state_set_contains(obj: *mut c_void, state: c_int) -> c_int;
         pub fn atspi_accessible_get_text_iface(obj: *mut c_void) -> *mut c_void;
         pub fn atspi_accessible_get_editable_text_iface(obj: *mut c_void) -> *mut c_void;

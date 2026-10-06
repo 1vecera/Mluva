@@ -346,6 +346,25 @@ fn main() {
         .get::<(u32,)>()
         .unwrap();
     assert_eq!(ownership.0, 1);
+    if std::env::var_os("MLUVA_BROWSER_WAIT_FOR_START").is_some() {
+        assert_eq!(std::env::var("MLUVA_BROWSER_ENGINE").unwrap(), "chromium");
+        write(
+            &directory.join("status-ready.json"),
+            &json!({"pid":std::process::id()}),
+        );
+        let deadline = Instant::now() + Duration::from_secs(20);
+        while !directory.join("start-browser").exists() {
+            assert!(
+                Instant::now() < deadline,
+                "client did not start the browser"
+            );
+            let context = glib::MainContext::default();
+            while context.pending() {
+                context.iteration(false);
+            }
+            thread::sleep(Duration::from_millis(10));
+        }
+    }
     let mut browser = match std::env::var("MLUVA_BROWSER_ENGINE").as_deref() {
         Ok("chromium") => Browser::Chromium(chromium::Chromium::start(&directory)),
         Ok("firefox") | Err(std::env::VarError::NotPresent) => {
