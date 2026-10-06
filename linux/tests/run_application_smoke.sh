@@ -10,6 +10,7 @@ fi
 mode="${1:-application}"
 case "$mode" in
     application) suites=(application application_shell) ;;
+    continuation) suites=(application) ;;
     conversation) suites=(conversation_page application_shell) ;;
     live-components) suites=(conversation_page document_surfaces) ;;
     live-controllers) suites=(live_controller review_controller) ;;
@@ -31,6 +32,7 @@ done
 
 if "$inside"; then
     test -n "${OFFSCREEN_SESSION_ROOT:-}"
+    # Test executables live in deps; native process helpers are siblings in debug.
     export PATH="$CARGO_TARGET_DIR/debug:$PATH"
     if [[ "$mode" == live-controllers ]]; then
         for suite in "${suites[@]}"; do
@@ -42,6 +44,9 @@ if "$inside"; then
     fi
     export PATH="$OFFSCREEN_SESSION_ROOT/application-tools:$PATH"
     export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true
+    if [[ "$mode" == continuation ]]; then
+        export MLUVA_APPLICATION_CASE=continuation-controls
+    fi
     if [[ "$mode" == onboarding ]]; then
         export MLUVA_ONBOARDING_CASE="$onboarding_case" GDK_SCALE=1 GSETTINGS_BACKEND=memory
         export MLUVA_TEST_ONBOARDING_ASSETS="$onboarding_assets"

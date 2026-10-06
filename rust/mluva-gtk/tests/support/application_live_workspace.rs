@@ -201,6 +201,19 @@ pub fn exercise(
     };
     let w = &owner.capture.page.workspace;
     let app = owner.shell.window.application().unwrap();
+    for latest in [false, true] {
+        if latest {
+            app.activate_action("latest", None);
+            settle();
+        }
+        assert!(!w.composer.is_visible(), "keep manual Rewrite collapsed");
+        assert!(
+            gtk::prelude::GtkWindowExt::focus(&owner.shell.window)
+                .unwrap()
+                .is_mapped(),
+            "startup and Latest must focus a visible control"
+        );
+    }
     gtk::gdk::Display::default()
         .unwrap()
         .clipboard()

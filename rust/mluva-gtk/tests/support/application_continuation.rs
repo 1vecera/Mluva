@@ -71,6 +71,7 @@ struct Flow<'a> {
     states: Vec<Value>,
     layouts: Vec<Value>,
     pids: Vec<u64>,
+    review_start: Option<(usize, String)>,
 }
 impl Flow<'_> {
     fn record(&mut self, name: &str) {
@@ -192,6 +193,39 @@ impl Flow<'_> {
             serde_json::from_slice(&fs::read(self.tools.join("raw.ready.json")).unwrap()).unwrap();
         self.pids.push(ready["pid"].as_u64().unwrap());
         settle();
+        if let Some((before, identifier)) = self.review_start.take() {
+            let signals = self.signals.borrow();
+            let states = signals[before..]
+                .iter()
+                .filter(|(name, _)| name == "ShellStateChanged")
+                .map(|(_, value)| {
+                    value
+                        .child_value(0)
+                        .get::<BTreeMap<String, glib::Variant>>()
+                        .unwrap()
+                })
+                .collect::<Vec<_>>();
+            assert_eq!(
+                states[0]["phase"].str(),
+                Some("preparing"),
+                "Continue must replace the review directly without hiding its recorder window"
+            );
+            assert!(
+                states.iter().all(|state| state
+                    .get("identifier")
+                    .is_none_or(|id| id.str() == Some(""))),
+                "Capture must revoke the completed-note controls before preparing"
+            );
+            drop(signals);
+            let previous_clipboard = clipboard();
+            self.application
+                .activate_action("review", Some(&("copy", identifier, "").to_variant()));
+            assert_eq!(
+                clipboard(),
+                previous_clipboard,
+                "The previous review must not copy a saved reply during continued capture"
+            );
+        }
     }
     fn stop(&mut self, name: &str) {
         self.owner.capture.page.record_button.emit_clicked();
@@ -208,7 +242,8 @@ impl Flow<'_> {
         settle();
         self.record(name);
     }
-    fn review_continue(&self, identifier: &str) {
+    fn review_continue(&mut self, identifier: &str) {
+        self.review_start = Some((self.signals.borrow().len(), identifier.into()));
         self.application
             .activate_action("review", Some(&("continue", identifier, "").to_variant()));
     }
@@ -275,6 +310,7 @@ pub fn exercise(
         states: vec![],
         layouts: vec![],
         pids: vec![],
+        review_start: None,
     };
     let workspace = &owner.capture.page.workspace;
     let source = services

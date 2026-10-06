@@ -85,7 +85,9 @@ impl ApplicationDesktop {
             self.shell.navigate("capture");
             self.shell.present();
         }
-        self.workspace().prompt.grab_focus();
+        if self.workspace().composer.is_visible() {
+            self.workspace().prompt.grab_focus();
+        }
         Ok(())
     }
     pub(super) fn copy_text(&self, value: &str) {
