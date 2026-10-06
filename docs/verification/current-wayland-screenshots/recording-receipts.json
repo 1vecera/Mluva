@@ -1,0 +1,734 @@
+{
+  "date": "2026-10-06",
+  "scope": "Actual Wayland screenshots during continued main capture, annotation Escape, fresh text box and Stop with picker open",
+  "common_components_receipt": {
+    "bytes": 9405,
+    "sha256": "d9cceec828f09dc50f27907030359d70ef25ac49df58213fb701af70fdc5049c"
+  },
+  "reference": {
+    "version": "1.6.0",
+    "commit": "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f",
+    "files_verified": 91,
+    "manifest": {
+      "bytes": 9429,
+      "sha256": "84bfdf10814cf7e251642f04025f850931b2995be505041e3e5a60aadd27fc13"
+    },
+    "raw": "tmp/wayland-capture-narration/source.X1sHlF/results.json",
+    "raw_fingerprint": {
+      "bytes": 38392,
+      "sha256": "6bcee57d82b4c6a7cc40ec759a299c340fe2a7e6ce16b58f832bb579c4a22d86"
+    }
+  },
+  "native": {
+    "version": "2.1.0",
+    "base_commit": "4992946052653451b03120cf35ad86b6e78367ed",
+    "payload_files_verified": 520,
+    "links_verified": 4,
+    "receipt": {
+      "bytes": 68168,
+      "sha256": "3bf35523cd8b329fee2d0d244c781dc467b3b3ef198bce9949ddbf619c155d51"
+    },
+    "application_sha256": "4b15e162347c54ea5b5cf95dacea8fddc37f026256b72adec5480f6a2fe9e7df",
+    "narration_sha256": "b7dc9b05274c6dd120a463bf5e923a2ded6e69f214eac580b2bf3326020dce87",
+    "raw": "tmp/wayland-capture-narration/native.iq6TcE/results.json",
+    "raw_fingerprint": {
+      "bytes": 38528,
+      "sha256": "cd8efa3db2b83c37c65a9cd576165aef7c37edafa17ddbd2864736f40f244c09"
+    },
+    "no_python_traps": {
+      "positive_invocations": [
+        "/usr/bin/python",
+        "/usr/bin/python3",
+        "/usr/bin/uv"
+      ],
+      "calls_after_start": 0
+    }
+  },
+  "observers": {
+    "observe.py": {
+      "bytes": 34664,
+      "sha256": "f0e3ea0456f4528add744834a4e9f8238052f27761ab1556dce650b32d4360ff"
+    },
+    "run.sh": {
+      "bytes": 1228,
+      "sha256": "d5d39b92c56e8a817977b8a3dd7c186a3cc2d4c2b8584e62248c9c31d2eabaa8"
+    },
+    "audit.py": {
+      "bytes": 17136,
+      "sha256": "e591179471415aafa6f319bfbdcf344ebb6cf7b7dcc9f6483539550c36b9fe36"
+    }
+  },
+  "private_pointer": {
+    "private_pointer.c": {
+      "bytes": 3050,
+      "sha256": "0efd09b2098a931ab0e188f61ed332b3a8656dea5da6cee093fdee6be4c525bc"
+    },
+    "private_pointer": {
+      "bytes": 17784,
+      "sha256": "1d2cea0529c82fa3c7f139b3b365f1788b7b50f7f34cf591a8545ca5867bde82"
+    }
+  },
+  "external_audio_peer": {
+    "bytes": 48583544,
+    "sha256": "bade22600729c66e4dc529e91b5777e0fc05d00f708a9844ff1cf0ed9d34c587"
+  },
+  "editor_sha256": "79de63b635ec5a711bb250bb4fa7cd2dd69aeeb70dffe735a39c3669f7082831",
+  "images": {
+    "selected": {
+      "bytes": 3832,
+      "sha256": "1c12e9970ddc108e92596a705b36f16c2a6c79b49e6bc3ed0b7df145e32fe039"
+    },
+    "selected_rgba": {
+      "bytes": 925604,
+      "sha256": "5406f347f98443394e93d7ca8e277d83043cd3b8f5a3f35851405079b2cebe15"
+    },
+    "cancelled_saved": {
+      "bytes": 3907,
+      "sha256": "014219f3256294cd5c4897eb44d28a4b10eeb17ec8a465a97cdb16574c12b11a"
+    },
+    "cancelled_saved_rgba": {
+      "bytes": 925604,
+      "sha256": "5406f347f98443394e93d7ca8e277d83043cd3b8f5a3f35851405079b2cebe15"
+    },
+    "annotated": {
+      "bytes": 9900,
+      "sha256": "a3427fc3715bd26626321de56af4fa5120b9dc0af429e71737c925e9017234b3"
+    },
+    "annotated_rgba": {
+      "bytes": 1259168,
+      "sha256": "9ca2f8342e3340bce7b96bbdea6eda8e07134b71ada6398a79b08e11b473b2e9"
+    },
+    "ocr": "Private Wayland narration 82"
+  },
+  "comparison": {
+    "whole_png_and_rgba_equal": true,
+    "cancel_then_save_preserves_every_selected_pixel": true,
+    "png_encoding_changes_after_save": true,
+    "pixel_masks": false,
+    "states": {
+      "bytes": 15893,
+      "sha256": "2f5a927118d924723701408b22e6fc4a54ab4cbfcb18473bd6697242e59cf467"
+    },
+    "all_sqlite_columns": true,
+    "sqlite_states": {
+      "bytes": 12264,
+      "sha256": "3920c5c696a190523108d0c41a128f9c4ec23f3e0935e6c8032b96b03a6cb54a"
+    },
+    "normalization": [
+      "generated UUIDs mapped consistently",
+      "generated screenshot/segment creation timestamps",
+      "measured stage milliseconds in [0,10000)",
+      "single frozen screenshot offset in [0,15)"
+    ],
+    "capture_offset_source": 1.1067407950031338,
+    "capture_offset_native": 0.86076416
+  },
+  "speech_requests": [
+    {
+      "path": "/v1/audio/transcriptions",
+      "fields": {
+        "model": "wayland-narration-fixture",
+        "response_format": "json",
+        "language": "en",
+        "file": {
+          "bytes": 3244,
+          "sha256": "1abd052d6c854119b715c6dae474914f6207a0cf7dd041e91914e5c99850fcb3"
+        }
+      },
+      "route": "annotation",
+      "filename": "annotation.wav"
+    },
+    {
+      "path": "/v1/audio/transcriptions",
+      "fields": {
+        "model": "wayland-narration-fixture",
+        "response_format": "json",
+        "language": "en",
+        "file": {
+          "bytes": 3244,
+          "sha256": "9e6626c6578d40f346ba9b59a506b4aa16a08b20dc3367d9407d1fa3940b1f17"
+        }
+      },
+      "route": "main",
+      "filename": "audio.wav"
+    }
+  ],
+  "states": [
+    {
+      "name": "ready",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "owners": [],
+      "phase": "recording",
+      "main_recording_alive": true,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 0,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0,
+      "history_count": 1,
+      "parent_title": null,
+      "image": null,
+      "sqlite_sha256": "290ac5b275e31b2c83ff07084903af5d7c432b5d1533c31806be2e890fd4f392"
+    },
+    {
+      "name": "selection-active",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "owners": [],
+      "phase": "recording",
+      "main_recording_alive": true,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 1,
+      "uploads": 0,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [],
+      "freeze_active": true,
+      "selector_count": 1,
+      "history_count": 1,
+      "parent_title": null,
+      "image": null,
+      "sqlite_sha256": "290ac5b275e31b2c83ff07084903af5d7c432b5d1533c31806be2e890fd4f392"
+    },
+    {
+      "name": "selected",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "owners": [
+        [
+          null,
+          "capture",
+          "sampled"
+        ]
+      ],
+      "phase": "recording",
+      "main_recording_alive": true,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 0,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0,
+      "history_count": 1,
+      "parent_title": null,
+      "image": "selected",
+      "sqlite_sha256": "ea0cb13da656398fc5315f4edc54f6836603ece9c7a005da0418311b952bea00"
+    },
+    {
+      "name": "narrating",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "owners": [
+        [
+          null,
+          "capture",
+          "sampled"
+        ]
+      ],
+      "phase": "recording",
+      "main_recording_alive": true,
+      "annotation_audio_alive": true,
+      "annotation_helper_alive": true,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 0,
+      "volatile_wavs": 1,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [
+        384
+      ],
+      "freeze_active": false,
+      "selector_count": 0,
+      "history_count": 1,
+      "parent_title": null,
+      "image": "selected",
+      "sqlite_sha256": "ea0cb13da656398fc5315f4edc54f6836603ece9c7a005da0418311b952bea00"
+    },
+    {
+      "name": "annotation-cancelled-saved",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "owners": [
+        [
+          null,
+          "capture",
+          "sampled"
+        ]
+      ],
+      "phase": "recording",
+      "main_recording_alive": true,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 0,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0,
+      "history_count": 1,
+      "parent_title": null,
+      "image": "cancelled_saved",
+      "sqlite_sha256": "ea0cb13da656398fc5315f4edc54f6836603ece9c7a005da0418311b952bea00"
+    },
+    {
+      "name": "fresh-narrating",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "owners": [
+        [
+          null,
+          "capture",
+          "sampled"
+        ]
+      ],
+      "phase": "recording",
+      "main_recording_alive": true,
+      "annotation_audio_alive": true,
+      "annotation_helper_alive": true,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 0,
+      "volatile_wavs": 1,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [
+        384
+      ],
+      "freeze_active": false,
+      "selector_count": 0,
+      "history_count": 1,
+      "parent_title": null,
+      "image": "cancelled_saved",
+      "sqlite_sha256": "ea0cb13da656398fc5315f4edc54f6836603ece9c7a005da0418311b952bea00"
+    },
+    {
+      "name": "annotated",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "owners": [
+        [
+          null,
+          "capture",
+          "sampled"
+        ]
+      ],
+      "phase": "recording",
+      "main_recording_alive": true,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 1,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0,
+      "history_count": 1,
+      "parent_title": null,
+      "image": "annotated",
+      "sqlite_sha256": "ea0cb13da656398fc5315f4edc54f6836603ece9c7a005da0418311b952bea00"
+    },
+    {
+      "name": "cancel-active",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "owners": [
+        [
+          null,
+          "capture",
+          "sampled"
+        ]
+      ],
+      "phase": "recording",
+      "main_recording_alive": true,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 1,
+      "uploads": 1,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [],
+      "freeze_active": true,
+      "selector_count": 1,
+      "history_count": 1,
+      "parent_title": null,
+      "image": "annotated",
+      "sqlite_sha256": "ea0cb13da656398fc5315f4edc54f6836603ece9c7a005da0418311b952bea00"
+    },
+    {
+      "name": "stop-recognizing",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "owners": [
+        [
+          null,
+          "capture",
+          "sampled"
+        ]
+      ],
+      "phase": "processing",
+      "main_recording_alive": false,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 1,
+      "uploads": 2,
+      "volatile_wavs": 0,
+      "speech_wavs": 1,
+      "main_wavs": 1,
+      "volatile_modes": [],
+      "freeze_active": true,
+      "selector_count": 1,
+      "history_count": 1,
+      "parent_title": null,
+      "image": "annotated",
+      "sqlite_sha256": "ea0cb13da656398fc5315f4edc54f6836603ece9c7a005da0418311b952bea00"
+    },
+    {
+      "name": "stop-waiting-for-picker",
+      "original_history_unchanged": true,
+      "raw_recognition_unchanged": true,
+      "owners": [
+        [
+          null,
+          "capture",
+          "sampled"
+        ]
+      ],
+      "phase": "processing",
+      "main_recording_alive": false,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 1,
+      "uploads": 2,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 1,
+      "volatile_modes": [],
+      "freeze_active": true,
+      "selector_count": 1,
+      "history_count": 1,
+      "parent_title": null,
+      "image": "annotated",
+      "sqlite_sha256": "ea0cb13da656398fc5315f4edc54f6836603ece9c7a005da0418311b952bea00"
+    },
+    {
+      "name": "main-completed",
+      "original_history_unchanged": false,
+      "raw_recognition_unchanged": true,
+      "owners": [
+        [
+          "parent",
+          null,
+          "sampled"
+        ]
+      ],
+      "phase": "idle",
+      "main_recording_alive": false,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 2,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 0,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0,
+      "history_count": 2,
+      "parent_title": "Private screenshot context 82",
+      "image": "annotated",
+      "sqlite_sha256": "2d990e11e9864b3648ed0c8f1ada32e26974e9a8bd369e3e8baf1d79f3761cb7"
+    },
+    {
+      "name": "closed",
+      "original_history_unchanged": false,
+      "raw_recognition_unchanged": true,
+      "owners": [
+        [
+          "parent",
+          null,
+          "sampled"
+        ]
+      ],
+      "phase": "stopped",
+      "main_recording_alive": false,
+      "annotation_audio_alive": false,
+      "annotation_helper_alive": false,
+      "clipboard_preserved": true,
+      "picker_temporary_files": 0,
+      "uploads": 2,
+      "volatile_wavs": 0,
+      "speech_wavs": 0,
+      "main_wavs": 0,
+      "volatile_modes": [],
+      "freeze_active": false,
+      "selector_count": 0,
+      "history_count": 2,
+      "parent_title": "Private screenshot context 82",
+      "image": "annotated",
+      "sqlite_sha256": "2d990e11e9864b3648ed0c8f1ada32e26974e9a8bd369e3e8baf1d79f3761cb7"
+    }
+  ],
+  "sqlite_before": {
+    "transcription_history": [
+      {
+        "identifier": "parent",
+        "created_at": "2026-03-17T13:40:00+00:00",
+        "raw_text": "Private screenshot context 82",
+        "delivered_text": "Private screenshot context 82",
+        "mode": "dictation",
+        "language_code": "eng",
+        "transcription_id": null,
+        "delivery_outcome": "saved",
+        "title": null,
+        "retained_audio_path": null,
+        "audio_retention_policy": null,
+        "application_identifier": null,
+        "correction_source_text": null,
+        "recognition_route": null,
+        "recognition_fallback_reason": null,
+        "enhancement_provider_id": null,
+        "enhancement_model_identifier": null,
+        "enhancement_context_sources": null,
+        "enhancement_outcome": null,
+        "recognition_ms": null,
+        "enhancement_ms": null,
+        "delivery_ms": null,
+        "title_revision": 0
+      }
+    ],
+    "conversation_screenshots": [],
+    "conversation_sources": [],
+    "recording_continuations": []
+  },
+  "sqlite_after": {
+    "transcription_history": [
+      {
+        "identifier": "parent",
+        "created_at": "2026-03-17T13:40:00+00:00",
+        "raw_text": "Private screenshot context 82",
+        "delivered_text": "Private screenshot context 82",
+        "mode": "dictation",
+        "language_code": "eng",
+        "transcription_id": null,
+        "delivery_outcome": "saved",
+        "title": "Private screenshot context 82",
+        "retained_audio_path": null,
+        "audio_retention_policy": null,
+        "application_identifier": null,
+        "correction_source_text": null,
+        "recognition_route": null,
+        "recognition_fallback_reason": null,
+        "enhancement_provider_id": null,
+        "enhancement_model_identifier": null,
+        "enhancement_context_sources": null,
+        "enhancement_outcome": null,
+        "recognition_ms": null,
+        "enhancement_ms": null,
+        "delivery_ms": null,
+        "title_revision": 0
+      },
+      {
+        "identifier": "segment",
+        "created_at": "generated",
+        "raw_text": "Continued main narration 83.",
+        "delivered_text": "Continued main narration 83.",
+        "mode": "dictation",
+        "language_code": "eng",
+        "transcription_id": null,
+        "delivery_outcome": "ready",
+        "title": null,
+        "retained_audio_path": null,
+        "audio_retention_policy": "failures",
+        "application_identifier": null,
+        "correction_source_text": null,
+        "recognition_route": "litellm-batch",
+        "recognition_fallback_reason": null,
+        "enhancement_provider_id": null,
+        "enhancement_model_identifier": null,
+        "enhancement_context_sources": null,
+        "enhancement_outcome": null,
+        "recognition_ms": "measured",
+        "enhancement_ms": "measured",
+        "delivery_ms": "measured",
+        "title_revision": 0
+      }
+    ],
+    "conversation_screenshots": [
+      {
+        "identifier": "image",
+        "history_identifier": "parent",
+        "capture_identifier": null,
+        "created_at": "generated",
+        "captured_after_seconds": "sampled"
+      }
+    ],
+    "conversation_sources": [
+      {
+        "history_identifier": "parent",
+        "text": "Private screenshot context 82\n\nContinued main narration 83."
+      }
+    ],
+    "recording_continuations": [
+      {
+        "segment_identifier": "segment",
+        "history_identifier": "parent"
+      }
+    ]
+  },
+  "raw_sqlite": {
+    "source": {
+      "annotated.json": {
+        "bytes": 1789,
+        "sha256": "dc587e783a4a4e51d1c08ed6b518dc6ed627ab77fdb897d6bb967e56650a96eb"
+      },
+      "annotation-cancelled-saved.json": {
+        "bytes": 1789,
+        "sha256": "dc587e783a4a4e51d1c08ed6b518dc6ed627ab77fdb897d6bb967e56650a96eb"
+      },
+      "cancel-active.json": {
+        "bytes": 1789,
+        "sha256": "dc587e783a4a4e51d1c08ed6b518dc6ed627ab77fdb897d6bb967e56650a96eb"
+      },
+      "closed.json": {
+        "bytes": 2545,
+        "sha256": "a7b928c0586c7eba21fc761fb66cf7dc61bc7f907c842a88f813047376605a5f"
+      },
+      "fresh-narrating.json": {
+        "bytes": 1789,
+        "sha256": "dc587e783a4a4e51d1c08ed6b518dc6ed627ab77fdb897d6bb967e56650a96eb"
+      },
+      "main-completed.json": {
+        "bytes": 2545,
+        "sha256": "a7b928c0586c7eba21fc761fb66cf7dc61bc7f907c842a88f813047376605a5f"
+      },
+      "narrating.json": {
+        "bytes": 1789,
+        "sha256": "dc587e783a4a4e51d1c08ed6b518dc6ed627ab77fdb897d6bb967e56650a96eb"
+      },
+      "ready.json": {
+        "bytes": 1587,
+        "sha256": "95f8235d7005ffa3593d9f481268905d5a87deac79387ae28bca647db3c7c054"
+      },
+      "selected.json": {
+        "bytes": 1789,
+        "sha256": "dc587e783a4a4e51d1c08ed6b518dc6ed627ab77fdb897d6bb967e56650a96eb"
+      },
+      "selection-active.json": {
+        "bytes": 1587,
+        "sha256": "95f8235d7005ffa3593d9f481268905d5a87deac79387ae28bca647db3c7c054"
+      },
+      "stop-recognizing.json": {
+        "bytes": 1789,
+        "sha256": "dc587e783a4a4e51d1c08ed6b518dc6ed627ab77fdb897d6bb967e56650a96eb"
+      },
+      "stop-waiting-for-picker.json": {
+        "bytes": 1789,
+        "sha256": "dc587e783a4a4e51d1c08ed6b518dc6ed627ab77fdb897d6bb967e56650a96eb"
+      }
+    },
+    "native": {
+      "annotated.json": {
+        "bytes": 1781,
+        "sha256": "e4461f0dd386eb434232ac9890f7151610e9d90428beb699b1da4bee2536a672"
+      },
+      "annotation-cancelled-saved.json": {
+        "bytes": 1781,
+        "sha256": "e4461f0dd386eb434232ac9890f7151610e9d90428beb699b1da4bee2536a672"
+      },
+      "cancel-active.json": {
+        "bytes": 1781,
+        "sha256": "e4461f0dd386eb434232ac9890f7151610e9d90428beb699b1da4bee2536a672"
+      },
+      "closed.json": {
+        "bytes": 2536,
+        "sha256": "7a232e7a6a93c78b353332f1fc6fcba9eabbbb615e278c9c2ae06ffa8c02bdcf"
+      },
+      "fresh-narrating.json": {
+        "bytes": 1781,
+        "sha256": "e4461f0dd386eb434232ac9890f7151610e9d90428beb699b1da4bee2536a672"
+      },
+      "main-completed.json": {
+        "bytes": 2536,
+        "sha256": "7a232e7a6a93c78b353332f1fc6fcba9eabbbb615e278c9c2ae06ffa8c02bdcf"
+      },
+      "narrating.json": {
+        "bytes": 1781,
+        "sha256": "e4461f0dd386eb434232ac9890f7151610e9d90428beb699b1da4bee2536a672"
+      },
+      "ready.json": {
+        "bytes": 1587,
+        "sha256": "1395bbd0b7c647ae1ad0fffaf2366cb306fcc641b6caaa268616dfe3b5682a2c"
+      },
+      "selected.json": {
+        "bytes": 1781,
+        "sha256": "e4461f0dd386eb434232ac9890f7151610e9d90428beb699b1da4bee2536a672"
+      },
+      "selection-active.json": {
+        "bytes": 1587,
+        "sha256": "1395bbd0b7c647ae1ad0fffaf2366cb306fcc641b6caaa268616dfe3b5682a2c"
+      },
+      "stop-recognizing.json": {
+        "bytes": 1781,
+        "sha256": "e4461f0dd386eb434232ac9890f7151610e9d90428beb699b1da4bee2536a672"
+      },
+      "stop-waiting-for-picker.json": {
+        "bytes": 1781,
+        "sha256": "e4461f0dd386eb434232ac9890f7151610e9d90428beb699b1da4bee2536a672"
+      }
+    }
+  },
+  "diagnostics": [
+    {
+      "mode": "source",
+      "client_cache_getitems_warnings": 3,
+      "registry_cache_positive_control": true
+    },
+    {
+      "mode": "native",
+      "client_cache_getitems_warnings": 3,
+      "registry_cache_positive_control": true
+    }
+  ],
+  "quit": {
+    "application_exit": 0,
+    "external_editor_survives": true,
+    "annotation_helpers_reaped": true,
+    "selector_and_freeze_reaped": true,
+    "main_recorder_reaped": true,
+    "private_namespace_exit": 0
+  },
+  "limits": {
+    "physical_f10": false,
+    "real_microphone": false,
+    "real_cloud_provider": false,
+    "gnome": false,
+    "performance": false
+  }
+}

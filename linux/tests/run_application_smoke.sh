@@ -20,7 +20,7 @@ case "$mode" in
     prompts) suites=(application); prompt_case="${2:-}" ;;
     onboarding) suites=(application); onboarding_case="${2:-wide}"; onboarding_assets="${3:-${MLUVA_TEST_ONBOARDING_ASSETS:-}}" ;;
     prompt-editor) suites=(prompt_editor) ;;
-    images) suites=(application); image_case="${2:-}"; editor="${3:-${MLUVA_TEST_EDITOR:-}}" ;;
+    images) suites=(application); image_case="${2:-}"; editor="${3:-${MLUVA_TEST_EDITOR:-}}"; image_cli="${4:-${MLUVA_TEST_INSTALLED_CODEX:-}}" ;;
     screenshots) suites=(application_screenshots) ;;
     text-targets) suites=(text_target) ;;
     *) echo "Unknown application verification group: $mode" >&2; exit 2 ;;
@@ -62,6 +62,7 @@ if "$inside"; then
     fi
     if [[ "$mode" == images ]]; then
         export MLUVA_IMAGE_CASE="$image_case" MLUVA_TEST_EDITOR="$editor" GDK_SCALE=1 GSETTINGS_BACKEND=memory
+        if [[ -n "$image_cli" ]]; then export MLUVA_TEST_INSTALLED_CODEX="$image_cli"; fi
     fi
     if [[ "$mode" == screenshots ]]; then
         export MLUVA_SCREENSHOT_FIXTURE_ROOT="$OFFSCREEN_SESSION_ROOT/application-screenshot-case"
@@ -119,6 +120,7 @@ if [[ "$mode" == images ]]; then
         echo "Set MLUVA_TEST_EDITOR to the verified v1.6.0 Tensaku artifact before this check." >&2
         exit 3
     fi
+    if [[ -n "$image_cli" ]]; then image_cli="$(realpath -e -- "$image_cli")"; fi
 fi
 if [[ "$mode" == text-targets ]]; then
     cargo build --locked -p mluva-gtk --example text_target_peer
@@ -145,7 +147,7 @@ if [[ "$mode" == images ]]; then
     for image_case in "${image_cases[@]}"; do
         bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
             bash dev/run-isolated-browser.sh "$evidence/$image_case" -- \
-            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session images "$image_case" "$editor"
+            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session images "$image_case" "$editor" "$image_cli"
     done
     exit
 fi
