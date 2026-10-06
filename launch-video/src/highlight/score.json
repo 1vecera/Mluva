@@ -11,5 +11,5 @@
     "d3": 15.5,
     "end": 19.25
   },
-  "note": "Measured on ElevenLabs Music v2.5 take B by highlight/analyze_score.py and bands/onsets inspection: first hit from silence 3.75 s; bass swell returns 11.25 s (4 bars later); riser and low jump 15.5 s; final hit after a 0.7 s gap 19.25 s."
+  "note": "Measured on ElevenLabs Music v2.5 take B in the original energy/onset observations: first hit from silence 3.75 s; bass swell returns 11.25 s (4 bars later); riser and low jump 15.5 s; final hit after a 0.7 s gap 19.25 s."
 }

@@ -7,7 +7,7 @@ import { C, display, easeIn, easeInOut, easeOut, LABEL, MONO, mono, ramp, ring, 
 import score from "./score.json";
 
 // Rust-release highlight about the opening speed-up. Every scene change lands on a drop of the
-// generated score (score.json, measured by analyze_score.py). Figures come from
+// generated score (score.json, measured in the original energy/onset observations). Figures come from
 // docs/verification/rust-release-performance/release-startup.json (Python 1.6.0 vs Rust 2.0.0, same
 // host, warm cache, six measured starts per version, medians) and highlight/README.md (install size).
 export const FPS = 60;
