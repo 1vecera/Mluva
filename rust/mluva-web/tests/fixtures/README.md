@@ -1,0 +1,1 @@
+The RSA key and JWK are generated synthetic fixtures for signature, claim and HTTP-boundary checks. They authenticate only the local protocol peers inside the tests and provide no access to any account or deployment. The clipboard peer writes into a disposable directory; speech uses a local fake Scribe endpoint and generated audio.

@@ -113,6 +113,8 @@ See the [product contract](docs/product-contract.md) for retention, recovery and
 
 ## Development
 
+Want to dictate from your phone into this PC? The optional [private browser recorder](docs/browser-recorder.md) installs on your home screen, opens straight to Record / Stop, and shares browser recordings with PC clipboard delivery through Cloudflare.
+
 Mluva uses **Rust, GTK 4, Libadwaita and PipeWire**, with a QML plugin for Omarchy. Source, tests and runtime workers contain no Python. Start with the [code map and focused checks](CONTRIBUTING.md#code-map), [native overview](rust/README.md) or [Linux guide](linux/README.md).
 
 ```sh
