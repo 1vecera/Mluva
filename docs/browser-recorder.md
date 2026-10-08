@@ -4,6 +4,12 @@ The optional `mluva-web` companion records audio on a phone, tablet or another c
 
 The PC serves the webpage and must remain online. This is a browser recording inbox, with final transcription after Stop. The native conversation editor and Live rewriting remain desktop features. No separate remote server, cloud transcript database or microphone access on the receiving PC is needed.
 
+## Install on your phone
+
+Open the protected recorder URL and sign in first. The page includes an Install app action. In Chrome on Android it opens the browser’s installation prompt when available; otherwise it shows the browser-menu instructions. On iPhone or iPad, open the URL in Safari, choose Share → Add to Home Screen, leave Open as Web App enabled if shown, then Add. Launch the Mluva icon next time. The installed app may need its own initial sign-in and microphone permission. The app opens directly to the recorder with one large Record / Stop control; recent recordings and longer help are collapsed below the result.
+
+The manifest requests standalone display with the existing Mluva app mark. The manifest link sends credentials so it can load behind Cloudflare Access. Every manifest, icon and service-worker route uses the same signed-token perimeter as the page and API. The service worker forwards requests to the network without caching pages, transcripts, audio or login responses. The installed app needs an online PC and an unexpired sign-in; it does not add background recording or promise offline launches. Browser-local unfinished audio recovery still works after reconnection.
+
 ## Run
 
 Install `ffmpeg` and `wl-clipboard`, then build the optional companion:
@@ -43,9 +49,10 @@ The companion is opt-in and is built separately; native installation does not st
 cargo test --locked -p mluva-web --target-dir tmp/native-build
 cargo clippy --locked -p mluva-web --all-targets --target-dir tmp/native-build -- -D warnings
 node --check rust/mluva-web/web/app.js
+node --check rust/mluva-web/web/sw.js
 ```
 
-Tests use synthetic JWT signing keys, a local Scribe peer, generated audio, disposable History and a clipboard peer that writes only into its temporary directory. The optional headless Chromium check exercises recording, transfer, two-device history and local audio recovery across reload; it does not open a physical microphone or touch the host clipboard. Install Playwright under the checkout’s `tmp/browser`, then use the offscreen runner:
+Tests use synthetic JWT signing keys, a local Scribe peer, generated audio, disposable History and a clipboard peer that writes only into its temporary directory. The optional headless Chromium check exercises credentialed manifest/icon loading, service-worker control without response caches, installation guidance, recording, transfer, two-device history and local audio recovery across reload; it does not open a physical microphone or touch the host clipboard. Install Playwright under the checkout’s `tmp/browser`, then use the offscreen runner:
 
 ```sh
 npm install --prefix tmp/browser --no-fund --no-audit playwright

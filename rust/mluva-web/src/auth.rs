@@ -355,6 +355,10 @@ mod tests {
         for path in [
             "/",
             "/app.js",
+            "/manifest.webmanifest",
+            "/sw.js",
+            "/icons/mluva-192.png",
+            "/icons/mluva-512.png",
             "/api/recordings",
             "/api/recordings/id",
             "/unknown",
@@ -525,15 +529,38 @@ mod tests {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let url = format!("http://{}", listener.local_addr().unwrap());
         Arc::get_mut(&mut fixture.state).unwrap().origin = url.clone();
-        let app = router(fixture.state.clone());
+        // Simulate Access's cookie-to-assertion edge for browser-owned requests
+        // (manifest and worker updates do not use Playwright's page headers).
+        // This is only a test peer; the production origin still requires signed JWTs.
+        let assertion = token(claims());
+        let app = router(fixture.state.clone()).layer(axum::middleware::from_fn(
+            move |mut request: Request<Body>, next: axum::middleware::Next| {
+                let assertion = assertion.clone();
+                async move {
+                    let authorized = request
+                        .headers()
+                        .get("cookie")
+                        .and_then(|value| value.to_str().ok())
+                        .is_some_and(|value| {
+                            value
+                                .split(';')
+                                .any(|cookie| cookie.trim() == "mluva-test-access=authorized")
+                        });
+                    if authorized {
+                        request
+                            .headers_mut()
+                            .insert("cf-access-jwt-assertion", assertion.parse().unwrap());
+                    }
+                    next.run(request).await
+                }
+            },
+        ));
         let serving = tokio::spawn(async move {
             axum::serve(listener, app).await.unwrap();
         });
         let output = tokio::process::Command::new("node")
             .arg(driver)
             .env("MLUVA_TEST_URL", &url)
-            .env("MLUVA_TEST_JWT", token(claims()))
-            .env("MLUVA_TEST_ORIGIN", &url)
             .output()
             .await
             .unwrap();

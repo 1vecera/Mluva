@@ -2,9 +2,39 @@
 
 const el = (id) => document.getElementById(id);
 const record = el("record"), status = el("status"), retry = el("retry");
+const recordLabel = el("record-label");
 let recorder, stream, pending, currentId, timer, started, wakeLock, downloadUrl;
 let transferring = false;
 let store;
+let installPrompt;
+
+function installed() {
+  return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+}
+
+el("install").hidden = installed();
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  installPrompt = event;
+});
+window.addEventListener("appinstalled", () => { el("install").hidden = true; installPrompt = undefined; });
+el("install").addEventListener("click", async () => {
+  if (installPrompt) {
+    const prompt = installPrompt;
+    installPrompt = undefined;
+    try { await prompt.prompt(); return; }
+    catch { /* The browser-menu instructions remain available. */ }
+  }
+  const apple = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  el("install-instructions").textContent = apple
+    ? "In Safari, open Share, choose Add to Home Screen, leave Open as Web App on if shown, then Add. Open the Mluva icon next time. You may need to sign in once in the app and allow its microphone."
+    : "Open your browser menu and choose Install app or Add to Home screen. Then open the Mluva icon to record. If you don’t see that option, try Chrome. On iPhone or iPad, use Safari’s Share menu → Add to Home Screen.";
+  el("install-help").showModal();
+});
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch(() => {});
+}
 
 async function openStore() {
   return new Promise((resolve, reject) => {
@@ -73,9 +103,8 @@ async function start() {
       clearInterval(timer);
       stream.getTracks().forEach((track) => track.stop());
       if (wakeLock) { await wakeLock.release().catch(() => {}); wakeLock = undefined; }
-      el("timer").hidden = true;
       record.dataset.recording = "false";
-      record.textContent = "Record";
+      recordLabel.textContent = "Record";
       pending = { identifier, audio: new Blob(chunks, { type: recorder.mimeType || "audio/webm" }) };
       showAudio();
       try { await savedRecording(pending); }
@@ -101,7 +130,7 @@ async function start() {
     }, 250);
     if (navigator.wakeLock) navigator.wakeLock.request("screen").then((lock) => { wakeLock = lock; }).catch(() => {});
     record.dataset.recording = "true";
-    record.textContent = "Stop & transfer";
+    recordLabel.textContent = "Stop";
     record.disabled = false;
     status.textContent = "Recording on this device…";
   } catch (error) {
@@ -134,9 +163,11 @@ async function transfer() {
     status.textContent = job.message || (job.copied ? "Copied to your PC clipboard." : "Text is ready. Use Copy to PC to copy it again.");
     await savedRecording(null);
     pending = undefined;
+    el("download").hidden = true;
     el("discard").hidden = true;
+    if (downloadUrl) { URL.revokeObjectURL(downloadUrl); downloadUrl = undefined; }
     record.disabled = false;
-    await refreshHistory();
+    await refreshHistory().catch(() => {});
   } catch (error) {
     status.textContent = error.message;
     retry.hidden = false;
@@ -181,6 +212,7 @@ el("discard").addEventListener("click", async () => {
   retry.hidden = true;
   el("download").hidden = true;
   el("discard").hidden = true;
+  if (downloadUrl) { URL.revokeObjectURL(downloadUrl); downloadUrl = undefined; }
   record.disabled = false;
   status.textContent = "Local recording discarded. Ready to record.";
 });

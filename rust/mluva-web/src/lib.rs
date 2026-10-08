@@ -116,6 +116,42 @@ pub fn router(state: Arc<AppState>) -> Router {
                 )
             }),
         )
+        .route(
+            "/manifest.webmanifest",
+            get(|| async {
+                (
+                    [("Content-Type", "application/manifest+json")],
+                    include_str!("../web/manifest.webmanifest"),
+                )
+            }),
+        )
+        .route(
+            "/sw.js",
+            get(|| async {
+                (
+                    [("Content-Type", "text/javascript; charset=utf-8")],
+                    include_str!("../web/sw.js"),
+                )
+            }),
+        )
+        .route(
+            "/icons/mluva-192.png",
+            get(|| async {
+                (
+                    [("Content-Type", "image/png")],
+                    include_bytes!("../../../docs/brand/png/mluva-mark-192.png").as_slice(),
+                )
+            }),
+        )
+        .route(
+            "/icons/mluva-512.png",
+            get(|| async {
+                (
+                    [("Content-Type", "image/png")],
+                    include_bytes!("../../../docs/brand/png/mluva-mark-512.png").as_slice(),
+                )
+            }),
+        )
         .route("/api/recordings", get(recordings))
         .route("/api/recordings/{identifier}", post(upload).get(job))
         .route("/api/recordings/{identifier}/copy", post(copy))
@@ -159,7 +195,7 @@ async fn perimeter(State(state): State<Arc<AppState>>, request: Request, next: N
         ("x-content-type-options", "nosniff"),
         (
             "content-security-policy",
-            "default-src 'self'; script-src 'self'; style-src 'unsafe-inline'; media-src 'self' blob:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+            "default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'unsafe-inline'; media-src 'self' blob:; connect-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
         ),
         ("permissions-policy", "microphone=(self), camera=()"),
     ] {
