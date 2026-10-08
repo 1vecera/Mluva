@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#16191e">
+  <title>Mluva · Record anywhere</title>
+  <style>
+    :root { color-scheme: dark; font: 16px/1.6 ui-monospace, SFMono-Regular, monospace; background: #16191e; color: #e6e7e9; }
+    * { box-sizing: border-box; } body { margin: 0 auto; padding: 32px 22px 60px; max-width: 720px; }
+    header { display: flex; align-items: center; gap: 10px; margin-bottom: 44px; } .mark { color: #ff525c; font-size: 28px; }
+    header strong { font-size: 23px; letter-spacing: -.05em; } .private { margin-left: auto; font-size: 12px; color: #9aa0aa; }
+    h1 { font: 500 clamp(28px, 6vw, 38px)/1.25 system-ui, sans-serif; letter-spacing: -.035em; margin: 0 0 12px; }
+    p { color: #a6acb7; margin: 0 0 24px; } .controls { display: flex; gap: 10px; flex-wrap: wrap; }
+    button, .button { font: inherit; font-size: 14px; padding: 12px 17px; border: 1px solid #3d424c; border-radius: 8px; color: inherit; background: #252a32; cursor: pointer; text-decoration: none; }
+    button:disabled { opacity: .45; cursor: default; } button:focus-visible, a:focus-visible { outline: 2px solid #a3c4eb; outline-offset: 4px; }
+    #record { background: #d7424c; color: white; border-color: #d7424c; min-width: 172px; } #record[data-recording="true"] { background: #822b34; }
+    #status { margin: 20px 0; font-size: 14px; min-height: 26px; color: #bdc5d0; } #timer { font-variant-numeric: tabular-nums; }
+    textarea { display: block; width: 100%; min-height: 180px; font: inherit; padding: 18px; color: #e6e7e9; background: #1c2027; border: 1px solid #343944; border-radius: 10px; resize: vertical; margin-bottom: 12px; }
+    [hidden] { display: none !important; } h2 { font-size: 14px; font-weight: 500; margin: 40px 0 16px; color: #a6acb7; }
+    article { border-top: 1px solid #343944; padding: 18px 0; } article p { margin: 0 0 12px; color: #d5d9df; white-space: pre-wrap; overflow-wrap: anywhere; }
+    article button { padding: 7px 12px; font-size: 12px; } .footnote { font-size: 12px; margin-top: 36px; }
+  </style>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header><span class="mark" aria-hidden="true">●</span><strong>Mluva</strong><span class="private">Private recorder</span></header>
+  <main>
+    <h1>Speak here. Paste on your PC.</h1>
+    <p>Record on this device. Stop to transcribe and send the text to your PC’s clipboard.</p>
+    <div class="controls">
+      <button id="record" type="button" disabled>Record</button>
+      <span id="timer" role="timer" aria-label="Recording duration" hidden>0:00</span>
+      <button id="retry" type="button" hidden>Retry transfer</button>
+      <a id="download" class="button" hidden>Download audio</a>
+      <button id="discard" type="button" hidden>Discard local audio</button>
+    </div>
+    <div id="status" role="status" aria-live="polite">Connecting…</div>
+    <section id="result" hidden>
+      <textarea id="text" aria-label="Transcription" readonly></textarea>
+      <div class="controls"><button id="copy-device" type="button">Copy on this device</button><button id="copy-pc" type="button">Copy to PC</button></div>
+    </section>
+    <h2>Recent browser recordings · shared across your devices</h2>
+    <div id="history"><p>No browser recordings yet.</p></div>
+    <p class="footnote">Keep this page open while recording, up to 10 minutes. Audio goes to your PC, then to ElevenLabs Scribe. Your PC must stay on. Unsent audio stays on this device until transfer or discard. Mluva’s history, automatic copy and audio retention settings apply.</p>
+  </main>
+</body>
+</html>

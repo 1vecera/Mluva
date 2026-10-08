@@ -50,6 +50,8 @@ Incognito saves no new history or recovery audio and disables conversation rewri
 
 ## Desktop integration and diagnostics
 
+The optional [browser recorder](browser-recorder.md) accepts authenticated device recordings through Cloudflare Access and Tunnel, uses Scribe v2, and saves recognition in local History before it is reused across browser devices. Its own audio staging, browser-local recovery, clipboard behavior and Incognito limits are described in that guide. Native installation does not enable this service.
+
 Shortcuts are approved by the desktop portal. The Omarchy widget receives a bounded volatile preview and conversation/style identifiers through the local application bridge. It does not persist that stream, hold credentials or make provider requests itself. Its completed-note actions operate on the identified conversation, even while another note is open.
 
 Diagnostics exports contain bounded event categories, timings and nonsecret configuration flags. They exclude audio, transcript text, selected text, clipboard contents, device names, application/window identities, credentials and arbitrary provider error messages. Incognito writes no diagnostic events.
