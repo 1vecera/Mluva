@@ -14,6 +14,7 @@ const context = await chromium.launchPersistentContext(profile, {
 try {
   await context.addCookies([{ name: "mluva-test-access", value: "authorized", url: process.env.MLUVA_TEST_URL, httpOnly: true, sameSite: "Lax" }]);
   page = await context.newPage();
+  await page.clock.install();
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(process.env.MLUVA_TEST_URL);
@@ -59,6 +60,12 @@ try {
   await page.getByRole("button", { name: "Record", exact: true }).click();
   await page.getByRole("button", { name: "Stop", exact: true }).waitFor();
   await page.waitForTimeout(1200);
+  assert.equal(await page.evaluate(() => recorder.audioBitsPerSecond), 48000);
+  // Advance only the page clock: capture stays synthetic, while the real UI
+  // must keep recording past the old ten-minute timer.
+  await page.clock.setSystemTime(await page.evaluate(() => Date.now()) + 601_000);
+  await page.waitForFunction(() => document.getElementById("timer").textContent.startsWith("10:"));
+  assert(await page.getByRole("button", { name: "Stop", exact: true }).isEnabled());
   await page.getByRole("button", { name: "Stop", exact: true }).click();
   await page.waitForFunction(() => document.getElementById("text").value === "Synthetic browser test.");
   await page.waitForFunction(() => document.getElementById("status").textContent.includes("clipboard"));
@@ -77,7 +84,11 @@ try {
   await page.getByRole("button", { name: "Record", exact: true }).click();
   await page.getByRole("button", { name: "Stop", exact: true }).waitFor();
   await page.waitForTimeout(1200);
-  await page.getByRole("button", { name: "Stop", exact: true }).click();
+  await page.clock.setSystemTime(await page.evaluate(() => started) + 7_199_000);
+  await page.waitForFunction(() => document.getElementById("timer").textContent === "1:59:59");
+  assert(await page.getByRole("button", { name: "Stop", exact: true }).isEnabled());
+  await page.clock.setSystemTime(await page.evaluate(() => started) + 7_201_000);
+  // The two-hour cap stops capture automatically and preserves offline audio.
   await page.getByRole("button", { name: "Retry transfer" }).waitFor();
   await context.setOffline(false);
   await page.reload();
@@ -91,7 +102,7 @@ try {
   assert.equal(await page.evaluate(async () => (await fetch("/api/recordings")).status), 401);
   assert.equal(await page.evaluate(async () => (await caches.keys()).length), 0);
   assert.deepEqual(errors, []);
-  console.log("PASS: browser recording, Scribe result, two-device history, PWA manifest/icons/service worker, mobile layout, offline audio recovery, and retry.");
+  console.log("PASS: browser recording beyond ten minutes, automatic two-hour Stop, Scribe result, two-device history, PWA manifest/icons/service worker, mobile layout, offline audio recovery, and retry.");
 } catch (error) {
   if (page) console.log(await page.locator("body").innerText());
   throw error;

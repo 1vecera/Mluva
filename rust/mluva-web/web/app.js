@@ -3,6 +3,8 @@
 const el = (id) => document.getElementById(id);
 const record = el("record"), status = el("status"), retry = el("retry");
 const recordLabel = el("record-label");
+const MAX_RECORDING_SECONDS = 2 * 60 * 60;
+const MAX_RECORDING_BYTES = 89 * 1024 * 1024;
 let recorder, stream, pending, currentId, timer, started, wakeLock, downloadUrl;
 let transferring = false;
 let store;
@@ -89,14 +91,14 @@ async function start() {
   status.textContent = "Allow microphone access to start.";
   let chunks = [], bytes = 0;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1 } });
     const mime = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus"].find((type) => MediaRecorder.isTypeSupported(type));
-    recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    recorder = new MediaRecorder(stream, { ...(mime ? { mimeType: mime } : {}), audioBitsPerSecond: 48000 });
     const identifier = crypto.randomUUID();
     let recordingError = false;
     recorder.addEventListener("dataavailable", (event) => {
       if (event.data.size) { chunks.push(event.data); bytes += event.data.size; }
-      if (bytes >= 19 * 1024 * 1024 && recorder.state === "recording") stop();
+      if (bytes >= MAX_RECORDING_BYTES && recorder.state === "recording") stop();
     });
     recorder.addEventListener("error", () => { recordingError = true; });
     recorder.addEventListener("stop", async () => {
@@ -125,8 +127,10 @@ async function start() {
     el("timer").hidden = false;
     timer = setInterval(() => {
       const seconds = Math.floor((Date.now() - started) / 1000);
-      el("timer").textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-      if (seconds >= 600) stop();
+      const minutes = Math.floor(seconds / 60);
+      const prefix = seconds >= 3600 ? `${Math.floor(seconds / 3600)}:${String(minutes % 60).padStart(2, "0")}` : String(minutes);
+      el("timer").textContent = `${prefix}:${String(seconds % 60).padStart(2, "0")}`;
+      if (seconds >= MAX_RECORDING_SECONDS) stop();
     }, 250);
     if (navigator.wakeLock) navigator.wakeLock.request("screen").then((lock) => { wakeLock = lock; }).catch(() => {});
     record.dataset.recording = "true";
