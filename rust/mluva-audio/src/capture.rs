@@ -25,6 +25,7 @@ pub enum CaptureStorage {
 }
 
 enum Request {
+    Audio(Vec<u8>, oneshot::Sender<Result<()>>),
     Destination(CaptureStorage, String, oneshot::Sender<Result<PathBuf>>),
     Start(
         PathBuf,
@@ -50,8 +51,48 @@ pub struct CaptureRecorder {
     snapshot: std::sync::Arc<Snapshot>,
 }
 
+enum Input {
+    Microphone(PipeWireRecorder),
+    Phone(crate::external::ExternalRecorder),
+}
+impl Input {
+    fn start(
+        &mut self,
+        path: &std::path::Path,
+        callback: Option<AudioChunkCallback>,
+    ) -> Result<()> {
+        match self {
+            Self::Microphone(recorder) => recorder.start(path, callback),
+            Self::Phone(recorder) => recorder.start(path, callback),
+        }
+    }
+    fn active(&self) -> bool {
+        match self {
+            Self::Microphone(recorder) => recorder.active(),
+            Self::Phone(recorder) => recorder.active(),
+        }
+    }
+    fn stop(&mut self) -> Result<PathBuf> {
+        match self {
+            Self::Microphone(recorder) => recorder.stop(),
+            Self::Phone(recorder) => recorder.stop(),
+        }
+    }
+    fn cancel(&mut self) {
+        match self {
+            Self::Microphone(recorder) => recorder.cancel(),
+            Self::Phone(recorder) => recorder.cancel(),
+        }
+    }
+}
 impl CaptureRecorder {
     pub fn new(recorder: PipeWireRecorder) -> Result<Self> {
+        Self::with_input(Input::Microphone(recorder))
+    }
+    pub fn phone() -> Result<Self> {
+        Self::with_input(Input::Phone(Default::default()))
+    }
+    fn with_input(recorder: Input) -> Result<Self> {
         let (requests, receiver) = mpsc::channel();
         let snapshot = std::sync::Arc::new(Snapshot {
             active: AtomicBool::new(false),
@@ -88,6 +129,12 @@ impl CaptureRecorder {
     pub async fn start(&self, path: PathBuf, callback: Option<AudioChunkCallback>) -> Result<()> {
         let (reply, response) = oneshot::channel();
         self.send(Request::Start(path, callback, reply))?;
+        response.await.map_err(|_| stopped())?
+    }
+
+    pub async fn append_phone_audio(&self, frames: Vec<u8>) -> Result<()> {
+        let (reply, response) = oneshot::channel();
+        self.send(Request::Audio(frames, reply))?;
         response.await.map_err(|_| stopped())?
     }
 
@@ -144,15 +191,26 @@ fn stopped() -> AudioCaptureError {
     AudioCaptureError::Message("The microphone capture service stopped.")
 }
 
-fn own(
-    mut recorder: PipeWireRecorder,
-    receiver: mpsc::Receiver<Request>,
-    snapshot: std::sync::Arc<Snapshot>,
-) {
+fn own(mut recorder: Input, receiver: mpsc::Receiver<Request>, snapshot: std::sync::Arc<Snapshot>) {
     let mut volatile = None;
     let mut destination: Option<PathBuf> = None;
     while let Ok(request) = receiver.recv() {
         match request {
+            Request::Audio(frames, reply) => {
+                let result = match &mut recorder {
+                    Input::Phone(recorder) => recorder.append(&frames),
+                    _ => Err(AudioCaptureError::Message(
+                        "This capture does not accept phone audio.",
+                    )),
+                };
+                if result.is_ok() {
+                    snapshot.level.store(
+                        crate::pcm16_audio_level(&frames).to_bits(),
+                        Ordering::Relaxed,
+                    );
+                }
+                let _ = reply.send(result);
+            }
             Request::Destination(storage, filename, reply) => {
                 let result = (|| {
                     if destination.is_some() {

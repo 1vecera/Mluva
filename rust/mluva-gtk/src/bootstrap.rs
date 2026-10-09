@@ -141,6 +141,21 @@ pub fn run(arguments: &[String]) -> glib::ExitCode {
         .application_id(APPLICATION_ID)
         .build();
     let process = Rc::new(Process::default());
+    let background = arguments.iter().any(|arg| arg == "--phone-background");
+    let arguments = arguments
+        .iter()
+        .filter(|arg| arg.as_str() != "--phone-background")
+        .cloned()
+        .collect::<Vec<_>>();
+    if background {
+        let startup = process.clone();
+        application.connect_startup(move |application| {
+            if startup.initialize(application).is_err() {
+                startup.failed.set(true);
+                application.quit();
+            }
+        });
+    }
     let actions = process.clone();
     let app = application.downgrade();
     register_actions(
@@ -152,10 +167,27 @@ pub fn run(arguments: &[String]) -> glib::ExitCode {
         }),
     );
     let activated = process.clone();
-    application.connect_activate(move |application| activated.activate(application));
+    let initial_background_activation = Cell::new(background);
+    application.connect_activate(move |application| {
+        if !initial_background_activation.replace(false) {
+            activated.activate(application);
+        }
+    });
     let closing = process.clone();
     application.connect_shutdown(move |_| closing.shutting_down());
-    let result = application.run_with_args(arguments);
+    if background {
+        // Register without activating an existing resident. A cold process owns
+        // its startup hold and skips only run()'s initial window activation;
+        // subsequent ordinary launches can still present the resident window.
+        if application.register(gio::Cancellable::NONE).is_err() {
+            eprintln!("{START_ERROR}");
+            return glib::ExitCode::FAILURE;
+        }
+        if application.is_remote() {
+            return glib::ExitCode::SUCCESS;
+        }
+    }
+    let result = application.run_with_args(&arguments);
     process.finish();
     if process.failed.get() {
         glib::ExitCode::FAILURE

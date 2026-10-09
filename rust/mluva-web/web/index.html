@@ -42,6 +42,7 @@
     @media (display-mode: standalone) { #install { display: none; } header { margin-bottom: 36px; } }
     @media (max-width: 350px) { body { padding-left: 18px; padding-right: 18px; } .private { display: none; } }
   </style>
+  <script src="/live.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -49,7 +50,8 @@
   <main>
     <section class="recorder" aria-label="Recorder">
       <h1>Speak. Paste.</h1>
-      <p class="intro">Tap to record. Stop to send it to your PC.</p>
+      <p class="intro">Your phone mic. Your PC’s recording widget.</p>
+      <label style="display:block;margin-bottom:28px"><input id="live-mode" type="checkbox" checked> Live microphone on PC</label>
       <button id="record" type="button" disabled>
         <svg class="mic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg>
         <svg class="stop" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
@@ -57,6 +59,7 @@
       </button>
       <span id="timer" role="timer" aria-label="Recording duration">0:00</span>
       <div id="status" role="status" aria-live="polite">Connecting…</div>
+      <p id="live-preview" class="help" hidden></p>
       <div class="controls recovery">
         <button id="retry" type="button" hidden>Retry transfer</button>
         <a id="download" class="button" hidden>Download audio</a>
@@ -69,7 +72,7 @@
       <div class="controls"><button id="copy-pc" type="button">Copy to PC</button><button id="copy-device" type="button">Copy here</button></div>
     </section>
     <details id="recent"><summary>Recent recordings</summary><div id="history"><p>No browser recordings yet.</p></div></details>
-    <details class="help"><summary>Good to know</summary><p>Keep Mluva open and your phone unlocked while recording, up to 2 hours. Your PC must be on and connected.</p><p>Audio goes to your PC, then to ElevenLabs Scribe. Unsent audio stays on this device until transfer or discard. Your Mluva history, automatic copy and audio retention settings apply.</p></details>
+    <details class="help"><summary>Good to know</summary><p>Keep Mluva open and your phone unlocked while recording, up to 2 hours. Your PC must be on and connected.</p><p>Live microphone streams audio to the PC’s Mluva widget. Stop on either device; completed text follows your PC’s provider, rewrite, copy and retention settings. A phone recording is kept for recovery until completion or discard. Turn Live microphone off to record locally and send at Stop using ElevenLabs Scribe.</p></details>
   </main>
   <dialog id="install-help" aria-labelledby="install-title"><h2 id="install-title">Mluva on your home screen</h2><p id="install-instructions"></p><form method="dialog"><button>Got it</button></form></dialog>
 </body>

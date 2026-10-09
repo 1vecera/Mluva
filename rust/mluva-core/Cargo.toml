@@ -28,6 +28,12 @@ unicode-normalization.workspace = true
 sha2 = "0.11.0"
 
 [[bin]]
+name = "phone-fixture-peer"
+path = "tests/support/phone_peer.rs"
+test = false
+doc = false
+
+[[bin]]
 name = "mluva-feature-maturity"
 path = "src/maturity_cli.rs"
 
