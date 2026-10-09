@@ -1,6 +1,7 @@
 //! A bounded, authenticated audio inbox with desktop history and clipboard delivery.
 
 pub mod auth;
+mod phone;
 
 use axum::{
     Json, Router,
@@ -41,6 +42,7 @@ pub struct AppState {
     pub speech: Arc<ElevenLabsClient>,
     pub clipboard: PathBuf,
     pub ffmpeg: PathBuf,
+    pub phone_socket: Option<PathBuf>,
     jobs: Mutex<BTreeMap<String, Job>>,
     busy: Arc<Semaphore>,
 }
@@ -72,6 +74,7 @@ impl AppState {
             speech,
             clipboard,
             ffmpeg,
+            phone_socket: mluva_core::phone::socket_path().ok(),
             jobs: Mutex::new(BTreeMap::new()),
             busy: Arc::new(Semaphore::new(1)),
         }
@@ -156,6 +159,34 @@ pub fn router(state: Arc<AppState>) -> Router {
             }),
         )
         .route("/api/recordings", get(recordings))
+        .route(
+            "/live.js",
+            get(|| async {
+                (
+                    [("Content-Type", "text/javascript; charset=utf-8")],
+                    include_str!("../web/live.js"),
+                )
+            }),
+        )
+        .route(
+            "/pcm-worklet.js",
+            get(|| async {
+                (
+                    [("Content-Type", "text/javascript; charset=utf-8")],
+                    include_str!("../web/pcm-worklet.js"),
+                )
+            }),
+        )
+        .route(
+            "/api/live/{identifier}",
+            post(phone::start).get(phone::status),
+        )
+        .route(
+            "/api/live/{identifier}/chunks/{sequence}",
+            post(phone::audio).layer(DefaultBodyLimit::max(mluva_core::phone::MAX_CHUNK_BYTES)),
+        )
+        .route("/api/live/{identifier}/stop", post(phone::stop))
+        .route("/api/live/{identifier}/cancel", post(phone::cancel))
         .route("/api/recordings/{identifier}", post(upload).get(job))
         .route("/api/recordings/{identifier}/copy", post(copy))
         .fallback(|| async { StatusCode::NOT_FOUND })
@@ -248,6 +279,24 @@ async fn upload(
         Ok(Some(entry)) => return Json(receipt(identifier, entry)).into_response(),
         Err(message) => return error(StatusCode::INTERNAL_SERVER_ERROR, &message),
         Ok(None) => {}
+    }
+    if let Ok(reply) = phone::call(
+        &state,
+        mluva_core::phone::PhoneRequest::Status {
+            identifier: identifier.clone(),
+        },
+    )
+    .await
+    {
+        if ["preparing", "recording", "processing"].contains(&reply.phase.as_str()) {
+            return error(
+                StatusCode::CONFLICT,
+                "This recording is still active on the PC. Wait for it to finish before retrying.",
+            );
+        }
+        if reply.phase == "completed" {
+            return Json(reply).into_response();
+        }
     }
     if audio.is_empty() {
         return error(StatusCode::BAD_REQUEST, "The recording is empty.");
