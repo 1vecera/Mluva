@@ -40,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let speech = Arc::new(ElevenLabsClient::new(
         key,
         SCRIBE_ENDPOINT,
-        Duration::from_secs(300),
+        Duration::from_secs(1800),
     )?);
     let ffmpeg = find_executable("ffmpeg").ok_or("Install ffmpeg to receive browser audio.")?;
     let clipboard =

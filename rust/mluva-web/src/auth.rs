@@ -114,7 +114,7 @@ fn verify(token: &str, key: &DecodingKey, issuer: &str, audience: &str) -> bool 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AppState, MAX_UPLOAD, router};
+    use crate::{AppState, MAX_RECORDING_SECONDS, MAX_UPLOAD, router};
     use axum::{
         Router,
         body::{Body, to_bytes},
@@ -201,6 +201,7 @@ mod tests {
         root: tempfile::TempDir,
         state: Arc<AppState>,
         calls: Arc<AtomicUsize>,
+        provider_bytes: Arc<AtomicUsize>,
         peer: tokio::task::JoinHandle<()>,
     }
 
@@ -240,25 +241,31 @@ mod tests {
         std::fs::set_permissions(&clipboard, std::fs::Permissions::from_mode(0o700)).unwrap();
         let calls = Arc::new(AtomicUsize::new(0));
         let seen = calls.clone();
-        let peer = Router::new().route(
-            "/scribe",
-            post(move |body: axum::body::Bytes| {
-                let seen = seen.clone();
-                async move {
-                    seen.fetch_add(1, Ordering::SeqCst);
-                    assert!(body.windows(4).any(|window| window == b"RIFF"));
-                    if provider_fails {
-                        return (StatusCode::BAD_GATEWAY, axum::Json(json!({})));
+        let provider_bytes = Arc::new(AtomicUsize::new(0));
+        let received = provider_bytes.clone();
+        let peer = Router::new()
+            .route(
+                "/scribe",
+                post(move |body: axum::body::Bytes| {
+                    let seen = seen.clone();
+                    let received = received.clone();
+                    async move {
+                        seen.fetch_add(1, Ordering::SeqCst);
+                        received.store(body.len(), Ordering::SeqCst);
+                        assert!(body.windows(4).any(|window| window == b"RIFF"));
+                        if provider_fails {
+                            return (StatusCode::BAD_GATEWAY, axum::Json(json!({})));
+                        }
+                        (
+                            StatusCode::OK,
+                            axum::Json(
+                                json!({"text":"Synthetic browser test.", "language_code":"eng"}),
+                            ),
+                        )
                     }
-                    (
-                        StatusCode::OK,
-                        axum::Json(
-                            json!({"text":"Synthetic browser test.", "language_code":"eng"}),
-                        ),
-                    )
-                }
-            }),
-        );
+                }),
+            )
+            .layer(axum::extract::DefaultBodyLimit::max(256 * 1024 * 1024));
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let endpoint = format!("http://{}/scribe", listener.local_addr().unwrap());
         let peer = tokio::spawn(async move {
@@ -291,6 +298,7 @@ mod tests {
             root,
             state,
             calls,
+            provider_bytes,
             peer,
         }
     }
@@ -335,7 +343,7 @@ mod tests {
     }
 
     async fn wait_for_job(state: &Arc<AppState>, id: &str) -> serde_json::Value {
-        for _ in 0..100 {
+        for _ in 0..2000 {
             let response = request(state, "GET", &format!("/api/recordings/{id}"), vec![]).await;
             let job: serde_json::Value =
                 serde_json::from_slice(&to_bytes(response.into_body(), 1_000_000).await.unwrap())
@@ -346,6 +354,84 @@ mod tests {
             tokio::time::sleep(Duration::from_millis(30)).await;
         }
         panic!("Synthetic recording did not finish");
+    }
+
+    #[tokio::test]
+    async fn two_hour_compressed_audio_reaches_the_provider_and_overlength_is_rejected() {
+        let fixture = fixture(false, false).await;
+        for (duration, accepted) in [
+            (MAX_RECORDING_SECONDS, true),
+            (MAX_RECORDING_SECONDS + 3, false),
+        ] {
+            let source = fixture.root.path().join(format!("{duration}.webm"));
+            let generated = tokio::process::Command::new(&fixture.state.ffmpeg)
+                .args([
+                    "-nostdin",
+                    "-v",
+                    "error",
+                    "-f",
+                    "lavfi",
+                    "-i",
+                    "anullsrc=r=16000:cl=mono",
+                    "-t",
+                ])
+                .arg(duration.to_string())
+                .args([
+                    "-c:a",
+                    "libopus",
+                    "-b:a",
+                    "48k",
+                    "-vbr",
+                    "off",
+                    "-compression_level",
+                    "0",
+                    "-frame_duration",
+                    "60",
+                ])
+                .arg(&source)
+                .status()
+                .await
+                .unwrap();
+            assert!(generated.success());
+            let audio = std::fs::read(&source).unwrap();
+            assert!(audio.len() < MAX_UPLOAD);
+            assert!(audio.len() > 20 * 1024 * 1024);
+            let id = uuid::Uuid::new_v4().to_string();
+            let response = router(fixture.state.clone())
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri(format!("/api/recordings/{id}"))
+                        .header("cf-access-jwt-assertion", token(claims()))
+                        .header("origin", ORIGIN)
+                        .header("content-type", "audio/webm")
+                        .body(Body::from(audio))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::ACCEPTED);
+            let result = wait_for_job(&fixture.state, &id).await;
+            if accepted {
+                assert_eq!(result["phase"], "completed");
+                assert_eq!(result["copied"], true);
+                assert_eq!(fixture.calls.load(Ordering::SeqCst), 1);
+                // The local Scribe peer must receive all two hours of decoded PCM,
+                // not a short/truncated conversion or a response-only mock.
+                assert!(fixture.provider_bytes.load(Ordering::SeqCst) >= 230_400_000);
+                assert_eq!(fixture.state.history().recent(10).unwrap().len(), 1);
+            } else {
+                assert_eq!(result["phase"], "failed");
+                assert!(
+                    result["message"]
+                        .as_str()
+                        .unwrap()
+                        .contains("limited to 2 hours")
+                );
+                assert_eq!(fixture.calls.load(Ordering::SeqCst), 1);
+                assert_eq!(fixture.state.history().recent(10).unwrap().len(), 1);
+            }
+        }
     }
 
     #[tokio::test]

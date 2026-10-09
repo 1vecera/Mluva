@@ -27,7 +27,10 @@ use tokio::{
     sync::{Mutex, Semaphore},
 };
 
-pub const MAX_UPLOAD: usize = 20 * 1024 * 1024;
+// Stay below Cloudflare's 100 MB request limit. Mono 48 kbit/s audio is
+// about 43 MB at two hours; decoded PCM is bounded independently below.
+pub const MAX_UPLOAD: usize = 90 * 1024 * 1024;
+pub const MAX_RECORDING_SECONDS: u64 = 2 * 60 * 60;
 const PREFIX: &str = "mluva-web:";
 
 pub struct AppState {
@@ -336,7 +339,7 @@ async fn process(
         .tempfile_in(&temporary_root)
         .map_err(|_| "Could not prepare audio.")?;
     let converted = tokio::time::timeout(
-        Duration::from_secs(30),
+        Duration::from_secs(300),
         Command::new(&state.ffmpeg)
             .args([
                 "-nostdin",
@@ -353,7 +356,7 @@ async fn process(
             .args([
                 "-vn",
                 "-t",
-                "601",
+                &(MAX_RECORDING_SECONDS + 2).to_string(),
                 "-ar",
                 "16000",
                 "-ac",
@@ -374,15 +377,18 @@ async fn process(
     if !converted.success() {
         return Err("The audio could not be read. Download the recording before retrying.".into());
     }
-    if wav
-        .as_file()
-        .metadata()
-        .map_err(|_| "Could not read the converted audio.")?
-        .len()
-        > 19_200_128
-    {
-        return Err("Recordings are limited to 10 minutes. Download this audio and split it before retrying.".into());
+    let converted_audio = mluva_audio::wav::WaveReader::open(wav.path())
+        .map_err(|_| "Could not read the converted audio.")?;
+    // The browser timer and codec's final frame can run slightly past Stop.
+    // Allow one second, while decoding one further second to detect overlength
+    // input instead of silently accepting a truncated recording.
+    if converted_audio.duration_seconds() > (MAX_RECORDING_SECONDS + 1) as f64 {
+        return Err(
+            "Recordings are limited to 2 hours. Download this audio and split it before retrying."
+                .into(),
+        );
     }
+    drop(converted_audio);
     let recognition = state
         .speech
         .transcribe(wav.path(), &state.config.language_code, "scribe_v2")
