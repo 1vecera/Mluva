@@ -534,8 +534,23 @@ impl CaptureServices {
     }
 
     pub fn launch(&self, options: CaptureOptions) -> WorkflowOutcome<Rc<CaptureSession>> {
-        let recorder = PipeWireRecorder::from_system(self.config.microphone_target.clone())
-            .map_err(|error| WorkflowError::Invalid(error.to_string()))?;
+        self.launch_input(options, false)
+    }
+    pub fn launch_phone(&self, options: CaptureOptions) -> WorkflowOutcome<Rc<CaptureSession>> {
+        self.launch_input(options, true)
+    }
+    fn launch_input(
+        &self,
+        options: CaptureOptions,
+        phone: bool,
+    ) -> WorkflowOutcome<Rc<CaptureSession>> {
+        let recorder = if phone {
+            mluva_audio::capture::CaptureRecorder::phone()
+        } else {
+            PipeWireRecorder::from_system(self.config.microphone_target.clone())
+                .and_then(mluva_audio::capture::CaptureRecorder::new)
+        }
+        .map_err(|error| WorkflowError::Invalid(error.to_string()))?;
         let workflow = self.workflow()?;
         let previews = self
             .cwd
@@ -579,6 +594,6 @@ impl CaptureServices {
         } else {
             CaptureStorage::Persistent(self.data.join("recordings"))
         };
-        CaptureSession::new(workflow, recorder, storage, Some(recognition), options)
+        CaptureSession::with_recorder(workflow, recorder, storage, Some(recognition), options)
     }
 }

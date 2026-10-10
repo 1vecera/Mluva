@@ -121,6 +121,7 @@ mod tests {
         http::{Request, StatusCode},
         routing::post,
     };
+    use base64::Engine;
     use jsonwebtoken::{EncodingKey, Header, encode};
     use mluva_core::{
         config::{AppConfig, AppPaths},
@@ -441,6 +442,12 @@ mod tests {
         for path in [
             "/",
             "/app.js",
+            "/live.js",
+            "/pcm-worklet.js",
+            "/api/live/id",
+            "/api/live/id/chunks/0",
+            "/api/live/id/stop",
+            "/api/live/id/cancel",
             "/manifest.webmanifest",
             "/sw.js",
             "/icons/mluva-192.png",
@@ -615,6 +622,87 @@ mod tests {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let url = format!("http://{}", listener.local_addr().unwrap());
         Arc::get_mut(&mut fixture.state).unwrap().origin = url.clone();
+        let socket = fixture.root.path().join("phone.sock");
+        let listener_phone = tokio::net::UnixListener::bind(&socket).unwrap();
+        Arc::get_mut(&mut fixture.state).unwrap().phone_socket = Some(socket);
+        let stop_file = fixture.root.path().join("pc-stop");
+        let stopping = stop_file.clone();
+        let phone_state = fixture.state.clone();
+        let native = tokio::spawn(async move {
+            use mluva_core::phone::{PhoneReply, PhoneRequest};
+            use tokio::io::{AsyncReadExt, AsyncWriteExt};
+            let mut jobs = std::collections::BTreeMap::<String, PhoneReply>::new();
+            let mut counts = std::collections::BTreeMap::<String, usize>::new();
+            loop {
+                let (mut stream, _) = listener_phone.accept().await.unwrap();
+                let count = stream.read_u32().await.unwrap();
+                let mut bytes = vec![0; count as usize];
+                stream.read_exact(&mut bytes).await.unwrap();
+                let request: PhoneRequest = serde_json::from_slice(&bytes).unwrap();
+                let id = request.identifier().to_owned();
+                if !matches!(request, PhoneRequest::Start { .. }) && !jobs.contains_key(&id) {
+                    let bytes =
+                        serde_json::to_vec(&PhoneReply::error(&id, "No native session")).unwrap();
+                    stream.write_u32(bytes.len() as u32).await.unwrap();
+                    stream.write_all(&bytes).await.unwrap();
+                    continue;
+                }
+                let reply = jobs.entry(id.clone()).or_insert_with(|| PhoneReply {
+                    identifier: id.clone(),
+                    phase: "recording".into(),
+                    ..Default::default()
+                });
+                match request {
+                    PhoneRequest::Audio { sequence, pcm, .. } if sequence == reply.sequence => {
+                        let frames = base64::engine::general_purpose::STANDARD
+                            .decode(pcm)
+                            .unwrap();
+                        assert!(
+                            !frames.is_empty()
+                                && frames.len() <= 32_000
+                                && frames.len().is_multiple_of(2)
+                        );
+                        *counts.entry(id.clone()).or_default() += frames.len();
+                        reply.sequence += 1;
+                        reply.text = "Synthetic live preview.".into();
+                    }
+                    PhoneRequest::Stop { sequence, .. } => {
+                        assert!(sequence >= reply.sequence);
+                        reply.phase = "completed".into();
+                    }
+                    PhoneRequest::Cancel { .. } => {
+                        reply.phase = "cancelled".into();
+                    }
+                    PhoneRequest::Status { .. }
+                        if std::fs::read_to_string(&stopping).ok().as_deref() == Some(&id) =>
+                    {
+                        reply.phase = "completed".into();
+                    }
+                    _ => {}
+                }
+                if reply.phase == "completed" && reply.text != "Synthetic live microphone." {
+                    assert!(
+                        counts[&id] > 0,
+                        "browser must send actual PCM before completion"
+                    );
+                    reply.text = "Synthetic live microphone.".into();
+                    reply.copied = crate::clipboard(&phone_state, &reply.text).await;
+                    phone_state
+                        .history()
+                        .add(mluva_core::history::HistoryInput {
+                            raw_text: reply.text.clone(),
+                            delivered_text: reply.text.clone(),
+                            application_identifier: Some(format!("mluva-web:{id}")),
+                            delivery_outcome: "copied".into(),
+                            ..Default::default()
+                        })
+                        .unwrap();
+                }
+                let bytes = serde_json::to_vec(reply).unwrap();
+                stream.write_u32(bytes.len() as u32).await.unwrap();
+                stream.write_all(&bytes).await.unwrap();
+            }
+        });
         // Simulate Access's cookie-to-assertion edge for browser-owned requests
         // (manifest and worker updates do not use Playwright's page headers).
         // This is only a test peer; the production origin still requires signed JWTs.
@@ -647,10 +735,12 @@ mod tests {
         let output = tokio::process::Command::new("node")
             .arg(driver)
             .env("MLUVA_TEST_URL", &url)
+            .env("MLUVA_TEST_PC_STOP", &stop_file)
             .output()
             .await
             .unwrap();
         serving.abort();
+        native.abort();
         assert!(
             output.status.success(),
             "{}\n{}",

@@ -233,7 +233,7 @@ printf 'offscreen_display_allocation=%s\n' "${display_allocation}"
 printf 'offscreen_xdg_runtime=private-short-directory\n'
 
 set +e
-xvfb-run "${xvfb_arguments[@]}" -s "-screen 0 ${screen_spec}" \
+xvfb-run "${xvfb_arguments[@]}" -e "${evidence_dir}/xvfb.log" -s "-screen 0 ${screen_spec}" \
     dbus-run-session -- \
     "${runner_path}" --offscreen-private-session "$@"
 command_status=$?

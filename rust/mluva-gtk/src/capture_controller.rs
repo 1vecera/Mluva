@@ -27,6 +27,7 @@ use std::{
 #[derive(Clone, Debug)]
 pub enum CaptureOrigin {
     Manual,
+    Phone(String),
     ApprovedShortcut,
     Continuation(String),
 }
@@ -511,7 +512,7 @@ impl CaptureController {
         (self.callbacks.cancelled)(identifier);
     }
 
-    fn stop(self: &Rc<Self>) {
+    pub fn stop(self: &Rc<Self>) {
         let (session, target) = {
             let active = self.active.borrow();
             let Some(active) = active.as_ref() else {

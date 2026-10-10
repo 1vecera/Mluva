@@ -40,6 +40,7 @@ use std::{
 
 mod actions;
 mod lifecycle;
+mod phone;
 mod screenshots;
 mod shortcuts;
 
@@ -91,6 +92,7 @@ pub struct ApplicationDesktop {
     overlay_timer: RefCell<Option<glib::SourceId>>,
     closed: Cell<bool>,
     shutdown_complete: tokio_util::sync::CancellationToken,
+    phone: phone::PhoneState,
 }
 type Link = Rc<RefCell<Weak<ApplicationDesktop>>>;
 fn linked<R: Default>(link: &Link, call: impl FnOnce(&Rc<ApplicationDesktop>) -> R) -> R {
@@ -418,6 +420,7 @@ impl ApplicationDesktop {
             overlay_timer: RefCell::new(None),
             closed: Cell::new(false),
             shutdown_complete: tokio_util::sync::CancellationToken::new(),
+            phone: phone::PhoneState::default(),
         });
         link.replace(Rc::downgrade(&owner));
         let weak = Rc::downgrade(&owner);
@@ -440,6 +443,11 @@ impl ApplicationDesktop {
         }
         owner.adapt(owner.shell.window.width() > 0 && owner.shell.window.width() <= 736);
         owner.initialize_services(true);
+        if owner.start_phone_bridge().is_err() {
+            owner.shell.show_message(
+                "Phone microphone is unavailable. Check the private desktop runtime.",
+            );
+        }
         Ok(owner)
     }
     fn page(&self) -> &Rc<CapturePage> {

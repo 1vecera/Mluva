@@ -10,6 +10,7 @@ fi
 mode="${1:-application}"
 case "$mode" in
     application) suites=(application application_shell) ;;
+    phone) suites=(phone_microphone) ;;
     continuation) suites=(application) ;;
     conversation) suites=(conversation_page application_shell) ;;
     live-components) suites=(conversation_page document_surfaces) ;;
@@ -172,7 +173,7 @@ if [[ "$mode" == text-targets ]]; then
 elif [[ "$mode" == browser-targets ]]; then
     cargo build --locked -p mluva-gtk --example firefox_text_peer --example atspi_read_audit
 elif [[ "$mode" != live-components ]]; then
-    cargo build --locked -p mluva-gtk --example private_input \
+    cargo build --locked -p mluva-core --bin phone-fixture-peer -p mluva-gtk --example private_input \
         -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
         -p mluva-providers --bin codex-fixture-peer --bin credential-fixture-peer
 fi
@@ -186,6 +187,21 @@ fi
 cargo test --locked -p mluva-gtk "${test_arguments[@]}" --no-run
 mkdir -p tmp/application
 evidence="$(mktemp -d "$project_root/tmp/application/run.XXXXXX")"
+if [[ "$mode" == phone ]]; then
+    # Phone IPC never needs an editor, window manager or virtual input.
+    exec env -i PATH="$PATH" HOME="$HOME" LC_ALL=C.UTF-8 \
+        CARGO_HOME="$CARGO_HOME" RUSTUP_HOME="$RUSTUP_HOME" CARGO_TARGET_DIR="$CARGO_TARGET_DIR" \
+        LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" \
+        OFFSCREEN_ENABLE_ATSPI=1 OFFSCREEN_DISPLAY_NUMBER="${OFFSCREEN_DISPLAY_NUMBER:-274}" \
+        XDG_CURRENT_DESKTOP=offscreen GSK_RENDERER=cairo GTK_A11Y=atspi \
+        GDK_DEBUG=no-portals GTK_USE_PORTAL=0 ADW_DISABLE_PORTAL=1 \
+        __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
+        __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
+        bwrap --unshare-net --unshare-pid --die-with-parent --bind / / --dev /dev \
+            --tmpfs /run/dbus --tmpfs /tmp --tmpfs /usr/share/dbus-1/services --proc /proc -- \
+        bash dev/run-isolated.sh "$evidence" -- \
+        bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session phone
+fi
 if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
     browser_cases=(bus default)
     if [[ "$mode" == browser-application ]]; then browser_cases=(default); fi
