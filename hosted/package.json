@@ -1,0 +1,20 @@
+{
+  "name": "mluva-everywhere",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "server"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "dev": "node scripts/dev.mjs",
+    "test:browser": "bash scripts/test-browser.sh",
+    "check": "node scripts/check.mjs",
+    "format:check": "prettier --check 'server/*.mjs' 'web/*.{mjs,js,css,html,json,webmanifest}' 'scripts/*.mjs' 'tests/*.mjs' package.json server/package.json template.yaml"
+  },
+  "devDependencies": {
+    "playwright": "1.58.2",
+    "prettier": "3.8.2",
+    "ws": "8.19.0"
+  }
+}

@@ -111,6 +111,10 @@ Individual advanced features, including Live rewrite, Meeting mode and alternati
 
 See the [product contract](docs/product-contract.md) for retention, recovery and privacy details.
 
+## Phone and laptop companions
+
+The optional [private phone recorder](docs/browser-recorder.md) streams phone audio into the native desktop session. The separately prepared [Mluva Everywhere hosted companion](hosted/README.md) adds account setup, named devices, bidirectional live words and cloud text history through an installable browser app and a Lambda-only AWS backend. It is a review candidate, not a deployed public service; physical-phone and hosted latency acceptance remain pending.
+
 ## Development
 
 Want to dictate from your phone into this PC? The optional [private browser recorder](docs/browser-recorder.md) installs on your home screen, opens straight to Record / Stop, and shares browser recordings with PC clipboard delivery through Cloudflare.
