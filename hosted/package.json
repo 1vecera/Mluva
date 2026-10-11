@@ -1,5 +1,6 @@
 {
   "name": "mluva-everywhere",
+  "version": "2.3.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -16,5 +17,8 @@
     "playwright": "1.58.2",
     "prettier": "3.8.2",
     "ws": "8.19.0"
+  },
+  "overrides": {
+    "@aws-sdk/util-dynamodb": "3.996.2"
   }
 }

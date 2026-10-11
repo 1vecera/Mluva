@@ -6,7 +6,7 @@ Live mode uses the PC’s selected speech provider, language, rewrite/Live prefe
 
 Turn Live microphone off to use the original recording inbox: audio is recorded on the phone, sent at Stop, transcribed with ElevenLabs Scribe v2 and copied to the PC. Both modes identify browser recordings in the same local History; authenticated devices see recent browser recordings without exposing unrelated desktop History. The PC must remain online. No separate remote server or cloud transcript database is needed.
 
-The separate [hosted companion](../hosted/README.md) prepares account-based cross-platform device streaming and cloud text history. This private recorder continues using one native PC, its local History and its ordinary providers. The hosted companion does not migrate that History or alter this recorder’s access policy.
+The separate [hosted companion](../hosted/README.md) provides account-based cross-platform live text and cloud history in its hosted beta. Cloud speech remains disabled pending its latency gate. This private recorder continues using one native PC, its local History and its ordinary providers. The hosted companion does not migrate that History or alter this recorder’s access policy.
 
 ## Install on your phone
 
@@ -21,6 +21,8 @@ Install `ffmpeg` and `wl-clipboard`, then build the optional companion:
 ```sh
 cargo build --locked -p mluva-web --release --target-dir tmp/native-build
 ```
+
+The [2.3.0 release](https://github.com/1vecera/Mluva/releases/tag/v2.3.0) also includes `mluva-2.3.0-phone-bridge-omarchy-x86_64.tar.gz`. Verify it against `SHA256SUMS`, extract it, and use its `./mluva-web` executable in place of `tmp/native-build/release/mluva-web` below. Install the matching native app separately; the bridge does not install or start Cloudflare or change access policies.
 
 Create a Cloudflare Access self-hosted application for the recorder hostname with an allow policy for your email. Configure a named Cloudflare Tunnel with that hostname pointing to `http://127.0.0.1:8787`, followed by a catch-all `http_status:404` ingress rule. Require Access protection before creating its public DNS record. Keep the tunnel token in your secret-manager launch environment as `TUNNEL_TOKEN`, never in an argument, config file or source checkout.
 

@@ -71,10 +71,16 @@ export async function handler(event) {
       await service.socket(event);
       return { statusCode: 200, body: "" };
     }
+    const method = event.requestContext.http.method;
+    // Browser preflight carries no access token. Business routes still require JWTs.
+    if (method === "OPTIONS") {
+      if ((event.headers?.origin ?? "") !== process.env.WEB_ORIGIN)
+        throw new Failure(403, "Open Mluva from its configured address.");
+      return { statusCode: 204, headers, body: "" };
+    }
     const claims = event.requestContext?.authorizer?.jwt?.claims;
     if (!claims || claims.token_use !== "access")
       throw new Failure(401, "Sign in to Mluva.");
-    const method = event.requestContext.http.method;
     if (
       method !== "GET" &&
       (event.headers?.origin ?? "") !== process.env.WEB_ORIGIN
