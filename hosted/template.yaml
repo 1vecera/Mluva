@@ -2,6 +2,12 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: Mluva Everywhere - managed accounts, devices, live text and history without an always-on server
 Parameters:
+  ReservedConcurrency:
+    Type: Number
+    Default: 0
+    MinValue: 0
+    MaxValue: 20
+    Description: Optional function concurrency reservation; 0 uses the account's existing limit
   LoginDomainPrefix:
     Type: String
     AllowedPattern: "[a-z0-9][a-z0-9-]{2,45}"
@@ -16,6 +22,7 @@ Parameters:
     Default: ""
     Description: Existing Secrets Manager ARN holding an ElevenLabs API key as a plain secret string
 Conditions:
+  ReserveConcurrency: !Not [!Equals [!Ref ReservedConcurrency, 0]]
   CloudSpeech: !And
     - !Equals [!Ref SpeechEnabled, "true"]
     - !Not [!Equals [!Ref SpeechSecretArn, ""]]
@@ -218,7 +225,10 @@ Resources:
       Architectures: [arm64]
       MemorySize: 256
       Timeout: 15
-      ReservedConcurrentExecutions: 20
+      ReservedConcurrentExecutions: !If
+        - ReserveConcurrency
+        - !Ref ReservedConcurrency
+        - !Ref AWS::NoValue
       Environment:
         Variables:
           TABLE_NAME: !Ref History

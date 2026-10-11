@@ -54,7 +54,7 @@ The API responds without caches and never logs request bodies, transcripts, conn
 
 Deployment creates billable resources and publishes the static app. This branch only prepares those resources. Review the exact stack, AWS account/region, audience, provider budget and static files before authorizing deployment. There is no automatic push/PR deployment. The repository’s native CI is manual.
 
-Use AWS SAM CLI and a uniquely named stack in the intended account/region. Defaults below keep cloud speech off. SAM’s Node.js builder expects a compatible Node runtime and installs the locked server dependencies.
+Use AWS SAM CLI and a uniquely named stack in the intended account/region. Defaults below keep cloud speech off and use the account’s existing Lambda concurrency limit. Set `ReservedConcurrency` only when the account has enough spare quota above AWS’s required unreserved capacity. SAM’s Node.js builder expects a compatible Node runtime and installs the locked server dependencies.
 
 ```sh
 sam validate --lint --template-file template.yaml
