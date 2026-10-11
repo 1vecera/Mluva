@@ -250,6 +250,13 @@ Resources:
                 Resource: !Ref SpeechSecretArn
           - !Ref AWS::NoValue
       Events:
+        Preflight:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref Api
+            Path: "/{proxy+}"
+            Method: OPTIONS
+            Auth: { Authorizer: NONE }
         Http:
           Type: HttpApi
           Properties: { ApiId: !Ref Api, Path: "/{proxy+}", Method: ANY }
