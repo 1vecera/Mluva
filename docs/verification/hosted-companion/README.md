@@ -25,3 +25,5 @@ The screenshots were inspected for clipping, layout overflow, readable controls,
 Real Cognito sign-up/email verification/password recovery, deployed AWS JWT validation and DynamoDB/fan-out behavior, provider token issuance, physical iOS Safari/Android Chrome permission and install behavior, background/lock interruption, and representative hosted latency remain unverified. The sub-100 ms extra-delay target is not certified. The browser app offers explicit clipboard copy on each receiver; it does not synchronize the native desktop SQLite database or promise system-wide insertion on macOS/Windows.
 
 Local protocol success is not evidence about radio latency, Lambda cold starts, provider latency, accuracy, live Wayland insertion or all physical phones. Cloud speech remains disabled by default until an authorized hosted acceptance run provides that evidence.
+
+The separate [11 October AWS deployment acceptance](aws/README.md) records real Cognito sign-in, three-device hosted text streaming, DynamoDB history and account isolation. It leaves cloud speech disabled and does not replace the synthetic microphone evidence above.

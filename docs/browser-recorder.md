@@ -6,7 +6,7 @@ Live mode uses the PC’s selected speech provider, language, rewrite/Live prefe
 
 Turn Live microphone off to use the original recording inbox: audio is recorded on the phone, sent at Stop, transcribed with ElevenLabs Scribe v2 and copied to the PC. Both modes identify browser recordings in the same local History; authenticated devices see recent browser recordings without exposing unrelated desktop History. The PC must remain online. No separate remote server or cloud transcript database is needed.
 
-The separate [hosted companion](../hosted/README.md) prepares account-based cross-platform device streaming and cloud text history. This private recorder continues using one native PC, its local History and its ordinary providers. The hosted companion does not migrate that History or alter this recorder’s access policy.
+The separate [hosted companion](../hosted/README.md) provides account-based cross-platform live text and cloud history in its hosted beta. Cloud speech remains disabled pending its latency gate. This private recorder continues using one native PC, its local History and its ordinary providers. The hosted companion does not migrate that History or alter this recorder’s access policy.
 
 ## Install on your phone
 

@@ -113,7 +113,7 @@ See the [product contract](docs/product-contract.md) for retention, recovery and
 
 ## Phone and laptop companions
 
-The optional [private phone recorder](docs/browser-recorder.md) streams phone audio into the native desktop session. The separately prepared [Mluva Everywhere hosted companion](hosted/README.md) adds account setup, named devices, bidirectional live words and cloud text history through an installable browser app and a Lambda-only AWS backend. It is a review candidate, not a deployed public service; physical-phone and hosted latency acceptance remain pending.
+The optional [private phone recorder](docs/browser-recorder.md) streams phone audio into the native desktop session. [Open Mluva Everywhere](https://d24oqajhzma8jq.cloudfront.net/) for the separate hosted device-sync beta: account setup, named devices, bidirectional live text and cloud text history through an installable browser app and a Lambda-only AWS backend. Cloud microphone transcription remains disabled pending its latency gate; use the native phone recorder for speech. [Hosted setup and verification](hosted/README.md). Physical-phone acceptance remains pending.
 
 ## Development
 
@@ -129,5 +129,3 @@ shellcheck install.sh linux/*.sh linux/tests/*.sh dev/*.sh linux/mluva-shell
 Use the [isolated development runner](dev/README.md) for UI verification. Bug reports should include the platform, reproduction steps and expected behavior. Keep private recordings, transcripts and credentials out of public issues.
 
 Mluva means *speech* or *manner of speaking* in Czech, pronounced roughly “MLOO-vah.” **[Apache License 2.0](LICENSE)** · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Changelog](CHANGELOG.md)
-
-**Hosted device sync beta:** [Open Mluva Everywhere](https://d24oqajhzma8jq.cloudfront.net/) to connect your devices and save text history. Cloud microphone transcription remains disabled pending its latency gate; use the native phone recorder for speech.
