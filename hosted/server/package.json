@@ -1,5 +1,6 @@
 {
   "name": "mluva-cloud-api",
+  "version": "2.3.0",
   "private": true,
   "type": "module",
   "dependencies": {
@@ -7,5 +8,8 @@
     "@aws-sdk/lib-dynamodb": "3.1009.0",
     "@aws-sdk/client-apigatewaymanagementapi": "3.1009.0",
     "@aws-sdk/client-secrets-manager": "3.1009.0"
+  },
+  "overrides": {
+    "@aws-sdk/util-dynamodb": "3.996.2"
   }
 }

@@ -2,6 +2,15 @@
 
 This file records user-visible Mluva releases.
 
+## 2.3.0 — 2026-10-11
+
+- Stream the phone microphone into the native PC recording session, with live words in the desktop widget and phone preview. Stop on either device controls the same session; the PC microphone stays closed.
+- Preserve the native provider, language, rewrite, History and retention choices for phone recordings. Keep ordered PCM, duplicate rejection, disconnect cancellation and recoverable phone audio.
+- Add the separate Mluva Everywhere companion with accounts, named devices, bidirectional live text, cloud history, export and recovery. Its AWS template uses Lambda, API Gateway, Cognito, DynamoDB and a private S3 origin behind CloudFront.
+- Distribute matching native app and Omarchy widget packages. Cloud speech remains disabled until its additional latency is measured against the 100 ms requirement.
+
+Physical phone browsers and device-lock interruptions remain unverified. The hosted companion keeps independent cloud text history; it does not migrate native History or insert into another application's field. Existing Experimental desktop features retain their labels.
+
 ## 2.2.2 — 2026-10-06
 
 - Release a matching native app and Omarchy widget with all existing 2.2.1 runtime fixes. This release changes version metadata and acceptance guidance; it adds no new runtime feature or paste repair.

@@ -16,7 +16,15 @@ Parameters:
     Default: ""
     Description: Existing Secrets Manager ARN holding an ElevenLabs API key as a plain secret string
 Conditions:
-  CloudSpeech: !Equals [!Ref SpeechEnabled, "true"]
+  CloudSpeech: !And
+    - !Equals [!Ref SpeechEnabled, "true"]
+    - !Not [!Equals [!Ref SpeechSecretArn, ""]]
+Rules:
+  SpeechNeedsSecret:
+    RuleCondition: !Equals [!Ref SpeechEnabled, "true"]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref SpeechSecretArn, ""]]
+        AssertDescription: SpeechEnabled requires an existing provider secret ARN
 Resources:
   History:
     Type: AWS::DynamoDB::Table
@@ -200,6 +208,9 @@ Resources:
         }
   ApiFunction:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildProperties:
+        UseNpmCi: true
     Properties:
       CodeUri: server/
       Handler: handler.handler

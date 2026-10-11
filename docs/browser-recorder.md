@@ -22,6 +22,8 @@ Install `ffmpeg` and `wl-clipboard`, then build the optional companion:
 cargo build --locked -p mluva-web --release --target-dir tmp/native-build
 ```
 
+The [2.3.0 release](https://github.com/1vecera/Mluva/releases/tag/v2.3.0) also includes `mluva-2.3.0-phone-bridge-omarchy-x86_64.tar.gz`. Verify it against `SHA256SUMS`, extract it, and use its `./mluva-web` executable in place of `tmp/native-build/release/mluva-web` below. Install the matching native app separately; the bridge does not install or start Cloudflare or change access policies.
+
 Create a Cloudflare Access self-hosted application for the recorder hostname with an allow policy for your email. Configure a named Cloudflare Tunnel with that hostname pointing to `http://127.0.0.1:8787`, followed by a catch-all `http_status:404` ingress rule. Require Access protection before creating its public DNS record. Keep the tunnel token in your secret-manager launch environment as `TUNNEL_TOKEN`, never in an argument, config file or source checkout.
 
 Supply the nonsecret origin, Access team URL and application audience, and resolve the existing ElevenLabs credential through the same managed environment or desktop keyring as Mluva:
