@@ -1,0 +1,10 @@
+{
+  "origin": "https://d24oqajhzma8jq.cloudfront.net",
+  "region": "eu-central-1",
+  "stack": "mluva-everywhere-release",
+  "speechEnabled": false,
+  "anonymousApiStatus": 401,
+  "privateS3Status": 403,
+  "fileCount": 15,
+  "lambdaReservation": null
+}

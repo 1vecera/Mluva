@@ -2,7 +2,7 @@
 
 A separate, installable web companion for speaking on a phone and using the words on any laptop, or the other way around. Sign in with the same account, name each device, choose receivers, and Record. Incoming settled words have explicit Copy and Download actions. Original recognition and edited text stay together in cloud history. The existing [native phone recorder](../docs/browser-recorder.md) remains available for streaming into the desktop widget with its selected providers and local History.
 
-**Status: prepared product candidate, not deployed.** Three-device browser acceptance uses actual Chromium/Web Audio with synthetic microphone and speech peers. Real Cognito sign-up, AWS fan-out, physical iPhone/Android behavior and paid Scribe latency still need an authorized hosted acceptance run. Cloud speech defaults off in the infrastructure until that gate is accepted. The hosted browser workspace is independent of the native SQLite History and clipboard; sign-in does not silently migrate local desktop conversations.
+**Status: hosted text companion beta is live at [Mluva Everywhere](https://d24oqajhzma8jq.cloudfront.net/).** Real Cognito sign-in, three-device AWS fan-out, DynamoDB history and account isolation passed on 11 October 2026. Cloud speech is disabled until additional latency meets the 100 ms gate. Physical iPhone/Android behavior, email verification/recovery delivery and paid Scribe latency remain unverified. The hosted browser workspace is independent of native SQLite History and clipboard; sign-in does not migrate local desktop conversations.
 
 ![Phone workspace](../docs/verification/hosted-companion/phone.png)
 
@@ -52,7 +52,7 @@ The API responds without caches and never logs request bodies, transcripts, conn
 
 ## Prepare and deploy
 
-Deployment creates billable resources and publishes the static app. This branch only prepares those resources. Review the exact stack, AWS account/region, audience, provider budget and static files before authorizing deployment. There is no automatic push/PR deployment. The repository’s native CI is manual.
+Deployment creates billable resources and publishes the static app. The live beta uses AWS account `762052017888`, `eu-central-1`, stack `mluva-everywhere-release`, and public app-shell access with authenticated account data. Review the exact stack, AWS account/region, audience, provider budget and static files before authorizing deployment. There is no automatic push/PR deployment. The repository’s native CI is manual.
 
 Use AWS SAM CLI and a uniquely named stack in the intended account/region. Defaults below keep cloud speech off and use the account’s existing Lambda concurrency limit. Set `ReservedConcurrency` only when the account has enough spare quota above AWS’s required unreserved capacity. SAM’s Node.js builder expects a compatible Node runtime and installs the locked server dependencies.
 
@@ -74,7 +74,7 @@ Review `../tmp/mluva-prepared-site` and the actual S3 bucket/CloudFront audience
 
 Cloud speech additionally requires an existing Secrets Manager secret containing only the ElevenLabs API key, its ARN as `SpeechSecretArn`, a provider budget, representative latency acceptance and authorization to update `SpeechEnabled=true`. Do not paste keys into source files, static configuration, shell arguments or CloudFormation parameters. Creating a speech token starts no transcription until the browser connects; transcription is billed by the provider. Default throttles and reserved concurrency are protective starting limits, not a capacity or cost guarantee. Private speech testing can use an authorized test stack; public activation follows measured acceptance.
 
-No hosted deployment, real email delivery, account invitation, static upload or paid transcription has been performed by this change.
+The hosted beta was deployed and its static app uploaded on 11 October 2026. Acceptance used two temporary accounts with email suppressed; those accounts and their data were removed. No invitations or paid transcription were performed. [Deployment evidence](../docs/verification/hosted-companion/aws/README.md).
 
 ## Latency acceptance
 

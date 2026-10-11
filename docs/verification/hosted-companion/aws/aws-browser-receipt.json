@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "receipts": [
+    "real Cognito OAuth code + PKCE sign-in",
+    "authenticated three-device AWS WebSocket fan-out and DynamoDB history",
+    "bidirectional live delivery",
+    "separate account isolation and cloud speech disabled"
+  ]
+}
