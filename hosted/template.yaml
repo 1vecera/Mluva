@@ -1,0 +1,285 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Mluva Everywhere - managed accounts, devices, live text and history without an always-on server
+Parameters:
+  LoginDomainPrefix:
+    Type: String
+    AllowedPattern: "[a-z0-9][a-z0-9-]{2,45}"
+    Description: Globally unique Cognito login domain prefix
+  SpeechEnabled:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Enable only after provider budget and latency acceptance are approved
+  SpeechSecretArn:
+    Type: String
+    Default: ""
+    Description: Existing Secrets Manager ARN holding an ElevenLabs API key as a plain secret string
+Conditions:
+  CloudSpeech: !Equals [!Ref SpeechEnabled, "true"]
+Resources:
+  History:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      SSESpecification: { SSEEnabled: true }
+      PointInTimeRecoverySpecification: { PointInTimeRecoveryEnabled: true }
+      TimeToLiveSpecification: { AttributeName: expires, Enabled: true }
+  Site:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+  OriginAccess:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-site"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+  SiteHeaders:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: !Sub "${AWS::StackName}-privacy"
+        SecurityHeadersConfig:
+          ContentTypeOptions: { Override: true }
+          FrameOptions: { FrameOption: DENY, Override: true }
+          ReferrerPolicy: { ReferrerPolicy: no-referrer, Override: true }
+          StrictTransportSecurity:
+            {
+              AccessControlMaxAgeSec: 31536000,
+              IncludeSubdomains: true,
+              Override: true,
+            }
+          ContentSecurityPolicy:
+            Override: true
+            ContentSecurityPolicy: "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self' https://*.amazonaws.com https://*.amazoncognito.com https://api.elevenlabs.io wss://*.amazonaws.com wss://api.elevenlabs.io; media-src 'self' blob:; worker-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+        CustomHeadersConfig:
+          Items:
+            - {
+                Header: Permissions-Policy,
+                Value: "microphone=(self), camera=(), geolocation=()",
+                Override: true,
+              }
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        PriceClass: PriceClass_100
+        Origins:
+          - Id: site
+            DomainName: !GetAtt Site.RegionalDomainName
+            OriginAccessControlId: !Ref OriginAccess
+            S3OriginConfig: { OriginAccessIdentity: "" }
+        DefaultCacheBehavior:
+          TargetOriginId: site
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          # AWS managed CachingDisabled: config/auth changes must not be held in stale pages.
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          ResponseHeadersPolicyId: !Ref SiteHeaders
+        ViewerCertificate: { CloudFrontDefaultCertificate: true }
+  SitePolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Site
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: cloudfront.amazonaws.com }
+            Action: s3:GetObject
+            Resource: !Sub "${Site.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+          - Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource: [!GetAtt Site.Arn, !Sub "${Site.Arn}/*"]
+            Condition: { Bool: { aws:SecureTransport: "false" } }
+  Users:
+    Type: AWS::Cognito::UserPool
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      UsernameAttributes: [email]
+      AutoVerifiedAttributes: [email]
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - { Name: verified_email, Priority: 1 }
+      Policies:
+        PasswordPolicy:
+          {
+            MinimumLength: 12,
+            RequireLowercase: true,
+            RequireUppercase: true,
+            RequireNumbers: true,
+            RequireSymbols: false,
+          }
+      AdminCreateUserConfig: { AllowAdminCreateUserOnly: false }
+  UserClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref Users
+      GenerateSecret: false
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows: [code]
+      AllowedOAuthScopes: [openid, email]
+      SupportedIdentityProviders: [COGNITO]
+      CallbackURLs: [!Sub "https://${Distribution.DomainName}/callback.html"]
+      LogoutURLs: [!Sub "https://${Distribution.DomainName}/"]
+      PreventUserExistenceErrors: ENABLED
+      EnableTokenRevocation: true
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      RefreshTokenValidity: 7
+      TokenValidityUnits:
+        { AccessToken: minutes, IdToken: minutes, RefreshToken: days }
+  LoginDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref LoginDomainPrefix
+      UserPoolId: !Ref Users
+  Api:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Sub "https://${Distribution.DomainName}"]
+        AllowMethods: [GET, POST, DELETE, OPTIONS]
+        AllowHeaders: [authorization, content-type]
+      Auth:
+        DefaultAuthorizer: Account
+        Authorizers:
+          Account:
+            IdentitySource: "$request.header.Authorization"
+            JwtConfiguration:
+              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${Users}"
+              audience: [!Ref UserClient]
+      DefaultRouteSettings:
+        { ThrottlingBurstLimit: 50, ThrottlingRateLimit: 20 }
+  Socket:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${AWS::StackName}-live"
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+  SocketStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref Socket
+      StageName: live
+      AutoDeploy: true
+      DefaultRouteSettings:
+        {
+          ThrottlingBurstLimit: 50,
+          ThrottlingRateLimit: 20,
+          DataTraceEnabled: false,
+        }
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: server/
+      Handler: handler.handler
+      Runtime: nodejs24.x
+      Architectures: [arm64]
+      MemorySize: 256
+      Timeout: 15
+      ReservedConcurrentExecutions: 20
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref History
+          WEB_ORIGIN: !Sub "https://${Distribution.DomainName}"
+          WS_MANAGEMENT_URL: !Sub "https://${Socket}.execute-api.${AWS::Region}.amazonaws.com/live"
+          SPEECH_ENABLED: !Ref SpeechEnabled
+          SPEECH_SECRET_ARN: !Ref SpeechSecretArn
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref History }
+        - Statement:
+            - Effect: Allow
+              Action: execute-api:ManageConnections
+              Resource: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Socket}/live/POST/@connections/*"
+        - !If
+          - CloudSpeech
+          - Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref SpeechSecretArn
+          - !Ref AWS::NoValue
+      Events:
+        Http:
+          Type: HttpApi
+          Properties: { ApiId: !Ref Api, Path: "/{proxy+}", Method: ANY }
+  SocketIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref Socket
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiFunction.Arn}/invocations"
+  Connect:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      {
+        ApiId: !Ref Socket,
+        RouteKey: "$connect",
+        Target: !Sub "integrations/${SocketIntegration}",
+      }
+  Disconnect:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      {
+        ApiId: !Ref Socket,
+        RouteKey: "$disconnect",
+        Target: !Sub "integrations/${SocketIntegration}",
+      }
+  Messages:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      {
+        ApiId: !Ref Socket,
+        RouteKey: "$default",
+        Target: !Sub "integrations/${SocketIntegration}",
+      }
+  SocketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ApiFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Socket}/*"
+Outputs:
+  WebOrigin: { Value: !Sub "https://${Distribution.DomainName}" }
+  SiteBucket: { Value: !Ref Site }
+  HttpUrl:
+    { Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com" }
+  WebSocketUrl:
+    {
+      Value: !Sub "wss://${Socket}.execute-api.${AWS::Region}.amazonaws.com/live",
+    }
+  CognitoClientId: { Value: !Ref UserClient }
+  LoginUrl:
+    {
+      Value: !Sub "https://${LoginDomainPrefix}.auth.${AWS::Region}.amazoncognito.com",
+    }

@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101217" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Mluva" />
+    <meta name="robots" content="noindex,nofollow" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/mluva-512.png" />
+    <link rel="icon" href="/icons/mluva-192.png" />
+    <link rel="stylesheet" href="/style.css" />
+    <title>Mluva · Everywhere</title>
+    <script type="module" src="/app.mjs"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Mluva home"
+        ><img src="/icons/mluva-192.png" alt="" width="32" height="32" /><strong
+          >Mluva</strong
+        ><span>everywhere</span></a
+      >
+      <div class="header-actions">
+        <button id="install" class="quiet">Install</button
+        ><button id="signout" class="quiet" hidden>Sign out</button>
+      </div>
+    </header>
+    <main>
+      <section id="welcome" class="welcome" hidden>
+        <div class="eyebrow">ONE THOUGHT. ALL YOUR DEVICES.</div>
+        <h1>Speak here.<br />Use it anywhere.</h1>
+        <p class="lede">
+          Your phone is a microphone. Your laptop is a workspace. Mluva keeps
+          your words moving between them.
+        </p>
+        <button id="signin" class="primary">
+          Sign in or create an account <span aria-hidden="true">↗</span>
+        </button>
+        <p class="small">
+          Use the same account on each device. No laptop app required.
+        </p>
+        <div class="how">
+          <div>
+            <span class="step-icon" aria-hidden="true">↗</span>
+            <h2>Connect your devices</h2>
+            <p>
+              Name your phone and laptop so you always know where your words go.
+            </p>
+          </div>
+          <div>
+            <span class="step-icon" aria-hidden="true">◉</span>
+            <h2>Speak or write</h2>
+            <p>See words arrive live. Copy when you are ready to use them.</p>
+          </div>
+          <div>
+            <span class="step-icon" aria-hidden="true">⌁</span>
+            <h2>Pick up later</h2>
+            <p>Keep originals and drafts together in your account’s history.</p>
+          </div>
+        </div>
+      </section>
+      <section id="configuration" class="welcome" hidden>
+        <div class="eyebrow">HOSTED COMPANION</div>
+        <h1>Your own Mluva.</h1>
+        <p class="lede">
+          This host is waiting for its account and connection settings. Follow
+          the hosted setup guide, then open this page again.
+        </p>
+        <a
+          class="primary"
+          href="https://github.com/1vecera/Mluva/tree/feat/phone-product/hosted"
+          >Open setup guide ↗</a
+        >
+      </section>
+      <div id="workspace" hidden>
+        <div class="page-title">
+          <div>
+            <div class="eyebrow">YOUR CONNECTED WORKSPACE</div>
+            <h1>Room for a thought.</h1>
+          </div>
+          <button
+            id="connection"
+            class="connection"
+            aria-label="Connection status. Click to reconnect."
+            data-state="offline"
+          >
+            <span aria-hidden="true"></span
+            ><span id="connection-label">Connecting</span>
+          </button>
+        </div>
+        <div
+          id="notice"
+          class="notice"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+        <div class="workspace-grid">
+          <section class="capture panel" aria-labelledby="capture-title">
+            <div class="section-heading">
+              <h2 id="capture-title">
+                Speak from <span id="device-name">this device</span>
+              </h2>
+              <span id="timer" role="timer" aria-label="Recording duration"
+                >0:00</span
+              >
+            </div>
+            <div class="record-stage">
+              <button
+                id="record"
+                class="record"
+                disabled
+                aria-label="Start recording"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  aria-hidden="true"
+                >
+                  <rect x="9" y="2" width="6" height="12" rx="3" />
+                  <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" /></svg
+                ><span id="record-label">Record</span>
+              </button>
+              <p id="record-hint" class="small">
+                Keep this screen open while recording.
+              </p>
+            </div>
+            <label class="field-label" for="draft"
+              >Your words <span id="draft-state">Speak or type</span></label
+            ><textarea
+              id="draft"
+              placeholder="A rough idea is a good start…"
+              rows="6"
+            ></textarea>
+            <div
+              id="partial"
+              class="partial"
+              role="status"
+              aria-live="off"
+              hidden
+            ></div>
+            <div class="row actions">
+              <button id="send" class="secondary">Send live text</button
+              ><button id="save" class="primary">Save to history</button>
+            </div>
+            <div class="row preferences">
+              <label
+                ><input id="retain" type="checkbox" checked /> Save recordings
+                to history</label
+              ><button id="clear" class="quiet">Clear draft</button>
+            </div>
+            <div id="recovery" class="recovery" hidden>
+              <strong>Your draft is safe on this device.</strong>
+              <p id="recovery-message">
+                Retry saving when you reconnect, or download a copy.
+              </p>
+              <div class="row">
+                <button id="retry" class="secondary">Retry save</button
+                ><button id="export-draft" class="quiet">Download text</button
+                ><a id="download-audio" class="quiet" hidden>Download audio</a>
+              </div>
+            </div>
+          </section>
+          <aside class="sidebar">
+            <section class="panel destinations">
+              <div class="section-heading">
+                <h2>Send to</h2>
+                <button
+                  id="refresh-devices"
+                  class="quiet"
+                  aria-label="Refresh devices"
+                >
+                  ↻
+                </button>
+              </div>
+              <p class="small">Choose where live words appear.</p>
+              <div id="devices"></div>
+              <div class="connect-help">
+                <strong>Connect another device</strong>
+                <p>Open this address on it and sign in to the same account.</p>
+                <button id="copy-link" class="secondary">Copy app link</button>
+              </div>
+            </section>
+            <section class="panel incoming">
+              <div class="section-heading">
+                <h2>Arriving here</h2>
+                <span class="tiny">LIVE</span>
+              </div>
+              <div id="incoming">
+                <div class="empty-state">
+                  <span aria-hidden="true">⌁</span>
+                  <p>Words from your other devices<br />will appear here.</p>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+        <section class="history-section">
+          <div class="section-heading">
+            <div>
+              <h2>Your history</h2>
+              <p class="small">Original words and saved drafts, together.</p>
+            </div>
+            <input
+              id="search"
+              type="search"
+              placeholder="Find your words"
+              aria-label="Search loaded history"
+            />
+          </div>
+          <div id="history" class="history-grid"></div>
+          <button id="more" class="secondary" hidden>
+            Load earlier recordings
+          </button>
+        </section>
+        <details class="privacy">
+          <summary>Your words, your choice</summary>
+          <p>
+            Saved text is stored in your account’s cloud history. Cloud speech
+            sends microphone audio directly to ElevenLabs; this app’s backend
+            receives text and keeps the provider key private. Audio is not saved
+            to cloud history. Unfinished drafts and stopped audio stay in this
+            browser until saved or cleared. Turning off history keeps new
+            recording recovery in memory only. Other connected devices can see
+            live words; they never copy to a clipboard automatically.
+          </p>
+          <p>
+            Keep the screen open and unlocked. iOS and Android can interrupt
+            background capture. The browser companion offers copy and download
+            on any laptop; system-wide insertion remains a native-app feature.
+            Deleting history removes it from the live database; encrypted
+            operational backups may retain it for up to 35 days.
+          </p>
+          <button id="diagnostics" class="secondary">
+            Download connection diagnostics
+          </button>
+          <p id="latency">
+            Hosted latency has not been measured. The sub-100 ms extra-delay
+            target is not certified.
+          </p>
+        </details>
+      </div>
+    </main>
+    <footer>
+      <span>Made for the way you think.</span><span>Phone ↔ laptop</span>
+    </footer>
+    <dialog id="device-dialog" aria-labelledby="device-title">
+      <form id="device-form">
+        <div class="eyebrow">WELCOME TO YOUR WORKSPACE</div>
+        <h2 id="device-title">What should we call<br />this device?</h2>
+        <p class="small">A familiar name makes sending words easy.</p>
+        <label class="field-label" for="name">Device name</label
+        ><input id="name" maxlength="40" required autocomplete="off" /><label
+          class="field-label"
+          for="kind"
+          >Device type</label
+        ><select id="kind">
+          <option value="phone">Phone</option>
+          <option value="laptop">Laptop</option>
+          <option value="tablet">Tablet</option>
+          <option value="other">Other</option>
+        </select>
+        <p id="device-error" class="error" role="alert"></p>
+        <button class="primary" type="submit">Connect this device →</button>
+      </form>
+    </dialog>
+    <dialog id="speech-dialog" aria-labelledby="speech-title">
+      <h2 id="speech-title">Ready when you are.</h2>
+      <p>
+        Microphone audio goes directly to ElevenLabs for live transcription.
+        Your chosen devices see the words as you speak.
+      </p>
+      <p class="small">
+        Keep this page open and your screen unlocked. Your host’s speech account
+        pays for transcription.
+      </p>
+      <div class="row">
+        <button id="speech-cancel" class="secondary">Cancel</button
+        ><button id="speech-start" class="primary">Allow and record</button>
+      </div>
+    </dialog>
+    <dialog id="confirm-dialog" aria-labelledby="confirm-title">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-description"></p>
+      <div class="row">
+        <button id="confirm-no" class="secondary">Keep it</button
+        ><button id="confirm-yes" class="primary">Remove</button>
+      </div>
+    </dialog>
+    <dialog id="install-dialog" aria-labelledby="install-title">
+      <h2 id="install-title">One tap away.</h2>
+      <p id="install-help"></p>
+      <form method="dialog"><button class="primary">Got it</button></form>
+    </dialog>
+  </body>
+</html>

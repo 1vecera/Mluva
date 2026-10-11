@@ -13,6 +13,7 @@ pub mod live;
 pub mod markdown;
 pub mod meeting;
 pub mod personalization;
+pub mod phone;
 pub mod private_files;
 pub mod prompt_catalog;
 pub mod prompts;

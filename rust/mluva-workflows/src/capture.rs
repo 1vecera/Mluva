@@ -261,6 +261,18 @@ impl CaptureSession {
         recorder: PipeWireRecorder,
         storage: CaptureStorage,
         realtime_client: Option<CaptureRecognitionClient>,
+        options: CaptureOptions,
+    ) -> WorkflowOutcome<Rc<Self>> {
+        let recorder = CaptureRecorder::new(recorder)
+            .map_err(|error| WorkflowError::Invalid(error.to_string()))?;
+        Self::with_recorder(workflow, recorder, storage, realtime_client, options)
+    }
+
+    pub fn with_recorder(
+        workflow: Rc<DictationWorkflow>,
+        recorder: CaptureRecorder,
+        storage: CaptureStorage,
+        realtime_client: Option<CaptureRecognitionClient>,
         mut options: CaptureOptions,
     ) -> WorkflowOutcome<Rc<Self>> {
         if !["dictation", "command", "scratchpad"].contains(&options.mode.as_str()) {
@@ -305,8 +317,6 @@ impl CaptureSession {
             &options.mode,
             options.application_identifier.as_deref(),
         )?;
-        let recorder = CaptureRecorder::new(recorder)
-            .map_err(|error| WorkflowError::Invalid(error.to_string()))?;
         Ok(Rc::new(Self {
             identifier: Uuid::new_v4().to_string(),
             preview_enabled: AtomicBool::new(options.preview_enabled),
@@ -346,6 +356,15 @@ impl CaptureSession {
     }
     fn set_phase(&self, phase: CapturePhase) {
         self.phase.store(phase as u8, Ordering::Release);
+    }
+    pub async fn append_phone_audio(&self, frames: Vec<u8>) -> Result<(), String> {
+        if self.phase() != CapturePhase::Recording {
+            return Err("The desktop recording has stopped.".into());
+        }
+        self.recorder
+            .append_phone_audio(frames)
+            .await
+            .map_err(|error| error.to_string())
     }
     pub fn audio_level(&self) -> f64 {
         self.recorder.audio_level()

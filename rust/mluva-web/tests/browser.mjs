@@ -1,6 +1,6 @@
 import { chromium } from "../../../tmp/browser/node_modules/playwright/index.mjs";
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 
 await mkdir("tmp/browser-evidence", { recursive: true });
 let page;
@@ -57,6 +57,7 @@ try {
   const bounds = await page.locator("#record").boundingBox();
   assert(bounds.width >= 160 && bounds.height >= 160);
   await page.screenshot({ path: "tmp/browser-evidence/mobile-ready.png", fullPage: true });
+  await page.locator("#live-mode").uncheck();
   await page.getByRole("button", { name: "Record", exact: true }).click();
   await page.getByRole("button", { name: "Stop", exact: true }).waitFor();
   await page.waitForTimeout(1200);
@@ -97,12 +98,43 @@ try {
   await page.getByRole("button", { name: "Retry transfer" }).click();
   await page.waitForFunction(() => document.querySelectorAll("#history article").length === 2);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  // The production AudioWorklet captures the fake mic and sends PCM before Stop.
+  await page.locator("#live-mode").check();
+  await page.getByRole("button", { name: "Record", exact: true }).click();
+  await page.getByRole("button", { name: "Stop", exact: true }).waitFor();
+  await page.waitForFunction(() => document.getElementById("live-preview").textContent.includes("Synthetic live preview"));
+  assert(await page.locator("#live-preview").isVisible());
+  await page.screenshot({ path: "tmp/browser-evidence/mobile-live.png", fullPage: true });
+  await page.getByRole("button", { name: "Stop", exact: true }).click();
+  await page.waitForFunction(() => !document.getElementById("record").disabled && document.getElementById("text").value === "Synthetic live microphone.");
+  await page.waitForFunction(() => document.querySelectorAll("#history article").length === 3);
+  // Independent peer simulates the desktop widget's Stop, without host input.
+  await page.getByRole("button", { name: "Record", exact: true }).click();
+  await page.getByRole("button", { name: "Stop", exact: true }).waitFor();
+  await page.waitForFunction(() => live.sequence > 0 && document.getElementById("live-preview").textContent.includes("Synthetic live preview"));
+  await writeFile(process.env.MLUVA_TEST_PC_STOP, await page.evaluate(() => live.identifier));
+  await page.waitForFunction(() => !document.getElementById("record").disabled && document.getElementById("record-label").textContent === "Record");
+  await page.waitForFunction(() => document.querySelectorAll("#history article").length === 4);
+  // Connection loss keeps the compressed phone backup across a reload.
+  await page.getByRole("button", { name: "Record", exact: true }).click();
+  await page.getByRole("button", { name: "Stop", exact: true }).waitFor();
+  await page.waitForTimeout(1200);
+  await context.setOffline(true);
+  await page.getByRole("button", { name: "Retry transfer" }).waitFor();
+  await context.setOffline(false);
+  await page.reload();
+  await page.getByRole("button", { name: "Retry transfer" }).waitFor();
+  assert(await page.getByRole("link", { name: "Download audio" }).isVisible());
+  await page.getByRole("button", { name: "Retry transfer" }).click();
+  await page.getByRole("button", { name: "Retry transfer" }).waitFor();
+  await page.getByRole("button", { name: "Retry transfer" }).click();
+  await page.waitForFunction(() => document.querySelectorAll("#history article").length === 5 && !document.getElementById("record").disabled);
   // A controlling worker must not turn expired access into a cached response.
   await context.clearCookies();
   assert.equal(await page.evaluate(async () => (await fetch("/api/recordings")).status), 401);
   assert.equal(await page.evaluate(async () => (await caches.keys()).length), 0);
   assert.deepEqual(errors, []);
-  console.log("PASS: browser recording beyond ten minutes, automatic two-hour Stop, Scribe result, two-device history, PWA manifest/icons/service worker, mobile layout, offline audio recovery, and retry.");
+  console.log("PASS: actual worklet PCM streaming, preview before Stop, phone/PC Stop, interrupted live recovery/retry; browser recording beyond ten minutes, automatic two-hour Stop, Scribe result, two-device history, PWA manifest/icons/service worker, mobile layout, offline audio recovery, and retry.");
 } catch (error) {
   if (page) console.log(await page.locator("body").innerText());
   throw error;

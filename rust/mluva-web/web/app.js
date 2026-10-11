@@ -7,6 +7,7 @@ const MAX_RECORDING_SECONDS = 2 * 60 * 60;
 const MAX_RECORDING_BYTES = 89 * 1024 * 1024;
 let recorder, stream, pending, currentId, timer, started, wakeLock, downloadUrl;
 let transferring = false;
+let live;
 let store;
 let installPrompt;
 
@@ -61,7 +62,11 @@ async function savedRecording(value) {
 }
 
 async function api(path, options = {}) {
-  const response = await fetch(path, { ...options, credentials: "same-origin", cache: "no-store" });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  let response;
+  try { response = await fetch(path, { ...options, signal: controller.signal, credentials: "same-origin", cache: "no-store" }); }
+  finally { clearTimeout(timeout); }
   if (!response.headers.get("content-type")?.includes("application/json")) {
     throw new Error("Sign-in expired or the PC is offline. Keep or download this recording, then refresh to reconnect.");
   }
@@ -90,11 +95,15 @@ async function start() {
   record.disabled = true;
   status.textContent = "Allow microphone access to start.";
   let chunks = [], bytes = 0;
+  const identifier = crypto.randomUUID();
+  live = undefined;
+  el("live-mode").disabled = true;
   try {
+    if (el("live-mode").checked) live = new LiveMicrophone(identifier);
     stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1 } });
     const mime = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus"].find((type) => MediaRecorder.isTypeSupported(type));
     recorder = new MediaRecorder(stream, { ...(mime ? { mimeType: mime } : {}), audioBitsPerSecond: 48000 });
-    const identifier = crypto.randomUUID();
+    if (live) await live.start(stream);
     let recordingError = false;
     recorder.addEventListener("dataavailable", (event) => {
       if (event.data.size) { chunks.push(event.data); bytes += event.data.size; }
@@ -103,22 +112,35 @@ async function start() {
     recorder.addEventListener("error", () => { recordingError = true; });
     recorder.addEventListener("stop", async () => {
       clearInterval(timer);
+      pending = { identifier, audio: new Blob(chunks, { type: recorder.mimeType || "audio/webm" }), live: Boolean(live), incognito: live?.incognito };
+      showAudio();
+      // Save finished audio before waiting for the PC, including a slow/offline Stop.
+      const recoverySaved = savedRecording(pending);
+      recoverySaved.catch(() => {});
+      // Drain the worklet before releasing the mic; its last partial chunk belongs to this session.
+      let liveJob, liveError;
+      if (live) {
+        try { liveJob = await live.finish(); }
+        catch (error) { liveError = error.message; await live.cancel(); }
+      }
       stream.getTracks().forEach((track) => track.stop());
       if (wakeLock) { await wakeLock.release().catch(() => {}); wakeLock = undefined; }
       record.dataset.recording = "false";
       recordLabel.textContent = "Record";
-      pending = { identifier, audio: new Blob(chunks, { type: recorder.mimeType || "audio/webm" }) };
-      showAudio();
-      try { await savedRecording(pending); }
+      el("live-preview").hidden = true;
+      try { await recoverySaved; }
       catch (error) {
         status.textContent = error.message;
         retry.hidden = false;
         return;
       }
-      if (recordingError) {
+      if (liveError) {
+        status.textContent = liveError;
+        retry.hidden = false;
+      } else if (recordingError) {
         status.textContent = "Recording was interrupted. Download the captured audio or transfer it with Retry.";
         retry.hidden = false;
-      } else await transfer();
+      } else await transfer(liveJob);
     }, { once: true });
     stream.getTracks().forEach((track) => track.addEventListener("ended", () => { if (recorder.state === "recording") stop(); }));
     recorder.start(1000);
@@ -136,15 +158,18 @@ async function start() {
     record.dataset.recording = "true";
     recordLabel.textContent = "Stop";
     record.disabled = false;
-    status.textContent = "Recording on this device…";
+    el("live-preview").hidden = !live;
+    status.textContent = live ? "Streaming to your PC’s recording widget…" : "Recording on this device…";
   } catch (error) {
+    await live?.cancel();
     stream?.getTracks().forEach((track) => track.stop());
-    status.textContent = error.name === "NotAllowedError" ? "Microphone access was denied. Allow it in your browser and try again." : "Could not start recording on this device.";
+    status.textContent = error.name === "NotAllowedError" ? "Microphone access was denied. Allow it in your browser and try again." : error.message || "Could not start recording on this device.";
     record.disabled = false;
+    el("live-mode").disabled = false;
   }
 }
 
-async function transfer() {
+async function transfer(initialJob) {
   if (!pending || transferring) return;
   transferring = true;
   retry.hidden = true;
@@ -153,13 +178,25 @@ async function transfer() {
   currentId = pending.identifier;
   status.textContent = "Transferring audio to your PC…";
   try {
-    let job = await api(`/api/recordings/${pending.identifier}`, {
+    let job = initialJob;
+    if (!job && pending.live) {
+      job = await api(`/api/live/${pending.identifier}`);
+      if (job && ["preparing", "recording"].includes(job.phase)) {
+        await api(`/api/live/${pending.identifier}/cancel`, { method: "POST" });
+        throw new Error("The interrupted PC session is being cancelled. Retry shortly or download your phone audio.");
+      }
+      if (job && ["cancelled", "failed"].includes(job.phase)) {
+        if (pending.incognito || job.incognito) throw new Error("Incognito session ended. Download or discard this recording; start a new live session to try again.");
+        job = undefined;
+      }
+    }
+    if (!job) { pending.live = false; job = await api(`/api/recordings/${pending.identifier}`, {
       method: "POST", headers: { "Content-Type": pending.audio.type || "audio/webm" }, body: pending.audio,
-    });
+    }); }
     while (job.phase === "processing") {
       status.textContent = "Transcribing on your PC… You can keep the audio here.";
       await new Promise((resolve) => setTimeout(resolve, 1200));
-      job = await api(`/api/recordings/${pending.identifier}`);
+      job = await api(`${pending.live ? "/api/live" : "/api/recordings"}/${pending.identifier}`);
     }
     if (job.phase !== "completed") throw new Error(job.message);
     el("text").value = job.text;
@@ -171,6 +208,7 @@ async function transfer() {
     el("discard").hidden = true;
     if (downloadUrl) { URL.revokeObjectURL(downloadUrl); downloadUrl = undefined; }
     record.disabled = false;
+    el("live-mode").disabled = false;
     await refreshHistory().catch(() => {});
   } catch (error) {
     status.textContent = error.message;
@@ -202,7 +240,7 @@ async function refreshHistory() {
 }
 
 record.addEventListener("click", () => recorder?.state === "recording" ? stop() : start());
-retry.addEventListener("click", transfer);
+retry.addEventListener("click", () => transfer());
 el("copy-pc").addEventListener("click", () => copyPc(currentId));
 el("copy-device").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText(el("text").value); status.textContent = "Copied on this device."; }
@@ -218,6 +256,7 @@ el("discard").addEventListener("click", async () => {
   el("discard").hidden = true;
   if (downloadUrl) { URL.revokeObjectURL(downloadUrl); downloadUrl = undefined; }
   record.disabled = false;
+  el("live-mode").disabled = false;
   status.textContent = "Local recording discarded. Ready to record.";
 });
 window.addEventListener("beforeunload", (event) => {

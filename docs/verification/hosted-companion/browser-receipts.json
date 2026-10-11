@@ -1,0 +1,16 @@
+{
+  "receipts": [
+    "phone → laptop and tablet multicast live text and shared durable history",
+    "laptop → phone live text",
+    "actual AudioWorklet PCM, partial/committed synthetic speech, final commit and auto-save",
+    "failed save → reload → recovered draft → retry without duplicate history",
+    "search and downloadable history export",
+    "history deletion propagates",
+    "history-off draft has no persistent recovery",
+    "device revocation stops the receiver"
+  ],
+  "errors": [],
+  "display": ":278",
+  "fakeMicrophone": true,
+  "physicalPhone": false
+}

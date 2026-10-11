@@ -397,6 +397,10 @@ impl ApplicationDesktop {
         if self.closed.get() {
             return Err(WorkflowError::Invalid("The application is closed.".into()));
         }
+        let phone = match &origin {
+            CaptureOrigin::Phone(id) => Some(id.clone()),
+            _ => None,
+        };
         let automatic = matches!(origin, CaptureOrigin::ApprovedShortcut);
         let continuation = match origin {
             CaptureOrigin::Continuation(id) => Some(id),
@@ -430,7 +434,7 @@ impl ApplicationDesktop {
                 .copied()
                 .unwrap_or("dictation")
         };
-        let mode = if continuation.is_some() {
+        let mode = if continuation.is_some() || phone.is_some() {
             "dictation".into()
         } else {
             self.services.personalization.borrow().selected_mode(
@@ -489,7 +493,10 @@ impl ApplicationDesktop {
             selected_text: command_target
                 .as_ref()
                 .and_then(|target| target.selected_text().map(str::to_owned)),
-            application_identifier: application,
+            application_identifier: phone
+                .as_ref()
+                .map(|id| format!("mluva-web:{id}"))
+                .or(application),
             style_identifier: prefs.selected_style(),
             use_saved_style: config.rewrite_provider != "none" && !incognito,
             defer_delivery: continuation.is_some(),
@@ -500,7 +507,11 @@ impl ApplicationDesktop {
             .borrow()
             .clone()
             .ok_or_else(|| WorkflowError::Invalid("Capture services are not ready.".into()))?;
-        let session = ready.launch(options.clone())?;
+        let session = if phone.is_some() {
+            ready.launch_phone(options.clone())?
+        } else {
+            ready.launch(options.clone())?
+        };
         self.current.replace(Some(CaptureContext {
             options,
             target: target.clone(),
@@ -605,6 +616,7 @@ impl ApplicationDesktop {
         let context = self.current.borrow_mut().take();
         self.clear_overlay();
         let result = completion.result;
+        self.phone_completed(&completion.session.identifier, &result);
         let id = result
             .history_entry
             .as_ref()
@@ -806,10 +818,20 @@ impl ApplicationDesktop {
             } else {
                 format!("{} · chunk preview", config.transcription_provider)
             };
-            let microphone = self.devices.borrow().display_name(
-                mluva_audio::catalog::PipeWireDeviceKind::Microphone,
-                config.microphone_target.as_deref(),
-            );
+            let microphone = if current
+                .session
+                .options
+                .application_identifier
+                .as_deref()
+                .is_some_and(|id| id.starts_with("mluva-web:"))
+            {
+                "Phone microphone".into()
+            } else {
+                self.devices.borrow().display_name(
+                    mluva_audio::catalog::PipeWireDeviceKind::Microphone,
+                    config.microphone_target.as_deref(),
+                )
+            };
             state.route = format!("{provider} · {microphone}");
         }
         drop(capture);
@@ -877,6 +899,7 @@ impl ApplicationDesktop {
             });
         }
         let hold = self.application.hold();
+        self.close_phone_bridge();
         self.close_screenshot_monitoring();
         let capture_identifier = self.capture.session_identifier();
         if let Some(identifier) = capture_identifier {

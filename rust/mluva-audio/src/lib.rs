@@ -2,6 +2,7 @@
 
 pub mod capture;
 pub mod catalog;
+pub mod external;
 pub mod meeting;
 pub mod meeting_capture;
 mod process;
