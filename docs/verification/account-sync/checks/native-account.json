@@ -1,0 +1,20 @@
+{
+  "environment": "private Xvfb, network and devices; real GTK and independent Chromium processes",
+  "checks": [
+    "native signed-out local capture with synthetic PCM and local worker",
+    "PKCE sign-in and named device",
+    "login preserves provider configuration",
+    "web to native and native to web plus third receiver",
+    "no old history upload",
+    "immutable originals, edits and completed rewrites",
+    "offline edit retry",
+    "signed-in Incognito capture keeps history and account unchanged",
+    "native audio absent from sync HTTP",
+    "delete propagates",
+    "revocation signs out and preserves original local history"
+  ],
+  "limits": [
+    "no physical microphone or Wayland permission proof",
+    "synthetic Cognito and providers; no production changes"
+  ]
+}

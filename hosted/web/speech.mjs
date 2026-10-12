@@ -63,6 +63,7 @@ export class CloudSpeech {
         }
       };
       this.socket.onmessage = ({ data }) => {
+        if (this.closed) return;
         let event;
         try {
           event = JSON.parse(data);

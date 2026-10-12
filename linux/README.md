@@ -38,6 +38,8 @@ sudo dnf install git gtk4 libadwaita at-spi2-core dbus-daemon pipewire-utils \
 
 Source setup additionally requests `gcc pkgconf` on Omarchy, or `gcc pkgconf-pkg-config gtk4-devel libadwaita-devel at-spi2-core-devel fontconfig-devel openssl-devel sqlite-devel` on Fedora.
 
+Persistent optional account sign-in uses `secret-tool` from libsecret and an unlocked Secret Service. If unavailable, sign-in lasts until the app closes; local capture remains available. The desktop entry registers `mluva://account` for the browser login callback.
+
 X11 clipboard delivery needs `xclip`; its optional keyboard fallback needs `xdotool`. The Omarchy widget requires the existing Omarchy shell and plugin manager; setup does not install an operating system or replace desktop configuration.
 
 Omarchy setup includes `wtype` for optional keyboard paste. Existing installations can add it with `omarchy pkg add wtype`. This uses symbolic keys, so the paste shortcut does not assume a QWERTY letter position.

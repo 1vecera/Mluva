@@ -1,3 +1,5 @@
+> Superseded product path: [S27-624 account continuity and web parity](account-device-sync-and-web-parity.md). Keep this brief as historical privacy/latency context. The old bridge remains installed during preparation and requires separate retirement approval.
+
 # Mluva everywhere
 
 ## Intent

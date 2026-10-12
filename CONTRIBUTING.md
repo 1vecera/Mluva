@@ -52,6 +52,7 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 
 | Changed boundary | Private integration check |
 | --- | --- |
+| Native account login, shared text and web continuity | `make linux-account-test`; `cd hosted && npm test && npm run test:browser` |
 | Phone microphone, native widget lifecycle and chunk delivery | `bash linux/tests/run_application_smoke.sh phone` |
 | Full recording/application and desktop actions | `make linux-application-test` |
 | Continued recording and recorder review transition | `make linux-continuation-test` |

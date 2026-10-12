@@ -4,6 +4,7 @@ Acceptance is a working native Rust app with preserved data, privacy protections
 
 | Check | Success means | Existing focused evidence or check |
 | --- | --- | --- |
+| Optional account / web continuity | Native local capture survives login/offline; selected devices converge on originals, revisions and rewrites; revocation, deletion, conflicts and Incognito prevent stale access or writes. | `make linux-account-test`; `cd hosted && npm test && npm run test:browser`; [account evidence](verification/account-sync/README.md). |
 | Record, stop and cancel | Recognition completes, raw text remains available, cancellation prevents delivery, and failures retain recoverable audio. | `make linux-application-test`; [local model evidence](verification/rust-release-performance/README.md). |
 | Paste and copy | A global recording inserts once into its captured target; a changed target stays clipboard-only. Manual recording remains copy-only. | `make linux-text-target-test`; [browser delivery evidence](verification/browser-direct-transport/README.md); [Wayland terminal evidence](verification/current-wayland-delivery/README.md). |
 | Edit, rewrite and Command | Edits survive; a rewrite produces a reviewable result; Command requires Apply; paused or stale work cannot overwrite newer edits. | `make linux-application-test`; existing Live and review owners. |

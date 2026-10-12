@@ -1,0 +1,2 @@
+W1030 {'Ref': 'CertificateArn'} is not a 'AWS::ACM::Certificate.Arn' with pattern '^arn:aws[a-zA-Z-]*:acm:[a-z0-9-]+:\\d{12}:certificate/.+$' when 'Ref' is resolved
+hosted/template.yaml:154:15

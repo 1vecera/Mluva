@@ -1,6 +1,6 @@
 // Disposable loopback preview. Production Lambda has no development login route.
 import http from "node:http";
-import { randomUUID, randomBytes } from "node:crypto";
+import { randomUUID, randomBytes, createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve, extname } from "node:path";
@@ -12,7 +12,10 @@ export async function createPreview(port = 0) {
     store = memoryStore(),
     sessions = new Map(),
     peers = new Map(),
-    speechTokens = new Set();
+    speechTokens = new Set(),
+    codes = new Map(),
+    refreshTokens = new Map(),
+    requests = [];
   const server = http.createServer(),
     sockets = new WebSocketServer({ noServer: true }),
     speech = new WebSocketServer({ noServer: true });
@@ -22,12 +25,25 @@ export async function createPreview(port = 0) {
     store,
     origin,
     speechEnabled: true,
+    rewriteText: async ({ source, instruction }) => ({
+      text: `${instruction.includes("bullet") ? "- " : ""}${source}\n\nA completed synthetic rewrite.`,
+      model: "synthetic-preview",
+    }),
     send: async (id, payload) => {
       const peer = peers.get(id);
       if (!peer || peer.readyState !== 1) {
         const error = new Error();
         error.statusCode = 410;
         throw error;
+      }
+      if (
+        faults.dropAckOnce &&
+        payload.type === "ack" &&
+        payload.sequence === 1
+      ) {
+        faults.dropAckOnce = false;
+        peer.terminate();
+        return;
       }
       peer.send(JSON.stringify(payload));
     },
@@ -48,6 +64,67 @@ export async function createPreview(port = 0) {
       response.end(JSON.stringify(body));
     };
     try {
+      if (url.pathname === "/oauth2/authorize") {
+        const code = randomBytes(24).toString("base64url");
+        codes.set(code, {
+          challenge: url.searchParams.get("code_challenge"),
+          owner: "preview-alice",
+        });
+        const redirect = new URL(url.searchParams.get("redirect_uri"));
+        if (redirect.href !== "mluva://account")
+          throw new Failure(400, "Unknown local callback.");
+        redirect.search = new URLSearchParams({
+          code,
+          state: url.searchParams.get("state"),
+        });
+        response.writeHead(302, {
+          location: redirect.href,
+          "cache-control": "no-store",
+        });
+        response.end();
+        return;
+      }
+      if (url.pathname === "/oauth2/token") {
+        let body = "";
+        for await (const chunk of request) body += chunk;
+        const form = new URLSearchParams(body);
+        let owner, session;
+        if (form.get("grant_type") === "authorization_code") {
+          const claim = codes.get(form.get("code"));
+          codes.delete(form.get("code"));
+          const challenge = createHash("sha256")
+            .update(form.get("code_verifier") ?? "")
+            .digest("base64url");
+          if (!claim || claim.challenge !== challenge)
+            throw new Failure(401, "PKCE mismatch.");
+          owner = claim.owner;
+          session = randomUUID();
+        } else {
+          const previous = refreshTokens.get(form.get("refresh_token"));
+          owner = previous?.owner;
+          session = previous?.session;
+        }
+        if (!owner) throw new Failure(401, "Sign in again.");
+        const token = `local.${Buffer.from(JSON.stringify({ sub: owner, origin_jti: session })).toString("base64url")}.${randomBytes(32).toString("base64url")}`;
+        const refresh = randomBytes(32).toString("base64url");
+        refreshTokens.set(refresh, { owner, session });
+        sessions.set(token, {
+          owner,
+          session,
+          expires: Math.floor(Date.now() / 1000) + 3600,
+        });
+        return json(200, {
+          access_token: token,
+          refresh_token: refresh,
+          expires_in: 3600,
+        });
+      }
+      if (url.pathname === "/oauth2/revoke") {
+        let body = "";
+        for await (const chunk of request) body += chunk;
+        refreshTokens.delete(new URLSearchParams(body).get("token"));
+        return json(200, {});
+      }
       if (url.pathname === "/config.json")
         return json(200, {
           api: `${origin}/api`,
@@ -61,9 +138,11 @@ export async function createPreview(port = 0) {
       if (url.pathname === "/dev/session" && request.method === "POST") {
         if (request.headers.origin !== origin)
           throw new Failure(403, "Use the loopback preview page.");
-        const token = `local.${Buffer.from(JSON.stringify({ sub: "preview-alice" })).toString("base64url")}.${randomBytes(32).toString("base64url")}`;
+        const session = randomUUID();
+        const token = `local.${Buffer.from(JSON.stringify({ sub: "preview-alice", origin_jti: session })).toString("base64url")}.${randomBytes(32).toString("base64url")}`;
         sessions.set(token, {
           owner: "preview-alice",
+          session,
           expires: Math.floor(Date.now() / 1000) + 3600,
         });
         return json(200, {
@@ -74,17 +153,22 @@ export async function createPreview(port = 0) {
       if (url.pathname.startsWith("/api/")) {
         if (
           faults.history &&
-          url.pathname === "/api/history" &&
-          request.method === "POST"
+          url.pathname.startsWith("/api/history") &&
+          ["POST", "PUT"].includes(request.method)
         )
           throw new Failure(503, "Synthetic save interruption.");
         const session = sessions.get(request.headers.authorization?.slice(7));
         let body = "";
         for await (const chunk of request) {
           body += chunk;
-          if (Buffer.byteLength(body) > 200000)
+          if (Buffer.byteLength(body) > 320000)
             throw new Failure(413, "Too large.");
         }
+        requests.push({
+          path: url.pathname,
+          method: request.method,
+          body: body ? JSON.parse(body) : null,
+        });
         if (request.method !== "GET" && request.headers.origin !== origin)
           throw new Failure(403, "Use the preview page.");
         return json(
@@ -130,6 +214,7 @@ export async function createPreview(port = 0) {
         "content-type":
           {
             ".html": "text/html",
+            ".ttf": "font/ttf",
             ".css": "text/css",
             ".js": "text/javascript",
             ".mjs": "text/javascript",
@@ -232,6 +317,7 @@ export async function createPreview(port = 0) {
     sessions,
     peers,
     faults,
+    requests,
     close: async () => {
       peers.forEach((peer) => peer.terminate());
       speech.clients.forEach((peer) => peer.terminate());

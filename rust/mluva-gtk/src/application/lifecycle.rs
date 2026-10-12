@@ -190,6 +190,7 @@ impl ApplicationDesktop {
             return;
         }
         let config = update.config;
+        self.account.privacy(config.incognito_mode);
         if let Err(error) = self.page().set_config(config.clone()) {
             self.shell.show_message(&error.to_string());
         }
@@ -239,6 +240,7 @@ impl ApplicationDesktop {
         self.synchronize_capture();
         match effect {
             InlineEffect::Privacy { persisted } => {
+                self.account.privacy(config.incognito_mode);
                 if config.incognito_mode {
                     self.titles.cancel();
                     self.review.cancel();
@@ -617,6 +619,14 @@ impl ApplicationDesktop {
         self.clear_overlay();
         let result = completion.result;
         self.phone_completed(&completion.session.identifier, &result);
+        if !result.incognito {
+            self.account.live(
+                &completion.session.identifier,
+                "",
+                Some(&result.transcription.text),
+            );
+            self.account.sync();
+        }
         let id = result
             .history_entry
             .as_ref()
@@ -668,6 +678,7 @@ impl ApplicationDesktop {
         if self.closed.get() {
             return;
         }
+        self.account.cancel_live(&failure.session_identifier);
         if failure.phase == CapturePhase::Preparing {
             self.preserve_interrupted_screenshots(&failure.session_identifier);
         }
@@ -701,6 +712,7 @@ impl ApplicationDesktop {
         }
         self.current.borrow_mut().take();
         self.discard_screenshots(id);
+        self.account.cancel_live(id);
         self.idle();
         self.clear_overlay();
     }
@@ -834,6 +846,10 @@ impl ApplicationDesktop {
             };
             state.route = format!("{provider} · {microphone}");
         }
+        if !current.options.incognito && phase == CapturePhase::Recording {
+            self.account
+                .live(&current.session.identifier, &state.preview, None);
+        }
         drop(capture);
         self.publish(state);
         if phase == CapturePhase::Recording {
@@ -899,6 +915,7 @@ impl ApplicationDesktop {
             });
         }
         let hold = self.application.hold();
+        self.account.shutdown();
         self.close_phone_bridge();
         self.close_screenshot_monitoring();
         let capture_identifier = self.capture.session_identifier();

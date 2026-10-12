@@ -36,6 +36,8 @@ await writeFile(
       clientId: outputs.CognitoClientId,
       login: outputs.LoginUrl,
       origin: outputs.WebOrigin,
+      legacyOrigin: outputs.LegacyWebOrigin,
+      nativeCallback: "mluva://account",
     },
     null,
     2,

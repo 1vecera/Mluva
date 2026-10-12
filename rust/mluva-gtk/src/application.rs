@@ -59,6 +59,7 @@ struct CaptureContext {
 }
 
 pub struct ApplicationDesktop {
+    pub account: Rc<crate::account_controller::AccountController>,
     pub shell: Rc<ApplicationShell>,
     pub settings: Rc<ApplicationSettings>,
     pub capture: Rc<CaptureController>,
@@ -383,7 +384,24 @@ impl ApplicationDesktop {
                 compact: bind!(link, |app, compact| app.adapt(compact)),
             },
         );
+        let account = crate::account_controller::AccountController::new(
+            runtime.clone(),
+            services.conversations.clone(),
+            workspace.clone(),
+            bind!(link, |app| app.history_changed()),
+            bind!(link, |app, id| {
+                if app.review.rewrite_identifier().as_deref() == Some(id) {
+                    app.review.cancel();
+                }
+                if app.live.final_entry().as_deref() == Some(id) {
+                    app.live.cancel();
+                }
+            }),
+        );
+        settings.view.add(&account.page);
+        page.widget.add_top_bar(&account.incoming);
         let owner = Rc::new(Self {
+            account,
             shell,
             settings,
             capture,
@@ -443,6 +461,10 @@ impl ApplicationDesktop {
         }
         owner.adapt(owner.shell.window.width() > 0 && owner.shell.window.width() <= 736);
         owner.initialize_services(true);
+        owner
+            .account
+            .privacy(owner.services.config().incognito_mode);
+        owner.account.restore();
         if owner.start_phone_bridge().is_err() {
             owner.shell.show_message(
                 "Phone microphone is unavailable. Check the private desktop runtime.",

@@ -14,6 +14,17 @@ const event = (method, origin, claims) => ({
 });
 test("token-free preflight is origin bound while business routes require an access JWT", async () => {
   assert.equal(
+    (
+      await handler(
+        event("GET", "https://mluva.example.com", {
+          token_use: "access",
+          sub: "synthetic-account",
+        }),
+      )
+    ).statusCode,
+    401,
+  );
+  assert.equal(
     (await handler(event("OPTIONS", "https://mluva.example.com"))).statusCode,
     204,
   );

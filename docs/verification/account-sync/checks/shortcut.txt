@@ -1,0 +1,14 @@
+bash linux/tests/run_global_shortcut_portal_smoke.sh
+   Compiling mluva-gtk v2.3.0 ($REPO/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.98s
+  Executable tests/global_shortcuts.rs (tmp/native-build/debug/deps/global_shortcuts-cfa2e84a121862fd)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/global_shortcuts.rs (tmp/native-build/debug/deps/global_shortcuts-cfa2e84a121862fd)
+
+running 1 test
+test released_portal_approval_events_rebinding_and_shutdown ... Compared 21 released portal workflows / 59 observed states, including acknowledged cleanup
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.02s
+
+Native global shortcut portal check passed; evidence: $REPO/tmp/global-shortcut-portal-smoke/run.DcEKIT

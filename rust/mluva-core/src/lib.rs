@@ -1,5 +1,6 @@
 //! Native behavior shared by the desktop, speech workers and command-line integrations.
 
+pub mod account;
 pub mod config;
 pub mod conversation;
 pub mod database;

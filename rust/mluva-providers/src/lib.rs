@@ -1,5 +1,6 @@
 //! Provider sessions freeze route choices and never return provisional or cancelled text.
 
+pub mod account;
 pub mod batch_preview;
 pub mod catalog;
 pub mod codex;

@@ -1,0 +1,886 @@
+bash linux/native-source-command.sh build
+   Compiling mluva-providers v2.3.0 ($REPO/rust/mluva-providers)
+   Compiling mluva-workflows v2.3.0 ($REPO/rust/mluva-workflows)
+   Compiling mluva-gtk v2.3.0 ($REPO/rust/mluva-gtk)
+    Finished `release` profile [optimized] target(s) in 20.45s
+    Finished `release` profile [optimized] target(s) in 0.07s
+     Running `tmp/native-build/release/mluva-package $REPO $REPO/tmp/native-command.MStYxf9X/app`
+Native Mluva 2.3.0 bundle created at $REPO/tmp/native-command.MStYxf9X/app
+cargo test --locked --workspace
+   Compiling mluva-core v2.3.0 ($REPO/rust/mluva-core)
+   Compiling mluva-providers v2.3.0 ($REPO/rust/mluva-providers)
+   Compiling mluva-workflows v2.3.0 ($REPO/rust/mluva-workflows)
+   Compiling mluva-web v2.3.0 ($REPO/rust/mluva-web)
+   Compiling mluva-asr v2.3.0 ($REPO/rust/mluva-asr)
+   Compiling mluva-gtk v2.3.0 ($REPO/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 23.61s
+     Running unittests src/lib.rs (tmp/native-build/debug/deps/mluva_asr-39c6ba392fbed4d0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/worker.rs (tmp/native-build/debug/deps/mluva_asr_worker-20df9f0a62065a7f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/frontend.rs (tmp/native-build/debug/deps/frontend-2196b79a1dfaf7ef)
+
+running 2 tests
+test frontend_bounds_audio_before_allocating_features ... ok
+test cpu_features_match_released_numpy_observations ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.83s
+
+     Running tests/inference.rs (tmp/native-build/debug/deps/inference-d1e573a237289dbe)
+
+running 2 tests
+test actual_cpu_whisper_and_parakeet_match_released_recognition ... ignored, requires explicit checksum-verified public native runtime/model assets (MLUVA_ONNX_ASSETS)
+test actual_cuda_whisper_and_parakeet_match_released_recognition ... ignored, requires a physical NVIDIA GPU and explicitly prepared native-only public runtime/model assets
+
+test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/tokens.rs (tmp/native-build/debug/deps/tokens-a9ff113cc64e1fed)
+
+running 2 tests
+test parakeet_space_and_word_boundaries_match_released_decoder ... ok
+test whisper_bytes_utf8_and_special_tokens_match_released_decoder ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running unittests src/lib.rs (tmp/native-build/debug/deps/mluva_audio-bccce7f97e4bad29)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/cleanup.rs (tmp/native-build/debug/deps/mluva_audio_cleanup-acf96f001023fc32)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/audio_contracts.rs (tmp/native-build/debug/deps/audio_contracts-4aa890abbc794ca7)
+
+running 23 tests
+test process_contracts::capture_start_failure_and_existing_destinations_leave_no_new_audio ... ok
+test volatile_contracts::native_janitor_refuses_unowned_scope_and_never_follows_nested_links ... ok
+test volatile_contracts::volatile_staging_refuses_disk_and_removes_every_directory_on_close ... ok
+test normalized_rms_matches_released_pcm_outputs ... ok
+test process_contracts::active_recorder_drop_reaps_child_and_anonymous_stderr_never_creates_a_log ... ok
+test device_catalog_matches_released_selection_labels_filtering_and_order ... ok
+test process_contracts::meeting_cancellation_and_start_guards_preserve_existing_recordings ... ok
+test wav_metadata_validation_retains_the_released_disposition ... ok
+test process_contracts::cancellation_erases_capture_and_recorder_can_start_again ... ok
+test process_contracts::system_factories_skip_executables_the_current_owner_cannot_run ... ok
+test meeting_owner_keeps_unowned_collisions_and_erases_incognito_staging ... ok
+test volatile_contracts::durable_capture_keeps_released_recovery_metadata_after_sigkill ... ok
+test process_contracts::active_wav_header_matches_released_crash_recovery_metadata ... ok
+test volatile_contracts::watchdog_death_refuses_another_capture_and_parent_still_erases_audio ... ok
+test meeting_mixer_matches_exact_released_wav_bytes_and_erases_failed_outputs ... ok
+test volatile_contracts::sigkill_removes_real_dictation_and_meeting_audio_without_app_restart ... ok
+test meeting_owner_matches_released_mixing_and_preserves_transferred_audio ... ok
+test process_contracts::meeting_sources_provenance_warnings_and_mix_match_released_process_results ... ok
+test asynchronous_owner_keeps_timers_running_and_reaps_a_slow_audio_consumer ... ok
+test dropped_meeting_stop_keeps_timers_running_and_erases_untransferred_audio ... ok
+test process_contracts::device_listing_uses_a_bounded_native_subprocess_and_controlled_errors ... ok
+test process_contracts::raw_capture_matches_released_chunks_wav_stderr_and_finalization ... ok
+test volatile_contracts::malformed_or_incomplete_watchdog_readiness_fails_closed_and_reaps_child ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.02s
+
+     Running tests/phone.rs (tmp/native-build/debug/deps/phone-7c4e60d96cd3fc50)
+
+running 2 tests
+test phone_pcm_uses_private_audio_and_normal_stop_without_opening_a_device ... ok
+test two_hours_of_phone_pcm_is_complete_and_the_next_chunk_is_rejected ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.96s
+
+     Running unittests src/lib.rs (tmp/native-build/debug/deps/mluva_core-cb7dbefaa942f852)
+
+running 2 tests
+test private_files::tests::an_unrelated_sibling_temporary_file_is_preserved ... ok
+test private_files::tests::failed_replace_erases_only_the_new_temporary_file ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/maturity_cli.rs (tmp/native-build/debug/deps/mluva_feature_maturity-252bbcbaf5bb4637)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/account_sync.rs (tmp/native-build/debug/deps/account_sync-84271aca1048df16)
+
+running 4 tests
+test account_partition_and_sign_out_preserve_owned_recordings_but_clear_downloads ... ok
+test sign_in_does_not_upload_old_history_and_snapshots_exclude_audio_and_config ... ok
+test incoming_edits_preserve_raw_and_local_conflicts_survive_reconnect ... ok
+test merged_downloads_cannot_steal_private_notes_and_signout_preserves_local_originals ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+     Running tests/delivery_contracts.rs (tmp/native-build/debug/deps/delivery_contracts-65d5bb421874ae0d)
+
+running 2 tests
+test terminal_capture_and_revalidation_match_actual_released_process_observations ... ok
+test clipboard_insertion_receipts_and_layout_safe_helpers_match_the_unchanged_release ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 34.82s
+
+     Running tests/diagnostics.rs (tmp/native-build/debug/deps/diagnostics-63b4ec2228c847b0)
+
+running 1 test
+test compatible_ledger_is_bounded_and_exports_only_reviewed_metadata ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/live_policy.rs (tmp/native-build/debug/deps/live_policy-3a299c2f6364e67c)
+
+running 1 test
+test frozen_live_prompts_and_scheduler_match_release ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/maturity_cli.rs (tmp/native-build/debug/deps/maturity_cli-811cc37d31682e5b)
+
+running 1 test
+test generated_matrix_matches_release_and_checks_never_overwrite_edits ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/meeting.rs (tmp/native-build/debug/deps/meeting-69a81d4c5571c2f5)
+
+running 1 test
+test released_meeting_records_insights_and_archive_transactions_match ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/persistence_contracts.rs (tmp/native-build/debug/deps/persistence_contracts-db28076044541415)
+
+running 7 tests
+test png_validation_matches_all_observed_truncation_crc_and_pixel_budget_results ... ok
+test rewriting_and_visual_context_keep_the_released_payload_text ... ok
+test opening_a_foundation_database_preserves_rows_and_adds_all_released_columns ... ok
+test continued_recordings_match_the_reference_and_preserve_every_original_segment ... ok
+test merging_matches_source_reply_screenshot_title_and_search_ownership ... ok
+test correction_reprocessing_and_raw_restore_match_the_saved_reference_states ... ok
+test durable_provenance_and_stage_timings_match_the_released_acceptance_rules ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+     Running tests/personalization_contracts.rs (tmp/native-build/debug/deps/personalization_contracts-530cd38814457a30)
+
+running 11 tests
+test failed_persistence_keeps_the_previous_in_memory_dictionary_and_private_document ... ok
+test correction_suggestions_keep_the_same_focused_phrase_limits_and_exact_boundaries ... ok
+test vocabulary_review_preserves_unicode_identity_scope_counts_order_and_dismissals ... ok
+test visual_revisions_match_release_alignment_and_large_document_fallback ... ok
+test generative_integrity_keeps_exact_commands_identifiers_numbers_and_negation ... ok
+test saved_edits_scoped_selections_deletions_and_review_decisions_match_release_transactions ... ok
+test delimiter_heavy_documents_remain_source_preserving_with_bounded_output ... ok
+test markdown_styling_projection_and_unicode_offsets_match_the_release ... ok
+test existing_personalization_documents_load_compatibly_without_replacing_malformed_data ... ok
+test full_unicode_casing_preserves_expansion_and_final_sigma_context ... ok
+test dictionary_case_boundaries_rule_order_and_spoken_snippets_match_the_release ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.80s
+
+     Running tests/prompt_and_draft_contracts.rs (tmp/native-build/debug/deps/prompt_and_draft_contracts-e399be6d8b42e51e)
+
+running 9 tests
+test conflicts_keep_external_edits_and_an_existing_snapshot_stays_frozen ... ok
+test incognito_keeps_the_live_draft_in_memory_and_erases_durable_recovery ... ok
+test scratchpad_audio_cleanup_preserves_external_files_and_the_active_draft ... ok
+test scratchpad_legacy_privacy_defaults_and_damaged_documents_match_the_reference ... ok
+test prompt_limits_and_empty_custom_instructions_match_the_release ... ok
+test legacy_custom_text_and_saved_style_identities_remain_recoverable ... ok
+test title_text_and_bounded_untrusted_source_match_the_frozen_release ... ok
+test malformed_overrides_keep_the_exact_bytes_and_the_released_repair_diagnostic ... ok
+test every_prompt_keeps_exact_multiline_edits_across_restart_and_reset ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests/reference_contracts.rs (tmp/native-build/debug/deps/reference_contracts-5d7a80bd4eca5a43)
+
+running 8 tests
+test capture_recovery_policy_keeps_the_existing_success_and_failure_behavior ... ok
+test xdg_roots_and_explicit_empty_roots_match_existing_installations ... ok
+test first_launch_and_existing_installation_keep_distinct_onboarding_choices ... ok
+test saving_preserves_all_choices_and_tightens_owner_only_permissions ... ok
+test damaged_settings_and_unknown_fields_are_never_silently_replaced ... ok
+test retired_models_load_and_save_without_losing_other_settings ... ok
+test defaults_and_persisted_migrations_match_release_with_authorized_model_retirement ... ok
+test spoken_structure_matches_the_release_including_unicode_boundaries_and_corrections ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/storage_lifecycle.rs (tmp/native-build/debug/deps/storage_lifecycle-6597dd7e1d61ab1f)
+
+running 14 tests
+test image_count_and_byte_budgets_fail_before_the_provider_can_receive_a_request ... ok
+test a_replaced_attachment_fifo_fails_without_waiting_for_a_writer ... ok
+test a_frozen_request_keeps_its_bytes_while_the_next_request_reads_an_editor_save ... ok
+test screenshot_links_are_never_read_and_cleanup_unlinks_only_the_managed_link ... ok
+test unsafe_persisted_audio_paths_cannot_erase_unrelated_files ... ok
+test json_export_keeps_provenance_and_private_file_permissions ... ok
+test a_late_capture_for_a_deleted_owner_erases_its_new_file_without_losing_other_images ... ok
+test audio_retry_and_explicit_delivery_follow_the_frozen_retention_choice ... ok
+test oversized_documents_and_absorbed_conversations_remain_recoverable ... ok
+test manual_titles_and_database_deletion_block_late_worker_results ... ok
+test a_failed_merge_rolls_back_source_replies_screenshot_owners_and_title_guards ... ok
+test deleting_a_combined_conversation_erases_owned_recordings_replies_and_images ... ok
+test retention_uses_the_latest_segment_and_preserves_active_drafts_and_captures ... ok
+test search_filters_complete_history_before_limit_with_literal_wildcards ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.64s
+
+     Running unittests src/lib.rs (tmp/native-build/debug/deps/mluva_gtk-4f51179e58abad12)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/mluva.rs (tmp/native-build/debug/deps/mluva-bd7af60adb589bb1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/account_sync.rs (tmp/native-build/debug/deps/account_sync-346fb8007ca4995a)
+
+running 1 test
+test native_account_and_three_device_continuity ... ignored, requires private display, network, devices and independent browser peers
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/application.rs (tmp/native-build/debug/deps/application-253803ab6381282f)
+
+running 1 test
+test released_assembled_application_and_shutdown ... ignored, requires isolated GTK/session/network/device runner and native PCM/Codex peers
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/application_screenshots.rs (tmp/native-build/debug/deps/application_screenshots-fed2919625c81c6c)
+
+running 1 test
+test released_application_screenshot_ownership_and_lifecycle ... ignored, requires private GTK/session/network/devices and external PCM/picker/editor peers
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/application_shell.rs (tmp/native-build/debug/deps/application_shell-bb71f2ffeff57294)
+
+running 1 test
+test native_commands_and_settings_match_the_released_widgets ... ignored, requires the disposable X11/session/accessibility runner and the private_input example
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/application_shortcuts.rs (tmp/native-build/debug/deps/application_shortcuts-66f47429039a039b)
+
+running 1 test
+test released_application_portal_actions_settings_and_target_delivery ... ignored, requires private display/buses/network/devices and native portal/audio/text peers
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/bootstrap.rs (tmp/native-build/debug/deps/bootstrap-32b252ca0a7e3695)
+
+running 2 tests
+test released_process_actions_residency_and_headless_dispatch ... ignored, requires private X11/session/accessibility, native peers and pinned MLUVA_TEST_QWEN_PCM
+test source_make_build_and_run_without_python ... ignored, builds and runs actual source Make commands in the guarded disposable desktop
+
+test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/browser_target.rs (tmp/native-build/debug/deps/browser_target-94c2135fe85765d5)
+
+running 1 test
+test actual_browser_clipboard_edits_and_focus_guards ... ignored, requires private browser runner, Firefox or Chromium/ChromeDriver, xclip/xdotool/Openbox and built browser peer
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/capture_controls.rs (tmp/native-build/debug/deps/capture_controls-868025008cafead7)
+
+running 1 test
+test capture_page_and_catalog_controls_match_released_widgets ... ignored, requires the private display/network/PID/device runner and the recorded GTK renderer
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/capture_factory.rs (tmp/native-build/debug/deps/capture_factory-86faa7c6b32aa44c)
+
+running 1 test
+test released_application_capture_factory ... ignored, requires the isolated GTK/network/device runner and native audio endpoint
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/capture_lifecycle.rs (tmp/native-build/debug/deps/capture_lifecycle-de6adf0684efbaa1)
+
+running 1 test
+test actual_capture_transactions_match_released_states_and_leave_no_audio_children ... ignored, requires dev/run-isolated-browser.sh, native audio-fixture-peer and mluva-audio-cleanup
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/capture_preferences.rs (tmp/native-build/debug/deps/capture_preferences-a91f194bf984412e)
+
+running 1 test
+test released_capture_preferences_and_application_settings ... ignored, requires the private GTK/network/device runner and native PipeWire metadata peer
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/conversation_page.rs (tmp/native-build/debug/deps/conversation_page-e2ecedd1e7b8671f)
+
+running 1 test
+test conversation_page_matches_released_editing_navigation_privacy_and_live_observations ... ignored, requires a private desktop, UTC, network namespace and disabled microphone/input devices
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/document_surfaces.rs (tmp/native-build/debug/deps/document_surfaces-530b89b2202041e1)
+
+running 2 tests
+test offline_mermaid_textures_and_lossless_documents_match_released_rendering ... ignored, requires real WebKitGTK on the private display, network/PID namespace and device-free runner
+test sketch_bounds_xml_policy_and_speech_forecast_match_released_observations ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/document_widget.rs (tmp/native-build/debug/deps/document_widget-da26fb2c0c8ac935)
+
+running 1 test
+test document_reading_editing_and_revisions_match_released_native_widget_observations ... ignored, requires a disposable GTK display, private accessibility/session buses and XDG directories
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/editor_narration.rs (tmp/native-build/debug/deps/editor_narration-b0d1e2f09be42a05)
+
+running 1 test
+test native_narration_uses_real_editor_canvas_undo_and_png_export ... ignored, requires private X11/AT-SPI/input plus the pinned Tensaku artifact and native CLI binaries
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/global_shortcuts.rs (tmp/native-build/debug/deps/global_shortcuts-a68ae96056070eea)
+
+running 1 test
+test released_portal_approval_events_rebinding_and_shutdown ... ignored, requires guarded private bus/network/device runner and native portal peer
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/history_controller.rs (tmp/native-build/debug/deps/history_controller-812a6e9a683562fe)
+
+running 1 test
+test released_history_recovery_and_owned_shutdown ... ignored, Requires the guarded private GTK/session/accessibility/network/PID/device environment
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/history_page.rs (tmp/native-build/debug/deps/history_page-baeb4fa1949a950f)
+
+running 1 test
+test released_history_archive_widgets_actions_and_store_changes_match ... ignored, Requires the guarded private GTK/session/accessibility/network/PID/device environment
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/launcher.rs (tmp/native-build/debug/deps/launcher-579dbd6356d2a425)
+
+running 1 test
+test released_managed_launcher_routes_match_native_entrypoints ... ignored, requires private HOME/XDG/network/PID/device boundaries and native narration binary
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/live_controller.rs (tmp/native-build/debug/deps/live_controller-fd6c8989f697d8a9)
+
+running 1 test
+test released_live_callbacks_keep_edits_reconcile_and_save ... ignored, requires the isolated Linux desktop and compiled native Codex peer
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/meeting_controller.rs (tmp/native-build/debug/deps/meeting_controller-92d120904b8ba7c4)
+
+running 1 test
+test released_meeting_capture_retry_and_idle_transitions_match ... ignored, Requires the guarded private desktop/network/PID/device environment and built native audio peers
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/meeting_page.rs (tmp/native-build/debug/deps/meeting_page-3a3850ec297313c9)
+
+running 1 test
+test released_meeting_archive_widgets_and_actions_match ... ignored, Requires the guarded private display, accessibility/session buses, network/PID and device isolation
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/omarchy_widget.rs (tmp/native-build/debug/deps/omarchy_widget-c92343bef55ad48b)
+
+running 2 tests
+test released_preview_contraction_replay ... ignored, requires the private widget runner and ffmpeg/ffprobe for the retained 60-fps regression replay
+test released_widget_controls_geometry_and_live_motion ... ignored, requires guarded private X11/bus/network/devices, Omarchy QML and the native source bridge
+
+test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/optional_webkit.rs (tmp/native-build/debug/deps/optional_webkit-488802f981db8f10)
+
+running 1 test
+test missing_optional_renderer_preserves_launch_and_editable_source ... ignored, requires the guarded desktop runner and support/without-webkit.sh library mask
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/overlay_state.rs (tmp/native-build/debug/deps/overlay_state-f3ebd72ae3941aca)
+
+running 2 tests
+test actual_overlay_signals_replay_and_erase_cached_text ... ignored, requires private Linux network/PID/display/session-bus environment
+test bounded_native_projections_match_released_signatures_and_values ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/pending_review.rs (tmp/native-build/debug/deps/pending_review-60a225848e54d19f)
+
+running 1 test
+test released_command_and_notes_decisions ... ignored, Requires the guarded private GTK/session/accessibility/network/PID/device environment
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/phone_microphone.rs (tmp/native-build/debug/deps/phone_microphone-4d52b6063f0932aa)
+
+running 1 test
+test phone_starts_native_widget_audio_stop_history_and_copy_without_pc_microphone ... ignored, requires the private desktop/device/network runner
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/prompt_editor.rs (tmp/native-build/debug/deps/prompt_editor-0e44ab045583680c)
+
+running 1 test
+test prompt_edit_save_cancel_reset_conflicts_and_privacy_match_the_released_native_editor ... ignored, requires disposable display, bus, accessibility registry and data directories
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/provider_pages.rs (tmp/native-build/debug/deps/provider_pages-ef2266256022c379)
+
+running 1 test
+test released_provider_welcome_workspace_forms ... ignored, requires private display/session/network/device isolation and native external catalog/keyring peers
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/recording_target.rs (tmp/native-build/debug/deps/recording_target-61767245926e5a02)
+
+running 1 test
+test batch_speech_through_personalization_and_delivery_matches_released_gtk_workflows ... ignored, requires dev/run-isolated-browser.sh and built text_target_peer
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/review_controller.rs (tmp/native-build/debug/deps/review_controller-c267311ed644b63f)
+
+running 1 test
+test actual_document_rewrites_and_review_actions_match_release ... ignored, requires private Linux display/buses/network/device namespaces and native Codex peer
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/text_target.rs (tmp/native-build/debug/deps/text_target-bcbd3a82cd278c9b)
+
+running 1 test
+test captured_focus_selection_mutation_and_disclosure_match_real_released_transport ... ignored, requires private Xvfb, session/accessibility buses, data and built text_target_peer
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/theme_contracts.rs (tmp/native-build/debug/deps/theme_contracts-81613b1b5e5216d8)
+
+running 2 tests
+test open_window_follows_theme_replacement_and_recovers_like_release ... ignored, requires private X11/buses/HOME/XDG/network/devices via the isolated browser runner
+test native_semantic_colors_and_validated_omarchy_palettes_match_released_stylesheets ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/title_jobs.rs (tmp/native-build/debug/deps/title_jobs-b82c17f91eab8a0d)
+
+running 1 test
+test released_title_jobs_and_owner_exit ... ignored, requires the private display/session/network/device runner and native Codex protocol peer
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/install.rs (tmp/native-build/debug/deps/mluva_install-4058ded20ec2e9d8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/widget.rs (tmp/native-build/debug/deps/mluva_install_widget-487609c5101c7b30)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/package.rs (tmp/native-build/debug/deps/mluva_package-dac47b3977ecc557)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/editor.rs (tmp/native-build/debug/deps/mluva_screenshot_editor-d2f2e4e55f3c2799)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/uninstall.rs (tmp/native-build/debug/deps/mluva_uninstall-eab714b908af44d9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/editor.rs (tmp/native-build/debug/deps/editor-cb03f57a2137b15c)
+
+running 1 test
+test released_editor_launch_processes ... ignored, requires the guarded Linux runner, nested mounts and no host editor access
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/input.rs (tmp/native-build/debug/deps/input-7802b69b8c44f84e)
+
+running 1 test
+test released_input_ownership_without_python ... ignored, requires the guarded Linux runner and private system-unit/interpreter mounts
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/install.rs (tmp/native-build/debug/deps/install-998c5d952f012f37)
+
+running 10 tests
+test actual_bundle_installs_upgrades_and_starts_from_its_public_launcher ... ignored, requires an assembled actual native bundle and a guarded disposable Linux session
+test legacy::actual_native_bundle_migrates_legacy_state_and_starts ... ignored, requires an assembled actual native bundle and a guarded disposable Linux session
+test legacy::native_legacy_service_interruption_and_concurrent_owner ... ignored, requires a guarded disposable Linux session
+test legacy::native_legacy_upgrade_matches_released_outcomes ... ignored, requires a guarded disposable Linux session
+test legacy::source_upgrade_keeps_the_authentication_terminal ... ignored, builds the native source installer and requires guarded private PTYs/system mounts
+test modern_install_matches_released_public_outcomes ... ignored, requires a guarded disposable Linux session
+test modern_install_rolls_back_all_public_paths ... ignored, requires a guarded disposable Linux session
+test native_install_cancellation_and_concurrent_owner_are_preserved ... ignored, requires a guarded disposable Linux session
+test native_installer_rejects_damaged_bundles_and_running_apps_before_publication ... ignored, requires a guarded disposable Linux session
+test source_checkout_installs_upgrades_and_removes_without_python ... ignored, builds actual optimized production binaries in a guarded disposable Linux session
+
+test result: ok. 0 passed; 0 failed; 10 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/narrated_editor.rs (tmp/native-build/debug/deps/narrated_editor-aa56df22ccebb9cc)
+
+running 2 tests
+test native_package_can_install_and_upgrade_the_narrated_editor ... ignored, requires an actual native package, prebuilt Tensaku and the guarded disposable session
+test prebuilt_activation_preserves_metadata_and_unrelated_editors ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/package.rs (tmp/native-build/debug/deps/package-9f70e114e7b49e8c)
+
+running 1 test
+test actual_native_bundle_is_complete_private_and_atomic ... ignored, requires built production ELF binaries and a guarded disposable Linux session
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/setup.rs (tmp/native-build/debug/deps/setup-8e73b9d07a1cf1f2)
+
+running 3 tests
+test actual_combined_setup_installs_app_widget_and_preserves_failure_boundaries ... ignored, requires an assembled actual native bundle and a guarded disposable Linux session
+test native_setup_matches_released_confirmation_ordering_and_failures ... ignored, requires a guarded disposable Linux session with private PTYs
+test source_widget_staging_builds_without_desktop_development_libraries ... ignored, requires a guarded disposable session and a populated native Rust cache
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/uninstall.rs (tmp/native-build/debug/deps/uninstall-60d45b69fac1d11a)
+
+running 3 tests
+test native_uninstall_rejects_escaped_staging_and_active_executables ... ignored, requires guarded private Linux mounts, processes and service peers
+test packaged_public_uninstaller_removes_itself_and_preserves_user_state ... ignored, requires a freshly assembled native bundle and the guarded Linux runner
+test released_uninstall_processes_preserve_owned_and_foreign_state ... ignored, requires guarded private Linux mounts, processes and service peers
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/widget.rs (tmp/native-build/debug/deps/widget-3307239c13378f72)
+
+running 1 test
+test released_widget_installation_transactions ... ignored, requires a guarded disposable Linux session and the installed Omarchy schema validator
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (tmp/native-build/debug/deps/mluva_providers-29c416534cc11fc0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/batch_preview.rs (tmp/native-build/debug/deps/batch_preview-b10d152c72d0c003)
+
+running 2 tests
+test preview_and_authoritative_audio_match_unchanged_released_sessions ... ok
+test dropped_final_request_and_active_preview_cancel_erase_private_audio ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.73s
+
+     Running tests/codex.rs (tmp/native-build/debug/deps/codex-166765898b332d62)
+
+running 7 tests
+test installed_codex_preserves_reference_behavior_without_tools_or_instruction_leaks ... ignored, requires installed Codex and working bubblewrap; all model traffic stays loopback
+test compatible_factory_freezes_alias_ignores_native_speed_and_disabled_routes_do_no_work ... ok
+test catalogs_alias_defaults_and_rewrite_guards_match_the_released_policy ... ok
+test abrupt_client_failure_reaps_the_held_rewrite_and_private_workspace ... ok
+test a_child_ignoring_termination_is_killed_reaped_and_its_workspace_removed ... ok
+test cancellation_cleans_up_pending_work_and_missing_commands_do_not_echo_paths ... ok
+test actual_jsonl_process_requests_results_and_isolation_match_released_sessions ... ok
+
+test result: ok. 6 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.42s
+
+     Running tests/contracts.rs (tmp/native-build/debug/deps/contracts-1b77d3757e301593)
+
+running 3 tests
+test model_identifiers_and_catalogs_match_released_observations ... ok
+test realtime_protocol_and_sanitized_errors_match_released_observations ... ok
+test batch_text_and_speaker_metadata_match_released_observations ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+     Running tests/credentials.rs (tmp/native-build/debug/deps/credentials-fda38019a8b85668)
+
+running 3 tests
+test key_validation_matches_released_unicode_and_character_bounds ... ok
+test saved_precedence_cache_failures_and_stdin_match_real_reference_processes ... ok
+test store_timeout_preserves_cached_key_and_reaps_the_child has been running for over 60 seconds
+test store_timeout_preserves_cached_key_and_reaps_the_child ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 60.04s
+
+     Running tests/http.rs (tmp/native-build/debug/deps/http-39296d0b43dd1737)
+
+running 9 tests
+test cancellation_interrupts_stalled_requests_and_close_allows_a_new_request ... ok
+test cancel_after_response_headers_discards_partial_rewrites_and_batch_text ... ok
+test multipart_and_batch_results_match_released_wire_calls ... ok
+test malformed_environment_credentials_are_rejected_without_network_or_secret_diagnostics ... ok
+test elevenlabs_large_meetings_preserve_the_released_unbounded_batch_contract ... ok
+test screenshot_order_offsets_and_upload_bytes_match_released_wire_requests ... ok
+test response_size_document_size_and_socket_timeouts_are_enforced ... ok
+test fragmented_sse_and_exact_requests_match_released_rewrites ... ok
+test redirects_and_provider_failures_never_forward_content_or_echo_bodies ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/language_choices.rs (tmp/native-build/debug/deps/language_choices-66386caec9e0a592)
+
+running 1 test
+test released_local_language_choices_and_aliases ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/local_asr.rs (tmp/native-build/debug/deps/local_asr-9313c5622229b504)
+
+running 4 tests
+test actual_resident_overflow_matches_released_guard_and_reaps_owned_workers ... ignored, explicitly allocates over 5 GB of real resident memory in one isolated worker at a time
+test actual_worker_deadlines_match_release_and_close_every_owned_resource ... ignored, waits for both actual 180-second worker deadlines; no production clock or timeout override
+test aborted_requests_restart_and_concurrent_cancel_waits_for_all_owned_resources ... ok
+test native_local_factory_and_onnx_client_match_released_process_contracts ... ok
+
+test result: ok. 2 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 4.72s
+
+     Running tests/local_assets.rs (tmp/native-build/debug/deps/local_assets-1d3182455aef9842)
+
+running 5 tests
+test actual_pinned_qwen_archives_match_released_installations ... ignored, downloads the two pinned public Qwen runtime archives into disposable storage
+test storage_preflight_matches_released_request_witnesses ... ok
+test three_authorized_models_preserve_released_artifacts_and_qwen_default ... ok
+test download_lock_is_owned_until_the_native_job_is_released ... ok
+test actual_https_installs_archive_rules_and_readiness_match_the_release ... ok
+
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.86s
+
+     Running tests/local_preview.rs (tmp/native-build/debug/deps/local_preview-1663ff99db45edd1)
+
+running 1 test
+test local_worker_reuse_partial_privacy_and_finalization_match_release ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.98s
+
+     Running tests/native_capture.rs (tmp/native-build/debug/deps/native_capture-23c077e525f4e5c9)
+
+running 1 test
+test native_pcm_flows_to_websocket_in_order_and_stream_failure_retains_complete_wav ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/onnx_runtime.rs (tmp/native-build/debug/deps/onnx_runtime-59a7a89f68eb7ba8)
+
+running 4 tests
+test pinned_native_libraries_and_gpu_storage_match_independent_release_witnesses ... ok
+test installs_only_verified_native_files_reuses_cache_and_preserves_old_runtime_on_failure ... ok
+test cancellation_interrupts_extraction_without_blocking_the_runtime_executor ... ok
+test gpu_probe_is_cached_bounded_and_requires_no_python_package_manager ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.02s
+
+     Running tests/qwen.rs (tmp/native-build/debug/deps/qwen-e2b1c2f9c8ecd3fe)
+
+running 6 tests
+test actual_qwen_deadlines_match_release_and_reap_owned_resources ... ignored, waits for real 90/180-second Qwen deadlines; no clock or timeout override
+test actual_qwen_incomplete_stream_deadline_cancel_and_recovery ... ignored, waits for the real 180-second incomplete-line deadline; also checks public cancellation
+test actual_qwen_resident_overflow_matches_release_and_reaps_owned_resources ... ignored, allocates and observes over 5 GB real RSS in one isolated Qwen peer at a time
+test inference::actual_pinned_qwen_cpu_and_gpu_match_released_recognition ... ignored, downloads pinned Qwen/public samples and runs CPU plus physical NVIDIA Vulkan inference
+test abrupt_parent_failure_reaps_the_runtime_and_revokes_its_key ... ok
+test native_qwen_client_processes_and_loopback_requests_match_release ... ok
+
+test result: ok. 2 passed; 0 failed; 4 ignored; 0 measured; 0 filtered out; finished in 40.16s
+
+     Running tests/realtime.rs (tmp/native-build/debug/deps/realtime-52506e11abc67bae)
+
+running 8 tests
+test saturated_queue_never_blocks_capture_and_odd_samples_are_rejected ... ok
+test ping_binary_events_and_server_close_after_commit_keep_the_final_result ... ok
+test cancellation_during_a_callback_drops_it_and_does_not_restore_volatile_text ... ok
+test ready_handshake_rejects_invalid_sessions_and_sanitizes_provider_errors ... ok
+test oversized_incoming_events_fail_closed_with_a_bounded_receiver ... ok
+test dropping_a_finalizer_does_not_abandon_owned_transport_cleanup ... ok
+test finalization_waits_for_committed_callback_and_cancel_never_commits ... ok
+test real_websocket_commits_results_and_callbacks_match_released_sessions ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.82s
+
+     Running tests/tls.rs (tmp/native-build/debug/deps/tls-5c4f2ea080a6c3c3)
+
+running 1 test
+test native_https_and_wss_verify_trust_and_hostname_in_an_isolated_process ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+     Running unittests src/main.rs (tmp/native-build/debug/deps/mluva_shell-bd7791686c349291)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/bridge.rs (tmp/native-build/debug/deps/bridge-7a14b32366a1183b)
+
+running 1 test
+test released_shell_commands_and_owner_lifecycle_match_native_process ... ignored, requires private network/PID/session-bus and HOME/XDG boundaries
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (tmp/native-build/debug/deps/mluva_web-02636f76cf909bf2)
+
+running 8 tests
+test auth::tests::browser_record_stop_transfer_and_recovery ... ignored, Run with MLUVA_WEB_BROWSER_DRIVER and the isolated headless browser prerequisites
+test auth::tests::signature_algorithm_and_claims_are_not_trusted_without_verification ... ok
+test auth::tests::all_assets_apis_and_unknown_routes_require_authentication_and_mutations_require_same_origin ... ok
+test auth::tests::failed_provider_retains_private_recovery_audio_without_copying ... ok
+test auth::tests::origin_checks_signature_expiry_issuer_audience_and_application_type ... ok
+test auth::tests::incognito_writes_neither_history_nor_retained_audio ... ok
+test auth::tests::audio_reaches_scribe_history_and_only_the_fake_clipboard_and_retry_survives_restart ... ok
+test auth::tests::two_hour_compressed_audio_reaches_the_provider_and_overlength_is_rejected ... ok
+
+test result: ok. 7 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 33.97s
+
+     Running unittests src/main.rs (tmp/native-build/debug/deps/mluva_web-82f29a11d70fb382)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (tmp/native-build/debug/deps/mluva_workflows-ba2795066a1a9dcf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/mluva-narrate.rs (tmp/native-build/debug/deps/mluva_narrate-03aa3d826fb374b8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/meeting.rs (tmp/native-build/debug/deps/meeting-a2f0c55aa7088798)
+
+running 4 tests
+test released_meeting_diarization_archive_and_explicit_retry_match ... ok
+test dropping_inflight_incognito_meeting_erases_owned_audio_without_index_write ... ok
+test joined_meeting_recording_recognition_and_archive_match_released_transactions ... ok
+test meeting_shutdown_waits_for_finalization_or_provider_and_prevents_late_publication ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.92s
+
+     Running tests/narration.rs (tmp/native-build/debug/deps/narration-75bb58d2651946f7)
+
+running 1 test
+test released_annotation_cli_and_owned_cancellation ... ignored, requires private network/PID/devices, X11 clipboard and native process peers
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/recording.rs (tmp/native-build/debug/deps/recording-65330b0c8b19aaa9)
+
+running 1 test
+test recording_routes_delivery_privacy_and_recovery_match_the_released_workflow ... ignored, requires dev/run-isolated-browser.sh with a private real clipboard and loopback network
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/screenshot_capture.rs (tmp/native-build/debug/deps/screenshot_capture-ed719b469b5e2cf1)
+
+running 3 tests
+test picker_cancellation_reaps_stubborn_children_and_rejects_nonregular_images ... ignored, requires private runner for dropped-owner and stubborn-child faults
+test released_picker_results_and_private_process_cleanup ... ignored, requires private network/PID/device runner and native picker processes
+test released_picker_timeout_closes_process_group_and_private_directory ... ignored, requires private runner; exercises the real 180-second selection deadline
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/segment_cleanup.rs (tmp/native-build/debug/deps/segment_cleanup-2a3b8c375d10faf3)
+
+running 1 test
+test ordered_bounded_cleanup_and_owned_children_match_release ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+
+     Running tests/services.rs (tmp/native-build/debug/deps/services-b6f5a4229851a443)
+
+running 2 tests
+test released_startup_and_recovery_transactions ... ok
+test released_settings_save_and_owner_busy_gates ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+   Doc-tests mluva_asr
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mluva_audio
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mluva_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mluva_gtk
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mluva_providers
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mluva_web
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests mluva_workflows
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+cargo clippy --locked --workspace --all-targets -- -D warnings
+    Checking mluva-gtk v2.3.0 ($REPO/rust/mluva-gtk)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.55s
+cargo clippy --locked -p mluva-install --no-default-features --all-targets -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
+cargo fmt --all -- --check
+make linux-feature-maturity-check
+make[1]: Entering directory '$REPO'
+cargo run --locked -q -p mluva-core --bin mluva-feature-maturity -- --check
+make[1]: Leaving directory '$REPO'

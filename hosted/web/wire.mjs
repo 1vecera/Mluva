@@ -28,12 +28,19 @@ export class DeviceWire {
       const timeout = setTimeout(() => socket.close(), 10000);
       socket.onopen = () => {
         clearTimeout(timeout);
+        if (this.stopped || this.socket !== socket) {
+          socket.close();
+          return;
+        }
         this.attempt = 0;
         this.onState(true, "Connected");
         socket.send(JSON.stringify({ action: "hello" }));
+        for (const pending of this.waiting.values())
+          socket.send(pending.payload);
         this.onEvent({ type: "reconnected" });
       };
       socket.onmessage = ({ data }) => {
+        if (this.stopped || this.socket !== socket) return;
         let event;
         try {
           event = JSON.parse(data);
@@ -62,13 +69,6 @@ export class DeviceWire {
       };
       socket.onclose = () => {
         clearTimeout(timeout);
-        for (const pending of this.waiting.values())
-          pending.reject(
-            new Error(
-              "Live connection interrupted. Your words stay on this device.",
-            ),
-          );
-        this.waiting.clear();
         if (this.stopped) return;
         this.onState(false, "Reconnecting");
         this.onEvent({ type: "disconnected" });
@@ -96,9 +96,9 @@ export class DeviceWire {
     }
   }
   async publish(message) {
-    if (this.socket?.readyState !== WebSocket.OPEN)
+    if (this.stopped)
       throw new Error(
-        "Connect your devices before sending live words. Your draft is kept here.",
+        "This device is disconnected. Save or export your draft.",
       );
     const key = `${message.sessionId}:${message.sequence}`;
     return new Promise((resolve, reject) => {
@@ -109,8 +109,10 @@ export class DeviceWire {
             "Live delivery was not confirmed. Save your draft to share it through history.",
           ),
         );
-      }, 10000);
+      }, 45000);
+      const payload = JSON.stringify({ ...message, action: "stream" });
       this.waiting.set(key, {
+        payload,
         started: performance.now(),
         resolve: (receipt) => {
           clearTimeout(timeout);
@@ -122,7 +124,8 @@ export class DeviceWire {
         },
       });
       try {
-        this.socket.send(JSON.stringify({ ...message, action: "stream" }));
+        if (this.socket?.readyState === WebSocket.OPEN)
+          this.socket.send(payload);
       } catch (error) {
         this.waiting.delete(key);
         clearTimeout(timeout);
@@ -132,6 +135,9 @@ export class DeviceWire {
   }
   close() {
     this.stopped = true;
+    for (const pending of this.waiting.values())
+      pending.reject(new Error("Live delivery cancelled on this device."));
+    this.waiting.clear();
     clearInterval(this.heartbeat);
     clearTimeout(this.reconnect);
     this.socket?.close();
