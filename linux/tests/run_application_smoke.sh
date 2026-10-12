@@ -11,6 +11,7 @@ mode="${1:-application}"
 case "$mode" in
     application) suites=(application application_shell) ;;
     phone) suites=(phone_microphone) ;;
+    account) suites=(account_sync) ;;
     continuation) suites=(application) ;;
     conversation) suites=(conversation_page application_shell) ;;
     live-components) suites=(conversation_page document_surfaces) ;;
@@ -187,7 +188,7 @@ fi
 cargo test --locked -p mluva-gtk "${test_arguments[@]}" --no-run
 mkdir -p tmp/application
 evidence="$(mktemp -d "$project_root/tmp/application/run.XXXXXX")"
-if [[ "$mode" == phone ]]; then
+if [[ "$mode" == phone || "$mode" == account ]]; then
     # Phone IPC never needs an editor, window manager or virtual input.
     exec env -i PATH="$PATH" HOME="$HOME" LC_ALL=C.UTF-8 \
         CARGO_HOME="$CARGO_HOME" RUSTUP_HOME="$RUSTUP_HOME" CARGO_TARGET_DIR="$CARGO_TARGET_DIR" \
@@ -200,7 +201,7 @@ if [[ "$mode" == phone ]]; then
         bwrap --unshare-net --unshare-pid --die-with-parent --bind / / --dev /dev \
             --tmpfs /run/dbus --tmpfs /tmp --tmpfs /usr/share/dbus-1/services --proc /proc -- \
         bash dev/run-isolated.sh "$evidence" -- \
-        bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session phone
+        bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session "$mode"
 fi
 if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
     browser_cases=(bus default)

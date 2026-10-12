@@ -1,0 +1,11 @@
+   Compiling mluva-core v2.3.0 ($REPO/rust/mluva-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.95s
+     Running tests/account_sync.rs (tmp/native-build/debug/deps/account_sync-6fe86991f5e236e6)
+
+running 4 tests
+test account_partition_and_sign_out_preserve_owned_recordings_but_clear_downloads ... ok
+test sign_in_does_not_upload_old_history_and_snapshots_exclude_audio_and_config ... ok
+test merged_downloads_cannot_steal_private_notes_and_signout_preserves_local_originals ... ok
+test incoming_edits_preserve_raw_and_local_conflicts_survive_reconnect ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s

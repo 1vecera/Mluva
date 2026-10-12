@@ -1065,6 +1065,13 @@ impl ConversationWorkspace {
             .edit_drafts
             .retain(|key, _| !identifiers.contains(&key.0));
     }
+    pub fn has_unsaved_edits(&self, identifier: &str) -> bool {
+        self.state
+            .borrow()
+            .edit_drafts
+            .keys()
+            .any(|k| k.0 == identifier)
+    }
     pub fn save_edits(self: &Rc<Self>, key: Option<&EditKey>) -> bool {
         let keys = key.map_or_else(
             || {

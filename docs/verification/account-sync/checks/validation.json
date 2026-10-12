@@ -1,0 +1,61 @@
+{
+  "recordedAt": "2026-10-12T18:16:28.754043+00:00",
+  "base": "61d9a3d5db9b88dcd362dbba182d1482380f0c7b",
+  "branch": "feat/s27-624-account-sync",
+  "nativeGate": {
+    "command": "TMPDIR=/home/vecera/tmp/s27-624-native make linux-test",
+    "passed": 155,
+    "failed": 0,
+    "intentionallyIgnored": 74,
+    "log": "native-gate.txt",
+    "includes": [
+      "workspace tests",
+      "strict workspace Clippy",
+      "strict installer no-default-features Clippy",
+      "rustfmt",
+      "feature maturity consistency"
+    ]
+  },
+  "focusedNativeAfterFinalSafetyEdits": {
+    "coreAccountTests": 4,
+    "gtkAccountTest": "pass",
+    "workspaceClippy": "pass",
+    "rustfmt": "pass",
+    "logs": [
+      "core-account.txt",
+      "native-account.txt",
+      "clippy-final.txt",
+      "clippy-account-evidence.txt"
+    ]
+  },
+  "applicationAcceptance": {
+    "workflows": 15,
+    "gtkStoreStates": 147,
+    "settingsActions": "pass",
+    "log": "application.txt"
+  },
+  "portalShortcutAcceptance": {
+    "workflows": 21,
+    "states": 59,
+    "log": "shortcut.txt"
+  },
+  "hostedUnit": {
+    "passed": 20,
+    "failed": 0,
+    "log": "hosted-unit.txt"
+  },
+  "browserAcceptance": {
+    "passedObservations": 13,
+    "log": "browser.txt",
+    "details": "browser.json"
+  },
+  "otherChecks": {
+    "javascriptSyntax": "pass",
+    "prettier": "pass",
+    "shellcheck": "pass",
+    "npmAudits": "both locks: zero vulnerabilities",
+    "cfnLint": "no errors; W1030 warning for optional certificate default retained"
+  },
+  "production": "No deployment, DNS, Cognito, installed application or bridge changes.",
+  "speechGate": "Not accepted: scoped 30-pair synthetic experiment passed numerical threshold but lacks representative networks and real browser capture."
+}

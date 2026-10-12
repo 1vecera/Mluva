@@ -1,0 +1,34 @@
+{
+  "resources": {
+    "AWS::CloudFront::Distribution": "E3HWK9SHYA4M6D",
+    "AWS::DynamoDB::Table": "mluva-everywhere-release-History-1SCHR7YCWO72G",
+    "AWS::Cognito::UserPool": "eu-central-1_UcEjScSdb"
+  },
+  "aliases": {
+    "Quantity": 0
+  },
+  "certificate": {
+    "CloudFrontDefaultCertificate": true,
+    "SSLSupportMethod": "vip",
+    "MinimumProtocolVersion": "TLSv1",
+    "CertificateSource": "cloudfront"
+  },
+  "cognito": {
+    "CallbackURLs": [
+      "https://d24oqajhzma8jq.cloudfront.net/callback.html"
+    ],
+    "LogoutURLs": [
+      "https://d24oqajhzma8jq.cloudfront.net/"
+    ],
+    "AllowedOAuthFlows": [
+      "code"
+    ],
+    "SupportedIdentityProviders": [
+      "COGNITO"
+    ],
+    "RefreshTokenValidity": 7,
+    "AccessTokenValidity": 60,
+    "EnableTokenRevocation": true
+  },
+  "certificates": []
+}

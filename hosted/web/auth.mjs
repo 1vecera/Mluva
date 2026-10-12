@@ -1,10 +1,22 @@
 const encoder = new TextEncoder();
+let authGeneration = 0;
 const base64url = (value) =>
   btoa(String.fromCharCode(...new Uint8Array(value)))
     .replaceAll("+", "-")
     .replaceAll("/", "_")
     .replaceAll("=", "");
-export async function signIn(config) {
+function storeAuth(value) {
+  const storage =
+    localStorage.getItem("mluva-remember") === "true"
+      ? localStorage
+      : sessionStorage;
+  (storage === localStorage ? sessionStorage : localStorage).removeItem(
+    "mluva-auth",
+  );
+  storage.setItem("mluva-auth", JSON.stringify(value));
+}
+export async function signIn(config, remember = false) {
+  authGeneration++;
   const verifier = base64url(crypto.getRandomValues(new Uint8Array(32))),
     state = base64url(crypto.getRandomValues(new Uint8Array(24)));
   const challenge = base64url(
@@ -12,7 +24,7 @@ export async function signIn(config) {
   );
   sessionStorage.setItem(
     "mluva-login",
-    JSON.stringify({ verifier, state, createdAt: Date.now() }),
+    JSON.stringify({ verifier, state, createdAt: Date.now(), remember }),
   );
   const url = new URL("/oauth2/authorize", config.login);
   url.search = new URLSearchParams({
@@ -27,6 +39,7 @@ export async function signIn(config) {
   location.assign(url);
 }
 export async function finishSignIn(config) {
+  const generation = authGeneration;
   const url = new URL(location.href),
     login = JSON.parse(sessionStorage.getItem("mluva-login") ?? "null");
   history.replaceState({}, "", "/callback.html"); // remove authorization code from the address immediately
@@ -55,19 +68,23 @@ export async function finishSignIn(config) {
   if (!reply.ok)
     throw new Error("Sign-in did not finish. Return to Mluva and try again.");
   const payload = await reply.json();
-  sessionStorage.setItem(
-    "mluva-auth",
-    JSON.stringify({
-      ...payload,
-      expires: Date.now() + payload.expires_in * 1000,
-    }),
-  );
+  if (generation !== authGeneration)
+    throw new Error("Sign-in changed. Return to Mluva and try again.");
+  localStorage.setItem("mluva-remember", String(login.remember === true));
+  storeAuth({
+    ...payload,
+    expires: Date.now() + payload.expires_in * 1000,
+  });
 }
 export function account() {
-  const auth = JSON.parse(sessionStorage.getItem("mluva-auth") ?? "null");
-  if (!auth) return null;
-  const value = auth.access_token.split(".")[1];
   try {
+    const auth = JSON.parse(
+      sessionStorage.getItem("mluva-auth") ??
+        localStorage.getItem("mluva-auth") ??
+        "null",
+    );
+    if (!auth) return null;
+    const value = auth.access_token.split(".")[1];
     return {
       ...auth,
       owner: JSON.parse(
@@ -86,6 +103,7 @@ export function account() {
 let refreshing;
 export async function accessToken(config) {
   const auth = account();
+  const generation = authGeneration;
   if (!auth) throw new Error("Sign in to connect your devices.");
   if (auth.expires > Date.now() + 60000) return auth.access_token;
   if (!refreshing)
@@ -109,14 +127,16 @@ export async function accessToken(config) {
           "Sign-in expired. Sign in again; your unsaved draft stays on this device.",
         );
       const next = await reply.json();
-      sessionStorage.setItem(
-        "mluva-auth",
-        JSON.stringify({
-          ...auth,
-          ...next,
-          expires: Date.now() + next.expires_in * 1000,
-        }),
-      );
+      if (
+        generation !== authGeneration ||
+        account()?.refresh_token !== auth.refresh_token
+      )
+        throw new Error("Sign-in changed. Sign in to connect your devices.");
+      storeAuth({
+        ...auth,
+        ...next,
+        expires: Date.now() + next.expires_in * 1000,
+      });
       return next.access_token;
     })().finally(() => {
       refreshing = undefined;
@@ -124,8 +144,11 @@ export async function accessToken(config) {
   return refreshing;
 }
 export async function signOut(config) {
+  authGeneration++;
   const auth = account();
+  sessionStorage.removeItem("mluva-login");
   sessionStorage.removeItem("mluva-auth");
+  localStorage.removeItem("mluva-auth");
   if (auth?.refresh_token)
     await fetch(`${config.login}/oauth2/revoke`, {
       method: "POST",

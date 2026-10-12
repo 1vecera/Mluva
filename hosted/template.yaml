@@ -2,6 +2,25 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: Mluva Everywhere - managed accounts, devices, live text and history without an always-on server
 Parameters:
+  CustomDomainName:
+    Type: String
+    Default: ""
+    AllowedValues: ["", "mluva.danielvecera.com"]
+    Description: Optional canonical app hostname; creates no DNS records
+  CertificateArn:
+    Type: String
+    Default: ""
+    AllowedPattern: "^$|^arn:aws:acm:us-east-1:[0-9]{12}:certificate/[a-f0-9-]{36}$"
+    Description: Validated ACM certificate ARN in us-east-1 for the exact canonical hostname
+  RewriteModelId:
+    Type: String
+    Default: ""
+    Description: Optional approved Bedrock model ID; empty keeps server rewriting disabled
+  RewriteModelArn:
+    Type: String
+    Default: ""
+    AllowedPattern: "^$|^arn:aws:bedrock:[a-z0-9-]+:[0-9]{0,12}:(foundation-model|inference-profile)/[A-Za-z0-9.:/_-]+$"
+    Description: Exact approved Bedrock inference resource ARN; no wildcard grant
   ReservedConcurrency:
     Type: Number
     Default: 0
@@ -22,11 +41,23 @@ Parameters:
     Default: ""
     Description: Existing Secrets Manager ARN holding an ElevenLabs API key as a plain secret string
 Conditions:
+  CustomDomain: !Not [!Equals [!Ref CustomDomainName, ""]]
+  CloudRewrite: !Not [!Equals [!Ref RewriteModelId, ""]]
   ReserveConcurrency: !Not [!Equals [!Ref ReservedConcurrency, 0]]
   CloudSpeech: !And
     - !Equals [!Ref SpeechEnabled, "true"]
     - !Not [!Equals [!Ref SpeechSecretArn, ""]]
 Rules:
+  DomainNeedsCertificate:
+    RuleCondition: !Not [!Equals [!Ref CustomDomainName, ""]]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref CertificateArn, ""]]
+        AssertDescription: The canonical alias requires its validated us-east-1 certificate
+  RewriteNeedsResource:
+    RuleCondition: !Not [!Equals [!Ref RewriteModelId, ""]]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref RewriteModelArn, ""]]
+        AssertDescription: Rewriting requires one approved inference resource
   SpeechNeedsSecret:
     RuleCondition: !Equals [!Ref SpeechEnabled, "true"]
     Assertions:
@@ -115,7 +146,16 @@ Resources:
           # AWS managed CachingDisabled: config/auth changes must not be held in stale pages.
           CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
           ResponseHeadersPolicyId: !Ref SiteHeaders
-        ViewerCertificate: { CloudFrontDefaultCertificate: true }
+        Aliases:
+          !If [CustomDomain, [!Ref CustomDomainName], !Ref "AWS::NoValue"]
+        ViewerCertificate: !If
+          - CustomDomain
+          - {
+              AcmCertificateArn: !Ref CertificateArn,
+              SslSupportMethod: sni-only,
+              MinimumProtocolVersion: TLSv1.2_2021,
+            }
+          - { CloudFrontDefaultCertificate: true }
   SitePolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -164,8 +204,21 @@ Resources:
       AllowedOAuthFlows: [code]
       AllowedOAuthScopes: [openid, email]
       SupportedIdentityProviders: [COGNITO]
-      CallbackURLs: [!Sub "https://${Distribution.DomainName}/callback.html"]
-      LogoutURLs: [!Sub "https://${Distribution.DomainName}/"]
+      CallbackURLs:
+        - !Sub "https://${Distribution.DomainName}/callback.html"
+        - !If [
+            CustomDomain,
+            !Sub "https://${CustomDomainName}/callback.html",
+            !Ref "AWS::NoValue",
+          ]
+        - "mluva://account"
+      LogoutURLs:
+        - !Sub "https://${Distribution.DomainName}/"
+        - !If [
+            CustomDomain,
+            !Sub "https://${CustomDomainName}/",
+            !Ref "AWS::NoValue",
+          ]
       PreventUserExistenceErrors: ENABLED
       EnableTokenRevocation: true
       AccessTokenValidity: 60
@@ -182,8 +235,14 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       CorsConfiguration:
-        AllowOrigins: [!Sub "https://${Distribution.DomainName}"]
-        AllowMethods: [GET, POST, DELETE, OPTIONS]
+        AllowOrigins:
+          - !Sub "https://${Distribution.DomainName}"
+          - !If [
+              CustomDomain,
+              !Sub "https://${CustomDomainName}",
+              !Ref "AWS::NoValue",
+            ]
+        AllowMethods: [GET, POST, PUT, DELETE, OPTIONS]
         AllowHeaders: [authorization, content-type]
       Auth:
         DefaultAuthorizer: Account
@@ -233,6 +292,13 @@ Resources:
         Variables:
           TABLE_NAME: !Ref History
           WEB_ORIGIN: !Sub "https://${Distribution.DomainName}"
+          CANONICAL_ORIGIN:
+            !If [
+              CustomDomain,
+              !Sub "https://${CustomDomainName}",
+              !Sub "https://${Distribution.DomainName}",
+            ]
+          REWRITE_MODEL_ID: !Ref RewriteModelId
           WS_MANAGEMENT_URL: !Sub "https://${Socket}.execute-api.${AWS::Region}.amazonaws.com/live"
           SPEECH_ENABLED: !Ref SpeechEnabled
           SPEECH_SECRET_ARN: !Ref SpeechSecretArn
@@ -248,6 +314,13 @@ Resources:
               - Effect: Allow
                 Action: secretsmanager:GetSecretValue
                 Resource: !Ref SpeechSecretArn
+          - !Ref AWS::NoValue
+        - !If
+          - CloudRewrite
+          - Statement:
+              - Effect: Allow
+                Action: bedrock:InvokeModel
+                Resource: !Ref RewriteModelArn
           - !Ref AWS::NoValue
       Events:
         Preflight:
@@ -298,7 +371,18 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${Socket}/*"
 Outputs:
-  WebOrigin: { Value: !Sub "https://${Distribution.DomainName}" }
+  WebOrigin:
+    {
+      Value:
+        !If [
+          CustomDomain,
+          !Sub "https://${CustomDomainName}",
+          !Sub "https://${Distribution.DomainName}",
+        ],
+    }
+  LegacyWebOrigin: { Value: !Sub "https://${Distribution.DomainName}" }
+  DistributionId: { Value: !Ref Distribution }
+  NativeCallback: { Value: "mluva://account" }
   SiteBucket: { Value: !Ref Site }
   HttpUrl:
     { Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com" }

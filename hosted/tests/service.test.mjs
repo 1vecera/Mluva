@@ -22,18 +22,26 @@ function fixture(enabled = true) {
       return "temporary";
     },
   });
+  const deviceIds = new Map();
   const http = (owner, method, path, body = {}, query = {}) =>
     service.http({
       owner,
+      session:
+        (path === "/devices" && method === "POST" ? body.id : undefined) ??
+        body.deviceId ??
+        query.deviceId ??
+        deviceIds.get(owner) ??
+        owner,
       expires: Math.floor(clock.time / 1000) + 3600,
       method,
       path,
       body,
-      query,
+      query: { deviceId: deviceIds.get(owner), ...query },
     });
   const device = async (owner, name = "Phone") => {
     const id = randomUUID();
     await http(owner, "POST", "/devices", { id, name, kind: "phone" });
+    deviceIds.set(owner, id);
     return id;
   };
   const connect = async (owner, deviceId, id = randomUUID()) => {
@@ -169,7 +177,9 @@ test("device removal revokes existing connections and unused tickets", async () 
     }),
     status(403),
   );
-  assert.equal((await f.http("alice", "GET", "/devices")).devices.length, 0);
+  await assert.rejects(f.http("alice", "GET", "/devices"), status(403));
+  await f.device("alice", "Fresh login");
+  assert.equal((await f.http("alice", "GET", "/devices")).devices.length, 1);
 });
 test("ordered updates suppress duplicates and reject missing, post-stop and expired updates", async () => {
   const f = fixture(),
@@ -199,7 +209,11 @@ test("history originals survive retries and deletion cannot resurrect or cross a
     id = randomUUID(),
     body = { deviceId, id, rawText: "rough original", text: "edited text" };
   await f.http("alice", "POST", "/history", body);
-  await f.http("alice", "POST", "/history", { ...body, rawText: "changed" });
+  await assert.rejects(
+    f.http("alice", "POST", "/history", { ...body, rawText: "changed" }),
+    status(409),
+  );
+  await f.device("bob");
   const history = await f.http("alice", "GET", "/history");
   assert.equal(history.entries.length, 1);
   assert.equal(history.entries[0].rawText, "rough original");
@@ -225,6 +239,7 @@ test("pagination stays account-scoped and oversized Unicode is rejected before p
       text: `draft ${i}`,
     });
   }
+  await f.device("bob");
   const first = await f.http("alice", "GET", "/history");
   assert.equal(first.entries.length, 30);
   assert.equal(

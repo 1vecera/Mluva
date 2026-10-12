@@ -1,0 +1,9 @@
+{
+  "api": "https://2xphuumcxl.execute-api.eu-central-1.amazonaws.com",
+  "websocket": "wss://gr2zwsgdyc.execute-api.eu-central-1.amazonaws.com/live",
+  "clientId": "44uvvv939hl9o7gna9mqssp8q5",
+  "login": "https://mluva-everywhere-762052017888.auth.eu-central-1.amazoncognito.com",
+  "origin": "https://mluva.danielvecera.com",
+  "legacyOrigin": "https://d24oqajhzma8jq.cloudfront.net",
+  "nativeCallback": "mluva://account"
+}

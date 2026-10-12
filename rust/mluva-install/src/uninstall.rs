@@ -178,7 +178,9 @@ fn uninstall(source: &Path) -> Result<u8> {
             if contents.lines().any(|line| line == "Name=Mluva")
                 && contents.lines().any(|line| {
                     line == "Exec=mluva"
+                        || line == "Exec=mluva %u"
                         || line == format!("Exec={}", paths.bin.join("mluva").display())
+                        || line == format!("Exec={} %u", paths.bin.join("mluva").display())
                 })
             {
                 fs::remove_file(entry)?;

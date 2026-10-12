@@ -139,6 +139,7 @@ impl Process {
 pub fn run(arguments: &[String]) -> glib::ExitCode {
     let application = adw::Application::builder()
         .application_id(APPLICATION_ID)
+        .flags(gio::ApplicationFlags::HANDLES_OPEN)
         .build();
     let process = Rc::new(Process::default());
     let background = arguments.iter().any(|arg| arg == "--phone-background");
@@ -171,6 +172,15 @@ pub fn run(arguments: &[String]) -> glib::ExitCode {
     application.connect_activate(move |application| {
         if !initial_background_activation.replace(false) {
             activated.activate(application);
+        }
+    });
+    let opening = process.clone();
+    application.connect_open(move |app, files, _| {
+        opening.activate(app);
+        if let Some(desktop) = opening.desktop.borrow().as_ref() {
+            for file in files {
+                desktop.account.callback(file.uri().as_str());
+            }
         }
     });
     let closing = process.clone();

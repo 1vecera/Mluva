@@ -98,7 +98,10 @@ fn preflight(paths: &InstallPaths, migrating: bool) -> Result<()> {
         && !(regular(&desktop)
             && text(&desktop).lines().any(|line| line == "Name=Mluva")
             && text(&desktop).lines().any(|line| {
-                line == "Exec=mluva" || line == format!("Exec={}/mluva", paths.bin.display())
+                line == "Exec=mluva"
+                    || line == "Exec=mluva %u"
+                    || line == format!("Exec={}/mluva", paths.bin.display())
+                    || line == format!("Exec={}/mluva %u", paths.bin.display())
             }))
     {
         return Err(format!(

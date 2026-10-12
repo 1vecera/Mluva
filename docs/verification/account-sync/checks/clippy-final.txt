@@ -1,0 +1,9 @@
+    Checking mluva-core v2.3.0 ($REPO/rust/mluva-core)
+    Checking mluva-audio v2.3.0 ($REPO/rust/mluva-audio)
+    Checking mluva-shell v2.3.0 ($REPO/rust/mluva-shell)
+    Checking mluva-providers v2.3.0 ($REPO/rust/mluva-providers)
+    Checking mluva-asr v2.3.0 ($REPO/rust/mluva-asr)
+    Checking mluva-workflows v2.3.0 ($REPO/rust/mluva-workflows)
+    Checking mluva-web v2.3.0 ($REPO/rust/mluva-web)
+    Checking mluva-gtk v2.3.0 ($REPO/rust/mluva-gtk)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.05s

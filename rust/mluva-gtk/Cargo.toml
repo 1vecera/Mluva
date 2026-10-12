@@ -30,12 +30,14 @@ libloading = "0.9"
 roxmltree = "0.21"
 tokio.workspace = true
 tokio-util.workspace = true
+futures-util.workspace = true
+tokio-tungstenite.workspace = true
+uuid.workspace = true
 
 [dev-dependencies]
+reqwest.workspace = true
 tempfile.workspace = true
 rusqlite.workspace = true
-tokio-tungstenite.workspace = true
-futures-util.workspace = true
 native-tls = "0.2"
 
 [[example]]

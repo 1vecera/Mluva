@@ -1,5 +1,6 @@
 //! Native desktop widgets; keep stored source and desktop presentation separate.
 
+pub mod account_controller;
 pub mod appearance_settings;
 pub mod application;
 pub mod application_settings;

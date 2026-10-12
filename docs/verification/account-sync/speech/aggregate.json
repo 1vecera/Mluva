@@ -1,0 +1,14 @@
+{
+  "baseline": {
+    "tokenP95Ms": 324.12407100002747,
+    "socketStartupP95Ms": 284.67273999995086,
+    "firstPartialP95Ms": 2230.2782210000005,
+    "commitEventDelayP95Ms": 267.408431000018
+  },
+  "app": {
+    "tokenP95Ms": 327.06262300000526,
+    "socketStartupP95Ms": 293.8746749999991,
+    "firstPartialP95Ms": 2219.785304,
+    "commitEventDelayP95Ms": 273.3824849999801
+  }
+}

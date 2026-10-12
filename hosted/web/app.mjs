@@ -7,6 +7,13 @@ const $ = (id) => document.getElementById(id);
 const config = await (
   await fetch("/config.json", { cache: "no-store" })
 ).json();
+if (config.origin && config.origin !== location.origin && !config.dev) {
+  const link = document.createElement("a");
+  link.href = config.origin;
+  link.className = "quiet";
+  link.textContent = "Open the new Mluva address";
+  document.querySelector(".header-actions").prepend(link);
+}
 let auth = account(),
   deviceId,
   devices = [],
@@ -17,6 +24,7 @@ let auth = account(),
   wakeLock,
   saving = false,
   stopping = false,
+  signingOut = false,
   recording = false;
 let recordingId = crypto.randomUUID(),
   rawText = "",
@@ -35,6 +43,25 @@ let selected = new Set(),
   sequence = 0,
   sending = Promise.resolve(),
   liveFailure = false;
+let noteState = null,
+  pendingSave,
+  conflictNote,
+  deleted = false,
+  editGeneration = 0,
+  rewriteGeneration = 0,
+  rewriteResult,
+  continuation,
+  commandSource,
+  continueRequested = false;
+const templates = {
+  polish:
+    "Improve clarity and grammar. Preserve facts, meaning and language. Return the revised text only.",
+  notes:
+    "Organize these words into concise Markdown notes with headings and bullet points. Preserve uncertainty and do not invent facts.",
+  questions:
+    "Identify unanswered questions in these notes, then organize the supplied facts. Clearly distinguish questions from established facts.",
+  custom: "",
+};
 const incoming = new Map();
 const samples = [];
 function notice(message) {
@@ -51,32 +78,65 @@ function buttonState() {
     stopping ||
     sendingText ||
     !wire ||
-    wire.stopped ||
+    (wire.stopped && !$("incognito").checked) ||
     !devices.some((d) => d.id === deviceId) ||
     !config.speechEnabled;
   $("send").disabled =
+    $("incognito").checked ||
     recording ||
     saving ||
     sendingText ||
     !wire ||
     wire.socket?.readyState !== WebSocket.OPEN;
-  $("save").disabled = recording || saving || stopping;
+  $("save").disabled =
+    recording || saving || stopping || deleted || $("incognito").checked;
+  $("cancel-recording").hidden = !recording;
+  $("rewrite").disabled =
+    recording || $("incognito").checked || !config.rewriteEnabled;
+  $("save-template").disabled = $("incognito").checked;
+  $("new-note").disabled = recording || saving;
   $("clear").disabled = recording || saving || stopping;
   $("draft").readOnly = recording || saving || stopping;
+  $("note-title").disabled = recording || saving || stopping;
+  $("task-mode").disabled = recording || saving || stopping;
+  $("continue-recording").disabled =
+    $("record").disabled ||
+    recording ||
+    !noteState ||
+    !saved ||
+    noteState.mode !== "dictation" ||
+    $("incognito").checked;
+  $("continue-recording").hidden = recording;
+  $("merge-note").disabled =
+    recording ||
+    saving ||
+    !noteState ||
+    !saved ||
+    noteState.mode !== "dictation" ||
+    $("incognito").checked;
   $("retain").disabled = recording || saving || stopping;
 }
 async function api(path, method = "GET", body) {
+  const assertSession = () => {
+    if (signingOut && !(method === "DELETE" && path === `/devices/${deviceId}`))
+      throw new Error("Signed out here. Sign in to resume account sync.");
+  };
+  assertSession();
   const token = await accessToken(config);
-  const reply = await fetch(`${config.api}${path}`, {
-    method,
-    headers: {
-      authorization: `Bearer ${token}`,
-      ...(body ? { "content-type": "application/json" } : {}),
+  assertSession();
+  const reply = await fetch(
+    `${config.api}${path}${path.includes("?") ? "&" : "?"}deviceId=${deviceId ?? ""}`,
+    {
+      method,
+      headers: {
+        authorization: `Bearer ${token}`,
+        ...(body ? { "content-type": "application/json" } : {}),
+      },
+      ...(body ? { body: JSON.stringify({ ...body, deviceId }) } : {}),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15000),
     },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-    cache: "no-store",
-    signal: AbortSignal.timeout(15000),
-  });
+  );
   let result;
   try {
     result = await reply.json();
@@ -86,16 +146,31 @@ async function api(path, method = "GET", body) {
     );
   }
   if (!reply.ok)
-    throw new Error(
-      result.message ?? "Connection failed. Keep your draft and retry.",
+    throw Object.assign(
+      new Error(
+        result.message ?? "Connection failed. Keep your draft and retry.",
+      ),
+      { status: reply.status },
     );
+  assertSession();
   return result;
 }
 function persist() {
   if (!auth) return Promise.resolve();
   const value =
-    $("retain").checked && ($("draft").value || audio)
-      ? { id: recordingId, rawText, text: $("draft").value, audio }
+    !$("incognito").checked &&
+    $("retain").checked &&
+    ($("draft").value || audio)
+      ? {
+          id: recordingId,
+          rawText,
+          text: $("draft").value,
+          audio,
+          noteState,
+          pendingSave,
+          title: $("note-title").value,
+          mode: $("task-mode").value,
+        }
       : null;
   // Serialize writes and capture the snapshot now, so a delayed old write cannot resurrect a cleared draft.
   storageQueue = storageQueue
@@ -165,6 +240,7 @@ async function refreshDevices() {
       .filter((device) => device.id !== deviceId && !known.has(device.id))
       .forEach((device) => selected.add(device.id));
   config.speechEnabled = result.speechEnabled;
+  config.rewriteEnabled = result.rewriteEnabled;
   if (!selectionInitialized) {
     selected = new Set(
       devices.filter((d) => d.id !== deviceId).map((d) => d.id),
@@ -236,7 +312,9 @@ async function refreshDevices() {
     row.append(remove);
     $("devices").append(row);
   }
-  const current = devices.find((device) => device.id === deviceId);
+  const current = devices.find(
+    (device) => device.id === deviceId && device.currentSession,
+  );
   $("device-name").textContent = current?.name ?? "this device";
   $("record-hint").textContent = config.speechEnabled
     ? "Keep this screen open while recording."
@@ -245,6 +323,13 @@ async function refreshDevices() {
   return Boolean(current);
 }
 function renderHistory() {
+  const choice = $("merge-with").value;
+  $("merge-with").replaceChildren(new Option("Choose a conversation…", ""));
+  for (const entry of historyEntries.filter(
+    (e) => e.id !== recordingId && (e.mode ?? "dictation") === "dictation",
+  ))
+    $("merge-with").add(new Option(entry.title, entry.id));
+  $("merge-with").value = choice;
   $("history").replaceChildren();
   const needle = $("search").value.toLocaleLowerCase();
   for (const entry of historyEntries.filter((item) =>
@@ -271,10 +356,7 @@ function renderHistory() {
     exportButton.className = "quiet";
     exportButton.textContent = "Export";
     exportButton.onclick = () =>
-      download(
-        `mluva-${entry.id}.md`,
-        `# ${entry.title}\n\n${entry.text}\n\n## Original words\n\n${entry.rawText}\n`,
-      );
+      download(`mluva-${entry.id}.md`, markdown(entry));
     const remove = document.createElement("button");
     remove.className = "quiet";
     remove.textContent = "Delete";
@@ -288,6 +370,15 @@ function renderHistory() {
         return;
       try {
         await api(`/history/${entry.id}`, "DELETE");
+        if (recordingId === entry.id) {
+          deleted = true;
+          saved = true;
+          pendingSave = undefined;
+          buttonState();
+          notice(
+            "This note was deleted. Export your open text if you need a copy.",
+          );
+        }
         historyEntries = historyEntries.filter((item) => item.id !== entry.id);
         renderHistory();
       } catch (error) {
@@ -300,7 +391,11 @@ function renderHistory() {
     summary.textContent = "Original words";
     originalWords.textContent = entry.rawText;
     original.append(summary, originalWords);
-    actions.append(copyButton, exportButton, remove);
+    const open = document.createElement("button");
+    open.className = "secondary";
+    open.textContent = "Open";
+    open.onclick = () => openNote(entry);
+    actions.append(open, copyButton, exportButton, remove);
     card.append(meta, title, words, original, actions);
     $("history").append(card);
   }
@@ -317,6 +412,7 @@ function renderHistory() {
 let historyLoading = false,
   historyPending = false;
 async function loadHistory(earlier = false) {
+  if ($("incognito").checked) return;
   if (historyLoading) {
     if (!earlier) historyPending = true;
     return;
@@ -335,6 +431,16 @@ async function loadHistory(earlier = false) {
         ]
       : result.entries;
     cursor = result.cursor;
+    const current = historyEntries.find((e) => e.id === recordingId);
+    if (
+      current &&
+      noteState &&
+      current.revision > noteState.revision &&
+      saved &&
+      !recording &&
+      !saving
+    )
+      await openNote(current);
     renderHistory();
   } finally {
     historyLoading = false;
@@ -381,6 +487,7 @@ function renderIncoming() {
   }
 }
 function event(message) {
+  if (signingOut || $("incognito").checked) return;
   if (message.type === "stream" && message.deviceId !== deviceId) {
     let session = incoming.get(message.sessionId);
     if (!session) {
@@ -410,9 +517,20 @@ function event(message) {
       );
     while (incoming.size > 6) incoming.delete(incoming.keys().next().value);
     renderIncoming();
-  } else if (message.type === "history.changed")
+  } else if (message.type === "history.changed") {
+    if (message.deleted && message.id === recordingId) {
+      deleted = true;
+      saved = true;
+      pendingSave = undefined;
+      editGeneration++;
+      rewriteGeneration++;
+      persist();
+      notice(
+        "This note was deleted on another device. It will not be saved again.",
+      );
+    }
     loadHistory().catch((error) => notice(error.message));
-  else if (
+  } else if (
     message.type === "devices.changed" ||
     message.type === "reconnected"
   ) {
@@ -434,9 +552,8 @@ function event(message) {
     });
     renderIncoming();
     if (recording) {
-      liveFailure = true;
       notice(
-        "Live connection interrupted. Recording stays on this device; save to history after reconnecting.",
+        "Live connection interrupted. Ordered updates will retry on reconnect; save the complete words to history.",
       );
     }
   } else if (message.type === "error") notice(message.message);
@@ -451,7 +568,7 @@ function beginLive() {
   return publish("started");
 }
 function publish(phase, content = "") {
-  if (liveFailure) return Promise.resolve();
+  if (liveFailure || $("incognito").checked) return Promise.resolve();
   if (!selected.size && phase === "started") {
     liveFailure = true;
     notice(
@@ -500,7 +617,7 @@ function segments(content) {
   return parts;
 }
 async function saveDraft(automatic = false) {
-  if (saving || recording) return;
+  if (saving || recording || deleted || $("incognito").checked) return;
   const content = $("draft").value;
   if (!content.trim() && !rawText.trim()) {
     if (!automatic) notice("Speak or type a thought first.");
@@ -517,15 +634,36 @@ async function saveDraft(automatic = false) {
     return;
   }
   saving = true;
+  $("draft-state").textContent = "Saving…";
   buttonState();
   try {
     await persist().catch(() => {});
-    await api("/history", "POST", {
+    pendingSave ??= {
       id: recordingId,
-      deviceId,
       rawText: rawText || content,
       text: content,
-    });
+      title:
+        $("note-title").value || content.trim().split("\n")[0].slice(0, 80),
+      mode: $("task-mode").value,
+      deliveredText: noteState?.deliveredText ?? content,
+      rewrites: noteState?.rewrites ?? [],
+      segments: noteState?.segments ?? [],
+      baseRevision: noteState?.revision ?? 0,
+      operationId: crypto.randomUUID(),
+    };
+    await persist().catch(() => {});
+    const result = await api(
+      noteState ? `/history/${recordingId}` : "/history",
+      noteState ? "PUT" : "POST",
+      pendingSave,
+    );
+    if (deleted) return;
+    noteState = result;
+    rawText = result.rawText;
+    pendingSave = undefined;
+    $("original-text").textContent = rawText;
+    $("note-title").value = result.title;
+    $("workspace-title").textContent = "Workspace";
     saved = true;
     audio = undefined;
     await draftStorage(auth.owner, null);
@@ -534,6 +672,17 @@ async function saveDraft(automatic = false) {
     notice("Saved. Your words are available on all your devices.");
     await loadHistory();
   } catch (error) {
+    if (error.status === 409) {
+      conflictNote = await api(`/history/${recordingId}`).catch(() => null);
+      if (conflictNote) {
+        $("conflict-text").value = conflictNote.text;
+        $("conflict-dialog").showModal();
+      }
+    }
+    if (error.status === 410) {
+      deleted = true;
+      pendingSave = undefined;
+    }
     recovery(error.message);
     notice(error.message);
   } finally {
@@ -541,7 +690,7 @@ async function saveDraft(automatic = false) {
     buttonState();
   }
 }
-async function startRecording() {
+async function startRecording(continuing = false) {
   if (recording || stopping || saving) return;
   if (
     !window.AudioContext ||
@@ -554,7 +703,15 @@ async function startRecording() {
     );
     return;
   }
+  const command = $("task-mode").value === "command";
+  if (command && !$("draft").value.trim()) {
+    notice(
+      "For Command, paste the text to change in the editor, then record your instruction.",
+    );
+    return;
+  }
   if (
+    !command &&
     !saved &&
     $("draft").value &&
     !(await confirm(
@@ -563,14 +720,35 @@ async function startRecording() {
     ))
   )
     return;
-  recordingId = crypto.randomUUID();
-  rawText = "";
+  commandSource = command ? $("draft").value : null;
+  continuation = continuing
+    ? {
+        note: structuredClone(noteState),
+        text: $("draft").value,
+        segmentId: crypto.randomUUID(),
+        raw: "",
+      }
+    : null;
+  if (!continuing) {
+    recordingId = crypto.randomUUID();
+    noteState = null;
+  }
+  pendingSave = undefined;
+  deleted = false;
+  editGeneration++;
+  rewriteGeneration++;
+  if (!continuing) {
+    $("note-title").value = "";
+    $("original-text").textContent = "";
+    rawText = "";
+  }
   audio = undefined;
   saved = false;
-  $("draft").value = "";
+  if (!continuing && !command) $("draft").value = "";
   $("partial").hidden = true;
   $("recovery").hidden = true;
   recording = true;
+  notice(command ? "Speak an instruction for the text in the editor." : "");
   started = Date.now();
   $("record").dataset.recording = "true";
   $("record-label").textContent = "Stop";
@@ -600,8 +778,21 @@ async function startRecording() {
     onSegment: (value) => {
       if (!value) return;
       const observed = performance.now();
-      rawText += `${rawText ? "\n" : ""}${value}`;
-      $("draft").value = rawText;
+      if (continuation) {
+        continuation.raw += `${continuation.raw ? "\n" : ""}${value}`;
+        $("draft").value = `${continuation.text}\n\n${continuation.raw}`;
+        noteState.segments = [
+          ...(noteState.segments ?? []).filter(
+            (s) => s.id !== continuation.segmentId,
+          ),
+          { id: continuation.segmentId, rawText: continuation.raw },
+        ];
+      } else {
+        rawText += `${rawText ? "\n" : ""}${value}`;
+        $("draft").value = commandSource ?? rawText;
+        if (commandSource !== null) $("instruction").value = rawText;
+      }
+      renderOriginal();
       $("partial").hidden = true;
       requestAnimationFrame(() => {
         samples.push(performance.now() - observed);
@@ -610,7 +801,7 @@ async function startRecording() {
       for (const segment of segments(value)) publish("segment", segment);
       persist().catch(() => {});
       if (
-        new TextEncoder().encode(rawText).length > 85000 &&
+        new TextEncoder().encode($("draft").value).length > 85000 &&
         recording &&
         !stopping
       ) {
@@ -626,7 +817,7 @@ async function startRecording() {
     },
   });
   try {
-    await beginLive();
+    beginLive().catch(() => {});
     await speech.start();
     if ("wakeLock" in navigator)
       wakeLock = await navigator.wakeLock.request("screen").catch(() => null);
@@ -666,7 +857,7 @@ async function stopRecording(commit = true) {
   $("partial").hidden = true;
   $("draft-state").textContent =
     failed || !commit ? "Settled words · review before saving" : "Ready";
-  await publish("stopped");
+  publish("stopped");
   await persist().catch(() => {});
   recovery(
     failed || !commit
@@ -674,7 +865,20 @@ async function stopRecording(commit = true) {
       : "Your recording is ready to save or download.",
   );
   buttonState();
-  if (commit && !failed) await saveDraft(true);
+  if (commit && !failed && $("task-mode").value === "dictation")
+    await saveDraft(true);
+  else if (commit && !failed) {
+    $("rewrite-panel").open = true;
+    if ($("task-mode").value === "scratchpad") {
+      $("template").value = "notes";
+      chooseTemplate();
+    }
+    notice(
+      $("task-mode").value === "command"
+        ? "Instruction captured. Rewrite the editor text, review the preview, then keep it explicitly."
+        : "Review your notes. Save them or create a structured rewrite before keeping it.",
+    );
+  }
   await refreshDevices().catch(() => {});
 }
 
@@ -686,27 +890,42 @@ $("signin").onclick = async () => {
       ).json();
       sessionStorage.setItem("mluva-auth", JSON.stringify(payload));
       location.reload();
-    } else await signIn(config);
+    } else await signIn(config, $("remember-login").checked);
   } catch (error) {
     notice(error.message);
   }
 };
 $("signout").onclick = async () => {
+  if (signingOut) return;
+  signingOut = true;
+  editGeneration++;
+  rewriteGeneration++;
+  clearTimeout(storageTimer);
+  wire?.close();
   if (recording) await stopRecording(false);
   await persist().catch(() => {});
-  wire?.close();
+  $("workspace").hidden = true;
+  $("signout").disabled = true;
+  if (deviceId)
+    await api(`/devices/${deviceId}`, "DELETE").catch(() =>
+      notice(
+        "Signed out here; remove this offline device from another device to revoke it.",
+      ),
+    );
+  localStorage.removeItem(`mluva-device:${auth.owner}`);
   await signOut(config);
 };
 $("record").onclick = () => {
   if (recording) stopRecording();
   else {
+    continueRequested = false;
     $("speech-dialog").showModal();
   }
 };
 $("speech-cancel").onclick = () => $("speech-dialog").close();
 $("speech-start").onclick = () => {
   $("speech-dialog").close();
-  startRecording();
+  startRecording(continueRequested);
 };
 $("save").onclick = () => saveDraft();
 $("retry").onclick = () => saveDraft();
@@ -729,8 +948,8 @@ $("send").onclick = async () => {
 $("draft").addEventListener("input", () => {
   if (saved) {
     saved = false;
-    recordingId = crypto.randomUUID();
   }
+  editGeneration++;
   $("draft-state").textContent = "Unsaved draft";
   clearTimeout(storageTimer);
   storageTimer = setTimeout(() => persist(), 250);
@@ -761,6 +980,13 @@ $("clear").onclick = async () => {
   clearTimeout(storageTimer);
   $("draft").value = "";
   rawText = "";
+  noteState = null;
+  pendingSave = undefined;
+  deleted = false;
+  editGeneration++;
+  rewriteGeneration++;
+  $("note-title").value = "";
+  $("original-text").textContent = "";
   audio = undefined;
   saved = false;
   recordingId = crypto.randomUUID();
@@ -811,7 +1037,7 @@ window.addEventListener("pageshow", (event) => {
   }
 });
 window.addEventListener("beforeunload", (event) => {
-  if (recording || (!saved && $("draft").value)) {
+  if (!signingOut && (recording || (!saved && $("draft").value))) {
     event.preventDefault();
     event.returnValue = "";
   }
@@ -861,6 +1087,21 @@ if ("serviceWorker" in navigator)
     .register("/sw.js", { updateViaCache: "none" })
     .catch(() => {});
 
+async function connectWire() {
+  wire?.close();
+  wire = new DeviceWire({
+    config,
+    api,
+    deviceId,
+    onEvent: event,
+    onState: (online, label) => {
+      state(online, label);
+      buttonState();
+    },
+  });
+  await wire.connect();
+}
+
 if (!config.api || !config.websocket || !config.clientId || !config.login)
   $("configuration").hidden = false;
 else if (!auth) {
@@ -876,11 +1117,14 @@ else if (!auth) {
 } else {
   $("workspace").hidden = false;
   $("signout").hidden = false;
+  $("show-settings").hidden = false;
+  $("show-history").hidden = false;
   try {
     deviceId =
       localStorage.getItem(`mluva-device:${auth.owner}`) ?? crypto.randomUUID();
     const exists = await refreshDevices();
     if (!exists) {
+      deviceId = crypto.randomUUID();
       $("name").value = /Mobi|Android|iPhone/.test(navigator.userAgent)
         ? "My phone"
         : "My laptop";
@@ -915,6 +1159,10 @@ else if (!auth) {
     }
     const pending = await draftStorage(auth.owner);
     if (pending) {
+      noteState = pending.noteState ?? null;
+      pendingSave = pending.pendingSave;
+      $("note-title").value = pending.title ?? "";
+      $("task-mode").value = pending.mode ?? "dictation";
       recordingId = pending.id;
       rawText = pending.rawText;
       $("draft").value = pending.text;
@@ -924,17 +1172,7 @@ else if (!auth) {
     }
     await refreshDevices();
     await loadHistory();
-    wire = new DeviceWire({
-      config,
-      api,
-      deviceId,
-      onEvent: event,
-      onState: (online, label) => {
-        state(online, label);
-        buttonState();
-      },
-    });
-    await wire.connect();
+    await connectWire();
     buttonState();
     if (config.dev)
       notice(
@@ -945,3 +1183,324 @@ else if (!auth) {
     notice(error.message);
   }
 }
+
+function markdown(note) {
+  return `# ${note.title}\n\n## Working text\n\n${note.text}\n\n## Original recognition\n\n${note.rawText}\n\n## Delivered text\n\n${note.deliveredText ?? note.text}\n${(note.rewrites ?? []).map((r) => `\n## Rewrite · ${r.model}\n\n${r.instruction}\n\n${r.text}\n`).join("")}${(note.segments ?? []).map((r) => `\n## Original segment\n\n${r.rawText}\n`).join("")}`;
+}
+function renderOriginal() {
+  $("original-text").textContent =
+    rawText +
+    (noteState?.segments ?? [])
+      .map((s, i) => `\n\nRecording ${i + 2}\n${s.rawText}`)
+      .join("");
+}
+function showRewrites() {
+  $("rewrites").replaceChildren();
+  for (const r of noteState?.rewrites ?? []) {
+    const details = document.createElement("details"),
+      title = document.createElement("summary"),
+      text = document.createElement("pre"),
+      copyButton = document.createElement("button");
+    title.textContent = `Rewrite · ${r.model}`;
+    text.textContent = r.text;
+    copyButton.textContent = "Copy rewrite";
+    copyButton.className = "quiet";
+    copyButton.onclick = () => copy(r.text);
+    details.append(title, text, copyButton);
+    $("rewrites").append(details);
+  }
+}
+async function openNote(note) {
+  if (recording || saving) return;
+  if (
+    !saved &&
+    $("draft").value &&
+    !(await confirm(
+      "Open another conversation?",
+      "Save or export your unsaved draft first to keep it.",
+    ))
+  )
+    return;
+  noteState = structuredClone(note);
+  recordingId = note.id;
+  rawText = note.rawText;
+  saved = true;
+  deleted = false;
+  pendingSave = undefined;
+  editGeneration++;
+  rewriteGeneration++;
+  $("draft").value = note.text;
+  $("note-title").value = note.title;
+  renderOriginal();
+  $("workspace-title").textContent = "Workspace";
+  $("task-mode").value = note.mode ?? "dictation";
+  $("draft-state").textContent = `Saved · revision ${note.revision}`;
+  $("recovery").hidden = true;
+  $("rewrite-result").hidden = true;
+  document.body.classList.remove("history-open");
+  showRewrites();
+  renderHistory();
+  buttonState();
+}
+$("new-note").onclick = async () => {
+  if (
+    !saved &&
+    $("draft").value &&
+    !(await confirm(
+      "Start a new note?",
+      "Save or export this draft first if you want to keep it.",
+    ))
+  )
+    return;
+  noteState = null;
+  pendingSave = undefined;
+  recordingId = crypto.randomUUID();
+  rawText = "";
+  saved = false;
+  deleted = false;
+  audio = undefined;
+  editGeneration++;
+  rewriteGeneration++;
+  $("draft").value = "";
+  $("note-title").value = "";
+  $("original-text").textContent = "";
+  $("workspace-title").textContent = "New conversation";
+  $("rewrite-result").hidden = true;
+  $("recovery").hidden = true;
+  showRewrites();
+  await persist();
+  buttonState();
+};
+$("note-title").oninput = () => {
+  saved = false;
+  editGeneration++;
+  persist();
+};
+$("task-mode").onchange = () => {
+  saved = false;
+  editGeneration++;
+  persist();
+  if ($("task-mode").value === "command")
+    notice(
+      "Command: paste the text to change, then record or type a rewrite instruction. Nothing is inserted into another app.",
+    );
+};
+$("copy-draft").onclick = () => copy($("draft").value);
+$("export-json").onclick = () =>
+  download(
+    `mluva-${recordingId}.json`,
+    JSON.stringify(
+      {
+        ...noteState,
+        id: recordingId,
+        rawText,
+        text: $("draft").value,
+        title: $("note-title").value,
+      },
+      null,
+      2,
+    ),
+    "application/json",
+  );
+$("cancel-recording").onclick = async () => {
+  rewriteGeneration++;
+  await stopRecording(false);
+  if (continuation) {
+    const before = continuation.note;
+    continuation = null;
+    saved = true;
+    await openNote(before);
+  } else {
+    rawText = "";
+    $("draft").value = "";
+  }
+  audio = undefined;
+  $("recovery").hidden = true;
+  await persist();
+  notice("Recording cancelled. No note was saved.");
+};
+$("continue-recording").onclick = () => {
+  continueRequested = true;
+  $("speech-dialog").showModal();
+};
+$("merge-note").onclick = async () => {
+  const other = historyEntries.find((e) => e.id === $("merge-with").value);
+  if (!other || !noteState || !saved) return;
+  if (
+    !(await confirm(
+      "Merge these conversations?",
+      "The other conversation becomes an original segment of this note. This change syncs to your devices.",
+    ))
+  )
+    return;
+  const current = structuredClone(noteState);
+  const merged = {
+    ...current,
+    text: `${current.text}\n\n${other.text}`,
+    deliveredText: `${current.deliveredText}\n\n${other.deliveredText}`,
+    rewrites: [...current.rewrites, ...other.rewrites],
+    segments: [
+      ...current.segments,
+      { id: other.id, rawText: other.rawText },
+      ...other.segments,
+    ],
+  };
+  $("draft").value = merged.text;
+  noteState = merged;
+  pendingSave = {
+    ...merged,
+    baseRevision: current.revision,
+    operationId: crypto.randomUUID(),
+    mergedSources: [{ id: other.id, baseRevision: other.revision }],
+  };
+  saved = false;
+  editGeneration++;
+  rewriteGeneration++;
+  await saveDraft();
+  showRewrites();
+};
+$("conflict-local").onclick = () => {
+  noteState = conflictNote;
+  pendingSave = undefined;
+  $("conflict-dialog").close();
+  saveDraft();
+};
+$("conflict-remote").onclick = () => {
+  saved = true;
+  $("conflict-dialog").close();
+  openNote(conflictNote);
+  persist();
+};
+$("conflict-later").onclick = () => $("conflict-dialog").close();
+$("show-settings").onclick = () => $("settings-dialog").showModal();
+$("settings-content").append(
+  $("device-settings"),
+  document.querySelector(".privacy"),
+);
+$("show-history").onclick = () =>
+  document.body.classList.toggle("history-open");
+function theme(value) {
+  document.documentElement.dataset.theme = value;
+}
+theme(localStorage.getItem("mluva-theme") ?? "system");
+$("theme").value = localStorage.getItem("mluva-theme") ?? "system";
+$("theme").onchange = () => {
+  localStorage.setItem("mluva-theme", $("theme").value);
+  theme($("theme").value);
+};
+$("incognito").onchange = async () => {
+  if (recording || saving) {
+    $("incognito").checked = !$("incognito").checked;
+    return;
+  }
+  buttonState();
+  if ($("incognito").checked) {
+    wire?.close();
+    incoming.clear();
+    renderIncoming();
+    state(false, "Incognito");
+    $("retain").checked = false;
+    rewriteGeneration++;
+    await draftStorage(auth.owner, null);
+    notice(
+      "Incognito: new words stay in memory. No account sync, saved history, rewrites or recovery. Speech still uses ElevenLabs.",
+    );
+  } else {
+    await connectWire();
+    await loadHistory().catch((e) => notice(e.message));
+  }
+  buttonState();
+};
+const templateKey = () => `mluva-templates:${auth?.owner ?? "signed-out"}`;
+let savedTemplates;
+try {
+  savedTemplates = JSON.parse(localStorage.getItem(templateKey()) ?? "{}");
+} catch {
+  savedTemplates = {};
+}
+function chooseTemplate() {
+  $("instruction").value =
+    savedTemplates[$("template").value] ?? templates[$("template").value];
+}
+$("template").onchange = chooseTemplate;
+chooseTemplate();
+$("save-template").onclick = () => {
+  if ($("incognito").checked) return;
+  savedTemplates[$("template").value] = $("instruction").value;
+  localStorage.setItem(templateKey(), JSON.stringify(savedTemplates));
+  notice("Template saved on this device.");
+};
+$("rewrite").onclick = async () => {
+  if ($("incognito").checked || recording) return;
+  const generation = ++rewriteGeneration,
+    revision = editGeneration,
+    id = recordingId,
+    source = $("draft").value,
+    instruction = $("instruction").value;
+  if (!source.trim() || !instruction.trim()) {
+    notice("Add text and an instruction first.");
+    return;
+  }
+  $("rewrite-cancel").hidden = false;
+  $("rewrite").disabled = true;
+  $("rewrite-result").hidden = true;
+  try {
+    const result = await api("/rewrite", "POST", {
+      text: source,
+      instruction,
+      consent: true,
+    });
+    if (
+      generation !== rewriteGeneration ||
+      revision !== editGeneration ||
+      id !== recordingId ||
+      deleted
+    ) {
+      notice("The source changed. The old rewrite was discarded.");
+      return;
+    }
+    rewriteResult = {
+      id: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      instruction,
+      text: result.text,
+      model: result.model,
+      sourceRevision: revision,
+    };
+    rewriteResult.id = rewriteResult.createdAt;
+    $("rewrite-text").value = result.text;
+    $("rewrite-result").hidden = false;
+  } catch (e) {
+    if (generation === rewriteGeneration) notice(e.message);
+  } finally {
+    if (generation === rewriteGeneration) {
+      $("rewrite-cancel").hidden = true;
+      buttonState();
+    }
+  }
+};
+$("rewrite-cancel").onclick = () => {
+  rewriteGeneration++;
+  $("rewrite-cancel").hidden = true;
+  $("rewrite-result").hidden = true;
+  buttonState();
+  notice("Rewrite cancelled. The source is unchanged.");
+};
+$("apply-rewrite").onclick = async () => {
+  if (!rewriteResult || rewriteResult.sourceRevision !== editGeneration) {
+    notice("The source changed. Rewrite again before applying.");
+    return;
+  }
+  if (!noteState) await saveDraft();
+  if (!noteState || deleted) return;
+  const reply = { ...rewriteResult };
+  delete reply.sourceRevision;
+  reply.text = $("rewrite-text").value;
+  noteState.rewrites = [...(noteState.rewrites ?? []), reply];
+  noteState.deliveredText = reply.text;
+  saved = false;
+  pendingSave = undefined;
+  await saveDraft();
+  showRewrites();
+  $("rewrite-result").hidden = true;
+};

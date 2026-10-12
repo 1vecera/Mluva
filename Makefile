@@ -137,3 +137,7 @@ linux-prompt-test:
 linux-screenshot-test:
 	bash linux/tests/run_application_smoke.sh images
 	bash linux/tests/run_application_smoke.sh screenshots
+
+.PHONY: linux-account-test
+linux-account-test:
+	bash linux/tests/run_application_smoke.sh account

@@ -1,0 +1,13 @@
+{
+  "provider": "AWS Bedrock eu-central-1",
+  "model": "qwen.qwen3-32b-v1:0",
+  "seconds": 0.41943053499926464,
+  "stopReason": "end_turn",
+  "text": "This is a synthetic workspace note. The meeting begins tomorrow at ten.",
+  "usage": {
+    "inputTokens": 79,
+    "outputTokens": 15,
+    "totalTokens": 94
+  },
+  "scope": "one synthetic Converse request; no deployed application or account data"
+}
