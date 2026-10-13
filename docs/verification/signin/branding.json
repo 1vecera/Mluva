@@ -1,0 +1,16 @@
+{
+  "account": "762052017888",
+  "region": "eu-central-1",
+  "userPool": "eu-central-1_XNJBdWYmf",
+  "client": "5n8etbvt44n6j57oh36i6kts4u",
+  "tierUnchanged": "ESSENTIALS",
+  "action": "create",
+  "applied": true,
+  "sha256": {
+    "settings.json": "a30fd78f6ea2fe697c797be3ecc958d9d985bc9f3b670726f1b49dbd362703f1",
+    "mluva-logo-medium-mark-on-light.png": "2b573a9e5fea8c1d0e1a021e7e27b25458773c2e08d2451d21f2333c964bf937",
+    "mluva-logo-medium-mark-on-dark.png": "d8d78944b214a80118d59c0b5cfe5a8ca7c13ff4d103ee2640a7c211e1744eec",
+    "mluva-mark-flat.svg": "ff3c60f560ab4e173889833f707306ae4ffa8fb21ae2542a49254b8afc848918"
+  },
+  "branding": "82e47d99-a8a2-407a-b984-b8c6afc335d3"
+}

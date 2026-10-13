@@ -15,7 +15,7 @@ function storeAuth(value) {
   );
   storage.setItem("mluva-auth", JSON.stringify(value));
 }
-export async function signIn(config, remember = false) {
+export async function signIn(config, remember = false, createAccount = false) {
   authGeneration++;
   const verifier = base64url(crypto.getRandomValues(new Uint8Array(32))),
     state = base64url(crypto.getRandomValues(new Uint8Array(24)));
@@ -26,7 +26,10 @@ export async function signIn(config, remember = false) {
     "mluva-login",
     JSON.stringify({ verifier, state, createdAt: Date.now(), remember }),
   );
-  const url = new URL("/oauth2/authorize", config.login);
+  const url = new URL(
+    createAccount ? "/signup" : "/oauth2/authorize",
+    config.login,
+  );
   url.search = new URLSearchParams({
     response_type: "code",
     client_id: config.clientId,

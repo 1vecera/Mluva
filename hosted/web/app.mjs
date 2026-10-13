@@ -882,19 +882,36 @@ async function stopRecording(commit = true) {
   await refreshDevices().catch(() => {});
 }
 
-$("signin").onclick = async () => {
+async function beginSignIn(createAccount = false) {
+  if ($("signin").disabled) return;
+  $("signin").disabled = true;
+  $("create-account").disabled = true;
+  $("signin-error").hidden = true;
+  $("welcome").setAttribute("aria-busy", "true");
   try {
+    if (!config.dev && !navigator.onLine)
+      throw new Error("You’re offline. Reconnect, then try signing in again.");
     if (config.dev) {
       const payload = await (
         await fetch("/dev/session", { method: "POST" })
       ).json();
       sessionStorage.setItem("mluva-auth", JSON.stringify(payload));
       location.reload();
-    } else await signIn(config, $("remember-login").checked);
+    } else await signIn(config, $("remember-login").checked, createAccount);
   } catch (error) {
-    notice(error.message);
+    $("signin-error").textContent = error.message;
+    $("signin-error").hidden = false;
+    resetSignIn();
   }
-};
+}
+function resetSignIn() {
+  $("signin").disabled = false;
+  $("create-account").disabled = false;
+  $("welcome").removeAttribute("aria-busy");
+}
+$("signin").onclick = () => beginSignIn();
+$("create-account").onclick = () => beginSignIn(true);
+window.addEventListener("pageshow", resetSignIn);
 $("signout").onclick = async () => {
   if (signingOut) return;
   signingOut = true;
@@ -1105,14 +1122,17 @@ async function connectWire() {
 if (!config.api || !config.websocket || !config.clientId || !config.login)
   $("configuration").hidden = false;
 else if (!auth) {
+  document.body.classList.add("auth-page");
+  document.title = "Mluva · Sign in";
   $("welcome").hidden = false;
   if (config.dev) {
     $("signin").textContent = "Open local test workspace";
+    $("create-account").hidden = true;
     const warning = document.createElement("p");
     warning.className = "small";
     warning.textContent =
       "Local preview · synthetic speech · no real account or cloud writes";
-    $("welcome").append(warning);
+    document.querySelector(".signin-form").append(warning);
   }
 } else {
   $("workspace").hidden = false;

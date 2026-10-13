@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-13",
+  "sourceCommit": "1cd91a2b4801699986ee7d04cd4f4f22c968bc93",
+  "version": "2.3.0",
+  "binarySha256": "4b7c631c96ced046c53d951c85884f00e6914cf960ee7d718c76014c9811baf3",
+  "installedMatchesBundle": true,
+  "residentRestart": "--phone-background",
+  "stagedInstallSmoke": "passed; private D-Bus/GTK window/application Quit",
+  "nativeAccountIntegration": "passed; native GTK plus two browser peers",
+  "widget": "installed 2.3.0 content identical to current main; preflight passed",
+  "bridge": "both existing user services remain active",
+  "scope": "No version bump, native source edits, microphone automation, history upload or local data migration."
+}

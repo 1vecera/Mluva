@@ -2,7 +2,7 @@
 
 An installable account workspace alongside the native Rust/GTK app: selected-device live words, one revisioned history, immutable recognition, working edits, completed rewrites, continuation and merging. Native capture and local models stay on the PC; only text enters account sync. Browser microphone audio goes directly to the server speech provider through a short-lived token.
 
-**Branch status: implementation prepared for review, not deployed.** The existing [hosted beta](https://d24oqajhzma8jq.cloudfront.net/) still runs the prior text companion. Native account login requires the prepared Cognito callback/API update; the canonical address is `https://mluva.danielvecera.com` after the separately approved TLS/DNS cutover. Public speech remains disabled. The installed restricted [phone bridge](../docs/browser-recorder.md) stays available until replacement acceptance and explicit retirement approval.
+**Live at [mluva.danielvecera.com](https://mluva.danielvecera.com/).** PR #93 and the coordinated TLS/DNS/account cutover were deployed on 12 October 2026. The old CloudFront address remains an accepted transition origin. This branch prepares a [redesigned sign-in flow](branding/README.md); its Cognito branding and static files require a separate approved deployment. Public speech and server rewriting remain disabled. The installed restricted [phone bridge](../docs/browser-recorder.md) stays available until replacement acceptance and explicit retirement approval.
 
 [Implementation evidence and responsive screenshots](../docs/verification/account-sync/README.md) · [desktop/web parity matrix](../docs/verification/account-sync/parity.md) · [exact cutover plan](../docs/verification/account-sync/cutover.md) · [portable task specification](../tasks/account-device-sync-and-web-parity.md).
 
@@ -62,6 +62,8 @@ sam build --template-file template.yaml
 ```
 
 After deployment is explicitly authorized, run `sam deploy --guided` from this directory, choose the account/region and unique `LoginDomainPrefix`, and leave `SpeechEnabled=false`. Cognito callback/logout addresses and API CORS use the generated HTTPS CloudFront address. No DNS record, access widening, invitation or provider secret is created automatically. The optional canonical alias/certificate parameters must be coordinated with the [cutover plan](../docs/verification/account-sync/cutover.md).
+
+The domain now selects managed login v2. Apply the committed [login branding](branding/README.md) to the client before publishing a new stack's app. For the existing production domain, follow the staged v1 → v2 procedure in that guide; do not enable the new domain version without a managed-branding record.
 
 Download stack outputs locally and prepare static assets:
 

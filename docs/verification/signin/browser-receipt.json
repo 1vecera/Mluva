@@ -1,0 +1,254 @@
+{
+  "checks": [
+    "laptop light: real Cognito credentials, welcome, keyboard focus and no overflow",
+    "laptop dark: real Cognito credentials, welcome, keyboard focus and no overflow",
+    "phone light: real Cognito credentials, welcome, keyboard focus and no overflow",
+    "Real sign-up and recovery pages render; no messages sent",
+    "phone dark: real Cognito credentials, welcome, keyboard focus and no overflow",
+    "320px callback failure, visible offline error, re-enabled controls and successful retry to account creation",
+    "200% app text scaling at 640px, reduced-motion callback and themed retry control",
+    "Real Cognito email/password + S256 PKCE callback → named device → local API workspace; session-only choice honored",
+    "Native mluva://account redirect preserves state, exchanges S256 PKCE code and revokes temporary token",
+    "Real logout returns to branded welcome with credentials removed"
+  ],
+  "metrics": [
+    {
+      "surface": "welcome-laptop-light",
+      "controls": [
+        {
+          "element": "signin-description",
+          "height": 51.1875,
+          "fontSize": "16px",
+          "color": "rgb(98, 120, 111)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "element": "signin",
+          "height": 50,
+          "fontSize": "16px",
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(40, 126, 107)"
+        },
+        {
+          "element": "create-account",
+          "height": 50,
+          "fontSize": "16px",
+          "color": "rgb(25, 52, 47)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "element": "remember",
+          "height": 44,
+          "fontSize": "14px",
+          "color": "rgb(25, 52, 47)",
+          "background": "rgba(0, 0, 0, 0)"
+        }
+      ]
+    },
+    {
+      "surface": "credentials-laptop-light",
+      "controls": [
+        {
+          "element": "email",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(25, 52, 47)",
+          "background": "rgb(255, 255, 255)"
+        },
+        {
+          "element": "password",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(25, 52, 47)",
+          "background": "rgb(255, 255, 255)"
+        },
+        {
+          "element": "submit",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(40, 126, 107)"
+        }
+      ]
+    },
+    {
+      "surface": "welcome-laptop-dark",
+      "controls": [
+        {
+          "element": "signin-description",
+          "height": 51.1875,
+          "fontSize": "16px",
+          "color": "rgb(142, 168, 153)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "element": "signin",
+          "height": 50,
+          "fontSize": "16px",
+          "color": "rgb(21, 56, 44)",
+          "background": "rgb(145, 230, 200)"
+        },
+        {
+          "element": "create-account",
+          "height": 50,
+          "fontSize": "16px",
+          "color": "rgb(237, 245, 239)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "element": "remember",
+          "height": 44,
+          "fontSize": "14px",
+          "color": "rgb(237, 245, 239)",
+          "background": "rgba(0, 0, 0, 0)"
+        }
+      ]
+    },
+    {
+      "surface": "credentials-laptop-dark",
+      "controls": [
+        {
+          "element": "email",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(237, 245, 239)",
+          "background": "rgb(27, 36, 32)"
+        },
+        {
+          "element": "password",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(237, 245, 239)",
+          "background": "rgb(27, 36, 32)"
+        },
+        {
+          "element": "submit",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(21, 56, 44)",
+          "background": "rgb(145, 230, 200)"
+        }
+      ]
+    },
+    {
+      "surface": "welcome-phone-light",
+      "controls": [
+        {
+          "element": "signin-description",
+          "height": 51.1875,
+          "fontSize": "16px",
+          "color": "rgb(98, 120, 111)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "element": "signin",
+          "height": 50,
+          "fontSize": "16px",
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(40, 126, 107)"
+        },
+        {
+          "element": "create-account",
+          "height": 50,
+          "fontSize": "16px",
+          "color": "rgb(25, 52, 47)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "element": "remember",
+          "height": 44,
+          "fontSize": "14px",
+          "color": "rgb(25, 52, 47)",
+          "background": "rgba(0, 0, 0, 0)"
+        }
+      ]
+    },
+    {
+      "surface": "credentials-phone-light",
+      "controls": [
+        {
+          "element": "email",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(25, 52, 47)",
+          "background": "rgb(255, 255, 255)"
+        },
+        {
+          "element": "password",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(25, 52, 47)",
+          "background": "rgb(255, 255, 255)"
+        },
+        {
+          "element": "submit",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(40, 126, 107)"
+        }
+      ]
+    },
+    {
+      "surface": "welcome-phone-dark",
+      "controls": [
+        {
+          "element": "signin-description",
+          "height": 51.1875,
+          "fontSize": "16px",
+          "color": "rgb(142, 168, 153)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "element": "signin",
+          "height": 50,
+          "fontSize": "16px",
+          "color": "rgb(21, 56, 44)",
+          "background": "rgb(145, 230, 200)"
+        },
+        {
+          "element": "create-account",
+          "height": 50,
+          "fontSize": "16px",
+          "color": "rgb(237, 245, 239)",
+          "background": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "element": "remember",
+          "height": 44,
+          "fontSize": "14px",
+          "color": "rgb(237, 245, 239)",
+          "background": "rgba(0, 0, 0, 0)"
+        }
+      ]
+    },
+    {
+      "surface": "credentials-phone-dark",
+      "controls": [
+        {
+          "element": "email",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(237, 245, 239)",
+          "background": "rgb(27, 36, 32)"
+        },
+        {
+          "element": "password",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(237, 245, 239)",
+          "background": "rgb(27, 36, 32)"
+        },
+        {
+          "element": "submit",
+          "height": 32,
+          "fontSize": "14px",
+          "color": "rgb(21, 56, 44)",
+          "background": "rgb(145, 230, 200)"
+        }
+      ]
+    }
+  ],
+  "uncaughtErrors": 0,
+  "scope": "Real isolated Cognito pool, real browser OAuth, local application API peer. Synthetic account; no email, audio or production writes."
+}
