@@ -4,16 +4,24 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/signin.css" />
+    <link rel="icon" href="/icons/mluva-192.png" />
     <title>Mluva · Signing in</title>
     <script type="module" src="/auth-callback.mjs"></script>
   </head>
-  <body>
-    <main>
-      <h1>Connecting your workspace…</h1>
-      <p id="callback-status" class="small" role="status">
-        Finishing secure sign-in.
+  <body class="auth-page">
+    <main class="callback-page">
+      <a class="brand" href="/" aria-label="Mluva home"
+        ><img src="/icons/mluva-192.png" alt="" width="36" height="36" /><strong
+          >Mluva</strong
+        ></a
+      >
+      <div class="callback-progress" aria-hidden="true"></div>
+      <h1 id="callback-title">Opening your workspace</h1>
+      <p id="callback-status" class="signin-description" role="status">
+        Finishing secure sign-in…
       </p>
-      <a href="/" class="secondary">Return to Mluva</a>
+      <a id="callback-return" href="/" class="secondary">Back to sign in</a>
     </main>
   </body>
 </html>

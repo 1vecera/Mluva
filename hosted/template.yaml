@@ -231,6 +231,8 @@ Resources:
     Properties:
       Domain: !Ref LoginDomainPrefix
       UserPoolId: !Ref Users
+      # Apply scripts/login-branding.py to this client before updating a live domain.
+      ManagedLoginVersion: 2
   Api:
     Type: AWS::Serverless::HttpApi
     Properties:

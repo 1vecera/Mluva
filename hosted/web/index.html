@@ -14,6 +14,7 @@
     <link rel="apple-touch-icon" href="/icons/mluva-512.png" />
     <link rel="icon" href="/icons/mluva-192.png" />
     <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/signin.css" />
     <title>Mluva · Workspace</title>
     <script type="module" src="/app.mjs"></script>
   </head>
@@ -32,46 +33,92 @@
       </div>
     </header>
     <main>
-      <section id="welcome" class="welcome" hidden>
-        <div class="eyebrow">YOUR WORDS, WITH YOU</div>
-        <h1>A place for your thoughts.</h1>
-        <p class="lede">
-          Record, edit and rewrite in one calm workspace. Sign in to continue
-          the same notes on your phone and desktop.
-        </p>
-        <button id="signin" class="primary">
-          Sign in or create an account <span aria-hidden="true">↗</span>
-        </button>
-        <label class="remember"
-          ><input id="remember-login" type="checkbox" checked /> Keep me signed
-          in on this device</label
-        >
-        <p class="small">
-          Turn this off on a shared device. Sign out to remove this browser’s
-          saved sign-in.
-        </p>
-        <p class="small">
-          Use the same account on each device. Native recording also works
-          without an account.
-        </p>
-        <div class="how">
-          <div>
-            <span class="step-icon" aria-hidden="true">↗</span>
-            <h2>Connect your devices</h2>
-            <p>
-              Name your phone and laptop so you always know where your words go.
-            </p>
+      <section
+        id="welcome"
+        class="signin"
+        aria-labelledby="signin-title"
+        hidden
+      >
+        <div class="signin-intro">
+          <img
+            class="signin-mark"
+            src="/icons/mluva-192.png"
+            alt=""
+            width="80"
+            height="80"
+          />
+          <p class="signin-tagline">Your words,<br /><span>with you.</span></p>
+          <p class="signin-context">
+            Start a thought on your phone.<br />Pick it up on your desktop.
+          </p>
+          <div
+            class="signin-continuity"
+            aria-label="One account across your devices"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              aria-hidden="true"
+            >
+              <rect x="6" y="2" width="12" height="20" rx="2" />
+              <path d="M10 18h4" />
+            </svg>
+            <span class="continuity-line" aria-hidden="true"></span>
+            <span>One account. Your devices.</span>
+            <span class="continuity-line" aria-hidden="true"></span>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              aria-hidden="true"
+            >
+              <rect x="4" y="3" width="16" height="13" rx="1.5" />
+              <path d="m4 16-2 4h20l-2-4M9 20h6" />
+            </svg>
           </div>
-          <div>
-            <span class="step-icon" aria-hidden="true">◉</span>
-            <h2>Speak or write</h2>
-            <p>See words arrive live. Copy when you are ready to use them.</p>
+        </div>
+        <div class="signin-form">
+          <h1 id="signin-title">Welcome to Mluva</h1>
+          <p class="signin-description">
+            Sign in to keep your notes, edits and original words together.
+          </p>
+          <div id="signin-error" class="signin-error" role="alert" hidden></div>
+          <div class="signin-actions">
+            <button id="signin" class="primary">
+              Sign in
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                aria-hidden="true"
+              >
+                <path d="M4 12h15m-6-6 6 6-6 6" />
+              </svg>
+            </button>
+            <button id="create-account" class="secondary">
+              Create an account
+            </button>
           </div>
-          <div>
-            <span class="step-icon" aria-hidden="true">⌁</span>
-            <h2>Pick up later</h2>
-            <p>Keep originals and drafts together in your account’s history.</p>
-          </div>
+          <label class="remember" for="remember-login"
+            ><input
+              id="remember-login"
+              type="checkbox"
+              checked
+              aria-describedby="remember-hint"
+            />Keep me signed in</label
+          >
+          <p id="remember-hint" class="signin-hint">
+            Only on a device you trust.
+          </p>
+          <p class="signin-local">
+            Using the desktop app?<br /><strong
+              >Local recording works without an account.</strong
+            >
+          </p>
         </div>
       </section>
       <section id="configuration" class="welcome" hidden>

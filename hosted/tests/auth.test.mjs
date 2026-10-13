@@ -91,4 +91,17 @@ test("PKCE is verified, remembered login survives tab storage loss, and sign-out
   location.href = "https://app.example/callback.html?code=code&state=wrong";
   await assert.rejects(finishSignIn(config), /could not be verified/);
   assert.equal(account(), null);
+  await signIn(config, false, true);
+  const signup = new URL(location.href);
+  assert.equal(signup.pathname, "/signup");
+  assert.equal(signup.searchParams.get("code_challenge_method"), "S256");
+  assert.equal(
+    signup.searchParams.get("redirect_uri"),
+    "https://app.example/callback.html",
+  );
+  assert.equal(
+    JSON.parse(sessionStorage.getItem("mluva-login")).remember,
+    false,
+  );
+  assert.notEqual(signup.searchParams.get("state"), login.state);
 });
