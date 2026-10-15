@@ -1,0 +1,19 @@
+bash linux/tests/run_application_smoke.sh account
+   Compiling mluva-gtk v2.3.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/rust/mluva-gtk)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.43s
+   Compiling mluva-gtk v2.3.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.14s
+  Executable tests/account_sync.rs (tmp/native-build/debug/deps/account_sync-975a8efb2da9fcf3)
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/application/run.905VEA/session.mfkr4s
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/application/run.905VEA
+offscreen_display_allocation=explicit:274
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running tests/account_sync.rs (tmp/native-build/debug/deps/account_sync-975a8efb2da9fcf3)
+
+running 1 test
+test native_account_and_three_device_continuity ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.48s

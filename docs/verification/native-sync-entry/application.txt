@@ -1,0 +1,110 @@
+bash linux/tests/run_application_smoke.sh
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.10s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+  Executable tests/application.rs (tmp/native-build/debug/deps/application-c1edeb05b36bc0fa)
+  Executable tests/application_shell.rs (tmp/native-build/debug/deps/application_shell-1049a254d5dfdf70)
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/application/run.2DFL4G/session.NFg0q3
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/application/run.2DFL4G
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running tests/application.rs (tmp/native-build/debug/deps/application-c1edeb05b36bc0fa)
+
+running 1 test
+test released_assembled_application_and_shutdown ... recording-generates-title: awaiting generated title after capture; saved title = Some("Narration keeps 12 files")
+recording-generates-title: 10 states PASS
+recording-fallback-and-navigation: 10 states PASS
+settings-repair-missing-speech-credentials: 12 states PASS
+notes-review-blocks-next-capture: 8 states PASS
+command-copy-acceptance: 7 states PASS
+close-during-recording: 3 states PASS
+close-disarms-live-once: 3 states PASS
+close-disarms-live-once-when-save-fails: 3 states PASS
+Assembled command workflow: 20 released states and 4 layouts
+CONTINUATION_STAGE edited-parent PASS
+CONTINUATION_STAGE continuation-preparing PASS
+CONTINUATION_STAGE continuation-recording PASS
+CONTINUATION_STAGE continuation-processing PASS
+CONTINUATION_STAGE continuation-saved PASS
+CONTINUATION_STAGE continued-history PASS
+CONTINUATION_STAGE history-copy PASS
+CONTINUATION_STAGE history-originals PASS
+CONTINUATION_STAGE once-selected PASS
+CONTINUATION_STAGE once-recording PASS
+CONTINUATION_STAGE once-preview PASS
+CONTINUATION_STAGE once-saved PASS
+CONTINUATION_STAGE continuous-selected PASS
+CONTINUATION_STAGE continuous-recording PASS
+CONTINUATION_STAGE continuous-cancelled PASS
+CONTINUATION_STAGE live-off PASS
+CONTINUATION_STAGE thinking-high PASS
+CONTINUATION_STAGE thinking-reset PASS
+CONTINUATION_STAGE thinking-save-failed PASS
+
+(process:68): Gtk-WARNING **: 11:08:50.298: gtk_widget_size_allocate(): attempt to allocate GtkText text 0x7f61cc464f40 with width -5 and height 28
+CONTINUATION_STAGE plain-saved PASS
+CONTINUATION_STAGE widget-1-preparing PASS
+CONTINUATION_STAGE widget-1-saved PASS
+CONTINUATION_STAGE widget-2-preparing PASS
+CONTINUATION_STAGE widget-2-saved PASS
+CONTINUATION_STAGE preparing-cancelled PASS
+CONTINUATION_STAGE silent-continuation PASS
+CONTINUATION_STAGE fresh-recording PASS
+CONTINUATION_STAGE fresh-cancelled PASS
+LIVE_WORKSPACE_STAGE waiting-for-speech PASS
+LIVE_WORKSPACE_STAGE waiting-for-first-draft PASS
+LIVE_WORKSPACE_STAGE grilling-draft PASS
+LIVE_WORKSPACE_STAGE history-during-recording PASS
+LIVE_WORKSPACE_STAGE return-to-live PASS
+LIVE_WORKSPACE_STAGE questions-updated PASS
+LIVE_WORKSPACE_STAGE manual-edit PASS
+LIVE_WORKSPACE_STAGE template-keeps-edit PASS
+LIVE_WORKSPACE_STAGE paused-in-flight PASS
+LIVE_WORKSPACE_STAGE late-result-rejected PASS
+LIVE_WORKSPACE_STAGE presentation-settings PASS
+LIVE_WORKSPACE_STAGE narrow PASS
+LIVE_WORKSPACE_STAGE paused-final-preserves-history PASS
+LIVE_WORKSPACE_STAGE paused-draft-saved PASS
+LIVE_WORKSPACE_STAGE silent-browsing-start PASS
+LIVE_WORKSPACE_STAGE silent-preserves-history PASS
+LIVE_WORKSPACE_STAGE silent-live PASS
+LIVE_WORKSPACE_STAGE silent-preserves-draft PASS
+LIVE_WORKSPACE_STAGE new-capture-live-off PASS
+LIVE_WORKSPACE_STAGE late-live-enable PASS
+LIVE_WORKSPACE_STAGE same-capture-template-keeps-edit PASS
+LIVE_WORKSPACE_STAGE cancelled PASS
+LIVE_EDITOR_STAGE "manual-edit" recording-draft PASS
+LIVE_EDITOR_STAGE "manual-edit" final-pending PASS
+LIVE_EDITOR_STAGE "manual-edit" review-copy-refused PASS
+LIVE_EDITOR_STAGE "manual-edit" edited-during-finalization PASS
+LIVE_EDITOR_STAGE "manual-edit" terminal PASS
+LIVE_EDITOR_STAGE "manual-edit" review-copy-after-final PASS
+LIVE_EDITOR_STAGE "save-failure" recording-draft PASS
+LIVE_EDITOR_STAGE "save-failure" final-pending PASS
+LIVE_EDITOR_STAGE "save-failure" review-copy-refused PASS
+LIVE_EDITOR_STAGE "save-failure" terminal PASS
+LIVE_EDITOR_STAGE "save-failure" manual-copy-recovery PASS
+LIVE_EDITOR_STAGE "copy-failure" recording-draft PASS
+LIVE_EDITOR_STAGE "copy-failure" final-pending PASS
+LIVE_EDITOR_STAGE "copy-failure" review-copy-refused PASS
+LIVE_EDITOR_STAGE "copy-failure" terminal PASS
+LIVE_EDITOR_STAGE "copy-failure" manual-copy-recovery PASS
+LIVE_EDITOR_STAGE "cancel" recording-draft PASS
+LIVE_EDITOR_STAGE "cancel" final-pending PASS
+LIVE_EDITOR_STAGE "cancel" review-copy-refused PASS
+LIVE_EDITOR_STAGE "cancel" cancelled-while-held PASS
+LIVE_EDITOR_STAGE "cancel" terminal PASS
+Assembled application: 15 workflows, 147 GTK/store states, acknowledged owner shutdown
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 83.56s
+
+     Running tests/application_shell.rs (tmp/native-build/debug/deps/application_shell-1049a254d5dfdf70)
+
+running 1 test
+test native_commands_and_settings_match_the_released_widgets ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 17.77s

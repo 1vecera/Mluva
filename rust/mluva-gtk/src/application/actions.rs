@@ -10,6 +10,12 @@ use serde_json::json;
 use std::collections::BTreeSet;
 
 impl ApplicationDesktop {
+    /// Show the result where sign-in started, even if the user navigated away.
+    pub fn account_callback(self: &Rc<Self>, uri: &str) {
+        self.dispatch(ApplicationAction::Account);
+        self.account.callback(uri);
+    }
+
     pub fn dispatch(self: &Rc<Self>, action: ApplicationAction) {
         if self.closed.get() {
             return;
@@ -44,6 +50,14 @@ impl ApplicationDesktop {
             ApplicationAction::Settings => {
                 self.settings.show();
                 self.shell.present();
+            }
+            ApplicationAction::Account => {
+                self.settings.show();
+                self.settings.view.set_visible_page(&self.account.page);
+                self.shell.present();
+                if self.account.sign_in.is_visible() {
+                    self.account.sign_in.grab_focus();
+                }
             }
             ApplicationAction::Commands => self.shell.show_commands(),
             ApplicationAction::Meeting => {

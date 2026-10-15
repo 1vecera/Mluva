@@ -104,6 +104,7 @@ impl Process {
                 | ApplicationAction::Record
                 | ApplicationAction::History
                 | ApplicationAction::Settings
+                | ApplicationAction::Account
                 | ApplicationAction::Commands => self.activate(application),
                 _ => return,
             }
@@ -179,7 +180,7 @@ pub fn run(arguments: &[String]) -> glib::ExitCode {
         opening.activate(app);
         if let Some(desktop) = opening.desktop.borrow().as_ref() {
             for file in files {
-                desktop.account.callback(file.uri().as_str());
+                desktop.account_callback(file.uri().as_str());
             }
         }
     });

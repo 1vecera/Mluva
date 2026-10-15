@@ -18,6 +18,7 @@ pub enum ApplicationAction {
     Status,
     History,
     Settings,
+    Account,
     Commands,
     Meeting,
     Personalization,
@@ -40,6 +41,7 @@ pub fn register_actions(app: &adw::Application, invoke: Rc<dyn Fn(ApplicationAct
         ("status", ApplicationAction::Status),
         ("history", ApplicationAction::History),
         ("settings", ApplicationAction::Settings),
+        ("account", ApplicationAction::Account),
         ("commands", ApplicationAction::Commands),
         ("meeting", ApplicationAction::Meeting),
         ("personalization", ApplicationAction::Personalization),
@@ -130,6 +132,7 @@ pub struct ApplicationShell {
     pub window: adw::ApplicationWindow,
     pub stack: adw::ViewStack,
     pub header: adw::HeaderBar,
+    pub sync_button: gtk::Button,
     pub page_title: gtk::Label,
     pub toast_overlay: adw::ToastOverlay,
     callbacks: ShellCallbacks,
@@ -189,6 +192,13 @@ impl ApplicationShell {
             .build();
         settings.add_css_class("vs-utility");
         header.pack_end(&settings);
+        let sync_button = gtk::Button::builder()
+            .icon_name("view-refresh-symbolic")
+            .tooltip_text("Account sync · Sign in and manage devices")
+            .build();
+        sync_button.add_css_class("vs-utility");
+        sync_button.update_property(&[gtk::accessible::Property::Label("Account sync")]);
+        header.pack_end(&sync_button);
         let sidebar = gtk::Button::builder()
             .icon_name("sidebar-show-symbolic")
             .tooltip_text("Show or hide history")
@@ -232,6 +242,7 @@ impl ApplicationShell {
             window,
             stack,
             header,
+            sync_button,
             page_title,
             toast_overlay,
             callbacks,
@@ -242,6 +253,12 @@ impl ApplicationShell {
         settings.connect_clicked(move |_| {
             if let Some(shell) = weak.upgrade() {
                 (shell.callbacks.invoke)(ApplicationAction::Settings);
+            }
+        });
+        let weak = Rc::downgrade(&shell);
+        shell.sync_button.connect_clicked(move |_| {
+            if let Some(shell) = weak.upgrade() {
+                (shell.callbacks.invoke)(ApplicationAction::Account);
             }
         });
         let weak = Rc::downgrade(&shell);
