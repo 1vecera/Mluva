@@ -130,7 +130,7 @@ impl PortalSession {
             return Err("The portal returned an unexpected shortcut session handle.".into());
         }
         *self.handle.borrow_mut() = Some(handle.into());
-        let payload = [
+        let mut bindings = vec![
             (
                 self.recording_id.as_str(),
                 format!("Start or stop Mluva recording with {}", self.key),
@@ -146,18 +146,31 @@ impl PortalSession {
                 "Open the latest Mluva conversation for rewriting".into(),
                 "SHIFT+F9",
             ),
-        ]
-        .into_iter()
-        .map(|(id, description, trigger)| {
-            (
-                id,
-                Properties::from([
-                    ("description".into(), description.to_variant()),
-                    ("preferred_trigger".into(), trigger.to_variant()),
-                ]),
-            )
-        })
-        .collect::<Vec<_>>();
+        ];
+        if let Some(agent) = &self.callbacks.agent {
+            bindings.push((
+                AGENT_HOLD,
+                "Hold to talk to the selected Herdr agent".into(),
+                agent.hold_key.as_str(),
+            ));
+            bindings.push((
+                AGENT_DRAFT,
+                "Keep the Herdr message as a draft without sending".into(),
+                agent.draft_key.as_str(),
+            ));
+        }
+        let payload = bindings
+            .into_iter()
+            .map(|(id, description, trigger)| {
+                (
+                    id,
+                    Properties::from([
+                        ("description".into(), description.to_variant()),
+                        ("preferred_trigger".into(), trigger.to_variant()),
+                    ]),
+                )
+            })
+            .collect::<Vec<_>>();
         let bound = self
             .request(
                 "BindShortcuts",
@@ -186,6 +199,9 @@ impl PortalSession {
         };
         (self.callbacks.binding_changed)(&self.key, trigger(&self.recording_id));
         (self.callbacks.rewrite_binding_changed)(trigger(REWRITE));
+        if let Some(agent) = &self.callbacks.agent {
+            (agent.binding_changed)(trigger(AGENT_HOLD), trigger(AGENT_DRAFT));
+        }
     }
 
     async fn call(
@@ -360,16 +376,37 @@ impl PortalSession {
                 return Ok(());
             };
             if member == "Deactivated" {
-                self.pressed.borrow_mut().remove(id);
+                let was_pressed = self.pressed.borrow_mut().remove(id);
+                if was_pressed
+                    && id == AGENT_HOLD
+                    && let Some(agent) = &self.callbacks.agent
+                {
+                    (agent.released)();
+                }
                 return Ok(());
             }
-            if ![self.recording_id.as_str(), CANCEL, REWRITE].contains(&id)
+            if ![
+                self.recording_id.as_str(),
+                CANCEL,
+                REWRITE,
+                AGENT_HOLD,
+                AGENT_DRAFT,
+            ]
+            .contains(&id)
                 || !self.pressed.borrow_mut().insert(id.into())
             {
                 return Ok(());
             }
             if id == self.recording_id {
                 (self.callbacks.toggle_recording)();
+            } else if id == AGENT_HOLD {
+                if let Some(agent) = &self.callbacks.agent {
+                    (agent.pressed)();
+                }
+            } else if id == AGENT_DRAFT {
+                if let Some(agent) = &self.callbacks.agent {
+                    (agent.keep_draft)();
+                }
             } else if id == REWRITE {
                 (self.callbacks.open_rewrite)();
             } else {

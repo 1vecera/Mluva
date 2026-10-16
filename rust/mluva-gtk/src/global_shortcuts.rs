@@ -26,11 +26,14 @@ const REQUEST_PATH: &str = "/org/freedesktop/portal/desktop/request";
 const SESSION_PATH: &str = "/org/freedesktop/portal/desktop/session";
 const CANCEL: &str = "cancel-capture";
 const REWRITE: &str = "open-rewrite";
+const AGENT_HOLD: &str = "agent-hold";
+const AGENT_DRAFT: &str = "agent-keep-draft";
 const CLOSED: &str = "The global shortcut request was closed.";
 type Properties = BTreeMap<String, glib::Variant>;
 type Result<T> = std::result::Result<T, PortalError>;
 type BindingCallback = Rc<dyn Fn(&str, Option<&str>)>;
 type RewriteBindingCallback = Rc<dyn Fn(Option<&str>)>;
+type AgentBindingCallback = Rc<dyn Fn(Option<&str>, Option<&str>)>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PortalError(String);
@@ -50,7 +53,18 @@ impl From<&str> for PortalError {
 /// navigation. The selected key accompanies recording-binding notifications so
 /// a delayed approval cannot overwrite the current settings' status.
 #[derive(Clone)]
+pub struct AgentShortcutCallbacks {
+    pub hold_key: String,
+    pub draft_key: String,
+    pub pressed: Rc<dyn Fn()>,
+    pub released: Rc<dyn Fn()>,
+    pub keep_draft: Rc<dyn Fn()>,
+    pub binding_changed: AgentBindingCallback,
+}
+
+#[derive(Clone)]
 pub struct ShortcutCallbacks {
+    pub agent: Option<AgentShortcutCallbacks>,
     pub toggle_recording: Rc<dyn Fn()>,
     pub cancel: Rc<dyn Fn()>,
     pub open_rewrite: Rc<dyn Fn()>,

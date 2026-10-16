@@ -4,6 +4,8 @@ linux/integrations/tensaku/LICENSE linguist-vendored
 # Preserve upstream's title underline and raw diff context lines verbatim.
 linux/integrations/tensaku/NOTICE linguist-vendored conflict-marker-size=32
 linux/integrations/tensaku/narration.patch linguist-vendored whitespace=-blank-at-eol
+# Preserve the reviewable git-format-patch context and mail footer byte-for-byte.
+integrations/herdr/guarded-prompts.patch whitespace=-blank-at-eol,-blank-at-eof
 # Frozen reference outputs remain reviewable; keep their large generated datasets collapsed by default.
 rust/mluva-core/tests/fixtures/*.json linguist-generated
 rust/mluva-core/tests/fixtures/*.sql linguist-generated

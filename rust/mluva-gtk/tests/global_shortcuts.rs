@@ -110,6 +110,7 @@ async fn compare(runtime: &Rc<DesktopRuntime>, fixture: &Value, peer: &mut Peer)
             runtime.clone(),
             "F9",
             ShortcutCallbacks {
+                agent: None,
                 toggle_recording: callback("record"),
                 cancel: callback("cancel"),
                 open_rewrite: callback("rewrite"),
@@ -215,10 +216,79 @@ async fn compare(runtime: &Rc<DesktopRuntime>, fixture: &Value, peer: &mut Peer)
         );
         assert!(peer.0.try_wait().unwrap().is_none(), "portal peer exited");
     }
+    agent_holds(runtime, &bus).await;
     bus.close_future().await.unwrap();
     runtime.shutdown(async {}).await.unwrap();
     eprintln!(
         "Compared {} released portal workflows / {states} observed states, including acknowledged cleanup",
         fixture["workflows"].as_array().unwrap().len()
     );
+}
+
+async fn agent_holds(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) {
+    control(bus, "Reset", Some("normal")).await;
+    let events = Rc::new(RefCell::new(Vec::<String>::new()));
+    let event = |name: &'static str| {
+        let events = events.clone();
+        Rc::new(move || events.borrow_mut().push(name.into())) as Rc<dyn Fn()>
+    };
+    let binding = events.clone();
+    let owner = GlobalShortcutService::new(
+        runtime.clone(),
+        "F9",
+        ShortcutCallbacks {
+            agent: Some(mluva_gtk::global_shortcuts::AgentShortcutCallbacks {
+                hold_key: "F8".into(),
+                draft_key: "F7".into(),
+                pressed: event("press"),
+                released: event("release"),
+                keep_draft: event("draft"),
+                binding_changed: Rc::new(move |hold, draft| {
+                    assert_eq!(hold, Some("F8"));
+                    assert_eq!(draft, Some("F7"));
+                    binding.borrow_mut().push("bound".into());
+                }),
+            }),
+            toggle_recording: event("record"),
+            cancel: event("cancel"),
+            open_rewrite: event("rewrite"),
+            binding_changed: Rc::new(|_, _| {}),
+            rewrite_binding_changed: Rc::new(|_| {}),
+            error: Rc::new(|_| {}),
+        },
+    )
+    .unwrap();
+    owner.start();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while events.borrow().is_empty() {
+        assert!(Instant::now() < deadline);
+        settle().await;
+    }
+    for action in [
+        json!({"op":"Deactivated","id":"agent-hold"}),
+        json!({"op":"Activated","id":"agent-hold","foreign":true}),
+        json!({"op":"Activated","id":"agent-hold"}),
+        json!({"op":"Activated","id":"agent-hold"}),
+        json!({"op":"Deactivated","id":"agent-hold","foreign":true}),
+        json!({"op":"Deactivated","id":"agent-hold"}),
+        json!({"op":"Deactivated","id":"agent-hold"}),
+        json!({"op":"Activated","id":"agent-keep-draft"}),
+        json!({"op":"Activated","id":"toggle-recording-f9"}),
+    ] {
+        control(bus, "Drive", Some(&action.to_string())).await;
+        settle().await;
+    }
+    assert_eq!(
+        &*events.borrow(),
+        &["bound", "press", "release", "draft", "record"]
+    );
+    owner.shutdown().await;
+    control(
+        bus,
+        "Drive",
+        Some(&json!({"op":"Activated","id":"agent-hold"}).to_string()),
+    )
+    .await;
+    settle().await;
+    assert_eq!(events.borrow().len(), 5);
 }

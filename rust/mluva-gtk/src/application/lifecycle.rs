@@ -240,6 +240,7 @@ impl ApplicationDesktop {
         self.synchronize_capture();
         match effect {
             InlineEffect::Privacy { persisted } => {
+                self.agent_voice.interrupt();
                 self.account.privacy(config.incognito_mode);
                 if config.incognito_mode {
                     self.titles.cancel();
@@ -359,6 +360,9 @@ impl ApplicationDesktop {
         if self.startup_record_requested.replace(false) {
             return;
         }
+        if self.capture_audio_waiting.replace(false) {
+            return;
+        }
         if self.capture.phase().is_none() {
             if self.ready.borrow().is_none() {
                 return;
@@ -379,7 +383,88 @@ impl ApplicationDesktop {
                 return;
             }
         }
+        if self.capture.phase().is_none() {
+            if let CaptureOrigin::AgentVoice(id) = &origin {
+                if !self.agent_voice.recording(id) {
+                    return;
+                }
+            } else {
+                self.agent_voice.leave_for_capture();
+            }
+            if let Some(done) = self.agent_voice.stop_voice() {
+                self.capture_audio_waiting.set(true);
+                let weak = Rc::downgrade(self);
+                self.runtime.spawn(async move {
+                    done.cancelled().await;
+                    if let Some(owner) = weak.upgrade().filter(|o| !o.closed.get())
+                        && owner.capture_audio_waiting.replace(false)
+                    {
+                        owner.toggle_recording(origin);
+                    }
+                });
+                return;
+            }
+        }
+        if self.capture.phase() == Some(CapturePhase::Recording)
+            && self
+                .current
+                .borrow()
+                .as_ref()
+                .is_some_and(|context| context.agent_attempt.is_some())
+        {
+            self.agent_voice.release();
+        }
         self.capture.toggle(origin);
+    }
+    pub(super) fn agent_press(self: &Rc<Self>) {
+        if self.closed.get()
+            || self.capture.phase().is_some()
+            || self.ready.borrow().is_none()
+            || self.meeting.busy()
+            || self.history.retry_identifier().is_some()
+            || self.pending.busy()
+        {
+            return;
+        }
+        match self.agent_voice.begin() {
+            Ok(id) => {
+                self.toggle_recording(CaptureOrigin::AgentVoice(id));
+                if self.capture.phase().is_none() && !self.capture_audio_waiting.get() {
+                    self.agent_voice
+                        .abandoned(mluva_core::agent_voice::DraftReason::Interrupted);
+                }
+            }
+            Err(message) => self.page().set_status(message),
+        }
+    }
+    pub(super) fn agent_release(self: &Rc<Self>) {
+        if !self.agent_voice.release() {
+            return;
+        }
+        self.capture_audio_waiting.set(false);
+        match self.capture.phase() {
+            Some(CapturePhase::Recording) => self.capture.stop(),
+            Some(CapturePhase::Preparing) => {
+                self.capture.cancel();
+            }
+            _ => self
+                .agent_voice
+                .abandoned(mluva_core::agent_voice::DraftReason::Interrupted),
+        }
+    }
+    pub(super) fn agent_interrupted(self: &Rc<Self>) {
+        self.capture_audio_waiting.set(false);
+        if self
+            .current
+            .borrow()
+            .as_ref()
+            .is_some_and(|context| context.agent_attempt.is_some())
+        {
+            self.agent_release();
+        } else if self.capture.phase().is_none() {
+            self.agent_voice
+                .abandoned(mluva_core::agent_voice::DraftReason::Interrupted);
+        }
     }
     pub(super) fn continue_recording(self: &Rc<Self>, identifier: &str) {
         if self.closed.get()
@@ -404,6 +489,11 @@ impl ApplicationDesktop {
             _ => None,
         };
         let automatic = matches!(origin, CaptureOrigin::ApprovedShortcut);
+        let agent_attempt = match &origin {
+            CaptureOrigin::AgentVoice(id) => Some(id.clone()),
+            _ => None,
+        };
+        let agent_voice = agent_attempt.is_some();
         let continuation = match origin {
             CaptureOrigin::Continuation(id) => Some(id),
             _ => None,
@@ -436,7 +526,7 @@ impl ApplicationDesktop {
                 .copied()
                 .unwrap_or("dictation")
         };
-        let mode = if continuation.is_some() || phone.is_some() {
+        let mode = if continuation.is_some() || phone.is_some() || agent_voice {
             "dictation".into()
         } else {
             self.services.personalization.borrow().selected_mode(
@@ -488,7 +578,10 @@ impl ApplicationDesktop {
         };
         let options = CaptureOptions {
             mode: mode.clone(),
-            use_cleanup: prefs.cleanup_enabled() && !incognito && config.rewrite_provider != "none",
+            use_cleanup: !agent_voice
+                && prefs.cleanup_enabled()
+                && !incognito
+                && config.rewrite_provider != "none",
             allow_auto_paste: automatic,
             incognito,
             audio_retention: policy,
@@ -500,9 +593,9 @@ impl ApplicationDesktop {
                 .map(|id| format!("mluva-web:{id}"))
                 .or(application),
             style_identifier: prefs.selected_style(),
-            use_saved_style: config.rewrite_provider != "none" && !incognito,
-            defer_delivery: continuation.is_some(),
-            preview_enabled: config.live_rewrite_enabled,
+            use_saved_style: !agent_voice && config.rewrite_provider != "none" && !incognito,
+            defer_delivery: continuation.is_some() || agent_voice,
+            preview_enabled: agent_voice || config.live_rewrite_enabled,
         };
         let ready = self
             .ready
@@ -519,6 +612,7 @@ impl ApplicationDesktop {
             target: target.clone(),
             command_target,
             continuation,
+            agent_attempt,
             session: session.clone(),
         }));
         self.page().set_pending_mode(&mode);
@@ -642,6 +736,22 @@ impl ApplicationDesktop {
         {
             self.history.remember_target(&entry.identifier, target);
         }
+        if let Some(attempt) = context.as_ref().and_then(|c| c.agent_attempt.as_deref()) {
+            self.idle();
+            let shown = if let Some(entry) = result.history_entry.clone() {
+                self.workspace().show_conversation(Some(entry), &[], false)
+            } else {
+                self.workspace()
+                    .show_transient(&result.transcription.text, &result.transcription.text)
+            };
+            if shown.is_err() {
+                self.agent_voice
+                    .disarm(mluva_core::agent_voice::DraftReason::Interrupted);
+            }
+            self.agent_voice
+                .completed(attempt, &result.transcription.text, id);
+            return;
+        }
         if result.requires_acceptance && result.mode == "command" {
             self.pending.show_command(
                 result,
@@ -678,6 +788,15 @@ impl ApplicationDesktop {
         if self.closed.get() {
             return;
         }
+        if self
+            .current
+            .borrow()
+            .as_ref()
+            .is_some_and(|c| c.agent_attempt.is_some())
+        {
+            self.agent_voice
+                .abandoned(mluva_core::agent_voice::DraftReason::Interrupted);
+        }
         self.account.cancel_live(&failure.session_identifier);
         if failure.phase == CapturePhase::Preparing {
             self.preserve_interrupted_screenshots(&failure.session_identifier);
@@ -710,6 +829,15 @@ impl ApplicationDesktop {
         if self.closed.get() {
             return;
         }
+        if self
+            .current
+            .borrow()
+            .as_ref()
+            .is_some_and(|c| c.agent_attempt.is_some())
+        {
+            self.agent_voice
+                .abandoned(mluva_core::agent_voice::DraftReason::Cancelled);
+        }
         self.current.borrow_mut().take();
         self.discard_screenshots(id);
         self.account.cancel_live(id);
@@ -734,7 +862,14 @@ impl ApplicationDesktop {
         if self.startup_record_requested.replace(false) {
             return true;
         }
+        let agent_disarmed = self
+            .agent_voice
+            .disarm(mluva_core::agent_voice::DraftReason::Cancelled);
+        self.capture_audio_waiting.set(false);
         if self.capture.cancel() {
+            return true;
+        }
+        if agent_disarmed {
             return true;
         }
         if self.live.finalizing() || self.review.rewriting() {
@@ -916,6 +1051,8 @@ impl ApplicationDesktop {
         }
         let hold = self.application.hold();
         self.account.shutdown();
+        self.agent_voice.close();
+        self.capture_audio_waiting.set(false);
         self.close_phone_bridge();
         self.close_screenshot_monitoring();
         let capture_identifier = self.capture.session_identifier();

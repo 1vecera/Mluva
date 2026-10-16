@@ -56,3 +56,10 @@ path = "tests/support/global_shortcut_portal_peer.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "herdr-voice-fixture-peer"
+path = "tests/support/herdr_voice_peer.rs"
+test = false
+doc = false
+bench = false
