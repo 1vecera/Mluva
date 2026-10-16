@@ -1,0 +1,21 @@
+
+> mluva-everywhere@2.3.0 test:browser
+> bash scripts/test-browser.sh
+
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/hosted-browser/session.KIMcZx
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/hosted-browser
+offscreen_display_allocation=explicit:278
+offscreen_xdg_runtime=short-alias
+PASS lost live acknowledgement → reconnect → identical retry, one receiver segment
+PASS phone → laptop and third receiver live text; one saved note
+PASS laptop → phone live text
+PASS concurrent edits require explicit resolution, originals preserved, same history ID
+PASS server rewrite preview, explicit apply, completed reply in shared history
+PASS synthetic microphone → server Scribe protocol, partial words, Stop finalization and saved final words
+PASS continued recording and atomic conversation merge preserve original segments and completed rewrites
+PASS failed save → reload → retry without duplicated note
+PASS cancel invalidates a late rewrite
+PASS Command keeps supplied source, captures spoken instruction, and requires explicit preview/apply
+PASS Incognito has no saved history or text fan-out
+PASS revocation closes live access and rejects history reads
+PASS sign-out clears browser login and revokes retained account access

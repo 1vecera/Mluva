@@ -4,7 +4,9 @@ import { createInterface } from "node:readline";
 import { createPreview } from "../scripts/dev.mjs";
 if (!process.env.OFFSCREEN_SESSION_ROOT)
   throw new Error("Private session required");
-const preview = await createPreview();
+const preview = await createPreview(
+  Number(new URL(process.env.MLUVA_ACCOUNT_ORIGIN).port),
+);
 const browser = await chromium.launch({
   executablePath: "/usr/bin/chromium",
   headless: true,
@@ -62,6 +64,21 @@ for await (const line of createInterface({ input: process.stdin })) {
     const command = JSON.parse(line);
     let result;
     switch (command.action) {
+      case "authorize": {
+        const url = new URL(command.url);
+        if (
+          url.origin !== preview.origin ||
+          url.pathname !== "/oauth2/authorize"
+        )
+          throw new Error("Expected the isolated native authorization request");
+        const response = await pages[0].context().request.get(url.href, {
+          maxRedirects: 0,
+        });
+        if (response.status() !== 302)
+          throw new Error("Missing native callback");
+        result = { callback: response.headers().location };
+        break;
+      }
       case "send": {
         const page = pages[0];
         await page.locator("#show-settings").click();

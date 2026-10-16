@@ -11,10 +11,7 @@ use mluva_gtk::{
     document_layout::DocumentResources,
     theme::ThemeController,
 };
-use mluva_providers::{
-    account::{AccountConfig, AccountLogin},
-    local_assets::MODEL_CATALOG,
-};
+use mluva_providers::local_assets::MODEL_CATALOG;
 use mluva_workflows::{
     capture::CapturePhase,
     services::{ApplicationServices, NativeBinaries},
@@ -165,6 +162,19 @@ fn native_account_and_three_device_continuity() {
         &tools.join("secret-tool"),
         "#!/bin/sh\ncase \"$1\" in store) /usr/bin/cat >/dev/null;; lookup) exit 1;; clear) exit 0;; esac\n",
     );
+    let browser = tools.join("account-browser");
+    script(
+        &browser,
+        "#!/bin/sh\nprintf '%s' \"$1\" >\"$OFFSCREEN_SESSION_ROOT/authorization-url\"\n",
+    );
+    gio::AppInfo::create_from_commandline(
+        browser.to_str().unwrap(),
+        Some("Isolated account browser"),
+        gio::AppInfoCreateFlags::SUPPORTS_URIS,
+    )
+    .unwrap()
+    .set_as_default_for_type("x-scheme-handler/http")
+    .unwrap();
     gtk::init().unwrap();
     adw::init().unwrap();
     gtk::Settings::default()
@@ -236,10 +246,77 @@ fn native_account_and_three_device_continuity() {
     native.shell.window.set_default_size(1100, 800);
     native.shell.present();
     until(|| native.capture.page.record_button.is_sensitive());
-    native.settings.view.set_visible_page(&native.account.page);
-    native.dispatch(ApplicationAction::Settings);
-    until(|| native.shell.window.is_mapped());
+    assert!(
+        gtk::IconTheme::for_display(&gtk::gdk::Display::default().unwrap())
+            .has_icon(&native.shell.sync_button.icon_name().unwrap())
+    );
+    for width in [1100, 736, 420] {
+        native.shell.navigate("capture");
+        native.shell.window.set_default_size(width, 800);
+        // GTK excludes the window's client-side shadow from the widget allocation.
+        until(|| {
+            (width - 24..=width).contains(&native.shell.window.width())
+                && native.shell.sync_button.is_mapped()
+        });
+        assert!(native.shell.sync_button.grab_focus());
+        screenshot(
+            &native.shell.window,
+            &evidence.join(format!("native-sync-{width}.png")),
+        );
+        native.shell.sync_button.emit_clicked();
+        assert_eq!(
+            native.shell.stack.visible_child_name().as_deref(),
+            Some("settings")
+        );
+        assert_eq!(
+            native.settings.view.visible_page_name().as_deref(),
+            Some("account")
+        );
+        until(|| native.account.sign_in.is_mapped());
+        assert!(!native.account.sync_new.is_active());
+    }
+    screenshot(
+        &native.shell.window,
+        &evidence.join("native-sync-account-minimum.png"),
+    );
+    native.shell.window.set_default_size(1100, 800);
+    until(|| (1076..=1100).contains(&native.shell.window.width()));
     screenshot(&native.shell.window, &evidence.join("native-login.png"));
+    assert!(
+        native
+            .shell
+            .sync_button
+            .tooltip_text()
+            .unwrap()
+            .contains("Signed out")
+    );
+    native.account.privacy(true);
+    assert!(
+        native
+            .shell
+            .sync_button
+            .tooltip_text()
+            .unwrap()
+            .contains("Incognito")
+    );
+    assert!(!native.account.sign_in.is_sensitive());
+    native.account.privacy(false);
+    assert!(
+        native
+            .shell
+            .sync_button
+            .tooltip_text()
+            .unwrap()
+            .contains("Signed out")
+    );
+    native.account_callback("mluva://account?state=stale&code=stale");
+    assert!(
+        native
+            .account
+            .status
+            .label()
+            .contains("Start sign-in from Mluva")
+    );
     // Native capture completes with no account, no provider socket and no network dependency.
     native.dispatch(ApplicationAction::Record);
     until(|| native.capture.phase() == Some(CapturePhase::Recording));
@@ -252,27 +329,43 @@ fn native_account_and_three_device_continuity() {
     let before = services.config();
     let mut peer = Peer::new(&repo);
     let origin = peer.next()["origin"].as_str().unwrap().to_owned();
-    let connected = Rc::new(RefCell::new(false));
-    let done = connected.clone();
-    let account = native.account.clone();
-    account.name.set_text("Native Lenovo");
-    runtime.spawn(async move {
-        let config = AccountConfig::load(&origin).await.unwrap();
-        let login = AccountLogin::new(config).unwrap();
-        let response = reqwest::Client::builder()
-            .redirect(reqwest::redirect::Policy::none())
-            .build()
+    assert_eq!(origin, std::env::var("MLUVA_ACCOUNT_ORIGIN").unwrap());
+    native.shell.sync_button.emit_clicked();
+    native.account.name.set_text("Native Lenovo");
+    native.account.sign_in.emit_clicked();
+    let authorize_path = root.join("authorization-url");
+    until(|| authorize_path.exists());
+    let url = fs::read_to_string(&authorize_path).unwrap();
+    assert!(
+        native
+            .account
+            .status
+            .label()
+            .contains("Finish signing in in your browser")
+    );
+    let callback = peer.call(json!({"action":"authorize","url":url}))["callback"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    native.shell.navigate("capture");
+    native.account_callback(&callback);
+    assert_eq!(
+        native.settings.view.visible_page_name().as_deref(),
+        Some("account")
+    );
+    assert_eq!(
+        native.shell.stack.visible_child_name().as_deref(),
+        Some("settings")
+    );
+    until(|| native.account.sign_out.is_visible());
+    assert!(
+        native
+            .shell
+            .sync_button
+            .tooltip_text()
             .unwrap()
-            .get(&login.url)
-            .send()
-            .await
-            .unwrap();
-        let callback = response.headers()["location"].to_str().unwrap().to_owned();
-        let client = login.finish(&callback).await.unwrap();
-        account.activate(client, true).await;
-        *done.borrow_mut() = true;
-    });
-    until(|| *connected.borrow());
+            .contains("Connected")
+    );
     assert_eq!(before, services.config());
     native.account.sync_new.set_active(true);
     until(|| {

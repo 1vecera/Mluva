@@ -399,6 +399,12 @@ impl ApplicationDesktop {
             }),
         );
         settings.view.add(&account.page);
+        account
+            .status
+            .bind_property("label", &shell.sync_button, "tooltip-text")
+            .transform_to(|_, status: String| Some(format!("Account sync · {status}")))
+            .sync_create()
+            .build();
         page.widget.add_top_bar(&account.incoming);
         let owner = Rc::new(Self {
             account,

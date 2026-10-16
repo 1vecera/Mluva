@@ -83,6 +83,9 @@ if "$inside"; then
     fi
     export PATH="$OFFSCREEN_SESSION_ROOT/application-tools:$PATH"
     export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true
+    if [[ "$mode" == account ]]; then
+        export MLUVA_ACCOUNT_ORIGIN=http://127.0.0.1:48824
+    fi
     if [[ "$mode" == continuation ]]; then
         export MLUVA_APPLICATION_CASE=continuation-controls
     fi

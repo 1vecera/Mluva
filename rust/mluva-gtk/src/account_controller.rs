@@ -255,6 +255,10 @@ impl AccountController {
                             o.status.set_label(
                                 "Could not open the sign-in browser. Check your default browser.",
                             );
+                        } else {
+                            o.status.set_label(
+                                "Finish signing in in your browser, then allow it to open Mluva.",
+                            );
                         }
                     }
                     Err(e) => o.status.set_label(&e.to_string()),
@@ -844,6 +848,8 @@ impl AccountController {
                 }
             });
         } else {
+            self.status
+                .set_label("Signed out · local recording is ready");
             self.restore();
         }
     }
