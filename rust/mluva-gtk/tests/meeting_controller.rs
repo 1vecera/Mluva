@@ -238,6 +238,7 @@ fn released_meeting_capture_retry_and_idle_transitions_match() {
             prefs.clone(),
             PipeWireDeviceCatalog::default(),
             MeetingControllerCallbacks {
+                stop_playback: Rc::new(|| None),
                 activity: Rc::new(PreferenceActivity::default),
                 idle: Rc::new(|| {}),
                 copy: Rc::new(|_| {}),

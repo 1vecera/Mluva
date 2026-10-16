@@ -55,11 +55,14 @@ struct CaptureContext {
     target: Option<DeliveryTargetSnapshot>,
     command_target: Option<TextTargetSnapshot>,
     continuation: Option<String>,
+    agent_attempt: Option<String>,
     session: Rc<CaptureSession>,
 }
 
 pub struct ApplicationDesktop {
     pub account: Rc<crate::account_controller::AccountController>,
+    pub agent_voice: Rc<crate::agent_voice_controller::AgentVoiceController>,
+    capture_audio_waiting: Cell<bool>,
     pub shell: Rc<ApplicationShell>,
     pub settings: Rc<ApplicationSettings>,
     pub capture: Rc<CaptureController>,
@@ -237,6 +240,11 @@ impl ApplicationDesktop {
             settings.capture.clone(),
             catalog.clone(),
             MeetingControllerCallbacks {
+                stop_playback: bind!(link, |app| {
+                    app.agent_voice
+                        .disarm(mluva_core::agent_voice::DraftReason::Interrupted);
+                    app.agent_voice.stop_voice()
+                }),
                 activity: bind!(link, |app| app.activity()),
                 idle: bind!(link, |app| app.idle()),
                 copy: bind!(link, |app, text| app.copy_text(text)),
@@ -406,7 +414,33 @@ impl ApplicationDesktop {
             .sync_create()
             .build();
         page.widget.add_top_bar(&account.incoming);
+        let agent_voice = crate::agent_voice_controller::AgentVoiceController::new(
+            runtime.clone(),
+            services.clone(),
+            page.clone(),
+            crate::agent_voice_controller::AgentVoiceCallbacks {
+                press: bind!(link, |app| app.agent_press()),
+                release: bind!(link, |app| app.agent_release()),
+                cancel: bind!(link, |app| {
+                    app.cancel();
+                }),
+                interrupt: bind!(link, |app| app.agent_interrupted()),
+                settings_changed: bind!(link, |app| app.restart_shortcuts()),
+                capture_busy: bind!(link, |app| app.capture.phase().is_some()
+                    || app.capture_audio_waiting.get()
+                    || app.meeting.busy()),
+                draft_saved: bind!(link, |app| {
+                    let _ = app.history.page.refresh();
+                    app.account.sync();
+                }),
+                copy: bind!(link, |app, text| app.copy_text(text)),
+            },
+        );
+        page.widget.add_bottom_bar(&agent_voice.view.widget);
+        shell.header.pack_end(&agent_voice.view.options);
         let owner = Rc::new(Self {
+            agent_voice,
+            capture_audio_waiting: Cell::new(false),
             account,
             shell,
             settings,

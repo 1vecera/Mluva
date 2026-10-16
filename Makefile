@@ -141,3 +141,7 @@ linux-screenshot-test:
 .PHONY: linux-account-test
 linux-account-test:
 	bash linux/tests/run_application_smoke.sh account
+
+.PHONY: linux-agent-voice-test
+linux-agent-voice-test:
+	bash linux/tests/run_application_smoke.sh agent-voice

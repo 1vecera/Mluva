@@ -28,6 +28,8 @@ use std::{
 };
 
 pub struct MeetingControllerCallbacks {
+    /// Cancel spoken playback and await its reaped player before opening a microphone.
+    pub stop_playback: Rc<dyn Fn() -> Option<tokio_util::sync::CancellationToken>>,
     /// The parent supplies dictation/retry/review state from their actual owners.
     pub activity: Rc<dyn Fn() -> PreferenceActivity>,
     /// Restore the parent's remaining controls, overlays and shortcuts at idle.
@@ -47,6 +49,7 @@ pub struct MeetingController {
     catalog: RefCell<PipeWireDeviceCatalog>,
     timer: RefCell<Option<glib::SourceId>>,
     closed: Cell<bool>,
+    waiting_playback: Cell<bool>,
     processing: Cell<bool>,
     cancelling: Cell<bool>,
     callbacks: MeetingControllerCallbacks,
@@ -110,6 +113,7 @@ impl MeetingController {
             retry: RefCell::new(None),
             timer: RefCell::new(None),
             closed: Cell::new(false),
+            waiting_playback: Cell::new(false),
             processing: Cell::new(false),
             cancelling: Cell::new(false),
             callbacks,
@@ -138,7 +142,9 @@ impl MeetingController {
             .map(|retry| retry.identifier.clone())
     }
     pub fn busy(&self) -> bool {
-        self.active.borrow().is_some() || self.retry.borrow().is_some()
+        self.waiting_playback.get()
+            || self.active.borrow().is_some()
+            || self.retry.borrow().is_some()
     }
     pub fn set_catalog(&self, catalog: PipeWireDeviceCatalog) {
         self.catalog.replace(catalog);
@@ -242,6 +248,9 @@ impl MeetingController {
         if self.closed.get() {
             return;
         }
+        if self.waiting_playback.replace(false) {
+            return;
+        }
         if self.ready.borrow().is_none() {
             self.status(
                 "Meeting capture is unavailable until PipeWire and ElevenLabs are configured.",
@@ -253,7 +262,20 @@ impl MeetingController {
         } else if self.phase() == Some(MeetingPhase::Recording) {
             self.stop();
         } else if self.active.borrow().is_none() {
-            self.start();
+            if let Some(done) = (self.callbacks.stop_playback)() {
+                self.waiting_playback.set(true);
+                let weak = Rc::downgrade(self);
+                self.runtime.spawn(async move {
+                    done.cancelled().await;
+                    if let Some(owner) = weak.upgrade().filter(|o| !o.closed.get())
+                        && owner.waiting_playback.replace(false)
+                    {
+                        owner.toggle();
+                    }
+                });
+            } else {
+                self.start();
+            }
         }
     }
     fn start(self: &Rc<Self>) {
@@ -635,6 +657,7 @@ impl MeetingController {
     /// The root waits for this task before quitting the resident application.
     pub fn shutdown(&self) -> tokio::task::JoinHandle<()> {
         self.closed.set(true);
+        self.waiting_playback.set(false);
         self.clear_clock();
         let session = self.active.borrow_mut().take();
         let retry = self.retry.borrow_mut().take();

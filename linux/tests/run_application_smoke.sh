@@ -12,6 +12,7 @@ case "$mode" in
     application) suites=(application application_shell) ;;
     phone) suites=(phone_microphone) ;;
     account) suites=(account_sync) ;;
+    agent-voice) suites=(agent_voice) ;;
     continuation) suites=(application) ;;
     conversation) suites=(conversation_page application_shell) ;;
     live-components) suites=(conversation_page document_surfaces) ;;
@@ -82,7 +83,7 @@ if "$inside"; then
         exit
     fi
     export PATH="$OFFSCREEN_SESSION_ROOT/application-tools:$PATH"
-    export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true
+    export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true AGENT_VOICE_SYNTHETIC_KEY=synthetic-key
     if [[ "$mode" == account ]]; then
         export MLUVA_ACCOUNT_ORIGIN=http://127.0.0.1:48824
     fi

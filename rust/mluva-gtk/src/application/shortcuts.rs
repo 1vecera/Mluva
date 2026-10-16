@@ -40,6 +40,35 @@ impl ApplicationDesktop {
             self.runtime.clone(),
             &self.services.config().global_recording_key,
             ShortcutCallbacks {
+                agent: (self.agent_voice.settings().enabled
+                    && self
+                        .agent_voice
+                        .settings()
+                        .validate(&self.services.config().global_recording_key)
+                        .is_ok())
+                .then(|| {
+                    let settings = self.agent_voice.settings();
+                    let press = weak.clone();
+                    let release = weak.clone();
+                    let keep = weak.clone();
+                    let bindings = weak.clone();
+                    crate::global_shortcuts::AgentShortcutCallbacks {
+                        hold_key: settings.hold_key,
+                        draft_key: settings.draft_key,
+                        pressed: Rc::new(move || current(&press, generation, |o| o.agent_press())),
+                        released: Rc::new(move || {
+                            current(&release, generation, |o| o.agent_release())
+                        }),
+                        keep_draft: Rc::new(move || {
+                            current(&keep, generation, |o| o.agent_voice.keep_draft())
+                        }),
+                        binding_changed: Rc::new(move |hold, draft| {
+                            current(&bindings, generation, |o| {
+                                o.agent_voice.shortcut_binding(hold, draft)
+                            })
+                        }),
+                    }
+                }),
                 toggle_recording: dispatch(ApplicationAction::GlobalRecord),
                 cancel: dispatch(ApplicationAction::Cancel),
                 open_rewrite: dispatch(ApplicationAction::Latest),
@@ -53,6 +82,7 @@ impl ApplicationDesktop {
                 }),
                 error: Rc::new(move |message| {
                     current(&errors, generation, |owner| {
+                        owner.agent_voice.interrupt();
                         owner
                             .page()
                             .set_status(&format!("Global shortcut unavailable: {message}"))
@@ -70,6 +100,19 @@ impl ApplicationDesktop {
                 .page()
                 .set_status(&format!("Global shortcut unavailable: {error}")),
         }
+    }
+
+    pub(super) fn restart_shortcuts(self: &Rc<Self>) {
+        let closed = self.close_shortcuts();
+        let weak = Rc::downgrade(self);
+        self.runtime.spawn(async move {
+            if let Some(closed) = closed {
+                closed.await;
+            }
+            if let Some(owner) = weak.upgrade().filter(|o| !o.closed.get()) {
+                owner.start_shortcuts();
+            }
+        });
     }
 
     fn recording_binding(&self, key: &str, trigger: Option<&str>) {
@@ -119,7 +162,12 @@ impl ApplicationDesktop {
         });
     }
 
-    pub(super) fn rebind_shortcut(&self) {
+    pub(super) fn rebind_shortcut(self: &Rc<Self>) {
+        if self.agent_voice.settings().enabled {
+            self.agent_voice.interrupt();
+            self.restart_shortcuts();
+            return;
+        }
         self.approved_recording.borrow_mut().take();
         self.refresh_shortcuts();
         if let Some(service) = self.shortcuts.borrow().as_ref()

@@ -13,7 +13,7 @@ This recommendation is an inference from established patterns, not evidence that
 | Moment | Expected behavior |
 | --- | --- |
 | Choose recipient | Show the Herdr name with agent type, project and machine/session context; resolve actual identity. |
-| Hold shortcut | Freeze recipient, stop any reply audio, begin native capture. Pauses do not submit. |
+| Hold shortcut | Keep the selected destination fixed, stop any reply audio, begin native capture. The recipient keeps running; pauses do not submit. |
 | Release | Stop capture and finalize recognition; cancellation remains available. |
 | Final text ready | Start the full two-second countdown with text, recipient, Cancel and Keep draft visible. |
 | Countdown ends | Atomically validate the intended agent and submit once through Herdr. |
