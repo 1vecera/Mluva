@@ -2,6 +2,15 @@
 
 This file records user-visible Mluva releases.
 
+## 2.4.0 — 2026-10-16
+
+- Sign into the same account from native Mluva and [Mluva on the web](https://mluva.danielvecera.com). The main toolbar's Account sync icon opens sign-in and device controls directly; browser returns show connection status or recovery guidance.
+- Share new recordings by explicit opt-in, choose named receiving devices, and keep shared originals, edits, completed rewrites and history consistent across desktop and web. Existing private history stays local until explicitly shared.
+- Preserve native provider choices, local models and offline capture. Account sync carries text only; native microphone audio is not uploaded for sync. Incognito pauses account sharing.
+- Deliver the account onboarding improvements and a matching native app and Omarchy widget. The hosted microphone and web rewrite providers remain disabled; the existing private phone bridge remains supported during migration.
+
+Native and browser workflows were verified with isolated synthetic peers; the prior canonical-domain deployment has separate live account evidence. Physical phone/Wayland permission handling and Daniel's specific sign-in failure remain unverified. Existing Experimental labels remain unchanged. [Account verification](docs/verification/account-sync/README.md) · [Toolbar verification](docs/verification/native-sync-entry/README.md).
+
 ## 2.3.0 — 2026-10-11
 
 - Stream the phone microphone into the native PC recording session, with live words in the desktop widget and phone preview. Stop on either device controls the same session; the PC microphone stays closed.

@@ -1,0 +1,18 @@
+bash linux/tests/run_global_shortcut_portal_smoke.sh
+   Compiling mluva-core v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-v2-4-distribution/rust/mluva-core)
+   Compiling mluva-audio v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-v2-4-distribution/rust/mluva-audio)
+   Compiling mluva-providers v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-v2-4-distribution/rust/mluva-providers)
+   Compiling mluva-workflows v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-v2-4-distribution/rust/mluva-workflows)
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-v2-4-distribution/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.35s
+  Executable tests/global_shortcuts.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/global_shortcuts-fe10121e0fc29fa5)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running tests/global_shortcuts.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/global_shortcuts-fe10121e0fc29fa5)
+
+running 1 test
+test released_portal_approval_events_rebinding_and_shutdown ... Compared 21 released portal workflows / 59 observed states, including acknowledged cleanup
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.04s
+
+Native global shortcut portal check passed; evidence: /home/vecera/code/mluva/.claude/worktrees/mluva-v2-4-distribution/tmp/global-shortcut-portal-smoke/run.Yhjc6s

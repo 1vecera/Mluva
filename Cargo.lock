@@ -1509,7 +1509,7 @@ dependencies = [
 
 [[package]]
 name = "mluva-asr"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "flate2",
  "libc",
@@ -1528,7 +1528,7 @@ dependencies = [
 
 [[package]]
 name = "mluva-audio"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "caseless",
  "libc",
@@ -1543,7 +1543,7 @@ dependencies = [
 
 [[package]]
 name = "mluva-core"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "base64 0.22.1",
  "caseless",
@@ -1564,7 +1564,7 @@ dependencies = [
 
 [[package]]
 name = "mluva-gtk"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "base64 0.22.1",
  "caseless",
@@ -1598,7 +1598,7 @@ dependencies = [
 
 [[package]]
 name = "mluva-install"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "flate2",
  "glib",
@@ -1614,7 +1614,7 @@ dependencies = [
 
 [[package]]
 name = "mluva-providers"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "base64 0.22.1",
  "caseless",
@@ -1643,7 +1643,7 @@ dependencies = [
 
 [[package]]
 name = "mluva-shell"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "gio",
  "glib",
@@ -1653,7 +1653,7 @@ dependencies = [
 
 [[package]]
 name = "mluva-web"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "axum",
  "base64 0.22.1",
@@ -1673,7 +1673,7 @@ dependencies = [
 
 [[package]]
 name = "mluva-workflows"
-version = "2.3.0"
+version = "2.4.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",

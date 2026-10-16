@@ -1,0 +1,8 @@
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-v2-4-distribution/tmp/staged-startup/session.OOtKLk
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-v2-4-distribution/tmp/staged-startup
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+PASS staged binary launched outside checkout, owned private bus, exported account action, accepted registered URI handler and quit cleanly.
