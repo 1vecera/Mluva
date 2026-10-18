@@ -1,0 +1,18 @@
+{
+  "captures": 10,
+  "recognized": 9,
+  "guarded_submissions": 4,
+  "cancelled_or_disarmed_captures": 7,
+  "edited_draft_send": true,
+  "editing_rearmed_draft_cancels": true,
+  "settings_opt_in_persisted": true,
+  "receipt_reconciliation": true,
+  "recognition_immutable": true,
+  "incognito_not_saved": true,
+  "clipboard_unchanged": true,
+  "selected_provider_unchanged": true,
+  "timing_sample_size": 1,
+  "release_to_final_ms": 259,
+  "intentional_grace_ms": 2092,
+  "submit_to_receipt_ms": 8
+}

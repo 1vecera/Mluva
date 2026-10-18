@@ -29,6 +29,7 @@ pub enum CaptureOrigin {
     Manual,
     Phone(String),
     ApprovedShortcut,
+    AgentVoice(String),
     Continuation(String),
 }
 
@@ -333,6 +334,7 @@ impl CaptureController {
                 None
             }
         };
+        let agent_voice = matches!(origin, CaptureOrigin::AgentVoice(_));
         let origin = continuation.as_ref().map_or(origin, |identifier| {
             CaptureOrigin::Continuation(identifier.clone())
         });
@@ -357,7 +359,11 @@ impl CaptureController {
         }
         let session = launch.session.clone();
         if let Some(live) = self.live.borrow().as_ref() {
-            live.set_config(session.config().clone());
+            let mut live_config = session.config().clone();
+            if agent_voice {
+                live_config.live_rewrite_enabled = false;
+            }
+            live.set_config(live_config);
             if let Err(error) = live.begin(
                 &session.identifier,
                 &session.options.mode,
@@ -368,7 +374,7 @@ impl CaptureController {
                 self.page.set_error(&error);
                 return;
             }
-            session.set_preview_enabled(live.owns(&session.identifier));
+            session.set_preview_enabled(agent_voice || live.owns(&session.identifier));
         }
         self.continuation.replace(continuation.clone());
         self.bind_preview(&session);

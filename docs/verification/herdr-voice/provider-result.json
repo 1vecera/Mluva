@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-16",
+  "model": "eleven_v4_turbo",
+  "transport": "Text-to-Dialogue WebSocket",
+  "input": "Synthetic one-sentence agent status",
+  "credentials_checked": ["existing saved speech key", "managed environment fallback"],
+  "result": "missing_permissions",
+  "required_permission": "text_to_speech",
+  "audio_received": false,
+  "audio_played": false,
+  "first_audio_samples": 0,
+  "first_audio_p50_ms": null,
+  "first_audio_p95_ms": null,
+  "natural_english_czech_quality": "not verified",
+  "ongoing_paid_speech_enabled": false
+}

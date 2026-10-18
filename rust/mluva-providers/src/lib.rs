@@ -8,6 +8,7 @@ pub mod codex_policy;
 pub mod compatible;
 pub mod credentials;
 pub mod elevenlabs;
+pub mod herdr;
 pub mod languages;
 pub mod local;
 pub mod local_asr;
@@ -21,6 +22,7 @@ pub mod qwen;
 pub mod realtime;
 pub mod rewriting;
 pub mod speech;
+pub mod spoken_reply;
 mod transport;
 
 use serde::{Deserialize, Serialize};

@@ -1,0 +1,958 @@
+From 412e4ee1d332fd4e52472f90477e160a67eb06d8 Mon Sep 17 00:00:00 2001
+From: Daniel Vecera <daniel.vecera@outlook.com>
+Date: Fri, 16 Oct 2026 17:20:47 +0200
+Subject: [PATCH] feat(api): guard prompt submission by agent identity and
+ operation receipt
+
+---
+ docs/next/api/herdr-api.schema.json | 168 +++++++++++++
+ src/api/schema.rs                   |   3 +
+ src/api/schema/agents.rs            |  32 +++
+ src/api/schema/operations.rs        |   1 +
+ src/api/schema/response.rs          |   9 +
+ src/app/api.rs                      |   8 +
+ src/app/api/guarded_prompts.rs      | 353 ++++++++++++++++++++++++++++
+ src/app/mod.rs                      |   2 +
+ src/pane.rs                         |  35 +++
+ src/pty/actor.rs                    |   2 +
+ src/pty/actor/unix.rs               |  88 +++++++
+ src/terminal/runtime.rs             |  13 +
+ 12 files changed, 714 insertions(+)
+ create mode 100644 src/app/api/guarded_prompts.rs
+
+diff --git a/docs/next/api/herdr-api.schema.json b/docs/next/api/herdr-api.schema.json
+index e2553f75..87ed6e0d 100644
+--- a/docs/next/api/herdr-api.schema.json
++++ b/docs/next/api/herdr-api.schema.json
+@@ -1228,6 +1228,39 @@
+     },
+     "request": {
+       "$defs": {
++        "AgentPromptGuardedParams": {
++          "properties": {
++            "expires_at_unix_ms": {
++              "format": "uint64",
++              "minimum": 0,
++              "type": "integer"
++            },
++            "guard": {
++              "type": "string"
++            },
++            "operation_id": {
++              "type": "string"
++            },
++            "server_epoch": {
++              "type": "string"
++            },
++            "target": {
++              "type": "string"
++            },
++            "text": {
++              "type": "string"
++            }
++          },
++          "required": [
++            "target",
++            "server_epoch",
++            "guard",
++            "operation_id",
++            "expires_at_unix_ms",
++            "text"
++          ],
++          "type": "object"
++        },
+         "AgentPromptParams": {
+           "properties": {
+             "target": {
+@@ -1253,6 +1286,21 @@
+           ],
+           "type": "object"
+         },
++        "AgentPromptReceiptParams": {
++          "properties": {
++            "operation_id": {
++              "type": "string"
++            },
++            "server_epoch": {
++              "type": "string"
++            }
++          },
++          "required": [
++            "server_epoch",
++            "operation_id"
++          ],
++          "type": "object"
++        },
+         "AgentPromptWaitOptions": {
+           "properties": {
+             "timeout_ms": {
+@@ -6312,6 +6360,54 @@
+             "params"
+           ],
+           "type": "object"
++        },
++        {
++          "properties": {
++            "method": {
++              "const": "agent.guarded_list",
++              "type": "string"
++            },
++            "params": {
++              "$ref": "#/schemas/request/$defs/EmptyParams"
++            }
++          },
++          "required": [
++            "method",
++            "params"
++          ],
++          "type": "object"
++        },
++        {
++          "properties": {
++            "method": {
++              "const": "agent.prompt_guarded",
++              "type": "string"
++            },
++            "params": {
++              "$ref": "#/schemas/request/$defs/AgentPromptGuardedParams"
++            }
++          },
++          "required": [
++            "method",
++            "params"
++          ],
++          "type": "object"
++        },
++        {
++          "properties": {
++            "method": {
++              "const": "agent.prompt_receipt",
++              "type": "string"
++            },
++            "params": {
++              "$ref": "#/schemas/request/$defs/AgentPromptReceiptParams"
++            }
++          },
++          "required": [
++            "method",
++            "params"
++          ],
++          "type": "object"
+         }
+       ],
+       "properties": {
+@@ -7485,6 +7581,22 @@
+           ],
+           "type": "string"
+         },
++        "GuardedAgent": {
++          "description": "Opt-in guarded prompt protocol. Older prompt methods retain their original contract.",
++          "properties": {
++            "agent": {
++              "$ref": "#/schemas/success_response/$defs/AgentInfo"
++            },
++            "guard": {
++              "type": "string"
++            }
++          },
++          "required": [
++            "agent",
++            "guard"
++          ],
++          "type": "object"
++        },
+         "InstalledPluginInfo": {
+           "properties": {
+             "actions": {
+@@ -9149,6 +9261,15 @@
+             }
+           ]
+         },
++        "PromptReceiptState": {
++          "enum": [
++            "pending",
++            "accepted",
++            "rejected",
++            "uncertain"
++          ],
++          "type": "string"
++        },
+         "ReadFormat": {
+           "enum": [
+             "text",
+@@ -10415,6 +10536,53 @@
+                 "type"
+               ],
+               "type": "object"
++            },
++            {
++              "properties": {
++                "agents": {
++                  "items": {
++                    "$ref": "#/schemas/success_response/$defs/GuardedAgent"
++                  },
++                  "type": "array"
++                },
++                "server_epoch": {
++                  "type": "string"
++                },
++                "type": {
++                  "const": "agent_guarded_list",
++                  "type": "string"
++                }
++              },
++              "required": [
++                "type",
++                "server_epoch",
++                "agents"
++              ],
++              "type": "object"
++            },
++            {
++              "properties": {
++                "operation_id": {
++                  "type": "string"
++                },
++                "server_epoch": {
++                  "type": "string"
++                },
++                "state": {
++                  "$ref": "#/schemas/success_response/$defs/PromptReceiptState"
++                },
++                "type": {
++                  "const": "agent_prompt_receipt",
++                  "type": "string"
++                }
++              },
++              "required": [
++                "type",
++                "server_epoch",
++                "operation_id",
++                "state"
++              ],
++              "type": "object"
+             }
+           ]
+         },
+diff --git a/src/api/schema.rs b/src/api/schema.rs
+index 8077377e..b56b9a37 100644
+--- a/src/api/schema.rs
++++ b/src/api/schema.rs
+@@ -145,6 +145,9 @@ operations::define_operations! {
+     PluginPaneOpen(PluginPaneOpenParams) => "plugin.pane.open", true, false;
+     PluginPaneFocus(PluginPaneFocusParams) => "plugin.pane.focus", true, false;
+     PluginPaneClose(PluginPaneCloseParams) => "plugin.pane.close", true, false;
++    AgentGuardedList(EmptyParams) => "agent.guarded_list", false, false;
++    AgentPromptGuarded(AgentPromptGuardedParams) => "agent.prompt_guarded", true, false;
++    AgentPromptReceipt(AgentPromptReceiptParams) => "agent.prompt_receipt", false, false;
+ }
+ 
+ #[cfg(test)]
+diff --git a/src/api/schema/agents.rs b/src/api/schema/agents.rs
+index 8f0726f6..f685f1b4 100644
+--- a/src/api/schema/agents.rs
++++ b/src/api/schema/agents.rs
+@@ -258,3 +258,35 @@ pub struct AgentSessionInfo {
+     pub kind: crate::agent_resume::AgentSessionRefKind,
+     pub value: String,
+ }
++
++/// Opt-in guarded prompt protocol. Older prompt methods retain their original contract.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
++pub struct GuardedAgent {
++    pub agent: AgentInfo,
++    pub guard: String,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
++pub struct AgentPromptGuardedParams {
++    pub target: String,
++    pub server_epoch: String,
++    pub guard: String,
++    pub operation_id: String,
++    pub expires_at_unix_ms: u64,
++    pub text: String,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
++pub struct AgentPromptReceiptParams {
++    pub server_epoch: String,
++    pub operation_id: String,
++}
++
++#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
++#[serde(rename_all = "snake_case")]
++pub enum PromptReceiptState {
++    Pending,
++    Accepted,
++    Rejected,
++    Uncertain,
++}
+diff --git a/src/api/schema/operations.rs b/src/api/schema/operations.rs
+index a25de9ab..f71b0eae 100644
+--- a/src/api/schema/operations.rs
++++ b/src/api/schema/operations.rs
+@@ -179,6 +179,7 @@ mod tests {
+             "agent.focus",
+             "agent.start",
+             "agent.prompt",
++            "agent.prompt_guarded",
+             "agent.send_keys",
+             "pane.split",
+             "pane.swap",
+diff --git a/src/api/schema/response.rs b/src/api/schema/response.rs
+index e92e4952..adc82107 100644
+--- a/src/api/schema/response.rs
++++ b/src/api/schema/response.rs
+@@ -278,6 +278,15 @@ pub enum ResponseResult {
+         projection_revision: u64,
+     },
+     Ok {},
++    AgentGuardedList {
++        server_epoch: String,
++        agents: Vec<super::agents::GuardedAgent>,
++    },
++    AgentPromptReceipt {
++        server_epoch: String,
++        operation_id: String,
++        state: super::agents::PromptReceiptState,
++    },
+ }
+ 
+ #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, schemars::JsonSchema)]
+diff --git a/src/app/api.rs b/src/app/api.rs
+index dd87c508..5b074762 100644
+--- a/src/app/api.rs
++++ b/src/app/api.rs
+@@ -3,6 +3,7 @@ use std::time::{Duration, Instant};
+ mod agent_view;
+ mod agents;
+ mod env;
++pub(crate) mod guarded_prompts;
+ mod integrations;
+ mod layouts;
+ mod panes;
+@@ -1112,6 +1113,13 @@ impl App {
+             Method::TabRename(params) => return self.handle_tab_rename(request.id, params),
+             Method::TabMove(params) => return self.handle_tab_move(request.id, params),
+             Method::TabClose(target) => return self.handle_tab_close(request.id, target),
++            Method::AgentGuardedList(_) => return self.handle_agent_guarded_list(request.id),
++            Method::AgentPromptGuarded(params) => {
++                return self.handle_agent_prompt_guarded(request.id, params)
++            }
++            Method::AgentPromptReceipt(params) => {
++                return self.handle_agent_prompt_receipt(request.id, params)
++            }
+             Method::AgentList(_) => return self.handle_agent_list(request.id),
+             Method::AgentGet(target) => return self.handle_agent_get(request.id, target),
+             Method::AgentFocus(target) => return self.handle_agent_focus(request.id, target),
+diff --git a/src/app/api/guarded_prompts.rs b/src/app/api/guarded_prompts.rs
+new file mode 100644
+index 00000000..8a37340c
+--- /dev/null
++++ b/src/app/api/guarded_prompts.rs
+@@ -0,0 +1,353 @@
++//! Guarded, expiring, idempotent prompt submission for local accessibility clients.
++//! Receipts describe PTY acceptance, never completion of an agent turn.
++use std::collections::HashMap;
++use std::sync::{Arc, Mutex};
++use std::time::{Duration, SystemTime, UNIX_EPOCH};
++
++use super::responses::{encode_error, encode_success};
++use crate::api::schema::{
++    AgentInfo, AgentPromptGuardedParams, AgentPromptReceiptParams, GuardedAgent,
++    PromptReceiptState, ResponseResult,
++};
++use crate::app::App;
++use sha2::{Digest, Sha256};
++
++fn now_ms() -> u64 {
++    SystemTime::now()
++        .duration_since(UNIX_EPOCH)
++        .unwrap_or_default()
++        .as_millis() as u64
++}
++fn digest(bytes: &[u8]) -> String {
++    format!("{:x}", Sha256::digest(bytes))
++}
++struct Receipt {
++    digest: String,
++    expires: u64,
++    state: Arc<Mutex<PromptReceiptState>>,
++}
++pub(crate) struct GuardedPrompts {
++    epoch: String,
++    receipts: HashMap<String, Receipt>,
++}
++impl Default for GuardedPrompts {
++    fn default() -> Self {
++        Self {
++            epoch: format!(
++                "{}-{}",
++                std::process::id(),
++                SystemTime::now()
++                    .duration_since(UNIX_EPOCH)
++                    .unwrap_or_default()
++                    .as_nanos()
++            ),
++            receipts: HashMap::new(),
++        }
++    }
++}
++impl GuardedPrompts {
++    fn reserve(
++        &mut self,
++        params: &AgentPromptGuardedParams,
++    ) -> Result<(Arc<Mutex<PromptReceiptState>>, bool), &'static str> {
++        let now = now_ms();
++        self.receipts.retain(|_, receipt| receipt.expires > now);
++        let hash = digest(&serde_json::to_vec(params).map_err(|_| "invalid request")?);
++        if let Some(receipt) = self.receipts.get(&params.operation_id) {
++            return if receipt.digest == hash {
++                Ok((receipt.state.clone(), false))
++            } else {
++                Err("operation ID already belongs to another request")
++            };
++        }
++        if params.server_epoch != self.epoch
++            || params.expires_at_unix_ms <= now
++            || params.expires_at_unix_ms > now.saturating_add(30_000)
++            || params.operation_id.len() != 36
++            || !params
++                .operation_id
++                .bytes()
++                .all(|b| b.is_ascii_hexdigit() || b == b'-')
++            || params.text.trim().is_empty()
++            || params.text.len() > 32768
++            || params
++                .text
++                .chars()
++                .any(|c| c.is_control() && c != '\n' && c != '\t')
++        {
++            return Err("invalid, expired or stale guarded prompt");
++        }
++        if self.receipts.len() >= 1024
++            || self
++                .receipts
++                .values()
++                .filter(|r| {
++                    *r.state.lock().unwrap_or_else(|p| p.into_inner())
++                        == PromptReceiptState::Pending
++                })
++                .count()
++                >= 8
++        {
++            return Err("guarded prompt capacity reached");
++        }
++        let state = Arc::new(Mutex::new(PromptReceiptState::Pending));
++        self.receipts.insert(
++            params.operation_id.clone(),
++            Receipt {
++                digest: hash,
++                expires: now.saturating_add(600_000),
++                state: state.clone(),
++            },
++        );
++        Ok((state, true))
++    }
++}
++
++impl App {
++    #[cfg(unix)]
++    fn guarded_identity(
++        &self,
++        agent: &AgentInfo,
++    ) -> Option<(
++        String,
++        crate::pty::actor::InputSubmissionGuard,
++        crate::detect::Agent,
++    )> {
++        if agent.launch_pending || !agent.interactive_ready || agent.agent_session.is_none() {
++            return None;
++        }
++        let resolved = self.resolve_agent_target(&agent.pane_id).ok()?;
++        let runtime = self.lookup_runtime_sender(resolved.ws_idx, resolved.pane_id)?;
++        let shell = runtime.child_pid()?;
++        let (kind, _, pid) =
++            crate::detect::identify_agent_process_in_job(&crate::detect::foreground_job(shell)?)?;
++        if !matches!(
++            kind,
++            crate::detect::Agent::Claude | crate::detect::Agent::Codex
++        ) {
++            return None;
++        }
++        let start = crate::platform::process_start_token(pid)?;
++        let group = crate::platform::foreground_process_group_id(shell)?;
++        let guard = digest(
++            &serde_json::to_vec(&(
++                &self.guarded_prompts.epoch,
++                &agent.terminal_id,
++                &agent.pane_id,
++                &agent.name,
++                &agent.agent_session,
++                pid,
++                start,
++                group,
++            ))
++            .ok()?,
++        );
++        let check = Arc::new(move || {
++            crate::platform::process_start_token(pid) == Some(start)
++                && crate::platform::foreground_process_group_id(shell) == Some(group)
++                && crate::detect::foreground_job(shell)
++                    .and_then(|job| crate::detect::identify_agent_process_in_job(&job))
++                    .is_some_and(|(current, _, current_pid)| current == kind && current_pid == pid)
++        });
++        Some((guard, check, kind))
++    }
++
++    pub(super) fn handle_agent_guarded_list(&mut self, id: String) -> String {
++        #[cfg(unix)]
++        let agents = self
++            .collect_agent_infos()
++            .into_iter()
++            .filter_map(|agent| {
++                let (guard, _, _) = self.guarded_identity(&agent)?;
++                Some(GuardedAgent { agent, guard })
++            })
++            .collect();
++        #[cfg(not(unix))]
++        let agents = Vec::<GuardedAgent>::new();
++        encode_success(
++            id,
++            ResponseResult::AgentGuardedList {
++                server_epoch: self.guarded_prompts.epoch.clone(),
++                agents,
++            },
++        )
++    }
++
++    pub(super) fn handle_agent_prompt_receipt(
++        &mut self,
++        id: String,
++        params: AgentPromptReceiptParams,
++    ) -> String {
++        if params.server_epoch != self.guarded_prompts.epoch {
++            return encode_error(id, "stale_server", "the Herdr server restarted");
++        }
++        let Some(receipt) = self
++            .guarded_prompts
++            .receipts
++            .get(&params.operation_id)
++            .filter(|r| r.expires > now_ms())
++        else {
++            return encode_error(
++                id,
++                "receipt_unknown",
++                "no retained receipt; do not resend automatically",
++            );
++        };
++        let state = *receipt.state.lock().unwrap_or_else(|p| p.into_inner());
++        encode_success(
++            id,
++            ResponseResult::AgentPromptReceipt {
++                server_epoch: self.guarded_prompts.epoch.clone(),
++                operation_id: params.operation_id,
++                state,
++            },
++        )
++    }
++
++    pub(super) fn handle_agent_prompt_guarded(
++        &mut self,
++        id: String,
++        params: AgentPromptGuardedParams,
++    ) -> String {
++        let (state, fresh) = match self.guarded_prompts.reserve(&params) {
++            Ok(value) => value,
++            Err(message) => return encode_error(id, "guarded_prompt_rejected", message),
++        };
++        if fresh {
++            // Nothing leaves the process if validation or worker creation fails.
++            if !self.queue_guarded_prompt(&params, state.clone()) {
++                *state.lock().unwrap_or_else(|p| p.into_inner()) = PromptReceiptState::Rejected;
++            }
++        }
++        let result = *state.lock().unwrap_or_else(|p| p.into_inner());
++        encode_success(
++            id,
++            ResponseResult::AgentPromptReceipt {
++                server_epoch: self.guarded_prompts.epoch.clone(),
++                operation_id: params.operation_id,
++                state: result,
++            },
++        )
++    }
++
++    #[cfg(unix)]
++    fn queue_guarded_prompt(
++        &mut self,
++        params: &AgentPromptGuardedParams,
++        state: Arc<Mutex<PromptReceiptState>>,
++    ) -> bool {
++        let Ok(agent) = self.agent_info_for_target(&params.target) else {
++            return false;
++        };
++        if agent.pane_id != params.target
++            || matches!(
++                agent.agent_status,
++                crate::api::schema::AgentStatus::Blocked | crate::api::schema::AgentStatus::Unknown
++            )
++        {
++            return false;
++        }
++        let Some((guard, identity, kind)) = self.guarded_identity(&agent) else {
++            return false;
++        };
++        if guard != params.guard {
++            return false;
++        }
++        let Ok(resolved) = self.resolve_agent_target(&params.target) else {
++            return false;
++        };
++        let Some(runtime) = self.lookup_runtime_sender(resolved.ws_idx, resolved.pane_id) else {
++            return false;
++        };
++        if !runtime.bracketed_paste_enabled() {
++            return false;
++        }
++        let expiry = params.expires_at_unix_ms;
++        let valid = Arc::new(move || now_ms() < expiry && identity());
++        let (tx, rx) = std::sync::mpsc::channel::<std::sync::mpsc::Receiver<std::io::Result<()>>>();
++        if crate::thread_spawn::spawn_named("herdr-guarded-prompt", move || {
++            let Ok(completion) = rx.recv() else {
++                return;
++            };
++            // Any failure after queuing may follow a partial PTY write. Never label it safe to retry.
++            let result = match completion.recv_timeout(Duration::from_secs(31)) {
++                Ok(Ok(())) => PromptReceiptState::Accepted,
++                _ => PromptReceiptState::Uncertain,
++            };
++            *state.lock().unwrap_or_else(|p| p.into_inner()) = result;
++        })
++        .is_err()
++        {
++            return false;
++        }
++        let (text, enter) =
++            crate::app::api_helpers::encode_api_submission_parts(runtime, &params.text);
++        match runtime.queue_guarded_user_input_submission(
++            text.into(),
++            enter.into(),
++            Duration::from_millis(300),
++            valid,
++            kind,
++        ) {
++            Ok(completion) => {
++                let _ = tx.send(completion);
++                true
++            }
++            Err(_) => false,
++        }
++    }
++
++    #[cfg(not(unix))]
++    fn queue_guarded_prompt(
++        &mut self,
++        _: &AgentPromptGuardedParams,
++        _: Arc<Mutex<PromptReceiptState>>,
++    ) -> bool {
++        false
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    fn request(ledger: &GuardedPrompts) -> AgentPromptGuardedParams {
++        AgentPromptGuardedParams {
++            target: "w1:p1".into(),
++            server_epoch: ledger.epoch.clone(),
++            guard: "instance".into(),
++            operation_id: "12345678-1234-1234-1234-123456789012".into(),
++            expires_at_unix_ms: now_ms() + 10_000,
++            text: "Synthetic message".into(),
++        }
++    }
++    #[test]
++    fn receipts_deduplicate_and_reject_conflicting_retries() {
++        let mut ledger = GuardedPrompts::default();
++        let params = request(&ledger);
++        let (state, fresh) = ledger.reserve(&params).unwrap();
++        assert!(fresh);
++        *state.lock().unwrap() = PromptReceiptState::Accepted;
++        let (retry, fresh) = ledger.reserve(&params).unwrap();
++        assert!(!fresh);
++        assert_eq!(*retry.lock().unwrap(), PromptReceiptState::Accepted);
++        let mut changed = params.clone();
++        changed.text.push('!');
++        assert!(ledger.reserve(&changed).is_err());
++    }
++    #[test]
++    fn stale_expired_control_and_oversized_input_never_reserve() {
++        let mut ledger = GuardedPrompts::default();
++        for change in 0..5 {
++            let mut params = request(&ledger);
++            match change {
++                0 => params.server_epoch.push('x'),
++                1 => params.expires_at_unix_ms = 0,
++                2 => params.text = "\u{1b}[201~\n".into(),
++                3 => params.text = "x".repeat(32769),
++                _ => params.text.clear(),
++            }
++            assert!(ledger.reserve(&params).is_err());
++        }
++        assert!(ledger.receipts.is_empty());
++    }
++}
+diff --git a/src/app/mod.rs b/src/app/mod.rs
+index 6effa3a5..dc774367 100644
+--- a/src/app/mod.rs
++++ b/src/app/mod.rs
+@@ -115,6 +115,7 @@ pub struct App {
+     pub(crate) config_diagnostic_deadline: Option<Instant>,
+     pub(crate) toast_deadline: Option<Instant>,
+     pub(crate) last_api_notification_at: Option<Instant>,
++    pub(crate) guarded_prompts: api::guarded_prompts::GuardedPrompts,
+     pub(crate) last_git_remote_status_refresh: Instant,
+     pub(crate) last_git_repo_discovery_refresh: Instant,
+     pub(crate) git_refresh_in_flight: bool,
+@@ -621,6 +622,7 @@ impl App {
+             config_diagnostic_deadline: None,
+             toast_deadline: None,
+             last_api_notification_at: None,
++            guarded_prompts: Default::default(),
+             state,
+             pixel_mouse_available: false,
+             terminal_runtimes: restored_terminal_runtimes,
+diff --git a/src/pane.rs b/src/pane.rs
+index f80baeb8..35fd7316 100644
+--- a/src/pane.rs
++++ b/src/pane.rs
+@@ -3700,6 +3700,41 @@ impl PaneRuntime {
+             .queue_user_input_submission(text, enter, delay, deadline)
+     }
+ 
++    #[cfg(unix)]
++    pub(crate) fn queue_guarded_user_input_submission(
++        &self,
++        text: Bytes,
++        enter: Bytes,
++        delay: std::time::Duration,
++        identity: crate::pty::actor::InputSubmissionGuard,
++        agent: Agent,
++    ) -> std::io::Result<std::sync::mpsc::Receiver<std::io::Result<()>>> {
++        let terminal = self.terminal.clone();
++        let guard = Arc::new(move || {
++            if !identity() || !terminal.bracketed_paste_enabled() {
++                return false;
++            }
++            let detection = crate::detect::detect_agent_with_osc(
++                Some(agent),
++                &terminal.detection_text(),
++                &terminal.agent_osc_title(),
++                &terminal.agent_osc_progress(),
++            );
++            !detection.visible_blocker
++                && !detection.skip_state_update
++                && matches!(detection.state, AgentState::Idle | AgentState::Working)
++        });
++        match &self.io {
++            PaneRuntimeIo::Actor(actor) => {
++                actor.queue_guarded_user_input_submission(text, enter, delay, Some(guard))
++            }
++            #[cfg(test)]
++            PaneRuntimeIo::TestChannel { .. } => {
++                Err(std::io::Error::other("guarded prompts require a real PTY"))
++            }
++        }
++    }
++
+     pub fn try_send_paste(&self, text: String) -> Result<(), mpsc::error::TrySendError<Bytes>> {
+         self.try_send_bytes(self.paste_payload(text))
+     }
+diff --git a/src/pty/actor.rs b/src/pty/actor.rs
+index 36cbaedd..e4f6f3d8 100644
+--- a/src/pty/actor.rs
++++ b/src/pty/actor.rs
+@@ -1,3 +1,5 @@
++pub(crate) type InputSubmissionGuard = std::sync::Arc<dyn Fn() -> bool + Send + Sync>;
++
+ #[cfg(unix)]
+ mod unix;
+ 
+diff --git a/src/pty/actor/unix.rs b/src/pty/actor/unix.rs
+index 47f3c672..7c38df35 100644
+--- a/src/pty/actor/unix.rs
++++ b/src/pty/actor/unix.rs
+@@ -78,6 +78,7 @@ enum PtyIoDataCommand {
+         enter: Bytes,
+         delay: Duration,
+         reply: std_mpsc::Sender<std::io::Result<()>>,
++        guard: Option<super::InputSubmissionGuard>,
+     },
+ }
+ 
+@@ -150,6 +151,16 @@ impl PtyIoActorHandle {
+         text: Bytes,
+         enter: Bytes,
+         delay: Duration,
++    ) -> std::io::Result<std_mpsc::Receiver<std::io::Result<()>>> {
++        self.queue_guarded_user_input_submission(text, enter, delay, None)
++    }
++
++    pub(crate) fn queue_guarded_user_input_submission(
++        &self,
++        text: Bytes,
++        enter: Bytes,
++        delay: Duration,
++        guard: Option<super::InputSubmissionGuard>,
+     ) -> std::io::Result<std_mpsc::Receiver<std::io::Result<()>>> {
+         let user_writes = self
+             .user_writes
+@@ -168,6 +179,7 @@ impl PtyIoActorHandle {
+                 enter,
+                 delay,
+                 reply: reply_tx,
++                guard,
+             })
+             .map_err(|err| match err {
+                 mpsc::error::TrySendError::Full(_) => {
+@@ -466,6 +478,7 @@ struct PtyIoActorRunner {
+ }
+ 
+ struct ActiveSubmission {
++    guard: Option<super::InputSubmissionGuard>,
+     enter: Bytes,
+     delay: Duration,
+     phase: SubmissionPhase,
+@@ -653,6 +666,7 @@ impl PtyIoActorRunner {
+                 enter,
+                 delay,
+                 reply,
++                guard,
+             } => {
+                 if self.state == ActorState::Running {
+                     let phase = if text.is_empty() {
+@@ -662,6 +676,7 @@ impl PtyIoActorRunner {
+                         SubmissionPhase::WritingText
+                     };
+                     self.active_submission = Some(ActiveSubmission {
++                        guard,
+                         enter,
+                         delay,
+                         phase,
+@@ -937,6 +952,22 @@ impl PtyIoActorRunner {
+ 
+     fn flush_pending_writes_once(&mut self) -> std::io::Result<Option<SubmissionBoundary>> {
+         while let Some(write) = self.pending_writes.front() {
++            if write.boundary.is_some()
++                && self
++                    .active_submission
++                    .as_ref()
++                    .and_then(|submission| submission.guard.as_ref())
++                    .is_some_and(|guard| !guard())
++            {
++                // Refuse this input only. Returning an I/O failure here would stop the PTY actor.
++                self.pending_writes.retain(|write| write.boundary.is_none());
++                self.current_write_offset = 0;
++                self.fail_active_submission(std::io::Error::new(
++                    std::io::ErrorKind::PermissionDenied,
++                    "guarded prompt recipient changed",
++                ));
++                return Ok(None);
++            }
+             let chunk = &write.bytes[self.current_write_offset..];
+             match self.file.as_ref().write(chunk) {
+                 Ok(0) => {
+@@ -1123,6 +1154,63 @@ mod tests {
+         (runner, peer)
+     }
+ 
++    #[test]
++    fn guarded_rejection_drops_only_the_prompt_and_keeps_the_recipient_running() {
++        let (handle, mut peer, _reads) = actor_with_socket_pair(false);
++        let completion = handle
++            .queue_guarded_user_input_submission(
++                Bytes::from_static(b"private prompt"),
++                Bytes::from_static(b"\r"),
++                Duration::ZERO,
++                Some(Arc::new(|| false)),
++            )
++            .unwrap();
++        let error = completion
++            .recv_timeout(Duration::from_secs(1))
++            .unwrap()
++            .unwrap_err();
++        assert_eq!(error.kind(), std::io::ErrorKind::PermissionDenied);
++        handle
++            .try_write_user_input(Bytes::from_static(b"ordinary input"))
++            .unwrap();
++        let mut received = [0; 14];
++        peer.read_exact(&mut received).unwrap();
++        assert_eq!(&received, b"ordinary input");
++        handle.shutdown();
++    }
++
++    #[test]
++    fn guarded_prompt_rechecks_identity_before_delayed_enter() {
++        let (handle, mut peer, _reads) = actor_with_socket_pair(false);
++        let allowed = Arc::new(std::sync::atomic::AtomicBool::new(true));
++        let check = allowed.clone();
++        let completion = handle
++            .queue_guarded_user_input_submission(
++                Bytes::from_static(b"prompt"),
++                Bytes::from_static(b"\r"),
++                Duration::from_millis(100),
++                Some(Arc::new(move || {
++                    check.load(std::sync::atomic::Ordering::SeqCst)
++                })),
++            )
++            .unwrap();
++        let mut received = [0; 6];
++        peer.read_exact(&mut received).unwrap();
++        assert_eq!(&received, b"prompt");
++        allowed.store(false, std::sync::atomic::Ordering::SeqCst);
++        assert!(completion
++            .recv_timeout(Duration::from_secs(1))
++            .unwrap()
++            .is_err());
++        handle
++            .try_write_user_input(Bytes::from_static(b"alive"))
++            .unwrap();
++        let mut received = [0; 5];
++        peer.read_exact(&mut received).unwrap();
++        assert_eq!(&received, b"alive");
++        handle.shutdown();
++    }
++
+     #[test]
+     fn actor_ignores_empty_user_input_write() {
+         let (mut runner, _peer) = actor_runner_for_unit_test();
+diff --git a/src/terminal/runtime.rs b/src/terminal/runtime.rs
+index 23b61da2..3470c476 100644
+--- a/src/terminal/runtime.rs
++++ b/src/terminal/runtime.rs
+@@ -493,6 +493,19 @@ impl TerminalRuntime {
+             .queue_user_input_submission(text, enter, delay, deadline)
+     }
+ 
++    #[cfg(unix)]
++    pub(crate) fn queue_guarded_user_input_submission(
++        &self,
++        text: Bytes,
++        enter: Bytes,
++        delay: std::time::Duration,
++        identity: crate::pty::actor::InputSubmissionGuard,
++        agent: crate::detect::Agent,
++    ) -> std::io::Result<std::sync::mpsc::Receiver<std::io::Result<()>>> {
++        self.0
++            .queue_guarded_user_input_submission(text, enter, delay, identity, agent)
++    }
++
+     pub fn try_send_paste(&self, text: String) -> Result<(), mpsc::error::TrySendError<Bytes>> {
+         self.0.try_send_paste(text)
+     }
+-- 
+2.55.0
+

@@ -1,4 +1,4 @@
-//! The immutable released human-acceptance registry; native acceptance is tracked separately.
+//! Released human acceptance with explicitly experimental native additions.
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Maturity {
@@ -20,6 +20,12 @@ pub struct Capability {
     pub maturity: Maturity,
 }
 pub const CAPABILITIES: &[Capability] = &[
+    Capability {
+        identifier: "herdr_voice",
+        title: "Hold to talk to Herdr agents",
+        summary: "Opt-in local routing needs the guarded Herdr integration; physical hold/release and optional ElevenLabs v4 Turbo voice acceptance remain pending.",
+        maturity: Maturity::Experimental,
+    },
     Capability {
         identifier: "screenshot_context",
         title: "Screenshot context and narrated annotations",
