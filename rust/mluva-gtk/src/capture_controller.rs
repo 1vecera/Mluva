@@ -3,11 +3,9 @@
 use crate::{
     async_runtime::DesktopRuntime,
     capture_view::{CapturePage, CaptureViewState},
-    live_controller::LiveController,
 };
 use gtk::prelude::*;
 use mluva_core::{
-    config::AppConfig,
     delivery::{DeliveryOptions, DeliveryReceipt, deliver_text},
     screenshots::ImageInput,
     text,
@@ -57,7 +55,7 @@ pub struct CaptureFailure {
     pub delivery_target: Option<Rc<dyn DeliveryTarget>>,
 }
 
-/// The remaining application services own review/continuation, screenshot picker
+/// The remaining application services own continuation, screenshot picker
 /// waiting and retained-target caches. They receive one terminal result here.
 pub struct CaptureControllerCallbacks {
     pub images: CaptureImages,
@@ -65,13 +63,10 @@ pub struct CaptureControllerCallbacks {
     pub prepare_result: PrepareCaptureResult,
     /// Reconcile saved history before selecting the completed conversation.
     pub refresh_history: Rc<dyn Fn(&mut WorkflowResult)>,
-    pub queue_title: Rc<dyn Fn(&mluva_core::history::HistoryEntry)>,
     pub completed: Rc<dyn Fn(CaptureCompletion)>,
     pub failed: Rc<dyn Fn(CaptureFailure)>,
     pub cancelled: Rc<dyn Fn(&str)>,
     pub phase_changed: Rc<dyn Fn(CapturePhase)>,
-    /// Once is disarmed even if saving fails. Return whether it was persisted.
-    pub live_config_changed: Rc<dyn Fn(&AppConfig) -> bool>,
 }
 
 pub struct CaptureController {
@@ -83,8 +78,6 @@ pub struct CaptureController {
     timer: RefCell<Option<glib::SourceId>>,
     keys: gtk::EventControllerKey,
     key_root: RefCell<Option<glib::WeakRef<gtk::Widget>>>,
-    live: RefCell<Option<Rc<LiveController>>>,
-    preview_task: RefCell<Option<glib::JoinHandle<()>>>,
     continuation: RefCell<Option<String>>,
     continuation_source: RefCell<String>,
 }
@@ -105,8 +98,6 @@ impl CaptureController {
             timer: RefCell::new(None),
             keys: gtk::EventControllerKey::new(),
             key_root: RefCell::new(None),
-            live: RefCell::new(None),
-            preview_task: RefCell::new(None),
             continuation: RefCell::new(None),
             continuation_source: RefCell::new(String::new()),
         });
@@ -184,83 +175,11 @@ impl CaptureController {
             .as_ref()
             .map(|active| active.session.identifier.clone())
     }
-    pub fn bind_live(&self, live: Rc<LiveController>) {
-        assert!(Rc::ptr_eq(&self.page.workspace, &live.workspace));
-        assert!(self.active.borrow().is_none(), "bind Live before capture");
-        self.live.replace(Some(live));
-    }
 
     /// Called after the application accepts and persists a Live preference edit.
     /// Capture readiness, Stop and Incognito keep their immutable session rules.
-    pub fn apply_live_config(self: &Rc<Self>, config: AppConfig) -> Result<(), String> {
-        let live = self
-            .live
-            .borrow()
-            .clone()
-            .ok_or("Live service is unavailable")?;
-        let active = self
-            .active
-            .borrow()
-            .as_ref()
-            .map(|launch| launch.session.clone());
-        if live.finalizing()
-            || active.as_ref().is_some_and(|session| {
-                session.phase() != CapturePhase::Recording
-                    || session.options.incognito
-                    || session.options.mode != "dictation"
-            })
-        {
-            return Err("Live settings cannot change during this operation.".into());
-        }
-        self.page
-            .set_config(config.clone())
-            .map_err(|error| error.to_string())?;
-        live.set_config(config.clone());
-        if let Some(session) = active {
-            session.set_preview_enabled(config.live_rewrite_enabled);
-            if config.live_rewrite_enabled {
-                live.begin(
-                    &session.identifier,
-                    &session.options.mode,
-                    session.options.incognito,
-                    self.continuation.borrow().as_deref(),
-                    true,
-                )?;
-                if let Some(preview) = session.preview() {
-                    live.offer(&preview.display_text(), false);
-                }
-            } else {
-                live.pause();
-            }
-        }
-        Ok(())
-    }
-
-    fn consume_live_once(&self) {
-        let live = self.live.borrow().clone();
-        if let Some(config) = live.and_then(|live| live.consume_once()) {
-            let _ = self.page.set_config(config.clone());
-            if !(self.callbacks.live_config_changed)(&config) {
-                self.page.toast(
-                    "Live rewrite is off for this session; the preference could not be saved.",
-                );
-            }
-        }
-    }
-
     pub fn toggle(self: &Rc<Self>, origin: CaptureOrigin) {
         if matches!(origin, CaptureOrigin::Continuation(_)) && self.phase().is_some() {
-            return;
-        }
-        if self
-            .live
-            .borrow()
-            .as_ref()
-            .is_some_and(|live| live.finalizing())
-        {
-            self.page.set_status(
-                "Finishing the live draft. Cancel it before starting another recording.",
-            );
             return;
         }
         match self.phase() {
@@ -277,7 +196,7 @@ impl CaptureController {
 
     fn start(self: &Rc<Self>, origin: CaptureOrigin) {
         let view = self.page.view_state();
-        if view.review_active || view.meeting_busy {
+        if view.meeting_busy {
             return;
         }
         let manual = matches!(
@@ -334,7 +253,6 @@ impl CaptureController {
                 None
             }
         };
-        let agent_voice = matches!(origin, CaptureOrigin::AgentVoice(_));
         let origin = continuation.as_ref().map_or(origin, |identifier| {
             CaptureOrigin::Continuation(identifier.clone())
         });
@@ -350,35 +268,14 @@ impl CaptureController {
         if manual
             && (launch.session.options.allow_auto_paste
                 || launch.delivery_target.is_some()
-                || launch.session.options.application_identifier.is_some()
-                || launch.session.options.selected_text.is_some())
+                || launch.session.options.application_identifier.is_some())
         {
             self.page
                 .set_error("Manual recording cannot capture an external delivery target.");
             return;
         }
         let session = launch.session.clone();
-        if let Some(live) = self.live.borrow().as_ref() {
-            let mut live_config = session.config().clone();
-            if agent_voice {
-                live_config.live_rewrite_enabled = false;
-            }
-            live.set_config(live_config);
-            if let Err(error) = live.begin(
-                &session.identifier,
-                &session.options.mode,
-                session.options.incognito,
-                continuation.as_deref(),
-                false,
-            ) {
-                self.page.set_error(&error);
-                return;
-            }
-            session.set_preview_enabled(agent_voice || live.owns(&session.identifier));
-        }
         self.continuation.replace(continuation.clone());
-        self.bind_preview(&session);
-        self.page.set_pending_mode(&session.options.mode);
         self.page.workspace.set_private(session.options.incognito);
         self.page
             .workspace
@@ -387,16 +284,8 @@ impl CaptureController {
             preparing: true,
             ..view
         });
-        self.page.set_status(
-            if session.options.mode == "command"
-                || session.options.use_cleanup
-                || session.frozen_style.is_some()
-            {
-                "Preparing recognition and resolving the Codex model before microphone capture…"
-            } else {
-                "Preparing recognition before microphone capture…"
-            },
-        );
+        self.page
+            .set_status("Preparing recognition before microphone capture…");
         if continuation.is_some() {
             self.page
                 .workspace
@@ -431,15 +320,8 @@ impl CaptureController {
                     controller.cancel_finished(&session.identifier, cancelled.status())
                 }
                 Err(CaptureError::Failed(message)) => {
-                    controller.release(&session.identifier, false);
-                    if let Some(live) = controller.live.borrow().as_ref() {
-                        live.cancel();
-                    }
-                    if message.starts_with("Codex preparation failed before microphone capture:") {
-                        controller.page.set_status(&message);
-                    } else {
-                        controller.page.set_error(&message);
-                    }
+                    controller.release(&session.identifier);
+                    controller.page.set_error(&message);
                     (controller.callbacks.phase_changed)(CapturePhase::Failed);
                     (controller.callbacks.failed)(CaptureFailure {
                         phase: CapturePhase::Preparing,
@@ -465,10 +347,6 @@ impl CaptureController {
             return false;
         }
         self.clear_clock();
-        self.clear_preview();
-        if let Some(live) = self.live.borrow().as_ref() {
-            live.cancel();
-        }
         self.page.record_button.set_sensitive(false);
         let weak = Rc::downgrade(self);
         self.runtime.spawn(async move {
@@ -489,11 +367,6 @@ impl CaptureController {
     pub fn shutdown(&self) -> glib::JoinHandle<()> {
         self.unbind_keys();
         self.clear_clock();
-        self.clear_preview();
-        self.consume_live_once();
-        if let Some(live) = self.live.borrow().as_ref() {
-            live.shutdown();
-        }
         let active = self.active.borrow_mut().take();
         if let Some(active) = &active {
             active.session.request_shutdown();
@@ -509,10 +382,7 @@ impl CaptureController {
         if !self.owns(identifier) {
             return;
         }
-        self.release(identifier, false);
-        if let Some(live) = self.live.borrow().as_ref() {
-            live.cancel();
-        }
+        self.release(identifier);
         self.page.set_status(status);
         (self.callbacks.phase_changed)(CapturePhase::Cancelled);
         (self.callbacks.cancelled)(identifier);
@@ -540,7 +410,7 @@ impl CaptureController {
         // the generic view projection used by settings and initialization.
         self.page.status_title.set_label(&status_title);
         self.page.set_status(if session.realtime_healthy() {
-            "Finalizing committed ElevenLabs Scribe v2 Realtime text…"
+            "Finalizing recognized text…"
         } else {
             "Transcribing with the selected speech provider…"
         });
@@ -567,7 +437,6 @@ impl CaptureController {
             };
             (controller.callbacks.prepare_result)(&session, &mut result);
             let viewing_live = controller.page.workspace.is_viewing_live();
-            let live = controller.live.borrow().clone();
             let continuation = controller.continuation.borrow().clone();
             if let Some(identifier) = continuation.as_deref() && let Ok(result) = &mut result && let Some(segment) = result.history_entry.as_ref().filter(|_|!result.incognito) {
                 let appended = (|| {
@@ -579,44 +448,30 @@ impl CaptureController {
                 let receipt = |guidance: &str|DeliveryReceipt {copied:false,pasted:false,guidance:guidance.into(),paste_dispatched:false,paste_confirmed:None};
                 match appended {
                     Ok((output,entry)) => {
-                        result.delivery = if controller.page.config().auto_copy_dictation {
-                            deliver_text(&output,false,DeliveryOptions::default()).unwrap_or_else(|_|receipt("Recording appended. Automatic copy failed; use Copy."))
-                        } else {receipt("Recording appended.")};
+                        result.delivery = deliver_text(&output,false,DeliveryOptions::default()).unwrap_or_else(|_|receipt("Recording appended. Automatic copy failed; use Copy."));
                         result.output_text = output;
                         result.history_entry = Some(entry);
                     }
                     Err(_) => {
-                        if let Some(live) = &live {live.cancel();}
                         result.delivery = receipt("Could not append. This recording remains separately in History.");
                         controller.continuation.borrow_mut().take();
                         controller.continuation_source.borrow_mut().clear();
                     }
                 }
             }
-            let final_source = result.as_ref().ok().map(|result| {
-                if controller.continuation.borrow().is_some() && let Some(entry) = &result.history_entry {
-                    controller.page.workspace.store.source_text(entry,false).unwrap_or_else(|_|result.transcription.text.clone())
-                } else {result.transcription.text.clone()}
-            });
-            let finishing_live = result.as_ref().is_ok_and(|result| result.mode=="dictation" && !result.incognito && result.history_entry.is_some() && !text::trim(&result.transcription.text).is_empty()) && live.as_ref().is_some_and(|live|live.owns(&session.identifier));
-            let preserved_draft = if result.as_ref().is_ok_and(|result|text::trim(&result.transcription.text).is_empty() && result.history_entry.is_none()) && viewing_live && controller.continuation.borrow().is_none() && live.as_ref().is_some_and(|live|live.owns(&session.identifier)) { controller.page.workspace.live_draft() } else { String::new() };
-            let failed_draft = if result.is_err() && live.as_ref().is_some_and(|live|live.owns(&session.identifier)) {controller.page.workspace.live_draft()} else { String::new() };
-            controller.release(&session.identifier, finishing_live);
-            if !finishing_live && let Some(live) = &live { live.cancel(); }
+            controller.release(&session.identifier);
             match result {
                 Ok(mut result) => {
                     if visual_warning.get() {
-                        result.delivery.guidance.push_str(" Screenshot was not ready. Save it in the editor, then rewrite with its context.");
+                        result.delivery.guidance.push_str(" Screenshot was not ready. Save it in the editor to keep it with this dictation.");
                     }
-                    controller.page.output_view.buffer().set_text(&result.output_text);
-                    controller.page.refresh_output_visibility();
                     (controller.callbacks.refresh_history)(&mut result);
-                    if result.mode == "dictation" && (!text::trim(&result.transcription.text).is_empty() || result.history_entry.is_some()) {
+                    if !text::trim(&result.transcription.text).is_empty() || result.history_entry.is_some() {
                         let displayed = if let Some(entry) = result.history_entry.clone() {
                             controller.page.workspace.refresh_history().and_then(|()| {
-                                if viewing_live && text::trim(&controller.page.workspace.prompt_text()).is_empty() {
+                                if viewing_live {
                                     let replies = controller.page.workspace.store.replies(&entry.identifier)?;
-                                    controller.page.workspace.show_conversation(Some(entry), &replies, finishing_live)
+                                    controller.page.workspace.show_conversation(Some(entry), &replies, false)
                                 } else {
                                     Ok(())
                                 }
@@ -629,38 +484,16 @@ impl CaptureController {
                         }
                     }
                     controller.page.set_status(&result.delivery.guidance);
-                    if !text::trim(&preserved_draft).is_empty() {
-                        let _ = controller.page.workspace.show_transient("", &preserved_draft);
-                        controller.page.workspace.notice.set_label("No speech detected. Your live draft is still here.");
-                    }
-                    let title_entry = result.history_entry.as_ref().filter(|entry| {
-                        result.mode == "dictation" && !result.incognito
-                            && !controller.page.config().incognito_mode
-                            && !text::trim(&entry.raw_text).is_empty()
-                    }).cloned();
                     (controller.callbacks.phase_changed)(CapturePhase::Completed);
-                    if finishing_live && let Some(live) = &live {
-                        let entry = result.history_entry.as_ref().expect("final Live entry");
-                        let source = final_source.as_deref().expect("final Live source");
-                        controller.page.workspace.set_live("Finishing live draft…", source, false);
-                        live.finish_capture(&entry.identifier, source);
-                    }
                     (controller.callbacks.completed)(CaptureCompletion {
                         result,
                         session: session.clone(),
                         delivery_target: target,
                     });
-                    // History reconciliation first refreshes the archive. Title updates
-                    // then change its existing row without rebuilding raw recordings.
-                    if let Some(entry) = title_entry {
-                        (controller.callbacks.queue_title)(&entry);
-                    }
                 }
                 Err(error) => {
+                    controller.page.set_status("Capture failed. Open History to recover retained audio.");
                     if let WorkflowError::Failure(failure) = &error {
-                        if !failure.output_text.is_empty() {
-                            controller.page.output_view.buffer().set_text(&failure.output_text);
-                        }
                         let recovery = if let Some(path) = &failure.retained_audio_path {
                             format!("The recording was retained at {}.", path.display())
                         } else {
@@ -677,10 +510,6 @@ impl CaptureController {
                         }
                     } else {
                         controller.page.set_error(&error.to_string());
-                    }
-                    if !text::trim(&failed_draft).is_empty() && !controller.page.config().incognito_mode {
-                        let _ = controller.page.workspace.show_transient(&failed_draft, &failed_draft);
-                        controller.page.workspace.notice.set_label("Capture failed. Your live draft is available to copy.");
                     }
                     (controller.callbacks.phase_changed)(CapturePhase::Failed);
                     (controller.callbacks.failed)(CaptureFailure {
@@ -775,53 +604,6 @@ impl CaptureController {
             &preview,
             true,
         );
-        if session.realtime_healthy()
-            && let Some(live) = self
-                .live
-                .borrow()
-                .as_ref()
-                .filter(|live| live.owns(&session.identifier))
-            && let Some(snapshot) = session.preview()
-        {
-            live.offer(&snapshot.display_text(), false);
-        }
-    }
-    fn bind_preview(self: &Rc<Self>, session: &Rc<CaptureSession>) {
-        self.clear_preview();
-        if self.live.borrow().is_none() || session.options.mode != "dictation" {
-            return;
-        }
-        let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel::<String>();
-        session.set_preview_callback(Box::new(move |preview| {
-            let _ = sender.send(preview.display_text());
-            Ok(())
-        }));
-        let identifier = session.identifier.clone();
-        let weak = Rc::downgrade(self);
-        let task = self.runtime.spawn(async move {
-            let mut previous = String::new();
-            while let Some(text) = receiver.recv().await {
-                let Some(owner) = weak.upgrade().filter(|owner| owner.owns(&identifier)) else {
-                    return;
-                };
-                let live = owner.live.borrow().clone();
-                if !text.is_empty()
-                    && text != previous
-                    && let Some(live) = live.filter(|live| live.owns(&identifier))
-                {
-                    previous = text.clone();
-                    if owner.phase() != Some(CapturePhase::Processing) && !live.finalizing() {
-                        live.offer(&text, false);
-                    }
-                }
-            }
-        });
-        self.preview_task.replace(Some(task));
-    }
-    fn clear_preview(&self) {
-        if let Some(task) = self.preview_task.borrow_mut().take() {
-            task.abort();
-        }
     }
     fn clear_clock(&self) {
         if let Some(source) = self.timer.borrow_mut().take() {
@@ -834,19 +616,15 @@ impl CaptureController {
             .as_ref()
             .is_some_and(|active| active.session.identifier == identifier)
     }
-    fn release(&self, identifier: &str, keep_live: bool) {
+    fn release(&self, identifier: &str) {
         if !self.owns(identifier) {
             return;
         }
         self.clear_clock();
-        self.clear_preview();
-        self.consume_live_once();
         self.active.borrow_mut().take();
         self.continuation.borrow_mut().take();
         self.continuation_source.borrow_mut().clear();
-        if !keep_live {
-            self.page.workspace.finish_live();
-        }
+        self.page.workspace.finish_live();
         self.page.workspace.set_screenshot_context(None, None);
         self.page.set_view_state(CaptureViewState::default());
     }
@@ -856,11 +634,6 @@ impl Drop for CaptureController {
     fn drop(&mut self) {
         self.unbind_keys();
         self.clear_clock();
-        self.clear_preview();
-        self.consume_live_once();
-        if let Some(live) = self.live.get_mut().take() {
-            live.shutdown();
-        }
         if let Some(active) = self.active.get_mut().take() {
             active.session.request_shutdown();
             self.runtime.spawn(async move {

@@ -477,12 +477,6 @@ pre {
   overflow-wrap: anywhere;
   font-size: 12px;
 }
-#rewrite-panel textarea {
-  margin: 12px 0;
-}
-#rewrite-result {
-  margin-top: 16px;
-}
 .recovery {
   background: var(--soft);
   border-left: 2px solid var(--accent);

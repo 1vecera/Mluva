@@ -1,8 +1,7 @@
 //! The released bridge's deliberately small command line, including option abbreviations.
-pub const USAGE: &str = "usage: mluva-shell [-h] [--overlay]\n                   {watch,review,record,global-record,screenshot,cancel,latest,status}\n                   [REVIEW_ARGUMENT ...]\n";
+pub const USAGE: &str = "usage: mluva-shell [-h] [--overlay]\n                   {watch,record,global-record,screenshot,cancel,latest,status}\n";
 const ACTIONS: &[&str] = &[
     "watch",
-    "review",
     "record",
     "global-record",
     "screenshot",
@@ -10,12 +9,10 @@ const ACTIONS: &[&str] = &[
     "latest",
     "status",
 ];
-const REVIEW: &[&str] = &["rewrite", "copy", "open", "dismiss", "cancel", "continue"];
 
 pub struct Arguments {
     pub action: String,
     pub overlay: bool,
-    pub review: Option<(String, String, String)>,
 }
 
 fn quoted(value: &str) -> String {
@@ -36,10 +33,8 @@ fn quoted(value: &str) -> String {
 pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Option<Arguments>, String> {
     let mut action = None;
     let mut overlay = false;
-    let mut review = Vec::new();
     let mut extras = Vec::new();
     let mut options = true;
-    let mut review_closed = false;
     for argument in arguments {
         if options && argument == "--" {
             options = false;
@@ -52,7 +47,6 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Option<Arguments
                 .all(|c| c.is_ascii_digit() || c == '.')
             && argument.parse::<f64>().is_ok();
         if options && argument.starts_with('-') && argument != "-" && !negative_number {
-            review_closed |= !review.is_empty();
             let (option, explicit) = argument
                 .split_once('=')
                 .map_or((argument.as_str(), None), |(a, b)| (a, Some(b)));
@@ -68,7 +62,7 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Option<Arguments
                 }
                 if help {
                     print!(
-                        "{USAGE}\nDesktop status bridge with an opt-in volatile preview and existing session-bus\nactions.\n\npositional arguments:\n  {{watch,review,record,global-record,screenshot,cancel,latest,status}}\n  REVIEW_ARGUMENT\n\noptions:\n  -h, --help            show this help message and exit\n  --overlay             Include a volatile preview for the floating widget\n"
+                        "{USAGE}\nDesktop status bridge with an opt-in volatile preview and existing session-bus\nactions.\n\npositional arguments:\n  {{watch,record,global-record,screenshot,cancel,latest,status}}\n\noptions:\n  -h, --help            show this help message and exit\n  --overlay             Include a volatile preview for the floating widget\n"
                     );
                     return Ok(None);
                 }
@@ -89,37 +83,13 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Option<Arguments
                 ));
             }
             action = Some(argument);
-        } else if review_closed {
-            extras.push(argument);
         } else {
-            review.push(argument);
+            extras.push(argument);
         }
     }
     let action = action.ok_or("the following arguments are required: action")?;
     if !extras.is_empty() {
         return Err(format!("unrecognized arguments: {}", extras.join(" ")));
     }
-    let review = if action == "review" {
-        if !(2..=3).contains(&review.len()) || !REVIEW.contains(&review[0].as_str()) {
-            return Err("review expects an action, conversation ID, and optional style ID".into());
-        }
-        if review[0] == "rewrite" && review.len() == 2 {
-            return Err("rewrite expects polish, structure, or a saved style ID".into());
-        }
-        Some((
-            review[0].clone(),
-            review[1].clone(),
-            review.get(2).cloned().unwrap_or_default(),
-        ))
-    } else {
-        if !review.is_empty() {
-            return Err("unexpected action arguments".into());
-        }
-        None
-    };
-    Ok(Some(Arguments {
-        action,
-        overlay,
-        review,
-    }))
+    Ok(Some(Arguments { action, overlay }))
 }

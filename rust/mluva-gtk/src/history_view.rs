@@ -1,9 +1,8 @@
 //! Durable recording/conversation recovery and explicit local archive actions.
 
-use crate::{
-    conversation_view::history_timestamp, document_layout::margins, prompt_editor::Message,
-};
+use crate::{conversation_view::history_timestamp, document_layout::margins};
 use adw::prelude::*;
+type Message = Rc<dyn Fn(&str)>;
 use mluva_core::{
     conversation::ConversationStore,
     database::{StoreError, StoreResult},

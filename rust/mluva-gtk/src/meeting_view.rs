@@ -1,9 +1,8 @@
 //! Explicit Meeting capture controls and the separate private review archive.
 
-use crate::{
-    conversation_view::history_timestamp, document_layout::margins, prompt_editor::Message,
-};
+use crate::{conversation_view::history_timestamp, document_layout::margins};
 use adw::prelude::*;
+type Message = Rc<dyn Fn(&str)>;
 use mluva_core::{
     database::{StoreError, StoreResult},
     feature_maturity,

@@ -16,14 +16,6 @@ pub const ELEVENLABS_KEY_VARIABLES: [&str; 3] = [
     "DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL",
     "ELEVEN_LABS_STT_TOKEN",
 ];
-pub const CAPTURE_MODES: [&str; 3] = ["dictation", "command", "scratchpad"];
-pub const LIVE_TEMPLATES: [&str; 5] = [
-    "grilling",
-    "task-spec",
-    "structured-note",
-    "polish",
-    "custom",
-];
 pub const LOCAL_MODELS: [&str; 3] = ["whisper-tiny", "parakeet-v3", "qwen3-1.7b"];
 
 #[derive(Debug, Error)]
@@ -63,15 +55,6 @@ impl AudioRetentionPolicy {
 pub struct AppConfig {
     pub language_code: String,
     pub transcription_model: String,
-    pub codex_model: Option<String>,
-    pub rewrite_model: Option<String>,
-    pub rewrite_fast_mode: bool,
-    pub rewrite_reasoning_effort: Option<String>,
-    pub litellm_reasoning_effort: Option<String>,
-    pub rewrite_provider: String,
-    pub litellm_base_url: String,
-    pub litellm_model: Option<String>,
-    pub litellm_api_key_env: String,
     pub transcription_provider: String,
     pub transcription_base_url: String,
     pub transcription_api_key_env: String,
@@ -79,34 +62,16 @@ pub struct AppConfig {
     pub local_model: String,
     pub local_device: String,
     pub transcription_chunk_seconds: i64,
-    pub auto_copy_dictation: bool,
-    pub auto_copy_rewrite: bool,
-    pub show_copy_action: bool,
-    pub show_save_action: bool,
-    pub review_timeout_seconds: i64,
-    pub smooth_scrolling: bool,
-    pub scroll_duration_ms: i64,
-    pub scroll_lookahead_lines: i64,
     pub widget_position: String,
     pub widget_lines: i64,
     pub widget_opacity: i64,
     pub history_sidebar_visible: bool,
     pub welcome_completed: bool,
     pub time_format: String,
-    pub live_rewrite_enabled: bool,
-    pub live_rewrite_continuous: bool,
-    pub live_rewrite_template: String,
-    pub live_rewrite_custom_instructions: String,
-    pub live_rewrite_min_characters: i64,
-    pub live_rewrite_interval_seconds: i64,
     pub microphone_target: Option<String>,
     pub system_audio_target: Option<String>,
-    pub default_mode: String,
     pub global_recording_key: String,
-    pub auto_paste: bool,
-    pub automatic_titles: bool,
     pub spoken_commands_enabled: bool,
-    pub remember_per_application: bool,
     pub audio_retention_policy: AudioRetentionPolicy,
     pub incognito_mode: bool,
     // The legacy schema permits any non-negative integer, without an i64/u64 upper bound.
@@ -118,15 +83,6 @@ impl Default for AppConfig {
         Self {
             language_code: "eng".into(),
             transcription_model: "scribe_v2".into(),
-            codex_model: None,
-            rewrite_model: None,
-            rewrite_fast_mode: false,
-            rewrite_reasoning_effort: None,
-            litellm_reasoning_effort: None,
-            rewrite_provider: "codex".into(),
-            litellm_base_url: "http://localhost:4000/v1".into(),
-            litellm_model: None,
-            litellm_api_key_env: "LITELLM_API_KEY".into(),
             transcription_provider: "elevenlabs".into(),
             transcription_base_url: "http://localhost:4000/v1".into(),
             transcription_api_key_env: "LITELLM_API_KEY".into(),
@@ -134,34 +90,16 @@ impl Default for AppConfig {
             local_model: "qwen3-1.7b".into(),
             local_device: "cpu".into(),
             transcription_chunk_seconds: 8,
-            auto_copy_dictation: true,
-            auto_copy_rewrite: true,
-            show_copy_action: true,
-            show_save_action: true,
-            review_timeout_seconds: 4,
-            smooth_scrolling: true,
-            scroll_duration_ms: 800,
-            scroll_lookahead_lines: 2,
             widget_position: "bottom-center".into(),
             widget_lines: 5,
             widget_opacity: 82,
             history_sidebar_visible: false,
             welcome_completed: false,
             time_format: "24h".into(),
-            live_rewrite_enabled: false,
-            live_rewrite_continuous: true,
-            live_rewrite_template: "grilling".into(),
-            live_rewrite_custom_instructions: String::new(),
-            live_rewrite_min_characters: 160,
-            live_rewrite_interval_seconds: 4,
             microphone_target: None,
             system_audio_target: None,
-            default_mode: "dictation".into(),
             global_recording_key: "F9".into(),
-            auto_paste: false,
-            automatic_titles: true,
             spoken_commands_enabled: true,
-            remember_per_application: false,
             audio_retention_policy: AudioRetentionPolicy::Failures,
             incognito_mode: false,
             history_retention_days: Number::from(0),
@@ -185,47 +123,12 @@ impl AppConfig {
                 "transcription_model must be 'scribe_v2'",
             ));
         }
-        for identifier in [&self.codex_model, &self.rewrite_model, &self.litellm_model]
-            .into_iter()
-            .flatten()
-        {
-            validate_identifier(
-                identifier,
-                200,
-                "codex_model must be a bounded single-line model identifier",
-            )?;
-        }
         if let Some(identifier) = &self.transcription_remote_model {
             validate_identifier(
                 identifier,
                 200,
-                "codex_model must be a bounded single-line model identifier",
+                "Speech model must be a bounded single-line model identifier",
             )?;
-        }
-        for effort in [
-            &self.rewrite_reasoning_effort,
-            &self.litellm_reasoning_effort,
-        ]
-        .into_iter()
-        .flatten()
-        {
-            let bytes = effort.as_bytes();
-            if bytes.is_empty()
-                || bytes.len() > 32
-                || !bytes[0].is_ascii_lowercase()
-                || !bytes.iter().all(|c| {
-                    c.is_ascii_lowercase() || c.is_ascii_digit() || *c == b'_' || *c == b'-'
-                })
-            {
-                return Err(ConfigError::Invalid(
-                    "Thinking level must be null or a bounded provider effort identifier",
-                ));
-            }
-        }
-        if !["codex", "litellm", "none"].contains(&self.rewrite_provider.as_str()) {
-            return Err(ConfigError::Invalid(
-                "rewrite_provider must be codex, litellm or none",
-            ));
         }
         if !["elevenlabs", "litellm", "local"].contains(&self.transcription_provider.as_str()) {
             return Err(ConfigError::Invalid(
@@ -240,10 +143,9 @@ impl AppConfig {
                 "Choose a supported local speech model",
             ));
         }
-        validate_provider_url(&self.litellm_base_url)?;
         validate_provider_url(&self.transcription_base_url)?;
-        for name in [&self.litellm_api_key_env, &self.transcription_api_key_env] {
-            let bytes = name.as_bytes();
+        {
+            let bytes = self.transcription_api_key_env.as_bytes();
             if bytes.is_empty()
                 || bytes.len() > 128
                 || !(bytes[0].is_ascii_alphabetic() || bytes[0] == b'_')
@@ -270,40 +172,10 @@ impl AppConfig {
                 "widget_opacity must be an integer from 10 to 100",
             ),
             (
-                self.review_timeout_seconds,
-                1,
-                60,
-                "review_timeout_seconds must be an integer from 1 to 60",
-            ),
-            (
-                self.scroll_duration_ms,
-                0,
-                2000,
-                "scroll_duration_ms must be an integer from 0 to 2000",
-            ),
-            (
-                self.scroll_lookahead_lines,
-                0,
-                6,
-                "scroll_lookahead_lines must be an integer from 0 to 6",
-            ),
-            (
                 self.transcription_chunk_seconds,
                 3,
                 30,
                 "transcription_chunk_seconds must be an integer from 3 to 30",
-            ),
-            (
-                self.live_rewrite_min_characters,
-                40,
-                4000,
-                "live_rewrite_min_characters must be an integer from 40 to 4000",
-            ),
-            (
-                self.live_rewrite_interval_seconds,
-                2,
-                60,
-                "live_rewrite_interval_seconds must be an integer from 2 to 60",
             ),
         ] {
             if !(minimum..=maximum).contains(&value) {
@@ -318,14 +190,6 @@ impl AppConfig {
         if !["24h", "12h"].contains(&self.time_format.as_str()) {
             return Err(ConfigError::Invalid("Unsupported time format"));
         }
-        if !LIVE_TEMPLATES.contains(&self.live_rewrite_template.as_str()) {
-            return Err(ConfigError::Invalid("Unsupported live rewrite template"));
-        }
-        if self.live_rewrite_custom_instructions.chars().count() > 8000 {
-            return Err(ConfigError::Invalid(
-                "Custom live instructions must contain at most 8000 characters",
-            ));
-        }
         for (target, message) in [
             (
                 &self.microphone_target,
@@ -339,9 +203,6 @@ impl AppConfig {
             if let Some(target) = target {
                 validate_identifier(target, 512, message)?;
             }
-        }
-        if !CAPTURE_MODES.contains(&self.default_mode.as_str()) {
-            return Err(ConfigError::Invalid("Unsupported default capture mode"));
         }
         if !(1..=24).any(|number| self.global_recording_key == format!("F{number}")) {
             return Err(ConfigError::Invalid(
@@ -372,6 +233,39 @@ impl AppConfig {
             .entry("welcome_completed")
             .or_insert(Value::Bool(true));
         payload.remove("voxtype_model");
+        // Retired controls never reactivate processing or disable delivery on upgrade.
+        // Only known retired keys are ignored; malformed remaining settings still fail closed.
+        for name in [
+            "codex_model",
+            "rewrite_model",
+            "rewrite_fast_mode",
+            "rewrite_reasoning_effort",
+            "litellm_reasoning_effort",
+            "rewrite_provider",
+            "litellm_base_url",
+            "litellm_model",
+            "litellm_api_key_env",
+            "auto_copy_dictation",
+            "auto_copy_rewrite",
+            "show_copy_action",
+            "show_save_action",
+            "review_timeout_seconds",
+            "smooth_scrolling",
+            "scroll_duration_ms",
+            "scroll_lookahead_lines",
+            "live_rewrite_enabled",
+            "live_rewrite_continuous",
+            "live_rewrite_template",
+            "live_rewrite_custom_instructions",
+            "live_rewrite_min_characters",
+            "live_rewrite_interval_seconds",
+            "default_mode",
+            "auto_paste",
+            "automatic_titles",
+            "remember_per_application",
+        ] {
+            payload.remove(name);
+        }
         if payload
             .get("transcription_provider")
             .and_then(Value::as_str)

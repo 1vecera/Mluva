@@ -5,9 +5,9 @@ use crate::{
     capture_preferences::{CapturePreferences, PreferenceActivity},
     capture_view::CapturePage,
     meeting_view::{MeetingCallbacks, MeetingPage},
-    prompt_editor::Message,
 };
 use gtk::prelude::*;
+type Message = Rc<dyn Fn(&str)>;
 use mluva_audio::catalog::{PipeWireDeviceCatalog, PipeWireDeviceKind};
 use mluva_core::{
     database::StoreResult,
@@ -215,8 +215,7 @@ impl MeetingController {
         self.page.set_capture_state(false, false);
         self.page.set_privacy(self.services.config().incognito_mode);
         let activity = self.activity();
-        let available = !activity.pending_review
-            && !activity.preparing
+        let available = !activity.preparing
             && !activity.recording
             && !activity.processing
             && !activity.retrying;
@@ -291,10 +290,6 @@ impl MeetingController {
         }
         if activity.retrying {
             self.status("Finish the retained dictation retry before starting Meeting.");
-            return;
-        }
-        if activity.pending_review {
-            self.status("Resolve the active Command or Scratchpad review before starting Meeting.");
             return;
         }
         if !config.incognito_mode
@@ -478,7 +473,10 @@ impl MeetingController {
             .map(|meeting| meeting.transcript.as_str())
             .filter(|text| !text.is_empty());
         if let Some(transcript) = transcript {
-            self.capture.output_view.buffer().set_text(transcript);
+            let _ = self
+                .capture
+                .workspace
+                .show_transient(transcript, transcript);
         }
         let status = if retry {
             format!(
@@ -530,12 +528,6 @@ impl MeetingController {
         let activity = self.activity();
         if activity.preparing || activity.processing || activity.recording {
             self.status("Finish the active dictation capture before retrying this Meeting.");
-            return;
-        }
-        if activity.pending_review {
-            self.status(
-                "Resolve the active Command or Scratchpad review before retrying this Meeting.",
-            );
             return;
         }
         if activity.retrying || self.retry.borrow().is_some() {

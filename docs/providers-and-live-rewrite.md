@@ -1,5 +1,7 @@
 # Providers, editable documents and live rewrite
 
+> Historical reference for releases through 2.4.0. Built-in rewriting, prompts and special capture modes have been removed. See the current [speech setup](provider-selection.md) and [dictation workspace](conversation-workspace.md).
+
 Settings → **Workspace** controls editing actions, automatic copying, scrolling and Live rewrite. Settings → **Providers** chooses speech recognition independently from rewriting. Press **Apply** to save a page. Provider changes apply to the next recording or request and are unavailable while work is active.
 
 **Ctrl+P** searches every settings row and opens its page at that control. Widget position, time format, sidebar visibility and Live templates also have direct commands. The history sidebar starts hidden; its toggle reveals saved conversations and a **Live conversation** entry during recording and finalization. Incoming speech does not switch you away from a selected older conversation. Dates use `Mon 7 Sep · 14:30`, with an optional `2:30 PM` clock.

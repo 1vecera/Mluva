@@ -456,7 +456,7 @@ async fn process(
             true,
         ),
     };
-    let copied = !failed && state.config.auto_copy_dictation && clipboard(state, &text).await;
+    let copied = !failed && clipboard(state, &text).await;
     if !state.config.incognito_mode {
         let retained = if state.config.audio_retention_policy.should_retain(copied) {
             let destination = state

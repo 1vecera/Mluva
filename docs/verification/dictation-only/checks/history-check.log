@@ -1,0 +1,21 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.11s
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.99s
+  Executable tests/history_controller.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/history_controller-7f6aac35f6b16869)
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.Sgd4Uo/session.QTTWe8
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.Sgd4Uo
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running tests/history_controller.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/history_controller-7f6aac35f6b16869)
+
+running 1 test
+test released_history_recovery_and_owned_shutdown ... Matched 15 released History recovery workflows/46 GTK/store states plus pending-response shutdown
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.14s
+
+X connection to :174 broken (explicit kill or server shutdown).

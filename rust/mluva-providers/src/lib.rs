@@ -3,8 +3,6 @@
 pub mod account;
 pub mod batch_preview;
 pub mod catalog;
-pub mod codex;
-pub mod codex_policy;
 pub mod compatible;
 pub mod credentials;
 pub mod elevenlabs;
@@ -20,7 +18,6 @@ pub mod onnx_runtime;
 mod process_lifetime;
 pub mod qwen;
 pub mod realtime;
-pub mod rewriting;
 pub mod speech;
 pub mod spoken_reply;
 mod transport;

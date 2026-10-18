@@ -2,7 +2,7 @@
 
 **The most delightful dictation for Omarchy.**
 
-Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings recording, editable rewrites and searchable history into a quiet native workspace that follows your desktop theme.
+Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings dictation, direct agent delivery and searchable history into a quiet native workspace that follows your desktop theme.
 
 **[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/latest)**
 
@@ -12,22 +12,19 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 
 <sub>72 seconds · Narrated by Daniel Vecera · Captions included. <a href="docs/promotion/README.md">Video credits and demo notes</a>.</sub>
 
-## From a thought to a finished draft
+## From a thought to an agent
 
-| Start with… | Make it useful |
+| Start with… | Next step |
 | --- | --- |
-| A rough idea | Dictate with F9. Scribe streams words while you speak; completed text copies to the clipboard. |
-| Text you already have | Paste into a conversation, then choose **Polish**, **Structure** or your own instruction. |
-| A note that needs shape | Select **Live rewrite** once or continuously across recordings. Grilling keeps useful questions above evolving notes; task spec, structured note and custom templates remain available. |
-| A draft worth keeping | Edit originals and rewrites, save with **Ctrl+S**, and keep raw recognition available separately. |
-| Work to return to | Search the sidebar, click a title to rename it, or use the conversation menu to merge or delete chats. Reuse saved prompts and export Markdown or JSON. |
-| Something on screen | Attach an Omarchy region screenshot with F10, then use **Add narration** in the optional upgraded Tensaku editor to place a spoken text box. Supported rewrite models can use the image as context. |
+| A rough idea | Dictate with F9. Words appear while you speak; final text is copied and delivered to the captured target when supported. |
+| A task for an agent | Choose a named Herdr session, hold the agent shortcut, then release. A two-second cancel window precedes guarded delivery. |
+| A draft worth keeping | Edit the transcript and save with **Ctrl+S**. Copy and Save stay visible; original recognition remains separate. |
+| Work to return to | Search history, rename, continue a recording, merge or delete conversations, and export Markdown or JSON. |
+| Something on screen | Attach a region screenshot with F10 and annotate it in the optional Tensaku editor. Images stay local. |
 
-**A calm place to work.** Stable Live panes, restrained recording motion and subtle Markdown keep long notes readable. **Ctrl+P** finds actions; **Ctrl+Enter** sends a rewrite. Copy and scrolling preferences are yours to change.
+One dictation mode, one editor. Smooth following is always enabled and respects reduced motion and intentional scrolling away from the end. **Ctrl+P** finds actions. Polish, rewriting, prompts, generated titles, Notes and Command capture modes have been removed. Existing saved replies remain readable and exportable; unfinished Notes recover into local History.
 
-**Your choice of engines.** Select speech and rewriting independently: ElevenLabs Scribe, Mluva-managed local speech models or a compatible transcription API; native Codex app-server or a LiteLLM/OpenAI-compatible service for rewriting. Availability, credentials and models are configured in Settings.
-
-Live rewrite is opt-in and Experimental. It marks missing information, preserves manual edits and reconciles the draft with the final transcript when recording stops. [Explore the features and their limits →](docs/feature-story.md)
+Choose ElevenLabs Scribe, one of the three managed local models, or a compatible speech API. Login never changes the selected speech provider. Contextual editing belongs in the receiving agent. The separate Meeting recorder remains available. See [feature status](docs/feature-maturity.md) and [Herdr setup](docs/herdr-voice.md).
 
 ## Install
 
@@ -41,7 +38,7 @@ cd mluva
 bash install.sh
 ```
 
-Launch **Mluva** from the application menu, then choose your [speech and rewrite providers](docs/provider-selection.md). Cloud providers need an account and credentials; local recognition downloads its own model, with CPU support by default and optional NVIDIA GPU acceleration. Provider setup is separate from installing the app.
+Launch **Mluva** from the application menu, then choose your [speech provider](docs/provider-selection.md). Cloud providers need an account and credentials; local recognition downloads its own model, with CPU support by default and optional NVIDIA GPU acceleration. Provider setup is separate from installing the app.
 
 ### Install with an agent
 
@@ -53,7 +50,7 @@ Use the repository's install.sh to install desktop dependencies and the native
 app, including the mluva.dictation plugin on Omarchy Quattro. Inspect the setup
 script, then run it with --yes. Preserve existing settings, conversations and
 plugin customizations. If Mluva is running, ask me to quit it before upgrading.
-Help me configure speech and rewriting with my chosen providers, installing
+Help me configure speech with my chosen provider, installing
 any required provider client and using existing credentials without revealing
 them. Tell me how to launch Mluva and approve its recording shortcuts.
 ```
@@ -88,9 +85,7 @@ If you installed only the app, run just `mluva-uninstall`. The [desktop requirem
 
 ### The Omarchy widget
 
-The floating widget starts with five preview lines while you speak. A bare light sits at top left and the timer at top right. Drag the text box or status row to move it, choose a lower-left/bottom/lower-right preset, or focus it and press **Super+T** on Omarchy to tile it. Floating mode keeps it above other windows; resizing gives the preview more room. The main app uses the same monospace text and bare header above its content. When you finish, **Continue** adds speech to the same conversation; you can also rewrite, copy or open it in the workspace. The app offers **Continue recording** above the conversation. Hover, deliberate interaction, menus and active rewrites pause the widget's configurable four-second dismissal; inherited focus alone does not. **Shift+F9** reopens the latest conversation when configured.
-
-![The compact Omarchy widget with rewrite actions, Copy, Open and a countdown ring](docs/promotion/assets/widget-review.png)
+The floating widget shows live recognition while you speak, with the status light and timer above it. Drag it, resize it, or choose its position in Settings. It starts and stops dictation and opens the latest conversation. Recording completion returns directly to your destination; the widget has no rewrite menu or review countdown. Continue recording, Copy and Save are available in the main editor. **Shift+F9** opens the latest conversation when configured.
 
 Closing the main window keeps Mluva available; quit from the shell or application menu. The [Omarchy guide](docs/omarchy-integration.md) covers dependencies, existing manual installs and removal.
 
@@ -98,16 +93,16 @@ Closing the main window keeps Mluva available; quit from the shell or applicatio
 
 | Platform | Status |
 | --- | --- |
-| **Omarchy · Hyprland · Quickshell** | **Primary, maintained platform.** The dictation, rewrite and widget workflow is tested end to end and used daily by the maintainer. |
+| **Omarchy · Hyprland · Quickshell** | **Primary, maintained platform.** The dictation and widget workflow is tested end to end and used daily by the maintainer. |
 | Fedora · GNOME · Wayland | Compatibility is retained, but has not been tested for several releases. The last desktop acceptance used Fedora 44 and GNOME 50. |
 
-Individual advanced features, including Live rewrite, Meeting mode and alternative provider routes, remain Experimental where indicated. Automatic insertion is off by default; clipboard delivery is the standard workflow. See the [feature status](docs/feature-maturity.md) and [desktop requirements](docs/linux-platform-profile.md).
+Meeting, Herdr routing and alternative provider routes remain Experimental where indicated. Automatic insertion validates its captured target; unavailable or changed targets fall back to the clipboard. See the [feature status](docs/feature-maturity.md) and [desktop requirements](docs/linux-platform-profile.md).
 
 ## Your text and the cloud
 
-- **Speech and rewriting:** your selected providers determine where processing happens. Local Whisper keeps recognition local; cloud speech sends audio to that provider. Rewriting sends the selected text to your rewrite provider.
-- **Local history:** originals, completed rewrites and titles stay together in a local SQLite database. Rename, export or delete conversations. Automatic titles send up to 6,000 characters from each new conversation to the rewrite provider; disable them in Settings to use local labels.
-- **Incognito:** no saved history or recovery audio, conversation rewriting or generated titles. Recognition still uses your selected speech provider; cancellation cannot recall audio already sent.
+- **Speech:** local models keep recognition on this PC; an explicitly chosen cloud speech provider receives audio. No built-in rewrite provider receives text.
+- **History:** immutable originals, working edits and earlier saved replies remain in local SQLite. Titles use local text; no model request is made.
+- **Incognito:** no saved history or recovery audio. Recognition still uses your selected speech provider; cancellation cannot recall audio already sent.
 
 See the [product contract](docs/product-contract.md) for retention, recovery and privacy details.
 
@@ -115,7 +110,7 @@ See the [product contract](docs/product-contract.md) for retention, recovery and
 
 The native toolbar's **Account sync** icon opens **Account & devices → Sign in with browser**. Sign into the same account at [mluva.danielvecera.com](https://mluva.danielvecera.com) for selected-device live text and shared originals, edits, completed rewrites and history. New recordings sync only after you enable it; existing private history requires explicit sharing. Native capture retains its selected provider and works offline. Account sync sends text, not native microphone audio.
 
-The installable web app uses the existing Lambda-only AWS backend. Hosted microphone transcription and web rewriting remain disabled pending their activation requirements. The optional [private phone recorder](docs/browser-recorder.md) remains available to stream phone audio into the native desktop session. [Hosted setup and verification](hosted/README.md). Physical-phone acceptance remains pending.
+The installable web app uses the existing Lambda-only AWS backend. Hosted microphone transcription retains its activation gate; the rewrite endpoint, Bedrock dependency and permission have been removed. The optional [private phone recorder](docs/browser-recorder.md) remains available to stream phone audio into the native desktop session. [Hosted setup and verification](hosted/README.md). Physical-phone acceptance remains pending.
 
 ## Development
 

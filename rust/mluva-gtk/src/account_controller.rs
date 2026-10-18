@@ -36,7 +36,7 @@ pub struct AccountController {
     store: ConversationStore,
     workspace: Rc<ConversationWorkspace>,
     refresh: Refresh,
-    remote_changed: Rc<dyn Fn(&str)>,
+
     client: RefCell<Option<AccountClient>>,
     ledger: RefCell<Option<AccountLedger>>,
     login: RefCell<Option<AccountLogin>>,
@@ -56,7 +56,6 @@ impl AccountController {
         store: ConversationStore,
         workspace: Rc<ConversationWorkspace>,
         refresh: Refresh,
-        remote_changed: Rc<dyn Fn(&str)>,
     ) -> Rc<Self> {
         let page = adw::PreferencesPage::builder()
             .name("account")
@@ -138,7 +137,6 @@ impl AccountController {
             store,
             workspace,
             refresh,
-            remote_changed,
             client: RefCell::new(None),
             ledger: RefCell::new(None),
             login: RefCell::new(None),
@@ -487,7 +485,6 @@ impl AccountController {
                             Err(e) if e.status == 410 => {
                                 ledger.delete(&id).map_err(|e| e.to_string())?;
                                 if let Some(o) = weak.upgrade() {
-                                    (o.remote_changed)(&id);
                                     (o.refresh)();
                                 }
                             }
@@ -539,10 +536,6 @@ impl AccountController {
                             }
                             match ledger.receive(&note) {
                                 Ok(true) => {
-                                    (o.remote_changed)(&note.id);
-                                    for segment in &note.segments {
-                                        (o.remote_changed)(&segment.id);
-                                    }
                                     o.known.borrow_mut().insert(note.id.clone());
                                     o.refresh_received(&note.id);
                                 }
@@ -568,7 +561,6 @@ impl AccountController {
                     {
                         ledger.delete(&id).map_err(|e| e.to_string())?;
                         if let Some(o) = weak.upgrade() {
-                            (o.remote_changed)(&id);
                             (o.refresh)();
                         }
                     }
@@ -624,7 +616,6 @@ impl AccountController {
                 && let Some(l) = o.ledger.borrow().as_ref()
                 && l.apply(&note).is_ok()
             {
-                (o.remote_changed)(&note.id);
                 o.conflicts.remove(&target);
                 o.conflict_rows
                     .borrow_mut()
@@ -905,7 +896,7 @@ impl AccountController {
                         (self.ledger.borrow().as_ref(), event["id"].as_str())
                 {
                     let _ = l.delete(id);
-                    (self.remote_changed)(id);
+
                     (self.refresh)();
                 }
                 self.sync();

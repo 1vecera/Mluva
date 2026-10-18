@@ -3,10 +3,11 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use rusqlite::{TransactionBehavior, params};
 use serde::{Deserialize, Serialize};
 
 use crate::database::{StoreResult, invalid};
-use crate::private_files::{atomic_write_private, resolve_path};
+use crate::private_files::resolve_path;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -37,6 +38,60 @@ pub struct ScratchpadDraftStore {
 }
 
 impl ScratchpadDraftStore {
+    /// Retire the old Notes review queue into local History. The durable marker
+    /// and text commit together, so a crash before removing the JSON cannot
+    /// duplicate a note or resurrect it after a later deletion.
+    pub fn migrate_to_history(
+        &mut self,
+        history: &crate::history::HistoryStore,
+    ) -> StoreResult<Option<String>> {
+        if let Some(error) = &self.persistence_error {
+            return Err(invalid(error));
+        }
+        let Some(draft) = self.draft.clone() else {
+            return Ok(None);
+        };
+        if draft.incognito {
+            self.clear(true)?;
+            return Ok(None);
+        }
+        let mut connection = history.database.connect()?;
+        let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        transaction.execute_batch(
+            "CREATE TABLE IF NOT EXISTS legacy_notes_recovery (identifier TEXT PRIMARY KEY)",
+        )?;
+        let first = transaction.execute(
+            "INSERT OR IGNORE INTO legacy_notes_recovery(identifier) VALUES (?)",
+            [&draft.identifier],
+        )? == 1;
+        let mut recovered = None;
+        if first {
+            let identifier = draft.history_identifier.clone().unwrap_or_else(|| {
+                uuid::Uuid::parse_str(&draft.identifier)
+                    .unwrap_or_else(|_| uuid::Uuid::new_v4())
+                    .to_string()
+            });
+            // A missing existing owner means the note was deleted. Never restore it.
+            if draft.history_identifier.is_none() {
+                transaction.execute("INSERT OR IGNORE INTO transcription_history(identifier, created_at, raw_text, delivered_text, mode, language_code, delivery_outcome, retained_audio_path, audio_retention_policy) VALUES (?, ?, ?, ?, 'dictation', 'eng', 'recovered', ?, ?)",
+                    params![identifier, draft.created_at, draft.raw_text, draft.raw_text, draft.audio_path, draft.audio_retention_policy])?;
+            }
+            let exists: bool = transaction.query_row(
+                "SELECT EXISTS(SELECT 1 FROM transcription_history WHERE identifier = ?)",
+                [&identifier],
+                |row| row.get(0),
+            )?;
+            if exists {
+                // An editor save is newer than this retired review queue.
+                transaction.execute("INSERT OR IGNORE INTO conversation_sources(history_identifier, text) VALUES (?, ?)", params![identifier, draft.text])?;
+                recovered = Some(identifier);
+            }
+        }
+        transaction.commit()?;
+        self.clear(false)?;
+        Ok(recovered)
+    }
+
     pub fn new(path: impl AsRef<Path>) -> Self {
         let mut store = Self {
             path: path.as_ref().to_owned(),
@@ -54,24 +109,7 @@ impl ScratchpadDraftStore {
         store
     }
 
-    pub fn save(&mut self, draft: ScratchpadDraft, persist: bool) -> StoreResult<()> {
-        if let Some(error) = &self.persistence_error {
-            return Err(invalid(format!(
-                "Scratchpad changes are disabled until the malformed recovery document is repaired: {error}"
-            )));
-        }
-        if !persist || draft.incognito {
-            self.erase_document()?;
-        } else {
-            let mut content = serde_json::to_vec_pretty(&draft)?;
-            content.push(b'\n');
-            atomic_write_private(&self.path, &content)?;
-        }
-        self.draft = Some(draft);
-        Ok(())
-    }
-
-    pub fn clear(&mut self, remove_audio: bool) -> StoreResult<()> {
+    fn clear(&mut self, remove_audio: bool) -> StoreResult<()> {
         if remove_audio
             && let Some(audio) = self
                 .draft

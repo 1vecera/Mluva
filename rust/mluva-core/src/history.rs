@@ -279,15 +279,6 @@ impl HistoryStore {
         self.find(identifier)
     }
 
-    pub fn save_generated_title(
-        &self,
-        identifier: &str,
-        title: &str,
-        expected: Option<&str>,
-    ) -> StoreResult<bool> {
-        Ok(self.database.connect()?.execute("UPDATE transcription_history SET title = ? WHERE identifier = ? AND title IS ? AND title_revision = 0", params![title, identifier, expected])? == 1)
-    }
-
     pub fn restore_raw(&self, identifier: &str) -> StoreResult<HistoryEntry> {
         self.database.connect()?.execute("UPDATE transcription_history SET delivered_text = raw_text, correction_source_text = NULL,
              delivery_outcome = 'restored-raw', enhancement_provider_id = NULL, enhancement_model_identifier = NULL,

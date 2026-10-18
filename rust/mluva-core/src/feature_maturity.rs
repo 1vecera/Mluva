@@ -29,7 +29,7 @@ pub const CAPABILITIES: &[Capability] = &[
     Capability {
         identifier: "screenshot_context",
         title: "Screenshot context and narrated annotations",
-        summary: "Omarchy region capture, visual AI context and spoken Tensaku text boxes passed isolated checks; physical-key and microphone acceptance remain pending.",
+        summary: "Omarchy region capture, agent attachments and spoken Tensaku text boxes passed isolated checks; physical-key and microphone acceptance remain pending.",
         maturity: Maturity::Experimental,
     },
     Capability {
@@ -51,63 +51,33 @@ pub const CAPABILITIES: &[Capability] = &[
         maturity: Maturity::Verified,
     },
     Capability {
-        identifier: "saved_styles",
-        title: "Custom saved styles",
-        summary: "A user-created writing style can be selected and applied to dictated text.",
-        maturity: Maturity::Verified,
-    },
-    Capability {
         identifier: "conversations",
-        title: "Rewrite conversations",
-        summary: "Originals, Quick Polish, Structured Note, follow-ups and conversation export form the daily Omarchy workspace.",
+        title: "Conversations",
+        summary: "Original recognition, working edits, continued recordings and exports share one editor; existing saved rewrites remain readable.",
         maturity: Maturity::Verified,
     },
     Capability {
         identifier: "editable_documents",
         title: "Editable documents and automatic copy",
-        summary: "Originals and rewrites can be edited, saved and copied automatically in the Omarchy workflow.",
+        summary: "Text can be edited, saved and copied; Copy and Save controls are always shown.",
         maturity: Maturity::Verified,
     },
     Capability {
         identifier: "provider_choice",
-        title: "Independent rewrite and speech providers",
+        title: "Speech provider choices",
         summary: "Compatible APIs and app-owned local models have controlled checks; cloud accounts need acceptance.",
-        maturity: Maturity::Experimental,
-    },
-    Capability {
-        identifier: "live_rewrite",
-        title: "Live structured rewriting",
-        summary: "Opt-in task, note, polish and custom drafts expose missing information; model quality needs acceptance.",
         maturity: Maturity::Experimental,
     },
     Capability {
         identifier: "automatic_paste",
         title: "Automatic paste",
-        summary: "Known limitation: insertion is disabled by default and depends on the target application and desktop; clipboard delivery is the standard workflow.",
-        maturity: Maturity::Experimental,
-    },
-    Capability {
-        identifier: "faithful_cleanup",
-        title: "Faithful cleanup",
-        summary: "Optional Codex cleanup preserves the raw transcript and falls back safely, but still needs manual acceptance.",
+        summary: "Automatic delivery uses the exact captured target. Unsupported, changed or unavailable targets fall back to the clipboard; the visible record button is copy-only.",
         maturity: Maturity::Experimental,
     },
     Capability {
         identifier: "spoken_structure",
         title: "Spoken structure",
         summary: "Punctuation, paragraph, and scratch-that commands still need manual acceptance.",
-        maturity: Maturity::Experimental,
-    },
-    Capability {
-        identifier: "command_mode",
-        title: "Command mode",
-        summary: "Spoken editing instructions are previewed before delivery and still need manual acceptance.",
-        maturity: Maturity::Experimental,
-    },
-    Capability {
-        identifier: "notes_mode",
-        title: "Notes mode",
-        summary: "Longer acceptance-gated drafts and their relaunch recovery still need manual acceptance.",
         maturity: Maturity::Experimental,
     },
     Capability {
@@ -135,12 +105,6 @@ pub const CAPABILITIES: &[Capability] = &[
         maturity: Maturity::Experimental,
     },
     Capability {
-        identifier: "application_memory",
-        title: "Per-application memory and context",
-        summary: "Remembered modes, styles, rules, and bounded context controls still need manual acceptance.",
-        maturity: Maturity::Experimental,
-    },
-    Capability {
         identifier: "recovery_privacy",
         title: "Advanced recovery, retention, and Incognito",
         summary: "Retries, reprocessing, exports, retention policies, and Incognito still need manual acceptance.",
@@ -155,7 +119,7 @@ pub const CAPABILITIES: &[Capability] = &[
     Capability {
         identifier: "omarchy_widget",
         title: "Omarchy recording widget",
-        summary: "The themed widget, completed-note rewrites and opening the workspace are used daily on Omarchy.",
+        summary: "The themed widget starts and stops dictation and opens the editor; generation and review controls are removed.",
         maturity: Maturity::Verified,
     },
 ];

@@ -20,8 +20,9 @@ struct ConfigCase {
 
 #[test]
 fn defaults_and_persisted_migrations_match_release_with_authorized_model_retirement() {
-    let defaults: Value =
+    let mut defaults: Value =
         serde_json::from_str(include_str!("fixtures/config-defaults.json")).unwrap();
+    strip_retired(&mut defaults);
     assert_eq!(
         serde_json::to_value(AppConfig::default()).unwrap(),
         defaults
@@ -29,7 +30,15 @@ fn defaults_and_persisted_migrations_match_release_with_authorized_model_retirem
     let cases: Vec<ConfigCase> =
         serde_json::from_str(include_str!("fixtures/config-cases.json")).unwrap();
     let mut differences = Vec::new();
-    for case in cases {
+    for mut case in cases {
+        if let Ok(Value::Object(fields)) = serde_json::from_str::<Value>(&case.json)
+            && !fields.is_empty()
+            && fields.keys().all(|key| RETIRED.contains(&key.as_str()))
+        {
+            case.accepted = true;
+            case.expected_changes
+                .insert("welcome_completed".into(), Value::Bool(true));
+        }
         let actual = AppConfig::from_persisted_json(case.json.as_bytes());
         if actual.is_ok() != case.accepted {
             differences.push(format!(
@@ -55,6 +64,7 @@ fn defaults_and_persisted_migrations_match_release_with_authorized_model_retirem
                 expected["local_model"] = Value::String("qwen3-1.7b".into());
                 expected["welcome_completed"] = Value::Bool(false);
             }
+            strip_retired(&mut expected);
             if serde_json::to_value(config).unwrap() != expected {
                 differences.push(format!("{}: settings changed", case.label));
             }
@@ -85,7 +95,6 @@ fn retired_models_load_and_save_without_losing_other_settings() {
             local_device: "cuda".into(),
             language_code: "ces".into(),
             incognito_mode: true,
-            auto_paste: true,
             ..AppConfig::default()
         };
         assert_eq!(loaded, expected, "migration of {retired}");
@@ -168,10 +177,10 @@ fn saving_preserves_all_choices_and_tightens_owner_only_permissions() {
     fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
     let config = AppConfig {
         language_code: "ces".into(),
-        auto_paste: true,
+
         global_recording_key: "F11".into(),
         audio_retention_policy: AudioRetentionPolicy::Never,
-        rewrite_provider: "none".into(),
+
         microphone_target: Some("alsa_input.test".into()),
         ..AppConfig::default()
     };
@@ -217,5 +226,40 @@ fn capture_recovery_policy_keeps_the_existing_success_and_failure_behavior() {
     ] {
         assert_eq!(policy.should_retain(true), success);
         assert_eq!(policy.should_retain(false), failure);
+    }
+}
+
+const RETIRED: &[&str] = &[
+    "codex_model",
+    "rewrite_model",
+    "rewrite_fast_mode",
+    "rewrite_reasoning_effort",
+    "litellm_reasoning_effort",
+    "rewrite_provider",
+    "litellm_base_url",
+    "litellm_model",
+    "litellm_api_key_env",
+    "auto_copy_dictation",
+    "auto_copy_rewrite",
+    "show_copy_action",
+    "show_save_action",
+    "review_timeout_seconds",
+    "smooth_scrolling",
+    "scroll_duration_ms",
+    "scroll_lookahead_lines",
+    "live_rewrite_enabled",
+    "live_rewrite_continuous",
+    "live_rewrite_template",
+    "live_rewrite_custom_instructions",
+    "live_rewrite_min_characters",
+    "live_rewrite_interval_seconds",
+    "default_mode",
+    "auto_paste",
+    "automatic_titles",
+    "remember_per_application",
+];
+fn strip_retired(value: &mut Value) {
+    for key in RETIRED {
+        value.as_object_mut().unwrap().remove(*key);
     }
 }

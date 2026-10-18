@@ -93,15 +93,6 @@ pub(crate) fn decimal_value(character: char) -> Option<u32> {
         .map(|(first, _)| (code - first) % 10)
 }
 
-pub(crate) fn decimal_expression() -> String {
-    let mut result = String::from("[");
-    for &(first, last) in &CASE_PROPERTIES.decimal {
-        result.push_str(&format!(r"\u{{{first:X}}}-\u{{{last:X}}}"));
-    }
-    result.push(']');
-    result
-}
-
 /// Whole-string casing keeps expansions such as sharp S and the final Greek sigma.
 pub fn upper(value: &str) -> String {
     let mut result = String::with_capacity(value.len());

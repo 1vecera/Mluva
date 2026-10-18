@@ -242,7 +242,7 @@ test("deletion wins against delayed first saves, updates, retries and other acco
     false,
   );
 });
-test("removed devices cannot read, save, rewrite or mint tickets with an otherwise live JWT", async () => {
+test("removed devices cannot read, save or mint tickets with an otherwise live JWT", async () => {
   const f = await fixture(),
     original = note();
   await f.api("alice", "POST", "/history", original);

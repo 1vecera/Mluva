@@ -1,0 +1,80 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.11s
+   Compiling mluva-core v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-core)
+   Compiling mluva-audio v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-audio)
+   Compiling mluva-providers v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-providers)
+   Compiling mluva-asr v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-asr)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.09s
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.55s
+  Executable tests/capture_factory.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/capture_factory-ffa8e63471324fe2)
+  Executable tests/capture_lifecycle.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/capture_lifecycle-bd430eb3d93f2375)
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.I8inXe/session.yzNb8G
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.I8inXe
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running tests/capture_factory.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/capture_factory-ffa8e63471324fe2)
+
+running 1 test
+test released_application_capture_factory ... RELEASED_FACTORY compatible-final-recognition PASS
+RELEASED_FACTORY compatible-capture-freezes-personalization PASS
+RELEASED_FACTORY whisper-tiny-ready-without-cloud-key PASS
+RELEASED_FACTORY parakeet-v3-ready-without-cloud-key PASS
+RELEASED_FACTORY largest-qwen-default-ready-without-cloud-key PASS
+RELEASED_FACTORY missing-cloud-key-keeps-recovery-stores PASS
+RELEASED_FACTORY COMPLETE 6 8
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.62s
+
+     Running tests/capture_lifecycle.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/capture_lifecycle-bd430eb3d93f2375)
+
+running 1 test
+test actual_capture_transactions_match_released_states_and_leave_no_audio_children ... native_capture batch-complete PASS
+native_capture batch-retain-always PASS
+native_capture batch-never-retains PASS
+native_capture batch-blank-speech PASS
+native_capture batch-provider-failure-recovery PASS
+native_capture batch-provider-failure-erases PASS
+native_capture cancel-preparation PASS
+native_capture cancel-recording PASS
+native_capture stop-does-not-dispatch-twice PASS
+native_capture captured-rules-ignore-edits PASS
+native_capture incognito-batch-erases PASS
+native_capture incognito-provider-failure-erases PASS
+native_capture incognito-cancel-recording-erases PASS
+native_capture realtime-final-committed-text PASS
+native_capture realtime-startup-falls-back PASS
+native_capture realtime-stream-falls-back PASS
+native_capture cancel-streamed-recording PASS
+native_capture compatible-preview-final PASS
+native_capture compatible-preview-incognito PASS
+native_capture compatible-preview-cancel PASS
+native_capture compatible-preview-fallback PASS
+native_capture local-qwen3-1.7b-cpu-final PASS
+native_capture local-qwen3-1.7b-cpu-incognito PASS
+native_capture local-qwen3-1.7b-cpu-cancel PASS
+native_capture local-qwen3-1.7b-cuda-final PASS
+native_capture local-qwen3-1.7b-cuda-incognito PASS
+native_capture local-qwen3-1.7b-cuda-cancel PASS
+native_capture local-whisper-tiny-cpu-final PASS
+native_capture local-whisper-tiny-cpu-incognito PASS
+native_capture local-whisper-tiny-cpu-cancel PASS
+native_capture local-whisper-tiny-cuda-final PASS
+native_capture local-whisper-tiny-cuda-incognito PASS
+native_capture local-whisper-tiny-cuda-cancel PASS
+native_capture local-parakeet-v3-cpu-final PASS
+native_capture local-parakeet-v3-cpu-incognito PASS
+native_capture local-parakeet-v3-cpu-cancel PASS
+native_capture local-parakeet-v3-cuda-final PASS
+native_capture local-parakeet-v3-cuda-incognito PASS
+native_capture local-parakeet-v3-cuda-cancel PASS
+NATIVE_COMPLETE dictation transactions, 184 released states, exact PCM upload and native process reaping
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 34.58s
+
+X connection to :174 broken (explicit kill or server shutdown).

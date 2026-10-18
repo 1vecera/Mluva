@@ -161,8 +161,8 @@ impl ApplicationDesktop {
                     ..Default::default()
                 };
             }
-            if self.capture.phase().is_some() || self.review.rewriting() || self.live.finalizing() {
-                return PhoneReply::error(&id, "Finish the current PC recording or rewrite first.");
+            if self.capture.phase().is_some() {
+                return PhoneReply::error(&id, "Finish the current PC recording first.");
             }
             self.toggle_recording(CaptureOrigin::Phone(id.clone()));
             let Some(session) = self

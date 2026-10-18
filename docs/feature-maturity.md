@@ -2,9 +2,9 @@
 
 # Feature maturity
 
-Omarchy is the primary platform: the core dictation, rewrite and widget workflow is tested end to end and used daily by the maintainer. **Verified on Omarchy** identifies that working set. **Experimental** features remain available with the limits below. Fedora GNOME compatibility is retained, but has not been tested for several releases.
+Omarchy is the primary platform: the core dictation and widget workflow is tested end to end and used daily by the maintainer. **Verified on Omarchy** identifies that working set. **Experimental** features remain available with the limits below. Fedora GNOME compatibility is retained, but has not been tested for several releases.
 
-Automatic paste is an explicit known limitation: it depends on the desktop and target application and is disabled by default. Clipboard delivery is the standard workflow. Automated tests use isolated sessions; platform acceptance comes from use on the actual desktop.
+Automatic paste is an explicit known limitation: it depends on the desktop and target application and validates the captured target before delivery; unsupported targets use the clipboard. Automated tests use isolated sessions; platform acceptance comes from use on the actual desktop.
 
 ## Verified on Omarchy
 
@@ -13,28 +13,22 @@ Automatic paste is an explicit known limitation: it depends on the desktop and t
 | Recording and transcription | F9 and the visible record control start, stop, and finalize ordinary dictation. |
 | Recording setup controls | Language, microphone, function key, and recording behavior can be adjusted before capture. |
 | History | Completed captures remain visible and recoverable in the local History surface. |
-| Custom saved styles | A user-created writing style can be selected and applied to dictated text. |
-| Rewrite conversations | Originals, Quick Polish, Structured Note, follow-ups and conversation export form the daily Omarchy workspace. |
-| Editable documents and automatic copy | Originals and rewrites can be edited, saved and copied automatically in the Omarchy workflow. |
-| Omarchy recording widget | The themed widget, completed-note rewrites and opening the workspace are used daily on Omarchy. |
+| Conversations | Original recognition, working edits, continued recordings and exports share one editor; existing saved rewrites remain readable. |
+| Editable documents and automatic copy | Text can be edited, saved and copied; Copy and Save controls are always shown. |
+| Omarchy recording widget | The themed widget starts and stops dictation and opens the editor; generation and review controls are removed. |
 
 ## Experimental
 
 | Feature | Current boundary |
 | --- | --- |
 | Hold to talk to Herdr agents | Opt-in local routing needs the guarded Herdr integration; physical hold/release and optional ElevenLabs v4 Turbo voice acceptance remain pending. |
-| Screenshot context and narrated annotations | Omarchy region capture, visual AI context and spoken Tensaku text boxes passed isolated checks; physical-key and microphone acceptance remain pending. |
-| Independent rewrite and speech providers | Compatible APIs and app-owned local models have controlled checks; cloud accounts need acceptance. |
-| Live structured rewriting | Opt-in task, note, polish and custom drafts expose missing information; model quality needs acceptance. |
-| Automatic paste | Known limitation: insertion is disabled by default and depends on the target application and desktop; clipboard delivery is the standard workflow. |
-| Faithful cleanup | Optional Codex cleanup preserves the raw transcript and falls back safely, but still needs manual acceptance. |
+| Screenshot context and narrated annotations | Omarchy region capture, agent attachments and spoken Tensaku text boxes passed isolated checks; physical-key and microphone acceptance remain pending. |
+| Speech provider choices | Compatible APIs and app-owned local models have controlled checks; cloud accounts need acceptance. |
+| Automatic paste | Automatic delivery uses the exact captured target. Unsupported, changed or unavailable targets fall back to the clipboard; the visible record button is copy-only. |
 | Spoken structure | Punctuation, paragraph, and scratch-that commands still need manual acceptance. |
-| Command mode | Spoken editing instructions are previewed before delivery and still need manual acceptance. |
-| Notes mode | Longer acceptance-gated drafts and their relaunch recovery still need manual acceptance. |
 | Meeting mode | Microphone plus system-audio capture, diarization, review, and archive still need manual acceptance. |
 | Shell menu and recording bar | The optional GNOME Shell menu and display-only bottom bar have off-screen evidence but still need live-desktop acceptance. |
 | Dictionary and vocabulary suggestions | Local replacements and review-only suggestions still need manual acceptance. |
 | Snippets | Explicit spoken expansions and portable typed-trigger storage still need manual acceptance. |
-| Per-application memory and context | Remembered modes, styles, rules, and bounded context controls still need manual acceptance. |
 | Advanced recovery, retention, and Incognito | Retries, reprocessing, exports, retention policies, and Incognito still need manual acceptance. |
 | Diagnostics export | Privacy-safe timing diagnostics still need manual acceptance. |

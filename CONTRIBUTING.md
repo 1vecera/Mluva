@@ -24,11 +24,11 @@ GTK callbacks stay on the main thread; provider/audio work runs outside it. The 
 
 | Change | Owner |
 | --- | --- |
-| Configuration, prompts, personalization, History, conversations, retention | `rust/mluva-core/src` |
+| Configuration, personalization, History, conversations, retention | `rust/mluva-core/src` |
 | PCM/WAV, private audio, PipeWire and crash cleanup | `rust/mluva-audio/src` |
-| Speech/rewrite connections, credentials, local model downloads and previews | `rust/mluva-providers/src` |
+| Speech connections, credentials, local model downloads and previews | `rust/mluva-providers/src` |
 | Native model execution and recognition worker | `rust/mluva-asr/src` |
-| Recording, delivery, Live/review, titles, meetings, screenshots and narration | `rust/mluva-workflows/src` |
+| Recording, delivery, meetings, screenshots and narration | `rust/mluva-workflows/src` |
 | GTK application, pages, settings, rendering and text-target tracking | `rust/mluva-gtk/src` |
 | D-Bus action/status bridge | `rust/mluva-shell/src` |
 | Opt-in authenticated browser recording and desktop clipboard inbox | `rust/mluva-web` |
@@ -56,20 +56,14 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | Herdr recipient, hold-to-talk, cancellation and draft recovery | `make linux-agent-voice-test linux-shortcut-test`; [native agent integration](docs/verification/herdr-voice/README.md) |
 | Phone microphone, native widget lifecycle and chunk delivery | `bash linux/tests/run_application_smoke.sh phone` |
 | Full recording/application and desktop actions | `make linux-application-test` |
-| Continued recording and recorder review transition | `make linux-continuation-test` |
 | Conversation editing, navigation and scrolling | `make linux-conversation-test` |
-| Live workspace and controllers | `make linux-live-workspace-test linux-live-rewrite-test` |
 | Provider preferences and held discovery | `make linux-provider-settings-test` |
-| Conversation rename, merge, privacy and deletion | `make linux-conversation-management-test` |
-| Compact layouts and finalization | `make linux-compact-workspace-test` |
-| Prompt editor, persistence and process restart | `make linux-prompt-test` |
-| First-run model download/readiness and opt-ins | `MLUVA_TEST_ONBOARDING_ASSETS=/absolute/public-fixtures make linux-onboarding-test` |
-| Screenshot context and real editor narration | `MLUVA_TEST_EDITOR=/absolute/verified/tensaku make linux-screenshot-test` |
+| First-run speech and appearance setup | `make linux-onboarding-test`; provider suite covers downloads/readiness |
+| Screenshot context and real editor narration | `make linux-screenshot-test` |
 | Exact-target paste / widget | `make linux-text-target-test` / `make linux-omarchy-test` |
 | Firefox paste and text-read privacy on bus/default transport | `make linux-browser-target-test` |
 | Chromium paste and privacy with manual accessibility controls, native activation and browser startup after the tracker | `make linux-chromium-target-test` |
-| Recording, Command and Live delivery through the actual application into Firefox or Chromium | `make linux-browser-application-test linux-chromium-application-test` |
-| Installed Codex isolation | `make linux-codex-isolation-test` |
+| Recording and delivery through the actual application into Firefox or Chromium | `make linux-browser-application-test linux-chromium-application-test` |
 | GNOME display extension | `make linux-overlay-test` in GNOME's headless test environment |
 
 Remaining physical-device, desktop permission and platform limits are recorded in the [2.0.0 cutover evidence](docs/verification/rust-cutover/README.md). Historical Python comparison and artwork recipes are available from v1.6.0 and are not maintained or shipped in 2.0.0.

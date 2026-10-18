@@ -1,0 +1,513 @@
+[
+  {
+    "file": "linux/tests/run_codex_isolation_smoke.sh",
+    "functions": [],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-core/tests/live_policy.rs",
+    "functions": [
+      "state",
+      "outcome",
+      "frozen_live_prompts_and_scheduler_match_release"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/capture_controls.rs",
+    "functions": [
+      "settle",
+      "widgets",
+      "append",
+      "button",
+      "combo",
+      "settings_observation",
+      "capture_observation",
+      "changed_config",
+      "check",
+      "capture_page_and_catalog_controls_match_released_widgets"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/capture_preferences.rs",
+    "functions": [
+      "descendants",
+      "walk",
+      "maturity",
+      "selected_config",
+      "selected_document",
+      "update_config",
+      "settle",
+      "error_text",
+      "button",
+      "combo",
+      "switch",
+      "capture",
+      "generated_styles",
+      "string",
+      "observe",
+      "assert_state",
+      "diff",
+      "dump",
+      "released_capture_preferences_and_application_settings"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/live_controller.rs",
+    "functions": [
+      "drain",
+      "until",
+      "settle",
+      "clipboard",
+      "canary",
+      "records",
+      "wire",
+      "private_codex",
+      "page",
+      "snapshot",
+      "released_live_callbacks_keep_edits_reconcile_and_save",
+      "realtime_peer",
+      "compare",
+      "capture_snapshot",
+      "released_capture_live_controls"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/pending_review.rs",
+    "functions": [
+      "wait",
+      "settle",
+      "normalize",
+      "draft_value",
+      "snapshot",
+      "compare",
+      "action",
+      "released_command_and_notes_decisions"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/prompt_editor.rs",
+    "functions": [
+      "settle",
+      "widgets",
+      "collect",
+      "text_view",
+      "labels",
+      "buttons",
+      "activate",
+      "observation",
+      "assert_observation",
+      "prompt_edit_save_cancel_reset_conflicts_and_privacy_match_the_released_native_editor"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/review_controller.rs",
+    "functions": [
+      "drain",
+      "until",
+      "settle",
+      "records",
+      "wire",
+      "clipboard",
+      "canary",
+      "environment",
+      "page",
+      "documents",
+      "shell",
+      "snapshot",
+      "compare",
+      "actual_document_rewrites_and_review_actions_match_release"
+    ],
+    "history": "9203fcd Keep collapsed rewrite fields out of startup and review focus"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_browser_live.rs",
+    "functions": [
+      "observe",
+      "exercise"
+    ],
+    "history": "084b56a Verify Live browser delivery and edit guards"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_commands.rs",
+    "functions": [
+      "key",
+      "current",
+      "open",
+      "rows",
+      "selected",
+      "snapshot",
+      "select",
+      "selected_visible",
+      "close",
+      "choose",
+      "choose_action",
+      "notifications",
+      "record",
+      "layout",
+      "exercise"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_compact.rs",
+    "functions": [
+      "exercise"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_continuation.rs",
+    "functions": [
+      "identity",
+      "preferences",
+      "select",
+      "requests",
+      "turns",
+      "record",
+      "audio",
+      "recording",
+      "stop",
+      "cancel",
+      "review_continue",
+      "layout",
+      "exercise"
+    ],
+    "history": "58bd239 fix: preserve Omarchy recorder during continued capture"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_images.rs",
+    "functions": [
+      "quote",
+      "script",
+      "sha",
+      "unhex",
+      "read",
+      "alive",
+      "command",
+      "editor_button",
+      "click",
+      "prepare",
+      "evidence",
+      "finish",
+      "prepare",
+      "new",
+      "identity",
+      "turns",
+      "snapshot",
+      "layout",
+      "exercise",
+      "audio_pids",
+      "closed",
+      "drop"
+    ],
+    "history": "501d42f Verify narrated screenshots with installed Codex SDK"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_live_editor.rs",
+    "functions": [
+      "copies",
+      "geometry",
+      "snapshot",
+      "exercise"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_live_workspace.rs",
+    "functions": [
+      "settle",
+      "identity",
+      "preferences",
+      "snapshot",
+      "record",
+      "stop",
+      "turns",
+      "provider",
+      "textures",
+      "texture_hashes",
+      "layout",
+      "exercise"
+    ],
+    "history": "9203fcd Keep collapsed rewrite fields out of startup and review focus"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_management.rs",
+    "functions": [
+      "settle",
+      "labels",
+      "row",
+      "menu",
+      "action",
+      "respond",
+      "select_target",
+      "select",
+      "record",
+      "layout",
+      "recording",
+      "cancel",
+      "exercise"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_onboarding.rs",
+    "functions": [
+      "read",
+      "write",
+      "digest",
+      "verified",
+      "wait",
+      "paths",
+      "prepare",
+      "finish",
+      "drop",
+      "config",
+      "provider",
+      "snapshot",
+      "layout",
+      "model",
+      "language",
+      "exercise"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_prompts.rs",
+    "functions": [
+      "paths",
+      "settle",
+      "labels",
+      "editor",
+      "text",
+      "clean",
+      "snapshot",
+      "respond",
+      "close",
+      "choose",
+      "edit",
+      "hover",
+      "layout",
+      "turns",
+      "record",
+      "cancel",
+      "prompt_path",
+      "exercise"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/application_providers.rs",
+    "functions": [
+      "prepare_credentials",
+      "prepare_model",
+      "combo",
+      "section",
+      "normalize",
+      "config",
+      "choose",
+      "manual",
+      "refresh",
+      "check",
+      "exercise"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/bootstrap_current_codex.rs",
+    "functions": [
+      "extend",
+      "input",
+      "setup",
+      "held_server",
+      "finish"
+    ],
+    "history": "501d42f Verify narrated screenshots with installed Codex SDK"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/bootstrap_history_lifecycle.rs",
+    "functions": [
+      "stored",
+      "runtime",
+      "quit",
+      "exercise"
+    ],
+    "history": "0d1a65f Verify current Rewrite behavior across native application workflows"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/bootstrap_managed_capture.rs",
+    "functions": [
+      "write",
+      "trace",
+      "resources",
+      "history",
+      "table",
+      "protocol",
+      "normalized_history",
+      "status",
+      "place_window",
+      "checkpoint",
+      "setup",
+      "reset_audio_receipts",
+      "exercise",
+      "recovery",
+      "recovery_state",
+      "recovery_audio",
+      "set_recording_audio",
+      "click_retry"
+    ],
+    "history": "0d1a65f Verify current Rewrite behavior across native application workflows"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/bootstrap_managed_live.rs",
+    "functions": [
+      "elements",
+      "inventory",
+      "observed_elements",
+      "records",
+      "owned",
+      "replies",
+      "clipboard",
+      "set_clipboard",
+      "provider",
+      "turns",
+      "stored",
+      "launch",
+      "command",
+      "janitor",
+      "snapshot",
+      "record_draft",
+      "exercise"
+    ],
+    "history": "0d1a65f Verify current Rewrite behavior across native application workflows"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/bootstrap_meeting.rs",
+    "functions": [
+      "read",
+      "archive",
+      "capture",
+      "memory",
+      "audio",
+      "files",
+      "exports",
+      "requests",
+      "normalize",
+      "apply",
+      "state",
+      "click",
+      "dialog_open",
+      "title",
+      "tls_peer",
+      "exercise"
+    ],
+    "history": "efa6492 Verify Meeting archive actions through the native application"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/bootstrap_rewrite.rs",
+    "functions": [
+      "disclosure",
+      "preference",
+      "source_application",
+      "source_snapshot",
+      "expand",
+      "toggle",
+      "activate",
+      "state",
+      "exercise",
+      "frame"
+    ],
+    "history": "0d1a65f Verify current Rewrite behavior across native application workflows"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/conversation_stability.rs",
+    "functions": [
+      "exercise"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/support/current_codex_profile.rs",
+    "functions": [
+      "quote",
+      "prepare"
+    ],
+    "history": "501d42f Verify narrated screenshots with installed Codex SDK"
+  },
+  {
+    "file": "rust/mluva-gtk/tests/title_jobs.rs",
+    "functions": [
+      "drain",
+      "until",
+      "settle",
+      "records",
+      "turns",
+      "models",
+      "snapshot",
+      "isolated",
+      "child_cleanup",
+      "released_title_jobs_and_owner_exit"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-providers/tests/codex.rs",
+    "functions": [
+      "expected",
+      "catalogs_alias_defaults_and_rewrite_guards_match_the_released_policy",
+      "abrupt_client_failure_reaps_the_held_rewrite_and_private_workspace",
+      "new",
+      "command",
+      "rows",
+      "run",
+      "normalize",
+      "actual_jsonl_process_requests_results_and_isolation_match_released_sessions",
+      "cancellation_cleans_up_pending_work_and_missing_commands_do_not_echo_paths",
+      "model_response",
+      "installed_codex_preserves_reference_behavior_without_tools_or_instruction_leaks",
+      "compatible_factory_freezes_alias_ignores_native_speed_and_disabled_routes_do_no_work",
+      "a_child_ignoring_termination_is_killed_reaped_and_its_workspace_removed"
+    ],
+    "history": "f3e4cad Fix provider privacy, capture feedback and recovery for 2.0.1 (#71)"
+  },
+  {
+    "file": "rust/mluva-providers/tests/support/codex_peer.rs",
+    "functions": [
+      "record",
+      "send",
+      "text",
+      "unhex",
+      "server",
+      "observe_parent_crash",
+      "main"
+    ],
+    "history": "f3e4cad Fix provider privacy, capture feedback and recovery for 2.0.1 (#71)"
+  },
+  {
+    "file": "rust/mluva-workflows/tests/segment_cleanup.rs",
+    "functions": [
+      "peer",
+      "ordered_bounded_cleanup_and_owned_children_match_release"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  },
+  {
+    "file": "rust/mluva-workflows/tests/support/segment_peer.rs",
+    "functions": [
+      "lines",
+      "wire",
+      "observe",
+      "snapshot",
+      "until",
+      "blocked",
+      "release",
+      "main"
+    ],
+    "history": "943d8d4 Port Mluva to native Rust (v2.0.0) (#69)"
+  }
+]

@@ -1,0 +1,5 @@
+
+> mluva-everywhere@2.4.0 check
+> node scripts/check.mjs
+
+JavaScript syntax and static JSON checked.

@@ -1,0 +1,26 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.09s
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.07s
+  Executable tests/phone_microphone.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/phone_microphone-f1bd0957ec939171)
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.SQuSxw/session.w7EEuh
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.SQuSxw
+offscreen_display_allocation=explicit:274
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running tests/phone_microphone.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/phone_microphone-f1bd0957ec939171)
+
+running 1 test
+test phone_starts_native_widget_audio_stop_history_and_copy_without_pc_microphone ... phone stage: native readiness
+phone stage: started phase Some(Recording), status Ready · microphone capture started.
+phone stage: recording
+phone stage: phone Stop completed
+phone stage: PC Stop completed
+phone stage: disconnect cancelled
+PASS: independent phone IPC, native widget recording/level, ordered and deduplicated PCM, phone/PC Stop, History/copy, microphone exclusion, disconnect cancellation and shutdown.
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 21.34s
+
+X connection to :274 broken (explicit kill or server shutdown).

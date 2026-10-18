@@ -137,19 +137,24 @@ fn observe(
         .unwrap();
     let mut files = serde_json::Map::new();
     waves(root, root, &mut files);
-    let buffer = page.output_view.buffer();
     normalize(
         json!({"status":owner.page.status.label().to_string(),"record":{"labels":widgets.iter().filter_map(|w|w.downcast_ref::<gtk::Label>()).map(|w|w.label().to_string()).collect::<Vec<_>>(),
         "sensitive":record.is_sensitive(),"suggested":record.has_css_class("suggested-action"),"destructive":record.has_css_class("destructive-action")},
         "privacy":[owner.page.privacy.title.label().to_string(),owner.page.privacy.subtitle.label().to_string()],
-        "controls":{"mode":prefs.mode.is_sensitive(),"key":prefs.recording_key.is_sensitive(),"incognito":prefs.incognito.is_sensitive(),"language":prefs.language.is_sensitive(),"microphone":prefs.microphone.is_sensitive(),"system":prefs.system_audio.is_sensitive(),"refresh":prefs.refresh_audio.is_sensitive(),"audio_retention":prefs.audio_retention.is_sensitive(),"history_retention":prefs.history_retention.is_sensitive(),"spoken":prefs.spoken_commands.is_sensitive(),"remember":prefs.remember_application.is_sensitive()},
-        "capture_sensitive":page.record_button.is_sensitive(),"output":buffer.text(&buffer.start_iter(),&buffer.end_iter(),true).to_string(),"records":records,
+        "controls":{"key":prefs.recording_key.is_sensitive(),"incognito":prefs.incognito.is_sensitive(),"language":prefs.language.is_sensitive(),"microphone":prefs.microphone.is_sensitive(),"system":prefs.system_audio.is_sensitive(),"refresh":prefs.refresh_audio.is_sensitive(),"audio_retention":prefs.audio_retention.is_sensitive(),"history_retention":prefs.history_retention.is_sensitive(),"spoken":prefs.spoken_commands.is_sensitive()},
+        "capture_sensitive":page.record_button.is_sensitive(),"records":records,
         "diagnostics":if asynchronous {json!("in-flight")}else{json!(events)},"wave_files":if asynchronous{json!("in-flight")}else{json!(files)},
         "recording":if asynchronous{json!("in-flight")}else{json!(owner.phase()==Some(MeetingPhase::Recording))},"processing":processing,"retrying":retrying}),
         root,
     )
 }
 fn compare(actual: Value, expected: &Value, label: &str, private: &Path) {
+    let mut expected = expected.clone();
+    expected.as_object_mut().unwrap().remove("output");
+    for key in ["mode", "remember"] {
+        expected["controls"].as_object_mut().unwrap().remove(key);
+    }
+    let expected = &expected;
     if &actual != expected {
         fs::write(
             private.join("meeting-controller-actual.json"),
@@ -223,7 +228,6 @@ fn released_meeting_capture_retry_and_idle_transitions_match() {
         fs::create_dir_all(&paths.config).unwrap();
         AppConfig {
             language_code: "ces".into(),
-            rewrite_provider: "none".into(),
             incognito_mode: case["incognito"] == true,
             ..AppConfig::default()
         }

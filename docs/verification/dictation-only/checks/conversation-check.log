@@ -1,0 +1,84 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.10s
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.68s
+  Executable tests/application_shell.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/application_shell-a97ba6a8969d725a)
+  Executable tests/conversation_page.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/conversation_page-6e8ec7ce8c3ffc0a)
+  Executable tests/document_surfaces.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/document_surfaces-2f4a7e360918cafc)
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.4faZ1C/session.0TLftX
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.4faZ1C
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running tests/application_shell.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/application_shell-a97ba6a8969d725a)
+
+running 1 test
+test current_commands_reject_stale_documents_and_removed_review_actions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running tests/conversation_page.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/conversation_page-6e8ec7ce8c3ffc0a)
+
+running 1 test
+test one_editor_preserves_unsaved_edits_legacy_replies_and_live_navigation ... native_scroll=0 short PASS
+native_scroll=1 short PASS
+native_scroll=2 short PASS
+native_scroll=3 short PASS
+native_scroll=4 short PASS
+native_scroll=5 short PASS
+native_scroll=6 short PASS
+native_scroll=7 short PASS
+native_scroll=8 short PASS
+native_scroll=9 short PASS
+native_scroll=10 short PASS
+native_scroll=11 short PASS
+native_scroll=12 short PASS
+native_scroll=13 short PASS
+native_scroll=14 short PASS
+native_scroll=15 short PASS
+native_scroll=16 short PASS
+native_scroll=17 short PASS
+native_scroll=18 long PASS
+native_scroll=19 append PASS
+native_scroll=20 manual PASS
+native_scroll=21 correction PASS
+native_scroll=22 large-correction PASS
+native_scroll=25 reduced-motion PASS
+native_scroll=26 fresh PASS
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.42s
+
+     Running tests/document_surfaces.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/document_surfaces-2f4a7e360918cafc)
+
+running 1 test
+test offline_mermaid_textures_and_lossless_documents_match_released_rendering ... native_sketch="flowchart" PASS
+native_sketch="sequence" PASS
+native_sketch="unicode" PASS
+native_sketch="invalid" PASS
+native_sketch="directive" PASS
+native_sketch="multiple" PASS
+DIAGRAM_TRANSITION sequence PASS
+DIAGRAM_TRANSITION paragraph-keeps-render PASS
+DIAGRAM_TRANSITION edited-sequence PASS
+DIAGRAM_TRANSITION invalid PASS
+
+(process:170): Gtk-WARNING **: 18:58:41.207: Trying to measure AdwWindow 0x7f7e48119b80 for height of 200, but it needs at least 207
+
+(process:170): Gtk-WARNING **: 18:58:41.212: Trying to measure AdwWindow 0x7f7e48119b80 for height of 200, but it needs at least 207
+
+(process:170): Gtk-WARNING **: 18:58:41.212: Trying to measure AdwWindow 0x7f7e48119b80 for height of 200, but it needs at least 207
+
+(process:170): Gtk-WARNING **: 18:58:41.665: Trying to measure AdwWindow 0x7f7e48119b80 for height of 200, but it needs at least 207
+
+(process:170): Gtk-WARNING **: 18:58:41.666: Trying to measure AdwWindow 0x7f7e48119b80 for height of 200, but it needs at least 207
+DIAGRAM_TRANSITION directive PASS
+DIAGRAM_TRANSITION remote-image PASS
+DIAGRAM_TRANSITION unfinished PASS
+DIAGRAM_TRANSITION recovered PASS
+DIAGRAM_TRANSITION renderer-terminated PASS
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 10.57s

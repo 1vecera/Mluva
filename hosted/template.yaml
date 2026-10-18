@@ -12,15 +12,6 @@ Parameters:
     Default: ""
     AllowedPattern: "^$|^arn:aws:acm:us-east-1:[0-9]{12}:certificate/[a-f0-9-]{36}$"
     Description: Validated ACM certificate ARN in us-east-1 for the exact canonical hostname
-  RewriteModelId:
-    Type: String
-    Default: ""
-    Description: Optional approved Bedrock model ID; empty keeps server rewriting disabled
-  RewriteModelArn:
-    Type: String
-    Default: ""
-    AllowedPattern: "^$|^arn:aws:bedrock:[a-z0-9-]+:[0-9]{0,12}:(foundation-model|inference-profile)/[A-Za-z0-9.:/_-]+$"
-    Description: Exact approved Bedrock inference resource ARN; no wildcard grant
   ReservedConcurrency:
     Type: Number
     Default: 0
@@ -42,7 +33,6 @@ Parameters:
     Description: Existing Secrets Manager ARN holding an ElevenLabs API key as a plain secret string
 Conditions:
   CustomDomain: !Not [!Equals [!Ref CustomDomainName, ""]]
-  CloudRewrite: !Not [!Equals [!Ref RewriteModelId, ""]]
   ReserveConcurrency: !Not [!Equals [!Ref ReservedConcurrency, 0]]
   CloudSpeech: !And
     - !Equals [!Ref SpeechEnabled, "true"]
@@ -53,11 +43,6 @@ Rules:
     Assertions:
       - Assert: !Not [!Equals [!Ref CertificateArn, ""]]
         AssertDescription: The canonical alias requires its validated us-east-1 certificate
-  RewriteNeedsResource:
-    RuleCondition: !Not [!Equals [!Ref RewriteModelId, ""]]
-    Assertions:
-      - Assert: !Not [!Equals [!Ref RewriteModelArn, ""]]
-        AssertDescription: Rewriting requires one approved inference resource
   SpeechNeedsSecret:
     RuleCondition: !Equals [!Ref SpeechEnabled, "true"]
     Assertions:
@@ -300,7 +285,6 @@ Resources:
               !Sub "https://${CustomDomainName}",
               !Sub "https://${Distribution.DomainName}",
             ]
-          REWRITE_MODEL_ID: !Ref RewriteModelId
           WS_MANAGEMENT_URL: !Sub "https://${Socket}.execute-api.${AWS::Region}.amazonaws.com/live"
           SPEECH_ENABLED: !Ref SpeechEnabled
           SPEECH_SECRET_ARN: !Ref SpeechSecretArn
@@ -316,13 +300,6 @@ Resources:
               - Effect: Allow
                 Action: secretsmanager:GetSecretValue
                 Resource: !Ref SpeechSecretArn
-          - !Ref AWS::NoValue
-        - !If
-          - CloudRewrite
-          - Statement:
-              - Effect: Allow
-                Action: bedrock:InvokeModel
-                Resource: !Ref RewriteModelArn
           - !Ref AWS::NoValue
       Events:
         Preflight:

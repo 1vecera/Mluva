@@ -14,9 +14,6 @@ fn integer(value: Option<&Variant>, default: i64, min: i64, max: i64) -> i64 {
         .unwrap_or(default);
     number.clamp(min, max)
 }
-fn boolean(value: Option<&Variant>, default: bool) -> bool {
-    value.and_then(Variant::get::<bool>).unwrap_or(default)
-}
 fn string<'a>(values: &'a BTreeMap<String, Variant>, key: &str) -> &'a str {
     values.get(key).and_then(Variant::str).unwrap_or_default()
 }
@@ -41,17 +38,7 @@ pub fn state(parameters: &Variant, overlay: bool) -> Value {
     }
     let values = parameters.child_get::<BTreeMap<String, Variant>>(0);
     let phase = string(&values, "phase");
-    if ![
-        "preparing",
-        "recording",
-        "processing",
-        "error",
-        "ready",
-        "rewriting",
-        "review-error",
-    ]
-    .contains(&phase)
-    {
+    if !["preparing", "recording", "processing", "error"].contains(&phase) {
         return json!({"phase":"idle","elapsed":0});
     }
     let preview = string(&values, "preview")
@@ -71,40 +58,16 @@ pub fn state(parameters: &Variant, overlay: bool) -> Value {
     } else {
         level.clamp(0.0, 1.0)
     };
-    let mut result = json!({
+    let result = json!({
         "phase":phase,
+        "reduce_motion":values.get("reduce_motion").and_then(Variant::get::<bool>).unwrap_or(false),
         "elapsed":integer(values.get("elapsed"),0,0,86400),
         "level":level,
         "preview":preview.chars().skip(start).collect::<String>(),
         "preview_start":integer(values.get("preview_start"),0,0,i64::from(i32::MAX)),
-        "rewrite_enabled":boolean(values.get("rewrite_enabled"),true),
         "widget_lines":integer(values.get("widget_lines"),5,1,10),
         "widget_opacity":integer(values.get("widget_opacity"),82,10,100),
-        "review_timeout":integer(values.get("review_timeout"),4,1,60),
-        "show_copy":boolean(values.get("show_copy"),true),
-        "smooth_scrolling":boolean(values.get("smooth_scrolling"),true),
-        "scroll_duration":integer(values.get("scroll_duration"),800,0,2000),
-        "scroll_lookahead":integer(values.get("scroll_lookahead"),2,0,6),
         "widget_position":if ["bottom-left","bottom-center","bottom-right"].contains(&position) {position} else {"bottom-center"}
     });
-    if ["ready", "rewriting", "review-error"].contains(&phase) {
-        result["identifier"] = json!(
-            string(&values, "identifier")
-                .chars()
-                .take(36)
-                .collect::<String>()
-        );
-        let options = values
-            .get("options")
-            .and_then(Variant::get::<Vec<(String, String)>>)
-            .unwrap_or_default();
-        result["options"] = json!(options.into_iter().take(128).map(|(identifier,label)| json!({"value":identifier.chars().take(36).collect::<String>(),"label":label.chars().take(64).collect::<String>()})).collect::<Vec<_>>());
-        result["message"] = json!(
-            string(&values, "message")
-                .chars()
-                .take(96)
-                .collect::<String>()
-        );
-    }
     result
 }

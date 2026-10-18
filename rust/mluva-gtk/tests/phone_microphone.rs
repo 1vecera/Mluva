@@ -112,8 +112,6 @@ fn phone_starts_native_widget_audio_stop_history_and_copy_without_pc_microphone(
     let config = AppConfig {
         transcription_provider: "litellm".into(),
         transcription_base_url: format!("{}/v1", peer.address),
-        rewrite_provider: "none".into(),
-        automatic_titles: false,
         welcome_completed: true,
         ..Default::default()
     };

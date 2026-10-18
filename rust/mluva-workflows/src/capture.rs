@@ -6,10 +6,6 @@ use crate::{
         WorkflowOutcome, WorkflowResult,
     },
     preparation::TranscriptPreparationSnapshot,
-    segment_cleanup::{
-        CodexSegmentCleanupAttempt, SegmentAttemptFactory, SegmentCleanupConfiguration,
-        SegmentCleanupSession,
-    },
 };
 use mluva_audio::{
     capture::{CaptureRecorder, CaptureStorage},
@@ -18,7 +14,6 @@ use mluva_audio::{
 use mluva_core::{
     config::AudioRetentionPolicy,
     diagnostics::{DiagnosticOutcome, DiagnosticProvider, DiagnosticStage},
-    prompt_catalog::SavedStyle,
     screenshots::ImageInput,
 };
 use mluva_providers::{
@@ -56,34 +51,23 @@ pub enum CapturePhase {
 
 #[derive(Clone, Debug)]
 pub struct CaptureOptions {
-    pub mode: String,
-    pub use_cleanup: bool,
     pub allow_auto_paste: bool,
     pub incognito: bool,
     pub audio_retention: AudioRetentionPolicy,
-    pub selected_text: Option<String>,
     pub application_identifier: Option<String>,
-    pub style_identifier: Option<String>,
-    pub use_saved_style: bool,
     pub defer_delivery: bool,
-    /// The Live owner enables compatible-provider previews only for its active session.
-    /// Local speech previews remain independent of optional text rewriting.
+    /// Preview recognition while capturing; never deliver volatile text.
     pub preview_enabled: bool,
 }
 impl Default for CaptureOptions {
     fn default() -> Self {
         Self {
-            mode: "dictation".into(),
-            use_cleanup: false,
             allow_auto_paste: false,
             incognito: false,
             audio_retention: AudioRetentionPolicy::Failures,
-            selected_text: None,
             application_identifier: None,
-            style_identifier: None,
-            use_saved_style: true,
             defer_delivery: false,
-            preview_enabled: false,
+            preview_enabled: true,
         }
     }
 }
@@ -91,14 +75,13 @@ impl Default for CaptureOptions {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CaptureReady {
     pub fallback_reason: Option<String>,
-    pub model_identifier: Option<String>,
 }
 impl CaptureReady {
     pub fn status(&self) -> &'static str {
         if self.fallback_reason.is_some() {
             "Ready · microphone capture started with Scribe v2 batch fallback."
         } else {
-            "Ready · microphone capture started with Scribe v2 realtime."
+            "Ready · microphone capture started."
         }
     }
 }
@@ -228,9 +211,7 @@ impl RecognitionSession {
 struct State {
     audio_path: Option<PathBuf>,
     realtime: Option<Arc<RecognitionSession>>,
-    cleanup: Option<Arc<SegmentCleanupSession>>,
     fallback_reason: Option<String>,
-    model_identifier: Option<String>,
     started: Option<Instant>,
     microphone_requested: bool,
     cancelled: Option<CaptureCancelled>,
@@ -243,7 +224,6 @@ pub struct CaptureSession {
     pub identifier: String,
     pub options: CaptureOptions,
     pub preparation: TranscriptPreparationSnapshot,
-    pub frozen_style: Option<SavedStyle>,
     workflow: Rc<DictationWorkflow>,
     recorder: CaptureRecorder,
     storage: Mutex<Option<CaptureStorage>>,
@@ -273,48 +253,15 @@ impl CaptureSession {
         recorder: CaptureRecorder,
         storage: CaptureStorage,
         realtime_client: Option<CaptureRecognitionClient>,
-        mut options: CaptureOptions,
+        options: CaptureOptions,
     ) -> WorkflowOutcome<Rc<Self>> {
-        if !["dictation", "command", "scratchpad"].contains(&options.mode.as_str()) {
-            return Err(WorkflowError::Invalid("Unsupported capture mode.".into()));
-        }
         if options.incognito != matches!(storage, CaptureStorage::Incognito { .. }) {
             return Err(WorkflowError::Invalid(
                 "Incognito capture requires memory-backed staging and crash cleanup.".into(),
             ));
         }
-        if options.incognito && options.mode == "command" {
-            return Err(WorkflowError::Invalid("Command mode is unavailable in Incognito because Codex durability cannot be guaranteed.".into()));
-        }
-        if workflow.config.rewrite_provider == "none" {
-            options.use_cleanup = false;
-            options.use_saved_style = false;
-            if options.mode == "command" {
-                return Err(WorkflowError::Invalid(
-                    "Choose a rewriting provider to use Command mode.".into(),
-                ));
-            }
-        }
-        if options.incognito {
-            options.use_cleanup = false;
-            options.use_saved_style = false;
-        }
-        if options.mode != "dictation" {
-            options.allow_auto_paste = false;
-        }
-        if options.mode != "command" {
-            options.selected_text = None;
-        }
-        let frozen_style = if options.use_saved_style && options.mode != "command" {
-            workflow.selected_style(
-                options.application_identifier.as_deref(),
-                options.style_identifier.as_deref(),
-            )?
-        } else {
-            None
-        };
         let preparation = workflow.freeze_transcript_preparation(
-            &options.mode,
+            "dictation",
             options.application_identifier.as_deref(),
         )?;
         Ok(Rc::new(Self {
@@ -323,7 +270,6 @@ impl CaptureSession {
             preview_callback: std::sync::Mutex::new(None),
             options,
             preparation,
-            frozen_style,
             workflow,
             recorder,
             storage: Mutex::new(Some(storage)),
@@ -333,9 +279,7 @@ impl CaptureSession {
             state: Mutex::new(State {
                 audio_path: None,
                 realtime: None,
-                cleanup: None,
                 fallback_reason: None,
-                model_identifier: None,
                 started: None,
                 microphone_requested: false,
                 cancelled: None,
@@ -406,7 +350,7 @@ impl CaptureSession {
         if let Ok(state) = self.state.try_lock()
             && let Some(session) = &state.realtime
         {
-            session.set_preview_enabled(enabled && self.options.mode == "dictation");
+            session.set_preview_enabled(enabled);
         }
     }
 
@@ -461,64 +405,6 @@ impl CaptureSession {
         if self.cancellation.is_cancelled() {
             return Err(String::new());
         }
-        if self.options.mode == "command" || self.options.use_cleanup || self.frozen_style.is_some()
-        {
-            let started = Instant::now();
-            let resolved = tokio::select! { biased;
-                _ = self.cancellation.cancelled() => return Err(String::new()),
-                resolved = self.workflow.rewrite.resolve_model(self.workflow.config.codex_model.as_deref()) => resolved,
-            };
-            self.diagnostic(
-                DiagnosticStage::CaptureReady,
-                self.workflow.enhancement_provider(),
-                if resolved.is_ok() {
-                    DiagnosticOutcome::Completed
-                } else {
-                    DiagnosticOutcome::Failed
-                },
-                started.elapsed().as_secs_f64(),
-            );
-            state.model_identifier = Some(resolved.map_err(|error| {
-                format!("Codex preparation failed before microphone capture: {error}")
-            })?);
-        }
-        if self.options.use_cleanup
-            && self.options.mode != "command"
-            && self.workflow.config.rewrite_provider == "codex"
-            && self.workflow.config.transcription_provider == "elevenlabs"
-        {
-            let parent = Arc::new(
-                self.workflow
-                    .rewrite
-                    .spawn_codex()
-                    .ok_or("Codex segment cleanup requires an isolated app-server client.")?,
-            );
-            let model = state
-                .model_identifier
-                .clone()
-                .ok_or("Codex segment cleanup could not be prepared.")?;
-            let preparing = self.preparation.clone();
-            let cwd = self.workflow.cwd.clone();
-            let instructions = self.workflow.cleanup_instructions.clone();
-            let attempt_model = model.clone();
-            let factory: SegmentAttemptFactory = Arc::new(move || {
-                Ok(Arc::new(CodexSegmentCleanupAttempt {
-                    client: parent.spawn(),
-                    cwd: cwd.clone(),
-                    model_identifier: attempt_model.clone(),
-                    instructions: instructions.clone(),
-                }))
-            });
-            state.cleanup = Some(Arc::new(SegmentCleanupSession::new(
-                self.identifier.clone(),
-                "codex-app-server".into(),
-                model,
-                Arc::new(move |raw| Ok(preparing.process(raw))),
-                self.preparation.protected_vocabulary.clone(),
-                factory,
-                SegmentCleanupConfiguration::default(),
-            )?));
-        }
         let started = Instant::now();
         state.fallback_reason = match &self.realtime_client {
             None => Some("realtime-unavailable".into()),
@@ -529,14 +415,9 @@ impl CaptureSession {
                     opened = client.start(
                         &self.workflow.config.language_code,
                         self.options.incognito.then(|| state.audio_path.as_ref().expect("prepared destination").parent().expect("capture directory").join("speech-previews")),
-                        self.options.mode == "dictation" && self.preview_enabled.load(Ordering::Acquire),
+                        self.preview_enabled.load(Ordering::Acquire),
                         preview,
-                        state.cleanup.as_ref().map(|session| {
-                            let session = session.clone();
-                            Box::new(move |segment: mluva_providers::realtime::RealtimeCommittedSegment| {
-                                session.accept_stable_segment(&segment.identifier, &segment.text); Ok(())
-                            }) as CommittedCallback
-                        }),
+                        None,
                     ) => opened,
                 };
                 match opened {
@@ -591,9 +472,7 @@ impl CaptureSession {
         );
         recorded.map_err(|error| error.to_string())?;
         if let Some(session) = &state.realtime {
-            session.set_preview_enabled(
-                self.options.mode == "dictation" && self.preview_enabled.load(Ordering::Acquire),
-            );
+            session.set_preview_enabled(self.preview_enabled.load(Ordering::Acquire));
         }
         if self.cancellation.is_cancelled() {
             return Err(String::new());
@@ -602,7 +481,6 @@ impl CaptureSession {
         self.set_phase(CapturePhase::Recording);
         Ok(CaptureReady {
             fallback_reason: state.fallback_reason.clone(),
-            model_identifier: state.model_identifier.clone(),
         })
     }
 
@@ -669,10 +547,6 @@ impl CaptureSession {
             );
         }
         let realtime = state.realtime.take();
-        let cleanup = state.cleanup.take();
-        if let Some(cleanup) = &cleanup {
-            cleanup.cancel();
-        }
         if let Some(realtime) = &realtime {
             realtime.cancel();
         }
@@ -680,20 +554,12 @@ impl CaptureSession {
         if let Some(realtime) = &realtime {
             realtime.cancel_and_wait().await;
         }
-        if let Some(cleanup) = &cleanup {
-            cleanup.wait_closed().await;
-        }
         let cancelled = CaptureCancelled {
             before_ready,
             audio_was_streamed: realtime
                 .as_ref()
                 .is_some_and(|session| session.bytes_sent() > 0),
         };
-        // A dropped Codex readiness request must not leave its app-server child
-        // behind. Close is reusable; permanent cancellation is reserved for exit.
-        if cancelled.before_ready {
-            self.workflow.rewrite.close().await;
-        }
         let _ = self.recorder.close().await;
         state.audio_path = None;
         state.cancelled = Some(cancelled);
@@ -782,9 +648,6 @@ impl CaptureSession {
         if let Some(realtime) = state.realtime.take() {
             realtime.cancel_and_wait().await;
         }
-        if let Some(cleanup) = state.cleanup.take() {
-            cleanup.cancel();
-        }
         let _ = self.recorder.close().await;
         self.set_phase(if result.is_ok() {
             CapturePhase::Completed
@@ -833,24 +696,9 @@ impl CaptureSession {
         };
         let mut transcription = None;
         let mut recognition_seconds = None;
-        let mut segment_cleanup = None;
         if let Some(realtime) = &state.realtime {
             match realtime.finish().await {
                 Ok(result) => {
-                    if let Some(cleanup) = &state.cleanup {
-                        let candidate = tokio::select! { biased;
-                            _ = self.cancellation.cancelled() => {
-                                cleanup.cancel_and_wait().await;
-                                return Err(WorkflowError::Invalid("Capture stopped because Mluva is closing.".into()));
-                            },
-                            candidate = cleanup.stop_and_drain() => candidate,
-                        };
-                        if candidate.raw_text() == result.transcription.text {
-                            segment_cleanup = Some(candidate);
-                        } else {
-                            cleanup.cancel();
-                        }
-                    }
                     transcription = Some(result.transcription);
                     recognition_seconds = Some(result.finalization_seconds);
                 }
@@ -860,11 +708,6 @@ impl CaptureSession {
                 }
             }
         }
-        if transcription.is_none()
-            && let Some(cleanup) = &state.cleanup
-        {
-            cleanup.cancel();
-        }
         let images = tokio::select! { biased;
             _ = self.cancellation.cancelled() => return Err(WorkflowError::Invalid("Capture stopped because Mluva is closing.".into())),
             images = images => images?,
@@ -872,26 +715,17 @@ impl CaptureSession {
         let completion = self.workflow.complete(
             &audio_path,
             Completion {
-                mode: self.options.mode.clone(),
-                segment_cleanup,
-                use_codex_cleanup: self.options.use_cleanup,
                 allow_auto_paste: self.options.allow_auto_paste,
                 incognito: self.options.incognito,
                 audio_retention_policy: self.options.audio_retention,
-                selected_text: self.options.selected_text.clone(),
                 session_identifier: Some(self.identifier.clone()),
                 application_identifier: self.options.application_identifier.clone(),
-                style_identifier: self.options.style_identifier.clone(),
-                use_saved_style: self.options.use_saved_style,
                 recognized_transcription: transcription,
                 recognition_duration_seconds: recognition_seconds,
                 recognition_used_batch_fallback: state.fallback_reason.is_some(),
                 recognition_fallback_reason: state.fallback_reason.clone(),
                 delivery_target: target,
-                codex_model_identifier: state.model_identifier.clone(),
                 transcript_preparation: Some(self.preparation.clone()),
-                frozen_style: self.frozen_style.clone(),
-                style_is_frozen: true,
                 defer_delivery: self.options.defer_delivery,
                 images,
             },
@@ -917,7 +751,7 @@ impl CaptureSession {
         {
             let _ = store.record(
                 &self.identifier,
-                &self.options.mode,
+                "dictation",
                 stage,
                 provider,
                 outcome,

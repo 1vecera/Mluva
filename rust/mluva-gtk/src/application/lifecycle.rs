@@ -8,7 +8,7 @@ use mluva_workflows::{
     capture::CapturePhase,
     dictation::WorkflowResult,
     meeting_session::MeetingPhase,
-    services::{InlineSavePolicy, SettingsActivity, SettingsKind, SettingsUpdate},
+    services::{SettingsActivity, SettingsKind, SettingsUpdate},
 };
 use std::{collections::BTreeSet, time::Duration};
 
@@ -30,15 +30,12 @@ impl ApplicationDesktop {
             ),
             meeting_processing: matches!(meeting, Some(MeetingPhase::Processing)),
             meeting_retrying: self.meeting.retry_identifier().is_some(),
-            pending_review: self.pending.busy(),
             excluded_history: self.excluded_history(),
         }
     }
     pub(super) fn excluded_history(&self) -> BTreeSet<String> {
         let mut excluded = BTreeSet::new();
         excluded.extend(self.history.retry_identifier());
-        excluded.extend(self.pending.command_identifier());
-        excluded.extend(self.live.final_entry());
         if let Some(current) = self.current.borrow().as_ref() {
             excluded.extend(current.continuation.clone());
         }
@@ -46,21 +43,13 @@ impl ApplicationDesktop {
     }
     pub(super) fn settings_activity(&self) -> SettingsActivity {
         let activity = self.activity();
-        let current = self.current.borrow();
         SettingsActivity {
             preparing: activity.preparing,
-            processing: activity.processing,
-            recording: activity.recording,
-            pending_incognito: current
-                .as_ref()
-                .is_some_and(|current| current.options.incognito),
-            pending_mode: current.as_ref().map_or_else(
-                || "dictation".into(),
-                |current| current.options.mode.clone(),
-            ),
-            final_live: self.live.finalizing(),
-            rewriting: self.review.rewriting(),
-            live_schedule: self.live.active(),
+            processing: activity.processing
+                || activity.retrying
+                || activity.meeting_processing
+                || activity.meeting_retrying,
+            recording: activity.recording || activity.meeting_recording,
         }
     }
     pub(super) fn idle(&self) {
@@ -68,13 +57,11 @@ impl ApplicationDesktop {
             return;
         }
         let activity = self.activity();
-        let available =
-            !activity.pending_review && !self.meeting.busy() && self.capture.phase().is_none();
+        let available = !self.meeting.busy() && self.capture.phase().is_none();
         self.settings.capture.set_activity(activity.clone());
         self.settings.capture.set_controls_available(available);
         self.meeting.page.record_button.set_sensitive(available);
         let mut state = self.page().view_state();
-        state.review_active = activity.pending_review;
         state.meeting_busy = self.meeting.busy();
         state.initialization_failed = self.initialization_failed.get();
         self.page().set_view_state(state);
@@ -84,11 +71,8 @@ impl ApplicationDesktop {
             .record_button
             .set_sensitive(available && self.ready.borrow().is_some());
         self.install_history_factory();
-        self.refresh_status();
     }
-    pub(super) fn refresh_status(&self) {
-        self.page().refresh_output_visibility();
-    }
+
     pub(super) fn initialize_services(self: &Rc<Self>, initialization: bool) {
         if self.closed.get() || self.capture.phase().is_some() {
             return;
@@ -113,7 +97,9 @@ impl ApplicationDesktop {
         let expected = services.config();
         let weak = Rc::downgrade(self);
         self.runtime.spawn(async move {
-            if let Some(shortcuts) = shortcuts { shortcuts.await; }
+            if let Some(shortcuts) = shortcuts {
+                shortcuts.await;
+            }
             let result = services.capture_services(binaries.clone()).await;
             let Some(owner) = weak.upgrade().filter(|owner| {
                 !owner.closed.get()
@@ -139,10 +125,11 @@ impl ApplicationDesktop {
                         owner.page().set_status("Ready");
                     }
                     if recovering {
-                        owner.review.dismiss();
                         owner.shell.show_message("Capture services are ready.");
                     }
-                    if initializing { owner.start_shortcuts(); }
+                    if initializing {
+                        owner.start_shortcuts();
+                    }
                     if owner.startup_record_requested.replace(false) {
                         owner.toggle_recording(CaptureOrigin::Manual);
                     }
@@ -154,7 +141,9 @@ impl ApplicationDesktop {
                         owner.page().set_initialization_error(&error.to_string());
                         owner.meeting.page.record_button.set_sensitive(false);
                     } else {
-                        owner.page().set_status("Speech provider needs credentials. Editing and rewriting remain available.");
+                        owner.page().set_status(
+                            "Speech provider needs credentials. Saved dictation remains available.",
+                        );
                     }
                 }
             }
@@ -194,8 +183,6 @@ impl ApplicationDesktop {
         if let Err(error) = self.page().set_config(config.clone()) {
             self.shell.show_message(&error.to_string());
         }
-        self.review.set_config(config.clone());
-        self.live.set_config(config.clone());
         if update.changed.contains("time_format") {
             self.history
                 .page
@@ -208,16 +195,10 @@ impl ApplicationDesktop {
         }
         match update.kind {
             SettingsKind::Providers => {
-                self.titles.cancel();
-                self.cancel_catalog();
-                self.page().rewrite_settings.reset_catalog();
                 self.meeting.sync_config(true);
                 self.initialize_services(false);
             }
-            SettingsKind::Presentation { live_changed } => {
-                if live_changed && let Err(error) = self.capture.apply_live_config(config) {
-                    self.page().set_status(&error);
-                }
+            SettingsKind::Presentation => {
                 self.synchronize_capture();
                 if self.ready.borrow().is_none() {
                     self.initialize_services(false);
@@ -225,7 +206,6 @@ impl ApplicationDesktop {
             }
             SettingsKind::Unchanged => {}
         }
-        self.refresh_review();
     }
     pub(super) fn inline_changed(self: &Rc<Self>, effect: InlineEffect) {
         if self.closed.get() {
@@ -235,26 +215,17 @@ impl ApplicationDesktop {
         if let Err(error) = self.page().set_config(config.clone()) {
             self.shell.show_message(&error.to_string());
         }
-        self.review.set_config(config.clone());
-        self.live.set_config(config.clone());
         self.synchronize_capture();
         match effect {
             InlineEffect::Privacy { persisted } => {
                 self.agent_voice.interrupt();
                 self.account.privacy(config.incognito_mode);
                 if config.incognito_mode {
-                    self.titles.cancel();
-                    self.review.cancel();
-                    self.review.dismiss();
-                    self.live.cancel();
-                }
-                if config.incognito_mode {
                     self.cancel_screenshot_picker();
                 }
                 self.workspace().set_private(config.incognito_mode);
                 self.meeting.sync_config(persisted);
             }
-            InlineEffect::Titles if !config.automatic_titles => self.titles.cancel(),
             InlineEffect::Shortcut => self.rebind_shortcut(),
             InlineEffect::Routing => self.meeting.sync_config(true),
             _ => {}
@@ -269,78 +240,7 @@ impl ApplicationDesktop {
             self.meeting.set_catalog(catalog);
         }
     }
-    pub(super) fn save_rewrite_settings(
-        &self,
-        model: Option<String>,
-        fast: bool,
-        effort: Option<String>,
-    ) {
-        if self.closed.get() {
-            return;
-        }
-        let mut proposed = self.services.config();
-        if proposed.rewrite_provider == "litellm" {
-            proposed.litellm_model = model;
-            proposed.litellm_reasoning_effort = effort;
-        } else {
-            proposed.rewrite_model = model;
-            proposed.rewrite_fast_mode = fast;
-            proposed.rewrite_reasoning_effort = effort;
-        }
-        if self
-            .services
-            .save_inline_config(proposed.clone(), InlineSavePolicy::Persistent)
-            .is_err()
-        {
-            self.page()
-                .rewrite_settings
-                .set_config(self.services.config());
-            self.page()
-                .rewrite_settings
-                .status
-                .set_label("Could not save rewrite settings. Your previous choices remain.");
-            return;
-        }
-        self.synchronize_capture();
-        self.review.set_config(proposed.clone());
-        self.page().rewrite_settings.set_config(proposed);
-    }
-    pub(super) fn load_models(self: &Rc<Self>) {
-        let config = self.services.config();
-        if self.closed.get() || config.rewrite_provider == "none" || self.catalog.borrow().is_some()
-        {
-            return;
-        }
-        let Ok(client) = RewriteClient::new(&config, Some(Duration::from_secs(10)), None) else {
-            self.page().rewrite_settings.set_models(None);
-            return;
-        };
-        let client = Rc::new(client);
-        self.catalog.replace(Some(client.clone()));
-        self.page().rewrite_settings.set_loading();
-        let weak = Rc::downgrade(self);
-        self.runtime.spawn(async move {
-            let models = client.list_models().await.ok();
-            client.close().await;
-            let Some(owner) = weak.upgrade().filter(|owner| {
-                !owner.closed.get()
-                    && owner
-                        .catalog
-                        .borrow()
-                        .as_ref()
-                        .is_some_and(|active| Rc::ptr_eq(active, &client))
-            }) else {
-                return;
-            };
-            owner.catalog.borrow_mut().take();
-            owner.page().rewrite_settings.set_models(models);
-        });
-    }
-    fn cancel_catalog(&self) {
-        if let Some(client) = self.catalog.borrow_mut().take() {
-            client.cancel();
-        }
-    }
+
     /// A cold public Record action also opens the application. Preserve that
     /// first toggle while native credential/readiness work yields to GTK.
     pub fn record_after_startup(self: &Rc<Self>) {
@@ -371,10 +271,6 @@ impl ApplicationDesktop {
                 Some("Finish the explicit Meeting capture or retry before starting dictation.")
             } else if self.history.retry_identifier().is_some() {
                 Some("Finish the retained-audio retry before starting another recording.")
-            } else if self.pending.has_command() {
-                Some("Apply or discard the current Command preview before recording again.")
-            } else if self.services.scratchpad.borrow().draft.is_some() {
-                Some("Resolve or delete the current Scratchpad draft before recording again.")
             } else {
                 None
             };
@@ -422,7 +318,6 @@ impl ApplicationDesktop {
             || self.ready.borrow().is_none()
             || self.meeting.busy()
             || self.history.retry_identifier().is_some()
-            || self.pending.busy()
         {
             return;
         }
@@ -470,8 +365,6 @@ impl ApplicationDesktop {
         if self.closed.get()
             || self.services.config().incognito_mode
             || self.capture.phase().is_some()
-            || self.review.rewriting()
-            || self.live.finalizing()
         {
             return;
         }
@@ -498,7 +391,7 @@ impl ApplicationDesktop {
             CaptureOrigin::Continuation(id) => Some(id),
             _ => None,
         };
-        let mut target = if automatic {
+        let target = if automatic {
             self.tracker
                 .borrow()
                 .as_ref()
@@ -516,86 +409,23 @@ impl ApplicationDesktop {
                 .as_ref()
                 .and_then(FocusedTextTargetTracker::capture_application_identifier);
         }
-        let config = self.services.config();
         let prefs = &self.settings.capture;
-        let fallback = if config.remember_per_application && application.is_some() {
-            config.default_mode.as_str()
-        } else {
-            ["dictation", "command", "scratchpad"]
-                .get(prefs.mode.selected() as usize)
-                .copied()
-                .unwrap_or("dictation")
-        };
-        let mode = if continuation.is_some() || phone.is_some() || agent_voice {
-            "dictation".into()
-        } else {
-            self.services.personalization.borrow().selected_mode(
-                application.as_deref(),
-                config.remember_per_application,
-                fallback,
-            )?
-        };
-        prefs.set_profile(application.clone());
-        prefs.mode.set_selected(
-            ["dictation", "command", "scratchpad"]
-                .iter()
-                .position(|value| *value == mode)
-                .unwrap() as u32,
-        );
         let incognito = prefs.incognito.is_active();
-        if mode == "command" && incognito {
-            return Err(WorkflowError::Invalid("Command mode is unavailable in Incognito because Codex durability cannot be guaranteed.".into()));
-        }
-        if mode == "command" && config.rewrite_provider == "none" {
-            return Err(WorkflowError::Invalid(
-                "Choose a rewriting provider to use Command mode.".into(),
-            ));
-        }
-        let command_target = if mode == "command" && automatic {
-            target = None;
-            self.tracker
-                .borrow()
-                .as_ref()
-                .map(|tracker| {
-                    tracker.capture_text_target(crate::text_target::MAX_SELECTED_TEXT_CHARACTERS)
-                })
-                .transpose()
-                .map_err(|error| WorkflowError::Invalid(error.to_string()))?
-                .flatten()
-        } else {
-            None
-        };
-        if let Some(command) = &command_target {
-            application = command.application_identifier().map(str::to_owned);
-        }
-        if mode != "dictation" {
-            target = None;
-        }
         let policy = match prefs.audio_retention.selected() {
             0 => AudioRetentionPolicy::Never,
             2 => AudioRetentionPolicy::Always,
             _ => AudioRetentionPolicy::Failures,
         };
         let options = CaptureOptions {
-            mode: mode.clone(),
-            use_cleanup: !agent_voice
-                && prefs.cleanup_enabled()
-                && !incognito
-                && config.rewrite_provider != "none",
             allow_auto_paste: automatic,
             incognito,
             audio_retention: policy,
-            selected_text: command_target
-                .as_ref()
-                .and_then(|target| target.selected_text().map(str::to_owned)),
             application_identifier: phone
                 .as_ref()
                 .map(|id| format!("mluva-web:{id}"))
                 .or(application),
-            style_identifier: prefs.selected_style(),
-            use_saved_style: !agent_voice && config.rewrite_provider != "none" && !incognito,
             defer_delivery: continuation.is_some() || agent_voice,
-            preview_enabled: agent_voice || config.live_rewrite_enabled,
+            preview_enabled: true,
         };
         let ready = self
             .ready
@@ -610,13 +440,10 @@ impl ApplicationDesktop {
         self.current.replace(Some(CaptureContext {
             options,
             target: target.clone(),
-            command_target,
             continuation,
             agent_attempt,
             session: session.clone(),
         }));
-        self.page().set_pending_mode(&mode);
-        self.review.clear_for_capture();
         Ok(CaptureLaunch {
             session,
             delivery_target: target.map(|target| {
@@ -681,21 +508,12 @@ impl ApplicationDesktop {
     }
     pub(super) fn capture_history_changed(&self, result: &mut WorkflowResult) {
         if self.closed.get()
-            || result.requires_acceptance
             || (result.history_entry.is_none()
                 && mluva_core::text::trim(&result.transcription.text).is_empty())
         {
             return;
         }
-        let mut excluded = self.excluded_history();
-        if self.live.active() {
-            excluded.extend(
-                result
-                    .history_entry
-                    .as_ref()
-                    .map(|entry| entry.identifier.clone()),
-            );
-        }
+        let excluded = self.excluded_history();
         if let Err(error) = self.services.prune_history(&excluded) {
             result
                 .delivery
@@ -752,26 +570,8 @@ impl ApplicationDesktop {
                 .completed(attempt, &result.transcription.text, id);
             return;
         }
-        if result.requires_acceptance && result.mode == "command" {
-            self.pending.show_command(
-                result,
-                context.and_then(|context| context.command_target),
-                completion.session.options.audio_retention,
-            );
-            return;
-        }
-        if result.requires_acceptance && result.mode == "scratchpad" {
-            self.pending
-                .show_notes(result, completion.session.options.audio_retention);
-            return;
-        }
         self.idle();
-        if result.mode == "dictation"
-            && !result.incognito
-            && let Some(entry) = result.history_entry.as_ref()
         {
-            self.review.publish(&entry.identifier, "ready", "");
-        } else {
             let message = if result.delivery.pasted {
                 "Inserted. Text also stays on the clipboard."
             } else if result.delivery.paste_dispatched {
@@ -844,17 +644,7 @@ impl ApplicationDesktop {
         self.idle();
         self.clear_overlay();
     }
-    pub(super) fn save_live_once(&self, config: &AppConfig) -> bool {
-        let mut proposed = self.services.config();
-        proposed.live_rewrite_enabled = config.live_rewrite_enabled;
-        let saved = self
-            .services
-            .save_inline_config(proposed.clone(), InlineSavePolicy::SessionLiveOnce)
-            .is_ok();
-        self.synchronize_capture();
-        self.live.set_config(proposed);
-        saved
-    }
+
     pub(super) fn cancel(self: &Rc<Self>) -> bool {
         if self.closed.get() {
             return false;
@@ -870,10 +660,6 @@ impl ApplicationDesktop {
             return true;
         }
         if agent_disarmed {
-            return true;
-        }
-        if self.live.finalizing() || self.review.rewriting() {
-            self.review.cancel();
             return true;
         }
         false
@@ -919,23 +705,14 @@ impl ApplicationDesktop {
                 "Finishing your dictation…"
             }
             .into(),
-            mode: match current.options.mode.as_str() {
-                "command" => "Command",
-                "scratchpad" => "Notes",
-                _ => "Dictate",
-            }
-            .into(),
+            mode: "Dictate".into(),
             level: current.session.audio_level(),
             elapsed_seconds: current.session.elapsed_seconds().unwrap_or_default() as i64,
             preview: self.workspace().live_text.text(),
             delivery: if current.options.allow_auto_paste
-                && config.auto_paste
                 && self.tracker.borrow().is_some()
                 && (current.target.as_ref().is_some_and(|target| {
                     matches!(target, DeliveryTargetSnapshot::Text(text) if text.editable_text_available())
-                        || mluva_core::delivery::keyboard_paste_available(None, target.application_identifier())
-                }) || current.command_target.as_ref().is_some_and(|target| {
-                    target.editable_text_available()
                         || mluva_core::delivery::keyboard_paste_available(None, target.application_identifier())
                 }))
             {
@@ -944,14 +721,11 @@ impl ApplicationDesktop {
                 "Copy only"
             }
             .into(),
-            smooth_scrolling: config.smooth_scrolling
-                && gtk::Settings::default().is_none_or(|settings| settings.is_gtk_enable_animations()),
-            scroll_duration_ms: config.scroll_duration_ms,
-            scroll_lookahead_lines: config.scroll_lookahead_lines,
+
+            reduce_motion: gtk::Settings::default().is_some_and(|settings| !settings.is_gtk_enable_animations()),
             widget_position: config.widget_position,
             widget_lines: config.widget_lines,
             widget_opacity: config.widget_opacity,
-            rewrite_enabled: config.rewrite_provider != "none",
             ..Default::default()
         };
         if phase == CapturePhase::Recording {
@@ -1022,10 +796,11 @@ impl ApplicationDesktop {
             } else {
                 String::new()
             },
+            reduce_motion: gtk::Settings::default()
+                .is_some_and(|settings| !settings.is_gtk_enable_animations()),
             widget_position: config.widget_position,
             widget_lines: config.widget_lines,
             widget_opacity: config.widget_opacity,
-            rewrite_enabled: config.rewrite_provider != "none",
             ..Default::default()
         });
         if matches!(phase, "copied" | "error") && self.overlay.borrow().is_some() {
@@ -1064,11 +839,6 @@ impl ApplicationDesktop {
         self.readiness_generation
             .set(self.readiness_generation.get() + 1);
         self.clear_overlay();
-        self.cancel_catalog();
-        self.titles.close();
-        self.review.shutdown();
-        self.live.shutdown();
-        self.pending.close();
         let shortcuts = self.close_shortcuts();
         (self.platform.close)();
         if let Some(mut tracker) = self.tracker.borrow_mut().take() {

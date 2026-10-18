@@ -1,0 +1,19 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.11s
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.11s
+  Executable tests/meeting_controller.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/meeting_controller-77245a58da048792)
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.hb6p9O/session.u4Ff9E
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.hb6p9O
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running tests/meeting_controller.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/meeting_controller-77245a58da048792)
+
+running 1 test
+test released_meeting_capture_retry_and_idle_transitions_match ... Matched 9 actual released Meeting workflows/47 GTK states
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.40s

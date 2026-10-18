@@ -171,12 +171,6 @@
               >
             </div>
             <div class="record-stage">
-              <label class="field-label" for="task-mode">Task</label
-              ><select id="task-mode">
-                <option value="dictation">Dictate</option>
-                <option value="scratchpad">Notes</option>
-                <option value="command">Command</option>
-              </select>
               <button
                 id="record"
                 class="record"
@@ -251,39 +245,7 @@
                 conversations must be saved first.
               </p>
             </details>
-            <details id="rewrite-panel">
-              <summary>Rewrite</summary>
-              <p class="small">
-                Uses the host’s text provider. Review the result before applying
-                it.
-              </p>
-              <label for="template" class="field-label">Template</label
-              ><select id="template">
-                <option value="polish">Polish</option>
-                <option value="notes">Structured notes</option>
-                <option value="questions">Grilling · questions</option>
-                <option value="custom">Custom instruction</option></select
-              ><textarea
-                id="instruction"
-                rows="3"
-                placeholder="How should this change?"
-              ></textarea>
-              <div class="row">
-                <button id="rewrite" class="secondary">Rewrite text</button
-                ><button id="rewrite-cancel" class="quiet" hidden>
-                  Cancel rewrite</button
-                ><button id="save-template" class="quiet">Save template</button>
-              </div>
-              <div id="rewrite-result" hidden>
-                <label for="rewrite-text" class="field-label"
-                  >Completed preview</label
-                ><textarea id="rewrite-text" rows="8"></textarea
-                ><button id="apply-rewrite" class="primary">
-                  Keep this rewrite
-                </button>
-              </div>
-              <div id="rewrites"></div>
-            </details>
+            <div id="rewrites" aria-label="Previously saved rewrites"></div>
             <div class="row preferences">
               <label
                 ><input id="retain" type="checkbox" checked /> Save recordings

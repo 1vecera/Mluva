@@ -258,9 +258,7 @@ fn hints(paths: &InstallPaths) -> Result<()> {
             "The launcher will use das-agent-launch --only for the selected ElevenLabs credential at runtime."
         );
     } else {
-        println!(
-            "Choose your speech and rewrite providers in Settings and supply their credentials through the application environment."
-        );
+        println!("Choose your speech provider in Settings and supply any required credentials.");
     }
     Ok(())
 }

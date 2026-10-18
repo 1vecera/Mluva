@@ -1,0 +1,34 @@
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.36s
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.21s
+  Executable tests/recording_target.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/recording_target-f10cba5b05108ba1)
+  Executable tests/text_target.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/text_target-2eefb732e3d1c686)
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.HJvhvO/session.uonDEU
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.HJvhvO
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running tests/recording_target.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/recording_target-f10cba5b05108ba1)
+
+running 1 test
+test batch_speech_through_personalization_and_delivery_matches_released_gtk_workflows ... accepted GTK workflow: batch-entry-caret
+accepted GTK workflow: batch-entry-selection
+accepted GTK workflow: batch-textview-selection
+accepted GTK workflow: batch-stale-own-focus-copies
+accepted GTK workflow: incognito-inserts-without-persistence
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.40s
+
+     Running tests/text_target.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/text_target-2eefb732e3d1c686)
+
+running 1 test
+test captured_focus_selection_mutation_and_disclosure_match_real_released_transport ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 64.48s
+
+X connection to :174 broken (explicit kill or server shutdown).

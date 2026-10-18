@@ -72,7 +72,9 @@ fn compatible_ledger_is_bounded_and_exports_only_reviewed_metadata() {
                 .is_err()
         );
     }
-    let config: AppConfig = serde_json::from_value(fixture["configuration"].clone()).unwrap();
+    let config: AppConfig =
+        AppConfig::from_persisted_json(&serde_json::to_vec(&fixture["configuration"]).unwrap())
+            .unwrap();
     let output = store
         .export(&directory.path().join("export"), &config)
         .unwrap();
@@ -93,7 +95,19 @@ fn compatible_ledger_is_bounded_and_exports_only_reviewed_metadata() {
     for event in exported["events"].as_array_mut().unwrap() {
         event["created_at"] = json!("generated");
     }
-    assert_eq!(exported, fixture["exported"]);
+    let mut expected = fixture["exported"].clone();
+    for name in [
+        "codex_model_configured",
+        "default_mode",
+        "auto_paste",
+        "remember_per_application",
+    ] {
+        expected["configuration"]
+            .as_object_mut()
+            .unwrap()
+            .remove(name);
+    }
+    assert_eq!(exported, expected);
     assert!(!String::from_utf8(bytes).unwrap().contains("private-"));
     let columns = Connection::open(&path)
         .unwrap()

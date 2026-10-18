@@ -47,6 +47,48 @@ fn shell(value: &glib::Variant) -> Value {
         .collect::<serde_json::Map<_, _>>();
     Value::Object(values)
 }
+// Project frozen observations onto the remaining recording protocol. Legacy input
+// still exercises unknown-key tolerance and cannot enable retired actions.
+fn recording_projection(mut value: Value) -> Value {
+    if let Some(object) = value.as_object_mut() {
+        if object
+            .get("phase")
+            .and_then(|v| v.get("value"))
+            .is_some_and(|v| {
+                ["ready", "rewriting", "review-error"].contains(&v.as_str().unwrap_or_default())
+            })
+        {
+            return json!({"phase":{"signature":"s","value":"idle"},"elapsed":{"signature":"u","value":0}});
+        }
+        if object.contains_key("preview") {
+            object.insert(
+                "reduce_motion".into(),
+                json!({"signature":"b","value":false}),
+            );
+        }
+        for key in [
+            "review_timeout",
+            "show_copy",
+            "scroll_duration",
+            "scroll_lookahead",
+            "identifier",
+            "options",
+            "review_identifier",
+            "review_options",
+            "review_timeout_seconds",
+            "show_copy_action",
+            "show_save_action",
+            "smooth_scrolling",
+            "scroll_duration_ms",
+            "scroll_lookahead_lines",
+            "rewrite_enabled",
+            "message",
+        ] {
+            object.remove(key);
+        }
+    }
+    value
+}
 fn state(spec: &Value) -> OverlayState {
     let mut state: OverlayState = serde_json::from_value(spec.clone()).unwrap();
     if let Some(repeat) = spec.get("preview_spec") {
@@ -76,9 +118,14 @@ fn bounded_native_projections_match_released_signatures_and_values() {
         let state = state(&case["input"]);
         let signal = state.signal();
         let shell_value = state.shell();
+        let mut expected = case["result"].clone();
+        expected["shell"] = recording_projection(expected["shell"].clone());
+        if ["ready", "rewriting", "review-error"].contains(&state.phase.to_lowercase().as_str()) {
+            expected["signal"] = json!([false, "hidden", "", 0, "", "", 0.0, "", ""]);
+        }
         assert_eq!(
             json!({"signal_signature":signal.type_().as_str(),"signal":signal.get::<SignalValues>().unwrap(),"shell_signature":shell_value.type_().as_str(),"shell":shell(&shell_value.child_value(0))}),
-            case["result"],
+            expected,
             "{}",
             case["name"]
         );
@@ -150,9 +197,15 @@ fn actual_overlay_signals_replay_and_erase_cached_text() {
             drain();
             thread::sleep(Duration::from_millis(2));
         }
+        let mut expected = operation["events"].clone();
+        for event in expected.as_array_mut().unwrap() {
+            if event["signature"] == "(a{sv})" {
+                event["values"] = recording_projection(event["values"].clone());
+            }
+        }
         assert_eq!(
             json!(&events.borrow()[before..]),
-            operation["events"],
+            expected,
             "{}",
             operation["method"]
         );
