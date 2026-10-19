@@ -345,6 +345,10 @@ impl AccountLedger {
         }
         tx.execute("INSERT INTO account_notes(owner,id,baseline,imported) VALUES(?,?,?,?) ON CONFLICT(owner,id) DO UPDATE SET baseline=excluded.baseline,pending=NULL",params![self.owner,note.id,serde_json::to_string(note)?,old.is_none()])?;
         tx.commit()?;
+        self.store.export_markdown(&note.id)?;
+        for segment in &note.segments {
+            self.store.remove_markdown(&segment.id)?;
+        }
         Ok(())
     }
     pub fn delete(&self, id: &str) -> StoreResult<()> {

@@ -11,7 +11,6 @@ pub struct AgentVoiceView {
     pub keep: gtk::Button,
     pub cancel: gtk::Button,
     pub send_draft: gtk::Button,
-    pub save_draft: gtk::Button,
     pub copy_draft: gtk::Button,
     pub draft_actions: gtk::Box,
     pub feedback: gtk::Box,
@@ -119,10 +118,8 @@ impl AgentVoiceView {
         widget.append(&actions);
         let draft_actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
         let send_draft = gtk::Button::with_label("Send draft");
-        let save_draft = gtk::Button::with_label("Save edits");
         let copy_draft = gtk::Button::with_label("Copy draft");
         draft_actions.append(&send_draft);
-        draft_actions.append(&save_draft);
         draft_actions.append(&copy_draft);
         widget.append(&draft_actions);
         let feedback = gtk::Box::new(gtk::Orientation::Horizontal, 6);
@@ -236,7 +233,6 @@ impl AgentVoiceView {
             keep,
             cancel,
             send_draft,
-            save_draft,
             copy_draft,
             draft_actions,
             feedback,

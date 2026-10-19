@@ -13,6 +13,7 @@ pub mod history;
 pub mod json;
 pub mod markdown;
 pub mod meeting;
+mod note_export;
 pub mod personalization;
 pub mod phone;
 pub mod private_files;

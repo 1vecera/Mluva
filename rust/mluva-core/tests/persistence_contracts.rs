@@ -269,3 +269,99 @@ fn durable_provenance_and_stage_timings_match_the_released_acceptance_rules() {
         }
     }
 }
+
+#[test]
+fn screenshot_markdown_keeps_timing_originals_and_private_links_until_deletion() {
+    use mluva_core::screenshots::ScreenshotContext;
+    use std::os::unix::fs::PermissionsExt;
+    let (_directory, history, conversations) = setup(false);
+    history.initialize().unwrap(); // Existing databases migrate idempotently.
+    let note = history
+        .add(HistoryInput::dictation(
+            "Now look at this diagram.",
+            "Now look at this diagram.",
+        ))
+        .unwrap();
+    let screenshots = ScreenshotStore::new(&history.database.path);
+    let capture = uuid::Uuid::new_v4().to_string();
+    let shot = screenshots
+        .add_with_context(
+            &capture,
+            include_bytes!("fixtures/synthetic-context.png"),
+            true,
+            ScreenshotContext {
+                captured_at: Some("2026-10-19T09:00:10Z".into()),
+                captured_after_seconds: Some(10.0),
+                recording_identifier: Some(capture.clone()),
+                narration: Some("Now look at this diagram.".into()),
+            },
+        )
+        .unwrap();
+    screenshots
+        .record_editor_event(
+            &shot.identifier,
+            Some("2026-10-19T09:00:25Z"),
+            false,
+            Some("This arrow points to the result."),
+        )
+        .unwrap();
+    screenshots
+        .bind_capture(&capture, &note.identifier)
+        .unwrap();
+    screenshots
+        .record_editor_event(&shot.identifier, None, true, None)
+        .unwrap();
+    conversations
+        .save_text(&note.identifier, "Edited explanation.", None)
+        .unwrap();
+    let path = conversations.markdown_path(&note.identifier).unwrap();
+    let markdown = fs::read_to_string(&path).unwrap();
+    assert!(markdown.contains("Screenshot 1 taken at +10.00 s (2026-10-19T09:00:10Z)"));
+    assert!(markdown.contains("Saved in editor: at +25.00 s (2026-10-19T09:00:25Z)"));
+    assert!(markdown.contains("This arrow points to the result."));
+    assert!(markdown.contains("Edited explanation."));
+    assert!(markdown.contains("## Original recognition\n\nNow look at this diagram."));
+    assert!(markdown.contains(&format!("../screenshots/{}.png", shot.identifier)));
+    assert!(
+        path.parent()
+            .unwrap()
+            .join(format!("../screenshots/{}.png", shot.identifier))
+            .is_file()
+    );
+    assert_eq!(
+        fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+        0o600
+    );
+    assert_eq!(
+        fs::metadata(path.parent().unwrap())
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o777,
+        0o700
+    );
+    let updated = screenshots
+        .recent(&note.identifier, false)
+        .unwrap()
+        .remove(0);
+    assert_eq!(updated.saved_at.as_deref(), Some("2026-10-19T09:00:25Z"));
+    assert!(updated.closed_at.is_some());
+    assert_eq!(
+        updated.recording_identifier.as_deref(),
+        Some(capture.as_str())
+    );
+    history
+        .mark_delivered(&note.identifier, "Delivered text", "copied", false, None)
+        .unwrap();
+    assert!(
+        fs::read_to_string(&path)
+            .unwrap()
+            .contains("Edited explanation.")
+    );
+    screenshots.delete(&shot.identifier).unwrap();
+    assert!(!fs::read_to_string(&path).unwrap().contains("![Screenshot"));
+    history.delete(&note.identifier).unwrap();
+    assert!(!path.exists());
+    assert!(!shot.path.exists());
+    assert!(conversations.export_markdown(&note.identifier).is_err());
+}

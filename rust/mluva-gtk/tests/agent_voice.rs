@@ -371,7 +371,13 @@ fn hold_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application
     owner.capture.page.workspace.documents()[0]
         .buffer()
         .set_text("Edited synthetic request.");
-    owner.agent_voice.view.save_draft.emit_clicked();
+    until(|| {
+        !owner
+            .capture
+            .page
+            .workspace
+            .has_unsaved_edits(&owner.capture.page.workspace.entry().unwrap().identifier)
+    });
     let history_id = owner
         .agent_voice
         .route

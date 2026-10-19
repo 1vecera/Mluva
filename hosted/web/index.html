@@ -206,7 +206,10 @@
               maxlength="80"
             />
             <label class="field-label" for="draft"
-              >Your words <span id="draft-state">Speak or type</span></label
+              >Your words
+              <span id="draft-state" aria-live="polite"
+                >Speak or type</span
+              ></label
             ><textarea
               id="draft"
               placeholder="A rough idea is a good start…"
@@ -221,7 +224,6 @@
             ></div>
             <div class="row actions">
               <button id="send" class="secondary">Send live text</button
-              ><button id="save" class="primary">Save</button
               ><button id="copy-draft" class="quiet">Copy</button
               ><button id="export-json" class="quiet">Export JSON</button>
             </div>
@@ -378,7 +380,7 @@
         aria-label="Account version"
       ></textarea>
       <div class="row">
-        <button id="conflict-local" class="primary">Save my version</button
+        <button id="conflict-local" class="primary">Keep my version</button
         ><button id="conflict-remote" class="secondary">
           Use account version</button
         ><button id="conflict-later" class="quiet">Decide later</button>

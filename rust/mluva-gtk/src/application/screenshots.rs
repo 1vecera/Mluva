@@ -3,6 +3,7 @@ use super::*;
 use mluva_core::{
     database::{StoreError, StoreResult},
     history::HistoryInput,
+    screenshots::ScreenshotContext,
 };
 use mluva_workflows::{
     capture::CapturePhase,
@@ -16,7 +17,7 @@ use std::{
     pin::Pin,
     process::{Child, Command, Stdio},
     thread,
-    time::{Duration, Instant},
+    time::{Duration, Instant, SystemTime},
 };
 use tokio_util::sync::CancellationToken;
 
@@ -24,6 +25,7 @@ struct PendingScreenshot {
     owner: String,
     capture: bool,
     offset: Option<f64>,
+    requested_at: SystemTime,
     picker: ScreenshotCapture,
     attached: CancellationToken,
 }
@@ -33,11 +35,16 @@ impl PendingScreenshot {
         self.attached.cancel();
     }
 }
+struct ScreenshotEditor {
+    child: Child,
+    modified: SystemTime,
+    recording: Option<String>,
+}
 #[derive(Default)]
 pub(super) struct ScreenshotOwners {
     pending: RefCell<Option<Rc<PendingScreenshot>>>,
     destinations: RefCell<BTreeMap<String, Option<String>>>,
-    editors: RefCell<BTreeMap<String, Child>>,
+    editors: RefCell<BTreeMap<String, ScreenshotEditor>>,
     monitors: RefCell<BTreeMap<String, gio::FileMonitor>>,
 }
 impl Drop for ScreenshotOwners {
@@ -102,6 +109,7 @@ impl ApplicationDesktop {
             owner,
             capture,
             offset,
+            requested_at: SystemTime::now(),
             picker: ScreenshotCapture::new(&self.services.paths.runtime),
             attached: CancellationToken::new(),
         });
@@ -174,11 +182,23 @@ impl ApplicationDesktop {
         } else {
             (pending.owner.clone(), false)
         };
-        let screenshot = match self.services.screenshots.add(
+        let captured: chrono::DateTime<chrono::Utc> = data.captured_at.into();
+        let requested: chrono::DateTime<chrono::Utc> = pending.requested_at.into();
+        let screenshot = match self.services.screenshots.add_with_context(
             &destination,
-            &data,
+            &data.data,
             capture,
-            pending.offset,
+            ScreenshotContext {
+                captured_at: Some(captured.to_rfc3339()),
+                captured_after_seconds: pending.offset.map(|offset| {
+                    (offset + (captured - requested).num_milliseconds() as f64 / 1000.0).max(0.0)
+                }),
+                recording_identifier: pending.capture.then(|| pending.owner.clone()),
+                narration: pending
+                    .capture
+                    .then(|| self.screenshot_narration(&pending.owner))
+                    .flatten(),
+            },
         ) {
             Ok(screenshot) => screenshot,
             Err(_) => {
@@ -186,8 +206,17 @@ impl ApplicationDesktop {
                 return;
             }
         };
+        let exported = self
+            .services
+            .screenshots
+            .refresh_markdown(&screenshot.identifier)
+            .is_ok();
         self.refresh_screenshots();
-        self.shell.show_message("Screenshot attached.");
+        self.shell.show_message(if exported {
+            "Screenshot attached."
+        } else {
+            "Image attached; the Markdown file could not be updated. Use Copy as path to retry."
+        });
         self.edit_screenshot(&screenshot.identifier);
     }
     fn refresh_screenshots(&self) {
@@ -239,7 +268,7 @@ impl ApplicationDesktop {
             .editors
             .borrow_mut()
             .get_mut(id)
-            .is_some_and(|child| matches!(child.try_wait(), Ok(None)))
+            .is_some_and(|child| matches!(child.child.try_wait(), Ok(None)))
         {
             self.shell
                 .show_message("This screenshot is already open in the editor.");
@@ -260,16 +289,58 @@ impl ApplicationDesktop {
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .spawn()?;
-            self.screenshots
-                .editors
-                .borrow_mut()
-                .insert(id.into(), child);
+            let pid = child.id();
+            let recording = self
+                .current
+                .borrow()
+                .as_ref()
+                .map(|current| current.session.identifier.clone());
+            self.screenshots.editors.borrow_mut().insert(
+                id.into(),
+                ScreenshotEditor {
+                    child,
+                    modified: std::fs::metadata(&path)?.modified()?,
+                    recording,
+                },
+            );
+            let weak = Rc::downgrade(self);
+            let editor_id = id.to_owned();
+            glib::timeout_add_local(Duration::from_millis(250), move || {
+                let Some(owner) = weak.upgrade().filter(|owner| !owner.closed.get()) else {
+                    return glib::ControlFlow::Break;
+                };
+                let closed = {
+                    let mut editors = owner.screenshots.editors.borrow_mut();
+                    let Some(editor) = editors
+                        .get_mut(&editor_id)
+                        .filter(|editor| editor.child.id() == pid)
+                    else {
+                        return glib::ControlFlow::Break;
+                    };
+                    matches!(editor.child.try_wait(), Ok(Some(_)))
+                };
+                if owner.observe_screenshot_editor(&editor_id, closed).is_err() {
+                    owner.shell.show_message(
+                        "Could not update screenshot timing. The image remains attached; retrying.",
+                    );
+                    return glib::ControlFlow::Continue;
+                }
+                if closed {
+                    owner.screenshots.editors.borrow_mut().remove(&editor_id);
+                    owner.refresh_screenshots();
+                    glib::ControlFlow::Break
+                } else {
+                    glib::ControlFlow::Continue
+                }
+            });
             if !self.screenshots.monitors.borrow().contains_key(id) {
                 let monitor = gio::File::for_path(&path)
                     .monitor_file(gio::FileMonitorFlags::NONE, gio::Cancellable::NONE)?;
                 let weak = Rc::downgrade(self);
+                let editor_id = id.to_owned();
                 monitor.connect_changed(move |_, _, _, _| {
                     if let Some(owner) = weak.upgrade().filter(|owner| !owner.closed.get()) {
+                        let _ = owner.observe_screenshot_editor(&editor_id, false);
                         owner.refresh_screenshots();
                     }
                 });
@@ -285,12 +356,67 @@ impl ApplicationDesktop {
                 .show_message("Could not open Tensaku. The screenshot is still attached.");
         }
     }
+    fn screenshot_narration(&self, recording: &str) -> Option<String> {
+        let current = self.current.borrow();
+        let session = &current
+            .as_ref()
+            .filter(|current| current.session.identifier == recording)?
+            .session;
+        let text = session.preview()?.display_text();
+        if text.trim().is_empty() {
+            return None;
+        }
+        Some(
+            text.chars()
+                .rev()
+                .take(1000)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect(),
+        )
+    }
+
+    fn observe_screenshot_editor(&self, id: &str, closed: bool) -> StoreResult<()> {
+        let path = self.services.screenshots.path_for(id)?;
+        let modified = std::fs::metadata(&path)?.modified()?;
+        let (changed, recording) = {
+            let editors = self.screenshots.editors.borrow();
+            let Some(editor) = editors.get(id) else {
+                return Ok(());
+            };
+            (editor.modified != modified, editor.recording.clone())
+        };
+        if !changed && !closed {
+            return Ok(());
+        }
+        if changed {
+            let data = std::fs::read(&path)?;
+            mluva_core::screenshots::validate_png(&data)?;
+        }
+        let saved = changed.then(|| {
+            let time: chrono::DateTime<chrono::Utc> = modified.into();
+            time.to_rfc3339()
+        });
+        let narration = recording.and_then(|id| self.screenshot_narration(&id));
+        self.services.screenshots.record_editor_event(
+            id,
+            saved.as_deref(),
+            closed,
+            narration.as_deref(),
+        )?;
+        if let Some(editor) = self.screenshots.editors.borrow_mut().get_mut(id) {
+            editor.modified = modified;
+        }
+        Ok(())
+    }
+
     pub(super) fn close_screenshot_editor(&self, id: &str) -> StoreResult<()> {
         // Release the process before deleting its file: editors may save once
         // more while handling TERM. Both waits have the release's two-second cap.
         let mut editors = self.screenshots.editors.borrow_mut();
         if let Some(child) = editors.get_mut(id) {
-            close_editor(child)?;
+            close_editor(&mut child.child)?;
         }
         editors.remove(id);
         if let Some(monitor) = self.screenshots.monitors.borrow_mut().remove(id) {

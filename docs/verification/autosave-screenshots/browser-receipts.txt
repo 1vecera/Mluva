@@ -1,0 +1,14 @@
+PASS lost live acknowledgement → reconnect → identical retry, one receiver segment
+PASS phone → laptop and third receiver live text; one saved note
+PASS laptop → phone live text
+PASS concurrent edits require explicit resolution, originals preserved, same history ID
+PASS saved legacy replies preserved; generation route and mode controls removed
+PASS synthetic microphone → server Scribe protocol, partial words, Stop finalization and saved final words
+PASS continued recording and atomic conversation merge preserve original segments and completed rewrites
+PASS failed save → reload → retry without duplicated note
+PASS normal laptop recording finalizes directly to an editable saved note
+PASS autosave preserves typing and title changes during a request; blank working text preserves its original
+PASS history disabled keeps subsequent edits in memory
+PASS Incognito has no saved history or text fan-out
+PASS revocation closes live access and rejects history reads
+PASS sign-out clears browser login and revokes retained account access

@@ -89,11 +89,10 @@ for await (const line of createInterface({ input: process.stdin })) {
         await page.getByRole("button", { name: "Back to workspace" }).click();
         await page.locator("#draft").fill(command.text);
         await page.locator("#send").click();
-        await page.locator("#save").click();
         await page.waitForFunction(
           () =>
             document.getElementById("draft-state").textContent ===
-            "Saved to history",
+            "Saved automatically",
         );
         result = { ok: true };
         break;

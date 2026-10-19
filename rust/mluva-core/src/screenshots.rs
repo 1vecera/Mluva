@@ -37,6 +37,19 @@ pub struct Screenshot {
     pub created_at: String,
     pub captured_after_seconds: Option<f64>,
     pub path: PathBuf,
+    pub recording_identifier: Option<String>,
+    pub saved_at: Option<String>,
+    pub closed_at: Option<String>,
+    pub capture_narration: Option<String>,
+    pub save_narration: Option<String>,
+}
+
+#[derive(Default)]
+pub struct ScreenshotContext {
+    pub captured_at: Option<String>,
+    pub captured_after_seconds: Option<f64>,
+    pub recording_identifier: Option<String>,
+    pub narration: Option<String>,
 }
 
 pub fn validate_png(data: &[u8]) -> StoreResult<()> {
@@ -151,26 +164,47 @@ impl ScreenshotStore {
 
     pub fn recent(&self, owner: &str, capture: bool) -> StoreResult<Vec<Screenshot>> {
         let connection = self.database.connect()?;
-        let mut statement = connection.prepare(&format!("SELECT identifier, created_at, captured_after_seconds FROM conversation_screenshots WHERE {} = ? ORDER BY created_at, identifier", owner_column(capture)))?;
+        let mut statement = connection.prepare(&format!("SELECT identifier, created_at, captured_after_seconds, recording_identifier, saved_at, closed_at, capture_narration, save_narration FROM conversation_screenshots WHERE {} = ? ORDER BY created_at, identifier", owner_column(capture)))?;
         let rows = statement
             .query_map([owner], |row| {
                 Ok((
                     row.get::<_, String>(0)?,
                     row.get::<_, String>(1)?,
                     row.get::<_, Option<f64>>(2)?,
+                    row.get::<_, Option<String>>(3)?,
+                    row.get::<_, Option<String>>(4)?,
+                    row.get::<_, Option<String>>(5)?,
+                    row.get::<_, Option<String>>(6)?,
+                    row.get::<_, Option<String>>(7)?,
                 ))
             })?
             .collect::<rusqlite::Result<Vec<_>>>()?;
         rows.into_iter()
-            .map(|(identifier, created_at, captured_after_seconds)| {
-                let path = self.path_for(&identifier)?;
-                Ok(Screenshot {
+            .map(
+                |(
                     identifier,
                     created_at,
                     captured_after_seconds,
-                    path,
-                })
-            })
+                    recording_identifier,
+                    saved_at,
+                    closed_at,
+                    capture_narration,
+                    save_narration,
+                )| {
+                    let path = self.path_for(&identifier)?;
+                    Ok(Screenshot {
+                        identifier,
+                        created_at,
+                        captured_after_seconds,
+                        path,
+                        recording_identifier,
+                        saved_at,
+                        closed_at,
+                        capture_narration,
+                        save_narration,
+                    })
+                },
+            )
             .collect()
     }
 
@@ -204,6 +238,25 @@ impl ScreenshotStore {
         capture: bool,
         captured_after_seconds: Option<f64>,
     ) -> StoreResult<Screenshot> {
+        self.add_with_context(
+            owner,
+            data,
+            capture,
+            ScreenshotContext {
+                captured_after_seconds,
+                ..Default::default()
+            },
+        )
+    }
+
+    pub fn add_with_context(
+        &self,
+        owner: &str,
+        data: &[u8],
+        capture: bool,
+        context: ScreenshotContext,
+    ) -> StoreResult<Screenshot> {
+        let captured_after_seconds = context.captured_after_seconds;
         let mut images = self.snapshot(owner, capture)?;
         images.push(ImageInput {
             data: data.to_owned(),
@@ -211,7 +264,7 @@ impl ScreenshotStore {
         });
         validate_images(&images)?;
         let identifier = uuid::Uuid::new_v4().to_string();
-        let created = timestamp();
+        let created = context.captured_at.unwrap_or_else(timestamp);
         fs::create_dir_all(self.directory())?;
         fs::set_permissions(self.directory(), fs::Permissions::from_mode(0o700))?;
         let path = self.path_for(&identifier)?;
@@ -238,13 +291,13 @@ impl ScreenshotStore {
                 return Err(invalid("This conversation no longer exists."));
             }
             transaction.execute(
-                "INSERT INTO conversation_screenshots VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO conversation_screenshots (identifier, history_identifier, capture_identifier, created_at, captured_after_seconds, recording_identifier, capture_narration) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 params![
                     identifier,
                     if capture { None } else { Some(owner) },
                     if capture { Some(owner) } else { None },
                     created,
-                    captured_after_seconds
+                    captured_after_seconds, context.recording_identifier, context.narration
                 ],
             )?;
             transaction.commit()?;
@@ -259,7 +312,47 @@ impl ScreenshotStore {
             created_at: created,
             captured_after_seconds,
             path,
+            recording_identifier: context.recording_identifier,
+            capture_narration: context.narration,
+            saved_at: None,
+            closed_at: None,
+            save_narration: None,
         })
+    }
+
+    /// Only an actual image write is a save; dismissing the editor is tracked separately.
+    pub fn record_editor_event(
+        &self,
+        id: &str,
+        saved_at: Option<&str>,
+        closed: bool,
+        narration: Option<&str>,
+    ) -> StoreResult<()> {
+        self.database.connect()?.execute(
+            "UPDATE conversation_screenshots SET saved_at = COALESCE(?, saved_at), closed_at = CASE WHEN ? THEN ? ELSE closed_at END, save_narration = CASE WHEN ? IS NOT NULL THEN ? ELSE save_narration END WHERE identifier = ?",
+            params![saved_at, closed, timestamp(), saved_at, narration, id],
+        )?;
+        self.refresh_markdown(id)
+    }
+
+    pub fn refresh_markdown(&self, id: &str) -> StoreResult<()> {
+        let owner: Option<String> = self
+            .database
+            .connect()?
+            .query_row(
+                "SELECT history_identifier FROM conversation_screenshots WHERE identifier = ?",
+                [id],
+                |row| row.get(0),
+            )
+            .optional()?
+            .flatten();
+        if let Some(owner) = owner {
+            crate::conversation::ConversationStore::new(crate::history::HistoryStore::new(
+                &self.database.path,
+            ))
+            .export_markdown(&owner)?;
+        }
+        Ok(())
     }
 
     pub fn bind_capture(&self, capture: &str, conversation: &str) -> StoreResult<()> {
@@ -278,6 +371,10 @@ impl ScreenshotStore {
         }
         transaction.execute("UPDATE conversation_screenshots SET history_identifier = ?, capture_identifier = NULL WHERE capture_identifier = ?", params![conversation, capture])?;
         transaction.commit()?;
+        crate::conversation::ConversationStore::new(crate::history::HistoryStore::new(
+            &self.database.path,
+        ))
+        .export_markdown(conversation)?;
         Ok(())
     }
 
@@ -285,6 +382,16 @@ impl ScreenshotStore {
         if !canonical_uuid(identifier) || self.directory().is_symlink() {
             return Err(invalid("Invalid screenshot identifier or directory."));
         }
+        let owner: Option<String> = self
+            .database
+            .connect()?
+            .query_row(
+                "SELECT history_identifier FROM conversation_screenshots WHERE identifier = ?",
+                [identifier],
+                |row| row.get(0),
+            )
+            .optional()?
+            .flatten();
         match fs::remove_file(self.directory().join(format!("{identifier}.png"))) {
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
             result => result?,
@@ -293,6 +400,12 @@ impl ScreenshotStore {
             "DELETE FROM conversation_screenshots WHERE identifier = ?",
             [identifier],
         )?;
+        if let Some(owner) = owner {
+            crate::conversation::ConversationStore::new(crate::history::HistoryStore::new(
+                &self.database.path,
+            ))
+            .export_markdown(&owner)?;
+        }
         Ok(())
     }
 

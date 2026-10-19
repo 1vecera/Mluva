@@ -201,11 +201,10 @@ fn dictation_editor_navigation_settings_recovery_and_shutdown() {
                     assert!(!audio.exists());
                     let workspace = &owner.capture.page.workspace;
                     ui::button(&workspace.messages, "Copy").emit_clicked();
-                    assert!(ui::button(&workspace.messages, "Save edits").is_visible());
                     workspace.documents()[0]
                         .buffer()
                         .set_text("My working edit");
-                    ui::button(&workspace.messages, "Save edits").emit_clicked();
+                    ui::until(|| !workspace.has_unsaved_edits(&entries[0].identifier));
                     assert_eq!(
                         services
                             .conversations
@@ -299,7 +298,7 @@ fn dictation_editor_navigation_settings_recovery_and_shutdown() {
                     assert_eq!(workspace.documents().len(), 2);
                     workspace.begin_rename(&old.identifier).unwrap();
                     workspace.title_entry.set_text("Retained history");
-                    workspace.title_save.emit_clicked();
+                    workspace.title_entry.emit_activate();
                     assert_eq!(
                         services
                             .history

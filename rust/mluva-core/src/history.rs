@@ -228,6 +228,27 @@ impl HistoryStore {
                 )?;
             }
         }
+        let screenshot_columns = {
+            let mut statement =
+                transaction.prepare("PRAGMA table_info(conversation_screenshots)")?;
+            statement
+                .query_map([], |row| row.get::<_, String>(1))?
+                .collect::<rusqlite::Result<BTreeSet<_>>>()?
+        };
+        for name in [
+            "recording_identifier",
+            "saved_at",
+            "closed_at",
+            "capture_narration",
+            "save_narration",
+        ] {
+            if !screenshot_columns.contains(name) {
+                transaction.execute(
+                    &format!("ALTER TABLE conversation_screenshots ADD COLUMN {name} TEXT"),
+                    [],
+                )?;
+            }
+        }
         transaction.commit()?;
         fs::set_permissions(&self.database.path, fs::Permissions::from_mode(0o600))?;
         Ok(())
@@ -276,6 +297,7 @@ impl HistoryStore {
 
     pub fn update_title(&self, identifier: &str, title: Option<&str>) -> StoreResult<HistoryEntry> {
         self.database.connect()?.execute("UPDATE transcription_history SET title = ?, title_revision = title_revision + 1 WHERE identifier = ?", params![title, identifier])?;
+        crate::conversation::ConversationStore::new(self.clone()).export_markdown(identifier)?;
         self.find(identifier)
     }
 
@@ -408,6 +430,7 @@ impl HistoryStore {
         }
         self.delete_retained_audio(&entry)?;
         ScreenshotStore::new(&self.database.path).delete_owner(identifier, false)?;
+        crate::conversation::ConversationStore::new(self.clone()).remove_markdown(identifier)?;
         self.database.connect()?.execute(
             "DELETE FROM transcription_history WHERE identifier = ?",
             [identifier],
@@ -463,6 +486,8 @@ impl HistoryStore {
             }
             for entry in group {
                 ScreenshotStore::new(&self.database.path).delete_owner(&entry.identifier, false)?;
+                crate::conversation::ConversationStore::new(self.clone())
+                    .remove_markdown(&entry.identifier)?;
                 match self.delete_retained_audio(entry) {
                     Err(StoreError::Invalid(_)) => {}
                     result => result?,

@@ -65,10 +65,8 @@ impl ConversationStore {
         text: &str,
         reply_identifier: Option<i64>,
     ) -> StoreResult<()> {
-        if text::trim(text).is_empty() || text.chars().count() > MAX_CONVERSATION_CHARACTERS {
-            return Err(invalid(
-                "A document needs text and must fit within 120,000 characters.",
-            ));
+        if text.chars().count() > MAX_CONVERSATION_CHARACTERS {
+            return Err(invalid("A document must fit within 120,000 characters."));
         }
         let connection = self.history.database.connect()?;
         match reply_identifier {
@@ -77,6 +75,7 @@ impl ConversationStore {
                 if connection.execute("UPDATE conversation_rewrites SET text = ? WHERE identifier = ? AND history_identifier = ?", params![text, reply, identifier])? != 1 { return Err(StoreError::NotFound); }
             }
         }
+        self.export_markdown(identifier)?;
         Ok(())
     }
 
@@ -185,6 +184,7 @@ impl ConversationStore {
             )?;
         }
         transaction.commit()?;
+        self.export_markdown(identifier)?;
         Ok(output)
     }
 
@@ -263,6 +263,8 @@ impl ConversationStore {
         )?;
         transaction.execute("UPDATE transcription_history SET title_revision = title_revision + 1 WHERE identifier IN (?, ?)", params![target, source])?;
         transaction.commit()?;
+        self.export_markdown(target)?;
+        self.remove_markdown(source)?;
         self.history.find(target)
     }
 

@@ -341,7 +341,7 @@ index 0000000..7f6fb24
 +    }
 +}
 diff --git c/src/sketch_board.rs i/src/sketch_board.rs
-index 638c90c..caffa60 100644
+index 638c90c..9a9e10f 100644
 --- c/src/sketch_board.rs
 +++ i/src/sketch_board.rs
 @@ -44,6 +44,7 @@ pub enum SketchBoardInput {
@@ -535,7 +535,15 @@ index 638c90c..caffa60 100644
                  // Explicit user-driven tool change always clears any
                  // existing selection — "I'm switching tools" reads as a
                  // start-fresh action. The selection-driven auto-switch
-@@ -5304,6 +5459,32 @@ impl Component for SketchBoard {
+@@ -2626,6 +2781,7 @@ impl SketchBoard {
+                 self.style.size = size;
+                 self.dispatch_style_change()
+             }
++            ToolbarEvent::CloseEditor => self.handle_action(&[Action::Exit]),
+             ToolbarEvent::SaveFile => self.handle_action(&[Action::SaveToFile]),
+             ToolbarEvent::CopyClipboard => self.handle_action(&[Action::SaveToClipboard]),
+             ToolbarEvent::Pin => self.handle_action(&[Action::Pin]),
+@@ -5304,6 +5460,32 @@ impl Component for SketchBoard {
          // the result-processing match at the bottom can still use it
          // (e.g. for `EditTextDrawable` which triggers a tool switch).
          let outer_sender = sender.clone();
@@ -568,7 +576,7 @@ index 638c90c..caffa60 100644
          // Frame-profiler hook (`TENSAKU_PERF`): drag and hover motion
          // are the two messages that arrive at pointer-report rate, so
          // their handler cost is what a "laggy while dragging" report
-@@ -5336,6 +5517,9 @@ impl Component for SketchBoard {
+@@ -5336,6 +5518,9 @@ impl Component for SketchBoard {
  
          // handle resize ourselves, pass everything else to tool
          let result = match msg {
@@ -578,7 +586,7 @@ index 638c90c..caffa60 100644
              SketchBoardInput::InputEvent(mut ie) => {
                  if let InputEvent::Key(ke) = ie {
                      // Implicit selection: route Delete / Escape through the
-@@ -6374,6 +6558,24 @@ impl Component for SketchBoard {
+@@ -6374,6 +6559,24 @@ impl Component for SketchBoard {
              }
          };
  
@@ -603,7 +611,7 @@ index 638c90c..caffa60 100644
          // println!(" Result={:?}", result);
          match result {
              ToolUpdateResult::Commit(drawable) => {
-@@ -6507,6 +6709,12 @@ impl Component for SketchBoard {
+@@ -6507,6 +6710,12 @@ impl Component for SketchBoard {
                  ..Style::default()
              },
              tools,
@@ -678,7 +686,7 @@ index 7df77be..98c80ea 100644
              }
          } else {
 diff --git c/src/ui/toolbars.rs i/src/ui/toolbars.rs
-index f3307c0..52f2382 100644
+index f3307c0..a1268de 100644
 --- c/src/ui/toolbars.rs
 +++ i/src/ui/toolbars.rs
 @@ -235,6 +235,7 @@ pub struct ToolsToolbar {
@@ -697,7 +705,15 @@ index f3307c0..52f2382 100644
      ToolSelected(Tools),
      ColorSelected(Color),
      SizeSelected(Size),
-@@ -2242,6 +2244,7 @@ pub enum TopBarLayout {
+@@ -2115,6 +2117,7 @@ pub enum ToolbarEvent {
+     Redo,
+     Undo,
+     SaveFile,
++    CloseEditor,
+     CopyClipboard,
+     /// Pin the finished image to the desktop and step the editor aside.
+     Pin,
+@@ -2242,6 +2245,7 @@ pub enum TopBarLayout {
  
  #[derive(Debug, Copy, Clone)]
  pub enum ToolsToolbarInput {
@@ -705,7 +721,7 @@ index f3307c0..52f2382 100644
      /// Each shape's own fill state, for the Rectangle / Ellipse glyphs.
      SetShapeFill {
          rect: bool,
-@@ -2993,6 +2996,18 @@ impl Component for ToolsToolbar {
+@@ -2993,6 +2997,18 @@ impl Component for ToolsToolbar {
                      // side space, so balanced clusters are what let the
                      // tool row wrap right at its packed width instead
                      // of ~70 px early.
@@ -724,7 +740,23 @@ index f3307c0..52f2382 100644
                      gtk::Button {
                          set_focusable: true,
                          set_focus_on_click: false,
-@@ -3648,6 +3663,7 @@ impl Component for ToolsToolbar {
+@@ -3565,6 +3581,15 @@ impl Component for ToolsToolbar {
+                         install_tooltip_markup: "Save as (<span face=\"Adwaita Sans\">⌃ ⇧</span> S)",
+                         connect_clicked[sender] => move |_| {sender.output_sender().emit(ToolbarEvent::SaveFileAs);},
+                     },
++                    gtk::Button {
++                        set_focusable: true,
++                        set_focus_on_click: false,
++                        set_hexpand: false,
++                        set_icon_name: "window-close-symbolic",
++                        install_tooltip: "Close editor (keep the last saved image)",
++                        update_property: &[gtk::accessible::Property::Label("Close editor")],
++                        connect_clicked[sender] => move |_| {sender.output_sender().emit(ToolbarEvent::CloseEditor);},
++                    },
+                     // Settings sits last, set off by a separator —
+                     // mirrors the left cluster's trailing layers button.
+                     gtk::Separator {},
+@@ -3648,6 +3673,7 @@ impl Component for ToolsToolbar {
  
      fn update(&mut self, message: Self::Input, sender: ComponentSender<Self>, _root: &Self::Root) {
          match message {
@@ -732,7 +764,7 @@ index f3307c0..52f2382 100644
              ToolsToolbarInput::SetShapeFill { rect, ellipse } => {
                  self.fill_rect = rect;
                  self.fill_ellipse = ellipse;
-@@ -4282,6 +4298,7 @@ impl Component for ToolsToolbar {
+@@ -4282,6 +4308,7 @@ impl Component for ToolsToolbar {
              tool_buttons: HashMap::new(),
              tool_action: tool_action.clone().into(),
              current_tool: Tools::Pointer,
