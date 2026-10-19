@@ -7,14 +7,15 @@ The [contributor guide](../CONTRIBUTING.md) covers native Rust builds and focuse
 `run-isolated.sh` starts a virtual X11 display with a private session bus and XDG state. It leaves the active desktop alone. Install Xvfb, `xvfb-run`, `xauth`, D-Bus and the normal GTK runtime before using it. Native accessibility checks also need AT-SPI; input scenarios use `xdotool` only inside the virtual display.
 
 ```sh
-make linux-command-test
+make linux-application-test
 make linux-omarchy-test
 make linux-conversation-test
-make linux-live-rewrite-test
 make linux-provider-settings-test
 ```
 
 The fixtures use the production application with synthetic audio or model boundaries. Screenshots and logs stay under this checkout's `tmp/`. They exercise rendering, editing and process communication; physical microphone quality and Wayland permissions require the actual target desktop.
+
+The [real application CLI and feature map](verification.md) provide a composable isolated session, a recording/edit/restart smoke, and deliberate assertion-failure diagnostics. Start with `bash dev/verify.sh doctor` to check its prerequisites without starting the app.
 
 For a custom native fixture, build it before starting the private desktop and run its executable through the isolated runner:
 
