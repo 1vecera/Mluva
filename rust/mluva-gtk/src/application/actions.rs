@@ -3,7 +3,6 @@ use crate::{command_palette::Command, commands::CommandAction};
 use mluva_core::{
     database::{StoreError, StoreResult},
     delivery::{DeliveryOptions, deliver_text},
-    history::HistoryInput,
     text,
 };
 use serde_json::json;
@@ -67,11 +66,6 @@ impl ApplicationDesktop {
                 self.personalization.refresh();
                 self.shell.navigate("personalization");
             }
-            ApplicationAction::Review {
-                operation,
-                identifier,
-                option,
-            } => self.review.action(&operation, &identifier, &option),
             ApplicationAction::Quit => {
                 let application = self.application.clone();
                 let shutdown = self.shutdown();
@@ -99,9 +93,6 @@ impl ApplicationDesktop {
             self.shell.navigate("capture");
             self.shell.present();
         }
-        if self.workspace().composer.is_visible() {
-            self.workspace().prompt.grab_focus();
-        }
         Ok(())
     }
     pub(super) fn copy_text(&self, value: &str) {
@@ -111,34 +102,7 @@ impl ApplicationDesktop {
         };
         self.shell.show_message(&message);
     }
-    pub(super) fn import_text(&self, value: &str) {
-        if self.closed.get() || text::trim(value).is_empty() {
-            return;
-        }
-        if self.services.config().incognito_mode {
-            let _ = self.workspace().show_transient(value, value);
-            return;
-        }
-        let saved = (|| {
-            let entry = self.services.history.add(HistoryInput {
-                language_code: self.services.config().language_code,
-                delivery_outcome: "imported".into(),
-                ..HistoryInput::dictation(value, value)
-            })?;
-            self.workspace().prompt.buffer().set_text("");
-            self.workspace()
-                .show_conversation(Some(entry.clone()), &[], false)?;
-            self.history_changed();
-            self.titles.enqueue(&entry);
-            Ok::<_, StoreError>(())
-        })();
-        if saved.is_err() {
-            self.workspace().set_busy(
-                false,
-                "Could not save this conversation. Your text is still in the editor.",
-            );
-        }
-    }
+
     pub(super) fn refresh_title(&self, id: &str) {
         let _ = self.workspace().refresh_title(id);
         let _ = self.history.page.refresh_title(id);
@@ -162,8 +126,6 @@ impl ApplicationDesktop {
             && !self.services.config().incognito_mode
             && self.capture.phase().is_none()
             && self.history.retry_identifier().is_none()
-            && !self.live.finalizing()
-            && !self.review.rewriting()
             && !state.busy
             && !state.live_active
     }
@@ -188,13 +150,6 @@ impl ApplicationDesktop {
             }
         }
         let _ = self.history.page.refresh();
-        if self
-            .review
-            .current()
-            .is_some_and(|id| id == source || id == target)
-        {
-            self.review.publish(target, "ready", "");
-        }
         self.shell
             .show_message("Conversations merged. Originals remain in History.");
         true
@@ -269,102 +224,7 @@ impl ApplicationDesktop {
         }
         self.workspace().refresh_screenshots();
     }
-    pub(super) fn save_prompt(self: &Rc<Self>, instruction: &str) {
-        if self.closed.get()
-            || self.services.config().incognito_mode
-            || text::trim(instruction).is_empty()
-        {
-            return;
-        }
-        let dialog = adw::AlertDialog::builder()
-            .heading("Save prompt")
-            .body("Give this rewrite prompt a short name.")
-            .default_response("save")
-            .build();
-        let name = gtk::Entry::builder()
-            .placeholder_text("Prompt name")
-            .activates_default(true)
-            .build();
-        dialog.set_extra_child(Some(&name));
-        dialog.add_response("cancel", "Cancel");
-        dialog.add_response("save", "Save");
-        dialog.set_response_appearance("save", adw::ResponseAppearance::Suggested);
-        let weak = Rc::downgrade(self);
-        let instruction = instruction.to_owned();
-        dialog.connect_response(None, move |_, response| {
-            let Some(owner) = weak
-                .upgrade()
-                .filter(|owner| !owner.closed.get() && !owner.services.config().incognito_mode)
-            else {
-                return;
-            };
-            if response != "save" {
-                return;
-            }
-            let result = (|| {
-                let mut store = owner.services.personalization.borrow_mut();
-                let folded = caseless::default_case_fold_str(text::trim(&name.text()));
-                if store
-                    .styles()?
-                    .iter()
-                    .any(|style| caseless::default_case_fold_str(&style.name) == folded)
-                {
-                    return Err(StoreError::Invalid("Choose a new prompt name.".into()));
-                }
-                store.save_style(&name.text(), &instruction)?;
-                Ok::<_, StoreError>(())
-            })();
-            if result.is_err() {
-                owner.shell.show_message(
-                    "Could not save the prompt. Use a unique name and a shorter instruction.",
-                );
-                return;
-            }
-            owner.refresh_style_controls();
-            owner.shell.show_message("Prompt saved.");
-        });
-        dialog.present(Some(&self.shell.window));
-    }
-    pub(super) fn refresh_style_controls(self: &Rc<Self>) {
-        let refreshed = (|| {
-            self.services.synchronize_style_prompts()?;
-            let prompts = self
-                .services
-                .personalization
-                .borrow()
-                .styles()?
-                .into_iter()
-                .map(|style| {
-                    (
-                        style.name,
-                        format!("style-{}", style.identifier.to_lowercase()),
-                    )
-                })
-                .collect::<Vec<_>>();
-            self.workspace().set_saved_prompts(&prompts);
-            self.settings.capture.refresh_styles();
-            self.settings.prompts.refresh()?;
-            self.personalization.refresh();
-            Ok::<_, StoreError>(())
-        })();
-        if let Err(error) = refreshed {
-            self.shell.show_message(&error.to_string());
-        }
-        self.refresh_review();
-    }
-    pub(super) fn refresh_review(self: &Rc<Self>) {
-        if let Some(id) = self.review.current() {
-            self.review.publish(
-                &id,
-                if self.review.rewrite_identifier().as_deref() == Some(&id) {
-                    "rewriting"
-                } else {
-                    "ready"
-                },
-                "",
-            );
-        }
-    }
+
     pub(super) fn export_diagnostics(&self) {
         match self.services.diagnostics.export(
             &self.services.paths.data.join("exports"),
@@ -430,7 +290,6 @@ impl ApplicationDesktop {
             &context,
             &self.settings.view,
             &self.settings.command_pages(),
-            self.services.prompts.borrow().catalog(),
         )
     }
     fn command_state(&self) -> CommandState {
@@ -448,15 +307,7 @@ impl ApplicationDesktop {
         state.processing = view.processing;
         state.recording = view.recording;
         state.record_sensitive = page.record_button.is_sensitive();
-        state.live_enabled = config.live_rewrite_enabled;
-        state.live_sensitive = page.live_mode.is_sensitive();
-        state.live_final_entry = self.live.finalizing();
-        state.rewriting = self.review.rewriting();
         state.incognito = config.incognito_mode;
-        if let Some(current) = self.current.borrow().as_ref() {
-            state.pending_incognito = current.options.incognito;
-            state.pending_mode = current.options.mode.clone();
-        }
         state
     }
     fn command(self: &Rc<Self>, command: CommandAction) {
@@ -466,12 +317,6 @@ impl ApplicationDesktop {
         let workspace = self.workspace();
         match command {
             CommandAction::ToggleRecording => self.toggle_recording(CaptureOrigin::Manual),
-            CommandAction::CycleLive => self.page().live_mode.emit_clicked(),
-            CommandAction::Polish => {
-                workspace.focus_prompt();
-                workspace.quick_polish.emit_clicked();
-            }
-            CommandAction::FocusRewrite => workspace.focus_prompt(),
             CommandAction::CopyOutput => {
                 workspace.copy_current_output();
             }
@@ -484,8 +329,6 @@ impl ApplicationDesktop {
                 workspace.show_live();
             }
             CommandAction::ToggleSidebar => self.toggle_sidebar(),
-            CommandAction::ToggleSourcePane => workspace.toggle_live_pane(true),
-            CommandAction::ToggleDraftPane => workspace.toggle_live_pane(false),
             CommandAction::Settings => self.settings.show(),
             CommandAction::Welcome => self.settings.show_welcome(),
             CommandAction::WidgetPositionSetting => {
@@ -499,17 +342,6 @@ impl ApplicationDesktop {
                 self.settings
                     .apply(json!({name:value}).as_object().unwrap());
             }
-            CommandAction::EditPrompt(id) => self.settings.open_prompt(&id),
         }
-    }
-    pub(super) fn apply_live_change(&self, change: LiveSettingsChange) -> bool {
-        let changes = match change {
-            LiveSettingsChange::Mode {
-                enabled,
-                continuous,
-            } => json!({"live_rewrite_enabled":enabled,"live_rewrite_continuous":continuous}),
-            LiveSettingsChange::Template(template) => json!({"live_rewrite_template":template}),
-        };
-        self.settings.apply(changes.as_object().unwrap())
     }
 }

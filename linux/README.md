@@ -6,13 +6,9 @@ For the shortest path, use the [combined installer or agent prompt](../README.md
 
 ## Daily workflow
 
-Press **F9** to start and stop dictation. Completed text copies automatically and becomes a conversation. Click **Rewrite** to reveal **Polish**, **Structure**, saved prompts and the custom instruction field; the panel remembers whether you left it open. Originals and completed replies are editable; **Ctrl+S** saves and **Ctrl+Enter** sends a rewrite. Raw recognition remains available separately in History. A bare recording light sits above the text at left, with elapsed time at right. The app and widget use the desktop monospace font. Drag the Omarchy recorder by its status row or choose a lower-left, bottom or lower-right preset in Settings. Focus it and press **Super+T** to switch between floating and tiling.
+Press **F9** to start and stop dictation. Completed text is copied and automatically inserted into the verified original target. The main editor always shows Copy and Save; Ctrl+S saves working edits while keeping raw recognition unchanged. Continue recording adds speech to the same conversation. There are no rewrite controls, special capture modes or post-recording review timer. [The workspace guide](../docs/conversation-workspace.md) describes history and migration behavior.
 
-**Ctrl+P** searches commands, every settings control, and each prompt by name. Use **Settings → Prompts** or a prompt’s hover/focus settings button to edit its local Markdown override. See the [prompt editor guide](../docs/prompt-editor.md). The history sidebar starts hidden; reveal it to switch between saved and live conversations without interrupting recording. Dates use short weekday/month names and a configurable 12/24-hour clock. **Shift+F9** requests the latest conversation through the desktop shortcut portal. Closing the window keeps Mluva available; use Quit to exit.
-
-Settings → Workspace controls automatic copy, action icons, scrolling and the Omarchy widget's four-second dismissal. **Live rewrite** is opt-in and Experimental and can be toggled during dictation. Its default **Grilling** template keeps evolving questions above architecture notes and local Mermaid sketches. Task spec, Structured note, Polish and Custom remain available. Active drafts reconcile at Stop; paused drafts are saved with a review label. See [workspace settings](../docs/providers-and-live-rewrite.md).
-
-After a completed dictation, **Continue** in the widget or **Continue recording** in the app adds speech to the same conversation. The Live rewrite button cycles Off, Once (1×) and Continuous (∞). The rewrite model picker and Providers settings offer model/provider-specific **Thinking level** choices.
+Select a named Herdr agent and hold **F8** to route final speech directly to it after the two-second cancel window. The recorder stays calm: a recording light, elapsed time and live words with automatic following. Drag its status row or choose its position in Settings; Super+T switches between floating and tiling on Omarchy.
 
 ## Supported desktop contract
 
@@ -56,7 +52,7 @@ Application files go under `~/.local/share/mluva/app`, commands under `~/.local/
 
 The app requests approval for recording, cancellation and opening the latest conversation on first launch. Settings shows the keys actually approved by the desktop. The default recording key is F9; alternatives range from F1 to F24. Changing a key replaces the portal session. Right Alt/AltGr remains available to the keyboard layout.
 
-On Hyprland, a native keyboard binding can use `mluva-shell global-record` with portal shortcuts disabled. Bindings to `mluva-shell record` start copy-only capture, even when automatic paste is enabled. See the [Omarchy binding instructions](../docs/omarchy-integration.md).
+On Hyprland, a native keyboard binding can use `mluva-shell global-record` with portal shortcuts disabled. Bindings to `mluva-shell record` start copy-only capture, because no external target was captured. See the [Omarchy binding instructions](../docs/omarchy-integration.md).
 
 To verify the package in a disposable prefix without changing the active installation:
 
@@ -70,9 +66,9 @@ Run installed `mluva-uninstall` to remove the native app and owned launch integr
 
 ## Provider setup
 
-Speech recognition and rewriting are selected independently in **Settings → Providers**. The defaults are ElevenLabs Scribe and an authenticated Codex CLI. Alternatives include app-managed local models and compatible speech or rewrite APIs. First-run setup downloads local models and can skip rewriting entirely. [Onboarding](../docs/onboarding.md) explains appearance previews and keyring setup. [Choose providers](../docs/provider-selection.md).
+Choose ElevenLabs Scribe, an app-managed local model or a compatible speech API in **Settings → Providers**. First-run setup chooses speech and recorder appearance. [Onboarding](../docs/onboarding.md) covers keyring setup; [provider selection](../docs/provider-selection.md) documents local choices and endpoint restrictions. Account login never changes the speech provider.
 
-Supply credentials to the app process through your secret manager or desktop launch environment. Settings stores key-variable names, never key values. Restart Mluva after changing that environment. A cloud route may send audio or text off the device; local recognition alone does not make rewrites or generated titles local.
+Supply cloud credentials through Settings or the launch environment. Settings store key-variable names, never key values. Local recording stays on this PC; selecting a cloud speech provider explicitly sends microphone audio to that provider. Account sync distributes text only. There is no rewriting provider or generated-title request.
 
 The launcher also supports an existing managed credential profile. When the managed local snapshot is enabled, the launcher requests only `ELEVEN_LABS_STT_TOKEN` from it before considering legacy network profiles. `MLUVA_AGENT_SECRET_NAME` can select another supported credential name in that snapshot. This avoids retired profile references blocking startup after credential rotation. The [native launcher](../rust/mluva-gtk/tests/fixtures/launcher-evidence.md) owns this optional route; `configure-secret-profile.sh` remains available for manual profile setup. Ordinary installations do not require it.
 
@@ -82,7 +78,7 @@ Clipboard delivery remains the standard workflow. The optional GNOME overlay bel
 
 `mluva-overlay install` enables the optional GNOME Shell menu and display-only recording bar. A newly installed extension may need one logout/login before GNOME discovers it. The app's in-window recording display is available without the extension. Remove it with `mluva-overlay remove`.
 
-Automatic insertion is Experimental and disabled by default. Native AT-SPI editing needs accessibility enabled before the app starts. On GNOME, check `gsettings get org.gnome.desktop.interface toolkit-accessibility`; enable it through desktop settings or `gsettings set org.gnome.desktop.interface toolkit-accessibility true`, then restart applications that do not expose text targets.
+Automatic insertion is Experimental and always attempted for a verified global-recording target. Native AT-SPI editing needs accessibility enabled before the app starts. On GNOME, check `gsettings get org.gnome.desktop.interface toolkit-accessibility`; enable it through desktop settings or `gsettings set org.gnome.desktop.interface toolkit-accessibility true`, then restart applications that do not expose text targets.
 
 When a captured AT-SPI target lacks native editing, symbolic keyboard paste uses `Ctrl+Shift+V` for recognized terminal executables (Foot, Alacritty, Ghostty, Kitty and WezTerm) and `Ctrl+V` for other applications. The terminal chord reads the clipboard rather than the primary selection used by default Foot's `Shift+Insert`. On Hyprland, terminals can also be captured without AT-SPI: Mluva verifies the focused window's owning executable and requires that exact window and process to remain focused immediately before paste. It does not activate a different window or read terminal contents. Other applications still require an accessible text target; unsupported terminals on other desktops remain copy-only.
 
@@ -96,7 +92,7 @@ The optional `ydotool` helper supports only the terminal `Shift+Insert` fallback
 
 Settings normally live in `~/.config/mluva`, persistent data in `~/.local/share/mluva`, and temporary state in the XDG runtime directory. The [product contract](../docs/product-contract.md) covers privacy, recovery and retention.
 
-On Omarchy, `mluva-shell screenshot` adds a selected region to the current narration or saved conversation without changing the clipboard. The camera button exposes the same action; [bind an unused F10](../docs/omarchy-integration.md#screenshot-context) for capture from another application. Saved images can be edited in Tensaku and are sent with subsequent AI processing when the selected model supports images. Incognito disables capture. The optional [narrated editor extension](integrations/tensaku/README.md) uses the configured speech provider for a fresh text box phrase and saves it in the chosen image area.
+On Omarchy, `mluva-shell screenshot` adds a selected region to the current narration or saved conversation without changing the clipboard. The camera button exposes the same action; [bind an unused F10](../docs/omarchy-integration.md#screenshot-context) for capture from another application. Saved images can be edited in Tensaku and remain local attachments. Incognito disables capture. The optional [narrated editor extension](integrations/tensaku/README.md) uses the configured speech provider for a fresh text box phrase and saves it in the chosen image area.
 
 If capture fails, check the input and provider status in Settings. If the widget reports that Mluva is unavailable, start the app and check that its `mluva-shell` command is reachable; see the [Omarchy guide](../docs/omarchy-integration.md#installation). A failed or uncertain insertion leaves the text available for Copy rather than retrying into an unknown target.
 

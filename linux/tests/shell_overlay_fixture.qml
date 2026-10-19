@@ -20,28 +20,14 @@ ShellRoot {
             secondaryWidget.active = secondary;
             primaryWidget.active = primary;
         }
-        function click(name: string): void {
-            if (name === "more") root.overlay.menuOpen = true;
-            else root.descendants(root.overlay.contentItem).find(item => item.objectName === name + "-button").clicked();
-        }
         function theme(light: bool): void {
             Color.loadColors(light ? 'background = "#faf4ed"\nforeground = "#575279"\naccent = "#286983"\nred = "#b4637a"'
                 : 'background = "#1a1b26"\nforeground = "#c0caf5"\naccent = "#7aa2f7"\nred = "#f7768e"');
         }
-        function option(index: int): void {
-            const menu = root.overlay.data.find(item => item.objectName === "rewrite-menu");
-            root.descendants(menu.contentItem).find(item => item.objectName === "rewrite-option-" + index).clicked();
-        }
-        function countdown(): string {
+        function position(): string {
             const origin = root.overlay.contentItem.mapToGlobal(0, 0);
-            return JSON.stringify({remaining: root.overlay.remaining, paused: root.overlay.countdownPaused,
-                visible: root.overlay.visible, x: origin.x, y: origin.y});
+            return JSON.stringify({x: origin.x, y: origin.y});
         }
-        function focusReview(): void {
-            root.descendants(root.overlay.contentItem).find(item => item.objectName === "polish-button").forceActiveFocus();
-            root.overlay.contentItem.Window.window.requestActivate();
-        }
-        function closeMenu(): void { root.overlay.menuOpen = false; }
         function scroll(delta: int): void { root.overlay.scrollPreview(delta); }
         function motionSamples(): string {
             let shortText = "", nearEdge = "", wrapped = "";
@@ -126,7 +112,6 @@ ShellRoot {
             const origin = overlay.contentItem.mapToGlobal(0, 0);
             const text = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-text");
             const viewport = root.descendants(overlay.contentItem).find(item => item.objectName === "transcript-viewport");
-            const copy = root.descendants(overlay.contentItem).find(item => item.objectName === "copy-button");
             const surface = root.descendants(overlay.contentItem).find(item => item.objectName === "overlay-surface");
             const drag = root.descendants(overlay.contentItem).find(item => item.objectName === "recorder-drag-area");
             const dot = root.descendants(overlay.contentItem).find(item => item.objectName === "recording-dot");
@@ -136,9 +121,7 @@ ShellRoot {
             return JSON.stringify({phase: widget.phase, preview: widget.preview, elapsed: widget.elapsed,
                 barCount: widgets.length, overlayCount: overlays.length,
                 visibleOverlays: overlays.filter(item => item.visible).length,
-                identifier: widget.identifier, options: widget.options, menuOpen: overlay.menuOpen,
-                copyEnabled: copy.enabled, copyVisible: copy.visible, renderedText: text.text,
-                reviewDuration: overlay.reviewDuration, smoothScrolling: overlay.smoothScrolling,
+                renderedText: text.text, smoothScrolling: overlay.smoothScrolling,
                 scrollDuration: overlay.scrollDuration, scrollLookahead: overlay.scrollLookahead,
                 dotRadius: 6.4 + 1.6 * dot.breath, dotPhase: dot.pulsePhase,
                 dotCenterX: dot.mapToItem(overlay.contentItem, dot.width / 2, dot.height / 2).x,

@@ -1,4 +1,13 @@
-# Mluva native Rust implementation
+# Native workspace
+
+The installed application is Rust/GTK4. See [CONTRIBUTING](../CONTRIBUTING.md) for the current code map and required checks, the [product contract](../docs/product-contract.md) for invariants, and the [functional checklist](../docs/functional-checklist.md) for acceptance boundaries.
+
+The dictation simplification removes rewrite providers, prompts, cleanup schedulers, review controllers and special capture modes. Existing history, working edits, replies, recordings and local models remain compatible. [Current verification](../docs/verification/dictation-only/README.md) records this change and the retained test owners.
+
+## Historical Rust-port record
+
+The material below records earlier release comparisons, including features and test runners subsequently retired. It is not the current feature list or validation plan.
+
 
 The [2.2.1 Chromium selection correction](../docs/verification/browser-direct-transport/README.md#chromium-selection-preserved-for-automatic-delivery) preserves actual highlights for automatic dictation/Live delivery, rejects selection/content revisions and keeps uncertain replacements unconfirmed. Existing browser and assembled application owners verify correct Unicode output without automatic field-text reads. Explicit mixed-Unicode Command capture and full physical/platform parity remain open.
 

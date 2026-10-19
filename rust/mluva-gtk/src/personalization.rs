@@ -1,4 +1,4 @@
-//! The same nested native editors for vocabulary, snippets and output styles.
+//! The same nested native editors for vocabulary and snippets.
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -6,13 +6,9 @@ use std::rc::Rc;
 use adw::prelude::*;
 use mluva_core::history::HistoryStore;
 use mluva_core::personalization::{DictionaryCaseBehavior, PersonalizationStore};
-use mluva_core::prompt_catalog::SavedStyle;
 use mluva_core::vocabulary::{self, VocabularySuggestion};
 
-use crate::prompt_editor::reveal_prompt_button;
-
 type Message = Rc<dyn Fn(&str)>;
-pub type EditPrompt = Rc<dyn Fn(&str)>;
 
 struct DictionaryEditor {
     row: adw::ExpanderRow,
@@ -30,30 +26,17 @@ struct SnippetEditor {
     expansion: gtk::TextView,
     save: gtk::Button,
 }
-struct StyleEditor {
-    row: adw::ExpanderRow,
-    name: adw::EntryRow,
-    instructions: gtk::TextView,
-    save: gtk::Button,
-    cancel: gtk::Button,
-}
-
 pub struct PersonalizationPage {
     pub widget: gtk::Box,
     pub view_stack: adw::ViewStack,
     store: Rc<RefCell<PersonalizationStore>>,
     history: HistoryStore,
     message: Message,
-    styles_changed: Rc<dyn Fn()>,
-    edit_prompt: Option<EditPrompt>,
-    editing_style: RefCell<Option<String>>,
     dictionary: DictionaryEditor,
     snippet: SnippetEditor,
-    style: StyleEditor,
     dictionary_list: gtk::ListBox,
     suggestion_list: gtk::ListBox,
     snippet_list: gtk::ListBox,
-    style_list: gtk::ListBox,
     maturity_badge: gtk::Label,
     maturity_detail: gtk::Label,
 }
@@ -63,8 +46,6 @@ impl PersonalizationPage {
         store: Rc<RefCell<PersonalizationStore>>,
         history: HistoryStore,
         message: Message,
-        styles_changed: Rc<dyn Fn()>,
-        edit_prompt: Option<EditPrompt>,
     ) -> Rc<Self> {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let header = content(12);
@@ -97,11 +78,9 @@ impl PersonalizationPage {
         widget.append(&clamp(&header));
         let dictionary = dictionary_editor();
         let snippet = snippet_editor();
-        let style = style_editor();
         let dictionary_list = list();
         let suggestion_list = list();
         let snippet_list = list();
-        let style_list = list();
         for (name, title, icon, editor, list_title, description, list) in [
             (
                 "dictionary",
@@ -109,7 +88,7 @@ impl PersonalizationPage {
                 "accessories-dictionary-symbolic",
                 Some(&dictionary.row),
                 "Saved dictionary entries",
-                "Exact whole-phrase replacements run locally before optional Codex enhancement.",
+                "Exact whole-phrase replacements run locally before delivery.",
                 &dictionary_list,
             ),
             (
@@ -130,15 +109,6 @@ impl PersonalizationPage {
                 "Exact spoken and optional typed triggers are expanded locally.",
                 &snippet_list,
             ),
-            (
-                "styles",
-                "Styles",
-                "document-edit-symbolic",
-                Some(&style.row),
-                "Output styles",
-                "Edit prompt instructions in the shared editor; styles apply only when selected.",
-                &style_list,
-            ),
         ] {
             view_stack.add_titled_with_icon(
                 &subpage(editor, list_title, description, list),
@@ -149,7 +119,7 @@ impl PersonalizationPage {
         }
         widget.append(&view_stack);
         if store.borrow().persistence_error.is_some() {
-            for editor in [&dictionary.row, &snippet.row, &style.row] {
+            for editor in [&dictionary.row, &snippet.row] {
                 editor.set_sensitive(false);
             }
         }
@@ -159,16 +129,11 @@ impl PersonalizationPage {
             store,
             history,
             message,
-            styles_changed,
-            edit_prompt,
-            editing_style: RefCell::new(None),
             dictionary,
             snippet,
-            style,
             dictionary_list,
             suggestion_list,
             snippet_list,
-            style_list,
             maturity_badge,
             maturity_detail,
         });
@@ -197,20 +162,6 @@ impl PersonalizationPage {
                 page.save_snippet();
             }
         });
-        let weak = Rc::downgrade(self);
-        self.style.save.connect_clicked(move |_| {
-            if let Some(page) = weak.upgrade() {
-                page.save_style();
-            }
-        });
-        let weak = Rc::downgrade(self);
-        self.style.cancel.connect_clicked(move |_| {
-            if let Some(page) = weak.upgrade() {
-                page.clear_style_editor();
-                page.style.row.set_expanded(false);
-                (page.message)("Custom style edit cancelled.");
-            }
-        });
     }
 
     fn category_changed(&self) {
@@ -219,7 +170,6 @@ impl PersonalizationPage {
             .visible_child_name()
             .unwrap_or_else(|| "dictionary".into());
         let identifier = match category.as_str() {
-            "styles" => "saved_styles",
             "snippets" => "snippets",
             _ => "dictionary_suggestions",
         };
@@ -254,7 +204,6 @@ impl PersonalizationPage {
             &self.dictionary_list,
             &self.suggestion_list,
             &self.snippet_list,
-            &self.style_list,
         ] {
             clear(list);
         }
@@ -372,15 +321,6 @@ impl PersonalizationPage {
             });
             self.snippet_list.append(&row);
         }
-        let styles = self.store.borrow().styles();
-        match styles {
-            Ok(styles) => {
-                for style in styles {
-                    self.style_list.append(&self.style_row(style));
-                }
-            }
-            Err(error) => (self.message)(&error.to_string()),
-        }
     }
 
     fn suggestion_row(self: &Rc<Self>, suggestion: VocabularySuggestion) -> adw::ActionRow {
@@ -443,77 +383,6 @@ impl PersonalizationPage {
         row
     }
 
-    fn style_row(self: &Rc<Self>, style: SavedStyle) -> adw::ExpanderRow {
-        let row = adw::ExpanderRow::builder()
-            .title(&style.name)
-            .subtitle(if style.is_built_in {
-                "Built-in output mode"
-            } else {
-                "Custom output mode"
-            })
-            .build();
-        let instructions = gtk::Label::builder()
-            .label(&style.instructions)
-            .xalign(0.0)
-            .selectable(true)
-            .wrap(true)
-            .build();
-        margins(&instructions, 12);
-        row.add_row(&instructions);
-        if let Some(callback) = &self.edit_prompt {
-            row.add_css_class("ml-prompt-control");
-            let edit = gtk::Button::builder()
-                .icon_name("emblem-system-symbolic")
-                .valign(gtk::Align::Center)
-                .build();
-            edit.add_css_class("ml-prompt-settings");
-            let label = format!("Edit prompt · {}", style.name);
-            edit.set_tooltip_text(Some(&label));
-            edit.update_property(&[gtk::accessible::Property::Label(&label)]);
-            let callback = callback.clone();
-            let identifier = format!("style-{}", style.identifier.to_ascii_lowercase());
-            edit.connect_clicked(move |_| callback(&identifier));
-            row.add_suffix(&edit);
-            reveal_prompt_button(&row, &edit);
-        }
-        if !style.is_built_in {
-            let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
-            if self.edit_prompt.is_none() {
-                let edit = button("Edit", "");
-                let weak = Rc::downgrade(self);
-                let chosen = style.clone();
-                edit.connect_clicked(move |_| {
-                    if let Some(page) = weak.upgrade() {
-                        page.begin_style_edit(&chosen);
-                    }
-                });
-                actions.append(&edit);
-            }
-            let delete = button("Delete", "destructive-action");
-            let weak = Rc::downgrade(self);
-            delete.connect_clicked(move |_| {
-                if let Some(page) = weak.upgrade() {
-                    let result = page.store.borrow_mut().delete_style(&style.identifier);
-                    if let Err(error) = result {
-                        (page.message)(&format!("Custom style could not be deleted: {error}"));
-                        return;
-                    }
-                    if page.editing_style.borrow().as_deref() == Some(&style.identifier) {
-                        page.clear_style_editor();
-                    }
-                    page.refresh();
-                    (page.styles_changed)();
-                    (page.message)("Custom output style deleted.");
-                }
-            });
-            actions.append(&delete);
-            let action = action("Custom mode actions", "");
-            action.add_suffix(&actions);
-            row.add_row(&action);
-        }
-        row
-    }
-
     fn save_dictionary(self: &Rc<Self>) {
         let application = self.dictionary.application.text();
         let result = self.store.borrow_mut().save_dictionary_replacement(
@@ -557,67 +426,8 @@ impl PersonalizationPage {
         self.refresh();
         (self.message)("Snippet saved locally.");
     }
-
-    fn save_style(self: &Rc<Self>) {
-        let name = self.style.name.text();
-        let instructions = view_text(&self.style.instructions);
-        let result = if let Some(identifier) = self.editing_style.borrow().as_deref() {
-            self.store
-                .borrow_mut()
-                .update_style(identifier, &name, &instructions)
-        } else {
-            let styles = self.store.borrow().styles();
-            if self.edit_prompt.is_some()
-                && styles.as_ref().is_ok_and(|styles| {
-                    styles.iter().any(|style| {
-                        caseless_name(&style.name) == caseless_name(mluva_core::text::trim(&name))
-                    })
-                })
-            {
-                Err(mluva_core::database::StoreError::Invalid(
-                    "Choose a new name, or edit the existing prompt with its settings button."
-                        .into(),
-                ))
-            } else {
-                self.store.borrow_mut().save_style(&name, &instructions)
-            }
-        };
-        if let Err(error) = result {
-            (self.message)(&format!("Custom style could not be saved: {error}"));
-            return;
-        }
-        self.clear_style_editor();
-        self.style.row.set_expanded(false);
-        self.refresh();
-        (self.styles_changed)();
-        (self.message)("Custom output style saved locally.");
-    }
-
-    fn begin_style_edit(&self, style: &SavedStyle) {
-        self.editing_style.replace(Some(style.identifier.clone()));
-        self.style.name.set_text(&style.name);
-        self.style
-            .instructions
-            .buffer()
-            .set_text(&style.instructions);
-        self.style.save.set_label("Save custom style");
-        self.style.cancel.set_visible(true);
-        self.style.row.set_expanded(true);
-        (self.message)(&format!("Editing custom style “{}”.", style.name));
-    }
-
-    fn clear_style_editor(&self) {
-        self.editing_style.replace(None);
-        self.style.name.set_text("");
-        self.style.instructions.buffer().set_text("");
-        self.style.save.set_label("Create custom style");
-        self.style.cancel.set_visible(false);
-    }
 }
 
-fn caseless_name(value: &str) -> String {
-    caseless::default_case_fold_str(value)
-}
 fn optional(value: &str) -> Option<&str> {
     (!value.is_empty()).then_some(value)
 }
@@ -798,38 +608,5 @@ fn snippet_editor() -> SnippetEditor {
         application,
         expansion,
         save,
-    }
-}
-fn style_editor() -> StyleEditor {
-    let row = adw::ExpanderRow::builder()
-        .title("Create custom style")
-        .subtitle("Custom instructions are sent with dictated text only when selected")
-        .build();
-    let name = adw::EntryRow::builder().title("Custom style name").build();
-    let instructions = gtk::TextView::builder()
-        .wrap_mode(gtk::WrapMode::WordChar)
-        .build();
-    row.add_row(&name);
-    row.add_row(&text_editor(
-        "_Full custom instructions",
-        &instructions,
-        140,
-        "The target application identity is never sent to Codex.",
-    ));
-    let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
-    let save = button("Create custom style", "suggested-action");
-    let cancel = button("Cancel edit", "");
-    cancel.set_visible(false);
-    actions.append(&save);
-    actions.append(&cancel);
-    let action = action("Custom output mode", "");
-    action.add_suffix(&actions);
-    row.add_row(&action);
-    StyleEditor {
-        row,
-        name,
-        instructions,
-        save,
-        cancel,
     }
 }

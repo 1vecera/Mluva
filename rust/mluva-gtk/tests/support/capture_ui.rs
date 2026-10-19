@@ -4,40 +4,6 @@ use mluva_core::history::HistoryEntry;
 use mluva_gtk::capture_view::CapturePage;
 use serde_json::{Value, json};
 use std::path::Path;
-use std::rc::Rc;
-
-/// Standalone capture comparisons still use the real title owner. The full
-/// application supplies its shared owner and editable PromptStore instead.
-#[allow(dead_code)]
-pub fn titles(
-    page: &Rc<CapturePage>,
-    runtime: &Rc<mluva_gtk::async_runtime::DesktopRuntime>,
-    cwd: &Path,
-) -> Rc<dyn Fn(&HistoryEntry)> {
-    let configured = Rc::downgrade(page);
-    let changed = Rc::downgrade(page);
-    let jobs = mluva_gtk::title_jobs::ConversationTitleJobs::new(
-        page.workspace.store.history.clone(),
-        cwd.to_owned(),
-        runtime.clone(),
-        Rc::new(move || configured.upgrade().expect("live capture page").config()),
-        Rc::new(|| {
-            Ok(mluva_core::prompt_catalog::DEFAULTS
-                .prompts
-                .iter()
-                .find(|prompt| prompt.identifier == "title")
-                .expect("title instructions")
-                .default
-                .clone())
-        }),
-        Rc::new(move |id| {
-            if let Some(page) = changed.upgrade() {
-                let _ = page.workspace.refresh_title(id);
-            }
-        }),
-    );
-    Rc::new(move |entry| jobs.enqueue(entry))
-}
 
 pub fn widgets(widget: &impl IsA<gtk::Widget>) -> Vec<gtk::Widget> {
     fn append(widget: gtk::Widget, result: &mut Vec<gtk::Widget>) {
@@ -88,7 +54,68 @@ pub fn observe(page: &CapturePage, audio: Option<&Path>) -> Value {
             "icons":record.iter().filter_map(|widget|widget.downcast_ref::<gtk::Image>().and_then(|image|image.icon_name()).map(String::from)).collect::<Vec<_>>(),
             "sensitive":page.record_button.get_sensitive(),"suggested":page.record_button.has_css_class("suggested-action"),"destructive":page.record_button.has_css_class("destructive-action")},
         "live":{"visible":page.workspace.live_box.get_visible(),"phase":page.workspace.live_title.label().to_string(),"text":buffer(&page.workspace.live_text)},
-        "output":{"visible":page.output_section.get_visible(),"text":buffer(&page.output_view)},
         "entry":page.workspace.entry().map(|entry|json!({"raw":entry.raw_text,"output":entry.delivered_text})),
         "callout":{"revealed":page.setup_callout.reveals_child(),"title":page.setup_title.label().to_string(),"body":page.setup_body.label().to_string(),"tooltip":normalize(page.setup_body.tooltip_text())}})
+}
+
+/// Declared product changes applied to historical capture expectations only.
+#[allow(dead_code)]
+pub fn current_contract(value: &mut Value) {
+    match value {
+        Value::Object(fields) => {
+            fields.remove("requires_acceptance");
+            if fields.contains_key("raw_text")
+                && fields.get("identifier").is_some_and(|v| v == "generated")
+            {
+                // New labels are rendered from local text instead of stored by a title job.
+                fields.insert("title".into(), Value::Null);
+            }
+            if fields
+                .get("callout")
+                .is_some_and(|v| v["revealed"] == true && v["title"] == "Capture problem")
+            {
+                fields.insert(
+                    "status".into(),
+                    json!("Capture failed. Open History to recover retained audio."),
+                );
+                fields.insert(
+                    "tooltip".into(),
+                    json!("Capture failed. Open History to recover retained audio."),
+                );
+            }
+            if fields.contains_key("record") && fields.contains_key("live") {
+                fields.remove("output");
+            }
+            if fields
+                .get("guidance")
+                .and_then(Value::as_str)
+                .is_some_and(|s| s.starts_with("Dictation ready. Automatic copying is off."))
+            {
+                fields.insert("copied".into(), json!(true));
+            }
+            for (key, child) in fields.iter_mut() {
+                if key == "delivery_outcome" && child == "ready" {
+                    *child = json!("copied");
+                }
+                current_contract(child);
+            }
+        }
+        Value::Array(values) => values.iter_mut().for_each(current_contract),
+        Value::String(s) => {
+            *s = s
+                .replace(
+                    "Ready · microphone capture started with Scribe v2 realtime.",
+                    "Ready · microphone capture started.",
+                )
+                .replace(
+                    "Finalizing committed ElevenLabs Scribe v2 Realtime text…",
+                    "Finalizing recognized text…",
+                )
+                .replace(
+                    "Dictation ready. Automatic copying is off.",
+                    "Copied. Paste in the target application.",
+                );
+        }
+        _ => {}
+    }
 }

@@ -103,7 +103,6 @@ export function createService({
   origin,
   origins = [origin],
   speechEnabled = false,
-  rewriteText,
   now = () => Date.now(),
 }) {
   const seconds = () => Math.floor(now() / 1000);
@@ -259,7 +258,6 @@ export function createService({
           online: live.some((c) => c.deviceId === row.id),
         })),
         speechEnabled,
-        rewriteEnabled: Boolean(rewriteText),
       };
     }
     if (path === "/devices" && method === "POST") {
@@ -403,40 +401,6 @@ export function createService({
       const token = await mintSpeechToken();
       await signedDevice(body.deviceId);
       return { token };
-    }
-    if (path === "/rewrite" && method === "POST") {
-      if (!rewriteText)
-        fail(
-          503,
-          "Rewriting is not enabled on this host. Your text is ready to edit and export.",
-        );
-      const device = await signedDevice(body.deviceId);
-      if (body.consent !== true)
-        fail(400, "Confirm that text will go to the host’s rewrite provider.");
-      const source = text(body.text, 60000),
-        instruction = text(body.instruction, 12000);
-      if (!source.trim() || !instruction.trim())
-        fail(400, "Add text and a rewrite instruction first.");
-      const minute = Math.floor(seconds() / 60),
-        sk = `REWRITE#${minute}`,
-        count = await store.get(pk, sk);
-      if ((count?.count ?? 0) >= 5)
-        fail(429, "Wait a minute before rewriting again.");
-      await store.commit([
-        ...deviceChecks(owner, device),
-        {
-          put: {
-            pk,
-            sk,
-            count: (count?.count ?? 0) + 1,
-            expires: seconds() + 120,
-          },
-          ...(count ? { matches: { count: count.count } } : { absent: true }),
-        },
-      ]);
-      const result = await rewriteText({ source, instruction });
-      await signedDevice(body.deviceId);
-      return { text: text(result.text), model: text(result.model, 200) };
     }
     if (path === "/history" && method === "GET") {
       const cursor = query.cursor;

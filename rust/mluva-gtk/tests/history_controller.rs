@@ -4,7 +4,6 @@ use base64::{Engine as _, engine::general_purpose::STANDARD};
 use mluva_core::{
     config::{AppConfig, AppPaths},
     history::HistoryInput,
-    scratchpad::ScratchpadDraft,
 };
 use mluva_gtk::{
     async_runtime::DesktopRuntime,
@@ -14,9 +13,7 @@ use mluva_gtk::{
     history_controller::{HistoryController, HistoryControllerCallbacks},
     theme::ThemeController,
 };
-use mluva_providers::{
-    Secret, elevenlabs::ElevenLabsClient, rewriting::RewriteClient, speech::SpeechClient,
-};
+use mluva_providers::{Secret, elevenlabs::ElevenLabsClient, speech::SpeechClient};
 use mluva_workflows::{dictation::DictationWorkflow, services::ApplicationServices};
 use serde_json::{Value, json};
 use std::{
@@ -91,15 +88,26 @@ fn observe(
             }
         }
     }
-    let b = page.output_view.buffer();
     normalize(
-        json!({"status":page.status.label().to_string(),"output":b.text(&b.start_iter(),&b.end_iter(),true).to_string(),
- "controls":{"mode":prefs.mode.is_sensitive(),"key":prefs.recording_key.is_sensitive(),"incognito":prefs.incognito.is_sensitive(),"language":prefs.language.is_sensitive(),"microphone":prefs.microphone.is_sensitive(),"system":prefs.system_audio.is_sensitive(),"refresh":prefs.refresh_audio.is_sensitive(),"audio_retention":prefs.audio_retention.is_sensitive(),"history_retention":prefs.history_retention.is_sensitive(),"spoken":prefs.spoken_commands.is_sensitive(),"remember":prefs.remember_application.is_sensitive()},
- "capture_sensitive":page.record_button.is_sensitive(),"retry":owner.retry_identifier(),"retrying":owner.retry_identifier().is_some(),"records":records,"events":events,"draft":services.scratchpad.borrow().draft,"draft_exists":services.scratchpad.borrow().path.exists(),"audio":services.paths.data.join(format!("recordings/{ID}.wav")).exists(),"history_count":owner.page.count.label().to_string(),"scratchpad_visible":page.scratchpad_actions.get_visible()}),
+        json!({"status":page.status.label().to_string(),
+ "controls":{"key":prefs.recording_key.is_sensitive(),"incognito":prefs.incognito.is_sensitive(),"language":prefs.language.is_sensitive(),"microphone":prefs.microphone.is_sensitive(),"system":prefs.system_audio.is_sensitive(),"refresh":prefs.refresh_audio.is_sensitive(),"audio_retention":prefs.audio_retention.is_sensitive(),"history_retention":prefs.history_retention.is_sensitive(),"spoken":prefs.spoken_commands.is_sensitive()},
+ "capture_sensitive":page.record_button.is_sensitive(),"retry":owner.retry_identifier(),"retrying":owner.retry_identifier().is_some(),"records":records,"events":events,"audio":services.paths.data.join(format!("recordings/{ID}.wav")).exists(),"history_count":owner.page.count.label().to_string()}),
         root,
     )
 }
 fn compare(actual: Value, expected: &Value, label: &str, private: &Path) {
+    let mut expected = expected.clone();
+    for key in ["output", "draft", "draft_exists", "scratchpad_visible"] {
+        expected.as_object_mut().unwrap().remove(key);
+    }
+    for key in ["mode", "remember"] {
+        expected["controls"].as_object_mut().unwrap().remove(key);
+    }
+    expected["events"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|event| event[0] != "title");
+    let expected = &expected;
     if &actual != expected {
         fs::write(
             private.join("history-owner-actual.json"),
@@ -131,11 +139,9 @@ fn configure(owner: &HistoryController, services: &Rc<ApplicationServices>, addr
             &endpoint,
             Duration::from_secs(3),
         )?);
-        let rewrite = RewriteClient::new(&config, None, None)?;
         let mut workflow = DictationWorkflow::new(
             config,
             speech,
-            rewrite,
             services.history.clone(),
             services.cwd.clone(),
         );
@@ -191,6 +197,17 @@ fn released_history_recovery_and_owned_shutdown() {
         serde_json::from_str(include_str!("fixtures/released-history-controller.json")).unwrap();
     let mut states = 0;
     for case in fixture["cases"].as_array().unwrap() {
+        if case["name"] == "paste-disabled-copies" {
+            continue;
+        }
+        if case["stages"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| ["command", "draft"].contains(&s["action"].as_str().unwrap_or_default()))
+        {
+            continue;
+        }
         let directory = tempfile::tempdir_in(&private).unwrap();
         let root = directory.path();
         let paths = AppPaths {
@@ -200,11 +217,9 @@ fn released_history_recovery_and_owned_shutdown() {
         };
         let config = AppConfig {
             language_code: "ces".into(),
-            rewrite_provider: "none".into(),
             transcription_provider: "elevenlabs".into(),
             history_retention_days: 0.into(),
             spoken_commands_enabled: true,
-            auto_paste: case["auto_paste"].as_bool().unwrap_or(false),
             ..Default::default()
         };
         config.save(&paths.config.join("config.json")).unwrap();
@@ -242,7 +257,6 @@ fn released_history_recovery_and_owned_shutdown() {
         let (capture, prefs) = capture_graph::graph(services.clone(), resources.clone());
         let events = Rc::new(RefCell::new(Vec::<Value>::new()));
         let activity = Rc::new(RefCell::new(PreferenceActivity::default()));
-        let command = Rc::new(RefCell::new(None::<String>));
         let owner = HistoryController::new(
             services.clone(),
             runtime.clone(),
@@ -251,18 +265,7 @@ fn released_history_recovery_and_owned_shutdown() {
             HistoryControllerCallbacks {
                 activity: {
                     let activity = activity.clone();
-                    let command = command.clone();
-                    let services = services.clone();
-                    Rc::new(move || {
-                        let mut a = activity.borrow().clone();
-                        a.pending_review = command.borrow().is_some()
-                            || services.scratchpad.borrow().draft.is_some();
-                        a
-                    })
-                },
-                pending_command: {
-                    let command = command.clone();
-                    Rc::new(move || command.borrow().clone())
+                    Rc::new(move || activity.borrow().clone())
                 },
                 changed: {
                     let events = events.clone();
@@ -275,12 +278,6 @@ fn released_history_recovery_and_owned_shutdown() {
                 idle: {
                     let events = events.clone();
                     Rc::new(move || events.borrow_mut().push(json!(["idle"])))
-                },
-                queue_title: {
-                    let events = events.clone();
-                    Rc::new(move |entry| {
-                        events.borrow_mut().push(json!(["title", entry.identifier]))
-                    })
                 },
                 close_screenshot: {
                     let events = events.clone();
@@ -349,31 +346,6 @@ fn released_history_recovery_and_owned_shutdown() {
                         recording: action == "recording",
                         ..Default::default()
                     };
-                    command.borrow_mut().take();
-                }
-                "command" => {
-                    command.replace(Some(ID.into()));
-                }
-                "draft" => {
-                    services
-                        .scratchpad
-                        .borrow_mut()
-                        .save(
-                            ScratchpadDraft {
-                                identifier: ID.into(),
-                                history_identifier: Some(ID.into()),
-                                created_at: DATE.into(),
-                                raw_text: "Original raw.".into(),
-                                text: "Unresolved Notes".into(),
-                                audio_path: None,
-                                incognito: false,
-                                audio_retention_policy: "failures".into(),
-                                session_identifier: None,
-                            },
-                            true,
-                        )
-                        .unwrap();
-                    capture.scratchpad_actions.set_visible(true);
                 }
                 "retry" => owner.retry_recognition(&entry),
                 "reprocess" => owner.reprocess(&entry),
@@ -421,10 +393,6 @@ fn released_history_recovery_and_owned_shutdown() {
             configure(&owner, &services, &peer.address);
             let before = services.history.find(ID).unwrap();
             let callbacks = events.borrow().clone();
-            let output = capture.output_view.buffer();
-            let before_output = output
-                .text(&output.start_iter(), &output.end_iter(), true)
-                .to_string();
             owner.retry_recognition(&before);
             wait(|| !peer.observed.lock().unwrap().is_empty());
             let closed = owner.shutdown();
@@ -434,12 +402,6 @@ fn released_history_recovery_and_owned_shutdown() {
             settle();
             assert_eq!(services.history.find(ID).unwrap(), before);
             assert_eq!(*events.borrow(), callbacks);
-            assert_eq!(
-                output
-                    .text(&output.start_iter(), &output.end_iter(), true)
-                    .as_str(),
-                before_output
-            );
             assert!(audio.exists());
             assert!(!owner.set_workflow_factory(None));
         }

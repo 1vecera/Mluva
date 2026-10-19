@@ -26,12 +26,6 @@ tempfile.workspace = true
 rusqlite.workspace = true
 base64.workspace = true
 
-[[bin]]
-name = "segment-cleanup-fixture-peer"
-path = "tests/support/segment_peer.rs"
-test = false
-bench = false
-
 # Reuse the owned synthetic audio peer and native memory cleanup implementation;
 # these test endpoints are never selected by distribution tooling.
 [[bin]]

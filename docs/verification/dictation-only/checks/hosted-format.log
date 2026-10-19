@@ -1,0 +1,6 @@
+
+> mluva-everywhere@2.4.0 format:check
+> prettier --check 'server/*.mjs' 'web/*.{mjs,js,css,html,json,webmanifest}' 'scripts/*.mjs' 'tests/*.mjs' package.json server/package.json template.yaml
+
+Checking formatting...
+All matched files use Prettier code style!

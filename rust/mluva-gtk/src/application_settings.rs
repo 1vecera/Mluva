@@ -1,6 +1,5 @@
-//! One application-owned settings/setup graph, sharing actual config and prompt stores.
+//! One application-owned speech settings and setup graph.
 
-use adw::prelude::*;
 use mluva_audio::catalog::PipeWireDeviceCatalog;
 use mluva_core::database::StoreResult;
 use mluva_workflows::services::{
@@ -15,12 +14,13 @@ use std::{
 use crate::{
     async_runtime::DesktopRuntime,
     capture_preferences::{CapturePreferenceCallbacks, CapturePreferences},
-    prompt_editor::{Message, PromptSession, PromptsPage},
     provider_settings::ProviderSettings,
     settings_view::{SaveSettings, SettingsView},
     welcome_view::WelcomeView,
     workspace_settings::WorkspaceSettings,
 };
+
+type Message = Rc<dyn Fn(&str)>;
 
 pub struct ApplicationSettingsCallbacks {
     pub activity: Rc<dyn Fn() -> SettingsActivity>,
@@ -28,7 +28,6 @@ pub struct ApplicationSettingsCallbacks {
     /// recordings are governed by SettingsActivity and retain their snapshots.
     pub committed: Rc<dyn Fn(SettingsUpdate)>,
     pub navigate: Rc<dyn Fn(&str)>,
-    pub prompts_changed: Rc<dyn Fn()>,
     pub message: Message,
     pub inline: CapturePreferenceCallbacks,
 }
@@ -39,18 +38,14 @@ pub struct ApplicationSettings {
     pub providers: Rc<ProviderSettings>,
     pub welcome: Rc<WelcomeView>,
     pub capture: Rc<CapturePreferences>,
-    pub prompts: Rc<PromptsPage>,
-    pub prompt_session: Rc<PromptSession>,
     services: Rc<ApplicationServices>,
     callbacks: ApplicationSettingsCallbacks,
 }
 
 impl ApplicationSettings {
-    /// The released search index starts with Prompts and excludes informational
-    /// maturity rows. Visible preference navigation retains its separate order.
-    pub(crate) fn command_pages(&self) -> [adw::PreferencesPage; 7] {
+    /// Searchable preference pages exclude informational maturity rows.
+    pub(crate) fn command_pages(&self) -> [adw::PreferencesPage; 6] {
         [
-            self.prompts.widget.clone(),
             self.workspace.widget.clone(),
             self.providers.widget.clone(),
             self.capture.capture.clone(),
@@ -65,7 +60,6 @@ impl ApplicationSettings {
         runtime: Rc<DesktopRuntime>,
         catalog: PipeWireDeviceCatalog,
         catalog_error: Option<String>,
-        tracking_available: bool,
         callbacks: ApplicationSettingsCallbacks,
     ) -> StoreResult<Rc<Self>> {
         let current: Rc<RefCell<Weak<Self>>> = Rc::new(RefCell::new(Weak::new()));
@@ -75,16 +69,10 @@ impl ApplicationSettings {
                 .upgrade()
                 .is_some_and(|owner| owner.apply(changes))
         });
-        let weak = current.clone();
-        let open = Rc::new(move |identifier: &str| {
-            if let Some(owner) = weak.borrow().upgrade() {
-                owner.open_prompt(identifier);
-            }
-        });
         let navigate = callbacks.navigate.clone();
         let view = SettingsView::new(Rc::new(move || navigate("capture")));
         let config = services.config();
-        let workspace = WorkspaceSettings::new(&config, save.clone(), Some(open.clone()));
+        let workspace = WorkspaceSettings::new(&config, save.clone());
         let providers = ProviderSettings::new(
             &config,
             services.paths.data.clone(),
@@ -99,15 +87,9 @@ impl ApplicationSettings {
             services.clone(),
             catalog,
             catalog_error,
-            tracking_available,
             callbacks.inline.clone(),
         );
         capture.add_pages(&view);
-        let prompts = PromptsPage::new(services.prompts.clone(), open)?;
-        if !services.config_load_error.is_empty() {
-            prompts.set_load_error(&services.config_load_error);
-        }
-        view.add(&prompts.widget);
         let weak = current.clone();
         let finish = Rc::new(move || {
             if let Some(owner) = weak.borrow().upgrade() {
@@ -122,26 +104,12 @@ impl ApplicationSettings {
             save,
             finish,
         );
-        let saved = services.clone();
-        let weak = current.clone();
-        let prompt_session = PromptSession::new(
-            services.prompts.clone(),
-            Rc::new(move || !saved.config().incognito_mode),
-            Rc::new(move || {
-                if let Some(owner) = weak.borrow().upgrade() {
-                    owner.prompts_changed();
-                }
-            }),
-            callbacks.message.clone(),
-        );
         let owner = Rc::new(Self {
             view,
             workspace,
             providers,
             welcome,
             capture,
-            prompts,
-            prompt_session,
             services,
             callbacks,
         });
@@ -164,9 +132,6 @@ impl ApplicationSettings {
         let config = self.services.config();
         self.workspace.refresh_config(&config);
         self.providers.refresh_config(&config);
-        if let Err(error) = self.prompts.refresh() {
-            (self.callbacks.message)(&error.to_string());
-        }
         (self.callbacks.navigate)("settings");
     }
     pub fn show_welcome(&self) {
@@ -181,23 +146,5 @@ impl ApplicationSettings {
                 "Could not save setup. Try again when the current operation finishes.",
             );
         }
-    }
-    pub fn open_prompt(&self, identifier: &str) {
-        if let Some(parent) = self
-            .view
-            .widget
-            .root()
-            .and_then(|root| root.upcast::<glib::Object>().downcast::<gtk::Widget>().ok())
-        {
-            self.prompt_session.open(&parent, identifier);
-        }
-    }
-    pub fn prompts_changed(&self) {
-        self.capture.refresh_styles();
-        if let Err(error) = self.prompts.refresh() {
-            (self.callbacks.message)(&error.to_string());
-        }
-        (self.callbacks.prompts_changed)();
-        (self.callbacks.message)("Prompt saved · next request, or next recording for Live");
     }
 }

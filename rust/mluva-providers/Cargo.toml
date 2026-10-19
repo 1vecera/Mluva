@@ -6,7 +6,7 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Native speech and rewrite provider connections"
+description = "Native speech provider connections"
 
 [dependencies]
 mluva-core = { path = "../mluva-core" }
@@ -38,12 +38,6 @@ tokio-native-tls = "0.3"
 [[bin]]
 name = "provider-fixture-peer"
 path = "tests/support/peer.rs"
-test = false
-doc = false
-
-[[bin]]
-name = "codex-fixture-peer"
-path = "tests/support/codex_peer.rs"
 test = false
 doc = false
 

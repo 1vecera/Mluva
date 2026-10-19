@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := linux-setup
 export CARGO_TARGET_DIR ?= $(CURDIR)/tmp/native-build
-.PHONY: test run install linux-setup linux-test linux-feature-maturity linux-feature-maturity-check linux-shortcut-test linux-overlay-test linux-text-target-test linux-conversation-test linux-live-rewrite-test linux-run linux-install linux-uninstall linux-input-helper-install linux-input-helper-status linux-input-helper-remove linux-recording-overlay-install linux-recording-overlay-status linux-recording-overlay-remove
+.PHONY: test run install linux-setup linux-test linux-feature-maturity linux-feature-maturity-check linux-shortcut-test linux-overlay-test linux-text-target-test linux-conversation-test linux-run linux-install linux-uninstall linux-input-helper-install linux-input-helper-status linux-input-helper-remove linux-recording-overlay-install linux-recording-overlay-status linux-recording-overlay-remove
 
 test: linux-test
 
@@ -19,28 +19,14 @@ linux-test: linux-setup
 	cargo fmt --all -- --check
 	$(MAKE) linux-feature-maturity-check
 
-.PHONY: linux-codex-isolation-test
-linux-codex-isolation-test:
-	bash linux/tests/run_codex_isolation_smoke.sh
-
-# Fast deterministic config/text/storage/Live feedback; linux-test is the native gate.
-.PHONY: linux-test-fast linux-application-test linux-command-test linux-continuation-test linux-live-workspace-test linux-fluid-workspace-test linux-live-stability-test
+# Fast configuration, text, storage and migration checks; linux-test is the native gate.
+.PHONY: linux-test-fast linux-application-test
 linux-test-fast:
 	cargo test --locked -p mluva-core --test reference_contracts --test persistence_contracts \
-		--test prompt_and_draft_contracts --test live_policy
-
-linux-command-test: linux-application-test
-
-linux-continuation-test:
-	bash linux/tests/run_application_smoke.sh continuation
+		--test prompt_and_draft_contracts --test legacy_recovery
 
 linux-application-test:
 	bash linux/tests/run_application_smoke.sh
-
-linux-fluid-workspace-test linux-live-stability-test: linux-live-workspace-test
-
-linux-live-workspace-test: linux-application-test
-	bash linux/tests/run_application_smoke.sh live-components
 
 .PHONY: linux-omarchy-test
 linux-omarchy-test:
@@ -82,17 +68,6 @@ linux-chromium-application-test:
 linux-conversation-test:
 	bash linux/tests/run_conversation_smoke.sh
 
-.PHONY: linux-compact-workspace-test
-linux-compact-workspace-test:
-	bash linux/tests/run_application_smoke.sh compact
-
-.PHONY: linux-conversation-management-test
-linux-conversation-management-test:
-	bash linux/tests/run_application_smoke.sh management
-
-linux-live-rewrite-test: linux-live-workspace-test
-	bash linux/tests/run_application_smoke.sh live-controllers
-
 .PHONY: linux-provider-settings-test
 linux-provider-settings-test:
 	bash linux/tests/run_application_smoke.sh providers
@@ -128,14 +103,8 @@ linux-recording-overlay-status:
 linux-recording-overlay-remove:
 	bash linux/configure-recording-overlay.sh remove
 
-.PHONY: linux-prompt-test
-linux-prompt-test:
-	bash linux/tests/run_application_smoke.sh prompts
-	bash linux/tests/run_application_smoke.sh prompt-editor
-
 .PHONY: linux-screenshot-test
 linux-screenshot-test:
-	bash linux/tests/run_application_smoke.sh images
 	bash linux/tests/run_application_smoke.sh screenshots
 
 .PHONY: linux-account-test

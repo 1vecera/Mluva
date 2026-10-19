@@ -1,0 +1,19 @@
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.88s
+  Executable tests/omarchy_widget.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/omarchy_widget-c8b37d8b2f68ae17)
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/omarchy-widget/run.x5WcCT/session.q2y30p
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/omarchy-widget/run.x5WcCT
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running tests/omarchy_widget.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/omarchy_widget-c8b37d8b2f68ae17)
+
+running 2 tests
+test released_preview_contraction_replay ... Native preview contraction replay retained released before/after states and video metadata: {"programs":[],"stream_groups":[],"streams":[{"codec_name":"h264","width":1280,"height":900,"r_frame_rate":"60/1","nb_read_frames":"300"}]}
+ok
+test released_widget_controls_geometry_and_live_motion ... Native publisher/bridge/QML matched 37 released states, private focus, motion, reduced-motion and owner-loss boundaries
+ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 41.97s

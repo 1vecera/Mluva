@@ -4,8 +4,7 @@ use crate::{
     async_runtime::DesktopRuntime,
     capture_preferences::{CapturePreferences, PreferenceActivity},
     capture_view::CapturePage,
-    history_view::{HistoryAction, HistoryCallbacks, HistoryPage},
-    prompt_editor::Message,
+    history_view::{HistoryCallbacks, HistoryPage},
     text_target::DeliveryTargetSnapshot,
 };
 use gtk::prelude::*;
@@ -13,7 +12,6 @@ use mluva_core::{
     database::{StoreError, StoreResult},
     delivery::{DeliveryOptions, deliver_text},
     history::HistoryEntry,
-    scratchpad::ScratchpadDraft,
 };
 use mluva_workflows::{
     dictation::{DictationWorkflow, WorkflowOutcome},
@@ -29,14 +27,13 @@ use std::{
 use tokio::sync::Notify;
 use tokio_util::sync::CancellationToken;
 
+type Message = Rc<dyn Fn(&str)>;
 pub type HistoryWorkflowFactory = Rc<dyn Fn() -> WorkflowOutcome<Rc<DictationWorkflow>>>;
 pub type CloseScreenshot = Rc<dyn Fn(&str) -> StoreResult<()>>;
 pub struct HistoryControllerCallbacks {
     pub activity: Rc<dyn Fn() -> PreferenceActivity>,
-    pub pending_command: Rc<dyn Fn() -> Option<String>>,
     pub changed: Rc<dyn Fn()>,
     pub idle: Rc<dyn Fn()>,
-    pub queue_title: HistoryAction,
     pub close_screenshot: CloseScreenshot,
     pub copy: Message,
 }
@@ -185,7 +182,6 @@ impl HistoryController {
         !self.closed.get()
             && !entry.delivered_text.is_empty()
             && entry.delivery_outcome != "draft"
-            && self.services.config().auto_paste
             && self
                 .targets
                 .borrow()
@@ -207,7 +203,7 @@ impl HistoryController {
             .iter()
             .find(|(id, _)| id == &entry.identifier)
             .map(|(_, target)| target.clone());
-        let auto_paste = self.services.config().auto_paste;
+        let auto_paste = true;
         let restored = auto_paste && target.as_ref().is_some_and(DeliveryTargetSnapshot::restore);
         if auto_paste && target.is_some() && !restored {
             self.targets
@@ -279,24 +275,6 @@ impl HistoryController {
             self.status("Wait for the active transcription retry before reprocessing this entry.");
             return;
         }
-        if (self.callbacks.pending_command)().as_deref() == Some(&entry.identifier) {
-            self.status("Apply or discard the active Command preview before reprocessing its history entry.");
-            return;
-        }
-        if self
-            .services
-            .scratchpad
-            .borrow()
-            .draft
-            .as_ref()
-            .and_then(|draft| draft.history_identifier.as_deref())
-            == Some(&entry.identifier)
-        {
-            self.status(
-                "Resolve or delete the active Notes draft before reprocessing its history entry.",
-            );
-            return;
-        }
         let result = reprocess_history_entry(
             &self.services.config(),
             &self.services.history,
@@ -305,10 +283,15 @@ impl HistoryController {
         );
         match result {
             Ok(entry) => {
-                self.capture
-                    .output_view
-                    .buffer()
-                    .set_text(&entry.delivered_text);
+                let replies = self
+                    .services
+                    .conversations
+                    .replies(&entry.identifier)
+                    .unwrap_or_default();
+                let _ = self
+                    .capture
+                    .workspace
+                    .show_conversation(Some(entry), &replies, false);
                 self.refresh();
                 (self.callbacks.changed)();
                 self.status(
@@ -389,19 +372,15 @@ impl HistoryController {
             owner.reset();
             match result {
                 Some(Ok(entry)) => {
-                    owner
+                    let _ = owner
                         .capture
-                        .output_view
-                        .buffer()
-                        .set_text(&entry.delivered_text);
+                        .workspace
+                        .show_conversation(Some(entry), &[], false);
                     owner.refresh();
                     (owner.callbacks.changed)();
                     owner.status(
                         "Transcription recovered. Review it in History, then copy explicitly.",
                     );
-                    if entry.mode == "dictation" {
-                        (owner.callbacks.queue_title)(&entry);
-                    }
                 }
                 Some(Err(error)) => owner.retry_failed(&error.to_string()),
                 None => {}
@@ -417,42 +396,24 @@ impl HistoryController {
     pub(crate) fn reset(&self) {
         let activity = (self.callbacks.activity)();
         self.preferences.set_activity(activity.clone());
-        let available = !activity.pending_review
-            && !activity.meeting_processing
+        let available = !activity.meeting_processing
             && !activity.meeting_retrying
             && !activity.meeting_recording;
         self.preferences.set_controls_available(available);
         let mut state = self.capture.view_state();
         state.preparing = false;
-        state.review_active = activity.pending_review;
         state.meeting_busy =
             activity.meeting_processing || activity.meeting_retrying || activity.meeting_recording;
         self.capture.set_view_state(state);
         (self.callbacks.idle)();
     }
-    pub fn delete_scratchpad(&self, draft: &ScratchpadDraft) -> StoreResult<()> {
-        if let Some(id) = &draft.history_identifier {
-            match self.services.history.delete(id) {
-                Ok(()) => self.services.scratchpad.borrow_mut().clear(false),
-                Err(StoreError::NotFound) => self.services.scratchpad.borrow_mut().clear(true),
-                Err(error) => Err(error),
-            }
-        } else {
-            self.services.scratchpad.borrow_mut().clear(true)
-        }
-    }
+
     pub fn delete(&self, entry: &HistoryEntry) -> bool {
         if self.closed.get() {
             return false;
         }
         if self.retry_identifier().as_deref() == Some(&entry.identifier) {
             self.status("Wait for the active transcription retry before deleting this entry.");
-            return false;
-        }
-        if (self.callbacks.pending_command)().as_deref() == Some(&entry.identifier) {
-            self.status(
-                "Apply or discard the active Command preview before deleting its history entry.",
-            );
             return false;
         }
         let result = (|| {
@@ -469,21 +430,7 @@ impl HistoryController {
                     (self.callbacks.close_screenshot)(&image.identifier)?;
                 }
             }
-            let draft = self
-                .services
-                .scratchpad
-                .borrow()
-                .draft
-                .clone()
-                .filter(|draft| draft.history_identifier.as_deref() == Some(&entry.identifier));
-            if let Some(draft) = draft {
-                self.delete_scratchpad(&draft)?;
-                self.capture.output_view.buffer().set_text("");
-                self.capture.scratchpad_actions.set_visible(false);
-                self.reset();
-            } else {
-                self.services.history.delete(&entry.identifier)?;
-            }
+            self.services.history.delete(&entry.identifier)?;
             Ok::<_, StoreError>(())
         })();
         if let Err(error) = result {

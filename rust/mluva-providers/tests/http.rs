@@ -1,11 +1,9 @@
-use mluva_core::screenshots::ImageInput;
 use mluva_providers::{
     ProviderError, Secret,
-    compatible::{CompatibleClient, MAX_HTTP_BYTES, RewriteOptions},
+    compatible::{CompatibleClient, MAX_HTTP_BYTES},
     elevenlabs::ElevenLabsClient,
 };
 use serde_json::{Value, json};
-use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::AsyncWriteExt;
@@ -28,52 +26,6 @@ fn expected(value: &Value) -> Value {
     let mut value = value.clone();
     value.as_object_mut().unwrap().remove("exception");
     value
-}
-
-#[tokio::test]
-async fn fragmented_sse_and_exact_requests_match_released_rewrites() {
-    let fixture: Value =
-        serde_json::from_str(include_str!("fixtures/released-providers.json")).unwrap();
-    for row in fixture["rewrites"].as_array().unwrap() {
-        let mut response = Response::ok(unhex(row["body_hex"].as_str().unwrap()));
-        response.fragment = 3;
-        let (url, captured, server) = http_once(response).await;
-        let client = compatible(&url, Some("writer"), Duration::from_secs(2));
-        let mut deltas = vec![];
-        let mut callback = |text: &str| deltas.push(text.to_owned());
-        let result = client
-            .transform(
-                "Describe 🙂",
-                Path::new("/"),
-                RewriteOptions {
-                    effort: Some("high"),
-                    service_tier: Some("priority"),
-                    ..Default::default()
-                },
-                Some(&mut callback),
-            )
-            .await;
-        assert_eq!(
-            normalized(result),
-            expected(&row["result"]),
-            "{}",
-            row["name"]
-        );
-        assert_eq!(json!(deltas), row["deltas"], "{}", row["name"]);
-        let request = captured.await.unwrap();
-        server.await.unwrap();
-        assert_eq!(request.method, "POST");
-        assert_eq!(request.path, row["request"]["path"]);
-        assert_eq!(
-            request.body,
-            unhex(row["request"]["body_hex"].as_str().unwrap())
-        );
-        assert_eq!(
-            request.headers["content-type"],
-            row["request"]["content_type"]
-        );
-        assert!(!request.headers.contains_key("authorization"));
-    }
 }
 
 #[tokio::test]
@@ -144,71 +96,6 @@ fn replace(body: &[u8], needle: &[u8], replacement: &[u8]) -> Vec<u8> {
 }
 
 #[tokio::test]
-async fn screenshot_order_offsets_and_upload_bytes_match_released_wire_requests() {
-    let fixture: Value = serde_json::from_str(include_str!("fixtures/released-wire.json")).unwrap();
-    for row in fixture["visual"].as_array().unwrap() {
-        let png = unhex(row["png_hex"].as_str().unwrap());
-        let images = row["offsets"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|offset| ImageInput {
-                data: png.clone(),
-                captured_after_seconds: offset.as_f64(),
-            })
-            .collect::<Vec<_>>();
-        let response=b"data: {\"choices\":[{\"index\":0,\"delta\":{\"content\":\" visual result \"},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n".to_vec();
-        let (url, captured, server) = http_once(Response::ok(response)).await;
-        let result = compatible(&url, Some("visual-model"), Duration::from_secs(2))
-            .transform(
-                "Explain 🙂\x7f",
-                Path::new("/"),
-                RewriteOptions {
-                    images: &images,
-                    ..Default::default()
-                },
-                None,
-            )
-            .await;
-        assert_eq!(normalized(result), expected(&row["result"]));
-        let request = captured.await.unwrap();
-        server.await.unwrap();
-        assert_eq!(
-            request.body,
-            unhex(row["request"]["body_hex"].as_str().unwrap())
-        );
-    }
-    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let url = format!("http://{}", listener.local_addr().unwrap());
-    let client = compatible(&url, Some("visual-model"), Duration::from_secs(1));
-    let images = [ImageInput {
-        data: b"damaged image".to_vec(),
-        captured_after_seconds: None,
-    }];
-    assert_eq!(
-        client
-            .transform(
-                "text",
-                Path::new("/"),
-                RewriteOptions {
-                    images: &images,
-                    ..Default::default()
-                },
-                None
-            )
-            .await
-            .unwrap_err()
-            .to_string(),
-        "Screenshot is not a PNG image."
-    );
-    assert!(
-        tokio::time::timeout(Duration::from_millis(60), listener.accept())
-            .await
-            .is_err()
-    );
-}
-
-#[tokio::test]
 async fn redirects_and_provider_failures_never_forward_content_or_echo_bodies() {
     let trap = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let target = format!("http://{}/do-not-reach", trap.local_addr().unwrap());
@@ -263,7 +150,7 @@ async fn cancellation_interrupts_stalled_requests_and_close_allows_a_new_request
         let client = Arc::new(compatible(&url, None, Duration::from_secs(30)));
         let pending = {
             let client = client.clone();
-            tokio::spawn(async move { client.list_models(None).await })
+            tokio::spawn(async move { client.list_models().await })
         };
         captured.await.unwrap();
         if permanent {
@@ -281,7 +168,7 @@ async fn cancellation_interrupts_stalled_requests_and_close_allows_a_new_request
         let _ = server.await;
         if permanent {
             assert_eq!(
-                client.list_models(None).await.unwrap_err().to_string(),
+                client.list_models().await.unwrap_err().to_string(),
                 "Request cancelled."
             );
         } else {
@@ -293,7 +180,7 @@ async fn cancellation_interrupts_stalled_requests_and_close_allows_a_new_request
                 support::request(&mut socket).await;
                 support::respond(&mut socket, &Response::ok(br#"{"data":[]}"#.to_vec())).await;
             });
-            assert!(client.list_models(None).await.unwrap().is_empty());
+            assert!(client.list_models().await.unwrap().is_empty());
             next.await.unwrap();
         }
     }
@@ -304,43 +191,11 @@ async fn response_size_document_size_and_socket_timeouts_are_enforced() {
     let (url, _, server) = http_once(Response::ok(vec![b' '; MAX_HTTP_BYTES + 1])).await;
     assert_eq!(
         compatible(&url, None, Duration::from_secs(2))
-            .list_models(None)
+            .list_models()
             .await
             .unwrap_err()
             .to_string(),
         "The provider returned an invalid model catalog."
-    );
-    server.await.unwrap();
-    let response = Response::ok(
-        b"data: {\"choices\":[{\"delta\":{\"content\":\"abc\"},\"finish_reason\":\"stop\"}]}\n\n"
-            .to_vec(),
-    );
-    let (url, _, server) = http_once(response).await;
-    let error = compatible(&url, Some("writer"), Duration::from_secs(2))
-        .transform(
-            "text",
-            Path::new("/"),
-            RewriteOptions {
-                max_output_characters: 2,
-                ..Default::default()
-            },
-            None,
-        )
-        .await
-        .unwrap_err();
-    assert_eq!(
-        error.to_string(),
-        "The rewrite exceeded the document size limit."
-    );
-    server.await.unwrap();
-    let (url, _, server) = http_once(Response::ok(vec![b'x'; MAX_HTTP_BYTES + 1])).await;
-    assert_eq!(
-        compatible(&url, Some("writer"), Duration::from_secs(2))
-            .transform("text", Path::new("/"), RewriteOptions::default(), None)
-            .await
-            .unwrap_err()
-            .to_string(),
-        "The provider stream exceeded the response size limit."
     );
     server.await.unwrap();
     let mut response = Response::ok(vec![]);
@@ -348,7 +203,7 @@ async fn response_size_document_size_and_socket_timeouts_are_enforced() {
     let (url, _, server) = http_once(response).await;
     let client = compatible(&url, None, Duration::from_millis(60));
     assert_eq!(
-        tokio::time::timeout(Duration::from_secs(1), client.list_models(None))
+        tokio::time::timeout(Duration::from_secs(1), client.list_models())
             .await
             .unwrap()
             .unwrap_err()
@@ -378,7 +233,7 @@ async fn elevenlabs_large_meetings_preserve_the_released_unbounded_batch_contrac
 }
 
 #[tokio::test]
-async fn cancel_after_response_headers_discards_partial_rewrites_and_batch_text() {
+async fn cancel_after_response_headers_discards_partial_batch_text() {
     for elevenlabs in [false, true] {
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let url = format!("http://{}", listener.local_addr().unwrap());
@@ -390,11 +245,7 @@ async fn cancel_after_response_headers_discards_partial_rewrites_and_batch_text(
                 .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 99999\r\nConnection: close\r\n\r\n")
                 .await
                 .unwrap();
-            let partial = if elevenlabs {
-                br#"{"text":"private partial","language_code":"eng""#.as_slice()
-            } else {
-                b"data: {\"choices\":[{\"delta\":{\"content\":\"private provisional\"},\"finish_reason\":null}]}\n\n".as_slice()
-            };
+            let partial = br#"{"text":"private partial","language_code":"eng""#.as_slice();
             socket.write_all(partial).await.unwrap();
             let _ = body_sent.send(());
             std::future::pending::<()>().await;
@@ -427,40 +278,22 @@ async fn cancel_after_response_headers_discards_partial_rewrites_and_batch_text(
                 "ElevenLabs transcription could not reach the service."
             );
         } else {
-            let client = Arc::new(compatible(&url, Some("writer"), Duration::from_secs(30)));
-            let (delta_tx, delta_rx) = oneshot::channel();
+            let directory = tempfile::tempdir().unwrap();
+            let path = directory.path().join("audio.wav");
+            std::fs::write(&path, b"synthetic").unwrap();
+            let client = Arc::new(compatible(&url, Some("speech"), Duration::from_secs(30)));
             let pending = {
                 let client = client.clone();
-                tokio::spawn(async move {
-                    let mut tx = Some(delta_tx);
-                    let mut delta = move |text: &str| {
-                        assert_eq!(text, "private provisional");
-                        if let Some(tx) = tx.take() {
-                            let _ = tx.send(());
-                        }
-                    };
-                    client
-                        .transform(
-                            "text",
-                            Path::new("/"),
-                            RewriteOptions::default(),
-                            Some(&mut delta),
-                        )
-                        .await
-                })
+                tokio::spawn(async move { client.transcribe(&path, "auto", "scribe").await })
             };
             body_seen.await.unwrap();
-            delta_rx.await.unwrap();
             client.cancel();
             let error = tokio::time::timeout(Duration::from_millis(500), pending)
                 .await
                 .unwrap()
                 .unwrap()
                 .unwrap_err();
-            assert_eq!(
-                error.to_string(),
-                "The provider returned an invalid or interrupted rewrite."
-            );
+            assert_eq!(error.to_string(), "Request cancelled.");
         }
         server.abort();
         let _ = server.await;

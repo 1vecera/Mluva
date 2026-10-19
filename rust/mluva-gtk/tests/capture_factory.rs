@@ -11,7 +11,6 @@ use mluva_gtk::{
     capture_view::{CaptureCallbacks, CapturePage},
     conversation_view::{ConversationCallbacks, ConversationWorkspace},
     document_layout::DocumentResources,
-    rewrite_settings::RewriteSettings,
     theme::ThemeController,
 };
 use mluva_workflows::{
@@ -60,7 +59,7 @@ fn result(value: WorkflowResult) -> Value {
         "kind":"completed","transcription":value.transcription,"output_text":value.output_text,
         "delivery":{"copied":value.delivery.copied,"pasted":value.delivery.pasted,"guidance":value.delivery.guidance,"paste_dispatched":value.delivery.paste_dispatched,"paste_confirmed":value.delivery.paste_confirmed},
         "history_entry":capture_ui::entry(value.history_entry.as_ref()),"retained_audio_path":value.retained_audio_path.map(|_|"$AUDIO"),
-        "requires_acceptance":value.requires_acceptance,"incognito":value.incognito,"mode":value.mode,
+        "incognito":value.incognito,"mode":value.mode,
         "recognition_ms":"recorded","enhancement_ms":"recorded","delivery_ms":"recorded","session_identifier":"generated",
         "recognition_fallback":value.recognition_fallback,"recognition_route":value.recognition_route,"recognition_fallback_reason":value.recognition_fallback_reason,
     })
@@ -70,11 +69,7 @@ fn page(services: &ApplicationServices, resources: &DocumentResources) -> Rc<Cap
         services.conversations.clone(),
         ConversationCallbacks {
             copy: Rc::new(|_| {}),
-            rewrite: Rc::new(|_| {}),
-            paste: Rc::new(|_| {}),
             open_archive: Rc::new(|| {}),
-            save_prompt: Rc::new(|_| {}),
-            cancel_rewrite: Rc::new(|| {}),
             rename: Rc::new(|_, _| true),
             delete: Rc::new(|_| true),
             merge: Rc::new(|_, _| true),
@@ -82,7 +77,6 @@ fn page(services: &ApplicationServices, resources: &DocumentResources) -> Rc<Cap
             capture_screenshot: Some(Rc::new(|| {})),
             edit_screenshot: Rc::new(|_| {}),
             remove_screenshot: Rc::new(|_| {}),
-            edit_prompt: Rc::new(|_| {}),
         },
         resources.clone(),
     )
@@ -90,19 +84,11 @@ fn page(services: &ApplicationServices, resources: &DocumentResources) -> Rc<Cap
     let config = services.config();
     CapturePage::new(
         workspace,
-        RewriteSettings::new(config.clone(), Rc::new(|| {}), Rc::new(|_, _, _| {})),
         config,
         CaptureCallbacks {
             toggle_recording: Rc::new(|| {}),
-            apply_live_settings: Rc::new(|_| false),
             toast: Rc::new(|_| {}),
-            open_prompt: Rc::new(|_| {}),
             retry_initialization: Rc::new(|| {}),
-            accept_command: Rc::new(|| {}),
-            discard_command: Rc::new(|| {}),
-            copy_scratchpad: Rc::new(|| {}),
-            delete_scratchpad: Rc::new(|| {}),
-            output_changed: Rc::new(|_| {}),
             announce: Rc::new(|_| {}),
         },
     )
@@ -163,8 +149,9 @@ fn released_application_capture_factory() {
     )
     .unwrap();
     let runtime = DesktopRuntime::new().unwrap();
-    let fixture: Value =
+    let mut fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-capture-factory.json")).unwrap();
+    capture_ui::current_contract(&mut fixture);
     assert_eq!(
         fixture["reference"],
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"
@@ -195,7 +182,8 @@ fn released_application_capture_factory() {
         let mut peer = http::Peer::new(&responses);
         let mut document = row["config"].clone();
         document["transcription_base_url"] = json!(format!("{}/v1", peer.address));
-        let config: AppConfig = serde_json::from_value(document).unwrap();
+        let config: AppConfig =
+            AppConfig::from_persisted_json(&serde_json::to_vec(&document).unwrap()).unwrap();
         let paths = AppPaths {
             config: directory.path().join("config/mluva"),
             data: directory.path().join("data/mluva"),
@@ -239,7 +227,6 @@ fn released_application_capture_factory() {
             let audio = last_audio.clone();
             let data = paths.data.clone();
             let captured = output.clone();
-            let saved = services.clone();
             let controller = CaptureController::attach(
                 page.clone(),
                 runtime.clone(),
@@ -258,7 +245,6 @@ fn released_application_capture_factory() {
                     wait_for_images: Rc::new(|_| Box::pin(async { Ok(()) })),
                     prepare_result: Rc::new(|_, _| {}),
                     refresh_history: Rc::new(|_| {}),
-                    queue_title: capture_ui::titles(&page, &runtime, &services.cwd),
                     images: Rc::new(|_| Ok(vec![])),
                     completed: Rc::new(move |completion| {
                         *captured.borrow_mut() = Some(result(completion.result))
@@ -268,9 +254,6 @@ fn released_application_capture_factory() {
                     }),
                     cancelled: Rc::new(|_| {}),
                     phase_changed: Rc::new(|_| {}),
-                    live_config_changed: Rc::new(move |config| {
-                        config.save(&saved.paths.config.join("config.json")).is_ok()
-                    }),
                 },
             );
             let window = adw::Window::builder()

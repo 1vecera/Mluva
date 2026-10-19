@@ -1,0 +1,31 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.11s
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s
+  Executable tests/bootstrap.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/bootstrap-db17d9ca8c7ccf7f)
+   Compiling mluva-install v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-install)
+   Compiling mluva-core v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-core)
+   Compiling mluva-audio v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-audio)
+   Compiling mluva-providers v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-providers)
+   Compiling mluva-asr v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-asr)
+   Compiling mluva-shell v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-shell)
+   Compiling mluva-workflows v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-workflows)
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `release` profile [optimized] target(s) in 25.38s
+   Compiling mluva-install v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-install)
+    Finished `release` profile [optimized] target(s) in 1.09s
+     Running `/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/release/mluva-package /home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only /home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.r6rb1Q/bootstrap-bundle`
+Native Mluva 2.4.0 bundle created at /home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.r6rb1Q/bootstrap-bundle
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.r6rb1Q/session.i1OLqo
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.r6rb1Q
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+     Running tests/bootstrap.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/bootstrap-db17d9ca8c7ccf7f)
+
+running 1 test
+test actual_binary_opens_one_instance_keeps_old_preferences_and_quits ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s

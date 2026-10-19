@@ -3,7 +3,6 @@
 use std::rc::Rc;
 
 use adw::prelude::*;
-use mluva_core::prompt_catalog::{DEFAULTS, Prompt};
 
 use crate::command_palette::Command;
 use crate::settings_view::SettingsView;
@@ -11,21 +10,15 @@ use crate::settings_view::SettingsView;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum CommandAction {
     ToggleRecording,
-    CycleLive,
-    Polish,
-    FocusRewrite,
     CopyOutput,
     SaveEdits,
     History,
     ShowLive,
     ToggleSidebar,
-    ToggleSourcePane,
-    ToggleDraftPane,
     Settings,
     Welcome,
     WidgetPositionSetting,
     WorkspaceSetting { name: String, value: String },
-    EditPrompt(String),
 }
 
 /// Read this from the current widgets/session at each dispatch, rather than caching availability.
@@ -37,10 +30,6 @@ pub struct CommandState {
     pub recording: bool,
     pub preparing: bool,
     pub record_sensitive: bool,
-    pub live_enabled: bool,
-    pub live_sensitive: bool,
-    pub polish_sensitive: bool,
-    pub send_sensitive: bool,
     pub live_visible: bool,
     pub can_copy: bool,
     pub busy: bool,
@@ -48,15 +37,8 @@ pub struct CommandState {
     pub edit_draft: bool,
     pub live_active: bool,
     pub viewing_live: bool,
-    pub source_visible: bool,
-    pub draft_visible: bool,
-    pub draft_available: bool,
     pub processing: bool,
-    pub live_final_entry: bool,
-    pub rewriting: bool,
     pub incognito: bool,
-    pub pending_incognito: bool,
-    pub pending_mode: String,
 }
 
 pub struct CommandContext {
@@ -68,14 +50,9 @@ pub struct CommandContext {
 enum Availability {
     Always,
     Recording,
-    LiveMode,
-    Polish,
-    Rewrite,
     Copy,
     Save,
     LiveConversation,
-    LivePane,
-    LiveTemplate,
 }
 
 fn command(
@@ -111,15 +88,6 @@ fn command(
                         && current.preparing == original.preparing
                         && current.recording == original.recording
                 }
-                Availability::LiveMode => {
-                    current.live_sensitive && current.live_enabled == original.live_enabled
-                }
-                Availability::Polish => {
-                    document && current.polish_sensitive && !current.live_visible
-                }
-                Availability::Rewrite => {
-                    document && current.send_sensitive && !current.live_visible
-                }
                 Availability::Copy => document && current.can_copy,
                 Availability::Save => {
                     document
@@ -130,16 +98,6 @@ fn command(
                         && current.edit_draft
                 }
                 Availability::LiveConversation => current.live_active,
-                Availability::LivePane => current.viewing_live && current.draft_available,
-                Availability::LiveTemplate => {
-                    !current.preparing
-                        && !current.processing
-                        && !current.live_final_entry
-                        && !current.rewriting
-                        && !current.incognito
-                        && !(current.recording
-                            && (current.pending_incognito || current.pending_mode != "dictation"))
-                }
             }
         }),
     }
@@ -150,7 +108,6 @@ pub fn application_commands(
     context: &Rc<CommandContext>,
     settings: &Rc<SettingsView>,
     settings_pages: &[adw::PreferencesPage],
-    prompts: &[Prompt],
 ) -> Vec<Command> {
     let snapshot = Rc::new((context.state)());
     let record_title = if snapshot.preparing {
@@ -173,30 +130,6 @@ pub fn application_commands(
             "",
             CommandAction::ToggleRecording,
             Availability::Recording,
-        ),
-        (
-            "Cycle Live rewrite: Off → Once → Continuous",
-            "document-edit-symbolic",
-            "automatic structured draft",
-            "<Control>l",
-            CommandAction::CycleLive,
-            Availability::LiveMode,
-        ),
-        (
-            "Polish text",
-            "applications-utilities-symbolic",
-            "clean filler grammar rewrite",
-            "<Control><Shift>p",
-            CommandAction::Polish,
-            Availability::Polish,
-        ),
-        (
-            "Rewrite with an instruction",
-            "document-edit-symbolic",
-            "custom prompt edit",
-            "<Control>r",
-            CommandAction::FocusRewrite,
-            Availability::Rewrite,
         ),
         (
             "Copy current text",
@@ -239,33 +172,9 @@ pub fn application_commands(
             Availability::Always,
         ),
         (
-            if snapshot.source_visible {
-                "Hide original pane"
-            } else {
-                "Show original pane"
-            },
-            "sidebar-show-symbolic",
-            "left source dictation collapse expand",
-            "<Control>1",
-            CommandAction::ToggleSourcePane,
-            Availability::LivePane,
-        ),
-        (
-            if snapshot.draft_visible {
-                "Hide draft pane"
-            } else {
-                "Show draft pane"
-            },
-            "sidebar-show-symbolic",
-            "right live rewrite collapse expand",
-            "<Control>2",
-            CommandAction::ToggleDraftPane,
-            Availability::LivePane,
-        ),
-        (
             "Settings",
             "preferences-system-symbolic",
-            "providers models appearance scrolling preferences",
+            "speech models appearance preferences",
             "<Control>comma",
             CommandAction::Settings,
             Availability::Always,
@@ -305,19 +214,9 @@ pub fn application_commands(
         ("bottom-right", "Lower right"),
     ];
     let times = [("24h", "24-hour · 14:30"), ("12h", "12-hour · 2:30 PM")];
-    let templates: Vec<_> = DEFAULTS
-        .live_templates
-        .iter()
-        .map(|template| (template.identifier.as_str(), template.name.as_str()))
-        .collect();
     for (name, choices, title) in [
         ("widget_position", positions.as_slice(), "Widget position"),
         ("time_format", times.as_slice(), "Time format"),
-        (
-            "live_rewrite_template",
-            templates.as_slice(),
-            "Live rewrite template",
-        ),
     ] {
         for (value, label) in choices {
             commands.push(command(
@@ -333,27 +232,9 @@ pub fn application_commands(
                     name: name.into(),
                     value: (*value).into(),
                 },
-                if name == "live_rewrite_template" {
-                    Availability::LiveTemplate
-                } else {
-                    Availability::Always
-                },
+                Availability::Always,
             ));
         }
-    }
-    for prompt in prompts {
-        commands.push(command(
-            context,
-            &snapshot,
-            (
-                &format!("Settings · Edit prompt · {}", prompt.name),
-                "document-edit-symbolic",
-                "prompt template instructions configure",
-                "",
-            ),
-            CommandAction::EditPrompt(prompt.identifier.clone()),
-            Availability::Always,
-        ));
     }
     commands.extend(settings_commands(
         settings,

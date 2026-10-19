@@ -25,10 +25,6 @@ export async function createPreview(port = 0) {
     store,
     origin,
     speechEnabled: true,
-    rewriteText: async ({ source, instruction }) => ({
-      text: `${instruction.includes("bullet") ? "- " : ""}${source}\n\nA completed synthetic rewrite.`,
-      model: "synthetic-preview",
-    }),
     send: async (id, payload) => {
       const peer = peers.get(id);
       if (!peer || peer.readyState !== 1) {

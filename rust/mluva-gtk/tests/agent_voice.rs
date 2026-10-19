@@ -149,10 +149,6 @@ fn hold_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application
         transcription_base_url: format!("{}/v1", speech.address),
         transcription_api_key_env: "AGENT_VOICE_SYNTHETIC_KEY".into(),
         transcription_remote_model: Some("whisper".into()),
-        rewrite_provider: "none".into(),
-        auto_copy_dictation: true,
-        auto_paste: true,
-        automatic_titles: false,
         welcome_completed: true,
         ..Default::default()
     };

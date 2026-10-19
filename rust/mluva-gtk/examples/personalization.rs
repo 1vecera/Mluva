@@ -58,8 +58,6 @@ fn main() -> glib::ExitCode {
                     overlay.add_toast(adw::Toast::new(message));
                 }
             }),
-            Rc::new(|| {}),
-            None,
         );
         overlay.set_child(Some(&page.widget));
         toolbar.set_content(Some(&overlay));

@@ -418,7 +418,6 @@ impl AgentVoiceController {
         {
             self.route.borrow_mut().attempt = None;
         }
-        self.page.refresh_output_visibility();
         self.render();
     }
     pub fn release(&self) -> bool {
@@ -438,7 +437,6 @@ impl AgentVoiceController {
             return;
         }
         self.attach_editor(id);
-        self.page.output_section.set_visible(false);
         self.render();
     }
     fn attach_editor(self: &Rc<Self>, id: &str) {

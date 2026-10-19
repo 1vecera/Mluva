@@ -14,8 +14,7 @@ use mluva_core::{
     history::{HistoryInput, HistoryStore},
     meeting::MeetingStore,
     personalization::PersonalizationStore,
-    prompts::PromptStore,
-    scratchpad::{ScratchpadDraft, ScratchpadDraftStore},
+    scratchpad::ScratchpadDraftStore,
     screenshots::ScreenshotStore,
 };
 use mluva_providers::{
@@ -25,7 +24,6 @@ use mluva_providers::{
     local_asr::OnnxOptions,
     local_preview::LocalPreviewClient,
     realtime::{ElevenLabsRealtimeClient, RealtimeOptions, SCRIBE_REALTIME_ENDPOINT},
-    rewriting::RewriteClient,
     speech::SpeechClient,
 };
 use serde_json::{Map, Value};
@@ -46,65 +44,27 @@ const PRESENTATION: &[&str] = &[
     "widget_position",
     "widget_lines",
     "widget_opacity",
-    "show_copy_action",
-    "show_save_action",
-    "smooth_scrolling",
-    "scroll_duration_ms",
-    "scroll_lookahead_lines",
-    "review_timeout_seconds",
 ];
-const LIVE: &[&str] = &[
-    "live_rewrite_enabled",
-    "live_rewrite_continuous",
-    "live_rewrite_template",
-    "live_rewrite_custom_instructions",
-    "live_rewrite_min_characters",
-    "live_rewrite_interval_seconds",
-];
-
-/// The parent supplies actual owner state. Presentation remains editable while
-/// busy; Live changes have the released narrower recording exception.
+/// The parent supplies actual owner state. Presentation remains editable while busy.
+#[derive(Default)]
 pub struct SettingsActivity {
     pub preparing: bool,
     pub processing: bool,
     pub recording: bool,
-    pub pending_incognito: bool,
-    pub pending_mode: String,
-    pub final_live: bool,
-    pub rewriting: bool,
-    pub live_schedule: bool,
-}
-
-impl Default for SettingsActivity {
-    fn default() -> Self {
-        Self {
-            preparing: false,
-            processing: false,
-            recording: false,
-            pending_incognito: false,
-            pending_mode: "dictation".into(),
-            final_live: false,
-            rewriting: false,
-            live_schedule: false,
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SettingsKind {
     Unchanged,
-    Presentation { live_changed: bool },
+    Presentation,
     Providers,
 }
 
-/// Inline controls historically retain these privacy/title/Once choices for the
-/// running session even when their settings document cannot be written.
+/// Incognito stays enabled for the session even if its settings cannot be saved.
 #[derive(Clone, Copy)]
 pub enum InlineSavePolicy {
     Persistent,
     SessionIncognito,
-    SessionTitles,
-    SessionLiveOnce,
 }
 
 #[derive(Clone, Debug)]
@@ -112,26 +72,6 @@ pub struct SettingsUpdate {
     pub config: AppConfig,
     pub changed: BTreeSet<String>,
     pub kind: SettingsKind,
-}
-
-#[derive(Clone, Debug)]
-pub enum ScratchpadRecovery {
-    Empty,
-    Restored(ScratchpadDraft),
-    Malformed,
-    DiscardedPrivate,
-}
-impl ScratchpadRecovery {
-    pub fn message(&self) -> &'static str {
-        match self {
-            Self::Empty => "",
-            Self::Restored(_) => "Recovered an unresolved Scratchpad draft and its source audio.",
-            Self::Malformed => {
-                "The Scratchpad recovery document is malformed and was preserved. Repair it before saving another persistent Scratchpad draft."
-            }
-            Self::DiscardedPrivate => "Discarded invalid persisted Incognito recovery state.",
-        }
-    }
 }
 
 /// These stores, including the separate Meeting archive, open before capture
@@ -142,12 +82,11 @@ pub struct ApplicationServices {
     pub config_load_error: String,
     config: RefCell<AppConfig>,
     pub personalization: Rc<RefCell<PersonalizationStore>>,
-    pub prompts: Rc<RefCell<PromptStore>>,
     pub history: HistoryStore,
     pub conversations: ConversationStore,
     pub screenshots: ScreenshotStore,
     pub meetings: Arc<Mutex<MeetingStore>>,
-    pub scratchpad: Rc<RefCell<ScratchpadDraftStore>>,
+    pub recovery_message: String,
     pub diagnostics: DiagnosticsStore,
     pub credentials: Arc<CredentialStore>,
 }
@@ -171,17 +110,10 @@ impl ApplicationServices {
     pub fn open(paths: AppPaths) -> WorkflowOutcome<Rc<Self>> {
         let (config, config_load_error) = match AppConfig::load(&paths.config.join("config.json")) {
             Ok(config) => (config, String::new()),
-            Err(_) => (AppConfig::default(), "config.json needs repair; using defaults. The file is preserved. Prompts remain editable.".into()),
+            Err(_) => (AppConfig::default(), "config.json needs repair; using defaults. The file is preserved. Your saved data is unchanged.".into()),
         };
-        let mut personalization =
-            PersonalizationStore::new(paths.config.join("personalization.json"));
-        let prompts = PromptStore::new(
-            paths.config.join("prompts"),
-            &config.live_rewrite_custom_instructions,
-            &personalization.styles()?,
-        )?;
-        personalization.prompt_store = Some(prompts.clone());
-        let cwd = paths.runtime.join("codex-workspace");
+        let personalization = PersonalizationStore::new(paths.config.join("personalization.json"));
+        let cwd = paths.runtime.join("workspace");
         fs::create_dir_all(&cwd)?;
         fs::set_permissions(&cwd, fs::Permissions::from_mode(0o700))?;
         let history = HistoryStore::new(paths.data.join("history.sqlite3"));
@@ -199,7 +131,12 @@ impl ApplicationServices {
         }
         let conversations = ConversationStore::new(history.clone());
         conversations.initialize()?;
-        let scratchpad = ScratchpadDraftStore::new(paths.data.join("scratchpad-draft.json"));
+        let mut legacy_notes = ScratchpadDraftStore::new(paths.data.join("scratchpad-draft.json"));
+        let (recovered, recovery_message) = match legacy_notes.migrate_to_history(&history) {
+            Ok(Some(id)) => (Some(id), "Your unfinished Notes draft is now in local History. It has not been sent or synced.".into()),
+            Ok(None) => (None, String::new()),
+            Err(error) => (None, format!("Your old Notes recovery file is preserved but could not be opened: {error}")),
+        };
         let meetings = MeetingStore::new(paths.data.join("meetings/meetings.json"), None);
         let diagnostics = DiagnosticsStore::new(paths.data.join("diagnostics.sqlite3"), 5_000)?;
         diagnostics.initialize()?;
@@ -209,39 +146,20 @@ impl ApplicationServices {
             config_load_error,
             config: RefCell::new(config),
             personalization: Rc::new(RefCell::new(personalization)),
-            prompts: Rc::new(RefCell::new(prompts)),
             history,
             conversations,
             screenshots,
             meetings: Arc::new(Mutex::new(meetings)),
-            scratchpad: Rc::new(RefCell::new(scratchpad)),
+            recovery_message,
             diagnostics,
             credentials: Arc::new(CredentialStore::new()),
         });
-        services.prune_history(&BTreeSet::new())?;
+        services.prune_history(&recovered.into_iter().collect())?;
         Ok(services)
     }
 
     pub fn config(&self) -> AppConfig {
         self.config.borrow().clone()
-    }
-
-    /// Refresh catalog identities from stored styles, retaining their immutable
-    /// recovery instructions rather than turning prompt overrides into defaults.
-    pub fn synchronize_style_prompts(&self) -> StoreResult<()> {
-        let styles: Vec<_> = mluva_core::prompt_catalog::DEFAULTS
-            .styles
-            .iter()
-            .chain(&self.personalization.borrow().state().custom_styles)
-            .cloned()
-            .collect();
-        let prompts = {
-            let mut prompts = self.prompts.borrow_mut();
-            prompts.sync_styles(&styles)?;
-            prompts.clone()
-        };
-        self.personalization.borrow_mut().prompt_store = Some(prompts);
-        Ok(())
     }
 
     pub fn save_inline_config(
@@ -260,80 +178,20 @@ impl ApplicationServices {
                 InlineSavePolicy::SessionIncognito => {
                     current.incognito_mode = proposed.incognito_mode
                 }
-                InlineSavePolicy::SessionTitles => {
-                    current.automatic_titles = proposed.automatic_titles
-                }
-                InlineSavePolicy::SessionLiveOnce => {
-                    current.live_rewrite_enabled = proposed.live_rewrite_enabled
-                }
             }
         }
         saved
     }
 
-    pub fn recover_scratchpad(&self) -> StoreResult<ScratchpadRecovery> {
-        let mut store = self.scratchpad.borrow_mut();
-        if store.persistence_error.is_some() {
-            return Ok(ScratchpadRecovery::Malformed);
-        }
-        let Some(draft) = store.draft.clone() else {
-            return Ok(ScratchpadRecovery::Empty);
-        };
-        if draft.incognito {
-            store.clear(true)?;
-            Ok(ScratchpadRecovery::DiscardedPrivate)
-        } else {
-            // Restoring the actual mode control invokes the same saved-default
-            // handler in the release. A failed save still leaves the draft open.
-            if self.config.borrow().default_mode != "scratchpad" {
-                let _ = self.select_capture_mode("scratchpad", None);
-            }
-            Ok(ScratchpadRecovery::Restored(draft))
-        }
-    }
-
-    /// The current identified application's profile owns its mode when enabled;
-    /// otherwise this is the persisted default used by subsequent captures.
-    pub fn select_capture_mode(
-        &self,
-        mode: &str,
-        application: Option<&str>,
-    ) -> WorkflowOutcome<()> {
-        let mut config = self.config();
-        if config.remember_per_application && application.is_some() {
-            self.personalization
-                .borrow_mut()
-                .select_mode(mode, application, true)?;
-        } else {
-            config.default_mode = mode.into();
-            config
-                .save(&self.paths.config.join("config.json"))
-                .map_err(|error| WorkflowError::Invalid(error.to_string()))?;
-            self.config.replace(config);
-        }
-        Ok(())
-    }
-
-    /// Include retry, continuation and unresolved Command identities from their
-    /// owners; the unresolved Scratchpad is always protected here.
+    /// Protect entries owned by active retries or continued recordings.
     pub fn prune_history(&self, excluded: &BTreeSet<String>) -> StoreResult<usize> {
-        let mut excluded = excluded.clone();
-        if let Some(identifier) = self
-            .scratchpad
-            .borrow()
-            .draft
-            .as_ref()
-            .and_then(|draft| draft.history_identifier.as_ref())
-        {
-            excluded.insert(identifier.clone());
-        }
         let days = self
             .config
             .borrow()
             .history_retention_days
             .as_i64()
             .ok_or_else(|| StoreError::Invalid("History retention interval is too large".into()))?;
-        self.history.prune_older_than(days, &excluded, Utc::now())
+        self.history.prune_older_than(days, excluded, Utc::now())
     }
 
     /// Save before publishing the new configuration. A rejected/write-failed
@@ -345,21 +203,7 @@ impl ApplicationServices {
         activity: &SettingsActivity,
     ) -> Result<Option<SettingsUpdate>, ConfigError> {
         let previous = self.config();
-        let mut changes = changes.clone();
-        if changes.get("rewrite_provider").and_then(Value::as_str) == Some("none") {
-            changes.insert("live_rewrite_enabled".into(), Value::Bool(false));
-            changes.insert("automatic_titles".into(), Value::Bool(false));
-        }
-        if previous.rewrite_provider == "none"
-            && changes.get("live_rewrite_enabled") == Some(&Value::Bool(true))
-            && changes
-                .get("rewrite_provider")
-                .and_then(Value::as_str)
-                .unwrap_or("none")
-                == "none"
-        {
-            return Ok(None);
-        }
+        let changes = changes.clone();
         let mut document = serde_json::to_value(&previous).expect("serializable settings");
         let fields = document.as_object_mut().unwrap();
         let mut changed = BTreeSet::new();
@@ -383,27 +227,11 @@ impl ApplicationServices {
             }));
         } else if changed
             .iter()
-            .all(|name| PRESENTATION.contains(&name.as_str()) || LIVE.contains(&name.as_str()))
+            .all(|name| PRESENTATION.contains(&name.as_str()))
         {
-            let live_changed = changed.iter().any(|name| LIVE.contains(&name.as_str()));
-            if live_changed
-                && (activity.preparing
-                    || activity.processing
-                    || activity.final_live
-                    || activity.rewriting
-                    || (activity.recording
-                        && (activity.pending_incognito || activity.pending_mode != "dictation")))
-            {
-                return Ok(None);
-            }
-            SettingsKind::Presentation { live_changed }
+            SettingsKind::Presentation
         } else {
-            if activity.preparing
-                || activity.processing
-                || activity.recording
-                || activity.rewriting
-                || activity.live_schedule
-            {
+            if activity.preparing || activity.processing || activity.recording {
                 return Ok(None);
             }
             SettingsKind::Providers
@@ -448,7 +276,6 @@ impl ApplicationServices {
             history: self.history.clone(),
             diagnostics: self.diagnostics.clone(),
             personalization: self.personalization.clone(),
-            prompts: self.prompts.clone(),
         })
     }
 
@@ -512,24 +339,20 @@ pub struct CaptureServices {
     history: HistoryStore,
     diagnostics: DiagnosticsStore,
     personalization: Rc<RefCell<PersonalizationStore>>,
-    prompts: Rc<RefCell<PromptStore>>,
 }
 impl CaptureServices {
     /// Recovery and recording each own fresh clients and the current local rules.
     pub fn workflow(&self) -> WorkflowOutcome<Rc<DictationWorkflow>> {
         let speech =
             SpeechClient::from_config(&self.config, self.local.clone(), self.speech_key.clone())?;
-        let rewrite = RewriteClient::new(&self.config, None, None)?;
         let mut workflow = DictationWorkflow::new(
             self.config.clone(),
             speech,
-            rewrite,
             self.history.clone(),
             self.cwd.clone(),
         );
         workflow.personalization = Some(self.personalization.borrow().clone());
         workflow.diagnostics = Some(self.diagnostics.clone());
-        workflow.cleanup_instructions = self.prompts.borrow().read("cleanup")?.text;
         Ok(Rc::new(workflow))
     }
 
@@ -575,7 +398,7 @@ impl CaptureServices {
                     }),
                     directory: previews,
                     chunk_seconds: self.config.transcription_chunk_seconds as u32,
-                    preview_enabled: self.config.live_rewrite_enabled,
+                    preview_enabled: true,
                 }))
             }
             _ => CaptureRecognitionClient::ElevenLabs(Rc::new(ElevenLabsRealtimeClient::new(

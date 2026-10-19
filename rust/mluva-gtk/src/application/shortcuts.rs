@@ -156,7 +156,7 @@ impl ApplicationDesktop {
         self.settings.capture.set_shortcuts_available(available);
         self.page().set_shortcuts(CaptureShortcutState {
             recording_trigger: self.approved_recording.borrow().clone(),
-            rewrite_trigger: self.approved_rewrite.borrow().clone(),
+            latest_trigger: self.approved_rewrite.borrow().clone(),
             shortcut_service_available: available,
             target_tracking_available: self.tracker.borrow().is_some(),
         });

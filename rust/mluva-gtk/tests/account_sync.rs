@@ -194,10 +194,7 @@ fn native_account_and_three_device_continuity() {
     let config = AppConfig {
         transcription_provider: "local".into(),
         local_model: "whisper-tiny".into(),
-        rewrite_provider: "none".into(),
-        automatic_titles: false,
         welcome_completed: true,
-        auto_copy_dictation: false,
         ..AppConfig::default()
     };
     config.save(&paths.config.join("config.json")).unwrap();

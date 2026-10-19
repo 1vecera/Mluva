@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::fs;
 
 use base64::{Engine, engine::general_purpose::STANDARD};
-use mluva_core::conversation::{ConversationStore, rewrite_prompt};
+use mluva_core::conversation::ConversationStore;
 use mluva_core::history::{HistoryInput, HistoryStore};
 use mluva_core::screenshots::{ImageInput, ScreenshotStore, image_context, validate_png};
 use rusqlite::Connection;
@@ -180,10 +180,6 @@ fn merging_matches_source_reply_screenshot_title_and_search_ownership() {
     let entry = history.find(target).unwrap();
     let replies = conversations.replies(target).unwrap();
     let working = conversations.source_text(&entry, false).unwrap();
-    assert_eq!(
-        rewrite_prompt(&entry, &replies, "  Přelož do češtiny.  ", Some(&working)).unwrap(),
-        baseline["merged_prompt"].as_str().unwrap()
-    );
     let export = history
         .export(
             &entry,
@@ -200,33 +196,11 @@ fn merging_matches_source_reply_screenshot_title_and_search_ownership() {
         }
     }
     assert_eq!(actual, baseline["merged_markdown"].as_str().unwrap());
-    assert!(
-        !history
-            .save_generated_title(target, "Late title", None)
-            .unwrap()
-    );
-    assert!(
-        !history
-            .save_generated_title(source, "Other late title", None)
-            .unwrap()
-    );
 }
 
 #[test]
-fn rewriting_and_visual_context_keep_the_released_payload_text() {
-    let (_directory, history, conversations) = setup(false);
+fn visual_context_keeps_the_released_payload_text() {
     let baseline = reference();
-    let identifier = baseline["identifiers"][0].as_str().unwrap();
-    assert_eq!(
-        rewrite_prompt(
-            &history.find(identifier).unwrap(),
-            &conversations.replies(identifier).unwrap(),
-            "Make it shorter.",
-            None
-        )
-        .unwrap(),
-        baseline["seed_prompt"].as_str().unwrap()
-    );
     let images = vec![
         ImageInput {
             data: include_bytes!("fixtures/synthetic-context.png").to_vec(),

@@ -53,7 +53,7 @@ async fn main() {
             let client =
                 CompatibleClient::new(&args[2], "MLUVA_FIXTURE_KEY", None, Duration::from_secs(2))
                     .unwrap();
-            match client.list_models(None).await {
+            match client.list_models().await {
                 Ok(models) => json!({"ok":models}),
                 Err(error) => json!({"error":error.to_string()}),
             }

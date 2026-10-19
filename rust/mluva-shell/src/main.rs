@@ -16,12 +16,8 @@ fn activate(
     connection: &gio::DBusConnection,
     owner: &str,
     action: &str,
-    review: Option<&(String, String, String)>,
 ) -> Result<(), glib::Error> {
-    let parameters = review
-        .into_iter()
-        .map(ToVariant::to_variant)
-        .collect::<Vec<_>>();
+    let parameters = Vec::<glib::Variant>::new();
     connection.call_sync(
         Some(owner),
         ACTION_PATH,
@@ -120,7 +116,7 @@ impl Watch {
         );
         *self.subscription.borrow_mut() = Some(subscription);
         // Subscribe first: the owner may publish synchronously while handling replay.
-        if activate(&self.connection, owner, "status", None).is_err() {
+        if activate(&self.connection, owner, "status").is_err() {
             self.emit(json!({"phase":"unavailable", "elapsed":0}));
         }
     }
@@ -129,12 +125,7 @@ impl Watch {
 fn run(args: arguments::Arguments) -> Result<(), glib::Error> {
     let connection = gio::bus_get_sync(gio::BusType::Session, gio::Cancellable::NONE)?;
     if args.action != "watch" {
-        return activate(
-            &connection,
-            &current_owner(&connection)?,
-            &args.action,
-            args.review.as_ref(),
-        );
+        return activate(&connection, &current_owner(&connection)?, &args.action);
     }
     let main_loop = glib::MainLoop::new(None, false);
     let watch = Rc::new(Watch {

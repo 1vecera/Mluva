@@ -5,10 +5,8 @@ use mluva_core::{
     config::AppConfig, diagnostics::DiagnosticsStore, history::HistoryStore,
     personalization::PersonalizationStore,
 };
-use mluva_gtk::text_target::{DeliveryTargetSnapshot, FocusedTextTargetTracker};
-use mluva_providers::{
-    Secret, elevenlabs::ElevenLabsClient, rewriting::RewriteClient, speech::SpeechClient,
-};
+use mluva_gtk::text_target::FocusedTextTargetTracker;
+use mluva_providers::{Secret, elevenlabs::ElevenLabsClient, speech::SpeechClient};
 use mluva_workflows::dictation::{Completion, DictationWorkflow};
 use serde_json::{Value, json};
 use std::{
@@ -115,28 +113,18 @@ fn batch_speech_through_personalization_and_delivery_matches_released_gtk_workfl
     let _entered = runtime.enter();
     for case in fixture["cases"].as_array().unwrap() {
         let name = case["name"].as_str().unwrap();
-        let mode = case["mode"].as_str().unwrap_or("dictation");
+        if case["mode"].as_str().unwrap_or("dictation") != "dictation" {
+            continue;
+        }
         peer.request(json!({"operation":"button"}));
         let mut tracker = FocusedTextTargetTracker::new().unwrap();
         let mut setup = case["setup"].clone();
         setup["operation"] = json!("setup");
         peer.request(setup);
         let monitor = Monitor::new(peer.directory.join(format!("monitor-{name}.log")));
-        let (target, selected) = if mode == "command" {
-            let text = tracker
-                .capture_text_target(2000)
-                .unwrap()
-                .expect("explicit Command capture");
-            let selected = text.selected_text().map(str::to_owned);
-            (DeliveryTargetSnapshot::Text(text), selected)
-        } else {
-            (
-                tracker
-                    .capture_delivery_target()
-                    .expect("content-free recording target"),
-                None,
-            )
-        };
+        let target = tracker
+            .capture_delivery_target()
+            .expect("content-free recording target");
         if case["own_focus"] == true {
             own.present();
             own_entry.grab_focus();
@@ -161,12 +149,6 @@ fn batch_speech_through_personalization_and_delivery_matches_released_gtk_workfl
         let mut http = http::Peer::new(case["responses"].as_array().unwrap());
         let config = AppConfig {
             transcription_provider: "elevenlabs".into(),
-            rewrite_provider: "litellm".into(),
-            litellm_model: Some("rewrite-fixture".into()),
-            litellm_base_url: http.address.clone(),
-            litellm_api_key_env: "MLUVA_WORKFLOW_NO_KEY".into(),
-            auto_copy_dictation: true,
-            auto_paste: true,
             spoken_commands_enabled: true,
             ..Default::default()
         };
@@ -178,29 +160,24 @@ fn batch_speech_through_personalization_and_delivery_matches_released_gtk_workfl
             )
             .unwrap(),
         );
-        let rewrite = RewriteClient::new(&config, None, Some(Duration::from_secs(2))).unwrap();
-        let mut workflow =
-            DictationWorkflow::new(config, speech, rewrite, history, directory.path().into());
+        let mut workflow = DictationWorkflow::new(config, speech, history, directory.path().into());
         workflow.personalization = Some(PersonalizationStore::new(personal));
         workflow.diagnostics = Some(diagnostics);
         clipboard(Some("clipboard canary"));
         let completed = runtime
-            .block_on(
-                workflow.complete(
-                    &audio,
-                    Completion {
-                        mode: mode.into(),
-                        allow_auto_paste: true,
-                        incognito: case["incognito"] == true,
-                        selected_text: selected,
-                        session_identifier: Some("aaaabbbb-cccc-4ddd-8eee-ffffffffffff".into()),
-                        application_identifier: target.application_identifier().map(str::to_owned),
-                        delivery_target: (mode == "dictation")
-                            .then_some(&target as &dyn mluva_workflows::dictation::DeliveryTarget),
-                        ..Default::default()
-                    },
-                ),
-            )
+            .block_on(workflow.complete(
+                &audio,
+                Completion {
+                    allow_auto_paste: true,
+                    incognito: case["incognito"] == true,
+                    session_identifier: Some("aaaabbbb-cccc-4ddd-8eee-ffffffffffff".into()),
+                    application_identifier: target.application_identifier().map(str::to_owned),
+                    delivery_target: Some(
+                        &target as &dyn mluva_workflows::dictation::DeliveryTarget,
+                    ),
+                    ..Default::default()
+                },
+            ))
             .unwrap();
         settle(Duration::from_millis(200));
         let mut state = peer.observed();
@@ -215,21 +192,23 @@ fn batch_speech_through_personalization_and_delivery_matches_released_gtk_workfl
             json!({"raw_text":entry.raw_text,"delivered_text":entry.delivered_text,"mode":entry.mode,"delivery_outcome":entry.delivery_outcome,"recognition_route":entry.recognition_route,"enhancement_provider_id":entry.enhancement_provider_id,"enhancement_model_identifier":entry.enhancement_model_identifier,"enhancement_context_sources":entry.enhancement_context_sources,"enhancement_outcome":entry.enhancement_outcome,"application_identifier":"$TARGET"})
         }).collect::<Vec<_>>();
         let reads = monitor.finish();
-        if mode == "command" {
-            assert_eq!(
-                reads.as_array().unwrap().len(),
-                1,
-                "positive disclosure control"
-            );
-        }
-        let actual = json!({"output_text":completed.output_text,"delivery":{"copied":completed.delivery.copied,"pasted":completed.delivery.pasted,"guidance":completed.delivery.guidance,"paste_dispatched":completed.delivery.paste_dispatched,"paste_confirmed":completed.delivery.paste_confirmed},"history":entries,"requires_acceptance":completed.requires_acceptance,"audio_exists":audio.exists(),"clipboard":clipboard(None),"target":state,"text_reads":reads,"wire":http.finish(),"diagnostics":workflow.diagnostics.as_ref().unwrap().recent(100).unwrap().into_iter().rev().map(|event| json!({"stage":event.stage,"provider":event.provider,"outcome":event.outcome})).collect::<Vec<_>>()});
+        assert!(
+            reads.as_array().unwrap().is_empty(),
+            "dictation must not read other apps"
+        );
+        let actual = json!({"output_text":completed.output_text,"delivery":{"copied":completed.delivery.copied,"pasted":completed.delivery.pasted,"guidance":completed.delivery.guidance,"paste_dispatched":completed.delivery.paste_dispatched,"paste_confirmed":completed.delivery.paste_confirmed},"history":entries,"audio_exists":audio.exists(),"clipboard":clipboard(None),"target":state,"text_reads":reads,"wire":http.finish(),"diagnostics":workflow.diagnostics.as_ref().unwrap().recent(100).unwrap().into_iter().rev().map(|event| json!({"stage":event.stage,"provider":event.provider,"outcome":event.outcome})).collect::<Vec<_>>()});
         runtime.block_on(workflow.close());
         tracker.close();
         write(
             &peer.directory.join(format!("workflow-{name}.json")),
             &actual,
         );
-        assert_eq!(actual, case["observed"], "released joined workflow: {name}");
+        let mut expected = case["observed"].clone();
+        expected
+            .as_object_mut()
+            .unwrap()
+            .remove("requires_acceptance");
+        assert_eq!(actual, expected, "released joined workflow: {name}");
         println!("accepted GTK workflow: {name}");
         own.set_visible(false);
         settle(Duration::from_millis(100));

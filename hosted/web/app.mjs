@@ -48,20 +48,8 @@ let noteState = null,
   conflictNote,
   deleted = false,
   editGeneration = 0,
-  rewriteGeneration = 0,
-  rewriteResult,
   continuation,
-  commandSource,
   continueRequested = false;
-const templates = {
-  polish:
-    "Improve clarity and grammar. Preserve facts, meaning and language. Return the revised text only.",
-  notes:
-    "Organize these words into concise Markdown notes with headings and bullet points. Preserve uncertainty and do not invent facts.",
-  questions:
-    "Identify unanswered questions in these notes, then organize the supplied facts. Clearly distinguish questions from established facts.",
-  custom: "",
-};
 const incoming = new Map();
 const samples = [];
 function notice(message) {
@@ -91,14 +79,10 @@ function buttonState() {
   $("save").disabled =
     recording || saving || stopping || deleted || $("incognito").checked;
   $("cancel-recording").hidden = !recording;
-  $("rewrite").disabled =
-    recording || $("incognito").checked || !config.rewriteEnabled;
-  $("save-template").disabled = $("incognito").checked;
   $("new-note").disabled = recording || saving;
   $("clear").disabled = recording || saving || stopping;
   $("draft").readOnly = recording || saving || stopping;
   $("note-title").disabled = recording || saving || stopping;
-  $("task-mode").disabled = recording || saving || stopping;
   $("continue-recording").disabled =
     $("record").disabled ||
     recording ||
@@ -169,7 +153,7 @@ function persist() {
           noteState,
           pendingSave,
           title: $("note-title").value,
-          mode: $("task-mode").value,
+          mode: noteState?.mode ?? "dictation",
         }
       : null;
   // Serialize writes and capture the snapshot now, so a delayed old write cannot resurrect a cleared draft.
@@ -240,7 +224,6 @@ async function refreshDevices() {
       .filter((device) => device.id !== deviceId && !known.has(device.id))
       .forEach((device) => selected.add(device.id));
   config.speechEnabled = result.speechEnabled;
-  config.rewriteEnabled = result.rewriteEnabled;
   if (!selectionInitialized) {
     selected = new Set(
       devices.filter((d) => d.id !== deviceId).map((d) => d.id),
@@ -523,7 +506,7 @@ function event(message) {
       saved = true;
       pendingSave = undefined;
       editGeneration++;
-      rewriteGeneration++;
+
       persist();
       notice(
         "This note was deleted on another device. It will not be saved again.",
@@ -644,7 +627,7 @@ async function saveDraft(automatic = false) {
       text: content,
       title:
         $("note-title").value || content.trim().split("\n")[0].slice(0, 80),
-      mode: $("task-mode").value,
+      mode: noteState?.mode ?? "dictation",
       deliveredText: noteState?.deliveredText ?? content,
       rewrites: noteState?.rewrites ?? [],
       segments: noteState?.segments ?? [],
@@ -703,15 +686,7 @@ async function startRecording(continuing = false) {
     );
     return;
   }
-  const command = $("task-mode").value === "command";
-  if (command && !$("draft").value.trim()) {
-    notice(
-      "For Command, paste the text to change in the editor, then record your instruction.",
-    );
-    return;
-  }
   if (
-    !command &&
     !saved &&
     $("draft").value &&
     !(await confirm(
@@ -720,7 +695,6 @@ async function startRecording(continuing = false) {
     ))
   )
     return;
-  commandSource = command ? $("draft").value : null;
   continuation = continuing
     ? {
         note: structuredClone(noteState),
@@ -736,7 +710,7 @@ async function startRecording(continuing = false) {
   pendingSave = undefined;
   deleted = false;
   editGeneration++;
-  rewriteGeneration++;
+
   if (!continuing) {
     $("note-title").value = "";
     $("original-text").textContent = "";
@@ -744,11 +718,11 @@ async function startRecording(continuing = false) {
   }
   audio = undefined;
   saved = false;
-  if (!continuing && !command) $("draft").value = "";
+  if (!continuing) $("draft").value = "";
   $("partial").hidden = true;
   $("recovery").hidden = true;
   recording = true;
-  notice(command ? "Speak an instruction for the text in the editor." : "");
+  notice("");
   started = Date.now();
   $("record").dataset.recording = "true";
   $("record-label").textContent = "Stop";
@@ -789,8 +763,7 @@ async function startRecording(continuing = false) {
         ];
       } else {
         rawText += `${rawText ? "\n" : ""}${value}`;
-        $("draft").value = commandSource ?? rawText;
-        if (commandSource !== null) $("instruction").value = rawText;
+        $("draft").value = rawText;
       }
       renderOriginal();
       $("partial").hidden = true;
@@ -865,20 +838,7 @@ async function stopRecording(commit = true) {
       : "Your recording is ready to save or download.",
   );
   buttonState();
-  if (commit && !failed && $("task-mode").value === "dictation")
-    await saveDraft(true);
-  else if (commit && !failed) {
-    $("rewrite-panel").open = true;
-    if ($("task-mode").value === "scratchpad") {
-      $("template").value = "notes";
-      chooseTemplate();
-    }
-    notice(
-      $("task-mode").value === "command"
-        ? "Instruction captured. Rewrite the editor text, review the preview, then keep it explicitly."
-        : "Review your notes. Save them or create a structured rewrite before keeping it.",
-    );
-  }
+  if (commit && !failed) await saveDraft(true);
   await refreshDevices().catch(() => {});
 }
 
@@ -916,7 +876,7 @@ $("signout").onclick = async () => {
   if (signingOut) return;
   signingOut = true;
   editGeneration++;
-  rewriteGeneration++;
+
   clearTimeout(storageTimer);
   wire?.close();
   if (recording) await stopRecording(false);
@@ -1001,7 +961,7 @@ $("clear").onclick = async () => {
   pendingSave = undefined;
   deleted = false;
   editGeneration++;
-  rewriteGeneration++;
+
   $("note-title").value = "";
   $("original-text").textContent = "";
   audio = undefined;
@@ -1182,7 +1142,7 @@ else if (!auth) {
       noteState = pending.noteState ?? null;
       pendingSave = pending.pendingSave;
       $("note-title").value = pending.title ?? "";
-      $("task-mode").value = pending.mode ?? "dictation";
+
       recordingId = pending.id;
       rawText = pending.rawText;
       $("draft").value = pending.text;
@@ -1248,15 +1208,14 @@ async function openNote(note) {
   deleted = false;
   pendingSave = undefined;
   editGeneration++;
-  rewriteGeneration++;
+
   $("draft").value = note.text;
   $("note-title").value = note.title;
   renderOriginal();
   $("workspace-title").textContent = "Workspace";
-  $("task-mode").value = note.mode ?? "dictation";
+
   $("draft-state").textContent = `Saved · revision ${note.revision}`;
   $("recovery").hidden = true;
-  $("rewrite-result").hidden = true;
   document.body.classList.remove("history-open");
   showRewrites();
   renderHistory();
@@ -1280,12 +1239,11 @@ $("new-note").onclick = async () => {
   deleted = false;
   audio = undefined;
   editGeneration++;
-  rewriteGeneration++;
+
   $("draft").value = "";
   $("note-title").value = "";
   $("original-text").textContent = "";
   $("workspace-title").textContent = "New conversation";
-  $("rewrite-result").hidden = true;
   $("recovery").hidden = true;
   showRewrites();
   await persist();
@@ -1295,15 +1253,6 @@ $("note-title").oninput = () => {
   saved = false;
   editGeneration++;
   persist();
-};
-$("task-mode").onchange = () => {
-  saved = false;
-  editGeneration++;
-  persist();
-  if ($("task-mode").value === "command")
-    notice(
-      "Command: paste the text to change, then record or type a rewrite instruction. Nothing is inserted into another app.",
-    );
 };
 $("copy-draft").onclick = () => copy($("draft").value);
 $("export-json").onclick = () =>
@@ -1323,7 +1272,6 @@ $("export-json").onclick = () =>
     "application/json",
   );
 $("cancel-recording").onclick = async () => {
-  rewriteGeneration++;
   await stopRecording(false);
   if (continuation) {
     const before = continuation.note;
@@ -1375,7 +1323,7 @@ $("merge-note").onclick = async () => {
   };
   saved = false;
   editGeneration++;
-  rewriteGeneration++;
+
   await saveDraft();
   showRewrites();
 };
@@ -1420,107 +1368,14 @@ $("incognito").onchange = async () => {
     renderIncoming();
     state(false, "Incognito");
     $("retain").checked = false;
-    rewriteGeneration++;
+
     await draftStorage(auth.owner, null);
     notice(
-      "Incognito: new words stay in memory. No account sync, saved history, rewrites or recovery. Speech still uses ElevenLabs.",
+      "Incognito: new words stay in memory. No account sync, saved history or recovery. Speech still uses ElevenLabs.",
     );
   } else {
     await connectWire();
     await loadHistory().catch((e) => notice(e.message));
   }
   buttonState();
-};
-const templateKey = () => `mluva-templates:${auth?.owner ?? "signed-out"}`;
-let savedTemplates;
-try {
-  savedTemplates = JSON.parse(localStorage.getItem(templateKey()) ?? "{}");
-} catch {
-  savedTemplates = {};
-}
-function chooseTemplate() {
-  $("instruction").value =
-    savedTemplates[$("template").value] ?? templates[$("template").value];
-}
-$("template").onchange = chooseTemplate;
-chooseTemplate();
-$("save-template").onclick = () => {
-  if ($("incognito").checked) return;
-  savedTemplates[$("template").value] = $("instruction").value;
-  localStorage.setItem(templateKey(), JSON.stringify(savedTemplates));
-  notice("Template saved on this device.");
-};
-$("rewrite").onclick = async () => {
-  if ($("incognito").checked || recording) return;
-  const generation = ++rewriteGeneration,
-    revision = editGeneration,
-    id = recordingId,
-    source = $("draft").value,
-    instruction = $("instruction").value;
-  if (!source.trim() || !instruction.trim()) {
-    notice("Add text and an instruction first.");
-    return;
-  }
-  $("rewrite-cancel").hidden = false;
-  $("rewrite").disabled = true;
-  $("rewrite-result").hidden = true;
-  try {
-    const result = await api("/rewrite", "POST", {
-      text: source,
-      instruction,
-      consent: true,
-    });
-    if (
-      generation !== rewriteGeneration ||
-      revision !== editGeneration ||
-      id !== recordingId ||
-      deleted
-    ) {
-      notice("The source changed. The old rewrite was discarded.");
-      return;
-    }
-    rewriteResult = {
-      id: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      instruction,
-      text: result.text,
-      model: result.model,
-      sourceRevision: revision,
-    };
-    rewriteResult.id = rewriteResult.createdAt;
-    $("rewrite-text").value = result.text;
-    $("rewrite-result").hidden = false;
-  } catch (e) {
-    if (generation === rewriteGeneration) notice(e.message);
-  } finally {
-    if (generation === rewriteGeneration) {
-      $("rewrite-cancel").hidden = true;
-      buttonState();
-    }
-  }
-};
-$("rewrite-cancel").onclick = () => {
-  rewriteGeneration++;
-  $("rewrite-cancel").hidden = true;
-  $("rewrite-result").hidden = true;
-  buttonState();
-  notice("Rewrite cancelled. The source is unchanged.");
-};
-$("apply-rewrite").onclick = async () => {
-  if (!rewriteResult || rewriteResult.sourceRevision !== editGeneration) {
-    notice("The source changed. Rewrite again before applying.");
-    return;
-  }
-  if (!noteState) await saveDraft();
-  if (!noteState || deleted) return;
-  const reply = { ...rewriteResult };
-  delete reply.sourceRevision;
-  reply.text = $("rewrite-text").value;
-  noteState.rewrites = [...(noteState.rewrites ?? []), reply];
-  noteState.deliveredText = reply.text;
-  saved = false;
-  pendingSave = undefined;
-  await saveDraft();
-  showRewrites();
-  $("rewrite-result").hidden = true;
 };

@@ -1,0 +1,38 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.09s
+   Compiling mluva-gtk v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.87s
+  Executable tests/application_screenshots.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/application_screenshots-8e8df8a372159255)
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.f6MP4I/session.ZmT1ZV
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/application/run.f6MP4I
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.09s
+     Running tests/application_screenshots.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/application_screenshots-8e8df8a372159255)
+
+running 1 test
+test released_application_screenshot_ownership_and_lifecycle ... saved-owner-and-editor: 8 states
+stubborn-editor-closes-before-remove: 8 states
+stop-waits-and-freezes: 7 states
+continued-narration-images: 5 states
+silent-with-image: 5 states
+failed-with-image: 5 states
+cancel-attached-image: 5 states
+close-attached-image: 4 states
+cancel-pending-picker: 4 states
+close-pending-picker: 3 states
+close-processing-picker: 4 states
+privacy-cancels-picker: 3 states
+no-owner-blocked: 2 states
+invalid-selection: 3 states
+stop-with-invalid-selection: 6 states
+owner-deleted-during-selection: 3 states
+16 retained screenshot workflows, 75 application states
+native SQLite failure: selected pixels survive exit and recover on reopen; installed editor path exercised
+native delayed audio cancellation: late picker selection never attaches or opens an editor
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.98s

@@ -1,7 +1,6 @@
 //! Independently observed sketch decoding, actual WebKit/native textures and scroll forecasting.
 
 use adw::prelude::*;
-use mluva_gtk::conversation_view::split_grilling_draft;
 use mluva_gtk::document_layout::{DocumentResources, SpeechScrollForecast};
 use mluva_gtk::markdown_view::MarkdownTextView;
 use mluva_gtk::mermaid::{MermaidPreview, mermaid_blocks, native_svg};
@@ -25,12 +24,6 @@ fn sketch_bounds_xml_policy_and_speech_forecast_match_released_observations() {
         reference["reference_commit"],
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"
     );
-    let questions: Value =
-        serde_json::from_str(include_str!("fixtures/released-conversation-page.json")).unwrap();
-    for case in questions["pure"].as_array().unwrap() {
-        let (head, body) = split_grilling_draft(case["text"].as_str().unwrap());
-        assert_eq!(json!([head, body]), case["split"]);
-    }
     for (index, case) in reference["blocks"].as_array().unwrap().iter().enumerate() {
         assert_eq!(
             serde_json::to_value(mermaid_blocks(case["source"].as_str().unwrap())).unwrap(),

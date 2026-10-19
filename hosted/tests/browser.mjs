@@ -219,21 +219,53 @@ try {
   receipts.push(
     "concurrent edits require explicit resolution, originals preserved, same history ID",
   );
-  await laptop.page.locator("#rewrite-panel>summary").click();
-  await laptop.page.locator("#template").selectOption("notes");
-  await laptop.page.locator("#rewrite").click();
-  await laptop.page.locator("#rewrite-result").waitFor();
-  await laptop.page.locator("#apply-rewrite").click();
-  await laptop.page.waitForFunction(() =>
-    document
-      .querySelector("#rewrites")
-      .textContent.includes("synthetic-preview"),
+  // Upgrade compatibility: a previously saved reply survives editing and export.
+  stored.rewrites = [
+    {
+      id: crypto.randomUUID(),
+      instruction: "Old polish",
+      text: "A previously saved rewrite.",
+      model: "legacy-model",
+      createdAt: new Date().toISOString(),
+    },
+  ];
+  delete stored.deviceId;
+  const legacySave = await api(laptop.page, `/history/${id}`, "PUT", {
+    ...stored,
+    baseRevision: stored.revision,
+    operationId: crypto.randomUUID(),
+  });
+  assert.equal(legacySave.status, 200, JSON.stringify(legacySave.body));
+  await laptop.page.reload();
+  await history(laptop.page, async () =>
+    laptop.page
+      .locator(".history-card")
+      .filter({ hasText: "A phone thought, ready for the laptop." })
+      .getByRole("button", { name: "Open", exact: true })
+      .click(),
   );
+  await laptop.page
+    .locator("#rewrites")
+    .getByText("legacy-model", { exact: false })
+    .waitFor();
   stored = (await api(laptop.page, `/history/${id}`)).body;
-  assert.equal(stored.rewrites.length, 1);
+  assert.equal(stored.rewrites[0].text, "A previously saved rewrite.");
   assert.equal(stored.rawText, "A phone thought, ready for the laptop.");
+  assert.equal(
+    await laptop.page.locator("#rewrite-panel,#task-mode,#rewrite").count(),
+    0,
+  );
+  assert.equal(
+    (
+      await api(laptop.page, "/rewrite", "POST", {
+        source: "private words",
+        instruction: "Polish",
+      })
+    ).status,
+    404,
+  );
   receipts.push(
-    "server rewrite preview, explicit apply, completed reply in shared history",
+    "saved legacy replies preserved; generation route and mode controls removed",
   );
   await screenshot(laptop.page, "editing-laptop.png");
   // Native-like source note remains independently edited while synthetic speech records a fresh note.
@@ -320,58 +352,22 @@ try {
     1,
   );
   receipts.push("failed save → reload → retry without duplicated note");
-  // A cancelled rewrite cannot reappear after the source changes.
-  await phone.page.locator("#rewrite-panel>summary").click();
-  let releaseRewrite;
-  const rewriteHeld = new Promise((resolve) => {
-    releaseRewrite = resolve;
-  });
-  await phone.page.route("**/api/rewrite**", async (route) => {
-    await rewriteHeld;
-    await route.continue();
-  });
-  await phone.page.locator("#rewrite").click();
-  await phone.page.locator("#rewrite-cancel").click();
-  releaseRewrite();
-  await phone.page.waitForTimeout(600);
-  assert.equal(await phone.page.locator("#rewrite-result").isVisible(), false);
-  receipts.push("cancel invalidates a late rewrite");
   await laptop.page.locator("#new-note").click();
-  await laptop.page
-    .locator("#draft")
-    .fill("The browser source must remain available for review.");
-  await laptop.page.locator("#task-mode").selectOption("command");
-  const countBeforeCommand = (await api(laptop.page, "/history")).body.entries
-    .length;
   await laptop.page.locator("#record").click();
   await laptop.page.locator("#speech-start").click();
   await laptop.page.locator("#partial").waitFor();
   await screenshot(laptop.page, "recording-laptop.png");
   await laptop.page.locator("#record").click();
   await laptop.page.waitForFunction(
-    () => document.getElementById("record-label").textContent === "Record",
-  );
-  assert.equal(
-    await laptop.page.locator("#draft").inputValue(),
-    "The browser source must remain available for review.",
-  );
-  assert.match(
-    await laptop.page.locator("#instruction").inputValue(),
-    /A thought from this device/,
-  );
-  assert.equal(
-    (await api(laptop.page, "/history")).body.entries.length,
-    countBeforeCommand,
-  );
-  await laptop.page.locator("#rewrite").click();
-  await laptop.page.locator("#rewrite-result").waitFor();
-  await laptop.page.locator("#apply-rewrite").click();
-  await laptop.page.waitForFunction(
     () =>
       document.getElementById("draft-state").textContent === "Saved to history",
   );
+  assert.match(
+    await laptop.page.locator("#draft").inputValue(),
+    /A thought from this device/,
+  );
   receipts.push(
-    "Command keeps supplied source, captures spoken instruction, and requires explicit preview/apply",
+    "normal laptop recording finalizes directly to an editable saved note",
   );
   // Memory-only mode must not call history or fan-out with its new words.
   await phone.page.locator("#new-note").click();

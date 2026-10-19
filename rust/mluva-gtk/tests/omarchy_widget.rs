@@ -75,6 +75,12 @@ fn static_state(value: &Value) -> Value {
     // These depend on animation phase and measured arrival times. Their bounds,
     // intermediate frames, direction and reduced-motion behavior are checked below.
     for key in [
+        "identifier",
+        "options",
+        "menuOpen",
+        "copyEnabled",
+        "copyVisible",
+        "reviewDuration",
         "dotRadius",
         "dotPhase",
         "lookAhead",
@@ -115,7 +121,6 @@ struct Widget {
     root: PathBuf,
     process: Process,
     publisher: Rc<RefCell<OverlayPublisher>>,
-    commands: Rc<RefCell<Vec<(String, String, String)>>>,
     connection: gio::DBusConnection,
     _actions: gio::SimpleActionGroup,
     export: Option<gio::ActionGroupExportId>,
@@ -220,18 +225,6 @@ impl Widget {
             assert!(replay.borrow().replay());
         });
         actions.add_action(&status);
-        let commands = Rc::new(RefCell::new(vec![]));
-        let received = commands.clone();
-        let review = gio::SimpleAction::new("review", Some(glib::VariantTy::new("(sss)").unwrap()));
-        review.connect_activate(move |_, parameters| {
-            received.borrow_mut().push(
-                parameters
-                    .unwrap()
-                    .get::<(String, String, String)>()
-                    .unwrap(),
-            );
-        });
-        actions.add_action(&review);
         let export = connection
             .export_action_group("/com/mluva/Linux", &actions)
             .unwrap();
@@ -266,7 +259,6 @@ impl Widget {
             root,
             process,
             publisher,
-            commands,
             connection,
             _actions: actions,
             export: Some(export),
@@ -343,18 +335,6 @@ impl Widget {
     fn queried(&self, arguments: &[&str]) -> Value {
         serde_json::from_str(&self.ipc(arguments)).unwrap()
     }
-    fn countdown(&self) -> Value {
-        self.queried(&["countdown"])
-    }
-    fn expect_commands(&self, expected: Value) {
-        let deadline = Instant::now() + Duration::from_secs(5);
-        while self.commands.borrow().len() < expected.as_array().unwrap().len()
-            && Instant::now() < deadline
-        {
-            pump(Duration::from_millis(10));
-        }
-        assert_eq!(json!(*self.commands.borrow()), expected);
-    }
     fn focus_editor(&self) {
         let windows = output(Command::new("xdotool").args([
             "search",
@@ -365,9 +345,6 @@ impl Widget {
         let identifiers = windows.lines().collect::<Vec<_>>();
         assert_eq!(identifiers.len(), 1);
         output(Command::new("xdotool").args(["windowfocus", "--sync", identifiers[0]]));
-    }
-    fn pointer(&self, x: f64, y: f64) {
-        output(Command::new("xdotool").args(["mousemove", &format!("{x:.0}"), &format!("{y:.0}")]));
     }
     fn picture(&self, name: &str) {
         output(
@@ -507,7 +484,7 @@ fn released_widget_controls_geometry_and_live_motion() {
             );
         }
     }
-    same_fields(&widget.countdown(), &short, &["x", "y"]);
+    same_fields(&widget.queried(&["position"]), &short, &["x", "y"]);
     saved(
         widget.root.join("scroll-motion.json"),
         &json!({"before":short,"near_edge":near,"wrap":wrapped}),
@@ -575,21 +552,16 @@ fn released_widget_controls_geometry_and_live_motion() {
             &["dotCenterX", "dotCenterY", "dotWidth", "dotHeight"],
         );
     }
-    for preferences in [
-        json!({"smooth_scrolling":false}),
-        json!({"scroll_duration_ms":0}),
-    ] {
-        let still = widget.motion(
-            &format!("{wrapped_text} Motion is disabled."),
-            1.4,
-            preferences,
-        );
-        assert!(!still.is_empty());
-        for frame in still {
-            assert_eq!(frame["dotRadius"], 6.4);
-            assert_eq!(frame["dotPhase"], 0);
-            assert!((number(&frame, "textY") - number(&frame, "targetY")).abs() < 0.1);
-        }
+    let still = widget.motion(
+        &format!("{wrapped_text} Reduced motion."),
+        1.4,
+        json!({"reduce_motion":true}),
+    );
+    assert!(!still.is_empty());
+    for frame in still {
+        assert_eq!(frame["dotRadius"], 6.4);
+        assert_eq!(frame["dotPhase"], 0);
+        assert!((number(&frame, "textY") - number(&frame, "targetY")).abs() < 0.1);
     }
     saved(
         widget.root.join("recording-pulse.json"),
@@ -631,141 +603,24 @@ fn released_widget_controls_geometry_and_live_motion() {
         )
     );
     saved(widget.root.join("bounded-preview.json"), &json!(tails));
+    let recording_states = widget.states.len();
     for light in [false, true] {
         widget.ipc(&["theme", if light { "true" } else { "false" }]);
-        widget.publish(json!({"phase":"ready","preview":"A concise note with enough room to review the final words before choosing a rewrite.","review_identifier":"synthetic-note","review_options":[["email","Email"],["tasks","Tasks"],["custom","Saved prompt"]]}));
-        let state = widget.observe("ready", None);
-        assert!(!flag(&state, "mask"));
-        assert_eq!(state["identifier"], "synthetic-note");
-        assert_eq!(
-            state["background"],
-            if light { "#faf4ed" } else { "#1a1b26" }
-        );
-        assert!(widget.commands.borrow().is_empty());
-        let name = if light { "light" } else { "dark" };
-        widget.picture(&format!("ready-{name}.png"));
-        let position = widget.countdown();
-        let geometry = format!(
-            "{:.0}x{:.0}+{:.0}+{:.0}",
-            number(&state, "width"),
-            number(&state, "height"),
-            number(&position, "x"),
-            number(&position, "y")
-        );
-        output(
-            Command::new("import")
-                .args(["-window", "root", "-crop", &geometry])
-                .arg(widget.root.join(format!("widget-{name}.png"))),
-        );
-        widget.ipc(&["click", "more"]);
-        assert!(flag(&widget.observe("ready", None), "menuOpen"));
-        widget.picture(&format!("menu-{name}.png"));
+        widget.publish(json!({"phase":"recording","preview":"Dictation goes straight to the selected destination."}));
+        let state = widget.observe("recording", None);
+        assert!(flag(&state, "visible"));
+        widget.picture(if light {
+            "recording-light.png"
+        } else {
+            "recording-dark.png"
+        });
     }
-    widget.ipc(&["click", "polish"]);
-    widget.expect_commands(json!([["rewrite", "synthetic-note", "polish"]]));
-    widget.observe("ready", None);
-    assert_eq!(
-        json!(*widget.commands.borrow()),
-        json!([["rewrite", "synthetic-note", "polish"]])
-    );
-    widget.ipc(&["click", "more"]);
-    widget.observe("ready", None);
-    widget.ipc(&["option", "2"]);
-    widget.expect_commands(json!([
-        ["rewrite", "synthetic-note", "polish"],
-        ["rewrite", "synthetic-note", "custom"]
-    ]));
-    widget.observe("ready", None);
-    assert_eq!(
-        json!(widget.commands.borrow().last().unwrap()),
-        json!(["rewrite", "synthetic-note", "custom"])
-    );
-    for preview in [
-        "A streamed rewrite".to_owned(),
-        "A streamed rewrite grows as the model responds. "
-            .repeat(8)
-            .trim()
-            .to_owned(),
-    ] {
-        widget.publish(
-            json!({"phase":"rewriting","preview":preview,"review_identifier":"synthetic-note"}),
-        );
-        let state = widget.observe("rewriting", Some(&preview));
-        assert!(flag(&state, "visible") && !flag(&state, "copyEnabled"));
-        assert_eq!(state["renderedText"], preview);
+    // Late messages from an old installed writer cannot revive a rewrite surface.
+    for phase in ["ready", "rewriting", "review-error"] {
+        widget
+            .publish(json!({"phase":phase,"preview":"legacy text","review_identifier":"obsolete"}));
+        assert!(!flag(&widget.observe("idle", None), "visible"));
     }
-    widget.picture("streaming.png");
-    widget.publish(json!({"phase":"review-error","preview":"Original stays safe","review_identifier":"synthetic-note","message":"Rewrite failed. Try again or open the note."}));
-    assert!(flag(&widget.observe("review-error", None), "visible"));
-    widget.publish(
-        json!({"phase":"ready","preview":"Timed review","review_identifier":"timed-note"}),
-    );
-    widget.observe("ready", None);
-    assert!((0.0..4000.0).contains(&number(&widget.countdown(), "remaining")));
-    let position = widget.countdown();
-    widget.pointer(number(&position, "x") + 20.0, number(&position, "y") + 20.0);
-    widget.observe("ready", None);
-    let hovered = widget.countdown();
-    assert!(flag(&hovered, "paused"));
-    pump(Duration::from_millis(600));
-    assert_eq!(widget.countdown()["remaining"], hovered["remaining"]);
-    widget.pointer(
-        number(&short, "screenWidth") - 5.0,
-        number(&short, "screenHeight") - 5.0,
-    );
-    widget.ipc(&["click", "more"]);
-    widget.observe("ready", None);
-    let paused = widget.countdown();
-    assert!(flag(&paused, "paused"));
-    pump(Duration::from_millis(600));
-    assert_eq!(widget.countdown()["remaining"], paused["remaining"]);
-    widget.ipc(&["closeMenu"]);
-    widget.ipc(&["focusReview"]);
-    widget.observe("ready", None);
-    assert!(!flag(&widget.countdown(), "paused"));
-    output(Command::new("xdotool").args(["key", "Tab"]));
-    widget.observe("ready", None);
-    let focused = widget.countdown();
-    assert!(flag(&focused, "paused"));
-    pump(Duration::from_millis(600));
-    assert_eq!(widget.countdown()["remaining"], focused["remaining"]);
-    widget.focus_editor();
-    widget
-        .publish(json!({"phase":"rewriting","preview":"Working","review_identifier":"timed-note"}));
-    widget.observe("rewriting", None);
-    pump(Duration::from_millis(4400));
-    assert_eq!(widget.countdown()["remaining"], 4000);
-    assert!(flag(&widget.countdown(), "visible"));
-    widget.publish(
-        json!({"phase":"ready","preview":"Finished result","review_identifier":"timed-note"}),
-    );
-    widget.observe("ready", None);
-    assert!(number(&widget.countdown(), "remaining") > 3000.0);
-    let mut expected = widget.commands.borrow().clone();
-    let deadline = Instant::now() + Duration::from_secs(10);
-    while flag(&widget.countdown(), "visible") && Instant::now() < deadline {
-        pump(Duration::from_millis(100));
-    }
-    assert!(!flag(&widget.countdown(), "visible"));
-    expected.push(("dismiss".into(), "timed-note".into(), "".into()));
-    widget.expect_commands(json!(expected));
-    saved(
-        widget.root.join("countdown.json"),
-        &json!({"duration_ms":4000,"hover":hovered,"menu":paused,"keyboard":focused,"expired":widget.countdown(),"dismissed_note":"timed-note"}),
-    );
-    widget.clear();
-    assert!(!flag(&widget.observe("idle", None), "visible"));
-    widget.publish(json!({"phase":"ready","preview":"Custom settings","review_identifier":"custom-settings","review_timeout_seconds":3,"show_copy_action":false,"smooth_scrolling":false,"scroll_duration_ms":1200,"scroll_lookahead_lines":0}));
-    let configured = widget.observe("ready", None);
-    assert_eq!(configured["reviewDuration"], 3000);
-    assert!(!flag(&configured, "copyVisible"));
-    assert_eq!(configured["scrollDuration"], 1200);
-    assert!(!flag(&configured, "smoothScrolling"));
-    assert_eq!(configured["scrollLookahead"], 0);
-    let mut expected = widget.commands.borrow().clone();
-    widget.ipc(&["click", "continue"]);
-    expected.push(("continue".into(), "custom-settings".into(), "".into()));
-    widget.expect_commands(json!(expected));
     widget.publish(json!({"phase":"recording","preview":"Three-line appearance settings","widget_lines":3,"widget_opacity":40,"rewrite_enabled":false}));
     let appearance = widget.observe("recording", Some("Three-line appearance settings"));
     assert!((number(&appearance, "surfaceOpacity") - 0.4).abs() < 0.01);
@@ -783,8 +638,13 @@ fn released_widget_controls_geometry_and_live_motion() {
     saved(widget.root.join("receipt.json"), &json!(widget.states));
     let expected = reference();
     let expected = expected["states"].as_array().unwrap();
-    assert_eq!(widget.states.len(), expected.len());
-    for (index, (actual, expected)) in widget.states.iter().zip(expected).enumerate() {
+    for (index, (actual, expected)) in widget
+        .states
+        .iter()
+        .take(recording_states)
+        .zip(expected)
+        .enumerate()
+    {
         assert_eq!(
             static_state(actual),
             static_state(expected),
@@ -792,7 +652,7 @@ fn released_widget_controls_geometry_and_live_motion() {
         );
     }
     eprintln!(
-        "Native publisher/bridge/QML matched {} released states, real controls, private focus/input and motion/countdown boundaries",
+        "Native publisher/bridge/QML matched {} released states, private focus, motion, reduced-motion and owner-loss boundaries",
         widget.states.len()
     );
 }

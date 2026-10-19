@@ -1,4 +1,4 @@
-//! Explicit vocabulary, snippets and output styles, with compatible private persistence.
+//! Local vocabulary and snippets; retired preferences survive as inert data.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -13,14 +13,10 @@ use uuid::Uuid;
 
 use crate::database::{StoreResult, invalid};
 use crate::private_files::atomic_write_private;
-use crate::prompt_catalog::{DEFAULTS, SavedStyle};
-use crate::prompts::PromptStore;
 use crate::text;
 
 pub const MAX_DICTIONARY_ENTRIES: usize = 1_000;
 pub const MAX_SNIPPETS: usize = 500;
-pub const MAX_CUSTOM_STYLES: usize = 100;
-const MODES: [&str; 3] = ["dictation", "command", "scratchpad"];
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DictionaryCaseBehavior {
@@ -59,32 +55,24 @@ pub struct Snippet {
 pub struct PersonalizationState {
     pub dictionary: Vec<DictionaryReplacement>,
     pub snippets: Vec<Snippet>,
-    pub custom_styles: Vec<SavedStyle>,
-    pub default_style_identifier: Option<String>,
-    pub application_style_identifiers: BTreeMap<String, String>,
-    pub application_style_disabled_identifiers: BTreeSet<String>,
-    pub application_modes: BTreeMap<String, String>,
-    pub application_provider_preferences: BTreeMap<String, String>,
+    // Inert legacy fields are retained verbatim when vocabulary is saved.
+    legacy: BTreeMap<String, Value>,
     pub dismissed_vocabulary_suggestion_identifiers: BTreeSet<String>,
 }
 
 impl PersonalizationState {
     pub fn document(&self) -> Value {
-        json!({
+        let mut document = json!({
             "schemaVersion": 1,
             "dictionary": self.dictionary,
             "snippets": self.snippets,
-            "styles": self.custom_styles.iter().map(|style| json!({
-                "id": style.identifier, "name": style.name,
-                "instructions": style.instructions, "isBuiltIn": false,
-            })).collect::<Vec<_>>(),
-            "defaultStyleID": self.default_style_identifier,
-            "applicationStyleIDs": self.application_style_identifiers,
-            "applicationStyleDisabled": self.application_style_disabled_identifiers,
-            "applicationModes": self.application_modes,
-            "applicationProviderPreferences": self.application_provider_preferences,
             "dismissedVocabularySuggestionIDs": self.dismissed_vocabulary_suggestion_identifiers,
-        })
+        });
+        document
+            .as_object_mut()
+            .unwrap()
+            .extend(self.legacy.clone());
+        document
     }
 
     fn decode(payload: &Value) -> StoreResult<Self> {
@@ -148,29 +136,9 @@ impl PersonalizationState {
                 })
             })
             .collect::<StoreResult<Vec<_>>>()?;
-        let mut custom_styles = Vec::new();
-        for item in rows("styles")? {
-            let style = SavedStyle {
-                identifier: required_identifier(item.get("id"))?,
-                name: required_value(item.get("name"), "Style name", 100)?,
-                instructions: required_value(
-                    item.get("instructions"),
-                    "Style instructions",
-                    8_000,
-                )?,
-                is_built_in: false,
-            };
-            if !DEFAULTS.styles.iter().any(|built| {
-                fold(&built.identifier) == fold(&style.identifier)
-                    || fold(&built.name) == normalized_phrase(&style.name)
-            }) {
-                custom_styles.push(style);
-            }
-        }
         for (length, bound, label) in [
             (dictionary.len(), MAX_DICTIONARY_ENTRIES, "dictionary"),
             (snippets.len(), MAX_SNIPPETS, "snippets"),
-            (custom_styles.len(), MAX_CUSTOM_STYLES, "styles"),
         ] {
             if length > bound {
                 return Err(invalid(format!(
@@ -178,50 +146,26 @@ impl PersonalizationState {
                 )));
             }
         }
-        let available: BTreeMap<_, _> = DEFAULTS
-            .styles
-            .iter()
-            .chain(&custom_styles)
-            .map(|style| (fold(&style.identifier), style.identifier.clone()))
-            .collect();
-        let default = match object.get("defaultStyleID") {
-            None | Some(Value::Null) => None,
-            Some(Value::String(value)) => Some(identifier(value)?),
-            _ => return Err(invalid("Style identifiers must be strings")),
-        };
-        let mut application_style_identifiers = BTreeMap::new();
-        for (application, style) in
-            string_mapping(object.get("applicationStyleIDs"), "applicationStyleIDs")?
-        {
-            let application = required_text(&application, "Application identifier", 2_048)?;
-            if let Ok(style) = identifier(&style)
-                && let Some(style) = available.get(&fold(&style))
-            {
-                application_style_identifiers.insert(application, style.clone());
-            }
-        }
-        let mut disabled = BTreeSet::new();
-        for item in string_set(
-            object.get("applicationStyleDisabled"),
+        let legacy = [
+            "styles",
+            "defaultStyleID",
+            "applicationStyleIDs",
             "applicationStyleDisabled",
-        )? {
-            disabled.insert(required_text(&item, "Application identifier", 2_048)?);
-        }
-        let mut modes = string_mapping(object.get("applicationModes"), "applicationModes")?;
-        modes.retain(|_, mode| MODES.contains(&mode.as_str()));
+            "applicationModes",
+            "applicationProviderPreferences",
+        ]
+        .into_iter()
+        .filter_map(|key| {
+            object
+                .get(key)
+                .cloned()
+                .map(|value| (key.to_owned(), value))
+        })
+        .collect();
         Ok(Self {
             dictionary,
             snippets,
-            custom_styles,
-            default_style_identifier: default
-                .and_then(|style| available.get(&fold(&style)).cloned()),
-            application_style_identifiers,
-            application_style_disabled_identifiers: disabled,
-            application_modes: modes,
-            application_provider_preferences: string_mapping(
-                object.get("applicationProviderPreferences"),
-                "applicationProviderPreferences",
-            )?,
+            legacy,
             dismissed_vocabulary_suggestion_identifiers: string_set(
                 object.get("dismissedVocabularySuggestionIDs"),
                 "dismissedVocabularySuggestionIDs",
@@ -235,7 +179,6 @@ pub struct PersonalizationStore {
     pub path: PathBuf,
     state: PersonalizationState,
     pub persistence_error: Option<String>,
-    pub prompt_store: Option<PromptStore>,
 }
 
 impl PersonalizationStore {
@@ -258,45 +201,11 @@ impl PersonalizationStore {
             path,
             state,
             persistence_error,
-            prompt_store: None,
         }
     }
 
     pub fn state(&self) -> &PersonalizationState {
         &self.state
-    }
-
-    /// Resolve prompt-file overrides without changing saved style identities or selections.
-    pub fn styles(&self) -> StoreResult<Vec<SavedStyle>> {
-        let mut styles = DEFAULTS
-            .styles
-            .iter()
-            .chain(&self.state.custom_styles)
-            .cloned()
-            .collect::<Vec<_>>();
-        if let Some(prompts) = &self.prompt_store {
-            for style in &mut styles {
-                let key = format!("style-{}", style.identifier.to_ascii_lowercase());
-                if prompts
-                    .catalog()
-                    .iter()
-                    .any(|prompt| prompt.identifier == key)
-                {
-                    style.instructions = prompts.read(&key)?.text;
-                }
-            }
-        }
-        Ok(styles)
-    }
-
-    pub fn style(&self, id: Option<&str>) -> StoreResult<Option<SavedStyle>> {
-        let Some(id) = id else {
-            return Ok(None);
-        };
-        Ok(self
-            .styles()?
-            .into_iter()
-            .find(|style| fold(&style.identifier) == fold(id)))
     }
 
     pub fn recognition_context(&self) -> Vec<String> {
@@ -447,187 +356,6 @@ impl PersonalizationStore {
         next.dismissed_vocabulary_suggestion_identifiers
             .insert(id.into());
         self.commit(next)
-    }
-
-    pub fn save_style(&mut self, name: &str, instructions: &str) -> StoreResult<SavedStyle> {
-        let name = required_text(name, "Style name", 100)?;
-        let instructions = required_text(instructions, "Style instructions", 8_000)?;
-        let key = normalized_phrase(&name);
-        if DEFAULTS.styles.iter().any(|style| fold(&style.name) == key) {
-            return Err(invalid("Built-in style names cannot be replaced"));
-        }
-        let index = self
-            .state
-            .custom_styles
-            .iter()
-            .position(|style| normalized_phrase(&style.name) == key);
-        if index.is_none() && self.state.custom_styles.len() >= MAX_CUSTOM_STYLES {
-            return Err(invalid("Custom styles support at most 100 entries"));
-        }
-        let style = SavedStyle {
-            identifier: index
-                .map(|index| self.state.custom_styles[index].identifier.clone())
-                .unwrap_or_else(|| Uuid::new_v4().to_string()),
-            name,
-            instructions,
-            is_built_in: false,
-        };
-        let mut next = self.state.clone();
-        if let Some(index) = index {
-            next.custom_styles[index] = style.clone();
-        } else {
-            next.custom_styles.push(style.clone());
-        }
-        self.commit(next)?;
-        Ok(style)
-    }
-
-    pub fn update_style(
-        &mut self,
-        id: &str,
-        name: &str,
-        instructions: &str,
-    ) -> StoreResult<SavedStyle> {
-        let current = self
-            .style(Some(id))?
-            .filter(|style| !style.is_built_in)
-            .ok_or_else(|| invalid("Custom style no longer exists"))?;
-        let name = required_text(name, "Style name", 100)?;
-        let instructions = required_text(instructions, "Style instructions", 8_000)?;
-        if self.styles()?.iter().any(|style| {
-            normalized_phrase(&style.name) == normalized_phrase(&name)
-                && fold(&style.identifier) != fold(id)
-        }) {
-            return Err(invalid("Style names must be unique"));
-        }
-        let style = SavedStyle {
-            identifier: current.identifier,
-            name,
-            instructions,
-            is_built_in: false,
-        };
-        let mut next = self.state.clone();
-        for item in &mut next.custom_styles {
-            if item.identifier == style.identifier {
-                *item = style.clone();
-            }
-        }
-        self.commit(next)?;
-        Ok(style)
-    }
-
-    pub fn delete_style(&mut self, id: &str) -> StoreResult<()> {
-        let current = self
-            .style(Some(id))?
-            .filter(|style| !style.is_built_in)
-            .ok_or_else(|| invalid("Custom style no longer exists"))?;
-        let mut next = self.state.clone();
-        next.custom_styles
-            .retain(|style| style.identifier != current.identifier);
-        if next.default_style_identifier.as_deref() == Some(&current.identifier) {
-            next.default_style_identifier = None;
-        }
-        next.application_style_identifiers
-            .retain(|_, style| *style != current.identifier);
-        self.commit(next)
-    }
-
-    pub fn select_style(
-        &mut self,
-        id: Option<&str>,
-        application: Option<&str>,
-        remember: bool,
-    ) -> StoreResult<()> {
-        let selected = self.style(id)?;
-        if id.is_some() && selected.is_none() {
-            return Err(invalid("Style no longer exists"));
-        }
-        let id = selected.map(|style| style.identifier);
-        let application = scope(application)?;
-        let mut next = self.state.clone();
-        if let Some(application) = application.filter(|_| remember) {
-            if let Some(id) = id {
-                next.application_style_disabled_identifiers
-                    .remove(&application);
-                next.application_style_identifiers.insert(application, id);
-            } else {
-                next.application_style_identifiers.remove(&application);
-                next.application_style_disabled_identifiers
-                    .insert(application);
-            }
-        } else {
-            next.default_style_identifier = id;
-        }
-        self.commit(next)
-    }
-
-    pub fn selected_style(
-        &self,
-        application: Option<&str>,
-        remember: bool,
-    ) -> StoreResult<Option<SavedStyle>> {
-        let application = scope(application)?;
-        if let Some(application) = application.filter(|_| remember) {
-            if self
-                .state
-                .application_style_disabled_identifiers
-                .contains(&application)
-            {
-                return Ok(None);
-            }
-            self.style(
-                self.state
-                    .application_style_identifiers
-                    .get(&application)
-                    .map(String::as_str),
-            )
-        } else {
-            self.style(self.state.default_style_identifier.as_deref())
-        }
-    }
-
-    pub fn has_application_style_selection(&self, application: &str) -> StoreResult<bool> {
-        let application = required_text(application, "Application identifier", 2_048)?;
-        Ok(self
-            .state
-            .application_style_identifiers
-            .contains_key(&application)
-            || self
-                .state
-                .application_style_disabled_identifiers
-                .contains(&application))
-    }
-
-    pub fn select_mode(
-        &mut self,
-        mode: &str,
-        application: Option<&str>,
-        remember: bool,
-    ) -> StoreResult<()> {
-        if !MODES.contains(&mode) {
-            return Err(invalid(format!("Unsupported capture mode: {mode}")));
-        }
-        if let Some(application) = scope(application)?.filter(|_| remember) {
-            let mut next = self.state.clone();
-            next.application_modes.insert(application, mode.into());
-            self.commit(next)?;
-        }
-        Ok(())
-    }
-
-    pub fn selected_mode(
-        &self,
-        application: Option<&str>,
-        remember: bool,
-        fallback: &str,
-    ) -> StoreResult<String> {
-        if !MODES.contains(&fallback) {
-            return Err(invalid(format!("Unsupported capture mode: {fallback}")));
-        }
-        Ok(scope(application)?
-            .filter(|_| remember)
-            .and_then(|application| self.state.application_modes.get(&application).cloned())
-            .unwrap_or_else(|| fallback.into()))
     }
 
     pub fn scoped_dictionary(
@@ -792,22 +520,6 @@ fn required_identifier(value: Option<&Value>) -> StoreResult<String> {
     match value {
         Some(Value::String(value)) => identifier(value),
         _ => Ok(Uuid::new_v4().to_string()),
-    }
-}
-
-fn string_mapping(value: Option<&Value>, label: &str) -> StoreResult<BTreeMap<String, String>> {
-    match value {
-        None | Some(Value::Null) => Ok(BTreeMap::new()),
-        Some(Value::Object(values)) => values
-            .iter()
-            .map(|(key, value)| {
-                value
-                    .as_str()
-                    .map(|value| (key.clone(), value.into()))
-                    .ok_or_else(|| invalid(format!("{label} must map strings to strings")))
-            })
-            .collect(),
-        _ => Err(invalid(format!("{label} must map strings to strings"))),
     }
 }
 
@@ -1051,190 +763,4 @@ pub fn snippet_variables() -> BTreeMap<String, String> {
         ("datetime".into(), format!("{date} {time}")),
         ("weekday".into(), formatted("%A")),
     ])
-}
-
-struct ProtectedExpression {
-    expression: Regex,
-    start_word: bool,
-    end_word: bool,
-    path: bool,
-    numbered_identifier: bool,
-}
-
-static PROTECTED: LazyLock<Vec<ProtectedExpression>> = LazyLock::new(|| {
-    let digit = text::decimal_expression();
-    [
-        (
-            format!(
-                "{}{}?://[^\\s\\x1c-\\x1f<>()]+",
-                case_phrase("http"),
-                text::ignore_case_literal('s')
-            ),
-            false,
-            false,
-            false,
-            false,
-        ),
-        (
-            r"/[A-Za-z0-9._~-]+(?:/[A-Za-z0-9._~-]+)+".into(),
-            false,
-            false,
-            true,
-            false,
-        ),
-        (r"`[^`\n]+`".into(), false, false, false, false),
-        (
-            r"--[A-Za-z0-9][A-Za-z0-9-]*".into(),
-            false,
-            false,
-            false,
-            false,
-        ),
-        (
-            [
-                "do not", "does not", "did not", "not", "never", "without", "cannot", "can't",
-                "won't", "don't",
-            ]
-            .map(case_phrase)
-            .join("|"),
-            true,
-            true,
-            false,
-            false,
-        ),
-        (
-            r"[A-Za-z][A-Za-z0-9]*_[A-Za-z0-9_]+".into(),
-            true,
-            true,
-            false,
-            false,
-        ),
-        (
-            r"[a-z]+(?:[A-Z][A-Za-z0-9]*)+".into(),
-            true,
-            true,
-            false,
-            false,
-        ),
-        (
-            format!("{digit}+(?:\\.{digit}+)?%"),
-            true,
-            false,
-            false,
-            false,
-        ),
-        (
-            r"[A-Za-z]+(?:-[A-Za-z0-9]+)+".into(),
-            true,
-            true,
-            false,
-            true,
-        ),
-        (
-            format!("{digit}+(?:\\.{digit}+)*"),
-            true,
-            true,
-            false,
-            false,
-        ),
-    ]
-    .into_iter()
-    .map(
-        |(pattern, start_word, end_word, path, numbered_identifier)| ProtectedExpression {
-            expression: Regex::new(&pattern).expect("protected token expression"),
-            start_word,
-            end_word,
-            path,
-            numbered_identifier,
-        },
-    )
-    .collect()
-});
-
-fn protected_match(
-    expression: &ProtectedExpression,
-    source: &str,
-    mut scan: usize,
-) -> Option<std::ops::Range<usize>> {
-    while let Some(found) = expression.expression.find_at(source, scan) {
-        let before = source[..found.start()]
-            .chars()
-            .next_back()
-            .is_some_and(text::word_character);
-        let after = source[found.end()..]
-            .chars()
-            .next()
-            .is_some_and(text::word_character);
-        let numbered = !expression.numbered_identifier
-            || source[found.start()..]
-                .chars()
-                .take_while(|character| character.is_ascii_alphanumeric() || *character == '-')
-                .any(|character| character.is_ascii_digit());
-        if (!expression.start_word && !expression.path || !before) && numbered {
-            if !expression.end_word || !after {
-                return Some(found.range());
-            }
-            // A word-boundary check can make a greedy version or hyphenated identifier
-            // fall back to an earlier complete component, as in "1.2.3é" or "gpt-4-fó".
-            for (length, character) in found.as_str().char_indices().rev() {
-                if length > 0 && !text::word_character(character) {
-                    let prefix = &found.as_str()[..length];
-                    if expression.expression.find(prefix).is_some_and(|candidate| {
-                        candidate.start() == 0 && candidate.end() == prefix.len()
-                    }) {
-                        return Some(found.start()..found.start() + length);
-                    }
-                }
-            }
-        }
-        scan = found.start() + found.as_str().chars().next().unwrap().len_utf8();
-    }
-    None
-}
-
-fn contains_token(token: &str, source: &str) -> bool {
-    let camel = token
-        .as_bytes()
-        .windows(2)
-        .any(|pair| pair[0].is_ascii_lowercase() && pair[1].is_ascii_uppercase());
-    if token.contains("://")
-        || token.starts_with(['/', '`'])
-        || token.starts_with("--")
-        || token.contains('_')
-        || camel
-    {
-        source.contains(token)
-    } else {
-        fold(source).contains(&fold(token))
-    }
-}
-
-/// Generative output must preserve syntax-sensitive terms, numbers and negation.
-pub fn integrity_violations(source: &str, candidate: &str, vocabulary: &[String]) -> Vec<String> {
-    let mut tokens = BTreeSet::new();
-    let mut scan = 0;
-    while scan < source.len() {
-        let found = PROTECTED
-            .iter()
-            .enumerate()
-            .filter_map(|(priority, expression)| {
-                protected_match(expression, source, scan).map(|found| (priority, found))
-            })
-            .min_by_key(|(priority, found)| (found.start, *priority));
-        let Some((_, found)) = found else {
-            break;
-        };
-        tokens.insert(source[found.clone()].to_owned());
-        scan = found.end;
-    }
-    tokens.extend(
-        vocabulary
-            .iter()
-            .filter(|term| contains_token(term, source))
-            .cloned(),
-    );
-    tokens
-        .into_iter()
-        .filter(|token| !contains_token(token, candidate))
-        .collect()
 }

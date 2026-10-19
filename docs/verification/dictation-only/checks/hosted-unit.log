@@ -1,0 +1,32 @@
+
+> mluva-everywhere@2.4.0 test
+> node --test tests/*.test.mjs
+
+✔ revocation blocks the token family, guessed active IDs and re-enrollment while another login stays usable (5.496115ms)
+✔ revocation wins a concurrent new-device registration transaction (0.664937ms)
+✔ legacy unbound devices cannot access account data or websocket tickets (0.4752ms)
+✔ revision CAS rejects simultaneous edits; retries keep one note and immutable originals (1.233558ms)
+✔ deletion wins against delayed first saves, updates, retries and other account IDs (0.940398ms)
+✔ removed devices cannot read, save or mint tickets with an otherwise live JWT (0.649231ms)
+✔ explicit empty receiver list delivers nowhere; duplicate retries retain the original payload (0.999513ms)
+✔ a late acknowledged retry cannot hide a newer edit; merge is atomic and preserves sources (1.635374ms)
+✔ PKCE is verified, remembered login survives tab storage loss, and sign-out clears both stores (10.199649ms)
+✔ token-free preflight is origin bound while business routes require an access JWT (4.217808ms)
+✔ bidirectional streams isolate accounts and partial text never enters durable history (13.526978ms)
+✔ connection tickets are one-use, short-lived, origin checked and account bound (0.821215ms)
+✔ device removal revokes existing connections and unused tickets (1.314768ms)
+✔ ordered updates suppress duplicates and reject missing, post-stop and expired updates (1.011206ms)
+✔ history originals survive retries and deletion cannot resurrect or cross accounts (1.150001ms)
+✔ pagination stays account-scoped and oversized Unicode is rejected before persistence (2.703894ms)
+✔ speech is opt-in, requires consent and caps paid token creation (0.548561ms)
+✔ atomic admission bounds active devices and rejects stale writes (0.671163ms)
+✔ an older delayed commit cannot settle Stop before the final audio response (20.365882ms)
+✔ failed final audio flush still releases microphone and keeps the stopped backup (0.446134ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2081.32705

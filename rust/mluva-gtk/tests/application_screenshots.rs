@@ -280,10 +280,36 @@ fn released_application_screenshot_ownership_and_lifecycle() {
     )
     .unwrap();
     let target = PathBuf::from(std::env::var_os("CARGO_TARGET_DIR").unwrap()).join("debug");
-    let fixture: Value = serde_json::from_str(include_str!(
+    let mut fixture: Value = serde_json::from_str(include_str!(
         "fixtures/released-application-screenshots.json"
     ))
     .unwrap();
+    capture_ui::current_contract(&mut fixture);
+    // The screenshot path still owns attachments, editor races and continuation.
+    // It no longer uploads pixels to a rewrite model or has a Notes mode.
+    fixture["cases"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|row| row["params"]["mode"] != "scratchpad");
+    for row in fixture["cases"].as_array_mut().unwrap() {
+        row["responses"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|r| r["route"] != "rewrite");
+        row["requests"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|r| r["path"] != "/chat/completions");
+        if row["params"]["enhance"] == true {
+            let requests = row["responses"].as_array().unwrap().len() as u64;
+            for stage in row["stages"].as_array_mut().unwrap() {
+                if stage["stage"] == "completed" {
+                    stage["state"]["requests"] = json!(requests);
+                }
+            }
+            row["final"]["requests"] = json!(requests);
+        }
+    }
     assert_eq!(
         fixture["reference"],
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"
@@ -328,7 +354,8 @@ fn released_application_screenshot_ownership_and_lifecycle() {
         let mut document = row["config"].clone();
         document["transcription_base_url"] = json!(format!("{}/v1", peer.address));
         document["litellm_base_url"] = json!(peer.address);
-        let config: AppConfig = serde_json::from_value(document).unwrap();
+        let config: AppConfig =
+            AppConfig::from_persisted_json(&serde_json::to_vec(&document).unwrap()).unwrap();
         let paths = AppPaths {
             config: directory.join("config/mluva"),
             data: directory.join("data/mluva"),
@@ -359,11 +386,6 @@ fn released_application_screenshot_ownership_and_lifecycle() {
         .unwrap();
         owner.shell.present();
         until(|| owner.capture.page.record_button.get_sensitive());
-        owner
-            .settings
-            .capture
-            .cleanup
-            .set_active(params["enhance"] == true);
         let workspace = owner.capture.page.workspace.clone();
         let mut observer = Observer::default();
         let mut context = vec![];
@@ -599,7 +621,10 @@ fn released_application_screenshot_ownership_and_lifecycle() {
         );
         eprintln!("{name}: {stage_index} states");
     }
-    eprintln!("17 released screenshot workflows, {count} application states");
+    eprintln!(
+        "{} retained screenshot workflows, {count} application states",
+        fixture["cases"].as_array().unwrap().len()
+    );
     metadata_failure_recovers_images(&root, &target, &resources, &fixture);
     cancelled_capture_rejects_late_selection(&root, &target, &resources, &fixture);
 }
@@ -638,7 +663,8 @@ fn cancelled_capture_rejects_late_selection(
     let mut document = row["config"].clone();
     document["transcription_base_url"] = json!(format!("{}/v1", peer.address));
     document["litellm_base_url"] = json!(peer.address);
-    let config: AppConfig = serde_json::from_value(document).unwrap();
+    let config: AppConfig =
+        AppConfig::from_persisted_json(&serde_json::to_vec(&document).unwrap()).unwrap();
     let paths = AppPaths {
         config: directory.join("config/mluva"),
         data: directory.join("data/mluva"),
@@ -751,7 +777,8 @@ fn metadata_failure_recovers_images(
     let mut document = row["config"].clone();
     document["transcription_base_url"] = json!(format!("{}/v1", peer.address));
     document["litellm_base_url"] = json!(peer.address);
-    let config: AppConfig = serde_json::from_value(document).unwrap();
+    let config: AppConfig =
+        AppConfig::from_persisted_json(&serde_json::to_vec(&document).unwrap()).unwrap();
     let paths = AppPaths {
         config: directory.join("config/mluva"),
         data: directory.join("data/mluva"),

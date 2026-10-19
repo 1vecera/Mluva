@@ -3,7 +3,6 @@
 use crate::document_layout::{DocumentResources, TailFollower, document_scroll, margins};
 use crate::markdown_view::MarkdownTextView;
 use crate::mermaid::MermaidPreview;
-use crate::prompt_editor::prompt_control;
 use crate::recording_light::RecordingLight;
 use crate::screenshot_shelf::ScreenshotShelf;
 use adw::prelude::*;
@@ -12,15 +11,11 @@ use mluva_core::config::AppConfig;
 use mluva_core::conversation::{ConversationStore, MERGE_MODEL, Rewrite};
 use mluva_core::database::{StoreError, StoreResult};
 use mluva_core::history::HistoryEntry;
-use mluva_core::prompt_catalog::DEFAULTS;
-use mluva_core::prompts::PromptStore;
 use mluva_core::screenshots::ScreenshotStore;
 use mluva_core::{text, titles::fallback_title};
-use regex::Regex;
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::rc::Rc;
-use std::sync::LazyLock;
 
 pub type TextAction = Rc<dyn Fn(&str)>;
 pub type NamedAction = Rc<dyn Fn(&str, &str) -> bool>;
@@ -41,11 +36,7 @@ fn display_title(entry: &HistoryEntry) -> String {
 
 pub struct ConversationCallbacks {
     pub copy: TextAction,
-    pub rewrite: TextAction,
-    pub paste: TextAction,
     pub open_archive: Action,
-    pub save_prompt: TextAction,
-    pub cancel_rewrite: Action,
     pub rename: NamedAction,
     pub delete: SingleAction,
     pub merge: NamedAction,
@@ -53,7 +44,6 @@ pub struct ConversationCallbacks {
     pub capture_screenshot: Option<Action>,
     pub edit_screenshot: TextAction,
     pub remove_screenshot: TextAction,
-    pub edit_prompt: TextAction,
 }
 
 pub fn history_timestamp(value: &str, format: &str) -> StoreResult<String> {
@@ -80,30 +70,6 @@ pub fn history_timestamp(value: &str, format: &str) -> StoreResult<String> {
     Ok(format!("{} · {clock}", local.format("%a %-d %b")))
 }
 
-pub fn split_grilling_draft(source: &str) -> (&str, &str) {
-    static HEADER: LazyLock<Regex> = LazyLock::new(|| {
-        Regex::new(r"(?s)\A[\s\x1c-\x1f]*#{1,2} Questions[\s\x1c-\x1f]*\n").unwrap()
-    });
-    static ARCHITECTURE: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"(?m)^#{1,2} Architecture[\s\x1c-\x1f]*$").unwrap());
-    let Some(header) = HEADER.find(source) else {
-        return ("", source);
-    };
-    let end = ARCHITECTURE
-        .find_at(source, header.end())
-        .map_or(source.len(), |m| m.start());
-    source.split_at(end)
-}
-
-fn builtin_prompt(identifier: &str) -> &'static str {
-    &DEFAULTS
-        .prompts
-        .iter()
-        .find(|p| p.identifier == identifier)
-        .expect("reviewed built-in prompt")
-        .default
-}
-
 #[derive(Default)]
 struct WorkspaceState {
     entry: Option<HistoryEntry>,
@@ -112,25 +78,17 @@ struct WorkspaceState {
     renaming: Option<String>,
     live_active: bool,
     viewing_live: bool,
-    live_draft_available: bool,
-    live_questions_source: String,
     live_capture: Option<String>,
     live_conversation: Option<String>,
-    drafts: BTreeMap<String, String>,
     edit_drafts: BTreeMap<EditKey, String>,
     editors: BTreeMap<EditKey, MarkdownTextView>,
     documents: Vec<MarkdownTextView>,
     copy_buttons: Vec<gtk::Button>,
     save_buttons: Vec<gtk::Button>,
-    saved_prompt_buttons: Vec<gtk::Button>,
     rows: Vec<(gtk::ListBoxRow, String)>,
     row_titles: BTreeMap<String, gtk::Label>,
     row_menus: Vec<gtk::MenuButton>,
     previews: Vec<Rc<MermaidPreview>>,
-    preview_identifier: Option<String>,
-    preview_text: String,
-    preview_box: Option<gtk::Box>,
-    preview_editor: Option<MarkdownTextView>,
     search_limit: i64,
 }
 
@@ -155,48 +113,20 @@ pub struct ConversationWorkspace {
     pub live_header: gtk::Box,
     pub live_light: Rc<RecordingLight>,
     pub live_title: gtk::Label,
-    pub live_cancel: gtk::Button,
-    pub live_cancel_slot: gtk::Stack,
-    pub source_toggle: gtk::ToggleButton,
-    pub draft_toggle: gtk::ToggleButton,
     pub live_box: gtk::Box,
     pub live_source_box: gtk::Box,
     pub live_text: MarkdownTextView,
     pub live_scroll: gtk::ScrolledWindow,
     pub live_follower: Rc<TailFollower>,
-    pub live_divider: gtk::Separator,
-    pub live_draft_box: gtk::Box,
-    pub live_draft_status: gtk::Label,
-    pub live_questions: MarkdownTextView,
-    pub live_questions_scroll: gtk::ScrolledWindow,
-    pub live_draft_text: MarkdownTextView,
-    pub live_draft_scroll: gtk::ScrolledWindow,
-    pub live_draft_follower: Rc<TailFollower>,
     pub screenshot_shelf: ScreenshotShelf,
     pub screenshot_buttons: [gtk::Button; 2],
-    pub composer: gtk::Box,
-    pub rewrite_toggle: gtk::ToggleButton,
-    pub actions: gtk::FlowBox,
-    pub quick_polish: gtk::Button,
-    pub structured_note: gtk::Button,
-    pub saved_prompts: gtk::MenuButton,
-    pub prompt_label: gtk::Label,
-    pub prompt: gtk::TextView,
-    pub prompt_placeholder: gtk::Label,
     pub notice: gtk::Label,
-    pub save: gtk::Button,
-    pub cancel: gtk::Button,
-    pub send: gtk::Button,
     pub store: ConversationStore,
     callbacks: ConversationCallbacks,
     resources: DocumentResources,
     config: RefCell<AppConfig>,
     state: RefCell<WorkspaceState>,
-    prompt_store: RefCell<Option<Rc<RefCell<PromptStore>>>>,
     screenshot_store: ScreenshotStore,
-    live_source_visible: Cell<bool>,
-    live_draft_visible: Cell<bool>,
-    _live_diagrams: Rc<MermaidPreview>,
 }
 
 impl ConversationWorkspace {
@@ -348,40 +278,8 @@ impl ConversationWorkspace {
             .ellipsize(gtk::pango::EllipsizeMode::End)
             .css_classes(["caption"])
             .build();
-        let live_cancel = gtk::Button::builder()
-            .label("Cancel")
-            .has_frame(false)
-            .valign(gtk::Align::Center)
-            .tooltip_text("Cancel the final rewrite; keep the original dictation")
-            .build();
-        live_cancel.update_property(&[gtk::accessible::Property::Label("Cancel final rewrite")]);
-        let live_cancel_slot = gtk::Stack::builder()
-            .hhomogeneous(false)
-            .vhomogeneous(true)
-            .visible(false)
-            .build();
-        live_cancel_slot.add_named(
-            &gtk::Box::new(gtk::Orientation::Horizontal, 0),
-            Some("idle"),
-        );
-        live_cancel_slot.add_named(&live_cancel, Some("cancel"));
-        live_header.append(&live_cancel_slot);
         live_header.append(&live_title);
         live_header.append(&screenshot_buttons[1]);
-        let source_toggle = gtk::ToggleButton::builder()
-            .label("Original")
-            .active(true)
-            .has_frame(false)
-            .tooltip_text("Show or hide original · Ctrl+1")
-            .build();
-        let draft_toggle = gtk::ToggleButton::builder()
-            .label("Live draft")
-            .active(true)
-            .has_frame(false)
-            .tooltip_text("Show or hide draft · Ctrl+2")
-            .build();
-        live_header.append(&source_toggle);
-        live_header.append(&draft_toggle);
         content.append(&live_header);
         let live_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
@@ -403,143 +301,7 @@ impl ConversationWorkspace {
         live_source_box.append(&live_scroll);
         live_box.append(&live_source_box);
         let live_follower = TailFollower::new(&live_scroll, Some(live_text.upcast_ref()));
-        let live_divider = gtk::Separator::builder()
-            .orientation(gtk::Orientation::Vertical)
-            .visible(false)
-            .css_classes(["ml-pane-divider"])
-            .build();
-        live_box.append(&live_divider);
-        let live_draft_box = gtk::Box::builder()
-            .orientation(gtk::Orientation::Vertical)
-            .spacing(8)
-            .hexpand(true)
-            .visible(false)
-            .css_classes(["ml-live-draft"])
-            .build();
-        let live_draft_status = gtk::Label::builder()
-            .label("Live draft")
-            .xalign(0.0)
-            .ellipsize(gtk::pango::EllipsizeMode::End)
-            .css_classes(["heading"])
-            .visible(false)
-            .build();
-        live_draft_box.append(&live_draft_status);
-        let live_questions = MarkdownTextView::document("", true, false);
-        live_questions.add_css_class("ml-live-questions");
-        live_questions.set_top_margin(0);
-        live_questions.set_bottom_margin(0);
-        live_questions.set_visible(false);
-        live_questions.update_property(&[gtk::accessible::Property::Label(
-            "Questions to consider as you speak",
-        )]);
-        let live_questions_scroll = document_scroll(&live_questions, false);
-        live_questions_scroll.set_propagate_natural_height(true);
-        live_questions_scroll.set_max_content_height(180);
-        live_questions_scroll.set_visible(false);
-        live_draft_box.append(&live_questions_scroll);
-        let live_draft_text = MarkdownTextView::document("", true, true);
-        live_draft_text.update_property(&[gtk::accessible::Property::Label("Live draft")]);
-        let live_draft_document = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        live_draft_document.append(&live_draft_text);
-        let live_diagrams = MermaidPreview::new(&live_draft_text, &resources);
-        live_draft_document.append(&live_diagrams.widget);
-        let live_draft_scroll = document_scroll(&live_draft_document, true);
-        live_draft_box.append(&live_draft_scroll);
-        live_box.append(&live_draft_box);
-        let live_draft_follower =
-            TailFollower::new(&live_draft_scroll, Some(live_draft_text.upcast_ref()));
         content.append(&live_box);
-        let rewrite_expanded = std::fs::read(
-            store
-                .history
-                .database
-                .path
-                .with_file_name("rewrite-panel-expanded.json"),
-        )
-        .ok()
-        .and_then(|bytes| serde_json::from_slice::<bool>(&bytes).ok())
-        .unwrap_or(false);
-        let rewrite_toggle = gtk::ToggleButton::builder()
-            .label("Rewrite")
-            .tooltip_text("Show or hide manual rewrite controls")
-            .active(rewrite_expanded)
-            .halign(gtk::Align::Start)
-            .margin_start(16)
-            .margin_top(8)
-            .margin_bottom(8)
-            .build();
-        content.append(&rewrite_toggle);
-        let composer = gtk::Box::new(gtk::Orientation::Vertical, 8);
-        composer.set_visible(rewrite_expanded);
-        composer.add_css_class("ml-composer");
-        margins(&composer, 16);
-        composer.set_margin_top(8);
-        composer.set_margin_bottom(8);
-        let actions = gtk::FlowBox::builder()
-            .selection_mode(gtk::SelectionMode::None)
-            .column_spacing(8)
-            .row_spacing(8)
-            .max_children_per_line(4)
-            .min_children_per_line(1)
-            .halign(gtk::Align::Start)
-            .build();
-        let quick_polish = gtk::Button::builder()
-            .label("Polish")
-            .tooltip_text("Remove filler words and fix phrasing while keeping your meaning")
-            .build();
-        let structured_note = gtk::Button::builder()
-            .label("Structure")
-            .tooltip_text("A concise summary followed by organized bullet points")
-            .build();
-        let edit = callbacks.edit_prompt.clone();
-        actions.insert(
-            &prompt_control(
-                &quick_polish,
-                "Polish",
-                Rc::new(move || edit("rewrite-polish")),
-            ),
-            -1,
-        );
-        let edit = callbacks.edit_prompt.clone();
-        actions.insert(
-            &prompt_control(
-                &structured_note,
-                "Structure",
-                Rc::new(move || edit("rewrite-structure")),
-            ),
-            -1,
-        );
-        let saved_prompts = gtk::MenuButton::builder().label("More").build();
-        actions.insert(&saved_prompts, -1);
-        composer.append(&actions);
-        let prompt_label = gtk::Label::builder()
-            .xalign(0.0)
-            .css_classes(["caption"])
-            .build();
-        composer.append(&prompt_label);
-        let prompt = gtk::TextView::builder()
-            .wrap_mode(gtk::WrapMode::WordChar)
-            .accepts_tab(false)
-            .cursor_visible(false)
-            .css_classes(["ml-prompt"])
-            .tooltip_text("Write a custom instruction, then press Ctrl+Enter to send")
-            .build();
-        let prompt_scroll = document_scroll(&prompt, false);
-        prompt_scroll.set_min_content_height(40);
-        prompt_scroll.set_max_content_height(120);
-        prompt_scroll.set_propagate_natural_height(true);
-        let overlay = gtk::Overlay::builder().child(&prompt_scroll).build();
-        let prompt_placeholder = gtk::Label::builder()
-            .label("Ask for a rewrite…")
-            .halign(gtk::Align::Start)
-            .valign(gtk::Align::Center)
-            .margin_start(10)
-            .can_target(false)
-            .css_classes(["dim-label"])
-            .build();
-        overlay.add_overlay(&prompt_placeholder);
-        composer.append(&overlay);
-        let footer = gtk::Box::new(gtk::Orientation::Horizontal, 8);
         let notice = gtk::Label::builder()
             .xalign(0.0)
             .wrap(true)
@@ -549,24 +311,10 @@ impl ConversationWorkspace {
             .css_classes(["caption"])
             .max_width_chars(28)
             .build();
-        footer.append(&notice);
-        let save = gtk::Button::builder()
-            .icon_name("bookmark-new-symbolic")
-            .tooltip_text("Save this prompt for later")
-            .build();
-        footer.append(&save);
-        let cancel = gtk::Button::builder()
-            .label("Cancel")
-            .visible(false)
-            .build();
-        footer.append(&cancel);
-        let send = gtk::Button::builder()
-            .label("Rewrite")
-            .css_classes(["suggested-action", "ml-primary"])
-            .build();
-        footer.append(&send);
-        composer.append(&footer);
-        content.append(&composer);
+        margins(&notice, 16);
+        notice.set_margin_top(0);
+        notice.set_margin_bottom(0);
+        content.append(&notice);
         let screenshot_store = ScreenshotStore::new(&store.history.database.path);
         let workspace = Rc::new(Self {
             widget,
@@ -589,38 +337,14 @@ impl ConversationWorkspace {
             live_header,
             live_light,
             live_title,
-            live_cancel,
-            live_cancel_slot,
-            source_toggle,
-            draft_toggle,
             live_box,
             live_source_box,
             live_text,
             live_scroll,
             live_follower,
-            live_divider,
-            live_draft_box,
-            live_draft_status,
-            live_questions,
-            live_questions_scroll,
-            live_draft_text,
-            live_draft_scroll,
-            live_draft_follower,
             screenshot_shelf,
             screenshot_buttons,
-            composer,
-            rewrite_toggle,
-            actions,
-            quick_polish,
-            structured_note,
-            saved_prompts,
-            prompt_label,
-            prompt,
-            prompt_placeholder,
             notice,
-            save,
-            cancel,
-            send,
             store,
             callbacks,
             resources,
@@ -629,11 +353,7 @@ impl ConversationWorkspace {
                 search_limit: 80,
                 ..WorkspaceState::default()
             }),
-            prompt_store: RefCell::new(None),
             screenshot_store,
-            live_source_visible: Cell::new(true),
-            live_draft_visible: Cell::new(true),
-            _live_diagrams: live_diagrams,
         });
         workspace.connect(&new_conversation, &archive, &title_cancel);
         workspace.show_conversation(None, &[], false)?;
@@ -678,25 +398,6 @@ impl ConversationWorkspace {
                 (w.callbacks.continue_recording)(&entry.identifier);
             }
         });
-        clicked!(&self.live_cancel, |w: &Rc<Self>| (w
-            .callbacks
-            .cancel_rewrite)(
-        ));
-        clicked!(&self.source_toggle, |w: &Rc<Self>| w.toggle_live_pane(true));
-        clicked!(&self.draft_toggle, |w: &Rc<Self>| w.toggle_live_pane(false));
-        clicked!(&self.quick_polish, |w: &Rc<Self>| w.request_prompt(
-            "rewrite-polish",
-            builtin_prompt("rewrite-polish")
-        ));
-        clicked!(&self.structured_note, |w: &Rc<Self>| w.request_prompt(
-            "rewrite-structure",
-            builtin_prompt("rewrite-structure")
-        ));
-        clicked!(&self.save, |w: &Rc<Self>| (w.callbacks.save_prompt)(
-            &w.prompt_text()
-        ));
-        clicked!(&self.cancel, |w: &Rc<Self>| (w.callbacks.cancel_rewrite)());
-        clicked!(&self.send, |w: &Rc<Self>| w.submit());
         for button in &self.screenshot_buttons {
             clicked!(button, |w: &Rc<Self>| {
                 if let Some(capture) = &w.callbacks.capture_screenshot {
@@ -750,83 +451,6 @@ impl ConversationWorkspace {
                 }
             }
         });
-        let placeholder = self.prompt_placeholder.downgrade();
-        let prompt = self.prompt.downgrade();
-        self.prompt.buffer().connect_changed(move |b| {
-            if let Some(label) = placeholder.upgrade() {
-                label.set_visible(b.char_count() == 0);
-            }
-            if let Some(prompt) = prompt.upgrade() {
-                prompt.set_cursor_visible(b.char_count() != 0);
-            }
-        });
-        let weak = Rc::downgrade(self);
-        self.rewrite_toggle.connect_toggled(move |button| {
-            if let Some(w) = weak.upgrade() {
-                w.composer
-                    .set_visible(button.is_active() && !w.is_viewing_live());
-                let path = w
-                    .store
-                    .history
-                    .database
-                    .path
-                    .with_file_name("rewrite-panel-expanded.json");
-                if mluva_core::private_files::atomic_write_private_durable(
-                    &path,
-                    if button.is_active() {
-                        b"true\n"
-                    } else {
-                        b"false\n"
-                    },
-                )
-                .is_err()
-                {
-                    w.notice
-                        .set_label("Could not save the rewrite panel preference.");
-                }
-            }
-        });
-        let keys = gtk::EventControllerKey::new();
-        let weak = Rc::downgrade(self);
-        keys.connect_key_pressed(move |_, key, _, state| {
-            if key == gtk::gdk::Key::Return
-                && state.contains(gtk::gdk::ModifierType::CONTROL_MASK)
-                && let Some(w) = weak.upgrade()
-            {
-                w.submit();
-                return glib::Propagation::Stop;
-            }
-            glib::Propagation::Proceed
-        });
-        self.prompt.add_controller(keys);
-        let divider = self.live_divider.downgrade();
-        self.live_box.connect_orientation_notify(move |b| {
-            if let Some(divider) = divider.upgrade() {
-                divider.set_orientation(if b.orientation() == gtk::Orientation::Horizontal {
-                    gtk::Orientation::Vertical
-                } else {
-                    gtk::Orientation::Horizontal
-                });
-            }
-        });
-        let draft_toggle = self.draft_toggle.downgrade();
-        self.live_draft_status.connect_label_notify(move |label| {
-            label.set_tooltip_text(Some(&label.label()));
-            if let Some(toggle) = draft_toggle.upgrade() {
-                toggle.set_tooltip_text(Some(&format!(
-                    "Show or hide draft · Ctrl+2 · {}",
-                    label.label()
-                )));
-            }
-        });
-        let focus = gtk::EventControllerFocus::new();
-        let follower = Rc::downgrade(&self.live_draft_follower);
-        focus.connect_enter(move |_| {
-            if let Some(f) = follower.upgrade() {
-                f.stop();
-            }
-        });
-        self.live_draft_text.add_controller(focus);
     }
 
     fn report<T>(&self, result: StoreResult<T>) {
@@ -841,32 +465,19 @@ impl ConversationWorkspace {
     pub fn config(&self) -> AppConfig {
         self.config.borrow().clone()
     }
-    pub fn set_prompt_store(&self, store: Option<Rc<RefCell<PromptStore>>>) {
-        self.prompt_store.replace(store);
-    }
+
     pub fn set_capture_controls(&self, controls: &impl IsA<gtk::Widget>) {
         self.content.append(controls);
     }
-    pub fn set_rewrite_settings(&self, settings: &impl IsA<gtk::Widget>) {
-        self.actions.insert(settings, -1);
-    }
+
     pub fn set_compact(&self, compact: bool) {
         if compact {
             self.continue_button
                 .set_icon_name("audio-input-microphone-symbolic");
-            self.live_cancel.set_icon_name("process-stop-symbolic");
         } else {
             self.continue_button.set_label("Continue recording");
-            self.live_cancel.set_label("Cancel");
         }
-        self.actions.set_halign(if compact {
-            gtk::Align::Fill
-        } else {
-            gtk::Align::Start
-        });
         self.live_header.set_spacing(if compact { 4 } else { 8 });
-        self.draft_toggle
-            .set_label(if compact { "Draft" } else { "Live draft" });
     }
 
     pub fn set_config(self: &Rc<Self>, config: AppConfig) -> StoreResult<()> {
@@ -876,25 +487,19 @@ impl ConversationWorkspace {
         if previous.time_format != config.time_format {
             self.refresh_history()?;
         }
-        for follower in [
-            &self.conversation_follower,
-            &self.live_follower,
-            &self.live_draft_follower,
-        ] {
-            follower.smooth.set(config.smooth_scrolling);
-            follower.duration_ms.set(config.scroll_duration_ms as u32);
-            follower.lookahead_lines.set(config.scroll_lookahead_lines);
+        for follower in [&self.conversation_follower, &self.live_follower] {
+            follower.smooth.set(true);
+            follower.duration_ms.set(800);
+            follower.lookahead_lines.set(2);
         }
-        self.messages
-            .set_margin_bottom(16 + config.scroll_lookahead_lines as i32 * 20);
+        self.messages.set_margin_bottom(56);
         self.live_follower.queue();
-        self.live_draft_follower.queue();
         let s = self.state.borrow();
         for button in &s.copy_buttons {
-            button.set_visible(config.show_copy_action);
+            button.set_visible(true);
         }
         for button in &s.save_buttons {
-            button.set_visible(config.show_save_action);
+            button.set_visible(true);
         }
         drop(s);
         self.update_actions();
@@ -923,7 +528,7 @@ impl ConversationWorkspace {
             .icon_name("document-save-symbolic")
             .has_frame(false)
             .tooltip_text("Save edits")
-            .visible(self.config.borrow().show_save_action)
+            .visible(true)
             .sensitive(false)
             .build();
         self.state.borrow_mut().save_buttons.push(save.clone());
@@ -962,7 +567,7 @@ impl ConversationWorkspace {
             .icon_name("edit-copy-symbolic")
             .has_frame(false)
             .tooltip_text(format!("Copy {}", title.to_lowercase()))
-            .visible(self.config.borrow().show_copy_action)
+            .visible(true)
             .build();
         let callback = self.callbacks.copy.clone();
         let weak_view = view.downgrade();
@@ -1010,12 +615,7 @@ impl ConversationWorkspace {
             live_active: state.live_active,
             viewing_live: state.viewing_live,
             live_visible: self.live_box.get_visible(),
-            source_visible: self.live_source_visible.get(),
-            draft_visible: self.live_draft_visible.get(),
-            draft_available: state.live_draft_available,
             can_copy: self.can_copy_current_output(),
-            polish_sensitive: self.quick_polish.is_sensitive(),
-            send_sensitive: self.send.is_sensitive(),
             edit_draft: state.entry.as_ref().is_some_and(|entry| {
                 state
                     .edit_drafts
@@ -1033,34 +633,14 @@ impl ConversationWorkspace {
         if !self.save_conversation_edits(source) || !self.save_conversation_edits(target) {
             return Ok(false);
         }
-        let text = self.prompt_text();
-        let prompt = {
-            let mut state = self.state.borrow_mut();
-            if let Some(id) = state.entry.as_ref().map(|entry| entry.identifier.clone()) {
-                state.drafts.insert(id, text);
-            }
-            [target, source]
-                .iter()
-                .filter_map(|id| state.drafts.get(*id).filter(|value| !value.is_empty()))
-                .cloned()
-                .collect::<Vec<_>>()
-                .join("\n\n")
-        };
         let entry = self.store.merge(target, source)?;
         let replies = self.store.replies(&entry.identifier)?;
         self.show_conversation(Some(entry), &replies, false)?;
-        {
-            let mut state = self.state.borrow_mut();
-            state.drafts.remove(source);
-            state.drafts.insert(target.into(), prompt.clone());
-        }
-        self.prompt.buffer().set_text(&prompt);
         self.refresh_history()?;
         Ok(true)
     }
     pub(crate) fn forget_documents(&self, identifiers: &std::collections::BTreeSet<String>) {
         let mut state = self.state.borrow_mut();
-        state.drafts.retain(|id, _| !identifiers.contains(id));
         state
             .edit_drafts
             .retain(|key, _| !identifiers.contains(&key.0));
@@ -1125,53 +705,6 @@ impl ConversationWorkspace {
         }
         true
     }
-    pub fn focus_prompt(&self) {
-        if !self.is_viewing_live() {
-            self.rewrite_toggle.set_active(true);
-            self.prompt.grab_focus();
-        }
-    }
-    pub fn prompt_text(&self) -> String {
-        let b = self.prompt.buffer();
-        text::trim(&b.text(&b.start_iter(), &b.end_iter(), false)).into()
-    }
-    pub fn live_draft(&self) -> String {
-        self.state.borrow().live_questions_source.clone() + &self.live_draft_text.text()
-    }
-    pub fn set_live_draft_available(&self, available: bool) {
-        self.state.borrow_mut().live_draft_available = available;
-        self.sync_live_panes();
-    }
-
-    pub fn show_live_draft(self: &Rc<Self>, source: &str, status: &str) {
-        let follower = &self.live_draft_follower;
-        let following = follower.following.get();
-        let position = self.live_draft_scroll.vadjustment().value();
-        self.state.borrow_mut().live_draft_available = true;
-        self.sync_live_panes();
-        follower.writing.set(true);
-        let (questions, body) = split_grilling_draft(source);
-        self.state.borrow_mut().live_questions_source = questions.into();
-        self.live_questions
-            .replace_text(questions.trim_end_matches(text::whitespace));
-        self.live_questions.set_visible(!questions.is_empty());
-        self.live_questions_scroll
-            .set_visible(!questions.is_empty());
-        follower.prepare_update(body, false);
-        self.live_draft_text.replace_text(body);
-        follower.updated();
-        self.live_draft_status.set_label(status);
-        if following {
-            follower.follow(false);
-        } else {
-            let weak = Rc::downgrade(follower);
-            glib::idle_add_local_once(move || {
-                if let Some(f) = weak.upgrade() {
-                    f.write(position);
-                }
-            });
-        }
-    }
 
     pub fn show_conversation(
         self: &Rc<Self>,
@@ -1183,11 +716,6 @@ impl ConversationWorkspace {
         if !preserve_live {
             self.set_live_visibility(false);
         }
-        let draft_key = self.entry().map_or_else(|| "new".into(), |e| e.identifier);
-        self.state
-            .borrow_mut()
-            .drafts
-            .insert(draft_key, self.prompt_text());
         let same_entry = self
             .entry()
             .as_ref()
@@ -1202,8 +730,6 @@ impl ConversationWorkspace {
             s.save_buttons.clear();
             s.documents.clear();
             s.previews.clear();
-            s.preview_box = None;
-            s.preview_editor = None;
             s.entry = entry.clone();
         }
         self.refresh_screenshots();
@@ -1223,13 +749,7 @@ impl ConversationWorkspace {
                 None,
             );
             for reply in replies {
-                let instruction = if reply.instruction == builtin_prompt("rewrite-polish") {
-                    "Quick Polish"
-                } else if reply.instruction == builtin_prompt("rewrite-structure") {
-                    "Structured Note"
-                } else {
-                    &reply.instruction
-                };
+                let instruction = &reply.instruction;
                 self.messages.append(
                     &gtk::Label::builder()
                         .label(instruction)
@@ -1252,7 +772,6 @@ impl ConversationWorkspace {
                     Some(reply.identifier),
                 );
             }
-            self.render_rewrite_preview();
         } else {
             let empty = gtk::Box::builder()
                 .orientation(gtk::Orientation::Vertical)
@@ -1270,38 +789,13 @@ impl ConversationWorkspace {
                     .css_classes(["title-2"])
                     .build(),
             );
-            empty.append(&gtk::Label::builder().label("Press F9 to dictate. Or paste text below.\nPolish it, structure it, make it yours.").xalign(0.0).wrap(true).css_classes(["dim-label"]).build());
+            empty.append(&gtk::Label::builder().label("Dictate, then send your words where they belong.\nChoose Talk to Herdr in the toolbar, or use the recording shortcut to paste into your app.").xalign(0.0).wrap(true).css_classes(["dim-label"]).build());
             self.messages.append(&empty);
         }
-        let key = entry.as_ref().map_or("new", |e| &e.identifier);
-        let prompt = self
-            .state
-            .borrow()
-            .drafts
-            .get(key)
-            .cloned()
-            .unwrap_or_default();
-        self.prompt.buffer().set_text(&prompt);
-        self.prompt_label.set_label(if entry.is_some() {
-            "Ask for a rewrite or a follow-up"
-        } else {
-            "Paste or type text to get started"
-        });
-        self.prompt_label.set_visible(false);
-        self.prompt_placeholder.set_label(if entry.is_some() {
-            "Ask for a rewrite…"
-        } else {
-            "Paste or type text to start…"
-        });
-        self.send.set_label(if entry.is_some() {
-            "Rewrite"
-        } else {
-            "Start conversation"
-        });
         self.notice.set_label(if entry.is_some() {
-            "Edit either document. Save edits or rewrite to keep them."
+            "Edit your text, then save or copy it."
         } else {
-            "Dictation copies automatically."
+            "Text is delivered automatically when you stop."
         });
         self.update_actions();
         let selected = {
@@ -1337,65 +831,6 @@ impl ConversationWorkspace {
         Ok(())
     }
 
-    pub fn set_rewrite_preview(self: &Rc<Self>, identifier: &str, source: &str) {
-        {
-            let mut s = self.state.borrow_mut();
-            s.preview_identifier = Some(identifier.into());
-            s.preview_text = source.into();
-        }
-        self.render_rewrite_preview();
-    }
-    fn render_rewrite_preview(self: &Rc<Self>) {
-        {
-            let s = self.state.borrow();
-            if s.private
-                || s.entry
-                    .as_ref()
-                    .is_none_or(|e| Some(&e.identifier) != s.preview_identifier.as_ref())
-            {
-                return;
-            }
-        }
-        if self.state.borrow().preview_box.is_none() {
-            let panel = gtk::Box::new(gtk::Orientation::Vertical, 8);
-            panel.add_css_class("ml-reply");
-            panel.append(
-                &gtk::Label::builder()
-                    .label("Rewriting…")
-                    .xalign(0.0)
-                    .css_classes(["heading"])
-                    .build(),
-            );
-            let view = MarkdownTextView::document("", true, false);
-            view.set_focusable(false);
-            view.set_can_target(false);
-            panel.append(&view);
-            self.messages.append(&panel);
-            let mut s = self.state.borrow_mut();
-            s.preview_box = Some(panel);
-            s.preview_editor = Some(view);
-        }
-        let (editor, text) = {
-            let s = self.state.borrow();
-            (s.preview_editor.clone(), s.preview_text.clone())
-        };
-        if let Some(editor) = editor {
-            editor.replace_text(&text);
-        }
-        self.conversation_follower.queue();
-    }
-    pub fn clear_rewrite_preview(&self) {
-        let panel = {
-            let mut s = self.state.borrow_mut();
-            s.preview_identifier = None;
-            s.preview_text.clear();
-            s.preview_editor = None;
-            s.preview_box.take()
-        };
-        if let Some(panel) = panel {
-            self.messages.remove(&panel);
-        }
-    }
     pub fn scroll_to_latest(self: &Rc<Self>) {
         self.conversation_follower.follow(true);
     }
@@ -1761,33 +1196,7 @@ impl ConversationWorkspace {
         self.scroll_to_latest();
         Ok(())
     }
-    pub fn submit(&self) {
-        let text = self.prompt_text();
-        if text.is_empty() || self.state.borrow().busy {
-            return;
-        }
-        if self.entry().is_none() {
-            (self.callbacks.paste)(&text);
-        } else {
-            (self.callbacks.rewrite)(&text);
-        }
-    }
-    pub fn request_prompt(&self, identifier: &str, fallback: &str) {
-        let text = self
-            .prompt_store
-            .borrow()
-            .as_ref()
-            .and_then(|s| {
-                let store = s.borrow();
-                if store.prompt(identifier).is_ok() {
-                    store.read(identifier).ok().map(|s| s.text)
-                } else {
-                    None
-                }
-            })
-            .unwrap_or_else(|| fallback.into());
-        (self.callbacks.rewrite)(&text);
-    }
+
     pub fn set_busy(&self, busy: bool, message: &str) {
         self.state.borrow_mut().busy = busy;
         self.notice.set_label(message);
@@ -1795,7 +1204,6 @@ impl ConversationWorkspace {
     }
     fn update_actions(&self) {
         let s = self.state.borrow();
-        let config = self.config.borrow();
         let has_entry = s.entry.is_some();
         for button in &self.screenshot_buttons {
             button.set_sensitive(
@@ -1816,31 +1224,12 @@ impl ConversationWorkspace {
             .set_sensitive(!s.busy && !s.live_active);
         // Changing GtkTextView properties can invoke document formatting, but never changes stored source.
         let editors = s.editors.values().cloned().collect::<Vec<_>>();
-        self.cancel.set_visible(s.busy);
-        self.composer
-            .set_visible(!s.viewing_live && (s.busy || self.rewrite_toggle.is_active()));
-        self.rewrite_toggle.set_sensitive(!s.busy);
-        self.live_cancel_slot
-            .set_visible_child_name(if s.busy { "cancel" } else { "idle" });
-        for button in [&self.quick_polish, &self.structured_note]
-            .into_iter()
-            .chain(s.saved_prompt_buttons.iter())
-        {
-            button.set_sensitive(
-                config.rewrite_provider != "none" && has_entry && !s.busy && !s.private,
-            );
-        }
-        self.send.set_sensitive(
-            !s.busy && (!has_entry || (!s.private && config.rewrite_provider != "none")),
-        );
-        self.save.set_sensitive(has_entry && !s.private && !s.busy);
         if s.private {
             self.notice
-                .set_label("Incognito: no saved conversation. Rewriting is unavailable.");
+                .set_label("Incognito: this dictation is not saved.");
         }
         let editable = !s.busy;
         drop(s);
-        drop(config);
         for editor in editors {
             editor.set_editable(editable);
         }
@@ -1850,8 +1239,6 @@ impl ConversationWorkspace {
         if private {
             self.screenshot_shelf.show_images(&[]);
             self.cancel_title();
-            self.state.borrow_mut().drafts.clear();
-            self.clear_rewrite_preview();
         }
         self.update_actions();
     }
@@ -1892,52 +1279,15 @@ impl ConversationWorkspace {
         self.screenshot_shelf.show_images(&images);
     }
 
-    pub fn toggle_live_pane(&self, source: bool) {
-        {
-            let s = self.state.borrow();
-            if !s.viewing_live || !s.live_draft_available {
-                drop(s);
-                self.sync_live_panes();
-                return;
-            }
-        }
-        if source {
-            self.live_source_visible
-                .set(!self.live_source_visible.get());
-            if !self.live_source_visible.get() {
-                self.live_draft_visible.set(true);
-            }
-        } else {
-            self.live_draft_visible.set(!self.live_draft_visible.get());
-            if !self.live_draft_visible.get() {
-                self.live_source_visible.set(true);
-            }
-        }
-        self.sync_live_panes();
-    }
-    fn sync_live_panes(&self) {
-        let available = self.state.borrow().live_draft_available;
-        let source = self.live_source_visible.get() || !available;
-        let draft = self.live_draft_visible.get() && available;
-        self.live_source_box.set_visible(source);
-        self.live_draft_box.set_visible(draft);
-        self.live_divider.set_visible(source && draft);
-        self.source_toggle.set_active(source);
-        self.draft_toggle.set_active(draft);
-        self.source_toggle.set_sensitive(available);
-        self.draft_toggle.set_sensitive(available);
-    }
     pub fn set_live(self: &Rc<Self>, phase: &str, text: &str, recording: bool) {
         let starting = !self.state.borrow().live_active;
         self.state.borrow_mut().live_active = true;
         self.update_actions();
         self.live_navigation.set_visible(true);
         if starting {
-            self.sync_live_panes();
             self.show_live();
         }
         self.set_live_status(phase, recording);
-        self.live_cancel_slot.set_visible(true);
         self.live_follower.prepare_update(text, starting);
         self.live_text.replace_text(text);
         self.live_follower.updated();
@@ -1961,9 +1311,6 @@ impl ConversationWorkspace {
         self.live_box.set_visible(visible);
         self.live_header.set_visible(visible);
         self.scroll.set_visible(!visible);
-        self.rewrite_toggle.set_visible(!visible);
-        self.composer
-            .set_visible(!visible && (self.state.borrow().busy || self.rewrite_toggle.is_active()));
         self.heading.set_visible(!visible);
         self.live_navigation.set_css_classes(if visible {
             &["flat", "ml-live-current"]
@@ -1986,66 +1333,9 @@ impl ConversationWorkspace {
         self.update_actions();
         self.live_navigation.set_visible(false);
         self.live_follower.stop();
-        self.live_draft_follower.stop();
-        self.live_draft_box.set_visible(false);
-        self.state.borrow_mut().live_draft_available = false;
-        self.live_divider.set_visible(false);
         self.live_text.buffer().set_text("");
         self.set_live_visibility(false);
         self.live_light.set_recording(false);
         self.live_header.set_visible(false);
-        self.live_cancel_slot.set_visible(false);
-    }
-
-    pub fn set_saved_prompts(self: &Rc<Self>, prompts: &[(String, String)]) {
-        let popover = gtk::Popover::new();
-        let choices = gtk::Box::new(gtk::Orientation::Vertical, 4);
-        margins(&choices, 8);
-        self.state.borrow_mut().saved_prompt_buttons.clear();
-        for (name, instruction) in prompts {
-            let button = gtk::Button::builder().label(name).has_frame(false).build();
-            let weak = Rc::downgrade(self);
-            let instruction = instruction.clone();
-            let clicked_instruction = instruction.clone();
-            let weak_popover = popover.downgrade();
-            button.connect_clicked(move |_| {
-                if let (Some(w), Some(popover)) = (weak.upgrade(), weak_popover.upgrade()) {
-                    popover.popdown();
-                    let s = w.state.borrow();
-                    let allowed = s.entry.is_some() && !s.busy && !s.private;
-                    drop(s);
-                    if allowed {
-                        w.request_prompt(&clicked_instruction, &clicked_instruction);
-                    }
-                }
-            });
-            self.state
-                .borrow_mut()
-                .saved_prompt_buttons
-                .push(button.clone());
-            let weak_popover = popover.downgrade();
-            let edit = self.callbacks.edit_prompt.clone();
-            choices.append(&prompt_control(
-                &button,
-                name,
-                Rc::new(move || {
-                    if let Some(p) = weak_popover.upgrade() {
-                        p.popdown();
-                    }
-                    edit(&instruction);
-                }),
-            ));
-        }
-        if prompts.is_empty() {
-            choices.append(
-                &gtk::Label::builder()
-                    .label("Write a prompt below, then save it.")
-                    .wrap(true)
-                    .build(),
-            );
-        }
-        popover.set_child(Some(&choices));
-        self.saved_prompts.set_popover(Some(&popover));
-        self.update_actions();
     }
 }

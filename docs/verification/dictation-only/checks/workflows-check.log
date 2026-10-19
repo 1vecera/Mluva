@@ -1,0 +1,50 @@
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/workflow-final-confirmation/session.cax3vi
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/tmp/workflow-final-confirmation
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+   Compiling mluva-workflows v2.4.0 (/home/vecera/code/mluva/.claude/worktrees/mluva-dictation-only/rust/mluva-workflows)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.58s
+     Running tests/recording.rs (/home/vecera/code/mluva/.claude/worktrees/mluva-main-sync/tmp/native-build/debug/deps/recording-d924adee5102806e)
+
+running 1 test
+test recording_routes_delivery_privacy_and_recovery_match_the_released_workflow ... accepted workflow: frozen-raw-and-prepared-history
+accepted workflow: unstructured-dictation
+accepted workflow: scoped-personalization
+accepted workflow: frozen-rules-ignore-mid-capture-edit
+accepted workflow: frozen-variable-values
+accepted workflow: incognito-dictation
+accepted workflow: silent-skips-rewrite-and-history
+accepted workflow: silent-always-keeps-audio
+accepted workflow: always-policy-keeps-success
+accepted workflow: deferred-continuation
+accepted workflow: realtime-missing-duration
+accepted workflow: realtime-negative-duration
+accepted workflow: realtime-cannot-fallback
+accepted workflow: realtime-cannot-have-fallback-reason
+accepted workflow: fallback-reason-requires-fallback
+accepted workflow: unsupported-fallback-reason
+accepted workflow: scribe-batch
+accepted workflow: batch-fallback-default
+accepted workflow: batch-fallback-startup
+accepted workflow: batch-fallback-stream
+accepted workflow: compatible-batch
+accepted workflow: compatible-removes-scribe-fallback
+accepted workflow: recognition-failure-retains-recovery
+accepted workflow: recognition-failure-never
+accepted workflow: incognito-recognition-failure
+accepted workflow: retry-recognition-produces-preview
+accepted workflow: history-failure-after-ready
+accepted workflow: diagnostics-failure-is-isolated
+accepted workflow: copy-dictation
+accepted workflow: incognito-copy-dictation
+accepted workflow: missing-target-copies-without-paste
+accepted workflow: visual-incognito-rejects-without-deleting-audio
+accepted workflow: reprocess-current-rules-into-preview
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.15s
+
+X connection to :174 broken (explicit kill or server shutdown).

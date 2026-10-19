@@ -250,16 +250,12 @@ fn a_failed_merge_rolls_back_source_replies_screenshot_owners_and_title_guards()
             .unwrap()
             .is_empty()
     );
-    assert!(
-        history
-            .save_generated_title(&first.identifier, "First title", None)
-            .unwrap()
-    );
-    assert!(
-        history
-            .save_generated_title(&second.identifier, "Second title", None)
-            .unwrap()
-    );
+    history
+        .update_title(&first.identifier, Some("First title"))
+        .unwrap();
+    history
+        .update_title(&second.identifier, Some("Second title"))
+        .unwrap();
 }
 
 #[test]
@@ -269,11 +265,6 @@ fn manual_titles_and_database_deletion_block_late_worker_results() {
         .add(HistoryInput::dictation("Original", "Prepared"))
         .unwrap();
     history.update_title(&entry.identifier, None).unwrap();
-    assert!(
-        !history
-            .save_generated_title(&entry.identifier, "Late automatic title", None)
-            .unwrap()
-    );
     conversations
         .save_text(&entry.identifier, "Manually edited", None)
         .unwrap();
@@ -307,11 +298,6 @@ fn manual_titles_and_database_deletion_block_late_worker_results() {
         conversations
             .save_text(&entry.identifier, "Cannot resurrect", None)
             .is_err()
-    );
-    assert!(
-        !history
-            .save_generated_title(&entry.identifier, "Cannot resurrect", None)
-            .unwrap()
     );
     let count: i64 = Connection::open(&history.database.path)
         .unwrap()

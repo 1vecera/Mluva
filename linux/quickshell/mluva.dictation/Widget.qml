@@ -14,15 +14,7 @@ Item {
     property real level: 0
     property string preview: ""
     property int previewStart: 0
-    property string identifier: ""
-    property var options: []
-    property string message: ""
-    property int reviewTimeout: 4
-    property bool showCopy: true
-    property bool smoothScrolling: true
-    property int scrollDuration: 800
-    property int scrollLookahead: 2
-    property bool rewriteEnabled: true
+    property bool reduceMotion: false
     property int widgetLines: 5
     property real widgetOpacity: 0.82
     property string widgetPosition: "bottom-center"
@@ -35,8 +27,7 @@ Item {
     readonly property var labels: ({
         "unavailable": "Mluva unavailable", "stopped": "Mluva stopped", "idle": "Mluva ready",
         "preparing": "Preparing", "recording": "REC " + elapsed + "s",
-        "processing": "Transcribing", "ready": "Mluva", "rewriting": "Rewriting",
-        "review-error": "Rewrite failed", "error": "Mluva error"
+        "processing": "Transcribing", "error": "Mluva error"
     })
     readonly property string tooltip: controlFailed ? "Control failed. Start Mluva and inspect its setup status." :
         (labels[phase] + ". Left: start/stop (clipboard only). Right: cancel. Middle: open latest."
@@ -58,13 +49,6 @@ Item {
         controlProcess.command = [executable, action];
         controlProcess.running = true;
     }
-    function review(action, style) {
-        if (controlProcess.running || !identifier) return;
-        controlFailed = false;
-        controlProcess.command = [executable, "review", action, identifier, style];
-        controlProcess.running = true;
-    }
-
     Process {
         id: watcher
         command: [root.executable, "watch", "--overlay"]
@@ -80,28 +64,21 @@ Item {
                         ? Math.max(0, Math.min(2147483647, state.preview_start)) : 0;
                     // The bridge bounds Unicode characters before serializing this string.
                     root.preview = typeof state.preview === "string" ? state.preview : "";
-                    root.identifier = typeof state.identifier === "string" ? state.identifier.slice(0, 36) : "";
-                    root.options = Array.isArray(state.options) ? state.options.slice(0, 128) : [];
-                    root.reviewTimeout = Number.isInteger(state.review_timeout) ? Math.max(1, Math.min(60, state.review_timeout)) : 4;
-                    root.showCopy = state.show_copy !== false;
-                    root.smoothScrolling = state.smooth_scrolling !== false;
-                    root.scrollDuration = Number.isInteger(state.scroll_duration) ? state.scroll_duration : 800;
-                    root.rewriteEnabled = state.rewrite_enabled !== false;
+
+                    root.reduceMotion = state.reduce_motion === true;
                     root.widgetLines = Math.max(1, Math.min(10, state.widget_lines ?? 5));
                     root.widgetOpacity = Math.max(0.1, Math.min(1, (state.widget_opacity ?? 82) / 100));
-                    root.scrollLookahead = Number.isInteger(state.scroll_lookahead) ? state.scroll_lookahead : 2;
+
                     root.widgetPosition = ["bottom-left", "bottom-center", "bottom-right"].includes(state.widget_position)
                         ? state.widget_position : "bottom-center";
-                    root.message = typeof state.message === "string" ? state.message.slice(0, 96) : "";
+
                 } catch (error) {
                     root.phase = "unavailable";
                     root.elapsed = 0;
                     root.level = 0;
                     root.preview = "";
                     root.previewStart = 0;
-                    root.identifier = "";
-                    root.options = [];
-                    root.message = "";
+
                 }
             }
         }
@@ -111,22 +88,15 @@ Item {
             root.level = 0;
             root.preview = "";
             root.previewStart = 0;
-            root.identifier = "";
-            root.options = [];
-            root.message = "";
+
         }
     }
     LazyLoader {
         objectName: "mluva-overlay-loader"
         active: root.ownsOverlay
         RecordingOverlay {
-            reviewDuration: root.reviewTimeout * 1000
-            showCopy: root.showCopy
-            smoothScrolling: root.smoothScrolling
-            scrollDuration: root.scrollDuration
-            scrollLookahead: root.scrollLookahead
+            smoothScrolling: !root.reduceMotion
             positionPreset: root.widgetPosition
-            rewriteEnabled: root.rewriteEnabled
             previewLines: root.widgetLines
             surfaceOpacity: root.widgetOpacity
             phase: root.phase
@@ -134,10 +104,6 @@ Item {
             level: root.level
             preview: root.preview
             previewStart: root.previewStart
-            identifier: root.identifier
-            options: root.options
-            message: root.controlFailed ? "Control failed · open Mluva" : root.message
-            onReview: function(action, style) { root.review(action, style); }
         }
     }
     Timer {
@@ -158,7 +124,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             visible: root.phase === "recording"
             active: root.phase === "recording"
-            animate: root.smoothScrolling && root.scrollDuration > 0
+            animate: true
             ink: Color.urgent
             Accessible.ignored: true
         }

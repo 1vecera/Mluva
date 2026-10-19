@@ -23,14 +23,9 @@ pub enum ApplicationAction {
     Meeting,
     Personalization,
     Quit,
-    Review {
-        operation: String,
-        identifier: String,
-        option: String,
-    },
 }
 
-/// Register the same externally activatable action names and typed review arguments as 1.6.0.
+/// Register the same externally activatable action names for capture and navigation.
 pub fn register_actions(app: &adw::Application, invoke: Rc<dyn Fn(ApplicationAction)>) {
     for (name, action) in [
         ("latest", ApplicationAction::Latest),
@@ -52,19 +47,6 @@ pub fn register_actions(app: &adw::Application, invoke: Rc<dyn Fn(ApplicationAct
         simple.connect_activate(move |_, _| handler(action.clone()));
         app.add_action(&simple);
     }
-    let review = gio::SimpleAction::new("review", Some(glib::VariantTy::new("(sss)").unwrap()));
-    review.connect_activate(move |_, parameters| {
-        if let Some((operation, identifier, option)) =
-            parameters.and_then(glib::Variant::get::<(String, String, String)>)
-        {
-            invoke(ApplicationAction::Review {
-                operation,
-                identifier,
-                option,
-            });
-        }
-    });
-    app.add_action(&review);
     app.set_accels_for_action("app.commands", &["<Control>p"]);
 }
 
@@ -216,7 +198,7 @@ impl ApplicationShell {
             ("Latest conversation", "latest"),
             ("Manage history", "history"),
             ("Meeting recording", "meeting"),
-            ("Vocabulary and prompts", "personalization"),
+            ("Vocabulary and snippets", "personalization"),
             ("Quit Mluva", "quit"),
         ] {
             menu.append(Some(label), Some(&format!("app.{action}")));

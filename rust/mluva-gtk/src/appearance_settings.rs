@@ -27,7 +27,6 @@ pub struct AppearanceSettings {
     pub line_label: gtk::Label,
     pub opacity: gtk::Scale,
     pub opacity_label: gtk::Label,
-    pub paste: adw::SwitchRow,
     changed: Rc<dyn Fn()>,
     timer: RefCell<Option<glib::SourceId>>,
 }
@@ -137,17 +136,6 @@ impl AppearanceSettings {
                 ends.append(&label);
             }
             content.append(&ends);
-            let paste = adw::SwitchRow::builder()
-                .title("Paste when I stop")
-                .subtitle("Off recommended · copy when you are ready")
-                .active(config.auto_paste)
-                .build();
-            let switches = gtk::ListBox::builder()
-                .selection_mode(gtk::SelectionMode::None)
-                .build();
-            switches.add_css_class("boxed-list");
-            switches.append(&paste);
-            content.append(&switches);
             widget.add(&content);
             Self {
                 widget,
@@ -158,7 +146,6 @@ impl AppearanceSettings {
                 line_label,
                 opacity,
                 opacity_label,
-                paste,
                 changed,
                 timer: RefCell::new(None),
             }
@@ -171,12 +158,6 @@ impl AppearanceSettings {
         });
         let weak = Rc::downgrade(&owner);
         owner.opacity.connect_value_changed(move |_| {
-            if let Some(owner) = weak.upgrade() {
-                owner.changed();
-            }
-        });
-        let weak = Rc::downgrade(&owner);
-        owner.paste.connect_active_notify(move |_| {
             if let Some(owner) = weak.upgrade() {
                 owner.changed();
             }
@@ -205,7 +186,7 @@ impl AppearanceSettings {
         owner
     }
     pub fn values(&self) -> Map<String, Value> {
-        json!({"widget_position":POSITIONS[self.position.selected()],"widget_lines":self.lines.value() as i64,"widget_opacity":self.opacity.value() as i64,"auto_paste":self.paste.is_active()}).as_object().unwrap().clone()
+        json!({"widget_position":POSITIONS[self.position.selected()],"widget_lines":self.lines.value() as i64,"widget_opacity":self.opacity.value() as i64}).as_object().unwrap().clone()
     }
     pub fn refresh_config(&self, config: &AppConfig) {
         self.position.set_selected(
@@ -216,7 +197,6 @@ impl AppearanceSettings {
         );
         self.lines.set_value(config.widget_lines as f64);
         self.opacity.set_value(config.widget_opacity as f64);
-        self.paste.set_active(config.auto_paste);
     }
     fn changed(&self) {
         self.preview.queue_draw();

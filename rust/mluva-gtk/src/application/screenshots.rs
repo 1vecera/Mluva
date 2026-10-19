@@ -72,18 +72,9 @@ impl ApplicationDesktop {
         if matches!(
             self.capture.phase(),
             Some(CapturePhase::Processing | CapturePhase::Cancelling)
-        ) || self.review.rewriting()
-        {
+        ) {
             self.shell
                 .show_message("Wait for processing to finish, then add a screenshot.");
-            return;
-        }
-        if current
-            .as_ref()
-            .is_some_and(|current| current.options.mode == "scratchpad")
-        {
-            self.shell
-                .show_message("Screenshot context is available in Dictation and Command modes.");
             return;
         }
         let capture = current.is_some();
@@ -198,7 +189,6 @@ impl ApplicationDesktop {
         self.refresh_screenshots();
         self.shell.show_message("Screenshot attached.");
         self.edit_screenshot(&screenshot.identifier);
-        self.live.visual_context_changed();
     }
     fn refresh_screenshots(&self) {
         let current = self.current.borrow();
@@ -411,7 +401,7 @@ impl ApplicationDesktop {
                 .history
                 .add(HistoryInput {
                     delivered_text: failure.output_text.clone(),
-                    mode: session.options.mode.clone(),
+                    mode: "dictation".into(),
                     language_code: language,
                     delivery_outcome: "failed".into(),
                     retained_audio_path: failure
