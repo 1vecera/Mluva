@@ -42,6 +42,8 @@ Use the [functional checklist](docs/functional-checklist.md) for release accepta
 
 Tests use synthetic content and local protocol peers. Never open a real microphone, inspect the live accessibility tree, change the host clipboard, inject host input or open host permission dialogs. GUI checks use `dev/run-isolated-browser.sh` with private display, HOME/XDG, D-Bus, accessibility, network and device isolation. See [dev/README.md](dev/README.md) for prerequisites. Image comparisons also require ImageMagick; Mermaid checks require WebKitGTK 6.0.
 
+For repeatable investigation through a separate CLI, use the [real application harness and feature map](dev/verification.md). It drives the production process through recording, editor autosave and restart, retaining JSON results, screenshots and failure evidence in `tmp/`. Keep the feature map current when changing its controls or access paths.
+
 ```sh
 make linux-test
 make linux-shortcut-test

@@ -8,7 +8,7 @@ Hold **F8** to speak, then release. The desktop must approve this global shortcu
 
 Final recognition appears in the normal document editor with a full two-second **Sending to…** countdown. **Cancel** stops recording, recognition or the pending send. **Keep draft**, or **F7**, finishes capture and keeps editable text. Editing, changing recipient, navigating away, a missing/blocked session, screen lock or interrupted timing also disarm automatic sending. A lost release stops automatic sending after five minutes. Starting another recording replaces the pending send, while local saved conversations remain in History.
 
-**Send draft** starts a fresh two-second window for the current text and selected recipient. **Save edits** uses the existing conversation store and preserves immutable recognition. Normal retention and account-sharing choices still apply. Routing never copies or pastes automatically, even when ordinary dictation's automatic clipboard settings are enabled.
+**Send draft** starts a fresh two-second window for the current text and selected recipient. Edits save automatically in the existing conversation store and preserve immutable recognition. Normal retention and account-sharing choices still apply. Routing never copies or pastes automatically, even when ordinary dictation's automatic clipboard settings are enabled.
 
 | Status | Meaning and recovery |
 | --- | --- |
