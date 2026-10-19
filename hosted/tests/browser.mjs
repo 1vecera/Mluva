@@ -152,9 +152,8 @@ try {
   receipts.push(
     "lost live acknowledgement → reconnect → identical retry, one receiver segment",
   );
-  await phone.page.locator("#save").click();
   await phone.page
-    .getByText("Saved. Your words are available on all your devices.", {
+    .getByText("Saved automatically", {
       exact: true,
     })
     .waitFor();
@@ -170,9 +169,8 @@ try {
     .locator("#incoming")
     .getByText("A laptop reply, ready for the phone.", { exact: true })
     .waitFor();
-  await laptop.page.locator("#save").click();
   await laptop.page
-    .getByText("Saved. Your words are available on all your devices.", {
+    .getByText("Saved automatically", {
       exact: true,
     })
     .waitFor();
@@ -192,15 +190,25 @@ try {
       .getByRole("button", { name: "Open", exact: true })
       .click();
   });
+  let releaseConflict;
+  const conflictGate = new Promise((resolve) => {
+    releaseConflict = resolve;
+  });
+  const conflictRoute = `${preview.origin}/api/history/${id}?*`;
+  await laptop.page.route(conflictRoute, async (route) => {
+    if (route.request().method() === "PUT") await conflictGate;
+    await route.continue();
+  });
   await phone.page.locator("#draft").fill("Edited on the phone.");
   await laptop.page.locator("#draft").fill("Concurrent laptop edit.");
-  await phone.page.locator("#save").click();
   await phone.page.waitForFunction(
     () =>
-      document.getElementById("draft-state").textContent === "Saved to history",
+      document.getElementById("draft-state").textContent ===
+      "Saved automatically",
   );
-  await laptop.page.locator("#save").click();
+  releaseConflict();
   await laptop.page.locator("#conflict-dialog").waitFor();
+  await laptop.page.unroute(conflictRoute);
   assert.equal(
     await laptop.page.locator("#conflict-text").inputValue(),
     "Edited on the phone.",
@@ -209,7 +217,8 @@ try {
   await laptop.page.locator("#conflict-local").click();
   await laptop.page.waitForFunction(
     () =>
-      document.getElementById("draft-state").textContent === "Saved to history",
+      document.getElementById("draft-state").textContent ===
+      "Saved automatically",
   );
   let stored = (await api(laptop.page, `/history/${id}`)).body;
   assert.equal(stored.revision, 3);
@@ -280,7 +289,8 @@ try {
   await phone.page.locator("#record").click();
   await phone.page.waitForFunction(
     () =>
-      document.getElementById("draft-state").textContent === "Saved to history",
+      document.getElementById("draft-state").textContent ===
+      "Saved automatically",
   );
   assert.match(
     await phone.page.locator("#draft").inputValue(),
@@ -303,7 +313,8 @@ try {
   await phone.page.locator("#record").click();
   await phone.page.waitForFunction(
     () =>
-      document.getElementById("draft-state").textContent === "Saved to history",
+      document.getElementById("draft-state").textContent ===
+      "Saved automatically",
   );
   const continued = (await api(phone.page, `/history/${recordedId}`)).body;
   assert.equal(continued.segments.length, 1);
@@ -314,7 +325,8 @@ try {
   await phone.page.locator("#confirm-yes").click();
   await phone.page.waitForFunction(
     () =>
-      document.getElementById("draft-state").textContent === "Saved to history",
+      document.getElementById("draft-state").textContent ===
+      "Saved automatically",
   );
   const merged = (await api(phone.page, `/history/${recordedId}`)).body;
   assert.equal(merged.segments.length, 2);
@@ -325,9 +337,8 @@ try {
   );
   // Interrupted save survives a reload and is retried with the same ID.
   await phone.page.locator("#new-note").click();
-  await phone.page.locator("#draft").fill("An offline thought.");
   preview.faults.history = true;
-  await phone.page.locator("#save").click();
+  await phone.page.locator("#draft").fill("An offline thought.");
   await phone.page.locator("#recovery").waitFor();
   await screenshot(phone.page, "recovery-phone.png");
   await phone.page.setViewportSize({ width: 1365, height: 900 });
@@ -343,7 +354,8 @@ try {
   await phone.page.locator("#retry").click();
   await phone.page.waitForFunction(
     () =>
-      document.getElementById("draft-state").textContent === "Saved to history",
+      document.getElementById("draft-state").textContent ===
+      "Saved automatically",
   );
   assert.equal(
     (await api(phone.page, "/history")).body.entries.filter(
@@ -360,7 +372,8 @@ try {
   await laptop.page.locator("#record").click();
   await laptop.page.waitForFunction(
     () =>
-      document.getElementById("draft-state").textContent === "Saved to history",
+      document.getElementById("draft-state").textContent ===
+      "Saved automatically",
   );
   assert.match(
     await laptop.page.locator("#draft").inputValue(),
@@ -369,12 +382,78 @@ try {
   receipts.push(
     "normal laptop recording finalizes directly to an editable saved note",
   );
+  // A slow first acknowledgement must not lock typing or overwrite later edits.
+  await laptop.page.locator("#new-note").click();
+  let releaseSave, requestSeen;
+  const saveGate = new Promise((resolve) => {
+    releaseSave = resolve;
+  });
+  const seen = new Promise((resolve) => {
+    requestSeen = resolve;
+  });
+  let firstWrite = true;
+  const saveRoute = `${preview.origin}/api/history?*`;
+  await laptop.page.route(saveRoute, async (route) => {
+    if (route.request().method() !== "POST" || !firstWrite)
+      return route.continue();
+    firstWrite = false;
+    const response = await route.fetch();
+    requestSeen();
+    await saveGate;
+    await route.fulfill({ response });
+  });
+  await laptop.page.locator("#draft").fill("First immutable typed words.");
+  await seen;
+  assert.equal(await laptop.page.locator("#draft").isEditable(), true);
+  await laptop.page.locator("#draft").fill("Newer text typed during saving.");
+  await laptop.page.locator("#note-title").fill("New title during saving");
+  releaseSave();
+  await laptop.page.waitForFunction(
+    () =>
+      document.getElementById("draft-state").textContent ===
+      "Saved automatically",
+  );
+  await laptop.page.unroute(saveRoute);
+  const raceNote = (await api(laptop.page, "/history")).body.entries.find(
+    (note) => note.title === "New title during saving",
+  );
+  assert.equal(raceNote.text, "Newer text typed during saving.");
+  assert.equal(raceNote.rawText, "First immutable typed words.");
+  assert.equal(raceNote.revision, 2);
+  await laptop.page.locator("#draft").fill("");
+  await laptop.page.waitForFunction(
+    () =>
+      document.getElementById("draft-state").textContent ===
+      "Saved automatically",
+  );
+  assert.equal(
+    (await api(laptop.page, `/history/${raceNote.id}`)).body.text,
+    "",
+  );
+  receipts.push(
+    "autosave preserves typing and title changes during a request; blank working text preserves its original",
+  );
+  // History off also keeps ordinary edits in memory, without requiring Incognito.
+  await laptop.page.locator("#retain").uncheck();
+  await laptop.page.locator("#confirm-yes").click();
+  await laptop.page.locator("#draft").fill("Later words stay in memory.");
+  await laptop.page.waitForTimeout(800);
+  assert.equal(
+    await laptop.page.locator("#draft-state").textContent(),
+    "Kept in memory",
+  );
+  assert.equal(
+    (await api(laptop.page, `/history/${raceNote.id}`)).body.text,
+    "",
+  );
+  receipts.push("history disabled keeps subsequent edits in memory");
   // Memory-only mode must not call history or fan-out with its new words.
   await phone.page.locator("#new-note").click();
   await phone.page.locator("#incognito").check();
   await phone.page.locator("#draft").fill("Incognito secret stays in memory.");
   assert.equal(await phone.page.locator("#send").isDisabled(), true);
-  assert.equal(await phone.page.locator("#save").isDisabled(), true);
+  assert.equal(await phone.page.locator("#save").count(), 0);
+  await phone.page.waitForTimeout(800);
   assert.equal(
     JSON.stringify([...preview.store.rows.values()]).includes(
       "Incognito secret",

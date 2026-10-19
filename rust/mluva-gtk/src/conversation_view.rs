@@ -76,6 +76,7 @@ struct WorkspaceState {
     busy: bool,
     private: bool,
     renaming: Option<String>,
+    pending_title: Option<(String, String)>,
     live_active: bool,
     viewing_live: bool,
     live_capture: Option<String>,
@@ -84,7 +85,6 @@ struct WorkspaceState {
     editors: BTreeMap<EditKey, MarkdownTextView>,
     documents: Vec<MarkdownTextView>,
     copy_buttons: Vec<gtk::Button>,
-    save_buttons: Vec<gtk::Button>,
     rows: Vec<(gtk::ListBoxRow, String)>,
     row_titles: BTreeMap<String, gtk::Label>,
     row_menus: Vec<gtk::MenuButton>,
@@ -104,7 +104,6 @@ pub struct ConversationWorkspace {
     pub title_button: gtk::Button,
     pub title_stack: gtk::Stack,
     pub title_entry: gtk::Entry,
-    pub title_save: gtk::Button,
     pub continue_button: gtk::Button,
     pub heading: gtk::Box,
     pub messages: gtk::Box,
@@ -120,6 +119,7 @@ pub struct ConversationWorkspace {
     pub live_follower: Rc<TailFollower>,
     pub screenshot_shelf: ScreenshotShelf,
     pub screenshot_buttons: [gtk::Button; 2],
+    pub copy_path: gtk::Button,
     pub notice: gtk::Label,
     pub store: ConversationStore,
     callbacks: ConversationCallbacks,
@@ -127,6 +127,7 @@ pub struct ConversationWorkspace {
     config: RefCell<AppConfig>,
     state: RefCell<WorkspaceState>,
     screenshot_store: ScreenshotStore,
+    autosave: RefCell<Option<glib::SourceId>>,
 }
 
 impl ConversationWorkspace {
@@ -223,14 +224,9 @@ impl ConversationWorkspace {
         let title_entry = gtk::Entry::builder().hexpand(true).width_chars(1).build();
         title_entry.update_property(&[gtk::accessible::Property::Label("Conversation title")]);
         title_editor.append(&title_entry);
-        let title_save = gtk::Button::builder()
-            .icon_name("object-select-symbolic")
-            .tooltip_text("Save title")
-            .build();
-        title_editor.append(&title_save);
         let title_cancel = gtk::Button::builder()
             .icon_name("window-close-symbolic")
-            .tooltip_text("Cancel rename")
+            .tooltip_text("Close title editor")
             .build();
         title_editor.append(&title_cancel);
         title_stack.add_named(&title_editor, Some("edit"));
@@ -241,6 +237,11 @@ impl ConversationWorkspace {
             .build();
         continue_button.update_property(&[gtk::accessible::Property::Label("Continue recording")]);
         heading.append(&continue_button);
+        let copy_path = gtk::Button::builder()
+            .label("Copy as path")
+            .tooltip_text("Copy the Markdown file path, with dictation and linked screenshots")
+            .build();
+        heading.append(&copy_path);
         let screenshot_buttons = std::array::from_fn(|_| {
             let button = gtk::Button::builder()
                 .icon_name("camera-photo-symbolic")
@@ -328,7 +329,6 @@ impl ConversationWorkspace {
             title_button,
             title_stack,
             title_entry,
-            title_save,
             continue_button,
             heading,
             messages,
@@ -344,6 +344,7 @@ impl ConversationWorkspace {
             live_follower,
             screenshot_shelf,
             screenshot_buttons,
+            copy_path,
             notice,
             store,
             callbacks,
@@ -354,6 +355,7 @@ impl ConversationWorkspace {
                 ..WorkspaceState::default()
             }),
             screenshot_store,
+            autosave: RefCell::new(None),
         });
         workspace.connect(&new_conversation, &archive, &title_cancel);
         workspace.show_conversation(None, &[], false)?;
@@ -391,11 +393,25 @@ impl ConversationWorkspace {
                 w.report(w.begin_rename(&id));
             }
         });
-        clicked!(&self.title_save, |w: &Rc<Self>| w.save_title());
-        clicked!(title_cancel, |w: &Rc<Self>| w.cancel_title());
+        clicked!(title_cancel, |w: &Rc<Self>| w.save_title());
         clicked!(&self.continue_button, |w: &Rc<Self>| {
             if let Some(entry) = w.entry() {
                 (w.callbacks.continue_recording)(&entry.identifier);
+            }
+        });
+        clicked!(&self.copy_path, |w: &Rc<Self>| {
+            if w.state.borrow().private || !w.save_edits(None) {
+                return;
+            }
+            if let Some(entry) = w.entry() {
+                match w.store.export_markdown(&entry.identifier) {
+                    Ok(path) => {
+                        (w.callbacks.copy)(&path.to_string_lossy());
+                        w.notice
+                            .set_label("Markdown path copied, with dictation and linked images.");
+                    }
+                    Err(error) => w.report::<()>(Err(error)),
+                }
             }
         });
         for button in &self.screenshot_buttons {
@@ -405,6 +421,18 @@ impl ConversationWorkspace {
                 }
             });
         }
+        let weak = Rc::downgrade(self);
+        self.title_entry.connect_changed(move |_| {
+            if let Some(w) = weak.upgrade() {
+                let mut state = w.state.borrow_mut();
+                let Some(id) = state.renaming.clone().filter(|_| !state.private) else {
+                    return;
+                };
+                state.pending_title = Some((id, w.title_entry.text().to_string()));
+                drop(state);
+                w.schedule_autosave(500);
+            }
+        });
         let weak = Rc::downgrade(self);
         self.title_entry.connect_activate(move |_| {
             if let Some(w) = weak.upgrade() {
@@ -498,9 +526,6 @@ impl ConversationWorkspace {
         for button in &s.copy_buttons {
             button.set_visible(true);
         }
-        for button in &s.save_buttons {
-            button.set_visible(true);
-        }
         drop(s);
         self.update_actions();
         Ok(())
@@ -524,14 +549,6 @@ impl ConversationWorkspace {
             .and_then(|key| self.state.borrow().edit_drafts.get(key).cloned())
             .unwrap_or_else(|| text.into());
         let view = MarkdownTextView::document(&draft, !source, true);
-        let save = gtk::Button::builder()
-            .icon_name("document-save-symbolic")
-            .has_frame(false)
-            .tooltip_text("Save edits")
-            .visible(true)
-            .sensitive(false)
-            .build();
-        self.state.borrow_mut().save_buttons.push(save.clone());
         if let Some(key) = key {
             self.state
                 .borrow_mut()
@@ -539,30 +556,19 @@ impl ConversationWorkspace {
                 .insert(key.clone(), view.clone());
             let weak = Rc::downgrade(self);
             let edit = view.downgrade();
-            let button = save.downgrade();
-            let original = text.to_owned();
-            let changed_key = key.clone();
             view.buffer().connect_changed(move |_| {
-                if let (Some(w), Some(view), Some(button)) =
-                    (weak.upgrade(), edit.upgrade(), button.upgrade())
-                {
-                    let text = view.text();
-                    button.set_sensitive(text != original);
+                if let (Some(w), Some(view)) = (weak.upgrade(), edit.upgrade()) {
+                    if w.state.borrow().private {
+                        return;
+                    }
                     w.state
                         .borrow_mut()
                         .edit_drafts
-                        .insert(changed_key.clone(), text);
+                        .insert(key.clone(), view.text());
+                    w.schedule_autosave(500);
                 }
             });
-            let weak = Rc::downgrade(self);
-            save.connect_clicked(move |_| {
-                if let Some(w) = weak.upgrade() {
-                    w.save_edits(Some(&key));
-                }
-            });
-            save.set_sensitive(draft != text);
         }
-        header.append(&save);
         let copy = gtk::Button::builder()
             .icon_name("edit-copy-symbolic")
             .has_frame(false)
@@ -644,23 +650,68 @@ impl ConversationWorkspace {
         state
             .edit_drafts
             .retain(|key, _| !identifiers.contains(&key.0));
+        if state
+            .pending_title
+            .as_ref()
+            .is_some_and(|(id, _)| identifiers.contains(id))
+        {
+            state.pending_title = None;
+        }
+        let cancel_title = state
+            .renaming
+            .as_ref()
+            .is_some_and(|id| identifiers.contains(id));
+        drop(state);
+        if cancel_title {
+            self.cancel_title();
+        }
     }
     pub fn has_unsaved_edits(&self, identifier: &str) -> bool {
-        self.state
-            .borrow()
-            .edit_drafts
-            .keys()
-            .any(|k| k.0 == identifier)
+        let state = self.state.borrow();
+        state
+            .pending_title
+            .as_ref()
+            .is_some_and(|(id, _)| id == identifier)
+            || state.edit_drafts.keys().any(|k| k.0 == identifier)
     }
+    fn schedule_autosave(self: &Rc<Self>, milliseconds: u64) {
+        if let Some(timer) = self.autosave.borrow_mut().take() {
+            timer.remove();
+        }
+        if self.state.borrow().private {
+            return;
+        }
+        self.notice.set_label(if milliseconds == 500 {
+            "Saving…"
+        } else {
+            "Could not save yet. Retrying automatically; keep Mluva open or copy your text."
+        });
+        let weak = Rc::downgrade(self);
+        self.autosave.replace(Some(glib::timeout_add_local_once(
+            std::time::Duration::from_millis(milliseconds),
+            move || {
+                if let Some(w) = weak.upgrade() {
+                    w.autosave.borrow_mut().take();
+                    if !w.save_edits(None) {
+                        w.schedule_autosave(3000);
+                    }
+                }
+            },
+        )));
+    }
+
     pub fn save_edits(self: &Rc<Self>, key: Option<&EditKey>) -> bool {
+        if self.state.borrow().private {
+            let state = self.state.borrow();
+            return state.edit_drafts.is_empty() && state.pending_title.is_none();
+        }
+        if !self.save_pending_title() {
+            return false;
+        }
         let keys = key.map_or_else(
             || {
                 let s = self.state.borrow();
-                s.edit_drafts
-                    .keys()
-                    .filter(|k| s.entry.as_ref().is_some_and(|e| e.identifier == k.0))
-                    .cloned()
-                    .collect::<Vec<_>>()
+                s.edit_drafts.keys().cloned().collect::<Vec<_>>()
             },
             |key| vec![key.clone()],
         );
@@ -668,14 +719,15 @@ impl ConversationWorkspace {
             let draft = self.state.borrow().edit_drafts.get(&key).cloned();
             if let Some(text) = draft {
                 if self.store.save_text(&key.0, &text, key.1).is_err() {
-                    self.notice
-                        .set_label("Could not save edits. Keep the document open and try again.");
+                    self.notice.set_label(
+                        "Could not save edits. Keep Mluva open to retry, or copy your text.",
+                    );
                     return false;
                 }
                 self.state.borrow_mut().edit_drafts.remove(&key);
             }
         }
-        self.notice.set_label("Edits saved");
+        self.notice.set_label("Saved automatically");
         self.report(self.refresh_history());
         true
     }
@@ -712,7 +764,12 @@ impl ConversationWorkspace {
         replies: &[Rewrite],
         preserve_live: bool,
     ) -> StoreResult<()> {
-        self.cancel_title();
+        if !self.state.borrow().private && !self.save_pending_title() {
+            return Err(mluva_core::database::StoreError::Invalid(
+                "Finish the title before changing conversations.".into(),
+            ));
+        }
+        self.close_title_editor();
         if !preserve_live {
             self.set_live_visibility(false);
         }
@@ -727,7 +784,6 @@ impl ConversationWorkspace {
             let mut s = self.state.borrow_mut();
             s.editors.clear();
             s.copy_buttons.clear();
-            s.save_buttons.clear();
             s.documents.clear();
             s.previews.clear();
             s.entry = entry.clone();
@@ -793,7 +849,7 @@ impl ConversationWorkspace {
             self.messages.append(&empty);
         }
         self.notice.set_label(if entry.is_some() {
-            "Edit your text, then save or copy it."
+            "Edits save automatically."
         } else {
             "Text is delivered automatically when you stop."
         });
@@ -981,8 +1037,16 @@ impl ConversationWorkspace {
         if self.entry().is_none_or(|e| e.identifier != identifier) {
             self.show_conversation(Some(entry.clone()), &self.store.replies(identifier)?, false)?;
         }
+        let title = self
+            .state
+            .borrow()
+            .pending_title
+            .as_ref()
+            .filter(|(id, _)| id == identifier)
+            .map(|(_, title)| title.clone())
+            .unwrap_or_else(|| display_title(&entry));
+        self.title_entry.set_text(&title);
         self.state.borrow_mut().renaming = Some(identifier.into());
-        self.title_entry.set_text(&display_title(&entry));
         self.title_entry.remove_css_class("error");
         self.title_stack.set_visible_child_name("edit");
         self.continue_button.set_visible(false);
@@ -991,24 +1055,38 @@ impl ConversationWorkspace {
         Ok(())
     }
 
-    pub fn save_title(&self) {
-        let title = self.title_entry.text();
+    fn save_pending_title(&self) -> bool {
+        let Some((id, title)) = self.state.borrow().pending_title.clone() else {
+            return true;
+        };
+        if self.state.borrow().private {
+            return false;
+        }
         let title = text::trim(&title);
         if title.is_empty() {
-            self.title_entry.add_css_class("error");
-            self.title_entry
-                .set_tooltip_text(Some("Enter a title before saving."));
-            return;
+            // An empty rename keeps the previous title, including when the
+            // editor is closed or replaced by an Incognito conversation.
+            self.state.borrow_mut().pending_title = None;
+            return true;
         }
-        let id = self.state.borrow().renaming.clone();
-        if let Some(id) = id
-            && (self.callbacks.rename)(&id, title)
-        {
+        if (self.callbacks.rename)(&id, title) {
+            self.state.borrow_mut().pending_title = None;
+            self.title_entry.remove_css_class("error");
+            return true;
+        }
+        false
+    }
+    pub fn save_title(&self) {
+        if self.save_pending_title() {
             self.cancel_title();
             self.title_button.grab_focus();
         }
     }
     pub fn cancel_title(&self) {
+        self.state.borrow_mut().pending_title = None;
+        self.close_title_editor();
+    }
+    fn close_title_editor(&self) {
         self.state.borrow_mut().renaming = None;
         self.title_stack.set_visible_child_name("title");
         self.title_entry.set_tooltip_text(None);
@@ -1211,7 +1289,9 @@ impl ConversationWorkspace {
             );
         }
         self.title_button.set_sensitive(has_entry && !s.private);
-        self.title_save.set_sensitive(!s.private);
+        self.title_entry.set_sensitive(!s.private);
+        self.copy_path
+            .set_sensitive(has_entry && !s.private && !s.busy && !s.viewing_live);
         for menu in &s.row_menus {
             menu.set_sensitive(!s.private && !s.busy && !s.live_active);
         }
@@ -1228,17 +1308,26 @@ impl ConversationWorkspace {
             self.notice
                 .set_label("Incognito: this dictation is not saved.");
         }
-        let editable = !s.busy;
+        let editable = !s.busy && !s.private;
         drop(s);
         for editor in editors {
             editor.set_editable(editable);
         }
     }
-    pub fn set_private(&self, private: bool) {
+    pub fn set_private(self: &Rc<Self>, private: bool) {
+        if private {
+            self.save_edits(None);
+        }
         self.state.borrow_mut().private = private;
+        if !private
+            && (!self.state.borrow().edit_drafts.is_empty()
+                || self.state.borrow().pending_title.is_some())
+        {
+            self.schedule_autosave(500);
+        }
         if private {
             self.screenshot_shelf.show_images(&[]);
-            self.cancel_title();
+            self.close_title_editor();
         }
         self.update_actions();
     }

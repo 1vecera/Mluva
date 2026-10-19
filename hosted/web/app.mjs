@@ -33,6 +33,8 @@ let recordingId = crypto.randomUUID(),
   historyEntries = [],
   cursor,
   storageTimer,
+  autosaveTimer,
+  saveTask,
   storageQueue = Promise.resolve(),
   saved = false;
 let receiversReached,
@@ -47,7 +49,6 @@ let noteState = null,
   pendingSave,
   conflictNote,
   deleted = false,
-  editGeneration = 0,
   continuation,
   continueRequested = false;
 const incoming = new Map();
@@ -76,13 +77,11 @@ function buttonState() {
     sendingText ||
     !wire ||
     wire.socket?.readyState !== WebSocket.OPEN;
-  $("save").disabled =
-    recording || saving || stopping || deleted || $("incognito").checked;
   $("cancel-recording").hidden = !recording;
   $("new-note").disabled = recording || saving;
   $("clear").disabled = recording || saving || stopping;
-  $("draft").readOnly = recording || saving || stopping;
-  $("note-title").disabled = recording || saving || stopping;
+  $("draft").readOnly = recording || stopping;
+  $("note-title").disabled = recording || stopping;
   $("continue-recording").disabled =
     $("record").disabled ||
     recording ||
@@ -144,7 +143,8 @@ function persist() {
   const value =
     !$("incognito").checked &&
     $("retain").checked &&
-    ($("draft").value || audio)
+    (!saved || audio) &&
+    ($("draft").value || rawText || pendingSave || audio)
       ? {
           id: recordingId,
           rawText,
@@ -157,9 +157,10 @@ function persist() {
         }
       : null;
   // Serialize writes and capture the snapshot now, so a delayed old write cannot resurrect a cleared draft.
+  const owner = auth.owner;
   storageQueue = storageQueue
     .catch(() => {})
-    .then(() => draftStorage(auth.owner, value));
+    .then(() => draftStorage(owner, value));
   storageQueue.catch((error) => notice(error.message));
   return storageQueue;
 }
@@ -387,7 +388,7 @@ function renderHistory() {
     empty.className = "loading";
     empty.textContent = needle
       ? "No match in loaded history. Load earlier recordings to search further."
-      : "Your first thought belongs here. Record or type something, then save it.";
+      : "Your first thought belongs here. Record or type something; history saves automatically when enabled.";
     $("history").append(empty);
   }
   $("more").hidden = !cursor;
@@ -505,7 +506,6 @@ function event(message) {
       deleted = true;
       saved = true;
       pendingSave = undefined;
-      editGeneration++;
 
       persist();
       notice(
@@ -599,79 +599,142 @@ function segments(content) {
   if (part) parts.push(part);
   return parts;
 }
-async function saveDraft(automatic = false) {
-  if (saving || recording || deleted || $("incognito").checked) return;
-  const content = $("draft").value;
-  if (!content.trim() && !rawText.trim()) {
-    if (!automatic) notice("Speak or type a thought first.");
+function scheduleAutosave(delay = 500) {
+  clearTimeout(autosaveTimer);
+  if (
+    !auth ||
+    signingOut ||
+    recording ||
+    deleted ||
+    conflictNote ||
+    $("incognito").checked ||
+    !$("retain").checked ||
+    saved ||
+    (!$("draft").value.trim() && !rawText.trim() && !pendingSave)
+  )
     return;
-  }
-  if (saved) {
-    if (!automatic) notice("Already saved to history.");
-    return;
-  }
-  if (automatic && !$("retain").checked) {
-    recovery(
-      "History is off. Copy or download these words before closing this page.",
-    );
-    return;
-  }
+  autosaveTimer = setTimeout(() => {
+    autosaveTimer = undefined;
+    saveDraft();
+  }, delay);
+}
+function draftChanged() {
+  saved = false;
+  $("draft-state").textContent =
+    $("incognito").checked || !$("retain").checked
+      ? "Kept in memory"
+      : "Saving…";
+  clearTimeout(storageTimer);
+  clearTimeout(autosaveTimer);
+  storageTimer = setTimeout(() => persist().catch(() => {}), 150);
+  scheduleAutosave();
+  buttonState();
+}
+function draftTitle() {
+  return (
+    $("note-title").value || $("draft").value.trim().split("\n")[0].slice(0, 80)
+  );
+}
+function saveDraft() {
+  if (saveTask) return saveTask;
+  clearTimeout(autosaveTimer);
+  autosaveTimer = undefined;
+  saveTask = flushDraft().finally(() => {
+    saveTask = undefined;
+    if (!saved && !autosaveTimer) scheduleAutosave();
+  });
+  return saveTask;
+}
+async function flushDraft() {
+  if (
+    recording ||
+    deleted ||
+    signingOut ||
+    conflictNote ||
+    $("incognito").checked ||
+    !$("retain").checked ||
+    saved
+  )
+    return saved;
+  if (!$("draft").value.trim() && !rawText.trim() && !pendingSave) return true;
   saving = true;
   $("draft-state").textContent = "Saving…";
   buttonState();
   try {
-    await persist().catch(() => {});
-    pendingSave ??= {
-      id: recordingId,
-      rawText: rawText || content,
-      text: content,
-      title:
-        $("note-title").value || content.trim().split("\n")[0].slice(0, 80),
-      mode: noteState?.mode ?? "dictation",
-      deliveredText: noteState?.deliveredText ?? content,
-      rewrites: noteState?.rewrites ?? [],
-      segments: noteState?.segments ?? [],
-      baseRevision: noteState?.revision ?? 0,
-      operationId: crypto.randomUUID(),
-    };
-    await persist().catch(() => {});
-    const result = await api(
-      noteState ? `/history/${recordingId}` : "/history",
-      noteState ? "PUT" : "POST",
-      pendingSave,
-    );
-    if (deleted) return;
-    noteState = result;
-    rawText = result.rawText;
-    pendingSave = undefined;
-    $("original-text").textContent = rawText;
-    $("note-title").value = result.title;
-    $("workspace-title").textContent = "Workspace";
-    saved = true;
-    audio = undefined;
-    await draftStorage(auth.owner, null);
+    // A request whose acknowledgement was lost must be retried byte-for-byte.
+    // Later typing becomes the next revision, never a replacement for that operation.
+    do {
+      const content = $("draft").value;
+      pendingSave ??= {
+        id: recordingId,
+        rawText: rawText || content,
+        text: content,
+        title: draftTitle(),
+        mode: noteState?.mode ?? "dictation",
+        deliveredText: noteState?.deliveredText ?? content,
+        rewrites: noteState?.rewrites ?? [],
+        segments: noteState?.segments ?? [],
+        baseRevision: noteState?.revision ?? 0,
+        operationId: crypto.randomUUID(),
+      };
+      const operation = pendingSave;
+      await persist().catch(() => {});
+      const result = await api(
+        noteState ? `/history/${recordingId}` : "/history",
+        noteState ? "PUT" : "POST",
+        operation,
+      );
+      if (deleted || signingOut || recordingId !== operation.id) return false;
+      saved =
+        $("draft").value === operation.text && draftTitle() === operation.title;
+      noteState = result;
+      rawText = result.rawText;
+      pendingSave = undefined;
+      renderOriginal();
+      if (saved) $("note-title").value = result.title;
+      $("workspace-title").textContent = "Workspace";
+      audio = undefined;
+      await persist().catch(() => {});
+    } while (!saved && !signingOut && $("retain").checked);
+    if (!saved) {
+      $("draft-state").textContent = "Kept in memory";
+      return false;
+    }
     $("recovery").hidden = true;
-    $("draft-state").textContent = "Saved to history";
-    notice("Saved. Your words are available on all your devices.");
+    $("draft-state").textContent = "Saved automatically";
     await loadHistory();
+    return true;
   } catch (error) {
     if (error.status === 409) {
       conflictNote = await api(`/history/${recordingId}`).catch(() => null);
       if (conflictNote) {
         $("conflict-text").value = conflictNote.text;
-        $("conflict-dialog").showModal();
+        if (!$("conflict-dialog").open) $("conflict-dialog").showModal();
       }
     }
     if (error.status === 410) {
       deleted = true;
       pendingSave = undefined;
     }
+    $("draft-state").textContent =
+      error.status === 409 ? "Review conflicting edits" : "Waiting to save";
     recovery(error.message);
     notice(error.message);
+    scheduleAutosave(3000);
+    return false;
   } finally {
     saving = false;
     buttonState();
   }
+}
+async function keepCurrentDraft() {
+  if (saved || (!$("draft").value && !pendingSave && !rawText)) return true;
+  await saveDraft();
+  if (saved) return true;
+  notice(
+    "This draft has not saved yet. Reconnect to retry, or copy/download it and clear it before moving on.",
+  );
+  return false;
 }
 async function startRecording(continuing = false) {
   if (recording || stopping || saving) return;
@@ -686,15 +749,7 @@ async function startRecording(continuing = false) {
     );
     return;
   }
-  if (
-    !saved &&
-    $("draft").value &&
-    !(await confirm(
-      "Start a fresh recording?",
-      "Download or save the current draft first if you want to keep it. Starting will clear it.",
-    ))
-  )
-    return;
+  if (!(await keepCurrentDraft())) return;
   continuation = continuing
     ? {
         note: structuredClone(noteState),
@@ -709,7 +764,6 @@ async function startRecording(continuing = false) {
   }
   pendingSave = undefined;
   deleted = false;
-  editGeneration++;
 
   if (!continuing) {
     $("note-title").value = "";
@@ -829,7 +883,7 @@ async function stopRecording(commit = true) {
   $("record").setAttribute("aria-label", "Start recording");
   $("partial").hidden = true;
   $("draft-state").textContent =
-    failed || !commit ? "Settled words · review before saving" : "Ready";
+    failed || !commit ? "Settled words · review the recovered text" : "Ready";
   publish("stopped");
   await persist().catch(() => {});
   recovery(
@@ -875,9 +929,9 @@ window.addEventListener("pageshow", resetSignIn);
 $("signout").onclick = async () => {
   if (signingOut) return;
   signingOut = true;
-  editGeneration++;
 
   clearTimeout(storageTimer);
+  clearTimeout(autosaveTimer);
   wire?.close();
   if (recording) await stopRecording(false);
   await persist().catch(() => {});
@@ -904,7 +958,6 @@ $("speech-start").onclick = () => {
   $("speech-dialog").close();
   startRecording(continueRequested);
 };
-$("save").onclick = () => saveDraft();
 $("retry").onclick = () => saveDraft();
 $("send").onclick = async () => {
   if (!$("draft").value.trim()) {
@@ -920,17 +973,11 @@ $("send").onclick = async () => {
   sendingText = false;
   buttonState();
   if (!liveFailure && receiversReached > 0)
-    notice("Sent to your connected devices. Save it to keep it in history.");
+    notice(
+      "Sent to your connected devices. History saves automatically when enabled.",
+    );
 };
-$("draft").addEventListener("input", () => {
-  if (saved) {
-    saved = false;
-  }
-  editGeneration++;
-  $("draft-state").textContent = "Unsaved draft";
-  clearTimeout(storageTimer);
-  storageTimer = setTimeout(() => persist(), 250);
-});
+$("draft").addEventListener("input", draftChanged);
 $("retain").onchange = async () => {
   if (
     !$("retain").checked &&
@@ -944,6 +991,7 @@ $("retain").onchange = async () => {
   }
   await persist().catch(() => {});
   if (!$("recovery").hidden) recovery();
+  scheduleAutosave();
 };
 $("clear").onclick = async () => {
   if (
@@ -955,12 +1003,12 @@ $("clear").onclick = async () => {
   )
     return;
   clearTimeout(storageTimer);
+  clearTimeout(autosaveTimer);
   $("draft").value = "";
   rawText = "";
   noteState = null;
   pendingSave = undefined;
   deleted = false;
-  editGeneration++;
 
   $("note-title").value = "";
   $("original-text").textContent = "";
@@ -1006,7 +1054,17 @@ $("connection").onclick = () => wire?.connect();
 $("search").oninput = renderHistory;
 $("more").onclick = () =>
   loadHistory(true).catch((error) => notice(error.message));
-window.addEventListener("online", () => wire?.connect());
+window.addEventListener("online", () => {
+  wire?.connect();
+  scheduleAutosave();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    clearTimeout(storageTimer);
+    persist().catch(() => {});
+    saveDraft();
+  }
+});
 window.addEventListener("pageshow", (event) => {
   if (event.persisted && wire) {
     wire.stopped = false;
@@ -1147,13 +1205,16 @@ else if (!auth) {
       rawText = pending.rawText;
       $("draft").value = pending.text;
       audio = pending.audio;
-      recovery("An unfinished draft was recovered. Review it before saving.");
+      recovery(
+        "An unfinished draft was recovered. Saving will resume automatically.",
+      );
       $("draft-state").textContent = "Recovered draft";
     }
     await refreshDevices();
     await loadHistory();
     await connectWire();
     buttonState();
+    scheduleAutosave();
     if (config.dev)
       notice(
         "Local preview uses synthetic speech and in-memory accounts. No cloud resources or real microphone are required for automated tests.",
@@ -1192,22 +1253,15 @@ function showRewrites() {
 }
 async function openNote(note) {
   if (recording || saving) return;
-  if (
-    !saved &&
-    $("draft").value &&
-    !(await confirm(
-      "Open another conversation?",
-      "Save or export your unsaved draft first to keep it.",
-    ))
-  )
-    return;
+  if (!(await keepCurrentDraft())) return;
+  clearTimeout(autosaveTimer);
   noteState = structuredClone(note);
   recordingId = note.id;
   rawText = note.rawText;
   saved = true;
   deleted = false;
   pendingSave = undefined;
-  editGeneration++;
+  conflictNote = undefined;
 
   $("draft").value = note.text;
   $("note-title").value = note.title;
@@ -1222,15 +1276,8 @@ async function openNote(note) {
   buttonState();
 }
 $("new-note").onclick = async () => {
-  if (
-    !saved &&
-    $("draft").value &&
-    !(await confirm(
-      "Start a new note?",
-      "Save or export this draft first if you want to keep it.",
-    ))
-  )
-    return;
+  if (!(await keepCurrentDraft())) return;
+  clearTimeout(autosaveTimer);
   noteState = null;
   pendingSave = undefined;
   recordingId = crypto.randomUUID();
@@ -1238,7 +1285,6 @@ $("new-note").onclick = async () => {
   saved = false;
   deleted = false;
   audio = undefined;
-  editGeneration++;
 
   $("draft").value = "";
   $("note-title").value = "";
@@ -1249,11 +1295,7 @@ $("new-note").onclick = async () => {
   await persist();
   buttonState();
 };
-$("note-title").oninput = () => {
-  saved = false;
-  editGeneration++;
-  persist();
-};
+$("note-title").oninput = draftChanged;
 $("copy-draft").onclick = () => copy($("draft").value);
 $("export-json").onclick = () =>
   download(
@@ -1322,13 +1364,13 @@ $("merge-note").onclick = async () => {
     mergedSources: [{ id: other.id, baseRevision: other.revision }],
   };
   saved = false;
-  editGeneration++;
 
   await saveDraft();
   showRewrites();
 };
 $("conflict-local").onclick = () => {
   noteState = conflictNote;
+  conflictNote = undefined;
   pendingSave = undefined;
   $("conflict-dialog").close();
   saveDraft();
@@ -1363,13 +1405,17 @@ $("incognito").onchange = async () => {
   }
   buttonState();
   if ($("incognito").checked) {
+    clearTimeout(autosaveTimer);
+    clearTimeout(storageTimer);
+    pendingSave = undefined;
+    conflictNote = undefined;
     wire?.close();
     incoming.clear();
     renderIncoming();
     state(false, "Incognito");
     $("retain").checked = false;
 
-    await draftStorage(auth.owner, null);
+    await persist().catch(() => {});
     notice(
       "Incognito: new words stay in memory. No account sync, saved history or recovery. Speech still uses ElevenLabs.",
     );

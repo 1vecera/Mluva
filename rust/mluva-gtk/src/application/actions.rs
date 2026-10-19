@@ -67,6 +67,10 @@ impl ApplicationDesktop {
                 self.shell.navigate("personalization");
             }
             ApplicationAction::Quit => {
+                if !self.workspace().save_edits(None) {
+                    self.shell.show_message("Edits could not be saved. Keep Mluva open to retry, or copy your text before quitting.");
+                    return;
+                }
                 let application = self.application.clone();
                 let shutdown = self.shutdown();
                 glib::MainContext::default().spawn_local(async move {

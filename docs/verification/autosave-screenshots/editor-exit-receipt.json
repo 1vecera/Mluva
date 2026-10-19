@@ -1,0 +1,7 @@
+{
+  "close_button": true,
+  "escape": true,
+  "image_unchanged": true,
+  "clipboard_unchanged": true,
+  "scope": "private X11, actual patched Tensaku binary"
+}

@@ -62,6 +62,15 @@ impl ScreenshotShelf {
                 );
             }
             let row = gtk::Box::new(gtk::Orientation::Horizontal, 4);
+            row.set_tooltip_text(Some(&format!(
+                "Captured: {}\nSaved in editor: {}\nEditor closed: {}",
+                screenshot.created_at,
+                screenshot.saved_at.as_deref().unwrap_or("Not yet"),
+                screenshot
+                    .closed_at
+                    .as_deref()
+                    .unwrap_or("Still open or not observed")
+            )));
             row.append(
                 &gtk::Label::builder()
                     .label(&caption)

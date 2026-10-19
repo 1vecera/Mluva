@@ -52,6 +52,7 @@ fn one_editor_preserves_unsaved_edits_legacy_replies_and_live_navigation() {
         .unwrap();
     let copied = Rc::new(RefCell::new(Vec::<String>::new()));
     let copy = copied.clone();
+    let rename_history = history.clone();
     let resources = DocumentResources::from_directory(
         &PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources"),
     );
@@ -65,7 +66,7 @@ fn one_editor_preserves_unsaved_edits_legacy_replies_and_live_navigation() {
         ConversationCallbacks {
             copy: Rc::new(move |text| copy.borrow_mut().push(text.into())),
             open_archive: Rc::new(|| {}),
-            rename: Rc::new(|_, _| true),
+            rename: Rc::new(move |id, title| rename_history.update_title(id, Some(title)).is_ok()),
             delete: Rc::new(|_| true),
             merge: Rc::new(|_, _| true),
             continue_recording: Rc::new(|_| {}),
@@ -92,7 +93,6 @@ fn one_editor_preserves_unsaved_edits_legacy_replies_and_live_navigation() {
         .filter(|x| x.has_css_class("ml-source") || x.has_css_class("ml-reply"))
     {
         assert!(ui::button(&card, "Copy").get_visible());
-        assert!(ui::button(&card, "Save edits").get_visible());
     }
     w.documents()[0].buffer().set_text("Unsaved working edit");
     assert!(w.has_unsaved_edits(&first.identifier));
@@ -101,7 +101,7 @@ fn one_editor_preserves_unsaved_edits_legacy_replies_and_live_navigation() {
     w.show_conversation(Some(first.clone()), std::slice::from_ref(&reply), false)
         .unwrap();
     assert_eq!(w.documents()[0].text(), "Unsaved working edit");
-    ui::button(&w.messages, "Save edits").emit_clicked();
+    ui::until(|| !w.has_unsaved_edits(&first.identifier));
     assert!(!w.has_unsaved_edits(&first.identifier));
     assert_eq!(
         store.source_text(&first, false).unwrap(),
@@ -121,6 +121,72 @@ fn one_editor_preserves_unsaved_edits_legacy_replies_and_live_navigation() {
         store.replies(&first.identifier).unwrap(),
         std::slice::from_ref(&reply)
     );
+    // Autosave updates the existing view without resetting the caret or raw recognition.
+    let editor = w.documents()[0].clone();
+    editor.buffer().set_text("Latest typing wins");
+    editor
+        .buffer()
+        .place_cursor(&editor.buffer().iter_at_offset(6));
+    ui::until(|| !w.has_unsaved_edits(&first.identifier));
+    assert_eq!(editor.buffer().cursor_position(), 6);
+    assert_eq!(w.documents()[0], editor);
+    w.copy_path.emit_clicked();
+    let path = PathBuf::from(copied.borrow().last().unwrap());
+    assert!(
+        std::fs::read_to_string(&path)
+            .unwrap()
+            .contains("Latest typing wins")
+    );
+    // A real SQLite failure keeps the edit visible and retries it automatically.
+    let connection = rusqlite::Connection::open(&history.database.path).unwrap();
+    connection.execute_batch("CREATE TRIGGER reject_edit BEFORE INSERT ON conversation_sources BEGIN SELECT RAISE(ABORT, 'disk failure'); END;").unwrap();
+    editor.buffer().set_text("Kept through save failure");
+    ui::until(|| w.notice.label().contains("Could not save"));
+    assert!(w.has_unsaved_edits(&first.identifier));
+    assert_eq!(editor.text(), "Kept through save failure");
+    connection
+        .execute_batch("DROP TRIGGER reject_edit;")
+        .unwrap();
+    ui::until(|| !w.has_unsaved_edits(&first.identifier));
+    assert_eq!(
+        store.source_text(&first, false).unwrap(),
+        "Kept through save failure"
+    );
+    editor.buffer().set_text("");
+    ui::until(|| !w.has_unsaved_edits(&first.identifier));
+    assert_eq!(store.source_text(&first, false).unwrap(), "");
+    assert_eq!(
+        history.find(&first.identifier).unwrap().raw_text,
+        "Immutable original"
+    );
+    // A pre-existing title edit survives failed storage and a temporary private view.
+    connection.execute_batch("CREATE TRIGGER reject_title BEFORE UPDATE OF title ON transcription_history BEGIN SELECT RAISE(ABORT, 'disk failure'); END;").unwrap();
+    w.begin_rename(&first.identifier).unwrap();
+    w.title_entry.set_text("Title kept through private viewing");
+    w.set_private(true);
+    w.show_transient("Private text", "Private text").unwrap();
+    assert!(w.has_unsaved_edits(&first.identifier));
+    assert_eq!(history.find(&first.identifier).unwrap().title, None);
+    connection
+        .execute_batch("DROP TRIGGER reject_title;")
+        .unwrap();
+    w.set_private(false);
+    ui::until(|| !w.has_unsaved_edits(&first.identifier));
+    assert_eq!(
+        history.find(&first.identifier).unwrap().title.as_deref(),
+        Some("Title kept through private viewing")
+    );
+    w.begin_rename(&first.identifier).unwrap();
+    w.title_entry.set_text("");
+    w.set_private(true);
+    w.show_transient("Another private thought", "Another private thought")
+        .unwrap();
+    w.set_private(false);
+    assert!(!w.has_unsaved_edits(&first.identifier));
+    assert_eq!(
+        history.find(&first.identifier).unwrap().title.as_deref(),
+        Some("Title kept through private viewing")
+    );
     w.set_live("Recording", "New words arriving", true);
     settle();
     assert_eq!(w.live_text.text(), "New words arriving");
@@ -134,7 +200,7 @@ fn one_editor_preserves_unsaved_edits_legacy_replies_and_live_navigation() {
     w.set_private(true);
     w.show_transient("Private recognition", "Private recognition")
         .unwrap();
-    assert!(!ui::button(&w.messages, "Save edits").get_sensitive());
+    assert!(!w.copy_path.get_sensitive());
     assert!(ui::button(&w.messages, "Copy").get_visible());
     assert_eq!(history.recent(10).unwrap().len(), 2);
     window.close();

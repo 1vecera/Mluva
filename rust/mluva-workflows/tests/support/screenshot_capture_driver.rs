@@ -41,7 +41,7 @@ async fn main() {
         match (&mut task).await.unwrap() {
             Ok(None) => json!({"cancelled":true}),
             Ok(Some(data)) => {
-                json!({"png":data.iter().map(|byte|format!("{byte:02x}")).collect::<String>()})
+                json!({"png":data.data.iter().map(|byte|format!("{byte:02x}")).collect::<String>()})
             }
             Err(ScreenshotCaptureError::Io(error)) => json!({"io":error.raw_os_error()}),
             Err(error) => json!({"error":error.to_string()}),

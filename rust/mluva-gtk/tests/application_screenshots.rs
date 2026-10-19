@@ -541,6 +541,23 @@ fn released_application_screenshot_ownership_and_lifecycle() {
                     stage("already-editing", &mut observer);
                     editor_command(&directory, &shot, &fixture["green_png"]);
                     settle();
+                    until(|| {
+                        shots(&observer).iter().any(|image| {
+                            image.identifier == shot.identifier && image.saved_at.is_some()
+                        })
+                    });
+                    let updated = shots(&observer)
+                        .into_iter()
+                        .find(|image| image.identifier == shot.identifier)
+                        .unwrap();
+                    assert_eq!(updated.created_at, shot.created_at);
+                    assert!(updated.closed_at.is_none());
+                    let markdown = services
+                        .conversations
+                        .export_markdown(&context[0].identifier)
+                        .unwrap();
+                    let markdown = fs::read_to_string(markdown).unwrap();
+                    assert!(markdown.contains(updated.saved_at.as_deref().unwrap()));
                     stage("editor-saved", &mut observer);
                     button("Remove screenshot").emit_clicked();
                     until(|| !shot.path.exists());
@@ -816,12 +833,37 @@ fn metadata_failure_recovers_images(
     until(|| directory.join("ready.json").exists());
     fs::write(directory.join("release"), b"").unwrap();
     until(|| !editor_records(&directory).is_empty());
-    let shot = services
+    let mut shot = services
         .screenshots
         .recent(&capture, true)
         .unwrap()
         .remove(0);
     assert_eq!(fs::read(&shot.path).unwrap(), unhex(&fixture["red_png"]));
+    // Closing without a save records dismissal without inventing an image write.
+    write(
+        &directory
+            .join("editors")
+            .join(&shot.identifier)
+            .join("command.json"),
+        &json!({"op":"quit", "serial":1}),
+    );
+    until(|| {
+        services.screenshots.recent(&capture, true).unwrap()[0]
+            .closed_at
+            .is_some()
+    });
+    let closed = services
+        .screenshots
+        .recent(&capture, true)
+        .unwrap()
+        .remove(0);
+    assert_eq!(closed.created_at, shot.created_at);
+    assert!(closed.saved_at.is_none());
+    assert_eq!(
+        closed.recording_identifier.as_deref(),
+        Some(capture.as_str())
+    );
+    shot = closed;
     // This is a real private SQLite write failure, not a mocked save callback.
     let database = rusqlite::Connection::open(&services.history.database.path).unwrap();
     database.execute_batch("CREATE TRIGGER reject_history BEFORE INSERT ON transcription_history BEGIN SELECT RAISE(ABORT, 'synthetic metadata write failure'); END;").unwrap();
@@ -849,7 +891,7 @@ fn metadata_failure_recovers_images(
     let editor = editor_records(&directory).remove(0).1["pid"]
         .as_u64()
         .unwrap() as i32;
-    assert!(alive(editor as u32));
+    assert!(!alive(editor as u32));
     database
         .execute_batch("DROP TRIGGER reject_history;")
         .unwrap();
@@ -872,10 +914,6 @@ fn metadata_failure_recovers_images(
         std::slice::from_ref(&shot)
     );
     assert_eq!(fs::read(&shot.path).unwrap(), unhex(&fixture["red_png"]));
-    unsafe {
-        libc::kill(editor, libc::SIGTERM);
-        libc::waitpid(editor, std::ptr::null_mut(), 0);
-    }
     let mut requests = json!(peer.finish());
     normalize_wire(&mut requests);
     assert_eq!(requests, row["requests"]);

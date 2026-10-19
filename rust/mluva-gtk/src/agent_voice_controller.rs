@@ -157,12 +157,6 @@ impl AgentVoiceController {
             }
         });
         let weak = Rc::downgrade(self);
-        self.view.save_draft.connect_clicked(move |_| {
-            if let Some(owner) = weak.upgrade() {
-                owner.save_draft();
-            }
-        });
-        let weak = Rc::downgrade(self);
         self.view.copy_draft.connect_clicked(move |_| {
             if let Some(owner) = weak.upgrade() {
                 (owner.callbacks.copy)(&owner.draft_text());
@@ -726,10 +720,6 @@ impl AgentVoiceController {
         self.view
             .send_draft
             .set_sensitive(draft && enabled && self.selected().is_some_and(|r| r.can_receive()));
-        self.view.save_draft.set_visible(
-            attempt.as_ref().is_some_and(|a| a.history_id.is_some())
-                && !self.services.config().incognito_mode,
-        );
         self.view.feedback.set_visible(enabled);
         self.view.hold.set_sensitive(
             enabled

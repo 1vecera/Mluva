@@ -15,7 +15,7 @@ use std::{
     path::{Path, PathBuf},
     process::Stdio,
     sync::atomic::{AtomicBool, Ordering},
-    time::Duration,
+    time::{Duration, SystemTime},
 };
 use tokio::{io::AsyncReadExt, process::Command};
 use tokio_util::sync::CancellationToken;
@@ -33,7 +33,13 @@ pub enum ScreenshotCaptureError {
     #[error("Screenshot selection timed out. Press F10 to try again.")]
     Timeout,
 }
-pub type ScreenshotCaptureResult = Result<Option<Vec<u8>>, ScreenshotCaptureError>;
+#[derive(Debug)]
+pub struct CapturedScreenshot {
+    pub data: Vec<u8>,
+    /// The picker file's modification time, before it is copied into History.
+    pub captured_at: SystemTime,
+}
+pub type ScreenshotCaptureResult = Result<Option<CapturedScreenshot>, ScreenshotCaptureError>;
 
 /// Keep this owner until selection has been attached or discarded. `run` is a
 /// single-use, non-borrowing future; dropping either it or this owner cancels
@@ -222,14 +228,14 @@ async fn run_owned(directory: PathBuf, cancelled: CancellationToken) -> Screensh
         ));
     }
     let data = read_image(&path)?;
-    validate_png(&data).map_err(|error| ScreenshotCaptureError::Invalid(error.to_string()))?;
+    validate_png(&data.data).map_err(|error| ScreenshotCaptureError::Invalid(error.to_string()))?;
     Ok(Some(data))
 }
 fn whitespace(byte: u8) -> bool {
     matches!(byte, 9..=13 | 32)
 }
 
-fn read_image(path: &Path) -> io::Result<Vec<u8>> {
+fn read_image(path: &Path) -> io::Result<CapturedScreenshot> {
     let file = OpenOptions::new()
         .read(true)
         .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
@@ -245,5 +251,8 @@ fn read_image(path: &Path) -> io::Result<Vec<u8>> {
     let mut data = Vec::new();
     file.take((MAX_IMAGE_BYTES + 1) as u64)
         .read_to_end(&mut data)?;
-    Ok(data)
+    Ok(CapturedScreenshot {
+        data,
+        captured_at: metadata.modified()?,
+    })
 }

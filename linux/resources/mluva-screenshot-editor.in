@@ -10,6 +10,6 @@ if [[ -x "${editor}" ]]; then
     exec "${editor}" \
         --filename "$1" --output-filename "$1" \
         --narration-command "@BIN_DIR@/mluva-narrate" \
-        --actions-on-enter save-to-clipboard --save-after-copy --copy-command wl-copy
+        --actions-on-escape exit --actions-on-enter save-to-clipboard --save-after-copy --copy-command wl-copy
 fi
 exec /usr/bin/tensaku-edit "$1"
