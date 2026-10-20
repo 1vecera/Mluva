@@ -84,14 +84,17 @@ ShellRoot {
     readonly property var overlay: widget.data.find(child => child.objectName === "mluva-overlay-loader")?.item
     property bool visibleFrame: false
     property bool wordsFrame: false
+    property int wordsFrames: 0
     Connections {
         target: root.overlay
         function onVisibleChanged() {
             root.visibleFrame = false;
             root.wordsFrame = false;
+            root.wordsFrames = 0;
             if (root.overlay.visible) console.log("PERF_VISIBLE " + Date.now());
         }
         function onDisplayedPreviewChanged() {
+            root.wordsFrames = 0;
             if (root.overlay.displayedPreview.startsWith("Synthetic narration")) console.log("PERF_WORDS " + Date.now());
         }
     }
@@ -104,7 +107,10 @@ ShellRoot {
                 root.visibleFrame = true;
                 console.log("PERF_VISIBLE_FRAME " + Date.now());
             }
-            if (!root.wordsFrame && root.overlay.displayedPreview.startsWith("Synthetic narration")) {
+            // A threaded renderer can deliver the preceding frame's swap
+            // after the GUI property changed. Observe a subsequent swap too.
+            if (!root.wordsFrame && root.overlay.displayedPreview.startsWith("Synthetic narration")
+                    && ++root.wordsFrames >= 2) {
                 root.wordsFrame = true;
                 console.log("PERF_WORDS_FRAME " + Date.now());
             }
@@ -359,7 +365,7 @@ pub fn run(root: &Path, checkout: &Path, binaries: &Path, paced: bool) -> Result
             "samples":samples,
             "paced":paced,
             "scope":"Production release executable, synthetic 3-second PCM and loopback batch speech. Fresh/warm private profiles; OS caches not dropped. No microphone/provider/Wayland claim.",
-            "precision":"2 ms poll plus IPC/subprocess cost; usable endpoint includes external accessibility traversal after mapped window. Qt timestamps use wall clock milliseconds; other durations use monotonic time.",
+            "precision":"2 ms poll plus IPC/subprocess cost; usable endpoint includes external accessibility traversal after mapped window. Words-frame waits for two Qt swaps after the text update to exclude an in-flight preceding frame; it is a rendering upper bound. Qt timestamps use wall clock milliseconds; other durations use monotonic time.",
             "cancel_history_empty":true
         });
         fs::write(
