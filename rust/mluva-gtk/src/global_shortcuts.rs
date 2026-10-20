@@ -15,6 +15,7 @@ use std::{
 use tokio::{sync::Mutex, sync::oneshot};
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
+mod hyprland;
 mod session;
 
 const PORTAL: &str = "org.freedesktop.portal.Desktop";
@@ -63,6 +64,7 @@ pub struct AgentShortcutCallbacks {
 
 #[derive(Clone)]
 pub struct ShortcutCallbacks {
+    pub persist_bindings: Rc<dyn Fn() -> bool>,
     pub agent: Option<AgentShortcutCallbacks>,
     pub toggle_recording: Rc<dyn Fn()>,
     pub cancel: Rc<dyn Fn()>,
@@ -155,7 +157,12 @@ impl GlobalShortcutService {
         let session = session::PortalSession::new(key, self.callbacks.clone());
         *self.session.borrow_mut() = Some(session.clone());
         match session.connect().await {
-            Ok(bound) => {
+            Ok(mut bound) => {
+                match hyprland::apply(key, &self.callbacks).await {
+                    Ok(Some(native)) => bound = native,
+                    Ok(None) => {}
+                    Err(error) => (self.callbacks.error)(&error.0),
+                }
                 *self.bound_key.borrow_mut() = Some(key.into());
                 if !self.closing.get() && *self.preferred_key.borrow() == key {
                     session.report_bindings(&bound);

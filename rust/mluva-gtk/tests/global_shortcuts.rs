@@ -110,6 +110,7 @@ async fn compare(runtime: &Rc<DesktopRuntime>, fixture: &Value, peer: &mut Peer)
             runtime.clone(),
             "F9",
             ShortcutCallbacks {
+                persist_bindings: Rc::new(|| true),
                 agent: None,
                 toggle_recording: callback("record"),
                 cancel: callback("cancel"),
@@ -237,6 +238,7 @@ async fn agent_toggles(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) 
         runtime.clone(),
         "F9",
         ShortcutCallbacks {
+            persist_bindings: Rc::new(|| true),
             agent: Some(mluva_gtk::global_shortcuts::AgentShortcutCallbacks {
                 hold_key: "F8".into(),
                 draft_key: "F7".into(),

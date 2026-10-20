@@ -20,6 +20,8 @@ Feature status is tracked separately in the [capability matrix](feature-maturity
 
 The [Global Shortcuts portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.GlobalShortcuts.html) owns approval and assignment. Mluva binds recording, cancellation and opening the latest conversation in one session, displays the returned keys, and replaces that session when preferences change. It receives action activations, not arbitrary keystrokes. Escape cancels when Mluva has focus; the approved global cancellation shortcut works elsewhere.
 
+Hyprland's portal registers action identifiers without assigning requested keys. Its opt-in [Lua bridge](omarchy-integration.md) applies the keys selected in Settings, verifies actual compositor bindings and retains them across configuration reloads. It rejects conflicts and removes only its own binding handles; other portal backends retain their normal approval flow.
+
 Native Hyprland bindings can invoke the same global recording path through `mluva-shell global-record`, without a portal session or opening the app window. The bar/menu action `mluva-shell record` remains copy-only. See the [Omarchy binding setup](omarchy-integration.md) before replacing a keyboard binding.
 
 Omarchy's recorder opens without taking typing focus. Clicking it allows interaction; drag its status row or focus it and press Super+T to tile. Floating mode stays above other windows and across workspaces. This requires Quickshell 0.3+ and Hyprland 0.55+. The optional GNOME bottom bar remains display-only and is installed separately.
