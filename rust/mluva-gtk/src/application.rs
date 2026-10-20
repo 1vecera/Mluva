@@ -360,6 +360,11 @@ impl ApplicationDesktop {
             }),
         );
         owner.open_latest(false)?;
+        if let Some(connection) = application.dbus_connection() {
+            owner.agent_voice.register_cli(&connection).map_err(|_| {
+                WorkflowError::Invalid("Mluva's local routing commands could not start.".into())
+            })?;
+        }
         if !owner.services.config().welcome_completed {
             owner.shell.navigate("welcome");
         }

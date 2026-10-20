@@ -16,6 +16,8 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
+mod cli;
+
 pub struct AgentVoiceCallbacks {
     pub press: Rc<dyn Fn()>,
     pub release: Rc<dyn Fn()>,
@@ -52,6 +54,7 @@ pub struct AgentVoiceController {
     spoken_attempt: RefCell<Option<String>>,
     speech: RefCell<Option<SpeechJob>>,
     closed: CancellationToken,
+    cli: RefCell<Option<(gio::DBusConnection, gio::RegistrationId)>>,
 }
 fn now() -> u64 {
     SystemTime::now()
@@ -102,6 +105,7 @@ impl AgentVoiceController {
             spoken_attempt: RefCell::new(None),
             speech: RefCell::new(None),
             closed: CancellationToken::new(),
+            cli: RefCell::new(None),
         });
         owner.bind();
         owner.render();
@@ -122,6 +126,7 @@ impl AgentVoiceController {
                     .checked_sub(1)
                     .and_then(|i| owner.recipients.borrow().get(i as usize).cloned());
                 owner.settings.borrow_mut().selected = selected;
+                owner.generation.set(owner.generation.get() + 1);
                 owner.save_choice();
                 owner.view.reply.set_label("");
                 owner.render();
@@ -582,8 +587,12 @@ impl AgentVoiceController {
             recipients.push(missing);
         }
         let changed = *self.recipients.borrow() != recipients;
+        let selected_index = selected
+            .as_ref()
+            .and_then(|s| recipients.iter().position(|r| r.same_instance(s)))
+            .map_or(0, |i| i + 1) as u32;
         self.recipients.replace(recipients);
-        if changed {
+        if changed || self.view.recipients.selected() != selected_index {
             let recipients = self.recipients.borrow();
             let mut labels = vec!["Choose a Herdr agent".to_owned()];
             labels.extend(recipients.iter().map(|r| {
@@ -833,6 +842,9 @@ impl AgentVoiceController {
         }
     }
     pub fn close(&self) {
+        if let Some((connection, registration)) = self.cli.borrow_mut().take() {
+            let _ = connection.unregister_object(registration);
+        }
         self.closed.cancel();
         self.stop_voice();
         self.route

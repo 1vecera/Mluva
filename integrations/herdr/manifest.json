@@ -1,8 +1,8 @@
 {
   "upstream": "https://github.com/herdrdev/herdr",
   "base": "143bf5fd4781d164260c63fe28e7dc08054ad32f",
-  "patch_commit": "412e4ee1d332fd4e52472f90477e160a67eb06d8",
-  "patch_sha256": "e30196d1fd613e99bcd8b68ac7ca077317b83f7373114ffe31c44bd08781b6ef",
+  "patch_commit": "4fc933fcf8891d7ec44dc5a33ab62013eb09f68f",
+  "patch_sha256": "cb13dc31478395a1fa469f06f147888aac90d0f0bbc101f3c088f33e47d03cf1",
   "methods": [
     "agent.guarded_list",
     "agent.prompt_guarded",

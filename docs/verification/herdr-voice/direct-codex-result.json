@@ -1,0 +1,24 @@
+{
+  "receipts": [
+    {
+      "agent": "codex",
+      "receipt": "accepted",
+      "native_inference_requests_for_message": 1,
+      "duplicate_reconciled": true,
+      "submit_to_receipt_ms": 403
+    },
+    {
+      "agent": "claude",
+      "receipt": "accepted",
+      "native_inference_requests_for_message": 1,
+      "duplicate_reconciled": true,
+      "submit_to_receipt_ms": 303
+    }
+  ],
+  "rename_rejected_recipient_running": true,
+  "codex_launch": "direct shell command",
+  "manual_draft_excluded": true,
+  "stale_epoch_rejected": true,
+  "codex_identity": "Actual session reported through Herdr hook by fixture; automatic trust approval remains manual",
+  "inference": "loopback synthetic; network namespace has no external connection"
+}
