@@ -287,7 +287,14 @@ pub(crate) fn terminal_identifier(identifier: &str) -> bool {
     );
     matches!(
         name.as_str(),
-        "alacritty" | "foot" | "footclient" | "ghostty" | "kitty" | "wezterm" | "wezterm-gui"
+        "alacritty"
+            | "foot"
+            | "footclient"
+            | "ghostty"
+            | "herdr-gpui"
+            | "kitty"
+            | "wezterm"
+            | "wezterm-gui"
     )
 }
 
