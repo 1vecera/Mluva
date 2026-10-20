@@ -2,6 +2,9 @@
 use super::*;
 use std::collections::{BTreeSet, VecDeque};
 
+// The continuous Settings page exposes every section in the same private tree.
+const MAX_ACCESSIBLE_NODES: usize = 1024;
+
 fn children(
     bus: &gio::DBusConnection,
     name: &str,
@@ -39,7 +42,10 @@ pub fn named_control(label: &str) -> Result<Value> {
     let mut visited = 0;
     while let Some((name, path)) = queue.pop_front() {
         visited += 1;
-        require(visited < 400, "accessible tree exceeds discovery limit")?;
+        require(
+            visited <= MAX_ACCESSIBLE_NODES,
+            "accessible tree exceeds discovery limit",
+        )?;
         let reply = call(
             &bus,
             &name,
@@ -86,7 +92,7 @@ pub fn nodes() -> Result<Value> {
             continue;
         }
         require(
-            nodes.len() < 400,
+            nodes.len() < MAX_ACCESSIBLE_NODES,
             "accessible tree exceeds the bounded discovery limit",
         )?;
         let interfaces = call(
