@@ -36,10 +36,16 @@ impl ApplicationDesktop {
         let recording = weak.clone();
         let rewrite = weak.clone();
         let errors = weak.clone();
+        let privacy = weak.clone();
         let service = GlobalShortcutService::new(
             self.runtime.clone(),
             &self.services.config().global_recording_key,
             ShortcutCallbacks {
+                persist_bindings: Rc::new(move || {
+                    privacy
+                        .upgrade()
+                        .is_some_and(|o| !o.services.config().incognito_mode)
+                }),
                 agent: (self.agent_voice.settings().enabled
                     && self
                         .agent_voice

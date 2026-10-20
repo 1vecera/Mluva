@@ -56,7 +56,17 @@ hl.unbind("F9")
 o.bind("F9", "Mluva start/stop", os.getenv("HOME") .. "/.local/bin/mluva-shell global-record")
 ```
 
-When using compositor bindings, launch Mluva with `MLUVA_DISABLE_GLOBAL_SHORTCUT=1` to avoid a second portal binding for the same keys. The keyboard action addresses the running application without opening its window; keep Mluva running in the background. The installer preserves custom Hyprland bindings, so an older `mluva-shell record` binding needs this one-time change.
+The manual binding above uses the fixed key written in your Lua file. Launch with `MLUVA_DISABLE_GLOBAL_SHORTCUT=1` only for that manual setup; it disables all portal actions, including agent keys.
+
+For keys managed from Settings → Capture on Lua-based Hyprland, use the opt-in portal bridge instead. Hyprland registers portal actions but requires compositor bindings to trigger them. Replace existing manual Mluva recording/cancel/latest bindings with this loader in `~/.config/hypr/bindings.lua`, leaving other shortcuts intact:
+
+```lua
+local mluva_keys = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/mluva/hyprland-shortcuts.lua"
+local file = io.open(mluva_keys, "r")
+if file then file:close(); dofile(mluva_keys) end
+```
+
+Create that file initially with the single line `-- Mluva managed portal bindings v1`. Remove `MLUVA_DISABLE_GLOBAL_SHORTCUT` from the app's launch environment, then reload the configuration and restart Mluva. Mluva generates bindings for the normal key, cancellation, latest conversation and enabled agent keys, verifies them against Hyprland and updates them automatically when Settings changes. The generated file survives a configuration reload and login; Incognito changes apply only in memory. Binding handles remove only Mluva's own entries. A key already assigned to another application is rejected; choose a free key in Settings. The bridge does not change unrelated desktop configuration or synthesize input. Other desktops continue using portal approval.
 
 `mluva-shell watch` emits only capture phase and elapsed seconds. The plugin opts into `watch --overlay`, which carries audio level, up to 4,096 characters of volatile text, its character offset, and recording appearance settings. The offset lets the widget keep the same wrapping as older words leave the bounded preview, including text containing emoji. Saved instructions, credentials, device names, and target application names are excluded. The production plugin does not log or persist this stream; do not redirect it into persistent logs.
 
