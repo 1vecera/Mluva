@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-20",
+  "native_gate": {
+    "passed": 165,
+    "failed": 0,
+    "ignored": 68
+  },
+  "application": {
+    "captures": 12,
+    "recognized": 10,
+    "session_wheel": true,
+    "wheel_keyboard_order_reorder_loss": true,
+    "alternate_transcript_no_delivery": true,
+    "guarded_submissions": 4,
+    "cancelled_or_disarmed_captures": 8,
+    "edited_draft_send": true,
+    "editing_rearmed_draft_cancels": true,
+    "settings_opt_in_persisted": true,
+    "receipt_reconciliation": true,
+    "recognition_immutable": true,
+    "incognito_not_saved": true,
+    "clipboard_unchanged": true,
+    "selected_provider_unchanged": true
+  },
+  "end_to_end": {
+    "passed": true,
+    "pipeline": [
+      "private global shortcut activation",
+      "actual PCM capture",
+      "native Stop and send button",
+      "speech protocol peer",
+      "Mluva guarded submission",
+      "actual Herdr server",
+      "actual Codex",
+      "loopback Responses inference"
+    ],
+    "native_messages": 1,
+    "key_release_keeps_recording": true,
+    "first_f12_only_selects": true,
+    "second_f12_starts_recording": true,
+    "receipt": "accepted",
+    "hold_required": false,
+    "extra_send_confirmation": false,
+    "inference": "synthetic private loopback; no external provider"
+  },
+  "visual_review": {
+    "disposition": "ship",
+    "pane_caption_contrast_unselected": 8.35,
+    "pane_caption_contrast_selected": 7.55
+  },
+  "scope": "Synthetic isolated X11, private portal, PCM and loopback providers; no physical microphone, host input or live Wayland acceptance."
+}

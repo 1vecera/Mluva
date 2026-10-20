@@ -17,9 +17,12 @@ use std::{
 use tokio_util::sync::CancellationToken;
 
 mod cli;
+mod wheel;
 
 pub struct AgentVoiceCallbacks {
     pub toggle: Rc<dyn Fn()>,
+    pub transcript: Rc<dyn Fn()>,
+    pub select: Rc<dyn Fn()>,
     pub release: Rc<dyn Fn()>,
     pub cancel: Rc<dyn Fn()>,
     pub interrupt: Rc<dyn Fn()>,
@@ -34,6 +37,7 @@ struct SpeechJob {
 }
 pub struct AgentVoiceController {
     pub view: AgentVoiceView,
+    pub wheel: crate::agent_session_wheel::SessionWheel,
     pub route: RefCell<VoiceRoute>,
     settings: RefCell<VoiceSettings>,
     services: Rc<ApplicationServices>,
@@ -87,6 +91,7 @@ impl AgentVoiceController {
         }
         let owner = Rc::new(Self {
             view,
+            wheel: crate::agent_session_wheel::SessionWheel::new(),
             route: RefCell::new(VoiceRoute::default()),
             settings: RefCell::new(settings),
             services,
@@ -112,6 +117,7 @@ impl AgentVoiceController {
             approved_key: RefCell::new(None),
         });
         owner.bind();
+        owner.bind_wheel();
         owner.render();
         owner
     }
@@ -395,12 +401,14 @@ impl AgentVoiceController {
         }
         let recipient = self.selected().ok_or("Choose an available Herdr agent.")?;
         let id = self.route.borrow_mut().begin(recipient, now())?;
+        self.wheel.window.set_visible(false);
         self.view.reply.set_label("");
         self.spoken_attempt.borrow_mut().take();
         self.render();
         Ok(id)
     }
     pub fn leave_for_capture(&self) {
+        self.wheel.window.set_visible(false);
         self.disarm(DraftReason::Interrupted);
         if self
             .route
@@ -485,6 +493,7 @@ impl AgentVoiceController {
         (self.callbacks.release)();
     }
     pub fn interrupt(&self) {
+        self.wheel.window.set_visible(false);
         self.disarm(DraftReason::Interrupted);
         self.stop_voice();
         (self.callbacks.interrupt)();
@@ -492,7 +501,7 @@ impl AgentVoiceController {
     pub fn shortcut_binding(&self, hold: Option<&str>, draft: Option<&str>) {
         self.approved_key.replace(hold.map(str::to_owned));
         self.view.shortcut_status.set_label(&match (hold, draft) {
-            (Some(hold), Some(draft)) => format!("{hold} starts/stops agent dictation · {draft} keeps a draft"),
+            (Some(hold), Some(draft)) => format!("{hold} chooses a session; press again to record · {draft} keeps a draft"),
             _ => "Global shortcuts are not approved. Use Dictate to agent while checking desktop approval.".into(),
         });
     }
@@ -573,9 +582,8 @@ impl AgentVoiceController {
         });
     }
     fn update_recipients(self: &Rc<Self>, mut recipients: Vec<Recipient>) {
-        recipients.sort_by(|a, b| {
-            (&a.name, &a.socket, &a.pane_id).cmp(&(&b.name, &b.socket, &b.pane_id))
-        });
+        // Herdr already enumerates workspace, tab and layout-pane order.
+        // Selection is the guarded identity, never this display position.
         let previous = self.selected();
         self.route.borrow_mut().observe(&recipients);
         let selected = self.settings.borrow().selected.clone();
@@ -701,6 +709,7 @@ impl AgentVoiceController {
         });
     }
     fn render(&self) {
+        self.render_wheel();
         let enabled = self.settings.borrow().enabled;
         self.view.widget.set_visible(enabled);
         let attempt = self.route.borrow().attempt.clone();
@@ -850,6 +859,7 @@ impl AgentVoiceController {
         }
     }
     pub fn close(&self) {
+        self.wheel.window.set_visible(false);
         if let Some(timer) = self.settings_timer.borrow_mut().take() {
             timer.remove();
         }

@@ -312,6 +312,21 @@ impl ApplicationDesktop {
         }
         self.capture.toggle(origin);
     }
+    pub(super) fn agent_shortcut(self: &Rc<Self>) {
+        if self
+            .current
+            .borrow()
+            .as_ref()
+            .is_some_and(|c| c.agent_attempt.is_some())
+        {
+            self.agent_toggle();
+        } else if self.agent_voice.wheel.window.is_visible() {
+            self.agent_voice.wheel.window.set_visible(false);
+            self.agent_press();
+        } else if !self.closed.get() && self.capture.phase().is_none() {
+            self.agent_voice.open_wheel(&self.shell.window);
+        }
+    }
     pub(super) fn agent_toggle(self: &Rc<Self>) {
         let agent_capture = self
             .current
@@ -400,6 +415,7 @@ impl ApplicationDesktop {
             _ => None,
         };
         let automatic = matches!(origin, CaptureOrigin::ApprovedShortcut);
+        let transcript_only = matches!(origin, CaptureOrigin::Transcript);
         let agent_attempt = match &origin {
             CaptureOrigin::AgentVoice(id) => Some(id.clone()),
             _ => None,
@@ -442,7 +458,7 @@ impl ApplicationDesktop {
                 .as_ref()
                 .map(|id| format!("mluva-web:{id}"))
                 .or(application),
-            defer_delivery: continuation.is_some() || agent_voice,
+            defer_delivery: continuation.is_some() || agent_voice || transcript_only,
             preview_enabled: true,
         };
         let ready = self
@@ -460,6 +476,7 @@ impl ApplicationDesktop {
             target: target.clone(),
             continuation,
             agent_attempt,
+            transcript_only,
             session: session.clone(),
         }));
         Ok(CaptureLaunch {
@@ -589,6 +606,30 @@ impl ApplicationDesktop {
             return;
         }
         self.idle();
+        if context.as_ref().is_some_and(|c| c.transcript_only) {
+            let shown = if let Some(entry) = result.history_entry.clone() {
+                self.workspace().show_conversation(Some(entry), &[], false)
+            } else {
+                self.workspace()
+                    .show_transient(&result.transcription.text, &result.transcription.text)
+            };
+            self.shell.navigate("capture");
+            self.shell.present();
+            match shown {
+                Ok(()) => self.publish_terminal(
+                    "ready",
+                    "Transcript kept in Mluva. Nothing was sent or copied.",
+                ),
+                Err(error) => {
+                    self.workspace().notice.set_label(&error.to_string());
+                    self.publish_terminal(
+                        "error",
+                        "Could not open the transcript. Keep Mluva open and check the error.",
+                    );
+                }
+            }
+            return;
+        }
         {
             let message = if result.delivery.pasted {
                 "Inserted. Text also stays on the clipboard."
@@ -664,6 +705,9 @@ impl ApplicationDesktop {
     }
 
     pub(super) fn cancel(self: &Rc<Self>) -> bool {
+        if self.agent_voice.take_transcript() {
+            return true;
+        }
         if self.closed.get() {
             return false;
         }
@@ -850,6 +894,7 @@ impl ApplicationDesktop {
         }
     }
     pub fn shutdown(self: &Rc<Self>) -> glib::JoinHandle<()> {
+        self.agent_voice.wheel.window.set_visible(false);
         self.settings.flush();
         self.agent_voice.save_settings();
         let complete = self.shutdown_complete.clone();

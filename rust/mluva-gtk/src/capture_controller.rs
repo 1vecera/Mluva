@@ -25,6 +25,7 @@ use std::{
 #[derive(Clone, Debug)]
 pub enum CaptureOrigin {
     Manual,
+    Transcript,
     Phone(String),
     ApprovedShortcut,
     AgentVoice(String),
@@ -204,7 +205,7 @@ impl CaptureController {
         }
         let manual = matches!(
             origin,
-            CaptureOrigin::Manual | CaptureOrigin::Continuation(_)
+            CaptureOrigin::Manual | CaptureOrigin::Transcript | CaptureOrigin::Continuation(_)
         );
         let continuation = match &origin {
             CaptureOrigin::Continuation(identifier) => {
