@@ -248,7 +248,7 @@ impl ApplicationDesktop {
                 failed: bind!(link, |app, failure| app.capture_failed(failure)),
                 cancelled: bind!(link, |app, id| app.capture_cancelled(id)),
                 phase_changed: bind!(link, |app, phase| app.capture_phase(phase)),
-                preview_changed: bind!(link, |app| app.publish_capture()),
+                preview_changed: bind!(link, |app| app.publish_preview()),
             },
         );
         page.set_recording_action(bind!(link, |app| app.toggle_recording(CaptureOrigin::Manual)));
