@@ -144,6 +144,34 @@ fn terminal_capture_and_revalidation_match_actual_released_process_observations(
     compare(include_str!("fixtures/released-terminal-target.json"));
 }
 
+#[test]
+fn herdr_gpui_pastes_once_only_into_the_original_focused_terminal() {
+    let fixture: Value =
+        serde_json::from_str(include_str!("fixtures/released-terminal-target.json")).unwrap();
+    // The same compositor/process boundary as other terminals, including a
+    // focus switch before delivery. Herdr binds terminal paste to Ctrl+Shift+V.
+    for name in [
+        "process-foot",
+        "delivery-same-target",
+        "delivery-changed-address",
+        "delivery-changed-pid",
+    ] {
+        let case = fixture["cases"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|case| case["name"] == name)
+            .unwrap();
+        let case: Value = serde_json::from_str(
+            &serde_json::to_string(case)
+                .unwrap()
+                .replace("foot", "herdr-gpui"),
+        )
+        .unwrap();
+        assert_eq!(run(&case["spec"]), case["expected"], "{name}");
+    }
+}
+
 fn compare(fixture: &str) {
     let fixture: Value = serde_json::from_str(fixture).unwrap();
     let mut failures = vec![];
