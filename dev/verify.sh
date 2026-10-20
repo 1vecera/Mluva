@@ -12,7 +12,7 @@ usage() {
 Usage: dev/verify.sh doctor
        dev/verify.sh smoke <new tmp/evidence-dir> [--expect-working TEXT]
        dev/verify.sh session <new tmp/evidence-dir> -- <command> [args...]
-       MLUVA_VERIFY_PROFILE=release dev/verify.sh performance <new tmp/evidence-dir>
+       MLUVA_VERIFY_PROFILE=release dev/verify.sh performance <new tmp/evidence-dir> [--paced]
 
 Build first (outside the private desktop):
   export CARGO_TARGET_DIR="$PWD/tmp/native-build"
@@ -39,6 +39,13 @@ done
 for binary in mluva audio-fixture-peer mluva-audio-cleanup examples/mluva_verify; do
     [[ -x "$binaries/$binary" ]] || missing+=("$binaries/$binary")
 done
+if [[ "$mode" == performance ]]; then
+    command -v quickshell >/dev/null || missing+=("quickshell")
+    [[ -x "$binaries/mluva-shell" ]] || missing+=("$binaries/mluva-shell")
+    for module in Commons Ui; do
+        [[ -d "/usr/share/omarchy/shell/$module" ]] || missing+=("Omarchy $module")
+    done
+fi
 if [[ "$mode" == doctor ]] || (( ${#missing[@]} )); then
     printf '%s\n' "${missing[@]}" | jq -Rn --arg target "$target" \
         '[inputs | select(length > 0)] as $missing | {command:"doctor",ok:($missing|length==0),scope:"host prerequisites only; isolation checked inside session",target:$target,missing:$missing}'
@@ -53,7 +60,7 @@ shift
     exit 2
 }
 if [[ "$mode" == performance ]]; then
-    (( $# == 0 )) || { usage >&2; exit 2; }
+    (( $# == 0 )) || { [[ $# == 1 && "$1" == --paced ]] || { usage >&2; exit 2; }; }
 elif [[ "$mode" == smoke ]]; then
     (( $# == 0 )) || { [[ $# == 2 && "$1" == --expect-working ]] || { usage >&2; exit 2; }; }
 else

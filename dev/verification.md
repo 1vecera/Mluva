@@ -54,6 +54,25 @@ bash dev/verify.sh session "$PWD/tmp/verify-explore" -- bash -eu -c '
 
 The CLI emits JSON. Its commands cover `launch`, `discover`, `state`, `action`, `click`, `edit`, `assert`, and `screenshot`; use the runner's `--help` for the supported arguments. Assertion failures exit nonzero, so custom scripts should propagate failures. Keep scripts bounded and use the session's CLI instead of connecting to a host display, bus or application.
 
+## Measure production latency
+
+Build optimized binaries outside the private session. Quickshell and the installed Omarchy `Commons`/`Ui` modules are additional prerequisites:
+
+```sh
+CARGO_TARGET_DIR="$PWD/tmp/native-build" cargo build --locked --release \
+  -p mluva-gtk --bin mluva --example mluva_verify \
+  -p mluva-audio --bin audio-fixture-peer --bin mluva-audio-cleanup \
+  -p mluva-shell --bin mluva-shell
+MLUVA_VERIFY_PROFILE=release bash dev/verify.sh performance "$PWD/tmp/latency-burst"
+MLUVA_VERIFY_PROFILE=release bash dev/verify.sh performance "$PWD/tmp/latency-paced" --paced
+```
+
+Each run launches the actual app twice: a fresh private profile, then the same profile after normal Quit. Both launches include a first recording and a repeated recording. The production recorder receives three seconds of deterministic PCM from a separate process; a loopback compatible speech peer supplies preview words. Default mode feeds the audio as a burst to isolate local overhead. `--paced` feeds 320 bytes every 10 ms, preserving the three-second batch-preview accumulation delay. Every recording is cancelled after preview, with empty History and erased recording files asserted.
+
+`session.*/performance.json` retains every sample. Startup measurements distinguish bus ownership, mapped X11 window and externally observed sensitive/showing Dictate control. Capture measurements distinguish saved PCM, preparing/recording status, provider response, widget visibility and the next Qt frame after visible words. The latter uses the production widget and bridge, not substitute UI. Observation adds polling, IPC and scheduling overhead; the usable-control endpoint includes bounded accessibility discovery. No host caches are dropped, so fresh-profile starts are not machine-boot/filesystem-cold measurements. These results establish neither physical microphone/Wayland timing nor live speech-provider latency.
+
+For comparisons, preserve baseline binaries in a separate directory containing `mluva`, `mluva-shell`, `mluva-audio-cleanup`, `audio-fixture-peer` and `examples/mluva_verify`, and select it with `MLUVA_VERIFY_BINARIES`. Use the same observer/fixture and resources for both sides; retain their hashes and source identities. Alternate baseline/candidate order across independent sessions, separate fresh/warm starts and first/repeated captures, retain warmups but exclude them from summaries, and finish compilation before collecting timings. The runner records binary hashes; its working-tree commit alone does not identify a preserved baseline.
+
 ## Feature map
 
 This map connects user reports to actual entry points and observable outcomes. Update the affected row when a control, shortcut or behavior changes. Listed access paths do not imply that every path is exercised by this smoke; physical shortcuts and live desktop permissions remain separate acceptance.

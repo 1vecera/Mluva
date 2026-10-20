@@ -495,7 +495,16 @@ fn run(args: &[String], root: &Path) -> Result<Value> {
     require(args.len() >= 3, "run requires mode, checkout, binaries")?;
     let mode = &args[0];
     if mode == "performance" {
-        return performance::run(root, Path::new(&args[1]), Path::new(&args[2]));
+        require(
+            args.len() == 3 || (args.len() == 4 && args[3] == "--paced"),
+            "performance accepts only --paced",
+        )?;
+        return performance::run(
+            root,
+            Path::new(&args[1]),
+            Path::new(&args[2]),
+            args.len() == 4,
+        );
     }
     let mut peer = fixture::prepare(root, Path::new(&args[1]), Path::new(&args[2]))?;
     let outcome = (|| {
