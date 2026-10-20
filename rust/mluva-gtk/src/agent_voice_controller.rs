@@ -19,7 +19,7 @@ use tokio_util::sync::CancellationToken;
 mod cli;
 
 pub struct AgentVoiceCallbacks {
-    pub press: Rc<dyn Fn()>,
+    pub toggle: Rc<dyn Fn()>,
     pub release: Rc<dyn Fn()>,
     pub cancel: Rc<dyn Fn()>,
     pub interrupt: Rc<dyn Fn()>,
@@ -55,6 +55,8 @@ pub struct AgentVoiceController {
     speech: RefCell<Option<SpeechJob>>,
     closed: CancellationToken,
     cli: RefCell<Option<(gio::DBusConnection, gio::RegistrationId)>>,
+    settings_timer: RefCell<Option<glib::SourceId>>,
+    pub(crate) approved_key: RefCell<Option<String>>,
 }
 fn now() -> u64 {
     SystemTime::now()
@@ -106,6 +108,8 @@ impl AgentVoiceController {
             speech: RefCell::new(None),
             closed: CancellationToken::new(),
             cli: RefCell::new(None),
+            settings_timer: RefCell::new(None),
+            approved_key: RefCell::new(None),
         });
         owner.bind();
         owner.render();
@@ -137,12 +141,30 @@ impl AgentVoiceController {
                 owner.refresh();
             }
         });
-        let weak = Rc::downgrade(self);
-        self.view.save.connect_clicked(move |_| {
-            if let Some(owner) = weak.upgrade() {
-                owner.save_settings();
-            }
-        });
+        for control in [&self.view.enabled, &self.view.spoken] {
+            let weak = Rc::downgrade(self);
+            control.connect_toggled(move |_| {
+                if let Some(owner) = weak.upgrade().filter(|o| !o.syncing.get()) {
+                    owner.save_settings();
+                }
+            });
+        }
+        for control in [&self.view.hold_key, &self.view.draft_key] {
+            let weak = Rc::downgrade(self);
+            control.connect_selected_notify(move |_| {
+                if let Some(owner) = weak.upgrade().filter(|o| !o.syncing.get()) {
+                    owner.save_settings();
+                }
+            });
+        }
+        for entry in [&self.view.socket, &self.view.voice_id] {
+            let weak = Rc::downgrade(self);
+            entry.connect_changed(move |_| {
+                if let Some(owner) = weak.upgrade().filter(|o| !o.syncing.get()) {
+                    owner.schedule_settings();
+                }
+            });
+        }
         let weak = Rc::downgrade(self);
         self.view.keep.connect_clicked(move |_| {
             if let Some(owner) = weak.upgrade() {
@@ -167,72 +189,10 @@ impl AgentVoiceController {
                 (owner.callbacks.copy)(&owner.draft_text());
             }
         });
-        let press = gtk::GestureClick::new();
-        press.set_button(1);
-        press.set_propagation_phase(gtk::PropagationPhase::Capture);
         let weak = Rc::downgrade(self);
-        press.connect_pressed(move |gesture, _, _, _| {
-            gesture.set_state(gtk::EventSequenceState::Claimed);
+        self.view.record.connect_clicked(move |_| {
             if let Some(owner) = weak.upgrade() {
-                owner.view.hold.add_css_class("agent-ui-held");
-                (owner.callbacks.press)();
-            }
-        });
-        let weak = Rc::downgrade(self);
-        press.connect_released(move |_, _, _, _| {
-            if let Some(owner) = weak.upgrade() {
-                owner.view.hold.remove_css_class("agent-ui-held");
-                (owner.callbacks.release)();
-            }
-        });
-        let weak = Rc::downgrade(self);
-        press.connect_cancel(move |_, _| {
-            if let Some(owner) = weak.upgrade() {
-                owner.view.hold.remove_css_class("agent-ui-held");
-                owner.interrupt();
-            }
-        });
-        self.view.hold.add_controller(press);
-        let keyboard = gtk::EventControllerKey::new();
-        let held = Rc::new(Cell::new(false));
-        let pressed = held.clone();
-        let focused_hold = held.clone();
-        let weak = Rc::downgrade(self);
-        keyboard.connect_key_pressed(move |_, key, _, _| {
-            if key == gtk::gdk::Key::space {
-                if !pressed.replace(true)
-                    && let Some(owner) = weak.upgrade()
-                {
-                    owner.view.hold.add_css_class("agent-ui-held");
-                    (owner.callbacks.press)();
-                }
-                glib::Propagation::Stop
-            } else {
-                glib::Propagation::Proceed
-            }
-        });
-        let weak = Rc::downgrade(self);
-        keyboard.connect_key_released(move |_, key, _, _| {
-            if key == gtk::gdk::Key::space
-                && held.replace(false)
-                && let Some(owner) = weak.upgrade()
-            {
-                owner.view.hold.remove_css_class("agent-ui-held");
-                (owner.callbacks.release)();
-            }
-        });
-        self.view.hold.add_controller(keyboard);
-        let weak = Rc::downgrade(self);
-        self.view.hold.connect_has_focus_notify(move |button| {
-            if !button.has_focus()
-                && let Some(owner) = weak.upgrade()
-            {
-                focused_hold.set(false);
-                // Only the on-screen gesture loses focus; global holds do not require this widget.
-                if owner.view.hold.has_css_class("agent-ui-held") {
-                    owner.view.hold.remove_css_class("agent-ui-held");
-                    owner.interrupt();
-                }
+                (owner.callbacks.toggle)();
             }
         });
         let weak = Rc::downgrade(self);
@@ -286,7 +246,23 @@ impl AgentVoiceController {
             self.view.settings_status.set_label(error);
         }
     }
-    fn save_settings(self: &Rc<Self>) {
+    fn schedule_settings(self: &Rc<Self>) {
+        if let Some(timer) = self.settings_timer.borrow_mut().take() {
+            timer.remove();
+        }
+        let weak = Rc::downgrade(self);
+        self.settings_timer
+            .replace(Some(glib::timeout_add_local_once(
+                Duration::from_millis(350),
+                move || {
+                    if let Some(owner) = weak.upgrade() {
+                        owner.settings_timer.borrow_mut().take();
+                        owner.save_settings();
+                    }
+                },
+            )));
+    }
+    pub(crate) fn save_settings(self: &Rc<Self>) {
         let proposed = VoiceSettings {
             enabled: self.view.enabled.is_active(),
             socket: (!self.view.socket.text().trim().is_empty())
@@ -303,14 +279,31 @@ impl AgentVoiceController {
                 .set_label("Choose an ElevenLabs voice ID before enabling speech.");
             return;
         }
-        if let Err(error) = proposed.save(
-            &self.services.paths.config.join("agent-voice.json"),
-            &self.services.config().global_recording_key,
-        ) {
+        let validation = proposed.validate(&self.services.config().global_recording_key);
+        let persisted = validation.and_then(|()| {
+            if self.services.config().incognito_mode {
+                Ok(())
+            } else {
+                proposed.save(
+                    &self.services.paths.config.join("agent-voice.json"),
+                    &self.services.config().global_recording_key,
+                )
+            }
+        });
+        if let Err(error) = persisted {
             self.view.settings_status.set_label(error);
             return;
         }
-        self.interrupt();
+        let previous = self.settings();
+        let shortcuts_changed = previous.enabled != proposed.enabled
+            || previous.hold_key != proposed.hold_key
+            || previous.draft_key != proposed.draft_key;
+        if previous == proposed {
+            return;
+        }
+        if previous.enabled != proposed.enabled || previous.socket != proposed.socket {
+            self.interrupt();
+        }
         self.settings.replace(proposed);
         self.generation.set(self.generation.get() + 1);
         self.syncing.set(true);
@@ -319,8 +312,9 @@ impl AgentVoiceController {
             .set_active(!self.settings.borrow().spoken_updates);
         self.syncing.set(false);
         self.view.settings_status.set_label("");
-        self.view.options.popdown();
-        (self.callbacks.settings_changed)();
+        if shortcuts_changed {
+            (self.callbacks.settings_changed)();
+        }
         self.refresh();
         self.render();
     }
@@ -397,7 +391,7 @@ impl AgentVoiceController {
     }
     pub fn begin(&self) -> Result<String, &'static str> {
         if !self.settings.borrow().enabled {
-            return Err("Enable agent routing in Herdr voice settings first.");
+            return Err("Enable agent dictation in Settings → Capture first.");
         }
         let recipient = self.selected().ok_or("Choose an available Herdr agent.")?;
         let id = self.route.borrow_mut().begin(recipient, now())?;
@@ -496,20 +490,26 @@ impl AgentVoiceController {
         (self.callbacks.interrupt)();
     }
     pub fn shortcut_binding(&self, hold: Option<&str>, draft: Option<&str>) {
+        self.approved_key.replace(hold.map(str::to_owned));
         self.view.shortcut_status.set_label(&match (hold, draft) {
-            (Some(hold), Some(draft)) => format!("Hold {hold} to talk · {draft} keeps a draft"),
-            _ => "Global shortcuts are not approved. Use the on-screen Hold to talk button.".into(),
+            (Some(hold), Some(draft)) => format!("{hold} starts/stops agent dictation · {draft} keeps a draft"),
+            _ => "Global shortcuts are not approved. Use Dictate to agent while checking desktop approval.".into(),
         });
-        if hold.is_none() {
-            self.interrupt();
-        }
     }
     fn tick(self: &Rc<Self>) {
         let time = now();
         let previous = self.last_tick.replace(time);
-        if time < previous
-            || time.saturating_sub(previous) > 1_000
-            || self.route.borrow().lost_release(time)
+        // A busy GTK frame is not a release/cancel gesture. Only an expired
+        // sending countdown needs the strict timing guard; lock/sleep signals
+        // and the recording safety limit still stop an active capture.
+        let countdown = self
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .is_some_and(|a| matches!(a.phase, RoutePhase::Grace { .. }));
+        if (countdown && (time < previous || time.saturating_sub(previous) > 1_000))
+            || self.route.borrow().recording_timed_out(time)
         {
             self.interrupt();
         }
@@ -567,7 +567,7 @@ impl AgentVoiceController {
                 if owner.generation.get() != generation || owner.closed.is_cancelled() { return; }
                 let message = if !compatible && !recipients.is_empty() { "Herdr needs the guarded prompt integration. Sending is unavailable.".into() }
                     else if recipients.is_empty() { error.unwrap_or_else(|| "No available agents. Start a named Claude Code or Codex session in local Herdr, then refresh.".into()) }
-                    else { "Local Herdr · release to finish, then two seconds to cancel".into() };
+                    else { "Local Herdr · press to start and again to stop and send".into() };
                 owner.connection.replace(message); owner.update_recipients(recipients);
             }
         });
@@ -730,14 +730,22 @@ impl AgentVoiceController {
             .send_draft
             .set_sensitive(draft && enabled && self.selected().is_some_and(|r| r.can_receive()));
         self.view.feedback.set_visible(enabled);
-        self.view.hold.set_sensitive(
+        self.view.record.set_sensitive(
             enabled
                 && self.selected().is_some_and(|r| r.can_receive())
                 && !attempt.as_ref().is_some_and(|a| {
                     matches!(a.phase, RoutePhase::Finalizing | RoutePhase::Submitting)
                 }),
         );
-        self.view.recipients.set_sensitive(enabled);
+        let recording = attempt
+            .as_ref()
+            .is_some_and(|a| a.phase == RoutePhase::Recording);
+        self.view.record.set_label(if recording {
+            "Stop and send"
+        } else {
+            "Dictate to agent"
+        });
+        self.view.recipients.set_sensitive(enabled && !recording);
         self.view.refresh.set_sensitive(enabled);
         self.view
             .read
@@ -750,7 +758,7 @@ impl AgentVoiceController {
             .set_sensitive(enabled && !self.settings.borrow().voice_id.is_empty());
         let status = match attempt {
             Some(a) => match a.phase {
-                RoutePhase::Recording => format!("Talking to {} · release to finish", a.recipient.name),
+                RoutePhase::Recording => format!("Recording for {} · press again to stop and send", a.recipient.name),
                 RoutePhase::Finalizing => format!("Finishing your message to {}…", a.recipient.name),
                 RoutePhase::Grace {deadline_ms} => format!("Sending to {} in {:.1} s", a.recipient.name, deadline_ms.saturating_sub(now()) as f64/1000.0),
                 RoutePhase::Submitting => format!("Submitting to {}… Cancel can no longer recall this message.", a.recipient.name),
@@ -765,7 +773,7 @@ impl AgentVoiceController {
                     DraftReason::Interrupted => "Automatic sending stopped after an interruption. Your text stays here.".into(),
                 },
             },
-            None if !enabled => "Enable routing in Herdr voice settings.".into(),
+            None if !enabled => "Enable agent dictation in Settings → Capture.".into(),
             None => self.connection.borrow().clone(),
         };
         let status = if !pending {
@@ -842,6 +850,10 @@ impl AgentVoiceController {
         }
     }
     pub fn close(&self) {
+        if let Some(timer) = self.settings_timer.borrow_mut().take() {
+            timer.remove();
+        }
+
         if let Some((connection, registration)) = self.cli.borrow_mut().take() {
             let _ = connection.unregister_object(registration);
         }

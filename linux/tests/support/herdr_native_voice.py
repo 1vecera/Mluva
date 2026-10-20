@@ -16,11 +16,14 @@ import uuid
 root = pathlib.Path(os.environ["VOICE_PROOF_ROOT"])
 exe = os.environ["VOICE_PROOF_HERDR"]
 manual_codex = os.environ.get("VOICE_PROOF_CODEX_LAUNCH") == "--manual-codex"
-assert str(root) == "/tmp/herdr-voice", "run through run_herdr_voice_smoke.sh"
+mluva = os.environ.get("VOICE_PROOF_MLUVA")
+assert str(root) == "/tmp/herdr-voice", "run through a private native verification wrapper"
+if mluva:
+    subprocess.run([os.environ["MLUVA_VERIFY_CLI"], "doctor"], check=True, stdout=subprocess.DEVNULL)
 assert not any(
     pathlib.Path(p).exists() for p in ["/dev/snd", "/dev/input", "/dev/uinput"]
 )
-assert not any(
+assert mluva or not any(
     os.environ.get(k)
     for k in [
         "OPENAI_API_KEY",
@@ -226,7 +229,14 @@ env = dict(
     DISABLE_AUTOUPDATER="1",
     HERDR_SOCKET_PATH=str(root / "runtime/h.sock"),
     SHELL="/bin/bash",
+    HOME=str(root / "home"),
+    XDG_CONFIG_HOME=str(root / "config"),
+    XDG_DATA_HOME=str(root / "data"),
+    XDG_STATE_HOME=str(root / "state"),
+    XDG_RUNTIME_DIR=str(root / "runtime"),
 )
+for key in ["DISPLAY", "WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS", "AT_SPI_BUS_ADDRESS"]:
+    env.pop(key, None)
 for kind in ["codex", "claude"]:
     p = subprocess.run(
         [exe, "integration", "install", kind], env=env, capture_output=True, text=True
@@ -356,6 +366,119 @@ try:
         time.sleep(0.4)
         listing = rpc("agent.guarded_list")["result"]
         assert len(listing["agents"]) == 2
+    if mluva:
+        helper = os.environ["MLUVA_VERIFY_CLI"]
+        expected_text = os.environ["VOICE_PROOF_EXPECTED_TEXT"]
+        codex = next(e for e in listing["agents"] if e["agent"]["agent"] == "codex")
+
+        def app_cli(*arguments):
+            return json.loads(
+                subprocess.check_output([mluva, "herdr", *arguments], text=True)
+            )
+
+        def portal(action):
+            subprocess.run(
+                [
+                    "gdbus",
+                    "call",
+                    "--session",
+                    "--dest",
+                    "org.freedesktop.portal.Desktop",
+                    "--object-path",
+                    "/org/freedesktop/portal/desktop",
+                    "--method",
+                    "com.mluva.TestPortal.Drive",
+                    json.dumps(json.dumps(action)),
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+            )
+
+        assert app_cli(
+            "select", codex["agent"]["pane_id"], "--socket", env["HERDR_SOCKET_PATH"]
+        )["connected"]
+        for _ in range(100):
+            if app_cli("status")["agent_shortcut"]["ready"]:
+                break
+            time.sleep(0.1)
+        else:
+            raise AssertionError("Private global shortcut was not approved")
+        approved = app_cli("status")
+        assert approved["shortcuts"]["recording_trigger"] == "F9"
+        assert approved["shortcuts"]["shortcut_service_available"]
+        portal({"op": "Activated", "id": "agent-hold"})
+        for _ in range(100):
+            if pathlib.Path(
+                os.environ["OFFSCREEN_SESSION_ROOT"], "tools/raw.ready.json"
+            ).exists():
+                break
+            time.sleep(0.1)
+        else:
+            raise AssertionError("Global shortcut did not start actual capture")
+        portal({"op": "Deactivated", "id": "agent-hold"})
+        assert app_cli("status")["delivery"] == "recording", (
+            "Releasing the key stopped toggle recording"
+        )
+        subprocess.run([helper, "click", "Stop and send"], check=True)
+        for _ in range(150):
+            state = app_cli("status")
+            if state["delivery"] == "sent":
+                break
+            assert state["delivery"] not in ["draft", "unconfirmed"], state
+            time.sleep(0.1)
+        else:
+            raise AssertionError(
+                "Native Mluva did not receive a guarded delivery receipt"
+            )
+        # The actual Codex must consume the speech result through its model API.
+        for _ in range(100):
+            routed = [
+                r
+                for r in requests
+                if any(
+                    m.get("role") == "user"
+                    and any(
+                        isinstance(p, dict) and p.get("text") == expected_text
+                        for p in m.get("content", [])
+                    )
+                    for m in r["body"].get("input", [])
+                    if isinstance(m, dict)
+                )
+            ]
+            if routed:
+                break
+            time.sleep(0.1)
+        assert len(routed) == 1, (
+            "Expected one actual Codex inference request",
+            len(routed),
+        )
+        subprocess.run([helper, "assert", "raw", expected_text], check=True)
+        subprocess.run([helper, "assert", "count", "1"], check=True)
+        subprocess.run([helper, "screenshot", "agent-end-to-end"], check=True)
+        result = {
+            "passed": True,
+            "pipeline": [
+                "private global shortcut activation",
+                "actual PCM capture",
+                "native Stop and send button",
+                "speech protocol peer",
+                "Mluva guarded submission",
+                "actual Herdr server",
+                "actual Codex",
+                "loopback Responses inference",
+            ],
+            "native_messages": len(routed),
+            "key_release_keeps_recording": True,
+            "receipt": "accepted",
+            "hold_required": False,
+            "extra_send_confirmation": False,
+            "inference": "synthetic private loopback; no external provider",
+        }
+        (
+            pathlib.Path(os.environ["OFFSCREEN_SESSION_ROOT"]) / "agent-end-to-end.json"
+        ).write_text(json.dumps(result, indent=2))
+        print("MLUVA_END_TO_END", json.dumps(result), flush=True)
+        raise SystemExit(0)
     receipts = []
     for entry in listing["agents"]:
         kind = entry["agent"]["agent"]

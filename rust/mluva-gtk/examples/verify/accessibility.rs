@@ -1,6 +1,6 @@
 //! External AT-SPI client; only the verified Mluva process is traversed.
 use super::*;
-use std::collections::VecDeque;
+use std::collections::{BTreeSet, VecDeque};
 
 fn children(
     bus: &gio::DBusConnection,
@@ -39,7 +39,11 @@ pub fn nodes() -> Result<Value> {
         "Mluva is absent from the private accessibility registry",
     )?;
     let mut nodes = vec![];
+    let mut visited = BTreeSet::new();
     while let Some((name, path)) = queue.pop_front() {
+        if !visited.insert((name.clone(), path.clone())) {
+            continue;
+        }
         require(
             nodes.len() < 400,
             "accessible tree exceeds the bounded discovery limit",
@@ -155,4 +159,40 @@ pub fn edit(text: &str) -> Result<Value> {
         "AT-SPI editor refused SetTextContents",
     )?;
     Ok(json!({"transport":"AT-SPI EditableText.SetTextContents","text":text,"path":editor["path"]}))
+}
+
+/// Activate one visible, enabled native control belonging to this verified process.
+pub fn click(name: &str) -> Result<Value> {
+    let tree = nodes()?;
+    let matches: Vec<_> = tree
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|n| {
+            n["name"] == name
+                && n["role"] == "button"
+                && n["states"][0]
+                    .as_u64()
+                    .is_some_and(|s| s & (1 << 24) != 0 && s & (1 << 25) != 0)
+        })
+        .collect();
+    require(
+        matches.len() == 1,
+        "Expected one visible, enabled button with that exact name",
+    )?;
+    let target = matches[0];
+    let bus = connection(&std::env::var("AT_SPI_BUS_ADDRESS")?)?;
+    let result = call(
+        &bus,
+        target["bus"].as_str().unwrap(),
+        target["path"].as_str().unwrap(),
+        "org.a11y.atspi.Action",
+        "DoAction",
+        Some(&(0_i32,).to_variant()),
+    )?;
+    require(
+        result.child_get::<bool>(0),
+        "The native button refused activation",
+    )?;
+    Ok(json!({"button":name,"transport":"AT-SPI Action.DoAction","path":target["path"]}))
 }

@@ -17,7 +17,7 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 | Start with… | Next step |
 | --- | --- |
 | A rough idea | Dictate with F9. Words appear while you speak; final text is copied and delivered to the captured target when supported. |
-| A task for an agent | Choose a named Herdr session, hold the agent shortcut, then release. A two-second cancel window precedes guarded delivery. |
+| A task for an agent | Choose a named Herdr session. Press **Dictate to agent** or its shortcut to start, then press again to stop and send. A two-second cancel window precedes guarded delivery. |
 | A draft worth keeping | Edit the transcript and save with **Ctrl+S**. Copy and Save stay visible; original recognition remains separate. |
 | Work to return to | Search history, rename, continue a recording, merge or delete conversations, and export Markdown or JSON. |
 | Something on screen | Attach a region screenshot with F10 and annotate it in the optional Tensaku editor. Images stay local. |

@@ -1,4 +1,4 @@
-//! Compact Herdr controls in the existing editor, using its native typography and spacing.
+//! Agent dictation beside the normal recorder; configuration lives in Settings.
 use adw::prelude::*;
 use mluva_core::agent_voice::VoiceSettings;
 
@@ -6,7 +6,7 @@ pub struct AgentVoiceView {
     pub widget: gtk::Box,
     pub recipients: gtk::DropDown,
     pub refresh: gtk::Button,
-    pub hold: gtk::Button,
+    pub record: gtk::Button,
     pub status: gtk::Label,
     pub keep: gtk::Button,
     pub cancel: gtk::Button,
@@ -18,14 +18,15 @@ pub struct AgentVoiceView {
     pub read: gtk::Button,
     pub replay: gtk::Button,
     pub mute: gtk::ToggleButton,
-    pub options: gtk::MenuButton,
+    pub settings: adw::PreferencesGroup,
     pub enabled: gtk::CheckButton,
-    pub socket: gtk::Entry,
+    pub socket: adw::EntryRow,
     pub hold_key: gtk::DropDown,
     pub draft_key: gtk::DropDown,
+    pub hold_key_row: adw::ActionRow,
+    pub draft_key_row: adw::ActionRow,
     pub spoken: gtk::CheckButton,
-    pub voice_id: gtk::Entry,
-    pub save: gtk::Button,
+    pub voice_id: adw::EntryRow,
     pub settings_status: gtk::Label,
     pub shortcut_status: gtk::Label,
 }
@@ -41,42 +42,41 @@ fn label(text: &str) -> gtk::Label {
         .label(text)
         .xalign(0.0)
         .wrap(true)
-        .max_width_chars(40)
+        .wrap_mode(gtk::pango::WrapMode::WordChar)
+        .max_width_chars(48)
         .build()
 }
-fn setting(body: &gtk::Box, title: &str, child: &impl IsA<gtk::Widget>) {
-    let row = gtk::Box::new(gtk::Orientation::Horizontal, 12);
-    let title = label(title);
-    title.set_hexpand(true);
-    row.append(&title);
-    row.append(child);
-    body.append(&row);
+fn key_row(title: &str, subtitle: &str, key: &gtk::DropDown) -> adw::ActionRow {
+    key.set_valign(gtk::Align::Center);
+    let row = adw::ActionRow::builder()
+        .title(title)
+        .subtitle(subtitle)
+        .build();
+    row.add_suffix(key);
+    row
 }
 impl AgentVoiceView {
     pub fn new(settings: &VoiceSettings) -> Self {
         let widget = gtk::Box::new(gtk::Orientation::Vertical, 6);
-        widget.set_margin_start(16);
-        widget.set_margin_end(16);
-        widget.set_margin_top(8);
+        crate::document_layout::margins(&widget, 16);
+        widget.set_margin_top(4);
         widget.set_margin_bottom(8);
         let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
         let recipients = gtk::DropDown::from_strings(&["Choose a Herdr agent"]);
         recipients.set_enable_search(true);
         recipients.set_hexpand(true);
-        recipients.set_tooltip_text(Some(
-            "Local Herdr session · the destination stays fixed while you speak",
-        ));
-        // Keep long names and paths from imposing a minimum desktop width.
+        recipients.set_tooltip_text(Some("The selected agent receives your finished dictation"));
         let factory = gtk::SignalListItemFactory::new();
         factory.connect_setup(|_, item| {
-            let item = item.downcast_ref::<gtk::ListItem>().unwrap();
-            item.set_child(Some(
-                &gtk::Label::builder()
-                    .xalign(0.0)
-                    .ellipsize(gtk::pango::EllipsizeMode::End)
-                    .max_width_chars(28)
-                    .build(),
-            ));
+            item.downcast_ref::<gtk::ListItem>()
+                .unwrap()
+                .set_child(Some(
+                    &gtk::Label::builder()
+                        .xalign(0.0)
+                        .ellipsize(gtk::pango::EllipsizeMode::End)
+                        .max_width_chars(28)
+                        .build(),
+                ));
         });
         factory.connect_bind(|_, item| {
             let item = item.downcast_ref::<gtk::ListItem>().unwrap();
@@ -90,28 +90,24 @@ impl AgentVoiceView {
         });
         recipients.set_factory(Some(&factory));
         let refresh = icon("view-refresh-symbolic", "Refresh local Herdr agents");
-        let options = gtk::MenuButton::builder()
-            .icon_name("system-users-symbolic")
-            .tooltip_text("Talk to Herdr · routing and spoken status settings")
-            .has_frame(false)
-            .build();
-        let hold = gtk::Button::builder()
-            .label("Hold to talk")
-            .tooltip_text("Hold the mouse button or Space; release to finish speaking")
-            .build();
         row.append(&recipients);
         row.append(&refresh);
         widget.append(&row);
+        let record = gtk::Button::builder()
+            .label("Dictate to agent")
+            .tooltip_text("Press to start; press again to stop and send to the selected agent")
+            .valign(gtk::Align::Center)
+            .build();
+        record.add_css_class("suggested-action");
+        record.add_css_class("ml-record-toggle");
         let actions = gtk::Box::new(gtk::Orientation::Horizontal, 8);
-        let status = label("Choose Herdr voice settings to enable routing.");
+        let status = label("Choose an agent. Dictation sends automatically when you stop.");
         status.set_hexpand(true);
-        status.set_wrap_mode(gtk::pango::WrapMode::WordChar);
         status.set_width_chars(4);
         status.set_accessible_role(gtk::AccessibleRole::Status);
         status.add_css_class("caption");
         let keep = gtk::Button::with_label("Keep draft");
         let cancel = gtk::Button::with_label("Cancel");
-        actions.append(&hold);
         actions.append(&status);
         actions.append(&keep);
         actions.append(&cancel);
@@ -127,7 +123,6 @@ impl AgentVoiceView {
         read.add_css_class("flat");
         let reply = label("");
         reply.set_hexpand(true);
-        reply.set_wrap_mode(gtk::pango::WrapMode::WordChar);
         reply.set_width_chars(4);
         reply.set_selectable(true);
         reply.add_css_class("caption");
@@ -137,7 +132,7 @@ impl AgentVoiceView {
         );
         let mute = gtk::ToggleButton::builder()
             .icon_name("audio-volume-muted-symbolic")
-            .tooltip_text("Mute spoken status; text remains available")
+            .tooltip_text("Mute spoken status")
             .has_frame(false)
             .active(!settings.spoken_updates)
             .build();
@@ -147,21 +142,10 @@ impl AgentVoiceView {
         feedback.append(&mute);
         widget.append(&feedback);
 
-        let popover = gtk::Popover::new();
-        let body = gtk::Box::new(gtk::Orientation::Vertical, 12);
-        crate::document_layout::margins(&body, 16);
-        body.set_width_request(310);
-        let title = label("Talk to Herdr");
-        title.add_css_class("heading");
-        body.append(&title);
-        let enabled = gtk::CheckButton::with_label("Enable agent routing");
+        let preferences = adw::PreferencesGroup::builder().title("Agent routing").description("Changes save automatically. Press Dictate to agent to start, then press again to stop and send. A two-second countdown lets you cancel.").build();
+        let enabled = gtk::CheckButton::with_label("Enable agent dictation");
         enabled.set_active(settings.enabled);
-        body.append(&enabled);
-        let explanation = label(
-            "Hold to speak, release to finish. Your message sends after a two-second cancel window. Your selected speech provider stays unchanged.",
-        );
-        explanation.add_css_class("caption");
-        body.append(&explanation);
+        preferences.add(&enabled);
         let keys: Vec<_> = (1..=24).map(|n| format!("F{n}")).collect();
         let key_refs: Vec<_> = keys.iter().map(String::as_str).collect();
         let hold_key = gtk::DropDown::from_strings(&key_refs);
@@ -176,59 +160,44 @@ impl AgentVoiceView {
                 .position(|s| s == &settings.draft_key)
                 .unwrap_or(6) as u32,
         );
-        setting(&body, "Hold to talk", &hold_key);
-        setting(&body, "Keep draft", &draft_key);
-        let shortcut_status = label("The desktop must approve both shortcuts.");
+        let hold_key_row = key_row(
+            "Agent dictation key",
+            "Press once to start and again to stop and send",
+            &hold_key,
+        );
+        let draft_key_row = key_row(
+            "Keep agent draft",
+            "Stop agent dictation without sending",
+            &draft_key,
+        );
+        let shortcut_status = label("Waiting for desktop shortcut approval…");
         shortcut_status.add_css_class("caption");
-        body.append(&shortcut_status);
-        let socket = gtk::Entry::builder()
-            .placeholder_text("Automatic local Herdr discovery")
+        let socket = adw::EntryRow::builder()
+            .title("Herdr socket · blank for automatic discovery")
             .text(settings.socket.as_deref().unwrap_or(""))
-            .tooltip_text(
-                "Optional absolute local Unix socket path; remote servers are not enabled",
-            )
             .build();
-        body.append(&label("Herdr connection"));
-        body.append(&socket);
-        body.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
-        let spoken = gtk::CheckButton::with_label("Speak a brief status update");
+        preferences.add(&socket);
+        let spoken = gtk::CheckButton::with_label("Speak a brief agent status update");
         spoken.set_active(settings.spoken_updates);
-        body.append(&spoken);
-        let voice_id = gtk::Entry::builder()
-            .placeholder_text("ElevenLabs voice ID")
+        preferences.add(&spoken);
+        let voice_id = adw::EntryRow::builder()
+            .title("ElevenLabs voice ID · optional spoken status")
             .text(&settings.voice_id)
             .build();
-        body.append(&voice_id);
-        body.append(&gtk::LinkButton::with_label(
-            "https://elevenlabs.io/app/voice-library",
-            "Choose a voice in ElevenLabs",
-        ));
+        preferences.add(&voice_id);
         let privacy = label(
-            "Optional paid voice uses ElevenLabs v4 Turbo and your saved API key. Only the displayed sentence is sent for speech. No microphone audio or terminal history is used. Incognito keeps no Mluva history; your recipient may retain messages.",
+            "Spoken status uses the saved ElevenLabs key and may incur charges. Only the visible status sentence is sent for speech.",
         );
         privacy.add_css_class("caption");
-        body.append(&privacy);
+        preferences.add(&privacy);
         let settings_status = label("");
         settings_status.add_css_class("error");
-        body.append(&settings_status);
-        let save = gtk::Button::with_label("Save settings");
-        save.add_css_class("suggested-action");
-        body.append(&save);
-        let scroll = gtk::ScrolledWindow::builder()
-            .hscrollbar_policy(gtk::PolicyType::Never)
-            .vscrollbar_policy(gtk::PolicyType::Automatic)
-            .width_request(350)
-            .propagate_natural_height(true)
-            .max_content_height(580)
-            .child(&body)
-            .build();
-        popover.set_child(Some(&scroll));
-        options.set_popover(Some(&popover));
+        preferences.add(&settings_status);
         Self {
             widget,
             recipients,
             refresh,
-            hold,
+            record,
             status,
             keep,
             cancel,
@@ -240,14 +209,15 @@ impl AgentVoiceView {
             read,
             replay,
             mute,
-            options,
+            settings: preferences,
             enabled,
             socket,
             hold_key,
             draft_key,
+            hold_key_row,
+            draft_key_row,
             spoken,
             voice_id,
-            save,
             settings_status,
             shortcut_status,
         }

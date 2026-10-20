@@ -6,7 +6,12 @@ use crate::{
 use adw::prelude::*;
 use mluva_core::config::AppConfig;
 use serde_json::{Map, Value};
-use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    collections::BTreeMap,
+    rc::{Rc, Weak},
+    time::Duration,
+};
 
 enum Field {
     Switch(adw::SwitchRow),
@@ -35,7 +40,9 @@ pub struct WorkspaceSettings {
     pub widget: adw::PreferencesPage,
     pub appearance: Rc<AppearanceSettings>,
     pub status: gtk::Label,
-    pub apply_button: gtk::Button,
+    syncing: Cell<bool>,
+    pending: Cell<bool>,
+    timer: RefCell<Option<glib::SourceId>>,
     config: RefCell<AppConfig>,
     fields: BTreeMap<String, Field>,
     save: SaveSettings,
@@ -49,7 +56,16 @@ impl WorkspaceSettings {
             .build();
         let mut fields = BTreeMap::new();
         let document = serde_json::to_value(config).unwrap();
-        let appearance = AppearanceSettings::new(config, Rc::new(|| {}));
+        let target: Rc<RefCell<Weak<Self>>> = Rc::new(RefCell::new(Weak::new()));
+        let weak = target.clone();
+        let appearance = AppearanceSettings::new(
+            config,
+            Rc::new(move || {
+                if let Some(owner) = weak.borrow().upgrade().filter(|o| !o.syncing.get()) {
+                    owner.schedule();
+                }
+            }),
+        );
         widget.add(&appearance.widget);
         let group = adw::PreferencesGroup::builder().title("Appearance").build();
         Self::switch(
@@ -69,17 +85,6 @@ impl WorkspaceSettings {
         );
         widget.add(&group);
         let actions = adw::PreferencesGroup::new();
-        let row = adw::ActionRow::builder()
-            .title("Save settings")
-            .subtitle("Changes apply to the next request or recording.")
-            .build();
-        let apply_button = gtk::Button::builder()
-            .label("Apply")
-            .valign(gtk::Align::Center)
-            .build();
-        apply_button.add_css_class("suggested-action");
-        row.add_suffix(&apply_button);
-        actions.add(&row);
         let status = gtk::Label::builder().xalign(0.0).wrap(true).build();
         actions.add(&status);
         widget.add(&actions);
@@ -87,17 +92,35 @@ impl WorkspaceSettings {
             widget,
             appearance,
             status,
-            apply_button,
+            syncing: Cell::new(false),
+            pending: Cell::new(false),
+            timer: RefCell::new(None),
             config: RefCell::new(config.clone()),
             fields,
             save,
         });
-        let weak = Rc::downgrade(&owner);
-        owner.apply_button.connect_clicked(move |_| {
-            if let Some(owner) = weak.upgrade() {
-                owner.apply();
+        target.replace(Rc::downgrade(&owner));
+        for field in owner.fields.values() {
+            let weak = Rc::downgrade(&owner);
+            match field {
+                Field::Switch(row) => {
+                    row.connect_active_notify(move |_| {
+                        if let Some(owner) = weak.upgrade().filter(|o| !o.syncing.get()) {
+                            owner.pending.set(true);
+                            owner.apply();
+                        }
+                    });
+                }
+                Field::Choice(row, _) => {
+                    row.connect_selected_notify(move |_| {
+                        if let Some(owner) = weak.upgrade().filter(|o| !o.syncing.get()) {
+                            owner.pending.set(true);
+                            owner.apply();
+                        }
+                    });
+                }
             }
-        });
+        }
         owner
     }
     fn switch(
@@ -144,12 +167,17 @@ impl WorkspaceSettings {
         );
     }
     pub fn refresh_config(&self, config: &AppConfig) {
+        if self.pending.get() {
+            return;
+        }
+        self.syncing.set(true);
         self.config.replace(config.clone());
         self.appearance.refresh_config(config);
         let document = serde_json::to_value(config).unwrap();
         for (name, field) in &self.fields {
             field.write(&document[name]);
         }
+        self.syncing.set(false);
     }
     pub fn values(&self) -> Map<String, Value> {
         let mut changes: Map<_, _> = self
@@ -160,14 +188,40 @@ impl WorkspaceSettings {
         changes.extend(self.appearance.values());
         changes
     }
+    fn schedule(self: &Rc<Self>) {
+        self.pending.set(true);
+        if let Some(timer) = self.timer.borrow_mut().take() {
+            timer.remove();
+        }
+        let weak = Rc::downgrade(self);
+        self.timer.replace(Some(glib::timeout_add_local_once(
+            Duration::from_millis(300),
+            move || {
+                if let Some(owner) = weak.upgrade() {
+                    owner.timer.borrow_mut().take();
+                    owner.apply();
+                }
+            },
+        )));
+    }
     pub fn apply(&self) {
-        let changes = self.values();
+        if !self.pending.get() {
+            return;
+        }
+        let baseline = serde_json::to_value(&*self.config.borrow()).expect("serializable config");
+        let changes = self
+            .values()
+            .into_iter()
+            .filter(|(key, value)| baseline[key] != *value)
+            .collect();
         let proposed = proposed_config(&self.config.borrow(), &changes);
         match proposed {
             Err(error) => self.status.set_label(&error.to_string()),
-            Ok(_) => {
+            Ok(proposed) => {
                 self.status.set_label(if (self.save)(&changes) {
-                    "Settings saved"
+                    self.pending.set(false);
+                    self.config.replace(proposed);
+                    "Saved automatically"
                 } else {
                     "Could not apply settings. Stop active work, check the provider and try again."
                 });

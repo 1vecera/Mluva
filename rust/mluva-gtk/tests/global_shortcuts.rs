@@ -216,7 +216,7 @@ async fn compare(runtime: &Rc<DesktopRuntime>, fixture: &Value, peer: &mut Peer)
         );
         assert!(peer.0.try_wait().unwrap().is_none(), "portal peer exited");
     }
-    agent_holds(runtime, &bus).await;
+    agent_toggles(runtime, &bus).await;
     bus.close_future().await.unwrap();
     runtime.shutdown(async {}).await.unwrap();
     eprintln!(
@@ -225,7 +225,7 @@ async fn compare(runtime: &Rc<DesktopRuntime>, fixture: &Value, peer: &mut Peer)
     );
 }
 
-async fn agent_holds(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) {
+async fn agent_toggles(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) {
     control(bus, "Reset", Some("normal")).await;
     let events = Rc::new(RefCell::new(Vec::<String>::new()));
     let event = |name: &'static str| {
@@ -240,8 +240,7 @@ async fn agent_holds(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) {
             agent: Some(mluva_gtk::global_shortcuts::AgentShortcutCallbacks {
                 hold_key: "F8".into(),
                 draft_key: "F7".into(),
-                pressed: event("press"),
-                released: event("release"),
+                toggle_recording: event("toggle"),
                 keep_draft: event("draft"),
                 binding_changed: Rc::new(move |hold, draft| {
                     assert_eq!(hold, Some("F8"));
@@ -272,6 +271,8 @@ async fn agent_holds(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) {
         json!({"op":"Deactivated","id":"agent-hold","foreign":true}),
         json!({"op":"Deactivated","id":"agent-hold"}),
         json!({"op":"Deactivated","id":"agent-hold"}),
+        json!({"op":"Activated","id":"agent-hold"}),
+        json!({"op":"Deactivated","id":"agent-hold"}),
         json!({"op":"Activated","id":"agent-keep-draft"}),
         json!({"op":"Activated","id":"toggle-recording-f9"}),
     ] {
@@ -280,7 +281,7 @@ async fn agent_holds(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) {
     }
     assert_eq!(
         &*events.borrow(),
-        &["bound", "press", "release", "draft", "record"]
+        &["bound", "toggle", "toggle", "draft", "record"]
     );
     owner.shutdown().await;
     control(

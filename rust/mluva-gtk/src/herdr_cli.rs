@@ -12,8 +12,11 @@ const HELP: &str = "Usage: mluva herdr list [--socket PATH]
        mluva herdr status
        mluva herdr select NAME_OR_PANE [--socket PATH]
        mluva herdr clear
+       mluva herdr record
 
-Prints JSON. Mluva must be running; commands never open a window or send a prompt.
+Prints JSON. Mluva must be running; commands never open a window.
+Record toggles dictation and sends its final text to the selected agent.
+List, status, select and clear never send a prompt.
 Select switches the live recipient and enables routing. Clear removes the recipient.
 Use --socket when names or pane IDs occur on multiple local Herdr servers.
 Shortcuts and the speech provider are unchanged. Incognito selections are not saved.";
@@ -25,6 +28,7 @@ pub enum Request {
         socket: Option<String>,
     },
     Status {},
+    Record {},
     Select {
         target: String,
         socket: Option<String>,
@@ -53,6 +57,7 @@ impl Request {
 fn parse(args: &[String]) -> Result<Request, &'static str> {
     let request = match args {
         [command] if command == "status" => Request::Status {},
+        [command] if command == "record" => Request::Record {},
         [command] if command == "clear" => Request::Clear {},
         [command] if command == "list" => Request::List { socket: None },
         [command, flag, socket] if command == "list" && flag == "--socket" => Request::List {

@@ -77,15 +77,6 @@ fn state(path: &Path, value: &Value) {
     fs::write(&tmp, serde_json::to_vec(value).unwrap()).unwrap();
     fs::rename(tmp, path).unwrap();
 }
-fn gesture(owner: &ApplicationDesktop, signal: &str) {
-    let model = owner.agent_voice.view.hold.observe_controllers();
-    let gesture = (0..model.n_items())
-        .filter_map(|i| model.item(i).and_downcast::<gtk::GestureClick>())
-        .find(|g| g.propagation_phase() == gtk::PropagationPhase::Capture)
-        .unwrap();
-    gesture.emit_by_name::<()>(signal, &[&1i32, &0.0f64, &0.0f64]);
-    drain();
-}
 fn screenshot(owner: &ApplicationDesktop, root: &Path, name: &str, width: i32) {
     owner.shell.window.set_default_size(width, 760);
     settle(100);
@@ -112,7 +103,7 @@ fn screenshot(owner: &ApplicationDesktop, root: &Path, name: &str, width: i32) {
 }
 #[test]
 #[ignore = "requires private GTK, network, devices and fixture peers"]
-fn hold_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application() {
+fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application() {
     let root = PathBuf::from(std::env::var_os("OFFSCREEN_SESSION_ROOT").unwrap());
     assert!(PathBuf::from(std::env::var_os("HOME").unwrap()).starts_with(&root));
     assert_ne!(
@@ -250,52 +241,12 @@ fn hold_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application
             .success()
     );
     settle(100);
-    owner.agent_voice.view.options.popup();
-    owner.agent_voice.view.options.popover().unwrap().present();
-    until(|| {
-        owner
-            .agent_voice
-            .view
-            .options
-            .popover()
-            .unwrap()
-            .is_mapped()
-    });
-    settle(200);
-    // Native popovers are separate surfaces; capture their actual GTK render node.
-    let popover = owner.agent_voice.view.options.popover().unwrap();
-    let snapshot = gtk::Snapshot::new();
-    gtk::WidgetPaintable::new(Some(&popover)).snapshot(
-        &snapshot,
-        f64::from(popover.width()),
-        f64::from(popover.height()),
-    );
-    assert!(
-        (300..=1100).contains(&popover.width()),
-        "settings popover {}x{}",
-        popover.width(),
-        popover.height()
-    );
-    assert!(
-        (300..=900).contains(&popover.height()),
-        "settings popover {}x{}",
-        popover.width(),
-        popover.height()
-    );
-    let viewport =
-        gtk::graphene::Rect::new(0.0, 0.0, popover.width() as f32, popover.height() as f32);
-    popover
-        .native()
-        .unwrap()
-        .renderer()
-        .unwrap()
-        .render_texture(snapshot.to_node().unwrap(), Some(&viewport))
-        .save_to_png(root.join("agent-settings-laptop.png"))
-        .unwrap();
-    owner.agent_voice.view.options.popdown();
+    owner.settings.show();
+    assert!(owner.settings.view.set_visible_page_name("capture"));
+    screenshot(&owner, &root, "agent-settings-laptop.png", 1100);
+    owner.shell.navigate("capture");
     // Saved opt-in controls both the native panel and the private persisted settings.
     owner.agent_voice.view.enabled.set_active(false);
-    owner.agent_voice.view.save.emit_clicked();
     assert!(!owner.agent_voice.view.widget.is_visible());
     assert!(
         !VoiceSettings::load(&paths.config.join("agent-voice.json"))
@@ -303,25 +254,87 @@ fn hold_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application
             .enabled
     );
     owner.agent_voice.view.enabled.set_active(true);
-    owner.agent_voice.view.save.emit_clicked();
     assert!(owner.agent_voice.view.widget.is_visible());
     assert!(
         VoiceSettings::load(&paths.config.join("agent-voice.json"))
             .unwrap()
             .enabled
     );
+    // Settings save themselves; shortcuts share the normal Capture page.
+    owner.agent_voice.view.hold_key.set_selected(11);
+    assert_eq!(
+        VoiceSettings::load(&paths.config.join("agent-voice.json"))
+            .unwrap()
+            .hold_key,
+        "F12"
+    );
+    owner.settings.capture.recording_key.set_selected(11);
+    assert_eq!(
+        services.config().global_recording_key,
+        "F9",
+        "Duplicate shortcuts must be rejected"
+    );
+    owner.settings.workspace.appearance.opacity.set_value(71.0);
+    until(|| services.config().widget_opacity == 71);
+    assert_eq!(
+        AppConfig::load(&paths.config.join("config.json"))
+            .unwrap()
+            .widget_opacity,
+        71
+    );
+    owner.settings.capture.language.set_selected(2);
+    assert_eq!(services.config().language_code, "ces");
+    owner.settings.providers.speech.chunk_row.set_value(15.0);
+    until(|| services.config().transcription_chunk_seconds == 15);
+    assert_eq!(
+        services.config().language_code,
+        "ces",
+        "Autosaving a provider field must preserve changes made elsewhere"
+    );
+    assert_eq!(
+        AppConfig::load(&paths.config.join("config.json"))
+            .unwrap()
+            .transcription_chunk_seconds,
+        15
+    );
+    owner
+        .settings
+        .providers
+        .speech
+        .endpoint_entry
+        .set_text("invalid URL");
+    settle(500);
+    assert_eq!(
+        services.config().transcription_base_url,
+        speech.address.to_string() + "/v1"
+    );
+    owner
+        .settings
+        .providers
+        .speech
+        .endpoint_entry
+        .set_text(&services.config().transcription_base_url);
+    until(|| owner.capture.page.record_button.is_sensitive());
     let record = || {
         let _ = fs::remove_file(tools.join("raw.ready.json"));
-        gesture(&owner, "pressed");
+        owner.agent_voice.view.record.emit_clicked();
         until(|| owner.capture.phase() == Some(CapturePhase::Recording));
         settle(60);
     };
     let finish = || {
-        gesture(&owner, "released");
+        owner.agent_voice.view.record.emit_clicked();
         until(|| owner.capture.phase().is_none());
     };
     // Full capture uses the selected provider, no clipboard delivery, and one guarded send.
     record();
+    // Normal main-thread work must not be confused with losing a held shortcut.
+    thread::sleep(Duration::from_millis(1250));
+    drain();
+    assert_eq!(
+        owner.capture.phase(),
+        Some(CapturePhase::Recording),
+        "A brief UI stall interrupted agent dictation"
+    );
     screenshot(&owner, &root, "agent-recording-laptop.png", 1100);
     finish();
     assert!(matches!(

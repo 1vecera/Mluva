@@ -312,6 +312,24 @@ impl ApplicationDesktop {
         }
         self.capture.toggle(origin);
     }
+    pub(super) fn agent_toggle(self: &Rc<Self>) {
+        let agent_capture = self
+            .current
+            .borrow()
+            .as_ref()
+            .is_some_and(|c| c.agent_attempt.is_some());
+        if agent_capture {
+            match self.capture.phase() {
+                Some(CapturePhase::Recording) => self.agent_release(),
+                Some(CapturePhase::Preparing) => {
+                    self.cancel();
+                }
+                _ => {}
+            }
+        } else {
+            self.agent_press();
+        }
+    }
     pub(super) fn agent_press(self: &Rc<Self>) {
         if self.closed.get()
             || self.capture.phase().is_some()
@@ -818,6 +836,8 @@ impl ApplicationDesktop {
         }
     }
     pub fn shutdown(self: &Rc<Self>) -> glib::JoinHandle<()> {
+        self.settings.flush();
+        self.agent_voice.save_settings();
         let complete = self.shutdown_complete.clone();
         if self.closed.replace(true) {
             return glib::MainContext::default().spawn_local(async move {

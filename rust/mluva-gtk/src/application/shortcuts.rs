@@ -48,16 +48,14 @@ impl ApplicationDesktop {
                         .is_ok())
                 .then(|| {
                     let settings = self.agent_voice.settings();
-                    let press = weak.clone();
-                    let release = weak.clone();
+                    let toggle = weak.clone();
                     let keep = weak.clone();
                     let bindings = weak.clone();
                     crate::global_shortcuts::AgentShortcutCallbacks {
                         hold_key: settings.hold_key,
                         draft_key: settings.draft_key,
-                        pressed: Rc::new(move || current(&press, generation, |o| o.agent_press())),
-                        released: Rc::new(move || {
-                            current(&release, generation, |o| o.agent_release())
+                        toggle_recording: Rc::new(move || {
+                            current(&toggle, generation, |o| o.agent_toggle())
                         }),
                         keep_draft: Rc::new(move || {
                             current(&keep, generation, |o| o.agent_voice.keep_draft())
@@ -82,7 +80,6 @@ impl ApplicationDesktop {
                 }),
                 error: Rc::new(move |message| {
                     current(&errors, generation, |owner| {
-                        owner.agent_voice.interrupt();
                         owner
                             .page()
                             .set_status(&format!("Global shortcut unavailable: {message}"))
@@ -185,6 +182,7 @@ impl ApplicationDesktop {
         self.shortcut_generation
             .set(self.shortcut_generation.get() + 1);
         self.approved_recording.borrow_mut().take();
+        self.agent_voice.shortcut_binding(None, None);
         let service = self.shortcuts.borrow_mut().take();
         self.refresh_shortcuts();
         service.map(|service| service.shutdown())
