@@ -56,8 +56,7 @@ impl From<&str> for PortalError {
 pub struct AgentShortcutCallbacks {
     pub hold_key: String,
     pub draft_key: String,
-    pub pressed: Rc<dyn Fn()>,
-    pub released: Rc<dyn Fn()>,
+    pub toggle_recording: Rc<dyn Fn()>,
     pub keep_draft: Rc<dyn Fn()>,
     pub binding_changed: AgentBindingCallback,
 }

@@ -1,11 +1,11 @@
-//! Hold-to-talk routing is a one-shot delivery intent, independent of capture providers.
+//! Toggle recording with agent routing is a one-shot delivery intent, independent of capture providers.
 //! No pending send is serialized or replayed after restart.
 
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Read, path::Path};
 
 pub const CANCEL_WINDOW_MS: u64 = 2_000;
-pub const MAX_HOLD_MS: u64 = 5 * 60 * 1_000;
+pub const MAX_RECORDING_MS: u64 = 5 * 60 * 1_000;
 pub const MAX_MESSAGE_BYTES: usize = 32_768;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -118,7 +118,7 @@ impl VoiceSettings {
             }
         }
         if self.hold_key == self.draft_key {
-            return Err("Hold to talk and Keep draft need different shortcuts.");
+            return Err("Agent dictation and Keep draft need different shortcuts.");
         }
         if self
             .socket
@@ -344,9 +344,10 @@ impl VoiceRoute {
         }
     }
 
-    pub fn lost_release(&self, now_ms: u64) -> bool {
+    pub fn recording_timed_out(&self, now_ms: u64) -> bool {
         self.attempt.as_ref().is_some_and(|a| {
-            a.phase == RoutePhase::Recording && now_ms.saturating_sub(a.started_ms) >= MAX_HOLD_MS
+            a.phase == RoutePhase::Recording
+                && now_ms.saturating_sub(a.started_ms) >= MAX_RECORDING_MS
         })
     }
 

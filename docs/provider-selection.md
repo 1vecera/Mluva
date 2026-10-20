@@ -1,10 +1,10 @@
 # Choosing a speech provider
 
-Open **Settings → Providers**. Choose ElevenLabs, Local model or Custom. Apply saves the next recording's route; active capture keeps its frozen settings. Account login never changes this choice. Rewriting providers and model pickers have been removed.
+Open **Settings → Providers**. Choose ElevenLabs, Local model or Custom. Changes save automatically for the next recording; active capture keeps its frozen settings. Incomplete or invalid choices stay visible for correction. Account login never changes this choice. Rewriting providers and model pickers have been removed.
 
 | Provider | Setup |
 | --- | --- |
-| ElevenLabs | Scribe v2 live recognition with explicit batch fallback. Enter the key below its choice; Apply stores it in the desktop keyring. Existing environment-key aliases still work. Meeting uses ElevenLabs separately. |
+| ElevenLabs | Scribe v2 live recognition with explicit batch fallback. Enter the key below its choice; Leaving the key field or pressing Enter stores it in the desktop keyring. Existing environment-key aliases still work. Meeting uses ElevenLabs separately. |
 | Local model | Choose Whisper Tiny, Parakeet v3 or the default Qwen3-ASR 1.7B. Download verified weights into Mluva storage; CPU is supported, NVIDIA acceleration is optional. Audio stays on the PC with no cloud fallback. |
 | Custom | Enter a LiteLLM/OpenAI-compatible transcription endpoint and deployment ID. The existing `whisper` alias is a suggestion, not a verified model. |
 

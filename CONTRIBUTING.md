@@ -55,7 +55,7 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | Changed boundary | Private integration check |
 | --- | --- |
 | Native account login, shared text and web continuity | `make linux-account-test`; `cd hosted && npm test && npm run test:browser` |
-| Herdr recipient, hold-to-talk, cancellation and draft recovery | `make linux-agent-voice-test linux-shortcut-test`; [native agent integration](docs/verification/herdr-voice/README.md) |
+| Herdr recipient, toggle dictation, cancellation and draft recovery | `make linux-agent-voice-test linux-shortcut-test`; `bash linux/tests/run_agent_end_to_end.sh /absolute/patched/herdr` exercises the complete native journey; [native agent integration](docs/verification/herdr-voice/README.md) |
 | Phone microphone, native widget lifecycle and chunk delivery | `bash linux/tests/run_application_smoke.sh phone` |
 | Full recording/application and desktop actions | `make linux-application-test` |
 | Conversation editing, navigation and scrolling | `make linux-conversation-test` |

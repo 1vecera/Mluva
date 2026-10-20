@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "pipeline": [
+    "private global shortcut activation",
+    "actual PCM capture",
+    "native Stop and send button",
+    "speech protocol peer",
+    "Mluva guarded submission",
+    "actual Herdr server",
+    "actual Codex",
+    "loopback Responses inference"
+  ],
+  "native_messages": 1,
+  "key_release_keeps_recording": true,
+  "receipt": "accepted",
+  "hold_required": false,
+  "extra_send_confirmation": false,
+  "inference": "synthetic private loopback; no external provider"
+}

@@ -74,6 +74,25 @@ impl AgentVoiceController {
                     json!({"ok":true,"recipients":recipients.iter().map(summary).collect::<Vec<_>>(),"errors":errors}),
                 )
             }
+            Request::Record {} => {
+                let recording = self
+                    .route
+                    .borrow()
+                    .attempt
+                    .as_ref()
+                    .is_some_and(|a| a.phase == RoutePhase::Recording);
+                if !recording && (self.callbacks.capture_busy)() {
+                    return Err("Capture is not ready. Check Mluva's speech settings or finish active work.".into());
+                }
+                if !recording
+                    && (!self.settings().enabled
+                        || !self.selected().is_some_and(|r| r.can_receive()))
+                {
+                    return Err("Choose an available agent before recording.".into());
+                }
+                (self.callbacks.toggle)();
+                Ok(json!({"ok":true,"delivery":self.delivery_status()}))
+            }
             Request::Status {} => {
                 let settings = self.settings();
                 let socket = settings
@@ -97,8 +116,9 @@ impl AgentVoiceController {
                 Ok(json!({"ok":true,"running":true,"enabled":settings.enabled,
                     "selected":selected,
                     "connected":settings.enabled && live.is_some_and(Recipient::can_receive),
-                    "hold_key":settings.hold_key,"draft_key":settings.draft_key,
-                    "incognito":self.services.config().incognito_mode,"errors":errors}))
+                    "hold_key":settings.hold_key,"draft_key":settings.draft_key,"shortcuts":self.page.shortcut_state(),
+                    "agent_shortcut":{"preferred":settings.hold_key,"assigned":self.approved_key.borrow().clone(),"ready":self.approved_key.borrow().is_some()},
+                    "delivery":self.delivery_status(),"incognito":self.services.config().incognito_mode,"errors":errors}))
             }
             Request::Select { target, socket } => {
                 // The user's switch intent must cancel a pending send before discovery waits.
@@ -123,7 +143,7 @@ impl AgentVoiceController {
                     .ok_or("No matching available guarded recipient. Use 'mluva herdr list' to check the session.")?;
                 self.cli_select(Some((*selected).clone()))?;
                 self.connection
-                    .replace("Local Herdr · release to finish, then two seconds to cancel".into());
+                    .replace("Local Herdr · press to start and again to stop and send".into());
                 self.update_recipients(recipients);
                 Ok(
                     json!({"ok":true,"connected":true,"selected":self.settings().selected.as_ref().map(summary),
@@ -139,6 +159,21 @@ impl AgentVoiceController {
                 )
             }
         }
+    }
+    fn delivery_status(&self) -> &'static str {
+        self.route
+            .borrow()
+            .attempt
+            .as_ref()
+            .map_or("idle", |a| match a.phase {
+                RoutePhase::Recording => "recording",
+                RoutePhase::Finalizing => "transcribing",
+                RoutePhase::Grace { .. } => "countdown",
+                RoutePhase::Submitting => "sending",
+                RoutePhase::Sent => "sent",
+                RoutePhase::Unconfirmed => "unconfirmed",
+                RoutePhase::Draft(_) => "draft",
+            })
     }
     fn cli_select(self: &Rc<Self>, selected: Option<Recipient>) -> Result<(), String> {
         if self.closed.is_cancelled() {

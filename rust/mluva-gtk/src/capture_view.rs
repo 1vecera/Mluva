@@ -23,7 +23,7 @@ pub struct CaptureViewState {
     pub meeting_busy: bool,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, serde::Serialize)]
 pub struct CaptureShortcutState {
     pub recording_trigger: Option<String>,
     pub latest_trigger: Option<String>,
@@ -211,6 +211,10 @@ impl CapturePage {
         self.workspace.set_config(config)?;
         self.refresh_action_hint();
         Ok(())
+    }
+
+    pub(crate) fn shortcut_state(&self) -> CaptureShortcutState {
+        self.shortcuts.borrow().clone()
     }
 
     pub fn set_shortcuts(&self, state: CaptureShortcutState) {

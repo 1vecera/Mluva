@@ -207,7 +207,7 @@ fn action(name: &str) -> Result<Value> {
         json!({"action":name,"transport":"production org.gtk.Actions","owner":owner,"pid":pid,"start":start,"process_exited":name == "quit"}),
     )
 }
-fn launch() -> Result<Value> {
+fn launch(global_shortcuts: bool) -> Result<Value> {
     let bus = session_bus()?;
     require(
         !call(
@@ -236,8 +236,14 @@ fn launch() -> Result<Value> {
         .create(true)
         .append(true)
         .open(root.join("app.log"))?;
-    let mut child = Command::new(root.join("bundle/bin/mluva"))
-        .env("MLUVA_DISABLE_GLOBAL_SHORTCUT", "1")
+    let mut command = Command::new(root.join("bundle/bin/mluva"));
+    if global_shortcuts {
+        bus_pid(&bus, "org.freedesktop.portal.Desktop")?;
+        command.env_remove("MLUVA_DISABLE_GLOBAL_SHORTCUT");
+    } else {
+        command.env("MLUVA_DISABLE_GLOBAL_SHORTCUT", "1");
+    }
+    let mut child = command
         .env("GSETTINGS_BACKEND", "memory")
         .env(
             "PATH",
@@ -380,12 +386,14 @@ fn dispatch(args: &[String]) -> Result<Value> {
         ["doctor"] => { let (owner,pid) = app_owner()?; Ok(json!({"owner":owner,"pid":pid,"session":isolation::check()?,"actions":actions()?})) }
         ["discover"] => Ok(json!({"actions":actions()?,"nodes":accessibility::nodes()?})),
         ["state"] => state(),
-        ["launch"] => launch(),
+        ["launch"] => launch(false),
+        ["launch", "--global-shortcuts"] => launch(true),
+        ["click", name] => accessibility::click(name),
         ["action", name] => action(name),
         ["edit", text] => accessibility::edit(text),
         ["assert", field, expected] => assertion(field, expected),
         ["screenshot", name] => screenshot(name),
-        _ => Err("usage: doctor|discover|state|launch|action NAME|edit TEXT|assert FIELD EXPECTED|screenshot NAME".into())
+        _ => Err("usage: doctor|discover|state|launch [--global-shortcuts]|click BUTTON|action NAME|edit TEXT|assert FIELD EXPECTED|screenshot NAME".into())
     }
 }
 fn record(args: &[String]) -> Result<Value> {
@@ -557,7 +565,7 @@ fn main() -> std::process::ExitCode {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     if args.first().is_some_and(|v| v == "--help") {
         println!(
-            "Development client: doctor|discover|state|launch|action NAME|edit TEXT|assert FIELD EXPECTED|screenshot NAME. Launch with dev/verify.sh session; no host-desktop fallback."
+            "Development client: doctor|discover|state|launch [--global-shortcuts]|click BUTTON|action NAME|edit TEXT|assert FIELD EXPECTED|screenshot NAME. Launch with dev/verify.sh session; no host-desktop fallback."
         );
         return std::process::ExitCode::SUCCESS;
     }

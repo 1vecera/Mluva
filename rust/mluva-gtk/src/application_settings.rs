@@ -70,9 +70,16 @@ impl ApplicationSettings {
                 .is_some_and(|owner| owner.apply(changes))
         });
         let navigate = callbacks.navigate.clone();
-        let view = SettingsView::new(Rc::new(move || navigate("capture")));
+        let weak = current.clone();
+        let view = SettingsView::new(Rc::new(move || {
+            if let Some(owner) = weak.borrow().upgrade() {
+                owner.flush();
+            }
+            navigate("capture");
+        }));
         let config = services.config();
         let workspace = WorkspaceSettings::new(&config, save.clone());
+        let credential_target = current.clone();
         let providers = ProviderSettings::new(
             &config,
             services.paths.data.clone(),
@@ -80,6 +87,21 @@ impl ApplicationSettings {
             services.credentials.clone(),
             save.clone(),
             None,
+            Rc::new(move || {
+                let Some(owner) = credential_target.borrow().upgrade() else {
+                    return false;
+                };
+                let activity = (owner.callbacks.activity)();
+                if activity.preparing || activity.processing || activity.recording {
+                    return false;
+                }
+                (owner.callbacks.committed)(SettingsUpdate {
+                    config: owner.services.config(),
+                    changed: Default::default(),
+                    kind: SettingsKind::Providers,
+                });
+                true
+            }),
         );
         view.add(&workspace.widget);
         view.add(&providers.widget);
@@ -127,6 +149,10 @@ impl ApplicationSettings {
             }
             Ok(None) | Err(_) => false,
         }
+    }
+    pub fn flush(&self) {
+        self.workspace.apply();
+        self.providers.apply();
     }
     pub fn show(&self) {
         let config = self.services.config();

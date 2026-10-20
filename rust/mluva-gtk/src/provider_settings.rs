@@ -52,6 +52,7 @@ pub struct ProviderSection {
     client: RefCell<Option<Arc<CatalogClient>>>,
     choices: RefCell<Vec<ModelChoice>>,
     updating: Cell<bool>,
+    changed: RefCell<Option<Rc<dyn Fn()>>>,
 }
 impl ProviderSection {
     pub fn new(config: &AppConfig, data: PathBuf, runtime: Rc<DesktopRuntime>) -> Rc<Self> {
@@ -87,7 +88,7 @@ impl ProviderSection {
                 .build();
             widget.add(&api_key_entry);
             let key_hint = gtk::Label::builder()
-                .label("Saved securely in your desktop keyring when you continue or apply.")
+                .label("Saved securely in your desktop keyring when you leave this field or press Enter.")
                 .xalign(0.0)
                 .wrap(true)
                 .margin_top(8)
@@ -169,6 +170,8 @@ impl ProviderSection {
                             "local_device".into(),
                             Value::String(owner.local.device().into()),
                         );
+                        drop(values);
+                        owner.notify_changed();
                     }
                 }),
                 Rc::new(move |language| {
@@ -177,6 +180,7 @@ impl ProviderSection {
                             .values
                             .borrow_mut()
                             .insert("language_code".into(), Value::String(language.into()));
+                        owner.notify_changed();
                     }
                 }),
             );
@@ -207,6 +211,7 @@ impl ProviderSection {
                 client: RefCell::new(None),
                 choices: RefCell::new(Vec::new()),
                 updating: Cell::new(true),
+                changed: RefCell::new(None),
             }
         });
         let weak = Rc::downgrade(&owner);
@@ -229,6 +234,7 @@ impl ProviderSection {
                         Value::String(value)
                     },
                 );
+                owner.notify_changed();
             }
         });
         let weak = Rc::downgrade(&owner);
@@ -240,6 +246,7 @@ impl ProviderSection {
                     "transcription_chunk_seconds".into(),
                     Value::from(row.value() as i64),
                 );
+                owner.notify_changed();
             }
         });
         for (entry, field) in [
@@ -256,6 +263,7 @@ impl ProviderSection {
                         Value::String(text::trim(&entry.text()).into()),
                     );
                     owner.reset_catalog();
+                    owner.notify_changed();
                 }
             });
         }
@@ -274,6 +282,16 @@ impl ProviderSection {
         owner.refresh_config(config);
         owner
     }
+    pub fn on_change(&self, callback: Rc<dyn Fn()>) {
+        self.changed.replace(Some(callback));
+    }
+    fn notify_changed(&self) {
+        if !self.updating.get()
+            && let Some(callback) = self.changed.borrow().clone()
+        {
+            callback();
+        }
+    }
     pub fn provider(&self) -> &'static Provider {
         &SPEECH_PROVIDERS[self.provider_row.selected()]
     }
@@ -285,6 +303,7 @@ impl ProviderSection {
     }
 
     pub fn refresh_config(&self, config: &AppConfig) {
+        self.updating.set(true);
         self.stop_lookup();
         self.api_key_entry.set_text("");
         self.config.replace(config.clone());
@@ -339,6 +358,7 @@ impl ProviderSection {
             self.reset_catalog();
             self.local.stop();
             self.local.refresh();
+            self.notify_changed();
         }
     }
     fn reset_catalog(&self) {
@@ -476,6 +496,7 @@ impl ProviderSection {
             self.values
                 .borrow_mut()
                 .insert(self.provider().model_field.into(), value);
+            self.notify_changed();
         } else {
             self.updating.set(true);
             self.model_entry.set_text(
@@ -570,7 +591,10 @@ impl Drop for ProviderSection {
 pub struct ProviderSettings {
     pub widget: adw::PreferencesPage,
     pub speech: Rc<ProviderSection>,
-    pub apply_button: gtk::Button,
+    timer: RefCell<Option<glib::SourceId>>,
+    pending: Cell<bool>,
+    pending_credentials: Cell<bool>,
+    credentials_changed: Rc<dyn Fn() -> bool>,
     pub status: gtk::Label,
     config: RefCell<AppConfig>,
     save: SaveSettings,
@@ -586,6 +610,7 @@ impl ProviderSettings {
         credentials: Arc<CredentialStore>,
         save: SaveSettings,
         introduction: Option<&gtk::Widget>,
+        credentials_changed: Rc<dyn Fn() -> bool>,
     ) -> Rc<Self> {
         let widget = adw::PreferencesPage::builder()
             .name("providers")
@@ -600,17 +625,6 @@ impl ProviderSettings {
         let speech = ProviderSection::new(config, data.clone(), runtime.clone());
         widget.add(&speech.widget);
         let actions = adw::PreferencesGroup::new();
-        let row = adw::ActionRow::builder()
-            .title("Save provider choices")
-            .subtitle("Applies to the next recording or request.")
-            .build();
-        let apply_button = gtk::Button::builder()
-            .label("Apply")
-            .valign(gtk::Align::Center)
-            .build();
-        apply_button.add_css_class("suggested-action");
-        row.add_suffix(&apply_button);
-        actions.add(&row);
         let status = gtk::Label::builder()
             .xalign(0.0)
             .wrap(true)
@@ -621,7 +635,10 @@ impl ProviderSettings {
         let owner = Rc::new(Self {
             widget,
             speech,
-            apply_button,
+            timer: RefCell::new(None),
+            pending: Cell::new(false),
+            pending_credentials: Cell::new(false),
+            credentials_changed,
             status,
             config: RefCell::new(config.clone()),
             save,
@@ -630,25 +647,65 @@ impl ProviderSettings {
             saving_key: Cell::new(false),
         });
         let weak = Rc::downgrade(&owner);
-        owner.apply_button.connect_clicked(move |_| {
+        owner.speech.on_change(Rc::new(move || {
+            if let Some(owner) = weak.upgrade() {
+                owner.pending.set(true);
+                owner.schedule(350);
+            }
+        }));
+        let focus = gtk::EventControllerFocus::new();
+        let weak = Rc::downgrade(&owner);
+        focus.connect_leave(move |_| {
             if let Some(owner) = weak.upgrade() {
                 owner.apply();
             }
         });
+        owner.speech.api_key_entry.add_controller(focus);
+        let weak = Rc::downgrade(&owner);
+        owner
+            .speech
+            .api_key_entry
+            .connect_entry_activated(move |_| {
+                if let Some(owner) = weak.upgrade() {
+                    owner.apply();
+                }
+            });
         owner
     }
     pub fn refresh_config(&self, config: &AppConfig) {
+        if self.pending.get() {
+            return;
+        }
         self.config.replace(config.clone());
         self.speech.refresh_config(config);
         self.status.set_label("");
     }
+    fn schedule(self: &Rc<Self>, milliseconds: u64) {
+        if let Some(timer) = self.timer.borrow_mut().take() {
+            timer.remove();
+        }
+        let weak = Rc::downgrade(self);
+        self.timer.replace(Some(glib::timeout_add_local_once(
+            std::time::Duration::from_millis(milliseconds),
+            move || {
+                if let Some(owner) = weak.upgrade() {
+                    owner.timer.borrow_mut().take();
+                    owner.apply();
+                }
+            },
+        )));
+    }
     pub fn apply(self: &Rc<Self>) {
-        if self.saving_key.get() {
+        if self.saving_key.get()
+            || (!self.pending.get()
+                && !self.pending_credentials.get()
+                && self.speech.api_key_entry.text().trim().is_empty())
+        {
             return;
         }
         if !self.speech.is_ready() {
             self.status
-                .set_label("Finish downloading the selected local model before applying.");
+                .set_label("This choice will save when the selected model finishes downloading.");
             return;
         }
         {
@@ -665,7 +722,13 @@ impl ProviderSettings {
                 return;
             }
         }
-        let changes = self.speech.values();
+        let baseline = serde_json::to_value(&*self.config.borrow()).expect("serializable config");
+        let changes = self
+            .speech
+            .values()
+            .into_iter()
+            .filter(|(key, value)| baseline[key] != *value)
+            .collect();
         let Ok(config) = proposed_config(&self.config.borrow(), &changes) else {
             self.status.set_label(
                 "Check Connection details. Use a plain base URL and an environment variable name.",
@@ -692,6 +755,7 @@ impl ProviderSettings {
                     if let Some(error) = error {
                         owner.status.set_label(&error);
                     } else {
+                        owner.pending_credentials.set(true);
                         owner.apply();
                     }
                 }
@@ -699,13 +763,23 @@ impl ProviderSettings {
             return;
         }
         if (self.save)(&changes) {
+            if self.pending_credentials.get() {
+                if !(self.credentials_changed)() {
+                    self.schedule(1000);
+                    return;
+                }
+                self.pending_credentials.set(false);
+            }
+            self.pending.set(false);
             self.config.replace(config.clone());
             self.speech.accept_config(&config);
             self.status
-                .set_label("Provider choices saved. They apply to the next recording or request.");
+                .set_label("Saved automatically. Applies to the next recording.");
         } else {
             self.status
-                .set_label("Could not save. Stop active work and try again; your edits are kept.");
+                .set_label("Waiting for active work to finish before saving. Your edits are kept.");
+            self.pending.set(true);
+            self.schedule(1000);
         }
     }
 }

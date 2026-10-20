@@ -845,7 +845,7 @@ impl ConversationWorkspace {
                     .css_classes(["title-2"])
                     .build(),
             );
-            empty.append(&gtk::Label::builder().label("Dictate, then send your words where they belong.\nChoose Talk to Herdr in the toolbar, or use the recording shortcut to paste into your app.").xalign(0.0).wrap(true).css_classes(["dim-label"]).build());
+            empty.append(&gtk::Label::builder().label("Dictate, then send your words where they belong.\nUse Dictate to agent to send to the selected session, or Dictate to paste into your app.").xalign(0.0).wrap(true).css_classes(["dim-label"]).build());
             self.messages.append(&empty);
         }
         self.notice.set_label(if entry.is_some() {

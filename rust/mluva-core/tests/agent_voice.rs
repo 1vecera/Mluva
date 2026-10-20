@@ -109,11 +109,11 @@ fn identity_changes_never_retarget_and_timeouts_never_replay() {
 }
 
 #[test]
-fn empty_failed_lost_release_and_suspended_work_never_send() {
+fn empty_failed_timed_out_and_suspended_work_never_send() {
     for text in ["", "  \n ", &"x".repeat(MAX_MESSAGE_BYTES + 1)] {
         let mut route = VoiceRoute::default();
         let id = route.begin(recipient(), 0).unwrap();
-        assert!(route.lost_release(MAX_HOLD_MS));
+        assert!(route.recording_timed_out(MAX_RECORDING_MS));
         route.release(100);
         route.recognized(&id, text, None, 200);
         assert!(route.take_submission(2_200).is_none());

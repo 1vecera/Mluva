@@ -150,7 +150,7 @@ impl PortalSession {
         if let Some(agent) = &self.callbacks.agent {
             bindings.push((
                 AGENT_HOLD,
-                "Hold to talk to the selected Herdr agent".into(),
+                "Start or stop dictation to the selected Herdr agent".into(),
                 agent.hold_key.as_str(),
             ));
             bindings.push((
@@ -376,13 +376,7 @@ impl PortalSession {
                 return Ok(());
             };
             if member == "Deactivated" {
-                let was_pressed = self.pressed.borrow_mut().remove(id);
-                if was_pressed
-                    && id == AGENT_HOLD
-                    && let Some(agent) = &self.callbacks.agent
-                {
-                    (agent.released)();
-                }
+                self.pressed.borrow_mut().remove(id);
                 return Ok(());
             }
             if ![
@@ -401,7 +395,7 @@ impl PortalSession {
                 (self.callbacks.toggle_recording)();
             } else if id == AGENT_HOLD {
                 if let Some(agent) = &self.callbacks.agent {
-                    (agent.pressed)();
+                    (agent.toggle_recording)();
                 }
             } else if id == AGENT_DRAFT {
                 if let Some(agent) = &self.callbacks.agent {

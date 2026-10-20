@@ -90,6 +90,7 @@ pub struct CapturePreferences {
     pub advanced: adw::PreferencesPage,
     pub language: adw::ComboRow,
     pub recording_key: adw::ComboRow,
+    pub shortcuts: adw::PreferencesGroup,
     pub shortcut_status: adw::ActionRow,
     pub latest_shortcut_status: adw::ActionRow,
     pub spoken_commands: adw::SwitchRow,
@@ -156,7 +157,7 @@ impl CapturePreferences {
         language.set_subtitle("Auto-detect lets the selected speech provider choose the language");
         let shortcuts = group(
             &capture,
-            "Global shortcut",
+            "Global shortcuts",
             Some("Press once to start and again to stop. F9 is the practical default."),
         );
         let keys: Vec<_> = (1..=24).map(|number| format!("F{number}")).collect();
@@ -260,6 +261,7 @@ impl CapturePreferences {
             advanced,
             language,
             recording_key,
+            shortcuts,
             shortcut_status,
             latest_shortcut_status,
             spoken_commands,
@@ -437,8 +439,17 @@ impl CapturePreferences {
         if key == proposed.global_recording_key {
             return;
         }
+        let agent = mluva_core::agent_voice::VoiceSettings::load(
+            &self.services.paths.config.join("agent-voice.json"),
+        )
+        .ok();
         let result = if self.activity.borrow().capture_active() {
             Err("Stop the active capture before changing the global recording key.".into())
+        } else if agent
+            .as_ref()
+            .is_some_and(|a| a.enabled && (a.hold_key == key || a.draft_key == key))
+        {
+            Err("Choose a different key: this key is already assigned to agent dictation or Keep draft.".into())
         } else {
             proposed.global_recording_key.clone_from(&key);
             self.services
@@ -454,6 +465,7 @@ impl CapturePreferences {
                     - 1,
             );
             self.syncing.set(false);
+            self.shortcut_status.set_subtitle(&error);
             self.status(&error);
             return;
         }

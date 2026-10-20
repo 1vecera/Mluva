@@ -293,7 +293,7 @@ impl ApplicationDesktop {
             services.clone(),
             page.clone(),
             crate::agent_voice_controller::AgentVoiceCallbacks {
-                press: bind!(link, |app| app.agent_press()),
+                toggle: bind!(link, |app| app.agent_toggle()),
                 release: bind!(link, |app| app.agent_release()),
                 cancel: bind!(link, |app| {
                     app.cancel();
@@ -302,7 +302,8 @@ impl ApplicationDesktop {
                 settings_changed: bind!(link, |app| app.restart_shortcuts()),
                 capture_busy: bind!(link, |app| app.capture.phase().is_some()
                     || app.capture_audio_waiting.get()
-                    || app.meeting.busy()),
+                    || app.meeting.busy()
+                    || app.ready.borrow().is_none()),
                 draft_saved: bind!(link, |app| {
                     let _ = app.history.page.refresh();
                     app.account.sync();
@@ -311,7 +312,20 @@ impl ApplicationDesktop {
             },
         );
         page.widget.add_bottom_bar(&agent_voice.view.widget);
-        shell.header.pack_end(&agent_voice.view.options);
+        page.buttons.append(&agent_voice.view.record);
+        settings
+            .capture
+            .shortcuts
+            .add(&agent_voice.view.hold_key_row);
+        settings
+            .capture
+            .shortcuts
+            .add(&agent_voice.view.draft_key_row);
+        settings
+            .capture
+            .shortcuts
+            .add(&agent_voice.view.shortcut_status);
+        settings.capture.capture.add(&agent_voice.view.settings);
         let owner = Rc::new(Self {
             agent_voice,
             capture_audio_waiting: Cell::new(false),

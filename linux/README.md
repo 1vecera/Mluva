@@ -8,7 +8,7 @@ For the shortest path, use the [combined installer or agent prompt](../README.md
 
 Press **F9** to start and stop dictation. Completed text is copied and automatically inserted into the verified original target. The main editor always shows Copy and Save; Ctrl+S saves working edits while keeping raw recognition unchanged. Continue recording adds speech to the same conversation. There are no rewrite controls, special capture modes or post-recording review timer. [The workspace guide](../docs/conversation-workspace.md) describes history and migration behavior.
 
-Select a named Herdr agent and hold **F8** to route final speech directly to it after the two-second cancel window. The recorder stays calm: a recording light, elapsed time and live words with automatic following. Drag its status row or choose its position in Settings; Super+T switches between floating and tiling on Omarchy.
+Select a named Herdr agent and press **Dictate to agent** or the configured agent key (default **F8**) to start. Press again to stop and send after the two-second cancel window. Configure shortcuts and routing in Settings → Capture; changes save automatically. The recorder shows a recording light, elapsed time and live words with automatic following. Drag its status row or choose its position in Settings; Super+T switches between floating and tiling on Omarchy.
 
 ## Supported desktop contract
 

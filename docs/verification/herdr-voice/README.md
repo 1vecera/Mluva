@@ -1,5 +1,17 @@
 # Herdr voice verification
 
+## Toggle dictation and automatic settings, 20 October 2026
+
+Agent dictation now starts and stops with a normal button, its configured global key or `mluva herdr record`. Releasing the key keeps recording; stopping finalizes speech and sends after the existing cancellation window. Shortcut and routing preferences live in Settings → Capture. Workspace and provider choices save automatically, with validation and deferred provider changes during active capture.
+
+[Full native journey](toggle-end-to-end-result.json) records the production Mluva executable receiving an approved private portal activation, capturing real synthetic PCM, stopping through its actual GTK button, recognizing through a loopback speech peer and submitting once through actual Herdr to actual Codex. Codex consumed the recognized text in exactly one loopback model request. The script is `linux/tests/run_agent_end_to_end.sh /absolute/patched/herdr`. It uses the explicit native-identity setup described below; it does not establish live provider, physical microphone or physical Wayland key performance.
+
+The assembled agent suite reproduces the prior interruption: a 1.25-second busy GTK frame stopped recording before the fix and leaves it recording afterward. It also checks automatic persistence for appearance, provider fields and agent keys, duplicate-key rejection, preserving a language choice edited on another page, guarded delivery, cancellation, draft recovery and Incognito. The required native gate passes 157 tests with 66 ignored resource/integration checks; both strict Clippy configurations, formatting, generated-feature consistency, provider and private shortcut suites pass. An optional historical browser-application fixture stops at an obsolete output/shortcut-copy expectation before reaching changed behavior; it is not included in the passing claim.
+
+The following sections retain earlier evidence and its original hold-to-talk controls. They describe historical acceptance, not the current interaction.
+
+## Original routing verification
+
 Verified on Lenovo on 16 October 2026 from the isolated `feat/herdr-voice-routing` worktree, based on Mluva `58d1a28f1187f7ce6aa778202ec6020285d18fef`. The installed Mluva/Herdr, desktop, microphone, clipboard and private recorder were not changed by these tests. All GUI/process fixtures use synthetic content and private display, D-Bus, network, device and HOME/XDG state.
 
 ## Reproduce
