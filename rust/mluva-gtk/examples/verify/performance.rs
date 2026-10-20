@@ -139,7 +139,7 @@ fn log_timestamp(root: &Path, marker: &str, since: u128) -> Option<f64> {
         .map(|stamp| (stamp - since) as f64)
 }
 
-fn launch_measured(root: &Path) -> Result<(f64, f64, f64)> {
+fn launch_measured(root: &Path) -> Result<(std::process::Child, f64, f64, f64)> {
     let log = fs::OpenOptions::new()
         .create(true)
         .append(true)
@@ -204,7 +204,12 @@ fn launch_measured(root: &Path) -> Result<(f64, f64, f64)> {
             .first()
             .is_some_and(|bits| [24, 25].iter().all(|bit| bits & (1 << bit) != 0)))
     })?;
-    Ok((bus_ms, visible_ms, started.elapsed().as_secs_f64() * 1000.0))
+    Ok((
+        child,
+        bus_ms,
+        visible_ms,
+        started.elapsed().as_secs_f64() * 1000.0,
+    ))
 }
 
 pub fn run(root: &Path, checkout: &Path, binaries: &Path, paced: bool) -> Result<Value> {
@@ -256,7 +261,7 @@ pub fn run(root: &Path, checkout: &Path, binaries: &Path, paced: bool) -> Result
         );
         let mut samples = vec![];
         for startup in ["fresh-profile", "warm-profile"] {
-            let (bus_ms, visible_ms, usable_ms) = launch_measured(root)?;
+            let (mut app, bus_ms, visible_ms, usable_ms) = launch_measured(root)?;
             for capture in ["first-capture", "repeat-capture"] {
                 let _ = fs::remove_file(root.join("tools/raw.ready.json"));
                 let _ = fs::remove_file(&response_marker);
@@ -354,7 +359,17 @@ pub fn run(root: &Path, checkout: &Path, binaries: &Path, paced: bool) -> Result
                 wait(|| Ok(!recordings.exists() || fs::read_dir(&recordings)?.next().is_none()))?;
                 thread::sleep(Duration::from_millis(50));
             }
-            action("quit")?;
+            activate(&bus, "quit")?;
+            wait(|| match app.try_wait()? {
+                Some(status) => {
+                    require(
+                        status.success(),
+                        "measured application did not exit normally",
+                    )?;
+                    Ok(true)
+                }
+                None => Ok(false),
+            })?;
         }
         drop(subscription);
         require(
@@ -366,7 +381,8 @@ pub fn run(root: &Path, checkout: &Path, binaries: &Path, paced: bool) -> Result
             "paced":paced,
             "scope":"Production release executable, synthetic 3-second PCM and loopback batch speech. Fresh/warm private profiles; OS caches not dropped. No microphone/provider/Wayland claim.",
             "precision":"2 ms poll plus IPC/subprocess cost; usable endpoint includes external accessibility traversal after mapped window. Words-frame waits for two Qt swaps after the text update to exclude an in-flight preceding frame; it is a rendering upper bound. Qt timestamps use wall clock milliseconds; other durations use monotonic time.",
-            "cancel_history_empty":true
+            "cancel_history_empty":true,
+            "normal_process_exits":2
         });
         fs::write(
             root.join("performance.json"),
