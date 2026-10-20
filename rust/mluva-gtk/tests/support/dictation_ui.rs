@@ -81,18 +81,25 @@ pub fn button(widget: &impl IsA<gtk::Widget>, tip: &str) -> gtk::Button {
 pub fn paint(window: &impl IsA<gtk::Window>, name: &str) {
     settle(0.15);
     let window = window.as_ref();
-    let snapshot = gtk::Snapshot::new();
-    gtk::WidgetPaintable::new(Some(window)).snapshot(
-        &snapshot,
-        f64::from(window.width()),
-        f64::from(window.height()),
-    );
+    let paintable = gtk::WidgetPaintable::new(Some(window));
+    let mut node = None;
+    window.queue_draw();
+    until(|| {
+        let snapshot = gtk::Snapshot::new();
+        paintable.snapshot(
+            &snapshot,
+            f64::from(window.width()),
+            f64::from(window.height()),
+        );
+        node = snapshot.to_node();
+        node.is_some()
+    });
     let viewport =
         gtk::graphene::Rect::new(0.0, 0.0, window.width() as f32, window.height() as f32);
     let texture = window
         .renderer()
         .unwrap()
-        .render_texture(snapshot.to_node().unwrap(), Some(&viewport));
+        .render_texture(node.unwrap(), Some(&viewport));
     let directory = PathBuf::from(
         std::env::var_os("OFFSCREEN_ARTIFACT_DIR")
             .or_else(|| std::env::var_os("OFFSCREEN_SESSION_ROOT"))

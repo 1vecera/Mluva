@@ -16,6 +16,7 @@ case "$mode" in
     agent-voice) suites=(agent_voice) ;;
     conversation) suites=(conversation_page application_shell document_surfaces) ;;
     providers|onboarding) suites=(provider_pages) ;;
+    settings) suites=(settings_view); settings_size="${2:-1060x780}" ;;
     history) suites=(history_controller) ;;
     capture) suites=(capture_lifecycle capture_factory) ;;
     meeting) suites=(meeting_controller) ;;
@@ -74,6 +75,9 @@ if "$inside"; then
     export MLUVA_DISABLE_GLOBAL_SHORTCUT=1 TZ=UTC CARGO_NET_OFFLINE=true AGENT_VOICE_SYNTHETIC_KEY=synthetic-key
     if [[ "$mode" == providers || "$mode" == onboarding ]]; then
         export CREDENTIAL_FIXTURE_ROOT="$OFFSCREEN_SESSION_ROOT/provider-keyring"
+    fi
+    if [[ "$mode" == settings ]]; then
+        export MLUVA_SETTINGS_VIEWPORT="$settings_size"
     fi
     if [[ "$mode" == capture ]]; then
         export CAPTURE_FACTORY_SYNTHETIC_KEY=synthetic-key
@@ -172,6 +176,15 @@ if [[ "$mode" == browser-targets || "$mode" == browser-application ]]; then
         bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
             bash dev/run-isolated-browser.sh "$evidence/$browser_evidence" -- \
             bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session "$mode" "$browser_case" "${browser_engine:-firefox}" "${browser_activation:-enabled}"
+    done
+    exit
+fi
+
+if [[ "$mode" == settings ]]; then
+    for settings_size in 420x520 736x700 1060x780; do
+        bwrap --die-with-parent --bind / / --dev /dev --tmpfs /run/dbus -- \
+            bash dev/run-isolated-browser.sh "$evidence/$settings_size" -- \
+            bash "$project_root/linux/tests/run_application_smoke.sh" --inside-session "$mode" "$settings_size"
     done
     exit
 fi
