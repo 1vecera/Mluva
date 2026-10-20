@@ -4,7 +4,7 @@ use mluva_core::config::{AppConfig, AudioRetentionPolicy};
 use std::os::unix::fs::{PermissionsExt, symlink};
 
 #[path = "../../../mluva-workflows/tests/support/http.rs"]
-mod http;
+pub(super) mod http;
 
 pub const RAW: &str = "Synthetic narration keeps 12 files.";
 pub const EDIT: &str = "Synthetic working edit: třináct souborů 🦊.";
