@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Real TUIs with private files, processes, devices and synthetic loopback inference.
 set -euo pipefail
-if (( $# != 1 )); then
-    echo 'Usage: linux/tests/run_herdr_voice_smoke.sh /absolute/patched/herdr' >&2
+if (( $# < 1 || $# > 2 )) || [[ "${2:---managed-codex}" != --managed-codex && "${2:-}" != --manual-codex ]]; then
+    echo 'Usage: linux/tests/run_herdr_voice_smoke.sh /absolute/patched/herdr [--manual-codex]' >&2
     exit 2
 fi
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
@@ -17,6 +17,7 @@ env -i PATH="$PATH" HOME=/tmp/herdr-voice/home TERM=xterm-256color LANG=C.UTF-8 
     XDG_STATE_HOME=/tmp/herdr-voice/state XDG_RUNTIME_DIR=/tmp/herdr-voice/runtime \
     UV_CACHE_DIR=/tmp/herdr-voice/cache \
     VOICE_PROOF_ROOT=/tmp/herdr-voice VOICE_PROOF_HERDR="$herdr_binary" \
+    VOICE_PROOF_CODEX_LAUNCH="${2:---managed-codex}" \
     bwrap --unshare-net --unshare-pid --unshare-ipc --die-with-parent \
         --ro-bind / / --dev /dev --proc /proc --tmpfs /tmp --tmpfs /run \
         --bind "$proof_root" /tmp/herdr-voice --chdir /tmp/herdr-voice/project -- \

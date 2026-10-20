@@ -4,6 +4,18 @@ This experimental native Linux feature sends a finished dictation to a selected 
 
 Open the **Talk to Herdr** people icon in Mluva's main toolbar. Enable agent routing and save. The recipient dropdown appears below the existing editor. Choose a session by its Herdr name, agent type, project and pane; the full local socket is included in its tooltip to distinguish servers. The choice is remembered, but a restarted or renamed agent must be selected again. Mluva never matches a replacement by name alone.
 
+The installed CLI can inspect and switch the running app's recipient without opening a window or restarting either application:
+
+```sh
+mluva herdr list
+mluva herdr select cos
+mluva herdr status
+mluva herdr select w1:p2 --socket /absolute/path/to/herdr.sock
+mluva herdr clear
+```
+
+Commands print JSON and exit nonzero on failure. Mluva must already be running. `select` discovers a fresh guarded identity, enables routing and updates the live dropdown and saved choice together. Use an exact pane ID for duplicate names, adding `--socket` when multiple servers match. Unavailable or ambiguous recipients are rejected. `status` checks the saved identity against the current server; a saved name alone does not mean connected. `clear` removes the recipient. A switch request disarms pending automatic delivery and preserves the draft; no CLI command sends a prompt. Shortcuts, speech provider and optional spoken status stay unchanged. Incognito changes remain in memory.
+
 Hold **F8** to speak, then release. The desktop must approve this global shortcut; its assigned binding is shown in Herdr voice settings. The on-screen **Hold to talk** button also works with a held pointer or Space. Pauses while holding do not send. Existing dictation shortcuts keep their behavior. Both routing shortcuts can be changed to distinct F1–F24 keys, excluding the configured dictation key and F10.
 
 Final recognition appears in the normal document editor with a full two-second **Sending to…** countdown. **Cancel** stops recording, recognition or the pending send. **Keep draft**, or **F7**, finishes capture and keeps editable text. Editing, changing recipient, navigating away, a missing/blocked session, screen lock or interrupted timing also disarm automatic sending. A lost release stops automatic sending after five minutes. Starting another recording replaces the pending send, while local saved conversations remain in History.

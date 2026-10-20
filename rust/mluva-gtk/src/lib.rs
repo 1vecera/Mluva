@@ -19,6 +19,7 @@ pub mod conversation_view;
 pub mod direct_choices;
 pub mod document_layout;
 pub mod global_shortcuts;
+pub mod herdr_cli;
 pub mod history_controller;
 pub mod history_view;
 pub mod language_picker;

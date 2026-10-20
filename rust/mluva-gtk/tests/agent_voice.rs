@@ -441,7 +441,7 @@ fn hold_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application
             .unwrap(),
         "Second edited synthetic request."
     );
-    // Editing during grace and changing the selected duplicate name each disarm immediately.
+    // Editing during grace and a CLI recipient switch each disarm immediately.
     record();
     finish();
     owner.capture.page.workspace.documents()[0]
@@ -451,7 +451,50 @@ fn hold_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application
     assert_eq!(sent(&audit).len(), 2);
     record();
     finish();
-    owner.agent_voice.view.recipients.set_selected(2);
+    let mut switch = Command::new("gdbus")
+        .args([
+            "call",
+            "--session",
+            "--dest",
+            app.dbus_connection()
+                .unwrap()
+                .unique_name()
+                .unwrap()
+                .as_str(),
+            "--object-path",
+            mluva_gtk::herdr_cli::PATH,
+            "--method",
+            "com.mluva.Linux.Herdr.Execute",
+            &json!({"command":"select","target":"w1:p2","socket":socket}).to_string(),
+        ])
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    until(|| switch.try_wait().unwrap().is_some());
+    let switched = switch.wait_with_output().unwrap();
+    assert!(switched.status.success());
+    assert!(
+        String::from_utf8(switched.stdout)
+            .unwrap()
+            .contains("\"connected\":true")
+    );
+    assert_eq!(owner.agent_voice.view.recipients.selected(), 2);
+    assert!(matches!(
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .unwrap()
+            .phase,
+        RoutePhase::Draft(_)
+    ));
+    let buffer = owner.capture.page.workspace.documents()[0].buffer();
+    assert_eq!(
+        buffer.text(&buffer.start_iter(), &buffer.end_iter(), true),
+        text
+    );
     settle(2200);
     assert_eq!(sent(&audit).len(), 2);
     // A renamed/replaced occupant is rejected by the actual transport even before the next poll.

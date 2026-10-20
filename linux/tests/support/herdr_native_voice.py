@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
 """Disposable real Codex/Claude TUIs, guarded Herdr and loopback inference only."""
 
-import json, os, pathlib, socket, subprocess, time, http.server, threading, uuid, sqlite3
+import http.server
+import json
+import os
+import pathlib
+import shlex
+import socket
+import sqlite3
+import subprocess
+import threading
+import time
+import uuid
 
 root = pathlib.Path(os.environ["VOICE_PROOF_ROOT"])
 exe = os.environ["VOICE_PROOF_HERDR"]
+manual_codex = os.environ.get("VOICE_PROOF_CODEX_LAUNCH") == "--manual-codex"
 assert str(root) == "/tmp/herdr-voice", "run through run_herdr_voice_smoke.sh"
 assert not any(
     pathlib.Path(p).exists() for p in ["/dev/snd", "/dev/input", "/dev/uinput"]
@@ -263,22 +274,24 @@ try:
     assert "result" in workspace, workspace
     pane = workspace["result"]["root_pane"]["pane_id"]
     time.sleep(0.3)
-    started = rpc(
-        "agent.start",
-        {
+    codex_args = [
+        "--no-alt-screen", "--no-daemon", "--disable", "hooks",
+        "Bootstrap the synthetic transport fixture; reply briefly without tools.",
+    ]
+    if manual_codex:
+        started = rpc("pane.send_text", {
+            "pane_id": pane,
+            "text": shlex.join(["codex", *codex_args]) + "\n",
+        })
+        assert "result" in started, started
+    else:
+        started = rpc("agent.start", {
             "pane_id": pane,
             "kind": "codex",
             "name": "voice-codex",
-            "args": [
-                "--no-alt-screen",
-                "--no-daemon",
-                "--disable",
-                "hooks",
-                "Bootstrap the synthetic transport fixture; reply briefly without tools.",
-            ],
+            "args": codex_args,
             "timeout_ms": 15000,
-        },
-    )
+        })
     assert "result" in started, started
     time.sleep(6)
     database = sqlite3.connect(
@@ -302,6 +315,9 @@ try:
         check=True,
     )
     print("codex-fixture-identity-reported", flush=True)
+    if manual_codex:
+        renamed = rpc("agent.rename", {"target": pane, "name": "voice-codex"})
+        assert "result" in renamed, renamed
     split = rpc(
         "pane.split",
         {
@@ -329,6 +345,17 @@ try:
     listing = rpc("agent.guarded_list")["result"]
     print("guarded-count", len(listing["agents"]), flush=True)
     assert len(listing["agents"]) == 2
+    if manual_codex:
+        assert "result" in rpc("pane.send_text", {"pane_id": pane, "text": "UNSENT_DRAFT"})
+        time.sleep(0.4)
+        assert all(
+            entry["agent"]["pane_id"] != pane
+            for entry in rpc("agent.guarded_list")["result"]["agents"]
+        ), "A directly launched Codex with a nonempty composer must be excluded"
+        assert "result" in rpc("pane.send_keys", {"pane_id": pane, "keys": ["ctrl+u"]})
+        time.sleep(0.4)
+        listing = rpc("agent.guarded_list")["result"]
+        assert len(listing["agents"]) == 2
     receipts = []
     for entry in listing["agents"]:
         kind = entry["agent"]["agent"]
@@ -417,6 +444,7 @@ try:
         json.dumps(
             {
                 "receipts": receipts,
+                "codex_launch": "direct shell command" if manual_codex else "managed",
                 "codex_identity": "native session metadata replayed through reviewed Herdr hook; automatic hook trust not bypassed",
                 "inference": "private loopback synthetic responses; no paid requests",
             }
@@ -428,6 +456,8 @@ try:
             {
                 "receipts": receipts,
                 "rename_rejected_recipient_running": True,
+                "codex_launch": "direct shell command" if manual_codex else "managed",
+                "manual_draft_excluded": manual_codex,
                 "stale_epoch_rejected": True,
                 "codex_identity": "Actual session reported through Herdr hook by fixture; automatic trust approval remains manual",
                 "inference": "loopback synthetic; network namespace has no external connection",
