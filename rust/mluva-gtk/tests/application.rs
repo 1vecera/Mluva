@@ -86,7 +86,9 @@ fn dictation_editor_navigation_settings_recovery_and_shutdown() {
             transcription_provider: "litellm".into(),
             transcription_base_url: format!("{}/v1", peer.address),
             transcription_api_key_env: "MLUVA_UNUSED_TEST_KEY".into(),
-            transcription_remote_model: (*scenario == "dictation").then(|| "fixture".into()),
+            // Exercise provider failures at HTTP, including the final fallback,
+            // rather than failing locally because batch recognition has no model.
+            transcription_remote_model: Some("fixture".into()),
             incognito_mode: *scenario == "incognito",
             welcome_completed: *scenario != "dictation",
             ..Default::default()
@@ -345,6 +347,11 @@ fn dictation_editor_navigation_settings_recovery_and_shutdown() {
             requests
                 .iter()
                 .all(|request| request["path"] == "/v1/audio/transcriptions")
+        );
+        assert!(
+            requests
+                .iter()
+                .all(|request| request["fields"]["model"] == "fixture")
         );
         drop(owner);
         drop(app);
