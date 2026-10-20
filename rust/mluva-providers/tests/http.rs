@@ -29,6 +29,52 @@ fn expected(value: &Value) -> Value {
 }
 
 #[tokio::test]
+async fn reused_transport_keeps_each_capture_cancellation_independent() {
+    let directory = tempfile::tempdir().unwrap();
+    let audio = directory.path().join("audio.wav");
+    std::fs::write(&audio, b"RIFF synthetic").unwrap();
+    for elevenlabs in [false, true] {
+        let (url, captured, server) = http_once(Response::ok(
+            br#"{"text":"Independent capture","language_code":"eng"}"#.to_vec(),
+        ))
+        .await;
+        let original = if elevenlabs {
+            mluva_providers::speech::SpeechClient::ElevenLabs(
+                ElevenLabsClient::new(Secret::new("synthetic"), &url, Duration::from_secs(3))
+                    .unwrap(),
+            )
+        } else {
+            mluva_providers::speech::SpeechClient::Compatible(compatible(
+                &url,
+                Some("fixture"),
+                Duration::from_secs(3),
+            ))
+        };
+        let cancelled = original.new_session();
+        let active = original.new_session();
+        original.cancel().await;
+        cancelled.cancel().await;
+        assert!(
+            cancelled
+                .transcribe(&audio, "eng", "fixture")
+                .await
+                .is_err()
+        );
+        assert_eq!(
+            active
+                .transcribe(&audio, "eng", "fixture")
+                .await
+                .unwrap()
+                .text,
+            "Independent capture"
+        );
+        captured.await.unwrap();
+        server.await.unwrap();
+        active.close().await;
+    }
+}
+
+#[tokio::test]
 async fn multipart_and_batch_results_match_released_wire_calls() {
     let fixture: Value = serde_json::from_str(include_str!("fixtures/released-wire.json")).unwrap();
     let directory = tempfile::tempdir().unwrap();

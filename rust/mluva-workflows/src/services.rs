@@ -264,10 +264,19 @@ impl ApplicationServices {
         let mut local =
             OnnxOptions::new(&self.paths.data, &config.local_model, binaries.asr_worker);
         local.device = config.local_device.clone();
-        let speech = SpeechClient::from_config(&config, local.clone(), speech_key.clone())?;
-        speech.close().await;
+        let speech = {
+            let config = config.clone();
+            let local = local.clone();
+            let speech_key = speech_key.clone();
+            tokio::task::spawn_blocking(move || {
+                SpeechClient::from_config(&config, local, speech_key)
+            })
+            .await
+            .map_err(|_| WorkflowError::Invalid("Speech connection setup failed.".into()))??
+        };
         Ok(CaptureServices {
             config,
+            speech: Arc::new(speech),
             speech_key,
             local,
             cleanup_executable: binaries.audio_cleanup,
@@ -326,11 +335,12 @@ impl NativeBinaries {
     }
 }
 
-/// One immutable readiness configuration. Every recording creates its own
-/// transport pair and snapshots current personalization/prompts before capture.
+/// One readiness configuration and validated transport. Every recording creates
+/// independent cancellation/model state and snapshots current personalization.
 #[derive(Clone)]
 pub struct CaptureServices {
     pub config: AppConfig,
+    speech: Arc<SpeechClient>,
     speech_key: Option<Secret>,
     local: OnnxOptions,
     cleanup_executable: PathBuf,
@@ -341,10 +351,9 @@ pub struct CaptureServices {
     personalization: Rc<RefCell<PersonalizationStore>>,
 }
 impl CaptureServices {
-    /// Recovery and recording each own fresh clients and the current local rules.
+    /// Recovery and recording own independent sessions and the current local rules.
     pub fn workflow(&self) -> WorkflowOutcome<Rc<DictationWorkflow>> {
-        let speech =
-            SpeechClient::from_config(&self.config, self.local.clone(), self.speech_key.clone())?;
+        let speech = self.speech.new_session();
         let mut workflow = DictationWorkflow::new(
             self.config.clone(),
             speech,
@@ -386,15 +395,11 @@ impl CaptureServices {
                 previews,
             ))),
             "litellm" => {
-                let config = self.config.clone();
-                let local = self.local.clone();
+                let speech = self.speech.clone();
                 CaptureRecognitionClient::Batch(Rc::new(BatchPreviewClient {
                     factory: Arc::new(move || {
-                        let config = config.clone();
-                        let local = local.clone();
-                        Box::pin(async move {
-                            SpeechClient::from_config(&config, local, None).map(Arc::new)
-                        })
+                        let client = speech.new_session();
+                        Box::pin(async move { Ok(Arc::new(client)) })
                     }),
                     directory: previews,
                     chunk_seconds: self.config.transcription_chunk_seconds as u32,

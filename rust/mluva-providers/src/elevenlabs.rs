@@ -22,6 +22,16 @@ pub struct ElevenLabsClient {
 }
 
 impl ElevenLabsClient {
+    /// Reuse connection/TLS setup, with independent request cancellation.
+    pub fn new_session(&self) -> Self {
+        Self {
+            api_key: self.api_key.clone(),
+            endpoint: self.endpoint.clone(),
+            client: self.client.clone(),
+            requests: Requests::default(),
+        }
+    }
+
     pub fn new(api_key: Secret, endpoint: &str, timeout: Duration) -> Result<Self> {
         Ok(Self {
             api_key,

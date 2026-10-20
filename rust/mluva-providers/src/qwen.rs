@@ -131,6 +131,18 @@ pub struct QwenSpeechClient {
     transcription: tokio::sync::Mutex<()>,
 }
 impl QwenSpeechClient {
+    /// Share only the HTTP transport. Models and cancellation belong to each capture.
+    pub fn new_session(&self) -> Self {
+        Self {
+            options: self.options.clone(),
+            http: self.http.clone(),
+            cancelled: CancellationToken::new(),
+            current: Mutex::new(None),
+            lifecycle: tokio::sync::Mutex::new(()),
+            transcription: tokio::sync::Mutex::new(()),
+        }
+    }
+
     pub fn new(options: QwenOptions) -> Result<Self> {
         let http = reqwest::Client::builder()
             .no_proxy()

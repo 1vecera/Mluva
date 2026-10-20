@@ -64,6 +64,38 @@ fn empty(directory: &std::path::Path) -> bool {
 }
 
 #[tokio::test]
+async fn batch_preview_notifies_without_polling_and_stays_provisional() {
+    let directory = tempfile::tempdir().unwrap();
+    let staging = directory.path().join("previews");
+    let mut peer = http::Peer::new(&[
+        json!({"route":"speech","status":200,"payload":{"text":"Preview words","language_code":"eng"}}),
+        json!({"route":"speech","status":200,"payload":{"text":"Final words","language_code":"eng"}}),
+    ]);
+    let (client, _) = client(&peer.address, &staging, true);
+    let session = client.start("eng");
+    let (send, mut receive) = tokio::sync::mpsc::channel(1);
+    session.set_preview_callback(Some(Box::new(move |preview| {
+        send.try_send(preview).unwrap();
+        Ok(())
+    })));
+    session.submit_audio(&vec![0; 96_000]);
+    let preview = tokio::time::timeout(Duration::from_secs(4), receive.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(preview.display_text(), "Preview words");
+    let result = session.finish().await.unwrap();
+    assert_eq!(result.transcription.text, "Final words");
+    assert!(
+        receive.try_recv().is_err(),
+        "Finalization must not publish a new volatile preview"
+    );
+    session.cancel_and_wait().await;
+    assert!(empty(&staging));
+    assert_eq!(peer.finish().len(), 2);
+}
+
+#[tokio::test]
 async fn preview_and_authoritative_audio_match_unchanged_released_sessions() {
     let fixture: Value =
         serde_json::from_str(include_str!("fixtures/released-batch-preview.json")).unwrap();

@@ -696,7 +696,7 @@ impl ApplicationDesktop {
             self.overlay.borrow_mut().take();
         }
     }
-    fn publish_capture(self: &Rc<Self>) {
+    pub(super) fn publish_capture(self: &Rc<Self>) {
         let capture = self.current.borrow();
         let Some(current) = capture.as_ref() else {
             return;

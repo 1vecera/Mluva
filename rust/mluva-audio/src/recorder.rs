@@ -58,6 +58,15 @@ impl PipeWireRecorder {
     }
 
     pub fn start(&mut self, output: &Path, callback: Option<AudioChunkCallback>) -> Result<()> {
+        self.start_with_readiness(output, callback, None)
+    }
+
+    pub(crate) fn start_with_readiness(
+        &mut self,
+        output: &Path,
+        callback: Option<AudioChunkCallback>,
+        first_pcm: Option<tokio::sync::oneshot::Sender<()>>,
+    ) -> Result<()> {
         if self.active() {
             return Err(AudioCaptureError::Message("A recording is already active."));
         }
@@ -80,7 +89,7 @@ impl PipeWireRecorder {
             let reader_level = level.clone();
             let reader = match thread::Builder::new()
                 .name("pipewire-pcm-drain".into())
-                .spawn(move || drain(stdout, file, reader_level, callback))
+                .spawn(move || drain(stdout, file, reader_level, callback, first_pcm))
             {
                 Ok(reader) => reader,
                 Err(error) => {
@@ -185,6 +194,7 @@ fn drain(
     file: File,
     level: Arc<AtomicU64>,
     mut callback: Option<AudioChunkCallback>,
+    mut first_pcm: Option<tokio::sync::oneshot::Sender<()>>,
 ) -> io::Result<()> {
     let mut writer = Pcm16Writer::new(file)?;
     let mut buffer = [0; REALTIME_CHUNK_BYTES];
@@ -198,6 +208,13 @@ fn drain(
                 Err(error) => return Err(error),
             };
             pending.extend_from_slice(&buffer[..count]);
+            // Process creation does not prove that the input opened. A complete
+            // PCM sample does, including silence; do not wait for a 100 ms chunk.
+            if pending.len() >= 2
+                && let Some(ready) = first_pcm.take()
+            {
+                let _ = ready.send(());
+            }
             while pending.len() >= REALTIME_CHUNK_BYTES {
                 publish(
                     &mut writer,

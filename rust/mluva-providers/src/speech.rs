@@ -18,6 +18,16 @@ pub enum SpeechClient {
 }
 
 impl SpeechClient {
+    /// A recording owns fresh cancellation/model state, using the transport
+    /// already validated for this settings generation.
+    pub fn new_session(&self) -> Self {
+        match self {
+            Self::ElevenLabs(client) => Self::ElevenLabs(client.new_session()),
+            Self::Compatible(client) => Self::Compatible(client.new_session()),
+            Self::Local(client) => Self::Local(client.new_session()),
+        }
+    }
+
     pub async fn new(
         config: &AppConfig,
         local_options: OnnxOptions,
@@ -31,8 +41,8 @@ impl SpeechClient {
         Self::from_config(config, local_options, key)
     }
 
-    /// Application readiness resolves the key once; each capture still owns its
-    /// own transport and immutable route. Local and compatible routes need no keyring.
+    /// Application readiness resolves the key once. Session clones retain the
+    /// immutable route with independent cancellation. Local/compatible need no keyring.
     pub fn from_config(
         config: &AppConfig,
         local_options: OnnxOptions,

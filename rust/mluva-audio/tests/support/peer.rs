@@ -211,6 +211,17 @@ fn main() {
         "s16".into()
     ]));
     if arguments.ends_with(&["--raw".into(), "-".into()]) {
+        if config["wait_before_pcm"].as_bool() == Some(true) {
+            ready(directory, "opening", &arguments);
+            let deadline = Instant::now() + Duration::from_secs(5);
+            while !directory.join("release-pcm").exists() {
+                if SIGNAL.load(Ordering::Relaxed) != 0 {
+                    return;
+                }
+                assert!(Instant::now() < deadline, "PCM gate was not released");
+                thread::sleep(Duration::from_millis(2));
+            }
+        }
         let payload = bytes(&config, "pcm_hex");
         let sizes: Vec<_> = config["fragments"]
             .as_array()

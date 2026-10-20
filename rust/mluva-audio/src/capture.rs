@@ -30,6 +30,7 @@ enum Request {
     Start(
         PathBuf,
         Option<AudioChunkCallback>,
+        oneshot::Sender<()>,
         oneshot::Sender<Result<()>>,
     ),
     Stop(oneshot::Sender<Result<PathBuf>>),
@@ -60,10 +61,20 @@ impl Input {
         &mut self,
         path: &std::path::Path,
         callback: Option<AudioChunkCallback>,
+        ready: oneshot::Sender<()>,
     ) -> Result<()> {
         match self {
-            Self::Microphone(recorder) => recorder.start(path, callback),
-            Self::Phone(recorder) => recorder.start(path, callback),
+            Self::Microphone(recorder) => {
+                recorder.start_with_readiness(path, callback, Some(ready))
+            }
+            Self::Phone(recorder) => {
+                // The phone sends PCM only after the desktop accepts the stream.
+                let result = recorder.start(path, callback);
+                if result.is_ok() {
+                    let _ = ready.send(());
+                }
+                result
+            }
         }
     }
     fn active(&self) -> bool {
@@ -128,8 +139,15 @@ impl CaptureRecorder {
 
     pub async fn start(&self, path: PathBuf, callback: Option<AudioChunkCallback>) -> Result<()> {
         let (reply, response) = oneshot::channel();
-        self.send(Request::Start(path, callback, reply))?;
-        response.await.map_err(|_| stopped())?
+        let (ready, first_pcm) = oneshot::channel();
+        self.send(Request::Start(path, callback, ready, reply))?;
+        response.await.map_err(|_| stopped())??;
+        tokio::time::timeout(std::time::Duration::from_secs(3), first_pcm)
+            .await
+            .map_err(|_| AudioCaptureError::Message("The microphone did not provide audio."))?
+            .map_err(|_| {
+                AudioCaptureError::Message("The microphone closed before providing audio.")
+            })
     }
 
     pub async fn append_phone_audio(&self, frames: Vec<u8>) -> Result<()> {
@@ -250,7 +268,7 @@ fn own(mut recorder: Input, receiver: mpsc::Receiver<Request>, snapshot: std::sy
                 })();
                 let _ = reply.send(result);
             }
-            Request::Start(path, callback, reply) => {
+            Request::Start(path, callback, ready, reply) => {
                 let state = snapshot.clone();
                 let mut callback = callback;
                 let result = if destination.as_ref() != Some(&path) {
@@ -272,6 +290,7 @@ fn own(mut recorder: Input, receiver: mpsc::Receiver<Request>, snapshot: std::sy
                                 None => Ok(()),
                             }
                         })),
+                        ready,
                     )
                 });
                 snapshot.active.store(recorder.active(), Ordering::Release);

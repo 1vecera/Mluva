@@ -248,6 +248,7 @@ impl ApplicationDesktop {
                 failed: bind!(link, |app, failure| app.capture_failed(failure)),
                 cancelled: bind!(link, |app, id| app.capture_cancelled(id)),
                 phase_changed: bind!(link, |app, phase| app.capture_phase(phase)),
+                preview_changed: bind!(link, |app| app.publish_capture()),
             },
         );
         page.set_recording_action(bind!(link, |app| app.toggle_recording(CaptureOrigin::Manual)));
@@ -261,7 +262,7 @@ impl ApplicationDesktop {
             ShellPages {
                 capture: page.widget.clone().upcast(),
                 settings: settings.view.widget.clone().upcast(),
-                welcome: settings.welcome.widget.clone().upcast(),
+                welcome: settings.welcome_page.clone().upcast(),
                 meeting: meeting.page.widget.clone().upcast(),
                 history: history.page.widget.clone().upcast(),
                 personalization: personalization.widget.clone().upcast(),
@@ -380,7 +381,7 @@ impl ApplicationDesktop {
             })?;
         }
         if !owner.services.config().welcome_completed {
-            owner.shell.navigate("welcome");
+            owner.settings.show_welcome();
         }
         if !owner.services.config_load_error.is_empty() {
             owner.shell.show_message(&owner.services.config_load_error);

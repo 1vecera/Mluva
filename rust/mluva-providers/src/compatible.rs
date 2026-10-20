@@ -47,6 +47,17 @@ pub struct CompatibleClient {
 }
 
 impl CompatibleClient {
+    /// Reuse connection/TLS setup, with independent request cancellation.
+    pub fn new_session(&self) -> Self {
+        Self {
+            client: self.client.clone(),
+            base_url: self.base_url.clone(),
+            key_env: self.key_env.clone(),
+            model: self.model.clone(),
+            requests: Requests::default(),
+        }
+    }
+
     pub fn new(
         base_url: &str,
         key_env: impl Into<String>,

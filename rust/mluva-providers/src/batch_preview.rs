@@ -4,7 +4,7 @@ use crate::{
     ProviderError, Result,
     local::LocalSpeechClient,
     local_asr::OnnxOptions,
-    realtime::{RealtimePreview, RealtimeSessionResult},
+    realtime::{PreviewCallback, RealtimePreview, RealtimeSessionResult},
     speech::SpeechClient,
 };
 use futures_util::future::BoxFuture;
@@ -93,6 +93,7 @@ impl BatchPreviewSession {
                 resident: None,
             }),
             ready: Notify::new(),
+            preview: Mutex::new(None),
             cancelled: CancellationToken::new(),
             stop_preview: CancellationToken::new(),
             worker_done: CancellationToken::new(),
@@ -127,6 +128,7 @@ struct Shared {
     chunk_bytes: usize,
     state: Mutex<State>,
     ready: Notify,
+    preview: Mutex<Option<PreviewCallback>>,
     cancelled: CancellationToken,
     stop_preview: CancellationToken,
     worker_done: CancellationToken,
@@ -143,6 +145,11 @@ pub struct BatchPreviewSession {
 }
 
 impl BatchPreviewSession {
+    /// Installed before audio is submitted; notification never commits text.
+    pub fn set_preview_callback(&self, callback: Option<PreviewCallback>) {
+        *self.shared.preview.lock().unwrap() = callback;
+    }
+
     pub fn bytes_sent(&self) -> usize {
         self.shared.state.lock().unwrap().offset
     }
@@ -277,6 +284,29 @@ impl Shared {
         let mut state = self.state.lock().unwrap();
         if !state.finishing && !self.cancelled.is_cancelled() {
             state.streaming_text = text::trim(&format!("{} {partial}", state.text)).into();
+            drop(state);
+            self.notify_preview();
+        }
+    }
+
+    fn notify_preview(&self) {
+        let mut callback = self.preview.lock().unwrap();
+        if let Some(callback) = callback.as_mut() {
+            let state = self.state.lock().unwrap();
+            if state.finishing || self.cancelled.is_cancelled() {
+                return;
+            }
+            let preview = RealtimePreview {
+                committed_text: if state.streaming_text.is_empty() {
+                    state.text.clone()
+                } else {
+                    state.streaming_text.clone()
+                },
+                volatile_text: String::new(),
+            };
+            drop(state);
+            // Optional UI observers cannot fail or strand recognition.
+            let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| callback(preview)));
         }
     }
 
@@ -398,6 +428,8 @@ async fn preview_loop(shared: Arc<Shared>) {
         if state.enabled && state.audio.len() - state.offset >= shared.chunk_bytes {
             shared.ready.notify_one();
         }
+        drop(state);
+        shared.notify_preview();
     }
 }
 
