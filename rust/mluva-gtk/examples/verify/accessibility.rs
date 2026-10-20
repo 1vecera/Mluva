@@ -217,7 +217,7 @@ pub fn click(name: &str) -> Result<Value> {
         .iter()
         .filter(|n| {
             n["name"] == name
-                && n["role"] == "button"
+                && (n["role"] == "button" || n["role"] == "toggle button")
                 && n["states"][0]
                     .as_u64()
                     .is_some_and(|s| s & (1 << 24) != 0 && s & (1 << 25) != 0)
