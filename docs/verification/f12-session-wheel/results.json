@@ -44,9 +44,20 @@
     "inference": "synthetic private loopback; no external provider"
   },
   "visual_review": {
-    "disposition": "ship",
-    "pane_caption_contrast_unselected": 8.35,
-    "pane_caption_contrast_selected": 7.55
+    "redesign": "home-row arch around a centre record action",
+    "palettes": [
+      "default light",
+      "default dark",
+      "Omarchy Nord"
+    ],
+    "gallery_states_per_palette": 16,
+    "independent_finish_review": "fix: seven material findings",
+    "verdict_pass": "six design fixes resolved; product-record request intentionally not adopted",
+    "minimum_text_contrast_from_tokens": 4.64,
+    "window_size_in_captures": [
+      652,
+      420
+    ]
   },
   "scope": "Synthetic isolated X11, private portal, PCM and loopback providers; no physical microphone, host input or live Wayland acceptance."
 }

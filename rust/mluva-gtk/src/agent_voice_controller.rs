@@ -504,6 +504,8 @@ impl AgentVoiceController {
             (Some(hold), Some(draft)) => format!("{hold} chooses a session; press again to record · {draft} keeps a draft"),
             _ => "Global shortcuts are not approved. Use Dictate to agent while checking desktop approval.".into(),
         });
+        // An open wheel shows the approved key at once, not on the next tick.
+        self.render_wheel();
     }
     fn tick(self: &Rc<Self>) {
         let time = now();

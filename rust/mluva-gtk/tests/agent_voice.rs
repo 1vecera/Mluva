@@ -353,10 +353,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     assert!(sent(&audit).is_empty());
     owner.agent_voice.shortcut_binding(Some("F11"), Some("F7"));
     settle(100);
-    assert_eq!(
-        owner.agent_voice.wheel.record.label().as_deref(),
-        Some("F11 · Record")
-    );
+    assert_eq!(owner.agent_voice.wheel.record_key.label().as_str(), "F11");
     owner.agent_voice.shortcut_binding(None, None);
     settle(100);
     assert_eq!(
@@ -395,8 +392,8 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
                 .unwrap()
                 .success()
         );
-        assert!(owner.agent_voice.wheel.window.width() <= 420);
-        assert!(owner.agent_voice.wheel.window.height() <= 520);
+        assert!(owner.agent_voice.wheel.window.width() <= mluva_gtk::agent_session_wheel::WIDTH);
+        assert!(owner.agent_voice.wheel.window.height() <= mluva_gtk::agent_session_wheel::HEIGHT);
     }
     wheel_key("s");
     assert_eq!(
@@ -498,8 +495,8 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         owner.agent_voice.shortcut();
         settle(100);
         assert!(owner.agent_voice.wheel.window.is_visible());
-        assert!(owner.agent_voice.wheel.window.width() <= 420);
-        assert!(owner.agent_voice.wheel.window.height() <= 520);
+        assert!(owner.agent_voice.wheel.window.width() <= mluva_gtk::agent_session_wheel::WIDTH);
+        assert!(owner.agent_voice.wheel.window.height() <= mluva_gtk::agent_session_wheel::HEIGHT);
         assert!(owner.capture.phase().is_none());
         owner.dispatch(mluva_gtk::application_shell::ApplicationAction::Cancel);
     }
