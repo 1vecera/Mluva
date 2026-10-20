@@ -4,7 +4,7 @@ Mluva turns speech into editable text and delivers it to the selected destinatio
 
 ## Recording and editing
 
-The recording shortcut toggles capture. A second press during preparation cancels before recording starts. Mluva checks the selected input and required provider readiness before opening the microphone. PipeWire audio is captured as private 16 kHz, 16-bit mono PCM.
+The recording shortcut toggles capture. A second press during preparation cancels before recording starts. Mluva checks the selected input and required provider readiness before opening the microphone. The microphone remains in Preparing until its first complete PCM sample arrives, including silence; an input that closes or supplies no sample within three seconds fails without claiming to record. Phone input acknowledges its prepared stream before the phone starts sending. PipeWire audio is captured as private 16 kHz, 16-bit mono PCM.
 
 A successful recognition with no speech completes quietly. It does not copy, paste, create a blank history entry or replace the current conversation. Silent audio follows the successful-capture retention policy; Incognito erases it. Malformed responses, network errors and capture failures still use the normal recovery path.
 

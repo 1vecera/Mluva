@@ -11,6 +11,13 @@ pub enum LocalSpeechClient {
     Onnx(OnnxSpeechClient),
 }
 impl LocalSpeechClient {
+    pub fn new_session(&self) -> Self {
+        match self {
+            Self::Qwen(client) => Self::Qwen(client.new_session()),
+            Self::Onnx(client) => Self::Onnx(client.new_session()),
+        }
+    }
+
     pub fn new(options: OnnxOptions) -> Result<Self> {
         crate::local_assets::model(&options.model)?;
         if options.model == "qwen3-1.7b" {

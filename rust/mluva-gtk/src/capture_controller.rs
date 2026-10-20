@@ -67,6 +67,7 @@ pub struct CaptureControllerCallbacks {
     pub failed: Rc<dyn Fn(CaptureFailure)>,
     pub cancelled: Rc<dyn Fn(&str)>,
     pub phase_changed: Rc<dyn Fn(CapturePhase)>,
+    pub preview_changed: Rc<dyn Fn()>,
 }
 
 pub struct CaptureController {
@@ -76,6 +77,7 @@ pub struct CaptureController {
     callbacks: CaptureControllerCallbacks,
     active: RefCell<Option<CaptureLaunch>>,
     timer: RefCell<Option<glib::SourceId>>,
+    preview_task: RefCell<Option<glib::JoinHandle<()>>>,
     keys: gtk::EventControllerKey,
     key_root: RefCell<Option<glib::WeakRef<gtk::Widget>>>,
     continuation: RefCell<Option<String>>,
@@ -96,6 +98,7 @@ impl CaptureController {
             callbacks,
             active: RefCell::new(None),
             timer: RefCell::new(None),
+            preview_task: RefCell::new(None),
             keys: gtk::EventControllerKey::new(),
             key_root: RefCell::new(None),
             continuation: RefCell::new(None),
@@ -275,6 +278,13 @@ impl CaptureController {
             return;
         }
         let session = launch.session.clone();
+        // Keep only a wakeup, never a queue of transcript revisions. Snapshot
+        // the current session on GTK and reject late results by its identity.
+        let (preview_tx, mut preview_rx) = tokio::sync::watch::channel(());
+        session.set_preview_callback(Box::new(move |_| {
+            let _ = preview_tx.send(());
+            Ok(())
+        }));
         self.continuation.replace(continuation.clone());
         self.page.workspace.set_private(session.options.incognito);
         self.page
@@ -315,6 +325,21 @@ impl CaptureController {
                     controller.page.set_status(ready.status());
                     controller.start_clock();
                     (controller.callbacks.phase_changed)(CapturePhase::Recording);
+                    let weak = Rc::downgrade(&controller);
+                    let identifier = session.identifier.clone();
+                    let task = controller.runtime.spawn(async move {
+                        while preview_rx.changed().await.is_ok() {
+                            let Some(controller) = weak.upgrade().filter(|owner| {
+                                owner.owns(&identifier)
+                                    && owner.phase() == Some(CapturePhase::Recording)
+                            }) else {
+                                break;
+                            };
+                            controller.update_clock();
+                            (controller.callbacks.preview_changed)();
+                        }
+                    });
+                    controller.preview_task.replace(Some(task));
                 }
                 Err(CaptureError::Cancelled(cancelled)) => {
                     controller.cancel_finished(&session.identifier, cancelled.status())
@@ -606,6 +631,9 @@ impl CaptureController {
         );
     }
     fn clear_clock(&self) {
+        if let Some(task) = self.preview_task.borrow_mut().take() {
+            task.abort();
+        }
         if let Some(source) = self.timer.borrow_mut().take() {
             source.remove();
         }

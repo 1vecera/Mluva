@@ -1,5 +1,6 @@
 //! One application-owned speech settings and setup graph.
 
+use adw::prelude::*;
 use mluva_audio::catalog::PipeWireDeviceCatalog;
 use mluva_core::database::StoreResult;
 use mluva_workflows::services::{
@@ -7,7 +8,7 @@ use mluva_workflows::services::{
 };
 use serde_json::{Map, Value, json};
 use std::{
-    cell::RefCell,
+    cell::{OnceCell, RefCell},
     rc::{Rc, Weak},
 };
 
@@ -36,7 +37,9 @@ pub struct ApplicationSettings {
     pub view: Rc<SettingsView>,
     pub workspace: Rc<WorkspaceSettings>,
     pub providers: Rc<ProviderSettings>,
-    pub welcome: Rc<WelcomeView>,
+    pub welcome_page: gtk::Box,
+    welcome: OnceCell<Rc<WelcomeView>>,
+    create_welcome: Box<dyn Fn() -> Rc<WelcomeView>>,
     pub capture: Rc<CapturePreferences>,
     services: Rc<ApplicationServices>,
     callbacks: ApplicationSettingsCallbacks,
@@ -118,19 +121,27 @@ impl ApplicationSettings {
                 owner.finish_welcome();
             }
         });
-        let welcome = WelcomeView::new(
-            &config,
-            services.paths.data.clone(),
-            runtime,
-            services.credentials.clone(),
-            save,
-            finish,
-        );
+        // Completed onboarding is not on the normal startup path. Construct
+        // its duplicate provider/appearance controls only when it is opened.
+        let welcome_page = gtk::Box::new(gtk::Orientation::Vertical, 0);
+        let welcome_services = services.clone();
+        let create_welcome = Box::new(move || {
+            WelcomeView::new(
+                &welcome_services.config(),
+                welcome_services.paths.data.clone(),
+                runtime.clone(),
+                welcome_services.credentials.clone(),
+                save.clone(),
+                finish.clone(),
+            )
+        });
         let owner = Rc::new(Self {
             view,
             workspace,
             providers,
-            welcome,
+            welcome_page,
+            welcome: OnceCell::new(),
+            create_welcome,
             capture,
             services,
             callbacks,
@@ -161,7 +172,12 @@ impl ApplicationSettings {
         (self.callbacks.navigate)("settings");
     }
     pub fn show_welcome(&self) {
-        self.welcome.refresh_config(&self.services.config());
+        let welcome = self.welcome.get_or_init(|| {
+            let welcome = (self.create_welcome)();
+            self.welcome_page.append(&welcome.widget);
+            welcome
+        });
+        welcome.refresh_config(&self.services.config());
         (self.callbacks.navigate)("welcome");
     }
     fn finish_welcome(&self) {

@@ -483,6 +483,7 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
                     };
                 }),
                 cancelled: Rc::new(|_| {}),
+                preview_changed: Rc::new(|| {}),
                 phase_changed: Rc::new(move |_| assert_eq!(thread::current().id(), owner)),
             },
         );

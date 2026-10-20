@@ -253,6 +253,7 @@ fn released_application_capture_factory() {
                         panic!("Unexpected capture failure: {}", failure.error)
                     }),
                     cancelled: Rc::new(|_| {}),
+                    preview_changed: Rc::new(|| {}),
                     phase_changed: Rc::new(|_| {}),
                 },
             );

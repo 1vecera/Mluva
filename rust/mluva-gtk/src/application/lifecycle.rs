@@ -683,10 +683,13 @@ impl ApplicationDesktop {
         false
     }
     pub(super) fn publish(&self, state: OverlayState) {
+        self.clear_overlay_timer();
+        self.publish_state(state);
+    }
+    fn publish_state(&self, state: OverlayState) {
         if self.closed.get() {
             return;
         }
-        self.clear_overlay_timer();
         let sent = self
             .overlay
             .borrow_mut()
@@ -696,7 +699,15 @@ impl ApplicationDesktop {
             self.overlay.borrow_mut().take();
         }
     }
-    fn publish_capture(self: &Rc<Self>) {
+    pub(super) fn publish_capture(self: &Rc<Self>) {
+        self.publish_capture_state(true);
+    }
+    pub(super) fn publish_preview(self: &Rc<Self>) {
+        // Immediate local words must neither increase account traffic nor
+        // postpone the existing periodic status/account update.
+        self.publish_capture_state(false);
+    }
+    fn publish_capture_state(self: &Rc<Self>, periodic: bool) {
         let capture = self.current.borrow();
         let Some(current) = capture.as_ref() else {
             return;
@@ -773,13 +784,16 @@ impl ApplicationDesktop {
             };
             state.route = format!("{provider} · {microphone}");
         }
-        if !current.options.incognito && phase == CapturePhase::Recording {
+        if periodic && !current.options.incognito && phase == CapturePhase::Recording {
             self.account
                 .live(&current.session.identifier, &state.preview, None);
         }
         drop(capture);
-        self.publish(state);
-        if phase == CapturePhase::Recording {
+        if periodic {
+            self.clear_overlay_timer();
+        }
+        self.publish_state(state);
+        if periodic && phase == CapturePhase::Recording {
             let weak = Rc::downgrade(self);
             self.overlay_timer
                 .replace(Some(glib::timeout_add_local_once(

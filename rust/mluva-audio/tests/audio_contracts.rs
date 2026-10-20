@@ -5,7 +5,7 @@ mod support;
 mod volatile_contracts;
 
 use mluva_audio::catalog::{PipeWireDeviceKind, parse_pipewire_devices};
-use mluva_audio::{pcm16_audio_level, wav};
+use mluva_audio::{pcm16_audio_level, recorder::PipeWireRecorder, wav};
 use serde_json::json;
 use std::fs;
 use support::{assert_level, hex, mode, reference, unhex};
@@ -270,6 +270,66 @@ fn normalized_rms_matches_released_pcm_outputs() {
             case["level"].as_f64().unwrap(),
         );
     }
+}
+
+#[tokio::test]
+async fn capture_readiness_requires_pcm_and_can_cancel_while_input_is_opening() {
+    use mluva_audio::capture::{CaptureRecorder, CaptureStorage};
+    use std::time::Duration;
+    for cancel in [false, true] {
+        // One silent sample proves readiness, without waiting for a full
+        // provider chunk or confusing silence with an unavailable input.
+        let peer =
+            support::Peer::new(&json!({"pcm_hex":"0000","wait":true,"wait_before_pcm":true}));
+        let recorder = CaptureRecorder::new(PipeWireRecorder::new(&peer.executable, None)).unwrap();
+        let path = recorder
+            .prepare_destination(
+                CaptureStorage::Persistent(peer.path().join("recordings")),
+                "capture.wav".into(),
+            )
+            .await
+            .unwrap();
+        let start = recorder.start(path.clone(), None);
+        tokio::pin!(start);
+        assert!(
+            tokio::time::timeout(Duration::from_millis(80), &mut start)
+                .await
+                .is_err()
+        );
+        let pid = peer.ready("opening")["pid"].as_u64().unwrap();
+        if cancel {
+            recorder.cancel().await.unwrap();
+            assert!(start.await.is_err());
+        } else {
+            std::fs::write(peer.path().join("release-pcm"), b"").unwrap();
+            tokio::time::timeout(Duration::from_secs(2), start)
+                .await
+                .unwrap()
+                .unwrap();
+            recorder.cancel().await.unwrap();
+        }
+        recorder.close().await.unwrap();
+        assert!(!path.exists());
+        assert!(!std::path::Path::new(&format!("/proc/{pid}")).exists());
+    }
+}
+
+#[tokio::test]
+async fn input_that_exits_without_pcm_never_becomes_ready() {
+    use mluva_audio::capture::{CaptureRecorder, CaptureStorage};
+    let peer = support::Peer::new(&json!({"pcm_hex":""}));
+    let recorder = CaptureRecorder::new(PipeWireRecorder::new(&peer.executable, None)).unwrap();
+    let path = recorder
+        .prepare_destination(
+            CaptureStorage::Persistent(peer.path().join("recordings")),
+            "capture.wav".into(),
+        )
+        .await
+        .unwrap();
+    assert!(recorder.start(path.clone(), None).await.is_err());
+    recorder.cancel().await.unwrap();
+    recorder.close().await.unwrap();
+    assert!(!path.exists());
 }
 
 #[test]

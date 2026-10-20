@@ -21,6 +21,47 @@ fn children(
         .ok_or_else(|| "invalid accessible children".into())
 }
 
+/// Content-free early exit for a named control, avoiding a full text/tree
+/// snapshot when measuring readiness on the verified private application.
+pub fn named_control(label: &str) -> Result<Value> {
+    let (_, pid) = app_owner()?;
+    let bus = connection(&std::env::var("AT_SPI_BUS_ADDRESS")?)?;
+    let mut queue = VecDeque::new();
+    for (name, path) in children(
+        &bus,
+        "org.a11y.atspi.Registry",
+        "/org/a11y/atspi/accessible/root",
+    )? {
+        if bus_pid(&bus, &name).ok() == Some(pid) {
+            queue.push_back((name, path));
+        }
+    }
+    let mut visited = 0;
+    while let Some((name, path)) = queue.pop_front() {
+        visited += 1;
+        require(visited < 400, "accessible tree exceeds discovery limit")?;
+        let reply = call(
+            &bus,
+            &name,
+            &path,
+            "org.freedesktop.DBus.Properties",
+            "Get",
+            Some(&("org.a11y.atspi.Accessible", "Name").to_variant()),
+        )?;
+        if reply
+            .child_value(0)
+            .as_variant()
+            .and_then(|v| v.get::<String>())
+            .as_deref()
+            == Some(label)
+        {
+            return Ok(json!({"bus":name,"path":path.as_str()}));
+        }
+        queue.extend(children(&bus, &name, &path)?);
+    }
+    Err("named control not yet available".into())
+}
+
 pub fn nodes() -> Result<Value> {
     let (_, pid) = app_owner()?;
     let bus = connection(&std::env::var("AT_SPI_BUS_ADDRESS")?)?;

@@ -115,6 +115,10 @@ pub struct OnnxSpeechClient {
     transcription: tokio::sync::Mutex<()>,
 }
 impl OnnxSpeechClient {
+    pub fn new_session(&self) -> Self {
+        Self::new(self.options.clone())
+    }
+
     pub fn new(options: OnnxOptions) -> Self {
         Self {
             options,

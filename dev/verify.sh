@@ -4,11 +4,15 @@ set -euo pipefail
 umask 077
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 target="$(realpath -m -- "${CARGO_TARGET_DIR:-$root/tmp/native-build}")"
+profile="${MLUVA_VERIFY_PROFILE:-debug}"
+[[ "$profile" == debug || "$profile" == release ]] || exit 2
+binaries="$(realpath -m -- "${MLUVA_VERIFY_BINARIES:-$target/$profile}")"
 usage() {
     cat <<'HELP'
 Usage: dev/verify.sh doctor
        dev/verify.sh smoke <new tmp/evidence-dir> [--expect-working TEXT]
        dev/verify.sh session <new tmp/evidence-dir> -- <command> [args...]
+       MLUVA_VERIFY_PROFILE=release dev/verify.sh performance <new tmp/evidence-dir> [--paced]
 
 Build first (outside the private desktop):
   export CARGO_TARGET_DIR="$PWD/tmp/native-build"
@@ -24,7 +28,7 @@ HELP
 }
 case "${1:---help}" in
     --help|-h) usage; exit 0 ;;
-    doctor|smoke|session) mode="$1"; shift ;;
+    doctor|smoke|session|performance) mode="$1"; shift ;;
     *) usage >&2; exit 2 ;;
 esac
 command -v jq >/dev/null || { echo 'Missing jq (JSON reporting prerequisite)' >&2; exit 3; }
@@ -33,8 +37,15 @@ for dependency in bwrap firefox openbox xdotool xclip xprop rg Xvfb xvfb-run xau
     command -v "$dependency" >/dev/null || missing+=("$dependency")
 done
 for binary in mluva audio-fixture-peer mluva-audio-cleanup examples/mluva_verify; do
-    [[ -x "$target/debug/$binary" ]] || missing+=("$target/debug/$binary")
+    [[ -x "$binaries/$binary" ]] || missing+=("$binaries/$binary")
 done
+if [[ "$mode" == performance ]]; then
+    command -v quickshell >/dev/null || missing+=("quickshell")
+    [[ -x "$binaries/mluva-shell" ]] || missing+=("$binaries/mluva-shell")
+    for module in Commons Ui; do
+        [[ -d "/usr/share/omarchy/shell/$module" ]] || missing+=("Omarchy $module")
+    done
+fi
 if [[ "$mode" == doctor ]] || (( ${#missing[@]} )); then
     printf '%s\n' "${missing[@]}" | jq -Rn --arg target "$target" \
         '[inputs | select(length > 0)] as $missing | {command:"doctor",ok:($missing|length==0),scope:"host prerequisites only; isolation checked inside session",target:$target,missing:$missing}'
@@ -48,7 +59,9 @@ shift
     echo '{"ok":false,"error":"Choose a new evidence directory inside this checkout tmp/"}'
     exit 2
 }
-if [[ "$mode" == smoke ]]; then
+if [[ "$mode" == performance ]]; then
+    (( $# == 0 )) || { [[ $# == 1 && "$1" == --paced ]] || { usage >&2; exit 2; }; }
+elif [[ "$mode" == smoke ]]; then
     (( $# == 0 )) || { [[ $# == 2 && "$1" == --expect-working ]] || { usage >&2; exit 2; }; }
 else
     [[ "${1:-}" == -- && $# -ge 2 ]] || { usage >&2; exit 2; }
@@ -59,9 +72,9 @@ cd -- "$root"
 source_head="$(git rev-parse HEAD)"
 source_dirty=false
 [[ -z "$(git status --porcelain)" ]] || source_dirty=true
-jq -n --arg head "$source_head" --argjson dirty "$source_dirty" \
-    '{source_head:$head,working_tree_dirty:$dirty,build:"Cargo development binary; hashes identify actual inputs"}' > "$evidence/build.json"
-sha256sum "$target/debug/mluva" "$target/debug/examples/mluva_verify" "$target/debug/audio-fixture-peer" > "$evidence/build.sha256"
+jq -n --arg head "$source_head" --argjson dirty "$source_dirty" --arg profile "$profile" \
+    '{source_head:$head,working_tree_dirty:$dirty,profile:$profile,build:"Hashes identify actual input binaries; source head may differ for a preserved baseline"}' > "$evidence/build.json"
+sha256sum "$binaries/mluva" "$binaries/examples/mluva_verify" "$binaries/audio-fixture-peer" > "$evidence/build.sha256"
 # Stamp the caller namespaces before env clearing; the client also proves private
 # PID 1, Xvfb/bus ownership, device absence and path containment independently.
 for boundary in net pid mnt; do
@@ -75,7 +88,7 @@ env -i PATH="$PATH" HOME="$HOME" LC_ALL=C.UTF-8 \
         --tmpfs /home --tmpfs /root --ro-bind "$root" "$root" --bind "$evidence" "$evidence" \
         --dev /dev --tmpfs /run --tmpfs /tmp --proc /proc -- \
     bash "$root/dev/run-isolated-browser.sh" "$evidence" -- \
-    "$target/debug/examples/mluva_verify" run "$mode" "$root" "$target/debug" "$@" \
+    "$binaries/examples/mluva_verify" run "$mode" "$root" "$binaries" "$@" \
     > "$evidence/runner.log" 2>&1
 status=$?
 set -e

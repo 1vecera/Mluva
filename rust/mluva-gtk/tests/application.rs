@@ -86,8 +86,11 @@ fn dictation_editor_navigation_settings_recovery_and_shutdown() {
             transcription_provider: "litellm".into(),
             transcription_base_url: format!("{}/v1", peer.address),
             transcription_api_key_env: "MLUVA_UNUSED_TEST_KEY".into(),
+            // Exercise provider failures at HTTP, including the final fallback,
+            // rather than failing locally because batch recognition has no model.
+            transcription_remote_model: Some("fixture".into()),
             incognito_mode: *scenario == "incognito",
-            welcome_completed: true,
+            welcome_completed: *scenario != "dictation",
             ..Default::default()
         }
         .save(&paths.config.join("config.json"))
@@ -119,6 +122,18 @@ fn dictation_editor_navigation_settings_recovery_and_shutdown() {
         owner.shell.present();
         ui::until(|| owner.capture.page.record_button.get_sensitive());
         if *scenario == "dictation" {
+            assert_eq!(
+                owner.shell.stack.visible_child_name().as_deref(),
+                Some("welcome")
+            );
+            ui::button(&owner.settings.welcome_page, "Continue").emit_clicked();
+            ui::button(&owner.settings.welcome_page, "Open Mluva").emit_clicked();
+            ui::until(|| owner.shell.stack.visible_child_name().as_deref() == Some("capture"));
+            assert!(
+                AppConfig::load(&paths.config.join("config.json"))
+                    .unwrap()
+                    .welcome_completed
+            );
             for widget in ui::widgets(&owner.shell.window) {
                 if let Some(button) = widget.downcast_ref::<gtk::Button>() {
                     assert!(
@@ -332,6 +347,11 @@ fn dictation_editor_navigation_settings_recovery_and_shutdown() {
             requests
                 .iter()
                 .all(|request| request["path"] == "/v1/audio/transcriptions")
+        );
+        assert!(
+            requests
+                .iter()
+                .all(|request| request["fields"]["model"] == "fixture")
         );
         drop(owner);
         drop(app);

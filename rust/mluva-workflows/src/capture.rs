@@ -138,14 +138,18 @@ impl CaptureRecognitionClient {
                     client.directory = directory;
                 }
                 client.preview_enabled = enabled;
-                Ok(RecognitionSession::Batch(client.start(language)))
+                let session = client.start(language);
+                session.set_preview_callback(preview);
+                Ok(RecognitionSession::Batch(session))
             }
             Self::Local(client) => {
                 let mut client = client.as_ref().clone();
                 if let Some(directory) = directory {
                     client.directory = directory;
                 }
-                Ok(RecognitionSession::Batch(client.start(language)))
+                let session = client.start(language);
+                session.set_preview_callback(preview);
+                Ok(RecognitionSession::Batch(session))
             }
         }
     }
@@ -230,6 +234,7 @@ pub struct CaptureSession {
     realtime_client: Option<CaptureRecognitionClient>,
     preview_enabled: AtomicBool,
     preview_callback: std::sync::Mutex<Option<PreviewCallback>>,
+    diagnostic_task: std::sync::Mutex<Option<tokio::task::JoinHandle<()>>>,
     phase: AtomicU8,
     cancellation: CancellationToken,
     state: Mutex<State>,
@@ -274,6 +279,7 @@ impl CaptureSession {
             recorder,
             storage: Mutex::new(Some(storage)),
             realtime_client,
+            diagnostic_task: std::sync::Mutex::new(None),
             phase: AtomicU8::new(CapturePhase::Preparing as u8),
             cancellation: CancellationToken::new(),
             state: Mutex::new(State {
@@ -331,8 +337,7 @@ impl CaptureSession {
     pub fn config(&self) -> &mluva_core::config::AppConfig {
         &self.workflow.config
     }
-    /// Install the owner-thread bridge before provider readiness. As in the
-    /// release, compatible/local previews are polled; realtime also notifies.
+    /// Install the owner-thread bridge before provider readiness.
     pub fn set_preview_callback(&self, callback: PreviewCallback) {
         *self.preview_callback.lock().unwrap() = Some(callback);
     }
@@ -380,6 +385,7 @@ impl CaptureSession {
                 }
                 let _ = self.recorder.cancel().await;
                 let _ = self.recorder.close().await;
+                self.flush_diagnostics().await;
                 self.set_phase(CapturePhase::Failed);
                 Err(CaptureError::Failed(message))
             }
@@ -429,16 +435,7 @@ impl CaptureSession {
                 }
             }
         };
-        self.diagnostic(
-            DiagnosticStage::CaptureReady,
-            DiagnosticProvider::ElevenlabsScribeV2,
-            if state.fallback_reason.is_some() {
-                DiagnosticOutcome::SafeFallback
-            } else {
-                DiagnosticOutcome::Completed
-            },
-            started.elapsed().as_secs_f64(),
-        );
+        let recognition_ready_seconds = started.elapsed().as_secs_f64();
         if self.cancellation.is_cancelled() {
             return Err(String::new());
         }
@@ -453,13 +450,26 @@ impl CaptureSession {
             }) as mluva_audio::recorder::AudioChunkCallback
         });
         state.microphone_requested = true;
-        let recorded = self
-            .recorder
-            .start(
+        let recorded = tokio::select! { biased;
+            _ = self.cancellation.cancelled() => return Err(String::new()),
+            result = self.recorder.start(
                 state.audio_path.clone().expect("prepared destination"),
                 callback,
-            )
-            .await;
+            ) => result,
+        };
+        let microphone_ready_seconds = started.elapsed().as_secs_f64();
+        // Persist content-free timings independently of input/readiness. Normal
+        // terminal paths drain the ordered writes after audio cleanup.
+        self.diagnostic(
+            DiagnosticStage::CaptureReady,
+            DiagnosticProvider::ElevenlabsScribeV2,
+            if state.fallback_reason.is_some() {
+                DiagnosticOutcome::SafeFallback
+            } else {
+                DiagnosticOutcome::Completed
+            },
+            recognition_ready_seconds,
+        );
         self.diagnostic(
             DiagnosticStage::CaptureReady,
             DiagnosticProvider::Pipewire,
@@ -468,7 +478,7 @@ impl CaptureSession {
             } else {
                 DiagnosticOutcome::Failed
             },
-            started.elapsed().as_secs_f64(),
+            microphone_ready_seconds,
         );
         recorded.map_err(|error| error.to_string())?;
         if let Some(session) = &state.realtime {
@@ -527,6 +537,7 @@ impl CaptureSession {
             self.cancel_locked(&mut state).await;
         }
         self.workflow.close().await;
+        self.flush_diagnostics().await;
     }
 
     pub fn request_shutdown(&self) {
@@ -561,6 +572,7 @@ impl CaptureSession {
                 .is_some_and(|session| session.bytes_sent() > 0),
         };
         let _ = self.recorder.close().await;
+        self.flush_diagnostics().await;
         state.audio_path = None;
         state.cancelled = Some(cancelled);
         self.set_phase(CapturePhase::Cancelled);
@@ -649,6 +661,7 @@ impl CaptureSession {
             realtime.cancel_and_wait().await;
         }
         let _ = self.recorder.close().await;
+        self.flush_diagnostics().await;
         self.set_phase(if result.is_ok() {
             CapturePhase::Completed
         } else {
@@ -749,14 +762,26 @@ impl CaptureSession {
             .as_ref()
             .filter(|_| !self.options.incognito)
         {
-            let _ = store.record(
-                &self.identifier,
-                "dictation",
-                stage,
-                provider,
-                outcome,
-                seconds,
-            );
+            let store = store.clone();
+            let identifier = self.identifier.clone();
+            let mut task = self.diagnostic_task.lock().unwrap();
+            let previous = task.take();
+            *task = Some(tokio::spawn(async move {
+                if let Some(previous) = previous {
+                    let _ = previous.await;
+                }
+                let _ = tokio::task::spawn_blocking(move || {
+                    store.record(&identifier, "dictation", stage, provider, outcome, seconds)
+                })
+                .await;
+            }));
+        }
+    }
+
+    async fn flush_diagnostics(&self) {
+        let task = self.diagnostic_task.lock().unwrap().take();
+        if let Some(task) = task {
+            let _ = task.await;
         }
     }
 }
