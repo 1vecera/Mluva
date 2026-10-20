@@ -406,6 +406,10 @@ fn native_account_and_three_device_continuity() {
     native.dispatch(ApplicationAction::Record);
     until(|| native.capture.phase() == Some(CapturePhase::Recording));
     screenshot(&native.shell.window, &evidence.join("native-recording.png"));
+    // Immediate local preview notifications must leave the periodic receiver
+    // update alive; observe provisional words before finalizing the recording.
+    peer.call(json!({"action":"live","text":"Native words stay on this PC."}));
+    assert_eq!(native.capture.phase(), Some(CapturePhase::Recording));
     native.dispatch(ApplicationAction::Record);
     until(|| native.capture.phase().is_none());
     peer.call(json!({"action":"live","text":"Native words stay on this PC."}));
