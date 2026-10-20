@@ -1,6 +1,6 @@
 //! Full-window preference navigation and deep links to the real settings rows.
 
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use adw::prelude::*;
@@ -28,10 +28,14 @@ pub(crate) fn proposed_config(
 
 pub struct SettingsView {
     pub widget: gtk::Box,
-    pub stack: gtk::Stack,
+    pub scroll: gtk::ScrolledWindow,
     navigation: gtk::FlowBox,
+    content: gtk::Box,
     pages: RefCell<Vec<adw::PreferencesPage>>,
+    sections: RefCell<Vec<gtk::Box>>,
     buttons: RefCell<Vec<gtk::ToggleButton>>,
+    current: Cell<usize>,
+    jump_generation: Cell<u64>,
     go_back: Rc<dyn Fn()>,
 }
 
@@ -68,14 +72,25 @@ impl SettingsView {
             .margin_bottom(8)
             .build();
         widget.append(&navigation);
-        let stack = gtk::Stack::builder().vexpand(true).hexpand(true).build();
-        widget.append(&stack);
+        let content = gtk::Box::new(gtk::Orientation::Vertical, 16);
+        content.set_margin_bottom(24);
+        let scroll = gtk::ScrolledWindow::builder()
+            .vexpand(true)
+            .hexpand(true)
+            .hscrollbar_policy(gtk::PolicyType::Never)
+            .child(&content)
+            .build();
+        widget.append(&scroll);
         let view = Rc::new(Self {
             widget,
-            stack,
+            scroll,
             navigation,
+            content,
             pages: RefCell::new(Vec::new()),
+            sections: RefCell::new(Vec::new()),
             buttons: RefCell::new(Vec::new()),
+            current: Cell::new(0),
+            jump_generation: Cell::new(0),
             go_back,
         });
         let weak = Rc::downgrade(&view);
@@ -84,14 +99,52 @@ impl SettingsView {
                 view.close();
             }
         });
+        let weak = Rc::downgrade(&view);
+        view.scroll.vadjustment().connect_value_changed(move |_| {
+            if let Some(view) = weak.upgrade() {
+                view.track_section();
+            }
+        });
         view
     }
 
-    /// Retain one page instance so command search and visible preferences share their state.
+    /// Keep the real pages and rows, but let only the outer viewport scroll.
     pub fn add(self: &Rc<Self>, page: &adw::PreferencesPage) {
-        self.stack.add_named(page, page.name().as_deref());
+        self.insert(page, false);
+    }
+
+    pub fn prepend(self: &Rc<Self>, page: &adw::PreferencesPage) {
+        self.insert(page, true);
+    }
+
+    fn insert(self: &Rc<Self>, page: &adw::PreferencesPage, first: bool) {
+        // PreferencesPage owns a scroller around its groups. Give it its full
+        // natural height instead of nesting independently scrolling pages.
+        let scroller = page_scroller(page.upcast_ref()).expect("PreferencesPage scroll container");
+        scroller.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Never);
+        scroller.set_propagate_natural_height(true);
+        page.set_vexpand(false);
+        let section = gtk::Box::new(gtk::Orientation::Vertical, 0);
+        let heading = gtk::Label::builder()
+            .label(page.title())
+            .xalign(0.0)
+            .wrap(true)
+            .focusable(true)
+            .accessible_role(gtk::AccessibleRole::Heading)
+            .build();
+        heading.add_css_class("title-2");
+        let title = adw::Clamp::builder()
+            .maximum_size(600)
+            .margin_start(24)
+            .margin_end(24)
+            .margin_top(16)
+            .child(&heading)
+            .build();
+        section.append(&title);
+        section.append(page);
         let button = gtk::ToggleButton::builder()
             .label(page.title())
+            .tooltip_text(format!("Jump to {}", page.title()))
             .hexpand(true)
             .build();
         if let Some(first) = self.buttons.borrow().first() {
@@ -99,18 +152,26 @@ impl SettingsView {
         }
         let weak = Rc::downgrade(self);
         let target = page.downgrade();
-        button.connect_toggled(move |button| {
-            if button.is_active()
-                && let (Some(view), Some(page)) = (weak.upgrade(), target.upgrade())
-            {
-                view.stack.set_visible_child(&page);
+        button.connect_clicked(move |_| {
+            if let (Some(view), Some(page)) = (weak.upgrade(), target.upgrade()) {
+                view.set_visible_page(&page);
             }
         });
-        self.pages.borrow_mut().push(page.clone());
-        self.buttons.borrow_mut().push(button.clone());
-        self.navigation.insert(&button, -1);
-        if self.pages.borrow().len() == 1 {
-            button.set_active(true);
+        if first {
+            self.content.prepend(&section);
+            self.pages.borrow_mut().insert(0, page.clone());
+            self.sections.borrow_mut().insert(0, section);
+            self.buttons.borrow_mut().insert(0, button.clone());
+            self.navigation.insert(&button, 0);
+        } else {
+            self.content.append(&section);
+            self.pages.borrow_mut().push(page.clone());
+            self.sections.borrow_mut().push(section);
+            self.buttons.borrow_mut().push(button.clone());
+            self.navigation.insert(&button, -1);
+        }
+        if first || self.pages.borrow().len() == 1 {
+            self.select(0);
         }
     }
 
@@ -118,17 +179,18 @@ impl SettingsView {
         self.pages.borrow().clone()
     }
 
-    pub fn set_visible_page(&self, page: &adw::PreferencesPage) -> bool {
+    pub fn set_visible_page(self: &Rc<Self>, page: &adw::PreferencesPage) -> bool {
         let index = self.pages.borrow().iter().position(|item| item == page);
         let Some(index) = index else {
             return false;
         };
-        self.buttons.borrow()[index].set_active(true);
-        self.stack.set_visible_child(page);
+        let section = self.sections.borrow()[index].clone();
+        self.jump_to(&section, true);
+        self.select(index);
         true
     }
 
-    pub fn set_visible_page_name(&self, name: &str) -> bool {
+    pub fn set_visible_page_name(self: &Rc<Self>, name: &str) -> bool {
         let page = self
             .pages
             .borrow()
@@ -139,11 +201,67 @@ impl SettingsView {
     }
 
     pub fn visible_page(&self) -> Option<adw::PreferencesPage> {
-        self.stack.visible_child()?.downcast().ok()
+        self.pages.borrow().get(self.current.get()).cloned()
     }
 
     pub fn visible_page_name(&self) -> Option<glib::GString> {
-        self.stack.visible_child_name()
+        self.visible_page()?.name()
+    }
+
+    fn select(&self, index: usize) {
+        self.current.set(index);
+        self.buttons.borrow()[index].set_active(true);
+    }
+
+    fn track_section(&self) {
+        let adjustment = self.scroll.vadjustment();
+        let sections = self.sections.borrow();
+        let index = if adjustment.value() > 0.0
+            && adjustment.value() >= adjustment.upper() - adjustment.page_size() - 1.0
+        {
+            sections.len().checked_sub(1)
+        } else {
+            sections.iter().rposition(|section| {
+                section
+                    .compute_bounds(&self.content)
+                    .is_some_and(|bounds| f64::from(bounds.y()) <= adjustment.value() + 24.0)
+            })
+        };
+        if let Some(index) = index {
+            self.select(index);
+        }
+    }
+
+    /// Wait for layout, including expanded rows and settings opened from another page.
+    fn jump_to(self: &Rc<Self>, target: &impl IsA<gtk::Widget>, heading: bool) {
+        let generation = self.jump_generation.get().wrapping_add(1);
+        self.jump_generation.set(generation);
+        let target = target.as_ref().downgrade();
+        let weak = Rc::downgrade(self);
+        self.content.add_tick_callback(move |_, _| {
+            let (Some(view), Some(target)) = (weak.upgrade(), target.upgrade()) else {
+                return glib::ControlFlow::Break;
+            };
+            if view.jump_generation.get() != generation {
+                return glib::ControlFlow::Break;
+            }
+            if !target.is_mapped() || target.height() == 0 {
+                return glib::ControlFlow::Continue;
+            }
+            let Some(bounds) = target.compute_bounds(&view.content) else {
+                return glib::ControlFlow::Break;
+            };
+            if heading {
+                target.child_focus(gtk::DirectionType::TabForward);
+            } else {
+                target.set_focusable(true);
+                target.grab_focus();
+            }
+            let adjustment = view.scroll.vadjustment();
+            let maximum = (adjustment.upper() - adjustment.page_size()).max(0.0);
+            adjustment.set_value((f64::from(bounds.y()) - 16.0).clamp(0.0, maximum));
+            glib::ControlFlow::Break
+        });
     }
 
     pub fn close(&self) {
@@ -151,7 +269,7 @@ impl SettingsView {
     }
 
     /// Expand the original ancestor rows before GTK moves focus and scrolls the selected row.
-    pub fn focus_row(&self, page: &adw::PreferencesPage, row: &impl IsA<gtk::Widget>) {
+    pub fn focus_row(self: &Rc<Self>, page: &adw::PreferencesPage, row: &impl IsA<gtk::Widget>) {
         if !self.set_visible_page(page) {
             return;
         }
@@ -169,12 +287,23 @@ impl SettingsView {
         if let Some(expander) = row.downcast_ref::<adw::ExpanderRow>() {
             expander.set_expanded(true);
         }
-        let target = row.downgrade();
-        glib::idle_add_local_once(move || {
-            if let Some(row) = target.upgrade() {
-                row.set_focusable(true);
-                row.grab_focus();
-            }
-        });
+        self.jump_to(row, false);
     }
+}
+
+/// Find only the page's own container, before descending into preference controls.
+fn page_scroller(widget: &gtk::Widget) -> Option<gtk::ScrolledWindow> {
+    if let Some(scroller) = widget.downcast_ref::<gtk::ScrolledWindow>() {
+        return Some(scroller.clone());
+    }
+    let mut child = widget.first_child();
+    while let Some(widget) = child {
+        if !widget.is::<adw::PreferencesGroup>()
+            && let Some(scroller) = page_scroller(&widget)
+        {
+            return Some(scroller);
+        }
+        child = widget.next_sibling();
+    }
+    None
 }

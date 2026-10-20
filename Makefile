@@ -72,6 +72,10 @@ linux-conversation-test:
 linux-provider-settings-test:
 	bash linux/tests/run_application_smoke.sh providers
 
+.PHONY: linux-settings-test
+linux-settings-test:
+	bash linux/tests/run_application_smoke.sh settings
+
 .PHONY: linux-onboarding-test
 linux-onboarding-test:
 	bash linux/tests/run_application_smoke.sh onboarding

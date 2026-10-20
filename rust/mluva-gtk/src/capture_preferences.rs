@@ -2,10 +2,7 @@
 
 use adw::prelude::*;
 use mluva_audio::catalog::{PipeWireDeviceCatalog, PipeWireDeviceKind};
-use mluva_core::{
-    config::AudioRetentionPolicy,
-    feature_maturity::{self, CAPABILITIES, Maturity},
-};
+use mluva_core::{config::AudioRetentionPolicy, feature_maturity};
 use mluva_workflows::services::{ApplicationServices, InlineSavePolicy};
 use std::{
     cell::{Cell, RefCell},
@@ -86,7 +83,6 @@ pub struct CapturePreferences {
     pub capture: adw::PreferencesPage,
     pub audio: adw::PreferencesPage,
     pub privacy: adw::PreferencesPage,
-    pub maturity: adw::PreferencesPage,
     pub advanced: adw::PreferencesPage,
     pub language: adw::ComboRow,
     pub recording_key: adw::ComboRow,
@@ -244,7 +240,6 @@ impl CapturePreferences {
                 .position(|days| config.history_retention_days.as_i64() == Some(*days))
                 .unwrap_or(0) as u32,
         );
-        let maturity = maturity_page();
         let advanced = page("advanced", "Advanced", "applications-engineering-symbolic");
         let diagnostics = group(&advanced, "Diagnostics", None);
         let export_diagnostics = action_button(
@@ -257,7 +252,6 @@ impl CapturePreferences {
             capture,
             audio,
             privacy,
-            maturity,
             advanced,
             language,
             recording_key,
@@ -289,13 +283,7 @@ impl CapturePreferences {
         owner
     }
     pub fn add_pages(&self, settings: &Rc<SettingsView>) {
-        for page in [
-            &self.capture,
-            &self.audio,
-            &self.privacy,
-            &self.maturity,
-            &self.advanced,
-        ] {
+        for page in [&self.capture, &self.audio, &self.privacy, &self.advanced] {
             settings.add(page);
         }
     }
@@ -747,47 +735,4 @@ fn action_button(
     row.add_suffix(&button);
     group.add(&row);
     button
-}
-fn maturity_page() -> adw::PreferencesPage {
-    let page = page(
-        "feature-maturity",
-        "Feature maturity",
-        "emblem-important-symbolic",
-    );
-    for (maturity, title, description) in [
-        (
-            Maturity::Verified,
-            "Verified on Omarchy",
-            "Part of the daily, end-to-end tested Omarchy workflow. Fedora has not been verified recently.",
-        ),
-        (
-            Maturity::Experimental,
-            "Experimental",
-            "Available for testing, but not yet accepted as reliable. Automated evidence alone does not promote it.",
-        ),
-    ] {
-        let group = group(&page, title, Some(description));
-        for capability in CAPABILITIES
-            .iter()
-            .filter(|capability| capability.maturity == maturity)
-        {
-            let row = adw::ActionRow::builder()
-                .title(capability.title)
-                .subtitle(capability.summary)
-                .build();
-            let badge = gtk::Label::builder()
-                .label(maturity.label())
-                .valign(gtk::Align::Center)
-                .build();
-            badge.add_css_class("vs-maturity-badge");
-            badge.add_css_class(if maturity == Maturity::Verified {
-                "vs-verified"
-            } else {
-                "vs-experimental"
-            });
-            row.add_suffix(&badge);
-            group.add(&row);
-        }
-    }
-    page
 }

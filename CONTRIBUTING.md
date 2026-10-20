@@ -60,6 +60,7 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | Full recording/application and desktop actions | `make linux-application-test` |
 | Conversation editing, navigation and scrolling | `make linux-conversation-test` |
 | Provider preferences and held discovery | `make linux-provider-settings-test` |
+| Continuous settings, section navigation and preference deep links | `make linux-settings-test` (minimum, narrow and wide private sessions) |
 | First-run speech and appearance setup | `make linux-onboarding-test`; provider suite covers downloads/readiness |
 | Screenshot context and real editor narration | `make linux-screenshot-test` |
 | Exact-target paste / widget | `make linux-text-target-test` / `make linux-omarchy-test` |

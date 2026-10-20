@@ -46,7 +46,7 @@ pub struct ApplicationSettings {
 }
 
 impl ApplicationSettings {
-    /// Searchable preference pages exclude informational maturity rows.
+    /// Search uses the same preference rows as the continuous settings page.
     pub(crate) fn command_pages(&self) -> [adw::PreferencesPage; 6] {
         [
             self.workspace.widget.clone(),

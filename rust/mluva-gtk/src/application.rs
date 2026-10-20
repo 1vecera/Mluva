@@ -281,7 +281,7 @@ impl ApplicationDesktop {
             workspace.clone(),
             bind!(link, |app| app.history_changed()),
         );
-        settings.view.add(&account.page);
+        settings.view.prepend(&account.page);
         account
             .status
             .bind_property("label", &shell.sync_button, "tooltip-text")

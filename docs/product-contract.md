@@ -32,6 +32,8 @@ Explicit screenshots belong to the recording or selected conversation. The Omarc
 
 Settings and saved work use the XDG config/data directories with owner-only state. History retains raw recognition and completed working versions, instructions, provider/model metadata and timestamps. Search covers saved conversations. Markdown and JSON exports contain raw recognition, saved source and completed replies.
 
+Settings form one continuous page, with Account & devices first. The section selector jumps within that page and follows scrolling; command search expands and focuses the original preference row. Feature maturity has no settings section. Removing that informational section changes no feature availability, defaults or saved preferences.
+
 Audio retention follows the selected policy. Recognition failures can retain recovery audio when allowed; retry validates that it belongs to managed storage and produces a preview without automatic copying or insertion. Deletion and retention pruning also remove associated conversations and replies. Path ownership checks prevent arbitrary files from being adopted as recovery audio.
 
 Sidebar actions rename, merge or delete saved conversations; clicking a chat title edits it in place. Merging preserves immutable originals and saved replies, combines the current working versions in the selected order, and keeps one sidebar entry under the destination title. Original recordings remain in History and exports. Confirmation is required for merge and deletion; deletion and retention cover the complete combined conversation. These local actions do not invoke a provider or copy text.
