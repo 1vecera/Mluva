@@ -8,6 +8,7 @@ The normal native dependencies and [isolated desktop prerequisites](README.md#is
 
 ```sh
 export CARGO_TARGET_DIR="$PWD/tmp/native-build"
+export CARGO_BUILD_JOBS=2
 cargo build --locked -p mluva-gtk --bin mluva --example mluva_verify \
   -p mluva-audio --bin audio-fixture-peer --bin mluva-audio-cleanup
 bash dev/verify.sh doctor
@@ -59,7 +60,7 @@ The CLI emits JSON. Its commands cover `launch`, `discover`, `state`, `action`, 
 Build optimized binaries outside the private session. Quickshell and the installed Omarchy `Commons`/`Ui` modules are additional prerequisites:
 
 ```sh
-CARGO_TARGET_DIR="$PWD/tmp/native-build" cargo build --locked --release \
+CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR="$PWD/tmp/native-build" cargo build --locked --release \
   -p mluva-gtk --bin mluva --example mluva_verify \
   -p mluva-audio --bin audio-fixture-peer --bin mluva-audio-cleanup \
   -p mluva-shell --bin mluva-shell
@@ -72,6 +73,8 @@ Each run launches the actual app twice: a fresh private profile, then the same p
 `session.*/performance.json` retains every sample. Startup measurements distinguish bus ownership, mapped X11 window and externally observed sensitive/showing Dictate control. Capture measurements distinguish saved PCM, preparing/recording status, provider response, widget visibility and two Qt frame swaps after the words update. The extra swap excludes an in-flight preceding frame on Qt's threaded renderer; this is a rendering upper bound, not an optical first-pixel measurement. The observer uses the production widget and bridge. Observation adds polling, IPC and scheduling overhead; the usable-control endpoint includes bounded accessibility discovery. No host caches are dropped, so fresh-profile starts are not machine-boot/filesystem-cold measurements. These results establish neither physical microphone/Wayland timing nor live speech-provider latency.
 
 For comparisons, preserve baseline binaries in a separate directory containing `mluva`, `mluva-shell`, `mluva-audio-cleanup`, `audio-fixture-peer` and `examples/mluva_verify`, and select it with `MLUVA_VERIFY_BINARIES`. Use the same observer/fixture and resources for both sides; retain their hashes and source identities. Alternate baseline/candidate order across independent sessions, separate fresh/warm starts and first/repeated captures, retain warmups but exclude them from summaries, and finish compilation before collecting timings. The runner records binary hashes; its working-tree commit alone does not identify a preserved baseline.
+
+The [20 October capture/startup report](../docs/verification/instant-listening/README.md) retains the complete paired dataset, exact binary identities, checks and limits. It demonstrates lower local capture/preview latency; startup improvement was inconclusive.
 
 ## Feature map
 
@@ -96,4 +99,4 @@ The fixture replaces the physical microphone with the existing deterministic PCM
 
 The runner clears inherited environment values and uses private HOME/XDG directories, display, D-Bus, accessibility, network, PID and device namespaces. Only the new evidence directory is writable through the outer filesystem boundary. Cleanup is confined to the run's processes; the evidence directory is retained. The in-session CLI refuses an unverified environment or application owner.
 
-Passing this journey does not establish physical microphone quality, F8/F9/F10 delivery, real sign-in, paid speech providers, live Wayland permissions or insertion into other applications. It makes no new performance claim. Keep using the [functional checklist](../docs/functional-checklist.md) and required native checks for those distinct scopes.
+Passing this journey does not establish physical microphone quality, F8/F9/F10 delivery, real sign-in, paid speech providers, live Wayland permissions or insertion into other applications. The smoke alone makes no performance claim. Keep using the [functional checklist](../docs/functional-checklist.md) and required native checks for those distinct scopes.
