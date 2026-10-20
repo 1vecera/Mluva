@@ -128,7 +128,8 @@ pub(super) async fn apply(
         return Err("A selected key already belongs to another Hyprland binding. Choose a free key in Settings → Capture.".into());
     }
     let lua = script(&desired);
-    let response = command(&["eval", &lua]).await?;
+    // A leading Lua comment looks like an option to hyprctl's argument parser.
+    let response = command(&["eval", &format!("do\n{lua}\nend")]).await?;
     if response.trim() != "ok" {
         return Err("Hyprland could not apply Mluva's shortcut bindings.".into());
     }
