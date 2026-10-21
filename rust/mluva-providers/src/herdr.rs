@@ -481,7 +481,7 @@ mod tests {
             agent(
                 "w1:p1",
                 "codex",
-                "dispatch-4193f110",
+                "dispatch-01",
                 json!("Lockdown check | project"),
                 codex("codex-a")
             ),
