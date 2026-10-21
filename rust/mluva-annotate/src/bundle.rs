@@ -107,7 +107,7 @@ fn data(
         .iter()
         .map(|frame| {
             json!({"t": frame.t, "screen": frame.screen, "reason": frame.reason,
-                "width": frame.width, "height": frame.height, "window": frame.window})
+                "width": frame.width, "height": frame.height, "windows": frame.windows})
         })
         .collect();
     let keyframes: Vec<_> = keyframes

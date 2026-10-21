@@ -29,7 +29,7 @@ fn frame(directory: &Path, name: &str, shade: f64, t: u64) -> Frame {
         width: 1920,
         height: 1080,
         luma: render::luma(&mut loaded),
-        window: None,
+        windows: vec![],
     }
 }
 

@@ -24,7 +24,7 @@ The optional Tensaku 0.29.0 editor is distributed under MPL-2.0. Its upstream [l
 
 ## Adapted screen annotation logic
 
-Screen annotation's mark classification (`rust/mluva-annotate/src/sketch.rs`), clause alignment (`timing.rs`) and spoken-cue, novelty and scoring rules (`keyframes.rs`) are adapted from [Scrawl](https://github.com/kitlangton/scrawl) by Kit Langton, © 2026, under the MIT license, at commit [`f2ad4e8c`](https://github.com/kitlangton/scrawl/tree/f2ad4e8c75b6cc6171c38d85cd8755e4d9fe03fe). The ported files keep the notice in their headers; the full [license](rust/mluva-annotate/resources/scrawl-LICENSE) and [provenance](rust/mluva-annotate/resources/README.md) stay with the source, and native packages carry it as `third-party-licenses/scrawl/LICENSE`.
+Screen annotation's mark classification (`rust/mluva-annotate/src/sketch.rs`), clause alignment (`timing.rs`), spoken-cue, novelty and scoring rules (`keyframes.rs`) and keyframe budget, clock format and mark shapes (`model.rs`) are adapted from [Scrawl](https://github.com/kitlangton/scrawl) by Kit Langton, © 2026, under the MIT license, at commit [`f2ad4e8c`](https://github.com/kitlangton/scrawl/tree/f2ad4e8c75b6cc6171c38d85cd8755e4d9fe03fe). The ported files keep the notice in their headers; the full [license](rust/mluva-annotate/resources/scrawl-LICENSE) and [provenance](rust/mluva-annotate/resources/README.md) stay with the source, and native packages carry it as `third-party-licenses/scrawl/LICENSE`.
 
 ## Bundled diagram renderer
 

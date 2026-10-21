@@ -418,7 +418,7 @@ mod tests {
             width: 1920,
             height: 1080,
             luma: vec![shade; THUMB_PIXELS],
-            window: None,
+            windows: vec![],
         }
     }
     fn line(t0: u64, y: f32) -> Stroke {

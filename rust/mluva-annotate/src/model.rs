@@ -1,5 +1,9 @@
 //! What one annotated recording captured, on the recording clock (milliseconds since capture
 //! started). Coordinates are logical pixels local to the screen they were drawn on.
+//!
+//! The keyframe budget, clock format and mark shapes are adapted from Scrawl's `src/model.rs` at
+//! f2ad4e8c75b6cc6171c38d85cd8755e4d9fe03fe. Copyright (c) 2026 Kit Langton. MIT License; see
+//! `resources/scrawl-LICENSE`.
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -98,7 +102,15 @@ pub enum FrameReason {
     Window,
 }
 
-/// A captured screen image. `path` is a private PNG owned by the capture until the bundle
+/// A window's box on one screen when a frame was taken, logical pixels `[x0, y0, x1, y1]`.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct WindowBox {
+    pub rect: [f32; 4],
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub active: bool,
+}
+
+/// A captured screen image. `path` is a private image owned by the capture until the bundle
 /// is written; `luma` is a small grey thumbnail used to compare screens.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Frame {
@@ -110,18 +122,18 @@ pub struct Frame {
     pub height: u32,
     #[serde(skip)]
     pub luma: Vec<f32>,
-    /// The active window's box on this screen, logical pixels, when the compositor reported it.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub window: Option<[f32; 4]>,
+    /// Every visible window on this screen when the compositor reported them; no titles.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub windows: Vec<WindowBox>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ScreenEvent {
+    /// The window class only; titles are never kept.
     Window {
         t: u64,
         class: String,
-        title: String,
     },
     Workspace {
         t: u64,
