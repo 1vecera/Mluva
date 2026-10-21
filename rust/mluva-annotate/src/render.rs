@@ -187,14 +187,29 @@ pub fn keyframe(
     );
     let fit = (MAX_EDGE / pw.max(ph)).min(1.0);
     let (ow, oh) = ((pw * fit).round().max(1.0), (ph * fit).round().max(1.0));
-    let output = ImageSurface::create(Format::Rgb24, ow as i32, oh as i32)?;
+    // The badge sits in a strip above the frame, so it never hides what was marked.
+    let strip = strip_height(oh);
+    let output = ImageSurface::create(Format::Rgb24, ow as i32, (oh + strip) as i32)?;
     let cr = Context::new(&output)?;
+    cr.set_source_rgb(0.12, 0.12, 0.12);
+    cr.paint()?;
+    badge(
+        &cr,
+        &format!("#{} {}", keyframe.index, format_clock(keyframe.t)),
+        strip,
+    )?;
+    cr.translate(0.0, strip);
     cr.save()?;
+    cr.rectangle(0.0, 0.0, ow, oh);
+    cr.clip();
     cr.scale(fit, fit);
     cr.set_source_surface(source, -px, -py)?;
     cr.source().set_filter(cairo::Filter::Good);
     cr.paint()?;
     cr.restore()?;
+    // Ink outside the crop stays out of the badge strip.
+    cr.rectangle(0.0, 0.0, ow, oh);
+    cr.clip();
     // Logical screen pixels to output pixels.
     let to = |x: f32, y: f32| ((x as f64 * sx - px) * fit, (y as f64 * sy - py) * fit);
     let unit = sx * fit;
@@ -213,11 +228,6 @@ pub fn keyframe(
             ink(&cr, stroke, &to, unit)?;
         }
     }
-    badge(
-        &cr,
-        &format!("#{} {}", keyframe.index, format_clock(keyframe.t)),
-        oh,
-    )?;
     drop(cr);
     Ok(output)
 }
@@ -276,26 +286,32 @@ fn pin(cr: &Context, x: f64, y: f64, unit: f64, number: u32) -> Result<(), Rende
     Ok(())
 }
 
-fn badge(cr: &Context, text: &str, height: f64) -> Result<(), RenderError> {
-    let size = (height * 0.03).clamp(14.0, 28.0);
+fn strip_height(frame_height: f64) -> f64 {
+    (frame_height * 0.05).clamp(30.0, 44.0).round()
+}
+
+/// `text` in a light rounded badge, vertically centred in a strip `strip` pixels high.
+fn badge(cr: &Context, text: &str, strip: f64) -> Result<(), RenderError> {
+    let size = (strip * 0.5).round();
     let layout = pangocairo::functions::create_layout(cr);
     let mut font = pango::FontDescription::from_string("Monospace Bold");
     font.set_absolute_size(size * pango::SCALE as f64);
     layout.set_font_description(Some(&font));
     layout.set_text(text);
     let (_, extent) = layout.pixel_extents();
-    let (pad, margin) = (size * 0.45, size * 0.6);
+    let pad = size * 0.45;
     let (w, h) = (
         extent.width() as f64 + 2.0 * pad,
-        extent.height() as f64 + 2.0 * pad * 0.7,
+        extent.height() as f64 + pad,
     );
-    rounded(cr, margin, margin, w, h, size * 0.35);
-    cr.set_source_rgba(0.07, 0.07, 0.07, 0.82);
+    let (x, y) = (size * 0.5, ((strip - h) / 2.0).max(0.0));
+    rounded(cr, x, y, w, h, size * 0.3);
+    cr.set_source_rgb(INK.0, INK.1, INK.2);
     cr.fill()?;
     cr.set_source_rgb(1.0, 1.0, 1.0);
     cr.move_to(
-        margin + pad - extent.x() as f64,
-        margin + pad * 0.7 - extent.y() as f64,
+        x + pad - extent.x() as f64,
+        y + pad * 0.5 - extent.y() as f64,
     );
     pangocairo::functions::show_layout(cr, &layout);
     Ok(())

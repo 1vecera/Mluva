@@ -115,7 +115,6 @@ impl Overlay {
     pub fn new(monitor: &gdk::Monitor, screen: &str, motion: Motion) -> Option<Rc<Self>> {
         let window = gtk::Window::builder()
             .decorated(false)
-            .resizable(false)
             .can_focus(false)
             .focusable(false)
             .title("Mluva screen annotation")

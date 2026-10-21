@@ -673,6 +673,10 @@ impl AnnotationSession {
             })
             .collect();
         capture.frames.retain(|frame| frame.path.is_file());
+        // Shift held for a capital while the pointer drifts a little is typing, not a mark.
+        capture
+            .strokes
+            .retain(|stroke| stroke.pin.is_some() || drawn(stroke));
         capture
     }
 }
@@ -683,6 +687,14 @@ impl Drop for AnnotationSession {
         // EOF tells the watchdog to remove this session's bindings again and its frames.
         self.watchdog.borrow_mut().take();
     }
+}
+
+/// Strokes smaller than this, in logical pixels, are pointer drift rather than ink.
+const MIN_STROKE: f32 = 14.0;
+
+fn drawn(stroke: &Stroke) -> bool {
+    let b = mluva_annotate::sketch::bounds(&stroke.xy());
+    (b[2] - b[0]).hypot(b[3] - b[1]) >= MIN_STROKE
 }
 
 /// Outputs as GTK sees them, for compositors without Hyprland's IPC. The first is treated as
@@ -779,4 +791,29 @@ pub fn run_cleanup(directory: &Path, token: &str) -> i32 {
         let _ = std::fs::remove_dir_all(directory);
     }
     0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn stroke(points: &[(f32, f32)]) -> Stroke {
+        Stroke {
+            t0: 0,
+            t1: 10,
+            screen: "DP-1".into(),
+            pin: None,
+            points: points
+                .iter()
+                .map(|&(x, y)| StrokePoint { x, y, t: 0 })
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn pointer_drift_while_typing_a_capital_is_not_ink() {
+        assert!(!drawn(&stroke(&[(100.0, 100.0)])));
+        assert!(!drawn(&stroke(&[(100.0, 100.0), (108.0, 106.0)])));
+        assert!(drawn(&stroke(&[(100.0, 100.0), (130.0, 100.0)])));
+    }
 }

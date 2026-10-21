@@ -25,6 +25,10 @@ const NOVELTY: f32 = 0.03;
 const SCENE_CHANGE: f32 = 0.08;
 /// Marks share a keyframe while their screen changed by less than this.
 const SAME_SCREEN: f32 = 0.05;
+/// Marks share a keyframe only when drawn as one gesture: each begun within this long of the
+/// previous one ending. Separate gestures keep separate keyframes, so each is matched to the
+/// words said while it was drawn. (Scrawl groups every mark on an unchanged screen.)
+const GESTURE_GAP_MS: u64 = 2_500;
 /// A group of marks closes past this span or this many strokes, so one frame stays legible.
 const GROUP_MS: u64 = 20_000;
 const GROUP_STROKES: usize = 12;
@@ -137,8 +141,9 @@ fn frame_near(
         .or_else(|| on.first().copied())
 }
 
-/// Marks in drawing order, grouped while drawn on one unchanged screen with no window change
-/// between them; then neighbours merge, most alike first, until they fit `budget`.
+/// Marks in drawing order, grouped while drawn as one gesture on one unchanged screen with no
+/// window change between them; then neighbours merge, most alike first, until they fit `budget`.
+/// Each mark's frame is the clean one taken as it began.
 fn group_marks(
     capture: &Capture,
     order: &[usize],
@@ -148,7 +153,7 @@ fn group_marks(
     let frames = &capture.frames;
     let at: Vec<Option<usize>> = marks
         .iter()
-        .map(|mark| frame_near(frames, order, &mark.screen, mark.t1, 2_000))
+        .map(|mark| frame_near(frames, order, &mark.screen, mark.t0, 2_000))
         .collect();
     let diff = |a: Option<usize>, b: Option<usize>| match (a, b) {
         (Some(a), Some(b)) => screen_diff(&frames[a].luma, &frames[b].luma),
@@ -168,6 +173,7 @@ fn group_marks(
             let strokes: usize = group.iter().map(|&j| marks[j].strokes.len()).sum();
             if marks[last].screen == mark.screen
                 && !changed_between(marks[last].t1, mark.t0)
+                && mark.t0.saturating_sub(marks[last].t1) <= GESTURE_GAP_MS
                 && mark.t1.saturating_sub(first.t0) <= GROUP_MS
                 && strokes + mark.strokes.len() <= GROUP_STROKES
                 && diff(at[last], at[i]) < SAME_SCREEN
@@ -499,6 +505,36 @@ mod tests {
         assert_eq!(keyframes.len(), MAX_KEYFRAMES);
         let shown: usize = keyframes.iter().map(|k| k.marks.len()).sum();
         assert_eq!(shown, 16);
+    }
+
+    #[test]
+    fn separate_gestures_on_one_screen_keep_their_own_keyframes_and_words() {
+        // One unchanged screen: a two-stroke gesture, then a separate mark five seconds later.
+        let frames = vec![
+            frame(1_000, 0.4, FrameReason::Mark),
+            frame(2_000, 0.4, FrameReason::Mark),
+            frame(7_000, 0.4, FrameReason::Mark),
+        ];
+        let strokes = vec![line(1_000, 100.0), line(2_000, 140.0), line(7_000, 500.0)];
+        let timed = transcript(
+            "This header is wrong. And this footer overlaps.",
+            None,
+            &[(3_000, 4), (9_000, 8)],
+            10_000,
+        );
+        let (marks, keyframes) = select(&capture(frames, strokes, 10_000), &timed);
+        assert_eq!(marks.len(), 2, "quick strokes form one mark");
+        let groups: Vec<_> = keyframes.iter().map(|k| k.marks.clone()).collect();
+        assert_eq!(groups, [vec![0], vec![1]]);
+        assert_eq!(
+            keyframes[0].t, 1_000,
+            "a mark uses the frame taken as it began"
+        );
+        assert_eq!(keyframes[0].said.as_deref(), Some("This header is wrong."));
+        assert_eq!(
+            keyframes[1].said.as_deref(),
+            Some("And this footer overlaps.")
+        );
     }
 
     #[test]
