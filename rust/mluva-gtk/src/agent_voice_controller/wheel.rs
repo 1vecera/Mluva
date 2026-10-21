@@ -45,8 +45,9 @@ impl AgentVoiceController {
         if !self.wheel.overlay {
             self.wheel.window.set_transient_for(Some(parent));
         }
+        // Fill the wheel before it maps, so a window manager places it at its real size.
+        self.fill_wheel();
         self.wheel.window.present();
-        self.render_wheel();
         self.wheel.record.grab_focus();
         self.refresh();
     }
@@ -93,23 +94,26 @@ impl AgentVoiceController {
     }
     pub(super) fn render_wheel(&self) {
         if self.wheel.window.is_visible() {
-            let agent_key = self
-                .approved_key
-                .borrow()
-                .clone()
-                .unwrap_or_else(|| self.settings.borrow().hold_key.clone());
-            let transcript_key = self
-                .page
-                .shortcut_state()
-                .recording_trigger
-                .unwrap_or_else(|| self.services.config().global_recording_key);
-            self.wheel.update(
-                &self.recipients.borrow(),
-                self.selected(),
-                &agent_key,
-                &transcript_key,
-            );
+            self.fill_wheel();
         }
+    }
+    fn fill_wheel(&self) {
+        let agent_key = self
+            .approved_key
+            .borrow()
+            .clone()
+            .unwrap_or_else(|| self.settings.borrow().hold_key.clone());
+        let transcript_key = self
+            .page
+            .shortcut_state()
+            .recording_trigger
+            .unwrap_or_else(|| self.services.config().global_recording_key);
+        self.wheel.update(
+            &self.recipients.borrow(),
+            self.selected(),
+            &agent_key,
+            &transcript_key,
+        );
     }
     pub(super) fn bind_wheel(self: &Rc<Self>) {
         for (slot, button) in self.wheel.choices.iter().enumerate() {
