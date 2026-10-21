@@ -46,6 +46,8 @@ pub struct AgentVoiceController {
     callbacks: AgentVoiceCallbacks,
     recipients: RefCell<Vec<Recipient>>,
     editor: RefCell<Option<crate::markdown_view::MarkdownTextView>>,
+    /// The screen annotation summary of the recording whose draft is in the editor.
+    draft_appendix: RefCell<Option<String>>,
     voice_error: RefCell<Option<String>>,
     syncing: Cell<bool>,
     polling: Cell<bool>,
@@ -100,6 +102,7 @@ impl AgentVoiceController {
             callbacks,
             recipients: RefCell::new(vec![]),
             editor: RefCell::new(None),
+            draft_appendix: RefCell::new(None),
             voice_error: RefCell::new(None),
             syncing: Cell::new(false),
             polling: Cell::new(false),
@@ -192,15 +195,7 @@ impl AgentVoiceController {
         let weak = Rc::downgrade(self);
         self.view.copy_draft.connect_clicked(move |_| {
             if let Some(owner) = weak.upgrade() {
-                let history = owner
-                    .route
-                    .borrow()
-                    .attempt
-                    .as_ref()
-                    .and_then(|a| a.history_id.clone());
-                (owner.callbacks.copy)(
-                    &owner.with_annotations(owner.draft_text(), history.as_deref()),
-                );
+                (owner.callbacks.copy)(&owner.with_annotation(owner.draft_text()));
             }
         });
         let weak = Rc::downgrade(self);
@@ -347,26 +342,10 @@ impl AgentVoiceController {
             .as_ref()
             .map_or_else(String::new, |editor| editor.text())
     }
-    /// A draft keeps the screen annotation its recording delivered: its summaries follow the
-    /// edited text, as they followed the transcript.
-    fn with_annotations(&self, text: String, history: Option<&str>) -> String {
-        let Some(history) = history else {
-            return text;
-        };
-        let store =
-            mluva_core::annotations::AnnotationStore::new(&self.services.history.database.path);
-        let summaries: Vec<String> = store
-            .recent(history, false)
-            .unwrap_or_default()
-            .iter()
-            .filter_map(|bundle| store.summary(&bundle.identifier).ok().flatten())
-            .map(|summary| summary.trim_end().to_owned())
-            .filter(|summary| !summary.is_empty())
-            .collect();
-        if summaries.is_empty() {
-            return text;
-        }
-        mluva_workflows::dictation::with_appendix(&text, Some(&summaries.join("\n\n")))
+    /// A draft keeps the screen annotation its own recording delivered, never the summaries
+    /// of earlier recordings on a continued or merged conversation.
+    fn with_annotation(&self, text: String) -> String {
+        mluva_workflows::dictation::with_appendix(&text, self.draft_appendix.borrow().as_deref())
     }
     pub fn save_draft(&self) -> bool {
         let history = self
@@ -414,7 +393,7 @@ impl AgentVoiceController {
         if !self.save_draft() {
             return;
         }
-        let text = self.with_annotations(self.draft_text(), history.as_deref());
+        let text = self.with_annotation(self.draft_text());
         if let Ok(id) = self.begin() {
             self.route.borrow_mut().release(now());
             self.route
@@ -462,10 +441,24 @@ impl AgentVoiceController {
             .as_ref()
             .is_some_and(|a| a.id == id && a.phase == RoutePhase::Recording)
     }
-    pub fn completed(self: &Rc<Self>, id: &str, text: &str, history: Option<String>) {
-        if !self.route.borrow_mut().recognized(id, text, history, now()) {
+    /// Final recognition for an attempt; `appendix` is its recording's annotation summary,
+    /// sent after the text and kept for the draft.
+    pub fn completed(
+        self: &Rc<Self>,
+        id: &str,
+        text: &str,
+        history: Option<String>,
+        appendix: Option<String>,
+    ) {
+        let message = mluva_workflows::dictation::with_appendix(text, appendix.as_deref());
+        if !self
+            .route
+            .borrow_mut()
+            .recognized(id, &message, history, now())
+        {
             return;
         }
+        self.draft_appendix.replace(appendix);
         self.attach_editor(id);
         self.render();
     }

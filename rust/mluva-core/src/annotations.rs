@@ -159,6 +159,37 @@ impl AnnotationStore {
         Ok(Some(text))
     }
 
+    /// Whether a bundle was written to the end: its summary exists, which is written last, and
+    /// every keyframe its data lists is a regular file inside the bundle.
+    pub fn is_complete(&self, identifier: &str) -> bool {
+        let Ok(directory) = self.path_for(identifier) else {
+            return false;
+        };
+        let regular = |path: &Path| {
+            fs::symlink_metadata(path).is_ok_and(|metadata| metadata.file_type().is_file())
+        };
+        if !regular(&directory.join("summary.md")) {
+            return false;
+        }
+        let Ok(data) = fs::read(directory.join("annotation.json")) else {
+            return false;
+        };
+        let Ok(data) = serde_json::from_slice::<serde_json::Value>(&data) else {
+            return false;
+        };
+        let Some(keyframes) = data["keyframes"].as_array().filter(|k| !k.is_empty()) else {
+            return false;
+        };
+        keyframes.iter().all(|keyframe| {
+            keyframe["file"].as_str().is_some_and(|file| {
+                let relative = Path::new(file);
+                relative.components().count() == 2
+                    && relative.starts_with("frames")
+                    && regular(&directory.join(relative))
+            })
+        })
+    }
+
     pub fn bind_capture(&self, capture: &str, conversation: &str) -> StoreResult<()> {
         let mut connection = self.database.connect()?;
         let transaction = connection.transaction()?;

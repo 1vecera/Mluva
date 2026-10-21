@@ -436,6 +436,7 @@ impl ApplicationDesktop {
         if let Some(message) = annotation_error {
             owner.shell.show_message(message);
         }
+        owner.clean_annotation_leftovers();
         owner.adapt(owner.shell.window.width() > 0 && owner.shell.window.width() <= 736);
         owner.initialize_services(true);
         owner

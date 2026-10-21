@@ -66,10 +66,19 @@ pub struct AgentShortcutCallbacks {
 
 /// Screen annotation registers two keyless actions; temporary Hyprland bindings trigger them only
 /// while an annotated recording runs. `ink` receives press (true) and release (false).
+/// `registered` reports whether this portal session approved both actions: Hyprland bindings
+/// that dispatch to unregistered actions would swallow every Shift-click.
 #[derive(Clone)]
 pub struct AnnotationShortcutCallbacks {
     pub ink: Rc<dyn Fn(bool)>,
     pub pin: Rc<dyn Fn()>,
+    pub registered: Rc<dyn Fn(bool)>,
+}
+
+fn annotation_registered(bound: &[BoundShortcut]) -> bool {
+    [ANNOTATE_INK, ANNOTATE_PIN]
+        .iter()
+        .all(|id| bound.iter().any(|shortcut| shortcut.id == *id))
 }
 
 #[derive(Clone)]
@@ -169,6 +178,12 @@ impl GlobalShortcutService {
         *self.session.borrow_mut() = Some(session.clone());
         match session.connect().await {
             Ok(mut bound) => {
+                // The portal's own approval, before managed Hyprland keys replace the list.
+                if let Some(annotation) = &self.callbacks.annotation
+                    && !self.closing.get()
+                {
+                    (annotation.registered)(annotation_registered(&bound));
+                }
                 match hyprland::apply(key, &self.callbacks).await {
                     Ok(Some(native)) => bound = native,
                     Ok(None) => {}
@@ -183,6 +198,9 @@ impl GlobalShortcutService {
                 session.close().await;
                 if !self.closing.get() {
                     (self.callbacks.error)(&error.0);
+                    if let Some(annotation) = &self.callbacks.annotation {
+                        (annotation.registered)(false);
+                    }
                 }
                 let mut current = self.session.borrow_mut();
                 if current

@@ -16,6 +16,7 @@ const PULSE: Duration = Duration::from_millis(450);
 const CSS: &str = "window.ml-ink-overlay, window.ml-ink-overlay > * { background: transparent; box-shadow: none; }";
 
 struct Line {
+    id: u64,
     points: Vec<(f64, f64)>,
     released: Option<Instant>,
     /// Hidden until its clean frame has been captured.
@@ -26,6 +27,7 @@ struct Line {
 struct Painting {
     lines: Vec<Line>,
     pulses: Vec<(f64, f64, Instant)>,
+    next: u64,
 }
 impl Painting {
     fn expire(&mut self, now: Instant) {
@@ -233,12 +235,18 @@ impl Overlay {
         painting.visible()
     }
 
-    pub fn begin(&self) {
-        self.painting.borrow_mut().lines.push(Line {
+    /// Start a hidden line; `reveal` with the returned id shows it.
+    pub fn begin(&self) -> u64 {
+        let mut painting = self.painting.borrow_mut();
+        painting.next += 1;
+        let id = painting.next;
+        painting.lines.push(Line {
+            id,
             points: vec![],
             released: None,
             held: true,
         });
+        id
     }
 
     pub fn point(&self, x: f64, y: f64) {
@@ -255,9 +263,15 @@ impl Overlay {
         self.area.queue_draw();
     }
 
-    /// Show the open line once its clean frame exists.
-    pub fn reveal(&self) {
-        for line in self.painting.borrow_mut().lines.iter_mut() {
+    /// Show one line once its own clean frame exists; other held lines stay hidden.
+    pub fn reveal(&self, id: u64) {
+        for line in self
+            .painting
+            .borrow_mut()
+            .lines
+            .iter_mut()
+            .filter(|line| line.id == id)
+        {
             line.held = false;
         }
         self.area.queue_draw();

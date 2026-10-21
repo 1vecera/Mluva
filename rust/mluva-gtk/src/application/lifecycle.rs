@@ -606,11 +606,12 @@ impl ApplicationDesktop {
                     .disarm(mluva_core::agent_voice::DraftReason::Interrupted);
             }
             // The agent receives the transcript and any annotation summary as one message.
-            let message = mluva_workflows::dictation::with_appendix(
+            self.agent_voice.completed(
+                attempt,
                 &result.transcription.text,
-                result.delivery_appendix.as_deref(),
+                id,
+                result.delivery_appendix.clone(),
             );
-            self.agent_voice.completed(attempt, &message, id);
             return;
         }
         self.idle();

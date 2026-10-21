@@ -2,6 +2,7 @@
 //! annotated, and read-only IPC for pointer, outputs, the active window and focus events.
 use serde_json::Value;
 use std::{
+    future::Future,
     path::PathBuf,
     process::Stdio,
     time::{Duration, Instant},
@@ -26,7 +27,7 @@ pub fn valid_token(token: &str) -> bool {
 pub fn add_script(token: &str) -> String {
     assert!(valid_token(token));
     format!(
-        "for _, owned in pairs(_G.mluva_annotation or {{}}) do for _, binding in ipairs(owned) do binding:remove() end end\n\
+        "{REMOVE_ALL}\
 _G.mluva_annotation = {{ [\"{token}\"] = {{\n\
   hl.bind(\"Shift_L\", hl.dsp.global(\"{APP}:{INK}\"), {{ non_consuming = true, ignore_mods = true, description = \"{DESCRIPTION}{INK}\" }}),\n\
   hl.bind(\"SHIFT + mouse:272\", hl.dsp.global(\"{APP}:{PIN}\"), {{ description = \"{DESCRIPTION}{PIN}\" }}),\n\
@@ -95,41 +96,84 @@ fn conflicting(binds: &[Value]) -> bool {
     })
 }
 
-async fn binds() -> Result<Vec<Value>, String> {
-    serde_json::from_str(&hyprctl(&["-j", "binds"]).await?)
+/// Runs one `hyprctl` command line and returns its output.
+pub trait Hyprctl {
+    fn run(&self, args: Vec<String>) -> impl Future<Output = Result<String, String>>;
+}
+/// The real `hyprctl`.
+pub struct System;
+impl Hyprctl for System {
+    async fn run(&self, args: Vec<String>) -> Result<String, String> {
+        let args: Vec<&str> = args.iter().map(String::as_str).collect();
+        hyprctl(&args).await
+    }
+}
+
+// A leading Lua comment looks like an option to hyprctl's argument parser.
+fn eval(script: &str) -> Vec<String> {
+    vec!["eval".into(), format!("do\n{script}\nend")]
+}
+
+async fn binds(hyprctl: &impl Hyprctl) -> Result<Vec<Value>, String> {
+    serde_json::from_str(&hyprctl.run(vec!["-j".into(), "binds".into()]).await?)
         .map_err(|_| "Hyprland returned invalid binding data.".into())
 }
 
-/// Add both bindings and confirm Hyprland holds them.
+/// Add both bindings and confirm Hyprland holds them. Once the bindings have been sent, every
+/// failure removes them again, including a timeout after Hyprland already applied them.
 pub async fn bind(token: &str) -> Result<(), String> {
     if !available() {
         return Err("Screen annotation needs Hyprland.".into());
     }
-    if conflicting(&binds().await?) {
+    bind_with(&System, token).await
+}
+
+pub async fn bind_with(hyprctl: &impl Hyprctl, token: &str) -> Result<(), String> {
+    if conflicting(&binds(hyprctl).await?) {
         return Err("Shift or Shift-click already has a Hyprland binding, so screen annotation stays off for this recording.".into());
     }
-    // A leading Lua comment looks like an option to hyprctl's argument parser.
-    let response = hyprctl(&["eval", &format!("do\n{}\nend", add_script(token))]).await?;
-    if response.trim() != "ok" {
-        unbind(token).await;
-        return Err("Hyprland could not add the annotation bindings.".into());
+    let applied = async {
+        let response = hyprctl.run(eval(&add_script(token))).await?;
+        if response.trim() != "ok" {
+            return Err("Hyprland could not add the annotation bindings.".to_owned());
+        }
+        let actual = binds(hyprctl).await?;
+        if ![INK, PIN]
+            .iter()
+            .all(|id| actual.iter().any(|bound| ours(bound, id)))
+        {
+            return Err("Hyprland did not confirm the annotation bindings.".to_owned());
+        }
+        Ok(())
     }
-    let actual = binds().await?;
-    if ![INK, PIN]
-        .iter()
-        .all(|id| actual.iter().any(|bound| ours(bound, id)))
-    {
-        unbind(token).await;
-        return Err("Hyprland did not confirm the annotation bindings.".into());
+    .await;
+    if applied.is_err() {
+        unbind_with(hyprctl, token).await;
     }
-    Ok(())
+    applied
 }
 
 /// Remove both bindings; repeated removal is harmless.
 pub async fn unbind(token: &str) -> bool {
-    hyprctl(&["eval", &format!("do\n{}\nend", remove_script(token))])
+    unbind_with(&System, token).await
+}
+
+async fn unbind_with(hyprctl: &impl Hyprctl, token: &str) -> bool {
+    hyprctl
+        .run(eval(&remove_script(token)))
         .await
         .is_ok_and(|response| response.trim() == "ok")
+}
+
+/// Remove every recording's bindings, for leftovers of a Mluva that was killed with its watchdog.
+pub const REMOVE_ALL: &str = "for _, owned in pairs(_G.mluva_annotation or {}) do for _, binding in ipairs(owned) do binding:remove() end end\n_G.mluva_annotation = {}\n";
+
+pub async fn unbind_all() -> bool {
+    available()
+        && System
+            .run(eval(REMOVE_ALL))
+            .await
+            .is_ok_and(|response| response.trim() == "ok")
 }
 
 /// One request on Hyprland's command socket, without spawning `hyprctl`.
@@ -209,19 +253,71 @@ pub async fn cursor() -> Option<(f64, f64)> {
     Some((value["x"].as_f64()?, value["y"].as_f64()?))
 }
 
-/// The active window's box in layout coordinates.
-pub async fn active_window() -> Option<[f64; 4]> {
-    let value = request("j/activewindow").await.ok()?;
-    let at = value["at"].as_array()?;
-    let size = value["size"].as_array()?;
+/// A visible window's box in layout coordinates, and whether it has focus.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Visible {
+    pub rect: [f64; 4],
+    pub active: bool,
+}
+
+fn rect(client: &Value) -> Option<[f64; 4]> {
+    let at = client["at"].as_array()?;
+    let size = client["size"].as_array()?;
     let (x, y) = (at.first()?.as_f64()?, at.get(1)?.as_f64()?);
     let (w, h) = (size.first()?.as_f64()?, size.get(1)?.as_f64()?);
     (w > 0.0 && h > 0.0).then_some([x, y, x + w, y + h])
 }
 
+/// Windows shown on `output`: mapped, not hidden, on its active or open special workspace.
+/// Only geometry and focus are read; titles and classes are not.
+pub fn visible_windows(monitors: &Value, clients: &Value, output: &str) -> Vec<Visible> {
+    let Some(monitor) = monitors
+        .as_array()
+        .into_iter()
+        .flatten()
+        .find(|monitor| monitor["name"].as_str() == Some(output))
+    else {
+        return vec![];
+    };
+    let shown: Vec<i64> = [
+        &monitor["activeWorkspace"]["id"],
+        &monitor["specialWorkspace"]["id"],
+    ]
+    .into_iter()
+    .filter_map(Value::as_i64)
+    .filter(|id| *id != 0)
+    .collect();
+    clients
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter(|client| {
+            client["mapped"].as_bool() != Some(false)
+                && client["hidden"].as_bool() != Some(true)
+                && client["workspace"]["id"]
+                    .as_i64()
+                    .is_some_and(|id| shown.contains(&id))
+        })
+        .filter_map(|client| {
+            Some(Visible {
+                rect: rect(client)?,
+                active: client["focusHistoryID"].as_i64() == Some(0),
+            })
+        })
+        .collect()
+}
+
+pub async fn windows(output: &str) -> Vec<Visible> {
+    match (request("j/monitors").await, request("j/clients").await) {
+        (Ok(monitors), Ok(clients)) => visible_windows(&monitors, &clients, output),
+        _ => vec![],
+    }
+}
+
+/// Focus changes, by window class only; titles are never read.
 #[derive(Clone, Debug, PartialEq)]
 pub enum FocusEvent {
-    Window { class: String, title: String },
+    Window { class: String },
     Workspace { name: String },
 }
 
@@ -230,10 +326,9 @@ pub fn focus_event(line: &str) -> Option<FocusEvent> {
     let (event, data) = line.split_once(">>")?;
     match event {
         "activewindow" => {
-            let (class, title) = data.split_once(',').unwrap_or((data, ""));
+            let class = data.split_once(',').map_or(data, |(class, _)| class);
             Some(FocusEvent::Window {
                 class: class.chars().take(120).collect(),
-                title: title.chars().take(200).collect(),
             })
         }
         "workspacev2" => {
@@ -293,6 +388,102 @@ pub async fn grab(output: &str, path: &std::path::Path) -> bool {
 mod tests {
     use super::*;
     use serde_json::json;
+    use std::{cell::RefCell, collections::VecDeque};
+
+    /// A scripted `hyprctl`: answers in order and records every command line.
+    struct Fake {
+        answers: RefCell<VecDeque<Result<String, String>>>,
+        calls: RefCell<Vec<Vec<String>>>,
+    }
+    impl Fake {
+        fn new(answers: &[Result<&str, &str>]) -> Self {
+            Self {
+                answers: RefCell::new(
+                    answers
+                        .iter()
+                        .map(|a| a.map(str::to_owned).map_err(str::to_owned))
+                        .collect(),
+                ),
+                calls: RefCell::new(vec![]),
+            }
+        }
+        fn unbound(&self, token: &str) -> bool {
+            self.calls.borrow().iter().any(|call| {
+                call.first().is_some_and(|c| c == "eval") && call[1].contains(&remove_script(token))
+            })
+        }
+    }
+    impl Hyprctl for Fake {
+        async fn run(&self, args: Vec<String>) -> Result<String, String> {
+            self.calls.borrow_mut().push(args);
+            self.answers
+                .borrow_mut()
+                .pop_front()
+                .unwrap_or_else(|| Ok("ok".into()))
+        }
+    }
+
+    #[tokio::test]
+    async fn bindings_sent_are_removed_on_every_later_failure() {
+        let ours = r#"[{"key":"Shift_L","modmask":0,"description":"Mluva annotation: annotate-ink"},{"key":"mouse:272","modmask":1,"description":"Mluva annotation: annotate-pin"}]"#;
+        // The eval times out after Hyprland may already have applied it.
+        let timeout = Fake::new(&[Ok("[]"), Err("Hyprland did not answer in time.")]);
+        assert!(bind_with(&timeout, TOKEN).await.is_err());
+        assert!(timeout.unbound(TOKEN));
+        // The verifying query fails.
+        let unverified = Fake::new(&[Ok("[]"), Ok("ok"), Err("Could not contact Hyprland.")]);
+        assert!(bind_with(&unverified, TOKEN).await.is_err());
+        assert!(unverified.unbound(TOKEN));
+        // Hyprland answers but holds only one binding.
+        let partial = Fake::new(&[
+            Ok("[]"),
+            Ok("ok"),
+            Ok(r#"[{"key":"Shift_L","modmask":0,"description":"Mluva annotation: annotate-ink"}]"#),
+        ]);
+        assert!(bind_with(&partial, TOKEN).await.is_err());
+        assert!(partial.unbound(TOKEN));
+        // A conflict is refused before anything is sent.
+        let conflict = Fake::new(&[Ok(
+            r#"[{"key":"mouse:272","modmask":1,"description":"Select"}]"#,
+        )]);
+        assert!(bind_with(&conflict, TOKEN).await.is_err());
+        assert_eq!(conflict.calls.borrow().len(), 1);
+        // Success leaves the bindings in place.
+        let bound = Fake::new(&[Ok("[]"), Ok("ok"), Ok(ours)]);
+        assert!(bind_with(&bound, TOKEN).await.is_ok());
+        assert!(!bound.unbound(TOKEN));
+    }
+
+    #[test]
+    fn visible_windows_are_those_on_the_outputs_shown_workspaces() {
+        let monitors = json!([
+            {"name":"DP-1","activeWorkspace":{"id":2},"specialWorkspace":{"id":-98}},
+            {"name":"HDMI-A-1","activeWorkspace":{"id":5},"specialWorkspace":{"id":0}}
+        ]);
+        let clients = json!([
+            {"at":[0,30],"size":[960,1050],"workspace":{"id":2},"mapped":true,"hidden":false,"focusHistoryID":1,"title":"private"},
+            {"at":[300,300],"size":[400,300],"workspace":{"id":-98},"mapped":true,"hidden":false,"focusHistoryID":0},
+            {"at":[960,30],"size":[960,1050],"workspace":{"id":3},"mapped":true,"hidden":false,"focusHistoryID":2},
+            {"at":[0,0],"size":[100,100],"workspace":{"id":2},"mapped":true,"hidden":true,"focusHistoryID":3},
+            {"at":[1920,0],"size":[800,600],"workspace":{"id":5},"mapped":true,"hidden":false,"focusHistoryID":4}
+        ]);
+        let shown = visible_windows(&monitors, &clients, "DP-1");
+        assert_eq!(
+            shown,
+            [
+                Visible {
+                    rect: [0.0, 30.0, 960.0, 1080.0],
+                    active: false
+                },
+                Visible {
+                    rect: [300.0, 300.0, 700.0, 600.0],
+                    active: true
+                },
+            ]
+        );
+        assert_eq!(visible_windows(&monitors, &clients, "HDMI-A-1").len(), 1);
+        assert!(visible_windows(&monitors, &clients, "missing").is_empty());
+    }
 
     const TOKEN: &str = "0123456789abcdef0123456789abcdef";
 
@@ -369,10 +560,9 @@ mod tests {
         assert_eq!((outputs[1].width, outputs[1].height), (1080.0, 1920.0));
         assert!(outputs[1].contains(2000.0, 100.0) && !outputs[0].contains(2000.0, 100.0));
         assert_eq!(
-            focus_event("activewindow>>foot,shell"),
+            focus_event("activewindow>>foot,private window title"),
             Some(FocusEvent::Window {
-                class: "foot".into(),
-                title: "shell".into()
+                class: "foot".into()
             })
         );
         assert_eq!(

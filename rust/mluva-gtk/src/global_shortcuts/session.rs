@@ -366,6 +366,9 @@ impl PortalSession {
             if self.handle.borrow().as_deref() == Some(path) {
                 self.handle.borrow_mut().take();
                 (self.callbacks.error)("The desktop closed Mluva's global shortcut session.");
+                if let Some(annotation) = &self.callbacks.annotation {
+                    (annotation.registered)(false);
+                }
             }
         } else if interface == SHORTCUTS
             && path == PATH
@@ -439,7 +442,11 @@ impl PortalSession {
             && body.n_children() == 2
             && self.matches_session(&body.child_value(0))
         {
-            self.report_bindings(&bound_shortcuts(&body.child_value(1))?);
+            let bound = bound_shortcuts(&body.child_value(1))?;
+            if let Some(annotation) = &self.callbacks.annotation {
+                (annotation.registered)(super::annotation_registered(&bound));
+            }
+            self.report_bindings(&bound);
         }
         Ok(())
     }

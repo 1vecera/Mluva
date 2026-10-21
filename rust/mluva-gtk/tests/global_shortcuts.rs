@@ -299,15 +299,15 @@ async fn agent_toggles(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) 
     assert_eq!(events.borrow().len(), 5);
 }
 
-/// Ink delivers press and release, including a release whose press predates the binding;
-/// pins fire on every click and nothing arrives after shutdown.
-async fn annotation_actions(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) {
-    control(bus, "Reset", Some("normal")).await;
-    let events = Rc::new(RefCell::new(Vec::<String>::new()));
+fn annotation_service(
+    runtime: &Rc<DesktopRuntime>,
+    events: &Rc<RefCell<Vec<String>>>,
+) -> Rc<GlobalShortcutService> {
     let ink = events.clone();
     let pin = events.clone();
+    let registered = events.clone();
     let bound = events.clone();
-    let owner = GlobalShortcutService::new(
+    GlobalShortcutService::new(
         runtime.clone(),
         "F9",
         ShortcutCallbacks {
@@ -319,6 +319,9 @@ async fn annotation_actions(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnect
                         .push(if down { "down" } else { "up" }.into())
                 }),
                 pin: Rc::new(move || pin.borrow_mut().push("pin".into())),
+                registered: Rc::new(move |ready| {
+                    registered.borrow_mut().push(format!("registered:{ready}"))
+                }),
             }),
             toggle_recording: Rc::new(|| {}),
             cancel: Rc::new(|| {}),
@@ -328,10 +331,31 @@ async fn annotation_actions(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnect
             error: Rc::new(|_| {}),
         },
     )
-    .unwrap();
+    .unwrap()
+}
+
+/// Ink delivers press and release, including a release whose press predates the binding;
+/// pins fire on every click and nothing arrives after shutdown. The application learns whether
+/// the portal registered both actions, and binds Hyprland keys only when it did.
+async fn annotation_actions(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) {
+    control(bus, "Reset", Some("missing-shortcuts")).await;
+    let refused = Rc::new(RefCell::new(Vec::<String>::new()));
+    let owner = annotation_service(runtime, &refused);
     owner.start();
     let deadline = Instant::now() + Duration::from_secs(5);
-    while events.borrow().is_empty() {
+    while refused.borrow().is_empty() {
+        assert!(Instant::now() < deadline);
+        settle().await;
+    }
+    assert_eq!(&*refused.borrow(), &["registered:false"]);
+    owner.shutdown().await;
+
+    control(bus, "Reset", Some("normal")).await;
+    let events = Rc::new(RefCell::new(Vec::<String>::new()));
+    let owner = annotation_service(runtime, &events);
+    owner.start();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !events.borrow().iter().any(|event| event == "bound") {
         assert!(Instant::now() < deadline);
         settle().await;
     }
@@ -350,7 +374,7 @@ async fn annotation_actions(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnect
     }
     assert_eq!(
         &*events.borrow(),
-        &["bound", "up", "down", "pin", "pin", "up"]
+        &["registered:true", "bound", "up", "down", "pin", "pin", "up"]
     );
     owner.shutdown().await;
     control(
@@ -360,5 +384,5 @@ async fn annotation_actions(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnect
     )
     .await;
     settle().await;
-    assert_eq!(events.borrow().len(), 6);
+    assert_eq!(events.borrow().len(), 7);
 }

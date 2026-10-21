@@ -1,7 +1,10 @@
 //! Screen annotation ownership: the opt-in, one session per recording, and the recording's bundle
 //! until it belongs to a conversation.
 use super::*;
-use crate::screen_annotation::{AnnotationSession, hyprland};
+use crate::screen_annotation::{
+    AnnotationSession, hyprland,
+    session::{FRAMES_PREFIX, remove_stale_frames},
+};
 use mluva_annotate::{bundle, model::Word, timing};
 use mluva_core::annotations::{AnnotationSettings, AnnotationStore};
 use mluva_providers::TranscriptionResult;
@@ -10,6 +13,8 @@ use mluva_workflows::{capture::CapturePhase, dictation::DeliveryAppendix};
 pub(super) struct AnnotationOwners {
     pub settings: RefCell<AnnotationSettings>,
     pub session: RefCell<Option<Rc<AnnotationSession>>>,
+    /// This run's GlobalShortcuts session approved the ink and pin actions.
+    pub portal: Cell<bool>,
     pub row: adw::SwitchRow,
     pub group: adw::PreferencesGroup,
 }
@@ -34,6 +39,7 @@ impl AnnotationOwners {
             Self {
                 settings: RefCell::new(settings),
                 session: RefCell::new(None),
+                portal: Cell::new(false),
                 row,
                 group,
             },
@@ -55,6 +61,26 @@ fn words(transcription: &TranscriptionResult) -> Vec<Word> {
         .collect()
 }
 
+/// Removes a bundle whose writing did not finish, for example when Mluva quits mid-write, so
+/// startup never recovers a summary that was not delivered.
+struct Unfinished {
+    store: AnnotationStore,
+    identifier: Option<String>,
+}
+impl Drop for Unfinished {
+    fn drop(&mut self) {
+        if let Some(identifier) = self.identifier.take() {
+            let _ = self.store.delete(&identifier);
+        }
+    }
+}
+
+/// Whether Hyprland may receive the temporary bindings: only once this run's portal session
+/// has registered the actions they dispatch to. Other desktops get no bindings at all.
+pub(super) fn may_bind(hyprland: bool, portal_registered: bool) -> bool {
+    !hyprland || portal_registered
+}
+
 impl ApplicationDesktop {
     pub(super) fn annotation_enabled(&self) -> bool {
         self.annotations.settings.borrow().enabled
@@ -63,6 +89,34 @@ impl ApplicationDesktop {
     /// The portal registers the ink and pin actions only where they can be bound.
     pub(super) fn annotation_shortcuts_wanted(&self) -> bool {
         self.annotation_enabled() && hyprland::available()
+    }
+
+    /// Remove what a killed Mluva and its watchdog left behind: this desktop's annotation
+    /// bindings and raw-frame directories. The current recording's frames stay.
+    pub(super) fn clean_annotation_leftovers(&self) {
+        let runtime = &self.services.paths.runtime;
+        let current = self
+            .annotations
+            .session
+            .borrow()
+            .as_ref()
+            .map(|session| session.frames_directory().to_owned());
+        let stale = std::fs::read_dir(runtime).is_ok_and(|entries| {
+            entries.flatten().any(|entry| {
+                entry
+                    .file_name()
+                    .to_string_lossy()
+                    .starts_with(FRAMES_PREFIX)
+                    && Some(entry.path()) != current
+            })
+        });
+        remove_stale_frames(runtime, current.as_deref());
+        // Hyprland is only touched where annotation is on or an earlier session left frames.
+        if (self.annotation_enabled() || stale) && current.is_none() && hyprland::available() {
+            self.runtime.spawn(async {
+                hyprland::unbind_all().await;
+            });
+        }
     }
 
     pub(super) fn set_annotation_enabled(self: &Rc<Self>, enabled: bool) {
@@ -78,9 +132,24 @@ impl ApplicationDesktop {
             return;
         }
         self.annotations.settings.replace(updated);
-        if !enabled && let Some(session) = self.annotations.session.borrow().as_ref() {
-            // Marks already drawn stay with this recording; drawing stops now.
-            session.stop();
+        if !enabled {
+            if let Some(session) = self.annotations.session.borrow().as_ref() {
+                // Marks already drawn stay with this recording; drawing stops now.
+                session.stop();
+            }
+            remove_stale_frames(
+                &self.services.paths.runtime,
+                self.annotations
+                    .session
+                    .borrow()
+                    .as_ref()
+                    .map(|session| session.frames_directory()),
+            );
+            if hyprland::available() {
+                self.runtime.spawn(async {
+                    hyprland::unbind_all().await;
+                });
+            }
         }
         self.restart_shortcuts();
     }
@@ -106,6 +175,12 @@ impl ApplicationDesktop {
         if current.options.incognito || self.services.config().incognito_mode {
             self.page()
                 .set_status("Screen annotation is off in Incognito. Recording continues.");
+            return;
+        }
+        if !may_bind(hyprland::available(), self.annotations.portal.get()) {
+            self.page().set_status(
+                "Screen annotation needs Mluva's desktop shortcuts to be approved, so Shift is not bound. Recording continues without it.",
+            );
             return;
         }
         let capture = Rc::downgrade(&current.session);
@@ -164,8 +239,8 @@ impl ApplicationDesktop {
         }
     }
 
-    /// At Stop: end drawing at once, and once recognition is final, write the bundle and
-    /// return its summary for delivery. A recording without marks adds nothing.
+    /// At Stop: end drawing at once. A recording without marks adds nothing and waits for
+    /// nothing. Otherwise, once recognition is final, write the bundle and return its summary.
     pub(super) fn annotation_appendix(self: &Rc<Self>, capture: &str) -> Option<DeliveryAppendix> {
         let session = {
             let mut owned = self.annotations.session.borrow_mut();
@@ -178,10 +253,14 @@ impl ApplicationDesktop {
             owned.take()?
         };
         session.stop();
+        if !session.has_marks() {
+            return None;
+        }
         let database = self.services.history.database.path.clone();
         let owner = capture.to_owned();
         let weak = Rc::downgrade(self);
         Some(Box::new(move |transcription: &TranscriptionResult| {
+            // Quotes describe what was said, so they come from raw recognition.
             let text = transcription.text.clone();
             let words = words(transcription);
             Box::pin(async move {
@@ -203,6 +282,10 @@ impl ApplicationDesktop {
                     );
                     return None;
                 };
+                let mut unfinished = Unfinished {
+                    store: store.clone(),
+                    identifier: Some(annotation.identifier.clone()),
+                };
                 let directory = annotation.directory.clone();
                 let written = tokio::task::spawn_blocking(move || {
                     bundle::write(&directory, &capture, &transcript)
@@ -212,18 +295,17 @@ impl ApplicationDesktop {
                 drop(session);
                 match written {
                     Ok(Ok(written)) => {
+                        unfinished.identifier.take();
                         let _ = store.set_keyframes(&annotation.identifier, written.frames.len());
                         Some(written.summary)
                     }
                     Ok(Err(error)) => {
-                        let _ = store.delete(&annotation.identifier);
                         notice(&format!(
                             "{error} The dictation was delivered without screen annotation."
                         ));
                         None
                     }
                     Err(_) => {
-                        let _ = store.delete(&annotation.identifier);
                         notice(
                             "Could not draw the screen annotation. The dictation was delivered without it.",
                         );
@@ -276,5 +358,19 @@ impl ApplicationDesktop {
         if let Some(session) = self.annotations.session.borrow_mut().take() {
             session.stop();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::may_bind;
+
+    #[test]
+    fn hyprland_bindings_wait_for_the_portal_to_register_their_actions() {
+        // Disabled shortcuts, a missing or failed portal, or a pending approval: no bindings.
+        assert!(!may_bind(true, false));
+        assert!(may_bind(true, true));
+        // Elsewhere nothing is bound, so nothing can be swallowed.
+        assert!(may_bind(false, false));
     }
 }

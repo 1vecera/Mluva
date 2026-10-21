@@ -132,8 +132,17 @@ impl ApplicationServices {
                 screenshots.bind_capture(&capture, &recovered.identifier)?;
                 recovered_captures.insert(capture, recovered.identifier);
             }
-            // A bundle's summary may already have been delivered, so its paths must stay valid.
+            // A finished bundle's summary may already have been delivered, so its paths must
+            // stay valid. One interrupted while being written was never delivered.
             for capture in annotations.pending_captures()? {
+                for bundle in annotations.recent(&capture, true)? {
+                    if !annotations.is_complete(&bundle.identifier) {
+                        annotations.delete(&bundle.identifier)?;
+                    }
+                }
+                if annotations.recent(&capture, true)?.is_empty() {
+                    continue;
+                }
                 let conversation = match recovered_captures.get(&capture) {
                     Some(identifier) => identifier.clone(),
                     None => {
