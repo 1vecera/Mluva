@@ -174,3 +174,30 @@ fn active_capture_freezes_settings_and_failed_saves_preserve_the_previous_config
     );
     assert_eq!(services.config(), before);
 }
+
+#[test]
+fn startup_gives_an_interrupted_annotation_bundle_a_conversation_and_keeps_its_path() {
+    use mluva_core::annotations::AnnotationStore;
+    let root = tempfile::tempdir().unwrap();
+    let paths = paths(root.path());
+    let history = HistoryStore::new(paths.data.join("history.sqlite3"));
+    history.initialize().unwrap();
+    let bundle = AnnotationStore::new(&history.database.path)
+        .create("interrupted-capture")
+        .unwrap();
+    fs::write(bundle.directory.join("summary.md"), "[Screen annotation]\n").unwrap();
+    let services = ApplicationServices::open(paths).unwrap();
+    let store = AnnotationStore::new(&services.history.database.path);
+    assert!(store.pending_captures().unwrap().is_empty());
+    let entry = services
+        .history
+        .recent(10)
+        .unwrap()
+        .into_iter()
+        .find(|entry| entry.delivered_text == "Screen annotation from an interrupted recording.")
+        .unwrap();
+    let owned = store.recent(&entry.identifier, false).unwrap();
+    assert_eq!(owned.len(), 1);
+    assert_eq!(owned[0].directory, bundle.directory);
+    assert!(bundle.directory.join("summary.md").is_file());
+}

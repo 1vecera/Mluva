@@ -2,8 +2,8 @@
 
 use crate::{
     dictation::{
-        Completion, DeliveryTarget, DictationWorkflow, WorkflowError, WorkflowFailure,
-        WorkflowOutcome, WorkflowResult,
+        Completion, DeliveryAppendix, DeliveryTarget, DictationWorkflow, WorkflowError,
+        WorkflowFailure, WorkflowOutcome, WorkflowResult,
     },
     preparation::TranscriptPreparationSnapshot,
 };
@@ -316,6 +316,11 @@ impl CaptureSession {
             .await
             .map_err(|error| error.to_string())
     }
+    /// Seconds of captured audio, on the sample clock providers time words on. Zero before the
+    /// first sample.
+    pub fn recorded_seconds(&self) -> f64 {
+        self.recorder.recorded_seconds()
+    }
     pub fn audio_level(&self) -> f64 {
         self.recorder.audio_level()
     }
@@ -609,6 +614,20 @@ impl CaptureSession {
     where
         F: std::future::Future<Output = WorkflowOutcome<Vec<ImageInput>>>,
     {
+        self.complete_with_appendix(target, images, None).await
+    }
+
+    /// As `complete_with_images`, adding `appendix` to the delivered message once recognition
+    /// is final. The working text and raw recognition never include it.
+    pub async fn complete_with_appendix<F>(
+        &self,
+        target: Option<&dyn DeliveryTarget>,
+        images: F,
+        appendix: Option<DeliveryAppendix>,
+    ) -> WorkflowOutcome<WorkflowResult>
+    where
+        F: std::future::Future<Output = WorkflowOutcome<Vec<ImageInput>>>,
+    {
         let mut state = self.state.lock().await;
         if self.phase() == CapturePhase::Recording {
             self.begin_stop();
@@ -629,7 +648,10 @@ impl CaptureSession {
             DiagnosticOutcome::Completed,
             started.elapsed().as_secs_f64(),
         );
-        let result = match self.complete_locked(&mut state, target, images).await {
+        let result = match self
+            .complete_locked(&mut state, target, images, appendix)
+            .await
+        {
             Err(error) if !matches!(error, WorkflowError::Failure(_)) => {
                 let retained = state
                     .audio_path
@@ -675,6 +697,7 @@ impl CaptureSession {
         state: &mut State,
         target: Option<&dyn DeliveryTarget>,
         images: F,
+        appendix: Option<DeliveryAppendix>,
     ) -> WorkflowOutcome<WorkflowResult>
     where
         F: std::future::Future<Output = WorkflowOutcome<Vec<ImageInput>>>,
@@ -741,6 +764,7 @@ impl CaptureSession {
                 transcript_preparation: Some(self.preparation.clone()),
                 defer_delivery: self.options.defer_delivery,
                 images,
+                appendix,
             },
         );
         tokio::select! { biased;

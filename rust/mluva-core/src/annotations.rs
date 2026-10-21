@@ -217,3 +217,39 @@ impl AnnotationStore {
             .collect::<rusqlite::Result<_>>()?)
     }
 }
+
+/// The experimental opt-in, kept beside `config.json` so older releases still read their
+/// settings unchanged.
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct AnnotationSettings {
+    pub enabled: bool,
+}
+
+impl AnnotationSettings {
+    pub const FILE: &'static str = "screen-annotations.json";
+
+    pub fn load(path: &Path) -> Result<Self, &'static str> {
+        let read = fs::File::open(path).and_then(|file| {
+            let mut bytes = Vec::new();
+            file.take(4_097).read_to_end(&mut bytes)?;
+            Ok(bytes)
+        });
+        match read {
+            Ok(bytes) if bytes.len() <= 4_096 => serde_json::from_slice(&bytes).map_err(|_| {
+                "Screen annotation settings could not be read; the original file was preserved."
+            }),
+            Ok(_) => Err("Screen annotation settings are too large; the original file was preserved."),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(Self::default()),
+            Err(_) => Err("Screen annotation settings could not be read; the original file was preserved."),
+        }
+    }
+
+    pub fn save(&self, path: &Path) -> Result<(), &'static str> {
+        let mut bytes = serde_json::to_vec_pretty(self)
+            .map_err(|_| "Screen annotation settings could not be saved.")?;
+        bytes.push(b'\n');
+        crate::private_files::atomic_write_private(path, &bytes)
+            .map_err(|_| "Screen annotation settings could not be saved.")
+    }
+}

@@ -159,7 +159,7 @@ impl PortalSession {
                 agent.draft_key.as_str(),
             ));
         }
-        let payload = bindings
+        let mut payload = bindings
             .into_iter()
             .map(|(id, description, trigger)| {
                 (
@@ -171,6 +171,18 @@ impl PortalSession {
                 )
             })
             .collect::<Vec<_>>();
+        if self.callbacks.annotation.is_some() {
+            // Keyless: Mluva binds them in Hyprland only while an annotated recording runs.
+            for (id, description) in [
+                (ANNOTATE_INK, "Draw on the screen while Mluva records"),
+                (ANNOTATE_PIN, "Drop a numbered pin while Mluva records"),
+            ] {
+                payload.push((
+                    id,
+                    Properties::from([("description".into(), description.to_variant())]),
+                ));
+            }
+        }
         let bound = self
             .request(
                 "BindShortcuts",
@@ -376,7 +388,24 @@ impl PortalSession {
                 return Ok(());
             };
             if member == "Deactivated" {
+                // A release can arrive without its press when Shift was already held as the
+                // binding appeared; ink treats that as nothing to finish.
+                if id == ANNOTATE_INK
+                    && let Some(annotation) = &self.callbacks.annotation
+                {
+                    (annotation.ink)(false);
+                }
                 self.pressed.borrow_mut().remove(id);
+                return Ok(());
+            }
+            if [ANNOTATE_INK, ANNOTATE_PIN].contains(&id) {
+                if let Some(annotation) = &self.callbacks.annotation {
+                    if id == ANNOTATE_PIN {
+                        (annotation.pin)();
+                    } else if self.pressed.borrow_mut().insert(id.into()) {
+                        (annotation.ink)(true);
+                    }
+                }
                 return Ok(());
             }
             if ![

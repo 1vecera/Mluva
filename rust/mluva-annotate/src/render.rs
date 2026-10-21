@@ -2,6 +2,7 @@
 //! contact sheet. Cairo and Pango run on the calling thread; nothing here touches GTK.
 use crate::model::{Frame, Keyframe, Mark, Screen, Shape, Stroke, format_clock};
 use cairo::{Context, Format, ImageSurface};
+use gdk_pixbuf::prelude::*;
 use std::{
     fs::OpenOptions,
     io::{self, Cursor, Read},
@@ -25,7 +26,7 @@ pub enum RenderError {
     Frame,
 }
 
-/// Decode a private PNG without following links.
+/// Decode a private PNG or JPEG frame without following links.
 pub fn load(path: &Path) -> Result<ImageSurface, RenderError> {
     let mut file = OpenOptions::new()
         .read(true)
@@ -41,7 +42,49 @@ pub fn load(path: &Path) -> Result<ImageSurface, RenderError> {
     if data.len() as u64 > MAX_FRAME_BYTES {
         return Err(RenderError::Frame);
     }
-    ImageSurface::create_from_png(&mut Cursor::new(data)).map_err(|_| RenderError::Frame)
+    if data.starts_with(b"\x89PNG\r\n\x1a\n") {
+        return ImageSurface::create_from_png(&mut Cursor::new(data))
+            .map_err(|_| RenderError::Frame);
+    }
+    let loader = gdk_pixbuf::PixbufLoader::new();
+    loader.write(&data).map_err(|_| RenderError::Frame)?;
+    loader.close().map_err(|_| RenderError::Frame)?;
+    surface_of(&loader.pixbuf().ok_or(RenderError::Frame)?)
+}
+
+/// Copy 8-bit RGB(A) pixels into Cairo's premultiplied native-endian ARGB32.
+fn surface_of(pixbuf: &gdk_pixbuf::Pixbuf) -> Result<ImageSurface, RenderError> {
+    let (width, height) = (pixbuf.width(), pixbuf.height());
+    if pixbuf.bits_per_sample() != 8 || width <= 0 || height <= 0 {
+        return Err(RenderError::Frame);
+    }
+    let channels = pixbuf.n_channels() as usize;
+    let alpha = pixbuf.has_alpha();
+    let source_stride = pixbuf.rowstride() as usize;
+    let bytes = pixbuf.read_pixel_bytes();
+    let mut surface = ImageSurface::create(Format::ARgb32, width, height)?;
+    let stride = surface.stride() as usize;
+    {
+        let mut target = surface.data().map_err(|_| RenderError::Frame)?;
+        for y in 0..height as usize {
+            for x in 0..width as usize {
+                let s = y * source_stride + x * channels;
+                let Some(pixel) = bytes.get(s..s + channels) else {
+                    return Err(RenderError::Frame);
+                };
+                let a = if alpha { pixel[3] as u32 } else { 255 };
+                let premultiply = |c: u8| ((c as u32 * a + 127) / 255) as u8;
+                let value = (a << 24)
+                    | ((premultiply(pixel[0]) as u32) << 16)
+                    | ((premultiply(pixel[1]) as u32) << 8)
+                    | premultiply(pixel[2]) as u32;
+                let t = y * stride + x * 4;
+                target[t..t + 4].copy_from_slice(&value.to_ne_bytes());
+            }
+        }
+    }
+    surface.mark_dirty();
+    Ok(surface)
 }
 
 /// The grey thumbnail keyframe selection compares.

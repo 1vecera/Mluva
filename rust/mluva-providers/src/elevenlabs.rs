@@ -2,8 +2,7 @@ use crate::compatible::Requests;
 use crate::models::number;
 use crate::{
     ProviderError, Result, Secret, SpeakerSegment, TimedWord, TranscriptionResult, USER_AGENT,
-    multipart,
-    transport,
+    multipart, transport,
 };
 use serde_json::Value;
 use std::collections::HashMap;
@@ -163,7 +162,10 @@ fn timed_words(words: Option<&Value>) -> Vec<TimedWord> {
         .filter_map(|word| {
             let text = word.get("text").and_then(Value::as_str)?.trim();
             let start = word.get("start").and_then(number)?.max(0.0);
-            let end = word.get("end").and_then(number).map_or(start, |end| end.max(start));
+            let end = word
+                .get("end")
+                .and_then(number)
+                .map_or(start, |end| end.max(start));
             (!text.is_empty() && start.is_finite() && end.is_finite()).then(|| TimedWord {
                 text: text.into(),
                 start_seconds: start,

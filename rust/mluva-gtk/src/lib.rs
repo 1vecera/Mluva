@@ -35,6 +35,7 @@ pub mod overlay_state;
 pub mod personalization;
 pub mod provider_settings;
 pub mod recording_light;
+pub mod screen_annotation;
 pub mod screenshot_shelf;
 pub mod settings_view;
 pub mod text_target;

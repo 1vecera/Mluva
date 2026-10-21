@@ -9,10 +9,10 @@ use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use rusqlite::{OptionalExtension, Row, params};
 use serde::{Deserialize, Serialize};
 
+use crate::annotations::AnnotationStore;
 use crate::conversation::Rewrite;
 use crate::database::{Database, StoreError, StoreResult, invalid, timestamp};
 use crate::private_files::{atomic_write_private, resolve_path};
-use crate::annotations::AnnotationStore;
 use crate::screenshots::ScreenshotStore;
 use crate::text::trim;
 

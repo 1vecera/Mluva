@@ -244,6 +244,7 @@ fn released_application_capture_factory() {
                 CaptureControllerCallbacks {
                     wait_for_images: Rc::new(|_| Box::pin(async { Ok(()) })),
                     prepare_result: Rc::new(|_, _| {}),
+                    appendix: Rc::new(|_| None),
                     refresh_history: Rc::new(|_| {}),
                     images: Rc::new(|_| Ok(vec![])),
                     completed: Rc::new(move |completion| {

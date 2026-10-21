@@ -41,6 +41,8 @@ enum Request {
 struct Snapshot {
     active: AtomicBool,
     level: AtomicU64,
+    /// PCM bytes written since this capture started: the recording's sample clock.
+    recorded: AtomicU64,
 }
 
 /// Calls return only after their process operation has finished. Dropping an
@@ -108,6 +110,7 @@ impl CaptureRecorder {
         let snapshot = std::sync::Arc::new(Snapshot {
             active: AtomicBool::new(false),
             level: AtomicU64::new(0.0_f64.to_bits()),
+            recorded: AtomicU64::new(0),
         });
         let state = snapshot.clone();
         let worker = thread::Builder::new()
@@ -125,6 +128,12 @@ impl CaptureRecorder {
     }
     pub fn audio_level(&self) -> f64 {
         f64::from_bits(self.snapshot.level.load(Ordering::Relaxed))
+    }
+    /// Seconds of audio written so far, counted in samples rather than wall time, so marks share
+    /// the clock that speech providers time words on.
+    pub fn recorded_seconds(&self) -> f64 {
+        self.snapshot.recorded.load(Ordering::Acquire) as f64
+            / (f64::from(crate::SAMPLE_RATE) * 2.0)
     }
 
     pub async fn prepare_destination(
@@ -281,14 +290,22 @@ fn own(mut recorder: Input, receiver: mpsc::Receiver<Request>, snapshot: std::sy
                     Ok(())
                 }
                 .and_then(|()| {
+                    state.recorded.store(0, Ordering::Release);
                     recorder.start(
                         &path,
                         Some(Box::new(move |frames, level| {
                             state.level.store(level.to_bits(), Ordering::Relaxed);
-                            match callback.as_mut() {
-                                Some(callback) => callback(frames, level),
-                                None => Ok(()),
+                            state
+                                .recorded
+                                .fetch_add(frames.len() as u64, Ordering::AcqRel);
+                            // The clock keeps counting after a failed consumer is released.
+                            let failed = callback
+                                .as_mut()
+                                .is_some_and(|callback| !matches!(callback(frames, level), Ok(())));
+                            if failed {
+                                callback = None;
                             }
+                            Ok(())
                         })),
                         ready,
                     )

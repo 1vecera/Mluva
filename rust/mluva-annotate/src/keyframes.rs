@@ -7,8 +7,8 @@
 //! sparse frames it captured while recording.
 use crate::{
     model::{
-        BASE_KEYFRAMES, Capture, Frame, Keyframe, KeyframeReason, MAX_KEYFRAMES, Mark,
-        ScreenEvent, Timing, Transcript, keyframe_budget,
+        BASE_KEYFRAMES, Capture, Frame, Keyframe, KeyframeReason, MAX_KEYFRAMES, Mark, ScreenEvent,
+        Timing, Transcript, keyframe_budget,
     },
     sketch::marks_of,
     timing::said_per_keyframe,
@@ -100,9 +100,7 @@ fn spoken_cue(word: &str) -> Option<(f32, bool)> {
     let (score, strong) = match word.as_str() {
         "now" | "look" | "watch" | "teď" | "koukni" | "podívej" | "sleduj" => (58.0, true),
         "here" | "tady" | "tu" | "zde" => (56.0, true),
-        "see" | "there" | "this" | "these" | "tohle" | "tenhle" | "tahle" | "tam" => {
-            (44.0, false)
-        }
+        "see" | "there" | "this" | "these" | "tohle" | "tenhle" | "tahle" | "tam" => (44.0, false),
         "that" | "those" | "tamto" | "tyhle" => (42.0, false),
         _ => return None,
     };
@@ -120,7 +118,13 @@ struct Candidate {
 
 /// The frame of `screen` that best shows the moment `t`: the first one at or after it within
 /// `after_ms`, else the latest one before it, else any frame on that screen.
-fn frame_near(frames: &[Frame], order: &[usize], screen: &str, t: u64, after_ms: u64) -> Option<usize> {
+fn frame_near(
+    frames: &[Frame],
+    order: &[usize],
+    screen: &str,
+    t: u64,
+    after_ms: u64,
+) -> Option<usize> {
     let on: Vec<usize> = order
         .iter()
         .copied()
@@ -360,7 +364,7 @@ pub fn select(capture: &Capture, transcript: &Transcript) -> (Vec<Mark>, Vec<Key
     }
     // Past the base, keyframes are only for marks.
     for candidate in rest {
-        if selected.len() >= budget.min(BASE_KEYFRAMES).max(1) {
+        if selected.len() >= budget.clamp(1, BASE_KEYFRAMES) {
             break;
         }
         if admissible(&candidate, &selected) {
@@ -464,7 +468,11 @@ mod tests {
         // already shows, are not repeated.
         assert_eq!(
             reasons,
-            [KeyframeReason::Initial, KeyframeReason::Mark, KeyframeReason::Mark]
+            [
+                KeyframeReason::Initial,
+                KeyframeReason::Mark,
+                KeyframeReason::Mark
+            ]
         );
         assert!(keyframes.windows(2).all(|k| k[0].t < k[1].t));
         assert_eq!(keyframes[0].index, 1);

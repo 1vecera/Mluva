@@ -1,0 +1,386 @@
+//! Hyprland's side of annotation: two temporary bindings that exist only while a recording is
+//! annotated, and read-only IPC for pointer, outputs, the active window and focus events.
+use serde_json::Value;
+use std::{
+    path::PathBuf,
+    process::Stdio,
+    time::{Duration, Instant},
+};
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt};
+
+pub const INK: &str = "annotate-ink";
+pub const PIN: &str = "annotate-pin";
+const APP: &str = "com.mluva.Linux";
+const DESCRIPTION: &str = "Mluva annotation: ";
+const TIMEOUT: Duration = Duration::from_secs(3);
+
+/// A session's bindings are kept under its own token, so a late cleanup of one recording can
+/// never remove the next one's.
+pub fn valid_token(token: &str) -> bool {
+    (16..=64).contains(&token.len()) && token.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+/// `Shift_L` reports both press and release only with `ignore_mods`, and keeps typing capitals
+/// with `non_consuming`. Shift-click is consumed so the click never selects text in the app.
+/// Bindings left by an earlier session that could not clean up are removed first.
+pub fn add_script(token: &str) -> String {
+    assert!(valid_token(token));
+    format!(
+        "for _, owned in pairs(_G.mluva_annotation or {{}}) do for _, binding in ipairs(owned) do binding:remove() end end\n\
+_G.mluva_annotation = {{ [\"{token}\"] = {{\n\
+  hl.bind(\"Shift_L\", hl.dsp.global(\"{APP}:{INK}\"), {{ non_consuming = true, ignore_mods = true, description = \"{DESCRIPTION}{INK}\" }}),\n\
+  hl.bind(\"SHIFT + mouse:272\", hl.dsp.global(\"{APP}:{PIN}\"), {{ description = \"{DESCRIPTION}{PIN}\" }}),\n\
+}} }}\n"
+    )
+}
+
+/// Removes only this session's handles; other applications' Shift bindings stay.
+pub fn remove_script(token: &str) -> String {
+    assert!(valid_token(token));
+    format!(
+        "local owned = (_G.mluva_annotation or {{}})[\"{token}\"]\n\
+if owned then for _, binding in ipairs(owned) do binding:remove() end _G.mluva_annotation[\"{token}\"] = nil end\n"
+    )
+}
+
+pub fn available() -> bool {
+    signature().is_some()
+}
+
+fn signature() -> Option<String> {
+    std::env::var("HYPRLAND_INSTANCE_SIGNATURE")
+        .ok()
+        .filter(|value| !value.is_empty() && !value.contains(['/', '\0']))
+}
+
+fn socket(name: &str) -> Option<PathBuf> {
+    let runtime = std::env::var_os("XDG_RUNTIME_DIR")?;
+    Some(
+        PathBuf::from(runtime)
+            .join("hypr")
+            .join(signature()?)
+            .join(name),
+    )
+}
+
+async fn hyprctl(args: &[&str]) -> Result<String, String> {
+    let mut command = tokio::process::Command::new("hyprctl");
+    command
+        .args(args)
+        .stdin(Stdio::null())
+        .stderr(Stdio::null())
+        .kill_on_drop(true);
+    let output = tokio::time::timeout(TIMEOUT, command.output())
+        .await
+        .map_err(|_| "Hyprland did not answer in time.".to_owned())?
+        .map_err(|_| "Could not contact Hyprland.".to_owned())?;
+    if !output.status.success() || output.stdout.len() > 1_048_576 {
+        return Err("Hyprland rejected the annotation bindings.".into());
+    }
+    String::from_utf8(output.stdout).map_err(|_| "Hyprland returned invalid data.".into())
+}
+
+fn ours(binding: &Value, id: &str) -> bool {
+    binding["description"].as_str() == Some(&format!("{DESCRIPTION}{id}"))
+}
+
+/// The two keys must be free of other bindings: plain `Shift_L`, and Shift with the left button.
+fn conflicting(binds: &[Value]) -> bool {
+    binds.iter().any(|bound| {
+        let key = bound["key"].as_str().unwrap_or("");
+        let mask = bound["modmask"].as_u64();
+        let shift = key.eq_ignore_ascii_case("shift_l") && mask == Some(0);
+        let click = key.eq_ignore_ascii_case("mouse:272") && mask == Some(1);
+        (shift || click) && !ours(bound, INK) && !ours(bound, PIN)
+    })
+}
+
+async fn binds() -> Result<Vec<Value>, String> {
+    serde_json::from_str(&hyprctl(&["-j", "binds"]).await?)
+        .map_err(|_| "Hyprland returned invalid binding data.".into())
+}
+
+/// Add both bindings and confirm Hyprland holds them.
+pub async fn bind(token: &str) -> Result<(), String> {
+    if !available() {
+        return Err("Screen annotation needs Hyprland.".into());
+    }
+    if conflicting(&binds().await?) {
+        return Err("Shift or Shift-click already has a Hyprland binding, so screen annotation stays off for this recording.".into());
+    }
+    // A leading Lua comment looks like an option to hyprctl's argument parser.
+    let response = hyprctl(&["eval", &format!("do\n{}\nend", add_script(token))]).await?;
+    if response.trim() != "ok" {
+        unbind(token).await;
+        return Err("Hyprland could not add the annotation bindings.".into());
+    }
+    let actual = binds().await?;
+    if ![INK, PIN]
+        .iter()
+        .all(|id| actual.iter().any(|bound| ours(bound, id)))
+    {
+        unbind(token).await;
+        return Err("Hyprland did not confirm the annotation bindings.".into());
+    }
+    Ok(())
+}
+
+/// Remove both bindings; repeated removal is harmless.
+pub async fn unbind(token: &str) -> bool {
+    hyprctl(&["eval", &format!("do\n{}\nend", remove_script(token))])
+        .await
+        .is_ok_and(|response| response.trim() == "ok")
+}
+
+/// One request on Hyprland's command socket, without spawning `hyprctl`.
+async fn request(command: &str) -> Result<Value, String> {
+    let path = socket(".socket.sock").ok_or("Hyprland is not running.")?;
+    let exchange = async {
+        let mut stream = tokio::net::UnixStream::connect(&path).await.ok()?;
+        stream.write_all(command.as_bytes()).await.ok()?;
+        let mut reply = Vec::new();
+        (&mut stream)
+            .take(1_048_576)
+            .read_to_end(&mut reply)
+            .await
+            .ok()?;
+        serde_json::from_slice(&reply).ok()
+    };
+    tokio::time::timeout(TIMEOUT, exchange)
+        .await
+        .ok()
+        .flatten()
+        .ok_or_else(|| "Hyprland did not answer.".into())
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Output {
+    pub name: String,
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+    pub scale: f64,
+    pub focused: bool,
+}
+impl Output {
+    pub fn contains(&self, x: f64, y: f64) -> bool {
+        x >= self.x && y >= self.y && x < self.x + self.width && y < self.y + self.height
+    }
+}
+
+/// Outputs in layout (logical) coordinates.
+pub fn outputs_from(value: &Value) -> Vec<Output> {
+    value
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|monitor| {
+            let scale = monitor["scale"].as_f64().filter(|s| *s > 0.0)?;
+            let (mut width, mut height) = (
+                monitor["width"].as_f64()? / scale,
+                monitor["height"].as_f64()? / scale,
+            );
+            if monitor["transform"].as_i64().is_some_and(|t| t % 2 == 1) {
+                std::mem::swap(&mut width, &mut height);
+            }
+            Some(Output {
+                name: monitor["name"].as_str()?.into(),
+                x: monitor["x"].as_f64()?,
+                y: monitor["y"].as_f64()?,
+                width: width.round(),
+                height: height.round(),
+                scale,
+                focused: monitor["focused"].as_bool().unwrap_or(false),
+            })
+        })
+        .collect()
+}
+
+pub async fn outputs() -> Vec<Output> {
+    request("j/monitors")
+        .await
+        .map(|value| outputs_from(&value))
+        .unwrap_or_default()
+}
+
+pub async fn cursor() -> Option<(f64, f64)> {
+    let value = request("j/cursorpos").await.ok()?;
+    Some((value["x"].as_f64()?, value["y"].as_f64()?))
+}
+
+/// The active window's box in layout coordinates.
+pub async fn active_window() -> Option<[f64; 4]> {
+    let value = request("j/activewindow").await.ok()?;
+    let at = value["at"].as_array()?;
+    let size = value["size"].as_array()?;
+    let (x, y) = (at.first()?.as_f64()?, at.get(1)?.as_f64()?);
+    let (w, h) = (size.first()?.as_f64()?, size.get(1)?.as_f64()?);
+    (w > 0.0 && h > 0.0).then_some([x, y, x + w, y + h])
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum FocusEvent {
+    Window { class: String, title: String },
+    Workspace { name: String },
+}
+
+/// Parse one `EVENT>>DATA` line from Hyprland's event socket.
+pub fn focus_event(line: &str) -> Option<FocusEvent> {
+    let (event, data) = line.split_once(">>")?;
+    match event {
+        "activewindow" => {
+            let (class, title) = data.split_once(',').unwrap_or((data, ""));
+            Some(FocusEvent::Window {
+                class: class.chars().take(120).collect(),
+                title: title.chars().take(200).collect(),
+            })
+        }
+        "workspacev2" => {
+            let name = data.split_once(',').map_or(data, |(_, name)| name);
+            Some(FocusEvent::Workspace {
+                name: name.chars().take(60).collect(),
+            })
+        }
+        _ => None,
+    }
+}
+
+/// Stream focus changes until the receiver is dropped or the socket closes.
+pub async fn watch(sender: tokio::sync::mpsc::UnboundedSender<(Instant, FocusEvent)>) {
+    let Some(path) = socket(".socket2.sock") else {
+        return;
+    };
+    let Ok(stream) = tokio::net::UnixStream::connect(&path).await else {
+        return;
+    };
+    let mut lines = tokio::io::BufReader::new(stream).lines();
+    loop {
+        tokio::select! {
+            _ = sender.closed() => return,
+            line = lines.next_line() => match line {
+                Ok(Some(line)) => {
+                    if let Some(event) = focus_event(&line)
+                        && sender.send((Instant::now(), event)).is_err()
+                    {
+                        return;
+                    }
+                }
+                _ => return,
+            },
+        }
+    }
+}
+
+/// Capture one output to a private JPEG: several times faster than PNG at panel resolutions,
+/// and re-encoded losslessly once cropped and inked.
+pub async fn grab(output: &str, path: &std::path::Path) -> bool {
+    let mut command = tokio::process::Command::new("grim");
+    command
+        .args(["-t", "jpeg", "-q", "90", "-o", output])
+        .arg(path)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .kill_on_drop(true);
+    matches!(
+        tokio::time::timeout(TIMEOUT, command.status()).await,
+        Ok(Ok(status)) if status.success()
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    const TOKEN: &str = "0123456789abcdef0123456789abcdef";
+
+    #[test]
+    fn bindings_add_and_remove_only_owned_handles() {
+        let script = add_script(TOKEN);
+        assert!(script.contains("hl.bind(\"Shift_L\", hl.dsp.global(\"com.mluva.Linux:annotate-ink\"), { non_consuming = true, ignore_mods = true"));
+        assert!(script.contains(
+            "hl.bind(\"SHIFT + mouse:272\", hl.dsp.global(\"com.mluva.Linux:annotate-pin\")"
+        ));
+        assert!(!script.contains("mluva_portal_bindings"));
+        assert!(remove_script(TOKEN).contains(&format!("[\"{TOKEN}\"] = nil")));
+        assert!(!valid_token("../x") && !valid_token("abc"));
+    }
+
+    #[test]
+    #[ignore = "requires the Lua interpreter"]
+    fn lua_cleanup_of_one_session_keeps_the_next_sessions_bindings() {
+        use std::{
+            io::Write,
+            process::{Command, Stdio},
+        };
+        let next = "fedcba9876543210fedcba9876543210";
+        let mut lua = String::from(
+            "local active = {}; local n = 0; hl = { dsp = { global = function(id) return id end }, bind = function(key, target) n = n + 1; local id = n; active[id] = key .. '=' .. target; return { remove = function() active[id] = nil end } end };\n\
+             local function count() local c = 0; for _ in pairs(active) do c = c + 1 end; return c end\n",
+        );
+        lua.push_str(&add_script(TOKEN));
+        lua.push_str("assert(count() == 2)\n");
+        // A crash left the first session's bindings; the next session replaces them.
+        lua.push_str(&add_script(next));
+        lua.push_str("assert(count() == 2)\n");
+        // The first session's late cleanup must not touch the next session.
+        lua.push_str(&remove_script(TOKEN));
+        lua.push_str("assert(count() == 2)\n");
+        lua.push_str(&remove_script(next));
+        lua.push_str("assert(count() == 0)\n");
+        let mut child = Command::new("lua")
+            .arg("-")
+            .stdin(Stdio::piped())
+            .spawn()
+            .unwrap();
+        child
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(lua.as_bytes())
+            .unwrap();
+        assert!(child.wait().unwrap().success());
+    }
+
+    #[test]
+    fn existing_shift_bindings_block_annotation_but_ours_do_not() {
+        assert!(conflicting(&[
+            json!({"key":"Shift_L","modmask":0,"description":"Other"})
+        ]));
+        assert!(conflicting(&[
+            json!({"key":"mouse:272","modmask":1,"description":""})
+        ]));
+        assert!(!conflicting(&[
+            json!({"key":"Shift_L","modmask":4,"description":"Other"}),
+            json!({"key":"mouse:272","modmask":64,"description":"Move window"}),
+            json!({"key":"Shift_L","modmask":0,"description":"Mluva annotation: annotate-ink"}),
+        ]));
+    }
+
+    #[test]
+    fn outputs_use_logical_sizes_and_events_are_bounded() {
+        let outputs = outputs_from(&json!([
+            {"name":"DP-1","x":0,"y":0,"width":3840,"height":2160,"scale":2.0,"transform":0,"focused":true},
+            {"name":"HDMI-A-1","x":1920,"y":0,"width":1920,"height":1080,"scale":1.0,"transform":1}
+        ]));
+        assert_eq!((outputs[0].width, outputs[0].height), (1920.0, 1080.0));
+        assert_eq!((outputs[1].width, outputs[1].height), (1080.0, 1920.0));
+        assert!(outputs[1].contains(2000.0, 100.0) && !outputs[0].contains(2000.0, 100.0));
+        assert_eq!(
+            focus_event("activewindow>>foot,shell"),
+            Some(FocusEvent::Window {
+                class: "foot".into(),
+                title: "shell".into()
+            })
+        );
+        assert_eq!(
+            focus_event("workspacev2>>3,code"),
+            Some(FocusEvent::Workspace {
+                name: "code".into()
+            })
+        );
+        assert_eq!(focus_event("openlayer>>mluva"), None);
+    }
+}

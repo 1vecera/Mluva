@@ -467,6 +467,7 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
             CaptureControllerCallbacks {
                 wait_for_images: Rc::new(|_| Box::pin(async { Ok(()) })),
                 prepare_result: Rc::new(|_, _| {}),
+                appendix: Rc::new(|_| None),
                 refresh_history: Rc::new(|_| {}),
                 images: Rc::new(|_| Ok(vec![])),
                 completed: Rc::new(move |capture| {

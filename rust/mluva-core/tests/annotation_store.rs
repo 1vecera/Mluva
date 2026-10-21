@@ -66,7 +66,12 @@ fn a_bound_bundle_keeps_its_path_and_leaves_with_its_conversation() {
     )));
     history.delete(&entry.identifier).unwrap();
     assert!(!path.exists());
-    assert!(annotations.recent(&entry.identifier, false).unwrap().is_empty());
+    assert!(
+        annotations
+            .recent(&entry.identifier, false)
+            .unwrap()
+            .is_empty()
+    );
 }
 
 #[test]
@@ -82,7 +87,10 @@ fn pruning_and_merging_follow_the_owning_conversation() {
     conversations
         .merge(&target.identifier, &source.identifier)
         .unwrap();
-    assert_eq!(annotations.recent(&target.identifier, false).unwrap().len(), 1);
+    assert_eq!(
+        annotations.recent(&target.identifier, false).unwrap().len(),
+        1
+    );
     assert!(moved.exists());
 
     let old = history.add(HistoryInput::dictation("old", "old")).unwrap();
@@ -123,4 +131,21 @@ fn unbound_bundles_are_removed_with_their_recording_and_links_are_refused() {
 
 fn uuid_like() -> String {
     "00000000-0000-4000-8000-000000000001".into()
+}
+
+#[test]
+fn the_opt_in_defaults_off_and_round_trips_privately() {
+    use mluva_core::annotations::AnnotationSettings;
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join(AnnotationSettings::FILE);
+    assert!(!AnnotationSettings::load(&path).unwrap().enabled);
+    AnnotationSettings { enabled: true }.save(&path).unwrap();
+    assert!(AnnotationSettings::load(&path).unwrap().enabled);
+    assert_eq!(
+        fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+        0o600
+    );
+    fs::write(&path, br#"{"enabled": true, "unknown": 1}"#).unwrap();
+    assert!(AnnotationSettings::load(&path).is_err());
+    assert!(fs::read(&path).unwrap().starts_with(b"{\"enabled\": true"));
 }

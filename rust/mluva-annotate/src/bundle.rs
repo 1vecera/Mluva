@@ -190,8 +190,14 @@ mod tests {
         };
         let text = summary(
             65_000,
-            &[keyframe(1, 4_000, Some("This  button\nis wrong.")), keyframe(2, 61_000, None)],
-            &["/a/frames/frame-01.png".into(), "/a/frames/frame-02.png".into()],
+            &[
+                keyframe(1, 4_000, Some("This  button\nis wrong.")),
+                keyframe(2, 61_000, None),
+            ],
+            &[
+                "/a/frames/frame-01.png".into(),
+                "/a/frames/frame-02.png".into(),
+            ],
             Path::new("/a/contact-sheet.png"),
         );
         assert_eq!(

@@ -73,6 +73,16 @@ impl ApplicationDesktop {
                         }),
                     }
                 }),
+                annotation: self.annotation_shortcuts_wanted().then(|| {
+                    let ink = weak.clone();
+                    let pin = weak.clone();
+                    crate::global_shortcuts::AnnotationShortcutCallbacks {
+                        ink: Rc::new(move |down| {
+                            current(&ink, generation, |o| o.annotation_ink(down))
+                        }),
+                        pin: Rc::new(move || current(&pin, generation, |o| o.annotation_pin())),
+                    }
+                }),
                 toggle_recording: dispatch(ApplicationAction::GlobalRecord),
                 cancel: dispatch(ApplicationAction::Cancel),
                 open_rewrite: dispatch(ApplicationAction::Latest),
