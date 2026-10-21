@@ -16,6 +16,8 @@ import uuid
 root = pathlib.Path(os.environ["VOICE_PROOF_ROOT"])
 exe = os.environ["VOICE_PROOF_HERDR"]
 manual_codex = os.environ.get("VOICE_PROOF_CODEX_LAUNCH") == "--manual-codex"
+# A directly launched Claude runs with vim key bindings, which start in INSERT mode.
+manual_claude = os.environ.get("VOICE_PROOF_CLAUDE_LAUNCH") == "--manual-claude"
 mluva = os.environ.get("VOICE_PROOF_MLUVA")
 assert str(root) == "/tmp/herdr-voice", "run through a private native verification wrapper"
 if mluva:
@@ -218,6 +220,7 @@ endpoint = "http://127.0.0.1:" + str(server.server_port)
                 }
             },
             "customApiKeyResponses": {"approved": ["synthetic-key"], "rejected": []},
+            **({"editorMode": "vim"} if manual_claude else {}),
         }
     )
 )
@@ -340,18 +343,28 @@ try:
     assert "result" in split, split
     other = split["result"]["pane"]["pane_id"]
     time.sleep(0.3)
-    started = rpc(
-        "agent.start",
-        {
+    claude_args = ["--permission-mode", "plan", "--tools", "", "--model", "sonnet"]
+    if manual_claude:
+        started = rpc("pane.send_text", {
             "pane_id": other,
-            "kind": "claude",
-            "name": "voice-claude",
-            "args": ["--permission-mode", "plan", "--tools", "", "--model", "sonnet"],
-            "timeout_ms": 15000,
-        },
-    )
+            "text": shlex.join(["claude", *claude_args]) + "\n",
+        })
+    else:
+        started = rpc(
+            "agent.start",
+            {
+                "pane_id": other,
+                "kind": "claude",
+                "name": "voice-claude",
+                "args": claude_args,
+                "timeout_ms": 15000,
+            },
+        )
     assert "result" in started, started
     time.sleep(7)
+    if manual_claude:
+        renamed = rpc("agent.rename", {"target": other, "name": "voice-claude"})
+        assert "result" in renamed, renamed
     listing = rpc("agent.guarded_list")["result"]
     print("guarded-count", len(listing["agents"]), flush=True)
     assert len(listing["agents"]) == 2
@@ -366,6 +379,33 @@ try:
         time.sleep(0.4)
         listing = rpc("agent.guarded_list")["result"]
         assert len(listing["agents"]) == 2
+    if manual_claude:
+        claude = next(e for e in listing["agents"] if e["agent"]["agent"] == "claude")
+        assert not claude["agent"].get("interactive_ready"), "Herdr did not launch this Claude"
+
+        def wait_for_insert(shown):
+            for _ in range(50):
+                text = rpc("agent.read", {"target": other, "source": "detection"})
+                if ("-- INSERT --" in text["result"]["read"]["text"]) == shown:
+                    return
+                time.sleep(0.1)
+            raise AssertionError("Claude's vim indicator did not change")
+
+        wait_for_insert(True)
+        assert "result" in rpc("pane.send_keys", {"pane_id": other, "keys": ["esc"]})
+        wait_for_insert(False)
+        refused = rpc("agent.prompt_guarded", {
+            "target": other,
+            "server_epoch": listing["server_epoch"],
+            "guard": claude["guard"],
+            "operation_id": str(uuid.uuid4()),
+            "expires_at_unix_ms": int(time.time() * 1000) + 5000,
+            "text": "NORMAL_MODE_SYNTHETIC must never arrive.",
+        })
+        assert refused["result"]["state"] == "rejected", refused
+        print("claude-vim-normal-rejected", flush=True)
+        assert "result" in rpc("pane.send_text", {"pane_id": other, "text": "i"})
+        wait_for_insert(True)
     if mluva:
         helper = os.environ["MLUVA_VERIFY_CLI"]
         expected_text = os.environ["VOICE_PROOF_EXPECTED_TEXT"]
@@ -535,7 +575,12 @@ try:
             "guard": entry["guard"],
             "operation_id": str(uuid.uuid4()),
             "expires_at_unix_ms": int(time.time() * 1000) + 5000,
-            "text": marker + " Reply only with acknowledgement, without tools.",
+            "text": marker + " Reply only with acknowledgement, without tools."
+            + (
+                "".join(f"\nSynthetic dictated line {n}." for n in range(1, 41))
+                if manual_claude and kind == "claude"
+                else ""
+            ),
         }
         start = time.monotonic()
         first = rpc("agent.prompt_guarded", request)
@@ -608,6 +653,7 @@ try:
         == "stale_server"
     )
     print("rename-rejected-recipient-still-running", flush=True)
+    assert "NORMAL_MODE_SYNTHETIC" not in json.dumps(requests)
     print(
         "PROOF_RESULT",
         json.dumps(
@@ -627,6 +673,9 @@ try:
                 "rename_rejected_recipient_running": True,
                 "codex_launch": "direct shell command" if manual_codex else "managed",
                 "manual_draft_excluded": manual_codex,
+                "claude_launch": "direct shell command" if manual_claude else "managed",
+                "claude_vim_normal_rejected": manual_claude,
+                "claude_multiline_paste_lines": 41 if manual_claude else 1,
                 "stale_epoch_rejected": True,
                 "codex_identity": "Actual session reported through Herdr hook by fixture; automatic trust approval remains manual",
                 "inference": "loopback synthetic; network namespace has no external connection",
