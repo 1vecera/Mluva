@@ -128,7 +128,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     )
     .unwrap();
     let text = "Synthetic message: verify the selected agent only.";
-    let responses: Vec<_> = (0..9).map(|_| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":text, "language_code":"eng"}})).collect();
+    let responses: Vec<_> = (0..10).map(|_| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":text, "language_code":"eng"}})).collect();
     let mut speech = http::Peer::new(&responses);
     let paths = AppPaths {
         config: root.join("config/mluva"),
@@ -315,6 +315,252 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         .endpoint_entry
         .set_text(&services.config().transcription_base_url);
     until(|| owner.capture.page.record_button.is_sensitive());
+    // F12 is a selector first. Real private X11 keys choose, cancel and confirm.
+    let wheel_key = |key: &str| {
+        let output = Command::new("xdotool")
+            .args([
+                "search",
+                "--onlyvisible",
+                "--name",
+                "^Choose a Herdr session$",
+            ])
+            .output()
+            .unwrap();
+        let id = String::from_utf8(output.stdout).unwrap();
+        let id = id.lines().next().unwrap();
+        assert!(
+            Command::new("xdotool")
+                .args(["windowactivate", "--sync", id])
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(
+            Command::new("xdotool")
+                .args(["key", "--clearmodifiers", key])
+                .status()
+                .unwrap()
+                .success()
+        );
+        settle(100);
+    };
+    owner.agent_voice.shortcut();
+    until(|| {
+        owner.agent_voice.wheel.window.is_visible()
+            && owner.agent_voice.wheel.entries.borrow().len() == 2
+    });
+    assert!(owner.capture.phase().is_none());
+    assert!(sent(&audit).is_empty());
+    owner.agent_voice.shortcut_binding(Some("F11"), Some("F7"));
+    settle(100);
+    assert_eq!(owner.agent_voice.wheel.record_key.label().as_str(), "F11");
+    owner.agent_voice.shortcut_binding(None, None);
+    settle(100);
+    assert_eq!(
+        owner
+            .agent_voice
+            .wheel
+            .selected
+            .borrow()
+            .as_ref()
+            .unwrap()
+            .pane_id,
+        "w1:p1"
+    );
+    for (width, name) in [
+        (420, "wheel-minimum.png"),
+        (736, "wheel-narrow.png"),
+        (1060, "wheel-wide.png"),
+    ] {
+        owner.shell.window.set_default_size(width, 760);
+        settle(100);
+        let output = Command::new("xdotool")
+            .args([
+                "search",
+                "--onlyvisible",
+                "--name",
+                "^Choose a Herdr session$",
+            ])
+            .output()
+            .unwrap();
+        let id = String::from_utf8(output.stdout).unwrap();
+        assert!(
+            Command::new("import")
+                .args(["-window", id.lines().next().unwrap()])
+                .arg(root.join(name))
+                .status()
+                .unwrap()
+                .success()
+        );
+        assert!(owner.agent_voice.wheel.window.width() <= mluva_gtk::agent_session_wheel::WIDTH);
+        assert!(owner.agent_voice.wheel.window.height() <= mluva_gtk::agent_session_wheel::HEIGHT);
+    }
+    wheel_key("s");
+    assert_eq!(
+        owner.agent_voice.settings().selected.unwrap().pane_id,
+        "w1:p2"
+    );
+    wheel_key("Escape");
+    assert!(!owner.agent_voice.wheel.window.is_visible());
+    assert!(owner.capture.phase().is_none());
+    owner.agent_voice.shortcut();
+    assert_eq!(
+        owner
+            .agent_voice
+            .wheel
+            .selected
+            .borrow()
+            .as_ref()
+            .unwrap()
+            .pane_id,
+        "w1:p2"
+    );
+    // Second F12 starts, with key repeat unable to toggle a second time.
+    wheel_key("F12");
+    until(|| owner.capture.phase() == Some(CapturePhase::Recording));
+    assert!(!owner.agent_voice.wheel.window.is_visible());
+    owner.dispatch(mluva_gtk::application_shell::ApplicationAction::Cancel);
+    until(|| owner.capture.phase().is_none());
+    assert!(sent(&audit).is_empty());
+    // F12 -> F9 is provisionally local/editable and never copies, pastes or sends.
+    fs::remove_file(tools.join("raw.ready.json")).unwrap();
+    owner.agent_voice.shortcut();
+    wheel_key("F9");
+    until(|| owner.capture.phase() == Some(CapturePhase::Recording));
+    settle(60);
+    owner.dispatch(mluva_gtk::application_shell::ApplicationAction::GlobalRecord);
+    until(|| owner.capture.phase().is_none());
+    let transcript = owner.capture.page.workspace.entry().unwrap_or_else(|| {
+        panic!(
+            "Local transcript missing: status={}, notice={}, error={:?}, provider_requests={}",
+            owner.capture.page.status.label(),
+            owner.capture.page.workspace.notice.label(),
+            owner.capture.page.setup_body.tooltip_text(),
+            speech.observed.lock().unwrap().len()
+        )
+    });
+    assert_eq!(transcript.raw_text, text);
+    assert_eq!(
+        glib::MainContext::default()
+            .block_on(
+                gtk::gdk::Display::default()
+                    .unwrap()
+                    .clipboard()
+                    .read_text_future()
+            )
+            .unwrap()
+            .as_deref(),
+        Some("Clipboard must remain unchanged")
+    );
+    settle(2200);
+    assert!(sent(&audit).is_empty());
+    owner.capture.page.workspace.documents()[0]
+        .buffer()
+        .set_text("Edited local transcript.");
+    let local_entry = owner.capture.page.workspace.entry().unwrap();
+    until(|| {
+        !owner
+            .capture
+            .page
+            .workspace
+            .has_unsaved_edits(&local_entry.identifier)
+    });
+    assert_eq!(
+        services
+            .history
+            .find(&local_entry.identifier)
+            .unwrap()
+            .raw_text,
+        text
+    );
+    assert_eq!(
+        services
+            .conversations
+            .source_text(&local_entry, false)
+            .unwrap(),
+        "Edited local transcript."
+    );
+    // More than one wheel page, non-alphabetical server order, reorder and loss.
+    let original_agents = data["agents"].clone();
+    for i in 3..=8 {
+        data["agents"].as_array_mut().unwrap().push(json!({"guard":"d".repeat(64),"agent":{"name":if i == 3 { "long-session-name-for-regression".to_owned() } else { format!("Z session {}", 9-i) },"pane_id":format!("w1:p{i}"),"agent":"codex","agent_status":"idle"}}));
+    }
+    let all_agents = data["agents"].clone();
+    for count in 0..=6 {
+        owner.agent_voice.view.recipients.set_selected(0);
+        data["agents"] = json!(all_agents.as_array().unwrap()[..count].to_vec());
+        state(&peer_state, &data);
+        owner.agent_voice.refresh();
+        until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == count as u32 + 1);
+        owner.agent_voice.shortcut();
+        settle(100);
+        assert!(owner.agent_voice.wheel.window.is_visible());
+        assert!(owner.agent_voice.wheel.window.width() <= mluva_gtk::agent_session_wheel::WIDTH);
+        assert!(owner.agent_voice.wheel.window.height() <= mluva_gtk::agent_session_wheel::HEIGHT);
+        assert!(owner.capture.phase().is_none());
+        owner.dispatch(mluva_gtk::application_shell::ApplicationAction::Cancel);
+    }
+    data["agents"] = all_agents;
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == 9);
+    owner.agent_voice.shortcut();
+    assert_eq!(owner.agent_voice.wheel.entries.borrow()[0].pane_id, "w1:p1");
+    settle(100);
+    let wheel_window = Command::new("xdotool")
+        .args([
+            "search",
+            "--onlyvisible",
+            "--name",
+            "^Choose a Herdr session$",
+        ])
+        .output()
+        .unwrap();
+    let wheel_window = String::from_utf8(wheel_window.stdout).unwrap();
+    assert!(
+        Command::new("import")
+            .args(["-window", wheel_window.lines().next().unwrap()])
+            .arg(root.join("wheel-six-sessions.png"))
+            .status()
+            .unwrap()
+            .success()
+    );
+    wheel_key("Right");
+    assert_eq!(owner.agent_voice.wheel.page.get(), 1);
+    wheel_key("a");
+    assert_eq!(
+        owner.agent_voice.settings().selected.unwrap().pane_id,
+        "w1:p7"
+    );
+    data["agents"].as_array_mut().unwrap().reverse();
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| owner.agent_voice.wheel.entries.borrow()[0].pane_id == "w1:p8");
+    assert_eq!(
+        owner.agent_voice.settings().selected.unwrap().pane_id,
+        "w1:p7"
+    );
+    data["agents"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|a| a["agent"]["pane_id"] != "w1:p7");
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| !owner.agent_voice.wheel.record.is_sensitive());
+    owner.agent_voice.shortcut();
+    assert!(
+        owner.capture.phase().is_none(),
+        "A missing target must not silently choose another session"
+    );
+    assert_eq!(
+        owner.agent_voice.settings().selected.unwrap().pane_id,
+        "w1:p7"
+    );
+    data["agents"] = original_agents;
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == 4);
+    owner.agent_voice.view.recipients.set_selected(1);
     let record = || {
         let _ = fs::remove_file(tools.join("raw.ready.json"));
         owner.agent_voice.view.record.emit_clicked();
@@ -612,7 +858,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     let ended = owner.shutdown();
     glib::MainContext::default().block_on(ended).unwrap();
     let observed = speech.finish();
-    assert_eq!(observed.len(), 9);
+    assert_eq!(observed.len(), 10);
     assert!(wire(&audit).iter().all(|r| {
         [
             "agent.guarded_list",
@@ -621,5 +867,5 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         ]
         .contains(&r["method"].as_str().unwrap())
     }));
-    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":10,"recognized":9,"guarded_submissions":4,"cancelled_or_disarmed_captures":7,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
+    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":12,"recognized":10,"session_wheel":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":4,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
 }

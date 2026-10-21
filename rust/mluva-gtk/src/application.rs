@@ -48,6 +48,7 @@ struct CaptureContext {
     target: Option<DeliveryTargetSnapshot>,
     continuation: Option<String>,
     agent_attempt: Option<String>,
+    transcript_only: bool,
     session: Rc<CaptureSession>,
 }
 
@@ -295,6 +296,10 @@ impl ApplicationDesktop {
             page.clone(),
             crate::agent_voice_controller::AgentVoiceCallbacks {
                 toggle: bind!(link, |app| app.agent_toggle()),
+                select: bind!(link, |app| app.agent_shortcut()),
+                transcript: bind!(link, |app| {
+                    app.dispatch(ApplicationAction::GlobalRecord);
+                }),
                 release: bind!(link, |app| app.agent_release()),
                 cancel: bind!(link, |app| {
                     app.cancel();

@@ -1,6 +1,7 @@
 //! Native desktop widgets; keep stored source and desktop presentation separate.
 
 pub mod account_controller;
+pub mod agent_session_wheel;
 pub mod agent_voice_controller;
 mod agent_voice_view;
 pub mod appearance_settings;

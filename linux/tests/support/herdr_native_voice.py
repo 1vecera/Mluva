@@ -405,7 +405,24 @@ try:
             raise AssertionError("Private global shortcut was not approved")
         approved = app_cli("status")
         assert approved["shortcuts"]["recording_trigger"] == "F9"
+        assert approved["hold_key"] == "F12"
         assert approved["shortcuts"]["shortcut_service_available"]
+        portal({"op": "Activated", "id": "agent-hold"})
+        for _ in range(50):
+            discovery = json.loads(subprocess.check_output([helper, "discover"], text=True))
+            if "Choose a Herdr session" in json.dumps(discovery):
+                break
+            time.sleep(0.1)
+        else:
+            raise AssertionError("First F12 did not display the real session wheel")
+        assert app_cli("status")["delivery"] != "recording"
+        assert not pathlib.Path(
+            os.environ["OFFSCREEN_SESSION_ROOT"], "tools/raw.ready.json"
+        ).exists(), "First F12 opened the microphone"
+        portal({"op": "Activated", "id": "agent-hold"})
+        assert app_cli("status")["delivery"] != "recording", "Held-key repeat started capture"
+        # Release rearms the real portal action; the second press starts capture.
+        portal({"op": "Deactivated", "id": "agent-hold"})
         portal({"op": "Activated", "id": "agent-hold"})
         for _ in range(100):
             if pathlib.Path(
@@ -469,6 +486,8 @@ try:
             ],
             "native_messages": len(routed),
             "key_release_keeps_recording": True,
+            "first_f12_only_selects": True,
+            "second_f12_starts_recording": True,
             "receipt": "accepted",
             "hold_required": False,
             "extra_send_confirmation": False,

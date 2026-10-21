@@ -1,0 +1,75 @@
+/* Session wheel only. Names use the platform UI face; keys and pane IDs stay monospace. */
+window.ml-session-wheel, window.ml-session-wheel.background { background: @vs_canvas; color: @vs_ink; }
+.ml-session-wheel .ml-wheel-title { font-family: "Adwaita Sans", "Inter", "Noto Sans", sans-serif;
+  font-size: 15px; font-weight: 700; color: @vs_ink; }
+.ml-session-wheel .ml-wheel-page { font-size: 12px; color: @vs_ink_secondary; font-feature-settings: "tnum"; }
+.ml-session-wheel .ml-wheel-pager button { min-width: 26px; min-height: 26px; padding: 0; border-radius: 8px; }
+
+.ml-session-wheel .ml-wheel-dial { color: @vs_ink; }
+.ml-session-wheel .ml-wheel-needle { color: @vs_action; }
+.ml-session-wheel .ml-wheel-needle.ml-wheel-unavailable { color: @vs_warning; }
+
+.ml-session-wheel .ml-wheel-key { min-width: 28px; min-height: 28px; padding: 0; border-radius: 8px;
+  background: alpha(@vs_ink, 0.06); border: 1px solid alpha(@vs_ink, 0.15);
+  box-shadow: inset 0 -2px alpha(@vs_ink, 0.10);
+  font-size: 14px; font-weight: 700; color: @vs_ink; }
+.ml-session-wheel .ml-wheel-key.ml-wheel-ghost { background: transparent; box-shadow: none;
+  border: 1px dashed alpha(@vs_ink, 0.20); color: alpha(@vs_ink, 0.34); font-weight: 500; }
+
+.ml-session-wheel button.ml-wheel-slot { min-height: 0; padding: 5px 12px 5px 5px; border-radius: 12px;
+  background: transparent; border: 1px solid transparent; box-shadow: none;
+  transition: background-color 140ms ease-out, border-color 140ms ease-out; }
+.ml-session-wheel button.ml-wheel-slot.ml-wheel-left { padding: 5px 5px 5px 12px; }
+.ml-session-wheel button.ml-wheel-slot:hover { background: alpha(@vs_ink, 0.055); }
+.ml-session-wheel button.ml-wheel-slot.ml-wheel-selected { background: alpha(@vs_action, 0.12);
+  border-color: alpha(@vs_action, 0.34); }
+.ml-session-wheel button.ml-wheel-slot.ml-wheel-selected .ml-wheel-key { background: @vs_action;
+  border-color: @vs_action; color: @vs_on_action; box-shadow: none; }
+.ml-session-wheel button.ml-wheel-slot.ml-wheel-selected.ml-wheel-unavailable { background: alpha(@vs_warning, 0.07);
+  border-color: alpha(@vs_warning, 0.40); }
+.ml-session-wheel button.ml-wheel-slot.ml-wheel-selected.ml-wheel-unavailable .ml-wheel-key {
+  background: @vs_warning; border-color: @vs_warning; color: @vs_canvas; }
+
+.ml-session-wheel .ml-wheel-name { font-family: "Adwaita Sans", "Inter", "Noto Sans", sans-serif;
+  font-size: 14px; font-weight: 500; color: @vs_ink; }
+.ml-session-wheel .ml-wheel-selected .ml-wheel-name { font-weight: 700; }
+.ml-session-wheel .ml-wheel-unavailable .ml-wheel-name { color: @vs_ink_secondary; }
+.ml-session-wheel .ml-wheel-meta { font-size: 11px; color: @vs_ink_secondary; }
+.ml-session-wheel .ml-wheel-meta.ml-wheel-warning { color: @vs_warning; }
+
+.ml-session-wheel button.ml-wheel-hub { padding: 0; border-radius: 9999px;
+  background: alpha(@vs_ink, 0.035); border: 1px solid alpha(@vs_ink, 0.13);
+  box-shadow: 0 1px 2px alpha(@vs_shadow, 0.10), 0 4px 12px alpha(@vs_shadow, 0.07);
+  transition: background-color 160ms ease-out, border-color 160ms ease-out; }
+.ml-session-wheel button.ml-wheel-hub:hover { background: alpha(@vs_action, 0.07); border-color: alpha(@vs_action, 0.55); }
+.ml-session-wheel button.ml-wheel-hub:active { background: alpha(@vs_action, 0.13); }
+.ml-session-wheel button.ml-wheel-hub:focus-visible { outline: 2px solid alpha(@vs_focus, 0.6); outline-offset: 1px; }
+.ml-session-wheel button.ml-wheel-hub:disabled { opacity: 1; background: transparent;
+  border: 1px dashed alpha(@vs_ink, 0.22); box-shadow: none; }
+.ml-session-wheel .ml-wheel-hub-name { font-family: "Adwaita Sans", "Inter", "Noto Sans", sans-serif;
+  font-size: 17px; font-weight: 700; color: @vs_ink; }
+.ml-session-wheel .ml-wheel-hub-name.ml-wheel-long { font-size: 15px; }
+.ml-session-wheel button.ml-wheel-hub:disabled, .ml-session-wheel button.ml-wheel-hub:disabled label { filter: none; }
+.ml-session-wheel button.ml-wheel-hub:disabled .ml-wheel-hub-name { color: @vs_ink_secondary; }
+.ml-session-wheel .ml-wheel-hub-pane { font-size: 11px; color: @vs_ink_secondary; }
+.ml-session-wheel .ml-wheel-state { font-family: "Adwaita Sans", "Inter", "Noto Sans", sans-serif;
+  font-size: 12px; font-weight: 600; color: @vs_ink_secondary; }
+.ml-session-wheel .ml-wheel-dot { min-width: 7px; min-height: 7px; border-radius: 9999px; background: @vs_success; }
+/* Working is a hollow ring so it differs from Ready in every palette, not only by hue. */
+.ml-session-wheel .ml-wheel-dot.ml-wheel-busy { min-width: 3px; min-height: 3px; background: transparent; border: 2px solid @vs_action; }
+.ml-session-wheel .ml-wheel-dot.ml-wheel-warning { background: @vs_warning; }
+.ml-session-wheel .ml-wheel-action { padding: 4px 11px 4px 4px; border-radius: 9999px;
+  background: @vs_action; color: @vs_on_action; }
+.ml-session-wheel .ml-wheel-action label { color: @vs_on_action; }
+.ml-session-wheel .ml-wheel-action .ml-wheel-chip { background: alpha(@vs_on_action, 0.16); border: none; }
+.ml-session-wheel .ml-wheel-action-label { font-family: "Adwaita Sans", "Inter", "Noto Sans", sans-serif;
+  font-size: 13px; font-weight: 700; }
+.ml-session-wheel .ml-wheel-hint { font-family: "Adwaita Sans", "Inter", "Noto Sans", sans-serif;
+  font-size: 12px; color: @vs_ink_secondary; }
+
+.ml-session-wheel .ml-wheel-chip { padding: 1px 6px; border-radius: 9999px; font-size: 11px; font-weight: 700;
+  background: alpha(@vs_ink, 0.07); border: 1px solid alpha(@vs_ink, 0.14); color: @vs_ink; }
+.ml-session-wheel .ml-wheel-footer { border-top: 1px solid alpha(@vs_ink, 0.09); padding-top: 12px; }
+.ml-session-wheel .ml-wheel-footer button { min-height: 0; padding: 4px 11px 4px 5px; border-radius: 9999px; }
+.ml-session-wheel .ml-wheel-footer button label.ml-wheel-button-label {
+  font-family: "Adwaita Sans", "Inter", "Noto Sans", sans-serif; font-size: 13px; font-weight: 600; color: @vs_ink; }

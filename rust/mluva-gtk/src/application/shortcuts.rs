@@ -61,7 +61,7 @@ impl ApplicationDesktop {
                         hold_key: settings.hold_key,
                         draft_key: settings.draft_key,
                         toggle_recording: Rc::new(move || {
-                            current(&toggle, generation, |o| o.agent_toggle())
+                            current(&toggle, generation, |o| o.agent_shortcut())
                         }),
                         keep_draft: Rc::new(move || {
                             current(&keep, generation, |o| o.agent_voice.keep_draft())

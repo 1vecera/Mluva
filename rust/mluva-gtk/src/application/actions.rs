@@ -27,7 +27,13 @@ impl ApplicationDesktop {
             }
             ApplicationAction::Record => self.toggle_recording(CaptureOrigin::Manual),
             ApplicationAction::GlobalRecord => {
-                self.toggle_recording(CaptureOrigin::ApprovedShortcut)
+                let origin = if self.agent_voice.take_transcript() {
+                    // Provisional F12 → F9 destination: local editor, no clipboard/send.
+                    CaptureOrigin::Transcript
+                } else {
+                    CaptureOrigin::ApprovedShortcut
+                };
+                self.toggle_recording(origin)
             }
             ApplicationAction::Screenshot => self.request_screenshot(),
             ApplicationAction::Cancel => {

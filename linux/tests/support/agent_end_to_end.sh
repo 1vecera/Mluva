@@ -20,6 +20,8 @@ for _ in {1..100}; do
     sleep 0.05
 done
 rg -q portal-ready "$OFFSCREEN_SESSION_ROOT/portal.log"
+# The fixture uses the requested wheel key without touching installed settings.
+printf '%s\n' '{"enabled":true,"hold_key":"F12"}' > "$XDG_CONFIG_HOME/mluva/agent-voice.json"
 "$MLUVA_VERIFY_CLI" launch --global-shortcuts >/dev/null
 export VOICE_PROOF_ROOT=/tmp/herdr-voice
 export VOICE_PROOF_HERDR="$tools/herdr"
