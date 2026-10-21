@@ -24,6 +24,7 @@ pub mod herdr_cli;
 pub mod history_controller;
 pub mod history_view;
 pub mod language_picker;
+mod layer_shell;
 pub mod local_model_settings;
 pub mod markdown_view;
 pub mod meeting_controller;

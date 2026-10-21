@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-20",
+  "date": "2026-10-21",
   "native_gate": {
-    "passed": 165,
+    "passed": 170,
     "failed": 0,
     "ignored": 68
   },
@@ -10,6 +10,17 @@
     "recognized": 10,
     "session_wheel": true,
     "wheel_keyboard_order_reorder_loss": true,
+    "wheel_paging_sessions": 30,
+    "wheel_fits_private_screen_sessions": [
+      0,
+      1,
+      2,
+      3,
+      6,
+      20
+    ],
+    "claude_title_named_in_app": true,
+    "herdr_name_kept_for_routing": true,
     "alternate_transcript_no_delivery": true,
     "guarded_submissions": 4,
     "cancelled_or_disarmed_captures": 8,
@@ -22,6 +33,9 @@
     "clipboard_unchanged": true,
     "selected_provider_unchanged": true
   },
+  "shortcut_portal": {
+    "passed": true
+  },
   "end_to_end": {
     "passed": true,
     "pipeline": [
@@ -32,6 +46,7 @@
       "Mluva guarded submission",
       "actual Herdr server",
       "actual Codex",
+      "actual Claude Code",
       "loopback Responses inference"
     ],
     "native_messages": 1,
@@ -39,25 +54,103 @@
     "first_f12_only_selects": true,
     "second_f12_starts_recording": true,
     "receipt": "accepted",
-    "hold_required": false,
-    "extra_send_confirmation": false,
+    "session_names": [
+      {
+        "agent": "codex",
+        "terminal_title": "project",
+        "mluva_title": "",
+        "shown": "Herdr name (no thread name yet)"
+      },
+      {
+        "agent": "claude",
+        "terminal_title": "Claude Code",
+        "mluva_title": "",
+        "shown": "Herdr name (no session title yet)"
+      }
+    ],
     "inference": "synthetic private loopback; no external provider"
   },
+  "live_metadata_read_only": {
+    "sessions": 6,
+    "resolved_to_agent_title": 6,
+    "codex_matched_session_index": 3,
+    "claude_matched_effective_title": 3,
+    "names_recorded": false
+  },
+  "naming": {
+    "claude_code": "terminal title (custom or generated session title); product title 'Claude Code' means none yet",
+    "codex": "thread_name in $CODEX_HOME/session_index.jsonl for the Herdr-reported session ID; latest entry wins",
+    "fallback": "Herdr agent name, then pane ID",
+    "max_title_chars": 240,
+    "ellipsized_on_ring": false
+  },
+  "layout": {
+    "first_session_degrees": 30,
+    "direction": "clockwise",
+    "order": "Herdr workspace, tab, pane layout",
+    "sessions_per_page": 26,
+    "keys": "asdfghjklqwertyuiopzxcvbnm",
+    "window_on_1920x1200": {
+      "1": [
+        491,
+        382
+      ],
+      "6": [
+        725,
+        398
+      ],
+      "20": [
+        1083,
+        581
+      ],
+      "26": [
+        1041,
+        686
+      ]
+    },
+    "max_leader_jog_px": 14,
+    "leaders": "radial stub (12-66 px, outward only), optional same-direction jog, level run; never reverses"
+  },
   "visual_review": {
-    "redesign": "home-row arch around a centre record action",
     "palettes": [
+      "Omarchy Nord",
       "default light",
-      "default dark",
-      "Omarchy Nord"
+      "default dark"
+    ],
+    "screens": [
+      "1920x1200",
+      "2560x1440"
     ],
     "gallery_states_per_palette": 16,
-    "independent_finish_review": "fix: seven material findings",
-    "verdict_pass": "six design fixes resolved; product-record request intentionally not adopted",
-    "minimum_text_contrast_from_tokens": 4.64,
-    "window_size_in_captures": [
-      652,
-      420
-    ]
+    "independent_finish_review": "fix",
+    "declined": [
+      "screen-filling type scale (native controls keep a constant size)",
+      "PRODUCT.md (product contract remains authority)",
+      "scrim via Hyprland rule (desktop-config ownership; raised separately)"
+    ],
+    "after_review": "Daniel asked for transparency and no box; overlay adopted and approved by Daniel; not re-scored by the finish reviewer"
   },
-  "scope": "Synthetic isolated X11, private portal, PCM and loopback providers; no physical microphone, host input or live Wayland acceptance."
+  "overlay": {
+    "mechanism": "wlr-layer-shell overlay layer via linked gtk4-layer-shell (Omarchy base package)",
+    "fallback": "frameless dialog on X11 or compositors without layer-shell",
+    "scrim": "theme background, 0.94 at centre, 0.92 to 58% of the half-diagonal, 0.62 at the edges",
+    "dismiss": [
+      "Escape",
+      "click outside a control"
+    ],
+    "live_check": {
+      "compositor": "Hyprland 0.56.2",
+      "namespace": "mluva-session-wheel",
+      "layer": "overlay",
+      "size": [
+        2560,
+        1440
+      ],
+      "output": "focused external monitor",
+      "observer_confirmed_visible_and_correct": true,
+      "screenshot_taken": false,
+      "global_shortcut_exercised": false,
+      "unexplained": "hyprctl layers stopped listing the surface about 2-3 s into each run while it stayed visible"
+    }
+  }
 }

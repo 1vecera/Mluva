@@ -31,6 +31,7 @@ jobs:
           git
           gobject-introspection
           gtk4-devel
+          gtk4-layer-shell-devel
           libadwaita-devel
           at-spi2-core-devel
           fontconfig-devel

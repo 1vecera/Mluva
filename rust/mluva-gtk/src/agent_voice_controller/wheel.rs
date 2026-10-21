@@ -41,7 +41,10 @@ impl AgentVoiceController {
                 .unwrap_or(0)
                 / KEYS.len(),
         );
-        self.wheel.window.set_transient_for(Some(parent));
+        // An overlay belongs to no window; an ordinary wheel stays attached to Mluva.
+        if !self.wheel.overlay {
+            self.wheel.window.set_transient_for(Some(parent));
+        }
         self.wheel.window.present();
         self.render_wheel();
         self.wheel.record.grab_focus();
@@ -143,6 +146,33 @@ impl AgentVoiceController {
                 owner.wheel.window.set_visible(false);
             }
         });
+        let weak = Rc::downgrade(self);
+        self.wheel.connect_resized(move || {
+            if let Some(owner) = weak.upgrade() {
+                owner.render_wheel();
+            }
+        });
+        if self.wheel.overlay {
+            // Clicking the scrim, anywhere outside a control, dismisses the overlay.
+            let click = gtk::GestureClick::new();
+            let weak = Rc::downgrade(self);
+            click.connect_released(move |_, _, x, y| {
+                let Some(owner) = weak.upgrade() else {
+                    return;
+                };
+                let window = &owner.wheel.window;
+                let on_control = window
+                    .pick(x, y, gtk::PickFlags::DEFAULT)
+                    .is_some_and(|widget| {
+                        widget.is::<gtk::Button>()
+                            || widget.ancestor(gtk::Button::static_type()).is_some()
+                    });
+                if !on_control {
+                    window.set_visible(false);
+                }
+            });
+            self.wheel.window.add_controller(click);
+        }
         let keys = gtk::EventControllerKey::new();
         keys.set_propagation_phase(gtk::PropagationPhase::Capture);
         let held = Rc::new(Cell::new(false));

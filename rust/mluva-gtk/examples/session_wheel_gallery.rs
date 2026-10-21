@@ -1,7 +1,10 @@
 //! Render the production session wheel in synthetic states for private visual review.
 //!
-//! Run inside the off-screen desktop helper with `light`, `dark` or `nord`.
-//! Every session name, pane and socket is a fixture.
+//! Run inside the off-screen desktop helper with `light`, `dark` or `nord`, then the output
+//! directory and optionally `overlay`. The wheel sizes itself to the helper's screen, so set
+//! its screen to the display being judged. X11 has no layer-shell, so `overlay` applies the
+//! overlay styling to a screen-sized window; its captures keep the scrim's transparency for
+//! compositing over a desktop image. Every session name, pane and socket is a fixture.
 
 use std::path::{Path, PathBuf};
 
@@ -12,24 +15,65 @@ use mluva_gtk::theme::ThemeController;
 
 const NORD: &str = "mode = \"dark\"\naccent = \"#81a1c1\"\nselection = \"#434c5e\"\nmuted = \"#4c566a\"\nbackground = \"#2e3440\"\nforeground = \"#d8dee9\"\nred = \"#bf616a\"\nyellow = \"#ebcb8b\"\ngreen = \"#a3be8c\"\n";
 
-fn session(name: &str, pane: &str, status: AgentStatus) -> Recipient {
+/// Session titles as people name them: short task meanings, a few long legacy or user names
+/// shown whole, duplicates, Czech, CJK and emoji.
+const TITLES: [&str; 30] = [
+    "Release checklist",
+    "Shortcut portal fix",
+    "api-tests",
+    "Onboarding copy",
+    "api-tests",
+    "Cold start profile",
+    "Přehled zkoušek",
+    "Investigate why the clipboard owner changes after suspend and resume on Omarchy",
+    "修复标题渲染",
+    "Migration notes",
+    "Rebuild the settings page as one continuous scroll with section navigation",
+    "docs",
+    "Inbox triage 🙂",
+    "Parakeet benchmark",
+    "Narration port",
+    "Chief of staff",
+    "PR 112 review",
+    "segmentation",
+    "Widget breathing",
+    "Release notes",
+    "Retention audit",
+    "Hosted sync",
+    "Czech settings",
+    "Fedora build check",
+    "Model cache cleanup",
+    "First-word latency",
+    "Notices update",
+    "Launch video",
+    "Support reply",
+    "Theme tokens",
+];
+
+fn session(index: usize, status: AgentStatus) -> Recipient {
     Recipient {
         socket: "/run/user/fixture/herdr.sock".into(),
         server_epoch: "fixture".into(),
-        pane_id: pane.into(),
+        pane_id: format!("w{}:p{}", index / 8 + 1, index % 8 + 1),
         guard: "g".repeat(64),
-        name: name.into(),
-        kind: "codex".into(),
+        name: format!("agent-{}", index + 1),
+        title: TITLES[index].into(),
+        kind: if index % 3 == 1 { "claude" } else { "codex" }.into(),
         project: "/fixture/project".into(),
         status,
     }
 }
 
-fn sessions(names: &[&str]) -> Vec<Recipient> {
-    names
-        .iter()
-        .enumerate()
-        .map(|(i, name)| session(name, &format!("w1:p{}", i + 1), AgentStatus::Idle))
+fn sessions(count: usize) -> Vec<Recipient> {
+    (0..count)
+        .map(|i| {
+            let status = match i {
+                5 | 13 => AgentStatus::Working,
+                10 => AgentStatus::Blocked,
+                _ => AgentStatus::Idle,
+            };
+            session(i, status)
+        })
         .collect()
 }
 
@@ -61,6 +105,28 @@ fn capture(window: &adw::Window, path: &Path) {
     println!("{} {width}x{height}", path.display());
 }
 
+fn show(entries: &[Recipient], selected: Option<usize>, page: usize) -> SessionWheel {
+    let wheel = SessionWheel::new();
+    if std::env::args().nth(3).as_deref() == Some("overlay") {
+        let screen = gtk::gdk::Display::default()
+            .and_then(|display| display.monitors().item(0))
+            .and_downcast::<gtk::gdk::Monitor>()
+            .expect("private screen")
+            .geometry();
+        // The compositor would size the overlay to its output; here the window takes the screen.
+        wheel.window.add_css_class("ml-wheel-overlay");
+        wheel.window.set_resizable(true);
+        wheel
+            .window
+            .set_default_size(screen.width(), screen.height());
+    }
+    wheel.page.set(page);
+    wheel.window.present();
+    wheel.update(entries, selected.map(|i| entries[i].clone()), "F12", "F9");
+    settle(30);
+    wheel
+}
+
 fn main() -> glib::ExitCode {
     let Some(root) = std::env::var_os("OFFSCREEN_SESSION_ROOT").map(PathBuf::from) else {
         eprintln!("Run this gallery inside the private off-screen desktop helper.");
@@ -86,61 +152,37 @@ fn main() -> glib::ExitCode {
     )
     .expect("bundled fonts");
 
-    let nine = sessions(&[
-        "Chief of staff",
-        "api-tests",
-        "release notes",
-        "design review",
-        "api-tests",
-        "build fixer",
-        "inbox triage",
-        "translator",
-        "data cleanup",
-    ]);
-    let mut mixed = sessions(&[
-        "Chief of staff",
-        "long-session-name-for-regression",
-        "api-tests",
-        "api-tests",
-        "Documentation site implementer",
-        "ops",
-    ]);
-    mixed[2].status = AgentStatus::Working;
-    mixed[4].status = AgentStatus::Blocked;
-    let mut missing = sessions(&["Chief of staff", "api-tests", "release notes"]);
-    let mut gone = session("design review", "w2:p4", AgentStatus::Unknown);
+    let thirty = sessions(30);
+    let mut missing = sessions(3);
+    let mut gone = session(7, AgentStatus::Unknown);
     gone.socket = "/run/user/fixture/other.sock".into();
-    missing.push(gone.clone());
+    missing.push(gone);
+    let mut unnamed = sessions(4);
+    unnamed[1].title.clear();
+    unnamed[3].title.clear();
+    unnamed[3].name = unnamed[3].pane_id.clone();
     let scenarios: Vec<(&str, Vec<Recipient>, Option<usize>, usize)> = vec![
-        ("six", nine[..6].to_vec(), Some(0), 0),
-        ("paged", nine.clone(), Some(1), 0),
-        ("paged-second", nine.clone(), Some(7), 1),
-        ("paged-elsewhere", nine.clone(), Some(7), 0),
-        ("one", nine[..1].to_vec(), Some(0), 0),
-        ("two", nine[..2].to_vec(), Some(1), 0),
-        ("three", nine[..3].to_vec(), Some(2), 0),
-        ("mixed", mixed.clone(), Some(1), 0),
-        ("blocked-selected", mixed, Some(4), 0),
+        ("one", sessions(1), Some(0), 0),
+        ("three", sessions(3), Some(1), 0),
+        ("six", sessions(6), Some(0), 0),
+        ("twenty", sessions(20), Some(7), 0),
+        ("twenty-blocked", sessions(20), Some(10), 0),
         ("missing-selected", missing, Some(3), 0),
-        ("unselected", nine[..4].to_vec(), None, 0),
+        ("unnamed-fallback", unnamed, Some(0), 0),
+        ("paged-elsewhere", thirty.clone(), Some(27), 0),
+        ("paged-second", thirty, Some(27), 1),
+        ("unselected", sessions(4), None, 0),
         ("empty", vec![], None, 0),
     ];
     for (name, entries, selected, page) in scenarios {
-        let wheel = SessionWheel::new();
-        wheel.page.set(page);
-        wheel.update(&entries, selected.map(|i| entries[i].clone()), "F12", "F9");
-        wheel.window.present();
-        settle(30);
+        let wheel = show(&entries, selected, page);
         capture(&wheel.window, &output.join(format!("{palette}-{name}.png")));
         wheel.window.destroy();
         settle(2);
     }
-    // Pointer hover on one choice and keyboard focus on the hub, then on a choice.
-    let entries = nine[..6].to_vec();
-    let wheel = SessionWheel::new();
-    wheel.update(&entries, Some(entries[0].clone()), "F12", "F9");
-    wheel.window.present();
-    settle(30);
+    // Keyboard focus on the hub, on a choice and on Cancel, with pointer hover on another choice.
+    let entries = sessions(6);
+    let wheel = show(&entries, Some(0), 0);
     wheel.choices[3].set_state_flags(gtk::StateFlags::PRELIGHT, false);
     wheel.window.set_focus_visible(true);
     wheel.record.grab_focus();
@@ -150,20 +192,22 @@ fn main() -> glib::ExitCode {
         &output.join(format!("{palette}-hover-focus.png")),
     );
     wheel.choices[3].unset_state_flags(gtk::StateFlags::PRELIGHT);
-    wheel.choices[1].grab_focus();
+    wheel.choices[4].grab_focus();
     settle(10);
     capture(
         &wheel.window,
         &output.join(format!("{palette}-focus-choice.png")),
     );
+    wheel.cancel.grab_focus();
+    settle(10);
+    capture(
+        &wheel.window,
+        &output.join(format!("{palette}-focus-cancel.png")),
+    );
     wheel.window.destroy();
     settle(2);
-    // The needle swings to a new choice; capture it in flight and at rest.
-    let entries = nine[..6].to_vec();
-    let wheel = SessionWheel::new();
-    wheel.update(&entries, Some(entries[0].clone()), "F12", "F9");
-    wheel.window.present();
-    settle(30);
+    // The arc swings to a new choice; capture it in flight and at rest.
+    let wheel = show(&entries, Some(0), 0);
     wheel.update(&entries, Some(entries[4].clone()), "F12", "F9");
     settle(5);
     capture(

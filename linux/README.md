@@ -24,15 +24,15 @@ Select a named Herdr agent and press **Dictate to agent** or the configured agen
 
 ```sh
 # Omarchy
-omarchy pkg add git gtk4 libadwaita at-spi2-core dbus pipewire pipewire-audio \
+omarchy pkg add git gtk4 libadwaita gtk4-layer-shell at-spi2-core dbus pipewire pipewire-audio \
   wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap openssl sqlite
 
 # Fedora GNOME compatibility
-sudo dnf install git gtk4 libadwaita at-spi2-core dbus-daemon pipewire-utils \
+sudo dnf install git gtk4 libadwaita gtk4-layer-shell at-spi2-core dbus-daemon pipewire-utils \
   wl-clipboard procps-ng webkitgtk6.0 bubblewrap openssl-libs sqlite-libs
 ```
 
-Source setup additionally requests `gcc pkgconf` on Omarchy, or `gcc pkgconf-pkg-config gtk4-devel libadwaita-devel at-spi2-core-devel fontconfig-devel openssl-devel sqlite-devel` on Fedora.
+Source setup additionally requests `gcc pkgconf` on Omarchy, or `gcc pkgconf-pkg-config gtk4-devel libadwaita-devel gtk4-layer-shell-devel at-spi2-core-devel fontconfig-devel openssl-devel sqlite-devel` on Fedora. gtk4-layer-shell, part of Omarchy's base install, lets the session wheel float over the desktop as an overlay; on X11 or compositors without layer-shell the wheel opens as an ordinary window.
 
 Persistent optional account sign-in uses `secret-tool` from libsecret and an unlocked Secret Service. If unavailable, sign-in lasts until the app closes; local capture remains available. The desktop entry registers `mluva://account` for the browser login callback.
 
