@@ -71,12 +71,13 @@ impl Recipient {
         !self.missing && !self.has_transport()
     }
 
-    /// Why a draft-only session cannot be sent to, and what would change that.
+    /// Why a draft-only session cannot be sent to.
     pub fn draft_hint(&self) -> &'static str {
-        if matches!(self.kind.as_str(), "claude" | "claude_code") {
-            // Herdr guards Claude Code only when it launched the session itself.
-            "Draft only: start it from Herdr to send"
+        if self.socket.is_empty() {
+            // Found only in Claude Code's registry: no Herdr pane can carry a prompt.
+            "Draft only: it runs outside Herdr"
         } else {
+            // Herdr withholds a guard until it confirms the session and sees it ready.
             "Draft only: Herdr can't send to it now"
         }
     }

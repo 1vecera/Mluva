@@ -31,6 +31,26 @@ fn draft_only() -> Recipient {
 }
 
 #[test]
+fn draft_hint_says_whether_the_session_is_outside_herdr() {
+    assert_eq!(
+        draft_only().draft_hint(),
+        "Draft only: it runs outside Herdr"
+    );
+    // A Claude Code session typed into a Herdr pane can be guarded; without a guard yet,
+    // the hint must not tell the user to restart it from Herdr.
+    let in_herdr = Recipient {
+        socket: "/tmp/private/herdr.sock".into(),
+        server_epoch: "server-a".into(),
+        pane_id: "w1:p4".into(),
+        ..draft_only()
+    };
+    assert_eq!(
+        in_herdr.draft_hint(),
+        "Draft only: Herdr can't send to it now"
+    );
+}
+
+#[test]
 fn draft_only_sessions_match_by_native_session_and_process_and_never_send() {
     let native = draft_only();
     assert!(native.draft_only() && !native.can_receive());
