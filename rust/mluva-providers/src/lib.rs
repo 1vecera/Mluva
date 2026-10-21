@@ -46,6 +46,14 @@ pub struct SpeakerSegment {
     pub ended_at_seconds: f64,
 }
 
+/// A recognized word on the recording clock, seconds from the first captured sample.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TimedWord {
+    pub text: String,
+    pub start_seconds: f64,
+    pub end_seconds: f64,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TranscriptionResult {
     pub text: String,
@@ -54,6 +62,10 @@ pub struct TranscriptionResult {
     pub transcription_id: Option<String>,
     pub speaker_segments: Vec<SpeakerSegment>,
     pub audio_duration_seconds: Option<f64>,
+    /// Word times the provider returned with this result; never edited afterwards. Empty when
+    /// the route reports none.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub words: Vec<TimedWord>,
 }
 
 /// Credential values cannot appear in derived Debug output or transport diagnostics.

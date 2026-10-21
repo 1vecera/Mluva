@@ -43,6 +43,19 @@ CREATE INDEX IF NOT EXISTS screenshots_capture ON conversation_screenshots(captu
 CREATE TRIGGER IF NOT EXISTS erase_conversation_screenshots AFTER DELETE ON transcription_history BEGIN
     DELETE FROM conversation_screenshots WHERE history_identifier = OLD.identifier;
 END;
+CREATE TABLE IF NOT EXISTS conversation_annotations (
+    identifier TEXT PRIMARY KEY,
+    history_identifier TEXT,
+    capture_identifier TEXT,
+    created_at TEXT NOT NULL,
+    keyframes INTEGER NOT NULL DEFAULT 0,
+    CHECK ((history_identifier IS NULL) != (capture_identifier IS NULL))
+);
+CREATE INDEX IF NOT EXISTS annotations_history ON conversation_annotations(history_identifier);
+CREATE INDEX IF NOT EXISTS annotations_capture ON conversation_annotations(capture_identifier);
+CREATE TRIGGER IF NOT EXISTS erase_conversation_annotations AFTER DELETE ON transcription_history BEGIN
+    DELETE FROM conversation_annotations WHERE history_identifier = OLD.identifier;
+END;
 CREATE TABLE IF NOT EXISTS conversation_rewrites (
     identifier INTEGER PRIMARY KEY AUTOINCREMENT,
     history_identifier TEXT NOT NULL REFERENCES transcription_history(identifier),

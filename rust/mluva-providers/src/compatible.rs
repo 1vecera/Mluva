@@ -175,6 +175,7 @@ impl CompatibleClient {
             transcription_id: None,
             speaker_segments: vec![],
             audio_duration_seconds: None,
+                words: vec![],
         })
     }
 

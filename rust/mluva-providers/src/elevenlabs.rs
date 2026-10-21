@@ -1,7 +1,8 @@
 use crate::compatible::Requests;
 use crate::models::number;
 use crate::{
-    ProviderError, Result, Secret, SpeakerSegment, TranscriptionResult, USER_AGENT, multipart,
+    ProviderError, Result, Secret, SpeakerSegment, TimedWord, TranscriptionResult, USER_AGENT,
+    multipart,
     transport,
 };
 use serde_json::Value;
@@ -147,7 +148,29 @@ pub fn transcription_result(
             .get("audio_duration_secs")
             .and_then(number)
             .map(|value| value.max(0.0)),
+        words: timed_words(payload.get("words")),
     })
+}
+
+/// Scribe already returns word times for dictation; keep words, not spacing or audio events.
+fn timed_words(words: Option<&Value>) -> Vec<TimedWord> {
+    let Some(words) = words.and_then(Value::as_array) else {
+        return vec![];
+    };
+    words
+        .iter()
+        .filter(|word| word.get("type").and_then(Value::as_str) == Some("word"))
+        .filter_map(|word| {
+            let text = word.get("text").and_then(Value::as_str)?.trim();
+            let start = word.get("start").and_then(number)?.max(0.0);
+            let end = word.get("end").and_then(number).map_or(start, |end| end.max(start));
+            (!text.is_empty() && start.is_finite() && end.is_finite()).then(|| TimedWord {
+                text: text.into(),
+                start_seconds: start,
+                end_seconds: end,
+            })
+        })
+        .collect()
 }
 
 fn speaker_segments(words: Option<&Value>) -> Vec<SpeakerSegment> {
