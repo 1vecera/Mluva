@@ -377,20 +377,27 @@ pub fn select(capture: &Capture, transcript: &Transcript) -> (Vec<Mark>, Vec<Key
             selected.push(candidate);
         }
     }
-    selected.sort_by_key(|c| (frames[c.frame].t, c.span.0));
-    let times: Vec<u64> = selected.iter().map(|c| frames[c.frame].t).collect();
-    let anchors: Vec<u64> = selected
-        .iter()
-        .map(|c| c.span.0.min(frames[c.frame].t))
-        .collect();
+    // A mark's moment is when it was drawn, even when an unchanged screen let it reuse an
+    // earlier frame; other keyframes are the moment their frame was taken.
+    let moment = |c: &Candidate| {
+        if c.marks.is_empty() {
+            frames[c.frame].t
+        } else {
+            c.span.0
+        }
+    };
+    selected.sort_by_key(|c| (moment(c), c.span.0));
+    let times: Vec<u64> = selected.iter().map(moment).collect();
+    let anchors: Vec<u64> = selected.iter().map(|c| c.span.0.min(moment(c))).collect();
     let said = said_per_keyframe(&times, &anchors, transcript);
     let keyframes = selected
         .into_iter()
+        .zip(times)
         .zip(said)
         .enumerate()
-        .map(|(i, (candidate, said))| Keyframe {
+        .map(|(i, ((candidate, t), said))| Keyframe {
             index: i + 1,
-            t: frames[candidate.frame].t,
+            t,
             reason: candidate.reason,
             frame: candidate.frame,
             event: candidate.event,
@@ -510,11 +517,8 @@ mod tests {
     #[test]
     fn separate_gestures_on_one_screen_keep_their_own_keyframes_and_words() {
         // One unchanged screen: a two-stroke gesture, then a separate mark five seconds later.
-        let frames = vec![
-            frame(1_000, 0.4, FrameReason::Mark),
-            frame(2_000, 0.4, FrameReason::Mark),
-            frame(7_000, 0.4, FrameReason::Mark),
-        ];
+        // The second gesture's screen was unchanged, so it reused the first clean frame.
+        let frames = vec![frame(1_000, 0.4, FrameReason::Mark)];
         let strokes = vec![line(1_000, 100.0), line(2_000, 140.0), line(7_000, 500.0)];
         let timed = transcript(
             "This header is wrong. And this footer overlaps.",
@@ -529,6 +533,11 @@ mod tests {
         assert_eq!(
             keyframes[0].t, 1_000,
             "a mark uses the frame taken as it began"
+        );
+        assert_eq!(
+            (keyframes[1].t, keyframes[1].frame),
+            (7_000, 0),
+            "a reused frame keeps the mark's own moment"
         );
         assert_eq!(keyframes[0].said.as_deref(), Some("This header is wrong."));
         assert_eq!(
