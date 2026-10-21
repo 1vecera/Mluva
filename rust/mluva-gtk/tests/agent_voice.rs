@@ -112,6 +112,61 @@ fn wheel_fits_screen(wheel: &mluva_gtk::agent_session_wheel::SessionWheel) -> bo
         .geometry();
     wheel.window.width() <= screen.width() && wheel.window.height() <= screen.height()
 }
+/// A synthetic process outside this test's process tree, registered as an interactive
+/// Claude Code session in the private home's registry, with a generated transcript title.
+struct NativeSession(u32, PathBuf);
+impl Drop for NativeSession {
+    fn drop(&mut self) {
+        // SAFETY: signals only the orphaned synthetic sleep this fixture started.
+        unsafe { libc::kill(self.0 as i32, libc::SIGKILL) };
+        let _ = fs::remove_file(&self.1);
+    }
+}
+fn native_session(root: &Path, id: &str, title: &str) -> NativeSession {
+    use std::os::unix::fs::PermissionsExt;
+    // The shell exits at once, so the sleep is no descendant of this process (Mluva's own).
+    let output = Command::new("sh")
+        .args(["-c", "sleep 600 >/dev/null 2>&1 & echo $!"])
+        .output()
+        .unwrap();
+    let pid: u32 = String::from_utf8(output.stdout)
+        .unwrap()
+        .trim()
+        .parse()
+        .unwrap();
+    let stat = fs::read_to_string(format!("/proc/{pid}/stat")).unwrap();
+    let start = stat[stat.rfind(')').unwrap() + 1..]
+        .split_whitespace()
+        .nth(19)
+        .unwrap()
+        .to_owned();
+    let home = PathBuf::from(std::env::var_os("HOME").unwrap());
+    assert!(home.starts_with(root));
+    let config = home.join(".claude");
+    let project = config.join("projects/-synthetic-native");
+    for directory in [config.join("sessions"), project.clone()] {
+        fs::create_dir_all(&directory).unwrap();
+        fs::set_permissions(&directory, fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    fs::write(
+        project.join(format!("{id}.jsonl")),
+        format!(
+            "{}\n",
+            json!({"type": "ai-title", "aiTitle": title, "sessionId": id})
+        ),
+    )
+    .unwrap();
+    let entry = config.join(format!("sessions/{pid}.json"));
+    fs::write(
+        &entry,
+        json!({"pid": pid, "sessionId": id, "cwd": "/synthetic/native", "startedAt": 1,
+            "kind": "interactive", "name": "native-3a", "nameSource": "derived", "status": "idle",
+            "procStart": start})
+        .to_string(),
+    )
+    .unwrap();
+    NativeSession(pid, entry)
+}
 #[test]
 #[ignore = "requires private GTK, network, devices and fixture peers"]
 fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application() {
@@ -139,7 +194,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     )
     .unwrap();
     let text = "Synthetic message: verify the selected agent only.";
-    let responses: Vec<_> = (0..10).map(|_| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":text, "language_code":"eng"}})).collect();
+    let responses: Vec<_> = (0..11).map(|_| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":text, "language_code":"eng"}})).collect();
     let mut speech = http::Peer::new(&responses);
     let paths = AppPaths {
         config: root.join("config/mluva"),
@@ -160,8 +215,11 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     let audit = root.join("herdr-wire.jsonl");
     let mut data = json!({"agents": [
         {"guard": "a".repeat(64), "agent": {"name":"Chief of staff", "pane_id":"w1:p1", "agent":"codex", "agent_status":"working", "cwd":"/synthetic/product"}},
-        {"guard": "b".repeat(64), "agent": {"name":"Chief of staff", "pane_id":"w1:p2", "agent":"claude", "agent_status":"idle", "cwd":"/synthetic/research", "terminal_title_stripped":"Research notes"}}
+        {"guard": "b".repeat(64), "agent": {"name":"Chief of staff", "pane_id":"w1:p2", "agent":"claude", "agent_status":"idle", "cwd":"/synthetic/research", "terminal_title_stripped":"Claude Code",
+            "agent_session": {"source": "herdr:claude", "agent": "claude", "kind": "id", "value": "research-session"}}}
     ]});
+    // Claude Code's own registry and transcript name the Herdr pane by its session ID.
+    let research = native_session(&root, "research-session", "Research notes");
     state(&peer_state, &data);
     let mut peer = Peer(
         Command::new(env!("CARGO_BIN_EXE_herdr-voice-fixture-peer"))
@@ -329,12 +387,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     // F12 is a selector first. Real private X11 keys choose, cancel and confirm.
     let wheel_key = |key: &str| {
         let output = Command::new("xdotool")
-            .args([
-                "search",
-                "--onlyvisible",
-                "--name",
-                "^Choose a Herdr session$",
-            ])
+            .args(["search", "--onlyvisible", "--name", "^Choose a session$"])
             .output()
             .unwrap();
         let id = String::from_utf8(output.stdout).unwrap();
@@ -362,7 +415,8 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     });
     assert!(owner.capture.phase().is_none());
     assert!(sent(&audit).is_empty());
-    // The wheel names a session by its agent's own title; Herdr's label remains for routing.
+    // The wheel names a session by its agent's own title, here from Claude Code's transcript
+    // matched by session ID; Herdr's label remains for routing.
     let second = owner.agent_voice.wheel.entries.borrow()[1].clone();
     assert_eq!(
         (second.display_name(), second.name.as_str()),
@@ -392,12 +446,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         owner.shell.window.set_default_size(width, 760);
         settle(100);
         let output = Command::new("xdotool")
-            .args([
-                "search",
-                "--onlyvisible",
-                "--name",
-                "^Choose a Herdr session$",
-            ])
+            .args(["search", "--onlyvisible", "--name", "^Choose a session$"])
             .output()
             .unwrap();
         let id = String::from_utf8(output.stdout).unwrap();
@@ -496,6 +545,104 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .unwrap(),
         "Edited local transcript."
     );
+    // A Claude Code session typed into a Herdr pane, and one outside Herdr found only in Claude
+    // Code's own registry, are offered after Herdr's guarded panes. Neither can be sent to:
+    // the second agent key records an editable draft, and the next one stops it.
+    data["unmanaged"] = json!([{"name": "", "pane_id": "w1:p3", "agent": "claude",
+        "agent_status": "idle", "terminal_title_stripped": "Typed in a pane", "agent_session":
+        {"source": "herdr:claude", "agent": "claude", "kind": "id", "value": "typed-session"}}]);
+    state(&peer_state, &data);
+    let native = native_session(&root, "native-session", "Native draft notes");
+    owner.agent_voice.refresh();
+    until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == 5);
+    owner.agent_voice.shortcut();
+    until(|| owner.agent_voice.wheel.entries.borrow().len() == 4);
+    let offered: Vec<_> = owner
+        .agent_voice
+        .wheel
+        .entries
+        .borrow()
+        .iter()
+        .map(|r| {
+            (
+                r.pane_id.clone(),
+                r.display_name().to_owned(),
+                r.can_receive(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        offered,
+        [
+            ("w1:p1".into(), "Chief of staff".into(), true),
+            ("w1:p2".into(), "Research notes".into(), true),
+            ("w1:p3".into(), "Typed in a pane".into(), false),
+            (String::new(), "Native draft notes".into(), false),
+        ]
+    );
+    for (key, session) in [("d", "typed-session"), ("f", "native-session")] {
+        wheel_key(key);
+        assert_eq!(
+            owner.agent_voice.settings().selected.unwrap().session_id,
+            session
+        );
+        assert!(owner.agent_voice.wheel.record.is_sensitive());
+    }
+    let _ = fs::remove_file(tools.join("raw.ready.json"));
+    wheel_key("F12");
+    until(|| owner.capture.phase() == Some(CapturePhase::Recording));
+    assert!(!owner.agent_voice.wheel.window.is_visible());
+    assert!(owner.agent_voice.route.borrow().attempt.is_none());
+    settle(60);
+    owner.agent_voice.shortcut();
+    until(|| owner.capture.phase().is_none());
+    let draft = owner.capture.page.workspace.entry().unwrap();
+    assert_eq!(draft.raw_text, text);
+    assert_ne!(draft.identifier, local_entry.identifier);
+    settle(2200);
+    assert!(sent(&audit).is_empty());
+    assert_eq!(
+        glib::MainContext::default()
+            .block_on(
+                gtk::gdk::Display::default()
+                    .unwrap()
+                    .clipboard()
+                    .read_text_future()
+            )
+            .unwrap()
+            .as_deref(),
+        Some("Clipboard must remain unchanged")
+    );
+    owner.agent_voice.view.recipients.set_selected(0);
+    data.as_object_mut().unwrap().remove("unmanaged");
+    state(&peer_state, &data);
+    drop(native);
+    owner.agent_voice.refresh();
+    until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == 3);
+    // Without Herdr's panes, the registry alone is the wheel: the research session stays,
+    // named by its own title, but now draft-only.
+    let herdr_agents = std::mem::replace(&mut data["agents"], json!([]));
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == 2);
+    owner.agent_voice.shortcut();
+    until(|| owner.agent_voice.wheel.entries.borrow().len() == 1);
+    let alone = owner.agent_voice.wheel.entries.borrow()[0].clone();
+    assert_eq!(
+        (
+            alone.display_name(),
+            alone.draft_only(),
+            alone.socket.as_str()
+        ),
+        ("Research notes", true, "")
+    );
+    owner.dispatch(mluva_gtk::application_shell::ApplicationAction::Cancel);
+    // The paging checks below count Herdr panes alone.
+    drop(research);
+    data["agents"] = herdr_agents;
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == 3);
     // More than one wheel page, non-alphabetical server order, reorder and loss.
     let original_agents = data["agents"].clone();
     // More sessions than one page of 26 letter keys, in non-alphabetical server order.
@@ -524,12 +671,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     assert_eq!(owner.agent_voice.wheel.entries.borrow()[0].pane_id, "w1:p1");
     settle(100);
     let wheel_window = Command::new("xdotool")
-        .args([
-            "search",
-            "--onlyvisible",
-            "--name",
-            "^Choose a Herdr session$",
-        ])
+        .args(["search", "--onlyvisible", "--name", "^Choose a session$"])
         .output()
         .unwrap();
     let wheel_window = String::from_utf8(wheel_window.stdout).unwrap();
@@ -874,14 +1016,15 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     let ended = owner.shutdown();
     glib::MainContext::default().block_on(ended).unwrap();
     let observed = speech.finish();
-    assert_eq!(observed.len(), 10);
+    assert_eq!(observed.len(), 11);
     assert!(wire(&audit).iter().all(|r| {
         [
             "agent.guarded_list",
+            "agent.list",
             "agent.prompt_guarded",
             "agent.prompt_receipt",
         ]
         .contains(&r["method"].as_str().unwrap())
     }));
-    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":12,"recognized":10,"session_wheel":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":4,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
+    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":13,"recognized":11,"session_wheel":true,"draft_only_sessions_no_delivery":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":4,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
 }

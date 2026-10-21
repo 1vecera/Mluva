@@ -38,6 +38,17 @@ fn main() {
             "agent.guarded_list" => {
                 json!({"server_epoch": "synthetic-server", "agents": state["agents"]})
             }
+            // Every agent, guarded or not: sessions Herdr did not launch carry no guard.
+            "agent.list" => {
+                let mut agents: Vec<Value> = state["agents"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|entry| entry["agent"].clone())
+                    .collect();
+                agents.extend(state["unmanaged"].as_array().cloned().unwrap_or_default());
+                json!({"agents": agents})
+            }
             "agent.prompt_guarded" => {
                 let valid = state["agents"].as_array().unwrap().iter().any(|agent| {
                     agent["agent"]["pane_id"] == params["target"]

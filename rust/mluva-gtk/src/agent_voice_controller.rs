@@ -6,12 +6,16 @@ use adw::prelude::*;
 use mluva_core::agent_voice::{
     AgentStatus, DraftReason, Recipient, RoutePhase, SendOutcome, VoiceRoute, VoiceSettings,
 };
-use mluva_providers::{herdr, spoken_reply};
+use mluva_providers::{
+    claude_sessions::{self, ClaudeRegistry},
+    herdr, spoken_reply,
+};
 use mluva_workflows::services::ApplicationServices;
 use std::{
     cell::{Cell, RefCell},
-    path::Path,
+    path::{Path, PathBuf},
     rc::Rc,
+    sync::{Arc, Mutex},
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use tokio_util::sync::CancellationToken;
@@ -35,6 +39,57 @@ struct SpeechJob {
     cancel: CancellationToken,
     done: CancellationToken,
 }
+/// One discovery pass over local Herdr servers and Claude Code's own session registry.
+#[derive(Default)]
+struct Found {
+    recipients: Vec<Recipient>,
+    /// Some Herdr server answered.
+    herdr: bool,
+    /// Some Herdr server offers guarded prompts.
+    guarded: bool,
+    errors: Vec<String>,
+}
+/// Herdr's panes in order, then Claude Code sessions Herdr does not show. The registry is
+/// read on a blocking thread; Herdr is only ever asked to list.
+async fn discover_sessions(
+    paths: Vec<PathBuf>,
+    registry: Option<Arc<Mutex<ClaudeRegistry>>>,
+    cancel: &CancellationToken,
+) -> Option<Found> {
+    let herdr = async {
+        let mut found = Found::default();
+        for path in paths.into_iter().take(16) {
+            match herdr::discover(&path).await {
+                Ok(discovery) => {
+                    found.herdr = true;
+                    found.guarded |= discovery.guarded;
+                    found.recipients.extend(discovery.recipients);
+                }
+                Err(error) => found.errors.push(error.to_string()),
+            }
+        }
+        found
+    };
+    let native = async {
+        let Some(registry) = registry else {
+            return vec![];
+        };
+        tokio::task::spawn_blocking(move || {
+            registry
+                .lock()
+                .map(|mut registry| registry.sessions())
+                .unwrap_or_default()
+        })
+        .await
+        .unwrap_or_default()
+    };
+    let (mut found, sessions) = tokio::select! {
+        _ = cancel.cancelled() => return None,
+        found = async { tokio::join!(herdr, native) } => found,
+    };
+    found.recipients = claude_sessions::merge(std::mem::take(&mut found.recipients), &sessions);
+    Some(found)
+}
 pub struct AgentVoiceController {
     pub view: AgentVoiceView,
     pub wheel: crate::agent_session_wheel::SessionWheel,
@@ -45,6 +100,8 @@ pub struct AgentVoiceController {
     runtime: Rc<DesktopRuntime>,
     callbacks: AgentVoiceCallbacks,
     recipients: RefCell<Vec<Recipient>>,
+    /// Claude Code's own registry, when this account has a Claude Code configuration.
+    registry: Option<Arc<Mutex<ClaudeRegistry>>>,
     editor: RefCell<Option<crate::markdown_view::MarkdownTextView>>,
     voice_error: RefCell<Option<String>>,
     syncing: Cell<bool>,
@@ -99,6 +156,7 @@ impl AgentVoiceController {
             runtime,
             callbacks,
             recipients: RefCell::new(vec![]),
+            registry: ClaudeRegistry::from_environment().map(|r| Arc::new(Mutex::new(r))),
             editor: RefCell::new(None),
             voice_error: RefCell::new(None),
             syncing: Cell::new(false),
@@ -108,7 +166,7 @@ impl AgentVoiceController {
             last_tick: Cell::new(now()),
             timer: RefCell::new(None),
             subscriptions: RefCell::new(vec![]),
-            connection: RefCell::new("Looking for local Herdr sessions…".into()),
+            connection: RefCell::new("Looking for local sessions…".into()),
             spoken_attempt: RefCell::new(None),
             speech: RefCell::new(None),
             closed: CancellationToken::new(),
@@ -323,6 +381,11 @@ impl AgentVoiceController {
         }
         self.refresh();
         self.render();
+    }
+    /// The remembered session is present but Herdr cannot send to it: the next agent
+    /// key press records an editable draft in Mluva instead.
+    pub fn draft_only_selected(&self) -> bool {
+        self.selected().is_some_and(|r| r.draft_only())
     }
     fn selected(&self) -> Option<Recipient> {
         let settings = self.settings.borrow();
@@ -567,19 +630,18 @@ impl AgentVoiceController {
         );
         let weak = Rc::downgrade(self);
         let cancel = self.closed.clone();
+        let registry = self.registry.clone();
         self.runtime.spawn(async move {
-            let mut recipients = Vec::new(); let mut compatible = false; let mut error = None;
-            for path in paths.into_iter().take(16) {
-                let result = tokio::select! { _ = cancel.cancelled() => return, result = herdr::discover(&path) => result };
-                match result { Ok(found) => { compatible |= found.guarded; recipients.extend(found.recipients); }, Err(e) => error = Some(e.to_string()) }
-            }
+            let Some(found) = discover_sessions(paths, registry, &cancel).await else {
+                return;
+            };
             if let Some(owner) = weak.upgrade() {
                 owner.polling.set(false);
-                if owner.generation.get() != generation || owner.closed.is_cancelled() { return; }
-                let message = if !compatible && !recipients.is_empty() { "Herdr needs the guarded prompt integration. Sending is unavailable.".into() }
-                    else if recipients.is_empty() { error.unwrap_or_else(|| "No available agents. Start a named Claude Code or Codex session in local Herdr, then refresh.".into()) }
-                    else { "Local Herdr · press to start and again to stop and send".into() };
-                owner.connection.replace(message); owner.update_recipients(recipients);
+                if owner.generation.get() != generation || owner.closed.is_cancelled() {
+                    return;
+                }
+                owner.connection.replace(connection_message(&found));
+                owner.update_recipients(found.recipients);
             }
         });
     }
@@ -594,6 +656,7 @@ impl AgentVoiceController {
         {
             let mut missing = selected.clone();
             missing.status = AgentStatus::Unknown;
+            missing.missing = true;
             recipients.push(missing);
         }
         let changed = *self.recipients.borrow() != recipients;
@@ -604,20 +667,25 @@ impl AgentVoiceController {
         self.recipients.replace(recipients);
         if changed || self.view.recipients.selected() != selected_index {
             let recipients = self.recipients.borrow();
-            let mut labels = vec!["Choose a Herdr agent".to_owned()];
+            let mut labels = vec!["Choose a session".to_owned()];
             labels.extend(recipients.iter().map(|r| {
-                format!(
-                    "{} · {} · {} · {} ({:?}) · Local {}",
-                    r.name,
-                    r.kind,
-                    Path::new(&r.project)
-                        .file_name()
-                        .and_then(|s| s.to_str())
-                        .unwrap_or("Local"),
-                    r.pane_id,
-                    r.status,
-                    r.socket
-                )
+                let project = Path::new(&r.project)
+                    .file_name()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("Local");
+                if r.socket.is_empty() {
+                    format!(
+                        "{} · {} · {project} ({:?}) · not in Herdr, draft only",
+                        r.display_name(),
+                        r.kind,
+                        r.status
+                    )
+                } else {
+                    format!(
+                        "{} · {} · {project} · {} ({:?}) · Local {}",
+                        r.name, r.kind, r.pane_id, r.status, r.socket
+                    )
+                }
             }));
             let strings: Vec<_> = labels.iter().map(String::as_str).collect();
             let index = selected
@@ -785,7 +853,10 @@ impl AgentVoiceController {
                 },
             },
             None if !enabled => "Enable agent dictation in Settings → Capture.".into(),
-            None => self.connection.borrow().clone(),
+            None => match self.selected().filter(Recipient::draft_only) {
+                Some(r) => format!("{} · {}.", r.display_name(), r.draft_hint()),
+                None => self.connection.borrow().clone(),
+            },
         };
         let status = if !pending {
             self.voice_error.borrow().clone().unwrap_or(status)
@@ -795,10 +866,12 @@ impl AgentVoiceController {
         self.view.recipients.set_tooltip_text(
             self.selected()
                 .map(|r| {
-                    format!(
-                        "Local · {} · {} · {} · {}",
-                        r.name, r.kind, r.project, r.socket
-                    )
+                    let place = if r.socket.is_empty() {
+                        "not in Herdr"
+                    } else {
+                        &r.socket
+                    };
+                    format!("Local · {} · {} · {} · {place}", r.name, r.kind, r.project)
                 })
                 .as_deref(),
         );
@@ -878,5 +951,21 @@ impl AgentVoiceController {
             timer.remove();
         }
         self.subscriptions.borrow_mut().clear();
+    }
+}
+
+/// The panel's line for what discovery found; Herdr is needed only for sending.
+fn connection_message(found: &Found) -> String {
+    if found.recipients.is_empty() {
+        return found.errors.last().cloned().unwrap_or_else(|| {
+            "No sessions found. Start Claude Code, or Codex in Herdr, then refresh.".into()
+        });
+    }
+    if found.recipients.iter().any(Recipient::has_transport) {
+        "Local Herdr · press to start and again to stop and send".into()
+    } else if found.herdr && !found.guarded {
+        "Herdr needs the guarded prompt integration. Sending is unavailable.".into()
+    } else {
+        "No session was started from Herdr, so dictation keeps a draft in Mluva.".into()
     }
 }

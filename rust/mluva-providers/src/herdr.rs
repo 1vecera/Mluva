@@ -133,7 +133,7 @@ struct Agent {
     terminal_title_stripped: Option<String>,
     agent_session: Option<AgentSession>,
 }
-fn label(value: &str, max: usize) -> String {
+pub(crate) fn label(value: &str, max: usize) -> String {
     value
         .chars()
         .filter(|c| !c.is_control())
@@ -231,6 +231,12 @@ fn recipient(
         return None;
     }
     let title = session_title(&agent, &kind, codex_threads);
+    let session_id = agent
+        .agent_session
+        .as_ref()
+        .filter(|s| s.kind == "id" && s.value.len() <= 128)
+        .map(|s| label(&s.value, 128))
+        .unwrap_or_default();
     let project = agent.foreground_cwd.or(agent.cwd).unwrap_or_default();
     Some(Recipient {
         socket: path.to_string_lossy().into_owned(),
@@ -249,6 +255,8 @@ fn recipient(
         kind,
         project: label(&project, 240),
         status: agent.agent_status,
+        session_id,
+        ..Recipient::default()
     })
 }
 
@@ -256,55 +264,79 @@ pub async fn discover(path: &Path) -> Result<Discovery> {
     discover_with(path, codex_index_path().as_deref()).await
 }
 
+async fn listed_agents(path: &Path) -> Result<Vec<Value>> {
+    let response = rpc(path, "agent.list", json!({})).await?;
+    response
+        .pointer("/result/agents")
+        .and_then(Value::as_array)
+        .map(|agents| agents.iter().take(128).cloned().collect())
+        .ok_or_else(|| ProviderError::message(INCOMPATIBLE))
+}
+
 /// Discover with an explicit Codex thread index; tests pass a fixture.
+///
+/// Herdr guards only the sessions it can vouch for, such as those it launched itself, so
+/// the guarded list alone hides sessions a person started by typing `claude`. Every agent
+/// Herdr lists is shown, in Herdr's pane order; only guarded ones carry a guard and can be
+/// sent to. The rest stay visible without a transport.
 pub async fn discover_with(path: &Path, codex_index: Option<&Path>) -> Result<Discovery> {
     let codex_threads = codex_index.map(codex_thread_names).unwrap_or_default();
     let response = rpc(path, "agent.guarded_list", json!({})).await?;
-    if let Some(result) = response.get("result") {
-        let epoch = result
-            .get("server_epoch")
-            .and_then(Value::as_str)
-            .filter(|e| !e.is_empty() && e.len() <= 128)
-            .ok_or_else(|| ProviderError::message(INCOMPATIBLE))?;
-        let agents = result
-            .get("agents")
-            .and_then(Value::as_array)
-            .ok_or_else(|| ProviderError::message(INCOMPATIBLE))?;
-        let recipients = agents
-            .iter()
-            .take(128)
-            .filter_map(|entry| {
-                let guard = entry.get("guard")?.as_str()?.to_owned();
-                if guard.len() != 64 || !guard.bytes().all(|b| b.is_ascii_hexdigit()) {
-                    return None;
-                }
-                recipient(
-                    path,
-                    epoch,
-                    &guard,
-                    entry.get("agent")?.clone(),
-                    &codex_threads,
-                )
-            })
-            .collect();
+    let Some(result) = response.get("result") else {
+        // Metadata-only compatibility view. There is intentionally no legacy send fallback.
+        let agents = listed_agents(path).await?;
         return Ok(Discovery {
-            recipients,
-            guarded: true,
+            recipients: agents
+                .into_iter()
+                .filter_map(|agent| recipient(path, "", "", agent, &codex_threads))
+                .collect(),
+            guarded: false,
+        });
+    };
+    let epoch = result
+        .get("server_epoch")
+        .and_then(Value::as_str)
+        .filter(|e| !e.is_empty() && e.len() <= 128)
+        .ok_or_else(|| ProviderError::message(INCOMPATIBLE))?;
+    let mut guarded: Vec<(String, String, Value)> = result
+        .get("agents")
+        .and_then(Value::as_array)
+        .ok_or_else(|| ProviderError::message(INCOMPATIBLE))?
+        .iter()
+        .take(128)
+        .filter_map(|entry| {
+            let guard = entry.get("guard")?.as_str()?.to_owned();
+            if guard.len() != 64 || !guard.bytes().all(|b| b.is_ascii_hexdigit()) {
+                return None;
+            }
+            let agent = entry.get("agent")?.clone();
+            Some((agent.get("pane_id")?.as_str()?.to_owned(), guard, agent))
+        })
+        .collect();
+    // Without the full list, the guarded agents are still correct on their own.
+    let listed = listed_agents(path).await.unwrap_or_default();
+    let mut recipients = Vec::with_capacity(listed.len().max(guarded.len()));
+    for agent in listed {
+        let pane = agent.get("pane_id").and_then(Value::as_str);
+        let found = guarded.iter().position(|(p, ..)| Some(p.as_str()) == pane);
+        recipients.extend(match found {
+            // The guard belongs to the guarded snapshot, so its metadata is used with it.
+            Some(index) => {
+                let (_, guard, agent) = guarded.remove(index);
+                recipient(path, epoch, &guard, agent, &codex_threads)
+            }
+            None => recipient(path, epoch, "", agent, &codex_threads),
         });
     }
-    // Metadata-only compatibility view. There is intentionally no legacy send fallback.
-    let response = rpc(path, "agent.list", json!({})).await?;
-    let agents = response
-        .pointer("/result/agents")
-        .and_then(Value::as_array)
-        .ok_or_else(|| ProviderError::message(INCOMPATIBLE))?;
+    // An agent guarded between the two reads keeps its guard, after the others.
+    recipients.extend(
+        guarded
+            .into_iter()
+            .filter_map(|(_, guard, agent)| recipient(path, epoch, &guard, agent, &codex_threads)),
+    );
     Ok(Discovery {
-        recipients: agents
-            .iter()
-            .take(128)
-            .filter_map(|agent| recipient(path, "", "", agent.clone(), &codex_threads))
-            .collect(),
-        guarded: false,
+        recipients,
+        guarded: true,
     })
 }
 
@@ -413,6 +445,7 @@ mod tests {
                 kind: "codex".into(),
                 project: "/synthetic".into(),
                 status: AgentStatus::Working,
+                ..Recipient::default()
             },
         }
     }
@@ -556,6 +589,98 @@ mod tests {
         // Identity is unchanged by naming; the guard and pane remain the selection key.
         assert!(found.recipients.iter().all(|r| r.guard == "e".repeat(64)));
         assert!(codex_thread_names(&temp.path().join("missing.jsonl")).is_empty());
+    }
+    /// Herdr guards only sessions it launched; one typed into a pane is in `agent.list` but
+    /// not `agent.guarded_list`. It must still be offered, visible and never sendable.
+    #[tokio::test]
+    async fn an_unmanaged_claude_session_herdr_lists_but_does_not_guard_is_still_discovered() {
+        let (_temp, path, listener) = peer();
+        let session = |id: &str| json!({"source": "herdr:claude", "agent": "claude", "kind": "id", "value": id});
+        let managed = json!({"pane_id": "w1:p1", "agent": "claude", "name": "lead",
+            "agent_status": "idle", "agent_session": session("managed-session")});
+        let typed = json!({"pane_id": "w1:p2", "agent": "claude", "agent_status": "idle",
+            "terminal_title_stripped": "Typed session", "agent_session": session("typed-session")});
+        let shell = json!({"pane_id": "w1:p3", "name": "shell"});
+        let codex = json!({"pane_id": "w2:p1", "agent": "codex", "name": "builder", "agent_status": "idle"});
+        let (guarded, listed) = (
+            json!([{"guard": "f".repeat(64), "agent": managed}, {"guard": "e".repeat(64), "agent": codex}]),
+            json!([managed, typed, shell, codex]),
+        );
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "agent.guarded_list");
+            reply(
+                &mut stream,
+                &request,
+                json!({"server_epoch": "epoch", "agents": guarded}),
+            )
+            .await;
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "agent.list");
+            reply(&mut stream, &request, json!({"agents": listed})).await;
+            // Discovery reads only; it never prompts, focuses or reads a terminal.
+            assert!(
+                tokio::time::timeout(Duration::from_millis(200), listener.accept())
+                    .await
+                    .is_err()
+            );
+        });
+        let found = discover_with(&path, None).await.unwrap();
+        let shown: Vec<_> = found
+            .recipients
+            .iter()
+            .map(|r| (r.pane_id.as_str(), r.display_name(), r.can_receive()))
+            .collect();
+        assert_eq!(
+            shown,
+            [
+                ("w1:p1", "lead", true),
+                ("w1:p2", "Typed session", false),
+                ("w2:p1", "builder", true),
+            ],
+            "every listed agent appears in Herdr's order; only guarded ones can receive"
+        );
+        peer.await.unwrap();
+        assert!(found.guarded);
+        let typed = found.recipients[1].clone();
+        assert!(typed.guard.is_empty());
+        assert_eq!(typed.server_epoch, "epoch");
+        // Without a guard there is no send path: nothing even connects.
+        let sending = Submission {
+            recipient: typed,
+            ..submission(&path)
+        };
+        assert_eq!(
+            submit(&sending, &CancellationToken::new()).await,
+            SendOutcome::Rejected
+        );
+    }
+    #[tokio::test]
+    async fn native_session_ids_come_from_herdr_and_a_failed_full_list_keeps_guarded_agents() {
+        let (_temp, path, listener) = peer();
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            reply(&mut stream, &request, json!({"server_epoch": "epoch", "agents": [{"guard": "f".repeat(64),
+                "agent": {"pane_id": "w1:p1", "agent": "claude", "agent_status": "idle", "agent_session":
+                {"source": "herdr:claude", "agent": "claude", "kind": "id", "value": "managed-session"}}}]})).await;
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "agent.list");
+            stream
+                .write_all(
+                    format!(
+                        "{}\n",
+                        json!({"id": request["id"], "error": {"code": "internal"}})
+                    )
+                    .as_bytes(),
+                )
+                .await
+                .unwrap();
+        });
+        let found = discover_with(&path, None).await.unwrap();
+        peer.await.unwrap();
+        assert_eq!(found.recipients.len(), 1);
+        assert_eq!(found.recipients[0].session_id, "managed-session");
+        assert!(found.recipients[0].can_receive());
     }
     #[test]
     fn a_large_codex_index_is_read_from_its_newest_whole_lines() {

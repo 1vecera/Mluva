@@ -12,7 +12,65 @@ fn recipient() -> Recipient {
         kind: "codex".into(),
         project: "example".into(),
         status: AgentStatus::Idle,
+        ..Default::default()
     }
+}
+
+/// A Claude Code session Herdr cannot send to, or one found only in Claude Code's registry.
+fn draft_only() -> Recipient {
+    Recipient {
+        name: "notes-3f".into(),
+        title: "Synthetic notes".into(),
+        kind: "claude".into(),
+        project: "/synthetic/notes".into(),
+        status: AgentStatus::Idle,
+        session_id: "session-a".into(),
+        pid: 4_100,
+        ..Default::default()
+    }
+}
+
+#[test]
+fn draft_only_sessions_match_by_native_session_and_process_and_never_send() {
+    let native = draft_only();
+    assert!(native.draft_only() && !native.can_receive());
+    let mut route = VoiceRoute::default();
+    assert!(route.begin(native.clone(), 0).is_err());
+    // The same session seen through Herdr, unmanaged, is the same choice.
+    let in_herdr = Recipient {
+        socket: "/tmp/private/herdr.sock".into(),
+        server_epoch: "server-a".into(),
+        pane_id: "w1:p4".into(),
+        ..draft_only()
+    };
+    assert!(native.same_instance(&in_herdr));
+    // A resumed session in a new process, or a new session in the same pane, is not.
+    let resumed = Recipient {
+        pid: 4_200,
+        ..draft_only()
+    };
+    let replaced = Recipient {
+        session_id: "session-b".into(),
+        ..in_herdr.clone()
+    };
+    assert!(!native.same_instance(&resumed));
+    assert!(!in_herdr.same_instance(&replaced));
+    // A guarded identity never matches an unguarded one, even for the same session.
+    let guarded = Recipient {
+        guard: "g".repeat(64),
+        ..in_herdr.clone()
+    };
+    assert!(!guarded.same_instance(&in_herdr) && !in_herdr.same_instance(&guarded));
+    assert!(guarded.same_instance(&Recipient {
+        session_id: String::new(),
+        pid: 0,
+        ..guarded.clone()
+    }));
+    let missing = Recipient {
+        missing: true,
+        ..draft_only()
+    };
+    assert!(missing.same_instance(&native) && !missing.draft_only());
 }
 
 #[test]
@@ -146,6 +204,24 @@ fn settings_are_opt_in_private_and_preserve_invalid_files() {
     settings.hold_key = "F9".into();
     assert!(settings.save(&path, "F9").is_err());
     assert_eq!(VoiceSettings::load(&path).unwrap().hold_key, "F8");
+    // A choice saved before native sessions existed still loads with its guarded identity.
+    let legacy = serde_json::json!({"enabled": true, "selected": {"socket": "/tmp/private/herdr.sock",
+        "server_epoch": "server-a", "pane_id": "w1:p2", "guard": "process-session-a", "name": "builder",
+        "kind": "codex", "project": "example", "status": "idle"}});
+    std::fs::write(&path, legacy.to_string()).unwrap();
+    let loaded = VoiceSettings::load(&path).unwrap().selected.unwrap();
+    assert!(loaded.same_instance(&recipient()) && loaded.session_id.is_empty());
+    // The draft-only choice round-trips; the in-memory missing marker is never saved.
+    settings.hold_key = "F8".into();
+    settings.selected = Some(Recipient {
+        missing: true,
+        ..draft_only()
+    });
+    settings.save(&path, "F9").unwrap();
+    assert_eq!(
+        VoiceSettings::load(&path).unwrap().selected,
+        Some(draft_only())
+    );
     std::fs::write(&path, b"invalid original").unwrap();
     assert!(VoiceSettings::load(&path).is_err());
     assert_eq!(std::fs::read(&path).unwrap(), b"invalid original");
