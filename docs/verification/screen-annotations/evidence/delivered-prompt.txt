@@ -1,6 +1,6 @@
 Here is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge. Now an error banner covers the title, so pin one marks where it should sit instead.
 
-[Screen annotation · 0:17 · 3 keyframes · contact sheet /tmp/mluva-e2e.UZZ2g6/home/.local/share/mluva/annotations/a2cdec5e-bcd3-4a46-aff4-049f677231f3/contact-sheet.png]
-- #1 (0:04) [circled] “Here is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card.” /tmp/mluva-e2e.UZZ2g6/home/.local/share/mluva/annotations/a2cdec5e-bcd3-4a46-aff4-049f677231f3/frames/frame-01.png
-- #2 (0:10) [underlined] “And this sync folder label runs past the right edge. Now an error banner covers the title,” /tmp/mluva-e2e.UZZ2g6/home/.local/share/mluva/annotations/a2cdec5e-bcd3-4a46-aff4-049f677231f3/frames/frame-02.png
-- #3 (0:14) [pin 1] “so pin one marks where it should sit instead.” /tmp/mluva-e2e.UZZ2g6/home/.local/share/mluva/annotations/a2cdec5e-bcd3-4a46-aff4-049f677231f3/frames/frame-03.png
+[Screen annotation · 0:17 · 3 keyframes · contact sheet /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/contact-sheet.png]
+- #1 (0:05) [circled] “Here is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card.” /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/frames/frame-01.png
+- #2 (0:10) [underlined] “And this sync folder label runs past the right edge. Now an error banner covers the title,” /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/frames/frame-02.png
+- #3 (0:14) [pin 1] “so pin one marks where it should sit instead.” /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/frames/frame-03.png

@@ -3,4 +3,4 @@
 {"path": "/v1/audio/transcriptions", "kind": "preview", "audio_seconds": 3.0, "text": ""}
 {"path": "/v1/audio/transcriptions", "kind": "preview", "audio_seconds": 3.0, "text": "And this sync folder label runs past the right edge."}
 {"path": "/v1/audio/transcriptions", "kind": "preview", "audio_seconds": 3.0, "text": "Now an error banner covers the title, so pin one marks where it should sit instead."}
-{"path": "/v1/audio/transcriptions", "kind": "final", "audio_seconds": 17.6, "text": "Here is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge. Now an error banner covers the title, so pin one marks where it should sit instead."}
+{"path": "/v1/audio/transcriptions", "kind": "final", "audio_seconds": 17.9, "text": "Here is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge. Now an error banner covers the title, so pin one marks where it should sit instead."}

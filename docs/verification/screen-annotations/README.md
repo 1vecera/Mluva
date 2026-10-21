@@ -14,24 +14,24 @@ The [driver](offscreen/run.sh) runs a headless sway 1.12 with wlroots 0.20 that 
 | Shift and Shift-click | Mluva's `annotation-ink-down`, `annotation-ink-up` and `annotation-pin` application actions over the private bus; strokes from a `zwlr_virtual_pointer_v1` client |
 | Agent | The repository's Herdr protocol fixture peer, with a [stub agent](offscreen/stub_agent.py) in a `foot` terminal printing each guarded prompt verbatim |
 
-Run it from the repository root once a layer-shell harness and the debug binaries exist: `bash docs/verification/screen-annotations/offscreen/run.sh /path/to/layer-shell-harness.sh tmp/<new-run>`. The harness used here ran sway 1.12 and wlroots 0.20.2 from signed Arch packages extracted without installation; `MLUVA_BINARIES` selects prebuilt binaries.
+Run it from the repository root once a layer-shell harness and the debug binaries exist: `bash docs/verification/screen-annotations/offscreen/run.sh /path/to/layer-shell-harness.sh tmp/<new-run>`. The harness used here ran the system's sway 1.12 and wlroots 0.20.2 Arch packages; `MLUVA_BINARIES` selects prebuilt binaries and `VPTR` the virtual-pointer client.
 
 ### Result
 
-The [evidence](evidence/) comes from one run on 21 October 2026 with debug binaries built from `fd62340` ([hashes](evidence/binaries.sha256)). The timeline is in [driver.log](evidence/driver.log); times below are on the recording's sample clock.
+The [evidence](evidence/) comes from one run on 21 October 2026 with debug binaries built from `b1ba83e`, the branch merged with `main` after #112 ([hashes](evidence/binaries.sha256)). The timeline is in [driver.log](evidence/driver.log); times below are on the recording's sample clock.
 
 | Check | Observed |
 | --- | --- |
 | Drawing reaches the overlay | Live ink over the synthetic page while Shift was held ([screenshot](evidence/02-drawing-circle.png)); ordinary windows kept their input |
 | Clean frames | Each keyframe was grabbed before its ink showed; the ink in the frames is composited from vectors. Only two raw frames were kept: the underline and the pin reused unchanged screens, keeping their own times |
 | No frames before drawing | Nothing was grabbed before the first ink on this desktop, which binds no Shift; sampling started with it |
-| Keyframes | 3 for 3 separate gestures: circle at 0:04, underline at 0:10, pin at 0:14. The banner change and the spoken "Now" were not separate keyframes because the pin's frame already shows that screen |
+| Keyframes | 3 for 3 separate gestures: circle at 0:05, underline at 0:10, pin at 0:14. The banner change and the spoken "Now" were not separate keyframes because the pin's frame already shows that screen |
 | Crops | Whole screen, because this compositor reports no window geometry; no text is cut. Whole-window crops on Hyprland are covered by unit tests on synthetic geometry |
 | Clause matching | Each keyframe carries the words heard while it was on screen, on the preview-growth fallback ([summary](evidence/bundle/summary.md)). At 3 s preview chunks, the start of the banner sentence spills into the underline's line |
 | Delivery | One guarded `agent.prompt_guarded` after the two-second window, its text exactly the transcript, a blank line and `summary.md` ([prompt](evidence/delivered-prompt.txt), [terminal](evidence/04-agent-received.png)) |
 | History | Raw and working text are the transcript only; the bundle belongs to that conversation with 3 keyframes ([history](evidence/history.json)) |
 | Privacy | Bundle directories `0700`, files `0600` ([modes](evidence/bundle-modes.txt)); no raw-frame directory left after Quit ([count](evidence/leftover-frame-directories.txt)) |
-| Speech | Five 3 s preview chunks and one 17.6 s final upload to the loopback peer ([requests](evidence/speech-requests.jsonl)) |
+| Speech | Five 3 s preview chunks and one 17.9 s final upload to the loopback peer ([requests](evidence/speech-requests.jsonl)) |
 
 ![Contact sheet from the run](evidence/bundle/contact-sheet.png)
 
