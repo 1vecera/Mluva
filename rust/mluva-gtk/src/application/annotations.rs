@@ -234,14 +234,15 @@ impl ApplicationDesktop {
         }))
     }
 
-    /// Give a completed recording's bundle to its conversation, or remove it with the recording.
+    /// Give a finished recording's bundle to its conversation. Without one, because History
+    /// could not be saved, the bundle stays with its recording for recovery at the next start:
+    /// its summary may already have been delivered.
     pub(super) fn finish_annotations(&self, capture: &str, conversation: Option<&str>) {
-        let store = AnnotationStore::new(&self.services.history.database.path);
-        let result = match conversation {
-            Some(conversation) => store.bind_capture(capture, conversation),
-            None => store.delete_owner(capture, true),
+        let Some(conversation) = conversation else {
+            return;
         };
-        if result.is_err() {
+        let store = AnnotationStore::new(&self.services.history.database.path);
+        if store.bind_capture(capture, conversation).is_err() {
             self.shell.show_message(
                 "Could not save screen annotation ownership. It will be recovered at the next start.",
             );

@@ -303,6 +303,11 @@ pub(super) fn stage(source: &Path, bundle: &Path) -> Result<()> {
         &root.join("onnx-asr/LICENSE"),
         0o644,
     )?;
+    copy_file(
+        &source.join("rust/mluva-annotate/resources/scrawl-LICENSE"),
+        &root.join("scrawl/LICENSE"),
+        0o644,
+    )?;
     let toolchain = toolchain_notices(source, &root, &cargo_home)?;
     directory_modes(&root)?;
     copy_file(

@@ -36,7 +36,8 @@ cleanup() {
     h gdbus call --session --dest com.mluva.Linux --object-path /com/mluva/Linux \
       --method org.gtk.Actions.Activate quit '[]' '{}' >/dev/null 2>&1
     sleep 2
-    h sh -c 'ls -d "$XDG_RUNTIME_DIR"/mluva/mluva-annotation-* 2>/dev/null | wc -l' \
+    # shellcheck disable=SC2016 # expanded by the shell inside the harness
+    h sh -c 'find "$XDG_RUNTIME_DIR/mluva" -maxdepth 1 -name "mluva-annotation-*" 2>/dev/null | wc -l' \
       >"$EVIDENCE/leftover-frame-directories.txt"
     bash "$HARNESS" stop >"$EVIDENCE/harness-stop.log" 2>&1
   fi
@@ -187,7 +188,7 @@ sleep 1.5
 shot 04-agent-received
 
 cp "$APP/herdr-wire.jsonl" "$EVIDENCE/herdr-wire.jsonl" 2>/dev/null || true
-BUNDLE=$(ls -d "$APP"/home/.local/share/mluva/annotations/*/ 2>/dev/null | head -1)
+BUNDLE=$(find "$APP/home/.local/share/mluva/annotations" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | head -1)
 if [[ -n $BUNDLE ]]; then
   mkdir -p "$EVIDENCE/bundle"
   cp -r "$BUNDLE"/. "$EVIDENCE/bundle/"

@@ -35,7 +35,7 @@ pub const CAPABILITIES: &[Capability] = &[
     Capability {
         identifier: "screen_annotations",
         title: "Annotate the screen while dictating",
-        summary: "Opt-in Hyprland Shift ink and pins deliver keyframes with the transcript; verified in an isolated nested compositor, physical input and live-portal acceptance remain pending.",
+        summary: "Opt-in Hyprland Shift ink and pins deliver keyframes with the transcript; overlay, capture and agent delivery passed an isolated headless sway run, while Hyprland bindings, the live portal and physical input await acceptance.",
         maturity: Maturity::Experimental,
     },
     Capability {

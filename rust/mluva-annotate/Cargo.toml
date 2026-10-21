@@ -18,6 +18,5 @@ cairo-rs = { version = "0.21", features = ["png"] }
 gdk-pixbuf = "0.21"
 pango = "0.21"
 pangocairo = "0.21"
-
-[dev-dependencies]
 tempfile.workspace = true
+

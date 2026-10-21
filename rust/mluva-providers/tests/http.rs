@@ -18,7 +18,14 @@ fn compatible(url: &str, model: Option<&str>, timeout: Duration) -> CompatibleCl
 }
 fn normalized<T: serde::Serialize>(result: Result<T, ProviderError>) -> Value {
     match result {
-        Ok(value) => json!({"ok":value}),
+        Ok(value) => {
+            let mut value = json!(value);
+            // Word timing is a native addition the released observations predate.
+            if let Some(fields) = value.as_object_mut() {
+                fields.remove("words");
+            }
+            json!({"ok":value})
+        }
         Err(error) => json!({"error":error.to_string()}),
     }
 }

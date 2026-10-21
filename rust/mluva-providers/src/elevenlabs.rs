@@ -147,7 +147,12 @@ pub fn transcription_result(
             .get("audio_duration_secs")
             .and_then(number)
             .map(|value| value.max(0.0)),
-        words: timed_words(payload.get("words")),
+        // Meetings keep their per-speaker segments and archive format; dictation keeps words.
+        words: if include_speakers {
+            vec![]
+        } else {
+            timed_words(payload.get("words"))
+        },
     })
 }
 

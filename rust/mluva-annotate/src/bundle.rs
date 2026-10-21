@@ -5,7 +5,6 @@ use crate::{
     model::{Capture, Keyframe, Mark, Transcript, format_clock},
     render::{self, RenderError},
 };
-use mluva_core::private_files::atomic_write_private_durable;
 use serde_json::json;
 use std::{
     fs,
@@ -47,6 +46,20 @@ fn shortened(text: &str) -> String {
     let cut: String = text.chars().take(MAX_SAID_CHARS).collect();
     let cut = cut.rsplit_once(' ').map_or(cut.as_str(), |(head, _)| head);
     format!("{cut}…")
+}
+
+/// Write an owner-only file atomically inside an existing directory.
+fn write_private(path: &Path, content: &[u8]) -> std::io::Result<()> {
+    use std::io::Write;
+    let parent = path.parent().unwrap_or(Path::new("."));
+    let mut file = tempfile::Builder::new()
+        .prefix(".annotation-")
+        .permissions(fs::Permissions::from_mode(0o600))
+        .tempfile_in(parent)?;
+    file.write_all(content)?;
+    file.as_file().sync_all()?;
+    file.persist(path).map_err(|error| error.error)?;
+    Ok(())
 }
 
 /// The header line and one line per keyframe, with absolute paths an agent can open.
@@ -139,7 +152,8 @@ pub fn write(
     }
     fs::set_permissions(directory, fs::Permissions::from_mode(0o700))?;
     let frames_dir = directory.join("frames");
-    fs::create_dir_all(&frames_dir)?;
+    // Never create missing parents: a bundle removed while it is written must stay removed.
+    fs::create_dir(&frames_dir)?;
     fs::set_permissions(&frames_dir, fs::Permissions::from_mode(0o700))?;
     let mut rendered = Vec::with_capacity(keyframes.len());
     let mut paths = Vec::with_capacity(keyframes.len());
@@ -153,18 +167,18 @@ pub fn write(
         crops.push(render::crop(keyframe, &marks, frame, screen));
         let image = render::keyframe(&source, keyframe, &marks, &capture.strokes, frame, screen)?;
         let path = frames_dir.join(format!("frame-{:02}.png", keyframe.index));
-        atomic_write_private_durable(&path, &render::png(&image)?)?;
+        write_private(&path, &render::png(&image)?)?;
         paths.push(path);
         rendered.push(image);
     }
     let sheet = directory.join(CONTACT_SHEET);
-    atomic_write_private_durable(&sheet, &render::png(&render::contact_sheet(&rendered)?)?)?;
+    write_private(&sheet, &render::png(&render::contact_sheet(&rendered)?)?)?;
     let summary = summary(capture.duration_ms, &keyframes, &paths, &sheet);
     let document = data(capture, transcript, &marks, &keyframes, &crops);
     let mut json = serde_json::to_vec_pretty(&document).expect("serializable annotation");
     json.push(b'\n');
-    atomic_write_private_durable(&directory.join(DATA), &json)?;
-    atomic_write_private_durable(&directory.join(SUMMARY), summary.as_bytes())?;
+    write_private(&directory.join(DATA), &json)?;
+    write_private(&directory.join(SUMMARY), summary.as_bytes())?;
     Ok(Written {
         directory: directory.into(),
         summary,

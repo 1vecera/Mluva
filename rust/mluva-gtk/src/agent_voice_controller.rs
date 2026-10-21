@@ -192,7 +192,15 @@ impl AgentVoiceController {
         let weak = Rc::downgrade(self);
         self.view.copy_draft.connect_clicked(move |_| {
             if let Some(owner) = weak.upgrade() {
-                (owner.callbacks.copy)(&owner.draft_text());
+                let history = owner
+                    .route
+                    .borrow()
+                    .attempt
+                    .as_ref()
+                    .and_then(|a| a.history_id.clone());
+                (owner.callbacks.copy)(
+                    &owner.with_annotations(owner.draft_text(), history.as_deref()),
+                );
             }
         });
         let weak = Rc::downgrade(self);
@@ -339,6 +347,27 @@ impl AgentVoiceController {
             .as_ref()
             .map_or_else(String::new, |editor| editor.text())
     }
+    /// A draft keeps the screen annotation its recording delivered: its summaries follow the
+    /// edited text, as they followed the transcript.
+    fn with_annotations(&self, text: String, history: Option<&str>) -> String {
+        let Some(history) = history else {
+            return text;
+        };
+        let store =
+            mluva_core::annotations::AnnotationStore::new(&self.services.history.database.path);
+        let summaries: Vec<String> = store
+            .recent(history, false)
+            .unwrap_or_default()
+            .iter()
+            .filter_map(|bundle| store.summary(&bundle.identifier).ok().flatten())
+            .map(|summary| summary.trim_end().to_owned())
+            .filter(|summary| !summary.is_empty())
+            .collect();
+        if summaries.is_empty() {
+            return text;
+        }
+        mluva_workflows::dictation::with_appendix(&text, Some(&summaries.join("\n\n")))
+    }
     pub fn save_draft(&self) -> bool {
         let history = self
             .route
@@ -385,7 +414,7 @@ impl AgentVoiceController {
         if !self.save_draft() {
             return;
         }
-        let text = self.draft_text();
+        let text = self.with_annotations(self.draft_text(), history.as_deref());
         if let Ok(id) = self.begin() {
             self.route.borrow_mut().release(now());
             self.route
