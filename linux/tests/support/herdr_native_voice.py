@@ -394,6 +394,33 @@ try:
                 stdout=subprocess.DEVNULL,
             )
 
+        # Each session is named by its agent's own title; Herdr's label is only the fallback.
+        listed = {
+            r["pane"]: r
+            for r in app_cli("list", "--socket", env["HERDR_SOCKET_PATH"])["recipients"]
+        }
+        for entry in listing["agents"]:
+            agent = entry["agent"]
+            title = (agent.get("terminal_title_stripped") or "").strip()
+            mine = listed[agent["pane_id"]]
+            assert mine["name"] == agent["name"], (mine, agent["name"])
+            if agent["agent"] == "claude":
+                assert mine["title"] == ("" if title.lower() == "claude code" else title), (
+                    mine,
+                    title,
+                )
+            print(
+                "session-name",
+                json.dumps(
+                    {
+                        "agent": agent["agent"],
+                        "herdr_label": agent["name"],
+                        "terminal_title": title,
+                        "mluva_title": mine["title"],
+                    }
+                ),
+                flush=True,
+            )
         assert app_cli(
             "select", codex["agent"]["pane_id"], "--socket", env["HERDR_SOCKET_PATH"]
         )["connected"]
