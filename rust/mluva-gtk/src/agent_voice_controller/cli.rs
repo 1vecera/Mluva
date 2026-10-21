@@ -51,19 +51,10 @@ impl AgentVoiceController {
                 .unwrap_or(Path::new("/")),
             socket,
         );
-        let mut recipients = vec![];
-        let mut errors = vec![];
-        for path in paths.into_iter().take(16) {
-            let result = tokio::select! {
-                _ = self.closed.cancelled() => break,
-                result = herdr::discover(&path) => result,
-            };
-            match result {
-                Ok(found) => recipients.extend(found.recipients),
-                Err(error) => errors.push(error.to_string()),
-            }
-        }
-        (recipients, errors)
+        discover_sessions(paths, self.registry.clone(), &self.closed)
+            .await
+            .map(|found| (found.recipients, found.errors))
+            .unwrap_or_default()
     }
     async fn cli_request(self: &Rc<Self>, request: Request) -> Result<Value, String> {
         let generation = self.generation.get();
@@ -95,10 +86,12 @@ impl AgentVoiceController {
             }
             Request::Status {} => {
                 let settings = self.settings();
+                // A session outside Herdr has no socket of its own to check.
                 let socket = settings
                     .selected
                     .as_ref()
                     .map(|r| r.socket.as_str())
+                    .filter(|socket| !socket.is_empty())
                     .or(settings.socket.as_deref());
                 let (recipients, errors) = self.cli_discover(socket).await;
                 if self.closed.is_cancelled() || self.generation.get() != generation {

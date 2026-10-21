@@ -437,7 +437,7 @@ try:
         portal({"op": "Activated", "id": "agent-hold"})
         for _ in range(50):
             discovery = json.loads(subprocess.check_output([helper, "discover"], text=True))
-            if "Choose a Herdr session" in json.dumps(discovery):
+            if "Choose a session" in json.dumps(discovery):
                 break
             time.sleep(0.1)
         else:

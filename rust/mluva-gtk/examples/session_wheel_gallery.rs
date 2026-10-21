@@ -4,7 +4,8 @@
 //! directory and optionally `overlay`. The wheel sizes itself to the helper's screen, so set
 //! its screen to the display being judged. X11 has no layer-shell, so `overlay` applies the
 //! overlay styling to a screen-sized window; its captures keep the scrim's transparency for
-//! compositing over a desktop image. Every session name, pane and socket is a fixture.
+//! compositing over a desktop image. Every session name, pane, socket, process and session
+//! ID is a fixture.
 
 use std::path::{Path, PathBuf};
 
@@ -61,7 +62,61 @@ fn session(index: usize, status: AgentStatus) -> Recipient {
         kind: if index % 3 == 1 { "claude" } else { "codex" }.into(),
         project: "/fixture/project".into(),
         status,
+        ..Recipient::default()
     }
+}
+
+/// A Claude Code session Herdr lists but cannot send to, such as one typed into a pane.
+fn unmanaged(index: usize, status: AgentStatus) -> Recipient {
+    Recipient {
+        guard: String::new(),
+        kind: "claude".into(),
+        session_id: format!("fixture-session-{index}"),
+        pid: 40_000 + index as u32,
+        ..session(index, status)
+    }
+}
+
+/// A Claude Code session found only in its own registry: no Herdr pane or socket.
+fn native(index: usize, title: &str, status: AgentStatus) -> Recipient {
+    Recipient {
+        socket: String::new(),
+        server_epoch: String::new(),
+        pane_id: String::new(),
+        guard: String::new(),
+        name: format!("project-{:02x}", 0x3a + index),
+        title: title.into(),
+        kind: "claude".into(),
+        project: "/fixture/project".into(),
+        status,
+        session_id: format!("fixture-native-{index}"),
+        pid: 50_000 + index as u32,
+        ..Recipient::default()
+    }
+}
+
+/// Herdr-guarded, Herdr-unmanaged and registry-only sessions together, in that order.
+fn mixed() -> Vec<Recipient> {
+    vec![
+        session(0, AgentStatus::Idle),
+        session(1, AgentStatus::Working),
+        unmanaged(3, AgentStatus::Idle),
+        session(2, AgentStatus::Idle),
+        unmanaged(9, AgentStatus::Working),
+        native(0, "Cold start profile", AgentStatus::Idle),
+        native(1, "", AgentStatus::Working),
+    ]
+}
+
+/// Herdr is absent: Claude Code's registry alone, two sessions sharing a title.
+fn native_only() -> Vec<Recipient> {
+    vec![
+        native(0, "Release checklist", AgentStatus::Idle),
+        native(1, "Shortcut portal fix", AgentStatus::Working),
+        native(2, "api-tests", AgentStatus::Idle),
+        native(3, "api-tests", AgentStatus::Blocked),
+        native(4, "", AgentStatus::Idle),
+    ]
 }
 
 fn sessions(count: usize) -> Vec<Recipient> {
@@ -173,6 +228,10 @@ fn main() -> glib::ExitCode {
         ("paged-second", thirty, Some(27), 1),
         ("unselected", sessions(4), None, 0),
         ("empty", vec![], None, 0),
+        ("mixed", mixed(), Some(1), 0),
+        ("mixed-draft-selected", mixed(), Some(2), 0),
+        ("native-only", native_only(), None, 0),
+        ("native-only-draft-selected", native_only(), Some(2), 0),
     ];
     for (name, entries, selected, page) in scenarios {
         let wheel = show(&entries, selected, page);

@@ -320,9 +320,23 @@ impl ApplicationDesktop {
             .is_some_and(|c| c.agent_attempt.is_some())
         {
             self.agent_toggle();
+        } else if self
+            .current
+            .borrow()
+            .as_ref()
+            .is_some_and(|c| c.transcript_only)
+        {
+            // A draft started from the wheel stops on the same key, like agent dictation.
+            self.toggle_recording(CaptureOrigin::Transcript);
         } else if self.agent_voice.wheel.window.is_visible() {
             self.agent_voice.wheel.window.set_visible(false);
-            self.agent_press();
+            if self.agent_voice.draft_only_selected() {
+                // Herdr cannot send to this session: keep an editable transcript in Mluva,
+                // exactly like the wheel's dictation key, with no clipboard, paste or send.
+                self.toggle_recording(CaptureOrigin::Transcript);
+            } else {
+                self.agent_press();
+            }
         } else if !self.closed.get() && self.capture.phase().is_none() {
             self.agent_voice.open_wheel(&self.shell.window);
         }
