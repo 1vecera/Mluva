@@ -1,8 +1,9 @@
 //! Native, keyboard-first session wheel; routing remains in the application owner.
 //!
-//! Sessions sit clockwise from one o'clock in Herdr pane order, each name whole beside its
-//! own mark. The ring grows, up to the screen, before a name drifts from its mark or wraps
-//! more tightly; nothing is shortened to keep a fixed geometry.
+//! Sessions sit clockwise from one o'clock in Herdr pane order, then Claude Code sessions
+//! outside Herdr in the order they started, each name whole beside its own mark. The ring
+//! grows, up to the screen, before a name drifts from its mark or wraps more tightly; nothing
+//! is shortened to keep a fixed geometry.
 use adw::prelude::*;
 use mluva_core::agent_voice::{AgentStatus, Recipient};
 use std::cell::{Cell, RefCell};
@@ -204,9 +205,14 @@ enum Availability {
     Working,
     Blocked,
     Unavailable,
+    /// Present, but Herdr cannot send to it: recording keeps an editable draft in Mluva.
+    Draft,
 }
 impl Availability {
     fn of(entry: &Recipient) -> Self {
+        if entry.draft_only() {
+            return Self::Draft;
+        }
         match (entry.can_receive(), &entry.status) {
             (true, AgentStatus::Working) => Self::Working,
             (true, _) => Self::Ready,
@@ -220,6 +226,7 @@ impl Availability {
             Self::Working => "Working",
             Self::Blocked => "Blocked",
             Self::Unavailable => "Unavailable",
+            Self::Draft => "Draft only",
         }
     }
     fn warns(self) -> bool {
@@ -279,6 +286,39 @@ fn product(kind: &str) -> &str {
     match kind {
         "claude" | "claude_code" => "claude",
         other => other,
+    }
+}
+
+/// Where a session is: its Herdr pane, else Claude Code's own handle or its process.
+fn locator(entry: &Recipient) -> String {
+    if !entry.pane_id.is_empty() {
+        entry.pane_id.clone()
+    } else if entry.name != entry.display_name() {
+        entry.name.clone()
+    } else {
+        format!("pid {}", entry.pid)
+    }
+}
+
+/// The tooltip's second line: agent, place and, in Herdr, its label.
+fn whereabouts(entry: &Recipient) -> String {
+    let project = std::path::Path::new(&entry.project)
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("Local");
+    if entry.socket.is_empty() {
+        format!(
+            "{} · {} · not in Herdr · {project}",
+            product(&entry.kind),
+            locator(entry)
+        )
+    } else {
+        format!(
+            "{} · {} · Herdr {} · {project}",
+            product(&entry.kind),
+            entry.pane_id,
+            entry.name
+        )
     }
 }
 
@@ -372,6 +412,12 @@ fn dial(geometry: Rc<RefCell<Geometry>>) -> gtk::DrawingArea {
                     context.arc(mx, my, 3.5, 0., TAU);
                     let _ = context.stroke();
                     context.set_line_width(1.);
+                }
+                // Draft-only is a quiet square: present, but nothing will be sent.
+                Availability::Draft => {
+                    source(context, ink, 0.6);
+                    context.rectangle(mx - 2.5, my - 2.5, 5., 5.);
+                    let _ = context.stroke();
                 }
                 Availability::Blocked | Availability::Unavailable => {}
             }
@@ -526,7 +572,8 @@ impl Slot {
         let note =
             (availability != Availability::Ready).then(|| availability.title().to_lowercase());
         // Names lead; a second line appears only to disambiguate a shared name or flag state.
-        let pane = (duplicate && name != entry.pane_id).then_some(entry.pane_id.as_str());
+        let place = locator(entry);
+        let pane = (duplicate && name != place).then_some(place.as_str());
         let meta: Vec<&str> = [pane, note.as_deref()].into_iter().flatten().collect();
         self.key.set_label(&letter.to_ascii_uppercase().to_string());
         self.name.set_label(name);
@@ -535,21 +582,12 @@ impl Slot {
         toggle_class(&self.meta, "ml-wheel-warning", availability.warns());
         toggle_class(&self.button, "ml-wheel-unavailable", availability.warns());
         toggle_class(&self.button, "ml-wheel-selected", selected);
-        let project = std::path::Path::new(&entry.project)
-            .file_name()
-            .and_then(|s| s.to_str())
-            .unwrap_or("Local");
-        self.button.set_tooltip_text(Some(&format!(
-            "{name}\n{} · {} · Herdr {} · {project}",
-            product(&entry.kind),
-            entry.pane_id,
-            entry.name
-        )));
+        self.button
+            .set_tooltip_text(Some(&format!("{name}\n{}", whereabouts(entry))));
         self.button
             .update_property(&[gtk::accessible::Property::Label(&format!(
-                "{} · {name} · {}{}",
+                "{} · {name} · {place}{}",
                 letter.to_ascii_uppercase(),
-                entry.pane_id,
                 note.map(|note| format!(" · {note}")).unwrap_or_default()
             ))]);
         self.button.set_visible(true);
@@ -583,6 +621,7 @@ struct Hub {
     status: gtk::Box,
     meta: gtk::Label,
     action: gtk::Box,
+    action_label: gtk::Label,
     hint: gtk::Label,
 }
 impl Hub {
@@ -611,8 +650,9 @@ impl Hub {
         action.add_css_class("ml-wheel-action");
         action.set_halign(gtk::Align::Center);
         action.set_margin_top(10);
+        let action_label = label("Record", &["ml-wheel-action-label"]);
         action.append(&key);
-        action.append(&label("Record", &["ml-wheel-action-label"]));
+        action.append(&action_label);
         let hint = gtk::Label::builder()
             .wrap(true)
             .justify(gtk::Justification::Center)
@@ -644,6 +684,7 @@ impl Hub {
             status,
             meta,
             action,
+            action_label,
             hint,
         }
     }
@@ -665,8 +706,9 @@ impl Hub {
                 "No session chosen"
             });
             self.hint.set_label(if empty {
-                // A no-break space keeps the product name on one line.
-                "Start Claude\u{a0}Code or Codex in Herdr"
+                // Claude Code is found on its own; Codex is found through Herdr.
+                // No-break spaces keep each product name on one line.
+                "Start Claude\u{a0}Code, or Codex in\u{a0}Herdr"
             } else {
                 "Press a letter to choose"
             });
@@ -678,37 +720,53 @@ impl Hub {
         };
         let availability = Availability::of(target);
         let ready = target.can_receive();
+        let draft = availability == Availability::Draft;
         let name = target.display_name();
-        self.button.set_sensitive(ready);
-        self.action.set_visible(ready);
+        let place = locator(target);
+        self.button.set_sensitive(ready || draft);
+        self.action.set_visible(ready || draft);
+        toggle_class(&self.action, "ml-wheel-draft", draft);
+        self.action_label
+            .set_label(if draft { "Record draft" } else { "Record" });
         self.status.set_visible(true);
         toggle_class(
             &self.dot,
             "ml-wheel-busy",
             availability == Availability::Working,
         );
+        toggle_class(&self.dot, "ml-wheel-draft", draft);
         toggle_class(&self.dot, "ml-wheel-warning", availability.warns());
         self.name.set_label(name);
-        let state = availability.title().to_lowercase();
-        let place = format!("{state} · {} · {}", product(&target.kind), target.pane_id);
+        // A draft-only session's hint below carries its state.
+        let state = (!draft).then(|| availability.title().to_lowercase());
+        let line = [state.as_deref(), Some(product(&target.kind)), Some(&place)]
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>()
+            .join(" · ");
         // The remembered session stays named while another page is shown.
         self.meta.set_label(&match other_page {
-            Some(page) => format!("{place} · page {}", page + 1),
-            None => place,
+            Some(page) => format!("{line} · page {}", page + 1),
+            None => line,
         });
-        self.hint.set_label("Press a letter to switch");
+        self.hint.set_label(if draft {
+            target.draft_hint()
+        } else {
+            "Press a letter to switch"
+        });
         self.hint.set_visible(!ready);
-        self.button.set_tooltip_text(Some(&format!(
-            "{name}\n{} · {} · Herdr {}",
-            product(&target.kind),
-            target.pane_id,
-            target.name
-        )));
+        self.button
+            .set_tooltip_text(Some(&format!("{name}\n{}", whereabouts(target))));
         self.button
             .update_property(&[gtk::accessible::Property::Label(&if ready {
-                format!("{agent_key} · Record to {name} · {}", target.pane_id)
+                format!("{agent_key} · Record to {name} · {place}")
+            } else if draft {
+                format!(
+                    "{agent_key} · Record a draft for {name} · {place} · {}",
+                    target.draft_hint()
+                )
             } else {
-                format!("{name} · {} · {}", target.pane_id, availability.title())
+                format!("{name} · {place} · {}", availability.title())
             })]);
     }
     /// The smallest circle around the content, so a long chosen name widens the hub.
@@ -749,7 +807,7 @@ impl SessionWheel {
     pub fn new() -> Self {
         install_style();
         let window = adw::Window::builder()
-            .title("Choose a Herdr session")
+            .title("Choose a session")
             .resizable(false)
             .modal(true)
             .hide_on_close(true)
@@ -953,7 +1011,9 @@ impl SessionWheel {
         self.place(&arrangement, &shown, chosen);
         // Only a choice changing on an unchanged wheel swings; opening or reshaping places.
         let swing = self.window.is_mapped() && same_page && previous_marks == shown.len();
-        let warning = selected.as_ref().is_some_and(|s| !s.can_receive());
+        let warning = selected
+            .as_ref()
+            .is_some_and(|s| Availability::of(s).warns());
         self.needle.point(
             chosen.map(|index| clock_angle(index, shown.len())),
             warning,

@@ -62,7 +62,7 @@ impl AgentVoiceView {
         widget.set_margin_top(4);
         widget.set_margin_bottom(8);
         let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-        let recipients = gtk::DropDown::from_strings(&["Choose a Herdr agent"]);
+        let recipients = gtk::DropDown::from_strings(&["Choose a session"]);
         recipients.set_enable_search(true);
         recipients.set_hexpand(true);
         recipients.set_tooltip_text(Some("The selected agent receives your finished dictation"));

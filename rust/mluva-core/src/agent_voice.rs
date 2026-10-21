@@ -8,14 +8,19 @@ pub const CANCEL_WINDOW_MS: u64 = 2_000;
 pub const MAX_RECORDING_MS: u64 = 5 * 60 * 1_000;
 pub const MAX_MESSAGE_BYTES: usize = 32_768;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// A running agent session. Herdr supplies its pane and, when guarded, its only send
+/// transport; Claude Code's own session registry supplies sessions Herdr does not manage.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Recipient {
+    /// Herdr socket; empty for a session found only in Claude Code's registry.
     pub socket: String,
     pub server_epoch: String,
     pub pane_id: String,
     /// Opaque server-issued identity, including the actual agent process/session.
+    /// Empty when Herdr cannot send to the session: it is then draft-only.
     pub guard: String,
     /// Herdr's agent label, used for `mluva herdr select`; often a dispatch handle.
+    /// Without one, Claude Code's generated session handle or the pane ID.
     pub name: String,
     /// The agent's own session title (Codex thread name, Claude Code session title).
     /// Empty when the agent has not named the session yet.
@@ -24,14 +29,56 @@ pub struct Recipient {
     pub kind: String,
     pub project: String,
     pub status: AgentStatus,
+    /// The agent's native session ID, as Herdr or Claude Code's registry reports it.
+    #[serde(default)]
+    pub session_id: String,
+    /// The Claude Code process from its registry; 0 when unknown.
+    #[serde(default)]
+    pub pid: u32,
+    /// A remembered session that discovery no longer reports. Never saved.
+    #[serde(skip)]
+    pub missing: bool,
 }
 
 impl Recipient {
+    /// Guarded recipients keep Herdr's exact guarded identity. Sessions without a guard
+    /// match by native session and process, so neither a resumed session in a new process
+    /// nor a new session in the same pane takes over a remembered choice.
     pub fn same_instance(&self, other: &Self) -> bool {
-        self.socket == other.socket
+        if self.guard.is_empty() != other.guard.is_empty() {
+            return false;
+        }
+        let herdr = self.socket == other.socket
             && self.server_epoch == other.server_epoch
-            && self.pane_id == other.pane_id
-            && self.guard == other.guard
+            && self.pane_id == other.pane_id;
+        if !self.guard.is_empty() {
+            return herdr && self.guard == other.guard;
+        }
+        if !self.session_id.is_empty() || !other.session_id.is_empty() {
+            return self.session_id == other.session_id && self.pid == other.pid;
+        }
+        // Metadata-only Herdr without a native session: its pane, as before.
+        herdr
+    }
+
+    /// Herdr's guarded prompt is Mluva's only send path; anything else is draft-only.
+    pub fn has_transport(&self) -> bool {
+        !self.guard.is_empty()
+    }
+
+    /// A present session Mluva can record a draft for but cannot send to.
+    pub fn draft_only(&self) -> bool {
+        !self.missing && !self.has_transport()
+    }
+
+    /// Why a draft-only session cannot be sent to, and what would change that.
+    pub fn draft_hint(&self) -> &'static str {
+        if matches!(self.kind.as_str(), "claude" | "claude_code") {
+            // Herdr guards Claude Code only when it launched the session itself.
+            "Draft only: start it from Herdr to send"
+        } else {
+            "Draft only: Herdr can't send to it now"
+        }
     }
 
     /// The name a person recognizes: the agent's own session title, else Herdr's label.
@@ -69,6 +116,10 @@ impl Recipient {
             AgentStatus::Idle => format!("{name} is ready for your next message."),
             AgentStatus::Working => {
                 format!("{name} is working; its latest result is not confirmed yet.")
+            }
+            // A session outside Herdr is answered in its own terminal.
+            AgentStatus::Blocked if self.socket.is_empty() => {
+                format!("{name} needs your attention before it can continue.")
             }
             AgentStatus::Blocked => {
                 format!("{name} needs your attention in Herdr before it can continue.")

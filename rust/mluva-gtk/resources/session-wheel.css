@@ -52,11 +52,19 @@ window.ml-session-wheel, window.ml-session-wheel.csd { border: none; border-radi
 .ml-session-wheel .ml-wheel-dot.ml-wheel-busy { min-width: 3px; min-height: 3px; background: transparent;
   border: 2px solid @vs_ink_secondary; }
 .ml-session-wheel .ml-wheel-dot.ml-wheel-warning { background: @vs_warning; }
+/* Draft only is a quiet square, and its action is outlined: present, but nothing is sent. */
+.ml-session-wheel .ml-wheel-dot.ml-wheel-draft { border-radius: 0; background: transparent;
+  min-width: 5px; min-height: 5px; border: 1px solid @vs_ink_secondary; }
 .ml-session-wheel .ml-wheel-action { padding: 3px 10px 3px 3px; background: @vs_action; }
 .ml-session-wheel .ml-wheel-action label { color: @vs_on_action; }
 .ml-session-wheel .ml-wheel-action .ml-wheel-key { background: alpha(@vs_on_action, 0.12);
   border-color: alpha(@vs_on_action, 0.45); }
 .ml-session-wheel .ml-wheel-action-label { font-size: 12px; font-weight: 700; }
+.ml-session-wheel .ml-wheel-action.ml-wheel-draft { background: transparent; padding: 2px 9px 2px 2px;
+  border: 1px solid alpha(@vs_ink, 0.4); }
+.ml-session-wheel .ml-wheel-action.ml-wheel-draft label { color: @vs_ink; }
+.ml-session-wheel .ml-wheel-action.ml-wheel-draft .ml-wheel-key { background: alpha(@vs_ink, 0.04);
+  border-color: alpha(@vs_ink, 0.4); }
 .ml-session-wheel .ml-wheel-hint { font-size: 11px; color: @vs_ink_secondary; }
 
 /* Overlay: Omarchy's scrim over the desktop, nearly opaque within the wheel's reach so names stay legible over any window, with the wheel floating on

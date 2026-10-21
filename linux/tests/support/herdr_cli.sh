@@ -67,7 +67,8 @@ mv "$config.next" "$config"
 "$app" herdr select w1:p2 --socket "$socket" | jq -e '.connected and (.persisted|not)' >/dev/null
 "$app" herdr status | jq -e '.incognito and .connected and .selected.pane=="w1:p2"' >/dev/null
 cmp "$settings" "$root/before-incognito.json"
-jq -se 'all(.[]; .method=="agent.guarded_list")' "$audit" >/dev/null
+# Discovery only lists; nothing prompts, focuses or reads a terminal.
+jq -se 'all(.[]; .method=="agent.guarded_list" or .method=="agent.list")' "$audit" >/dev/null
 "$MLUVA_VERIFY_CLI" screenshot cli-selected >/dev/null
 printf '%s\n' '{"ok":true,"switch_without_restart":true,"widget_matches":true,"ambiguity_and_blocked_rejected":true,"stale_guard_disconnected":true,"restart_persists":true,"incognito_not_saved":true,"shortcuts_preserved":true,"prompts_sent":0}' > "$root/cli-result.json"
 cat "$root/cli-result.json"
