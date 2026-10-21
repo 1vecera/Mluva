@@ -521,8 +521,8 @@ mod tests {
             agent(
                 "w1:p2",
                 "claude",
-                "seg-lead",
-                json!("segmentation"),
+                "notes-lead",
+                json!("Meeting notes"),
                 claude("claude-a")
             ),
             agent(
@@ -572,7 +572,7 @@ mod tests {
                 // Codex: the thread index for this session, never its terminal-title layout.
                 ("w1:p1", "Lockdown check", "Lockdown check"),
                 // Claude Code: its own session title, not Herdr's dispatch label.
-                ("w1:p2", "segmentation", "segmentation"),
+                ("w1:p2", "Meeting notes", "Meeting notes"),
                 // Long titles stay whole.
                 ("w1:p3", long, long),
                 // No session title yet: Herdr's label is a genuine fallback, not a parse.

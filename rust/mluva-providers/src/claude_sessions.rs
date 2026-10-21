@@ -924,7 +924,7 @@ mod tests {
         };
         let herdr = vec![
             codex,
-            claude("w1:p2", "seg-lead", "project-lead", "lead", &"b".repeat(64)),
+            claude("w1:p2", "rel-lead", "project-lead", "lead", &"b".repeat(64)),
             claude("w1:p3", "", "Claude Code session title", "typed", ""),
             claude("w1:p4", "", "project-lead", "agent-only", ""),
             claude("w1:p5", "", "", "unregistered", ""),
