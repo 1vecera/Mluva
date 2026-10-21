@@ -21,6 +21,7 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 | A draft worth keeping | Edit the transcript and save with **Ctrl+S**. Copy and Save stay visible; original recognition remains separate. |
 | Work to return to | Search history, rename, continue a recording, merge or delete conversations, and export Markdown or JSON. |
 | Something on screen | Attach a region screenshot with F10 and annotate it in the optional Tensaku editor. Images stay local. |
+| A problem to point at | Turn on [screen annotation](docs/screen-annotation.md) (Experimental, Hyprland). While dictating, hold Shift and move to draw, or Shift-click to pin; the agent receives keyframes matched to what you said. |
 
 One dictation mode, one editor. Smooth following is always enabled and respects reduced motion and intentional scrolling away from the end. **Ctrl+P** finds actions. Polish, rewriting, prompts, generated titles, Notes and Command capture modes have been removed. Existing saved replies remain readable and exportable; unfinished Notes recover into local History.
 

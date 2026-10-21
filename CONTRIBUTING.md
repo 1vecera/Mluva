@@ -29,6 +29,8 @@ GTK callbacks stay on the main thread; provider/audio work runs outside it. The 
 | Speech connections, credentials, local model downloads and previews | `rust/mluva-providers/src` |
 | Native model execution and recognition worker | `rust/mluva-asr/src` |
 | Recording, delivery, meetings, screenshots and narration | `rust/mluva-workflows/src` |
+| Screen annotation marks, keyframes, clause timing and bundle rendering | `rust/mluva-annotate/src` |
+| Screen annotation overlay, Hyprland bindings and frame capture | `rust/mluva-gtk/src/screen_annotation` |
 | GTK application, pages, settings, rendering and text-target tracking | `rust/mluva-gtk/src` |
 | D-Bus action/status bridge | `rust/mluva-shell/src` |
 | Opt-in authenticated browser recording and desktop clipboard inbox | `rust/mluva-web` |
@@ -63,6 +65,7 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | Continuous settings, section navigation and preference deep links | `make linux-settings-test` (minimum, narrow and wide private sessions) |
 | First-run speech and appearance setup | `make linux-onboarding-test`; provider suite covers downloads/readiness |
 | Screenshot context and real editor narration | `make linux-screenshot-test` |
+| Screen annotation overlay, capture and delivery | `bash docs/verification/screen-annotations/offscreen/run.sh HARNESS tmp/<run>` in an isolated headless layer-shell compositor; Hyprland bindings need a manual check ([record](docs/verification/screen-annotations/README.md)) |
 | Exact-target paste / widget | `make linux-text-target-test` / `make linux-omarchy-test` |
 | Firefox paste and text-read privacy on bus/default transport | `make linux-browser-target-test` |
 | Chromium paste and privacy with manual accessibility controls, native activation and browser startup after the tracker | `make linux-chromium-target-test` |
