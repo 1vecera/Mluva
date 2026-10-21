@@ -57,12 +57,42 @@ fn batch_text_and_speaker_metadata_match_released_observations() {
         .iter()
         .enumerate()
     {
-        compare(
-            elevenlabs::transcription_result(&row["payload"], row["speakers"].as_bool().unwrap()),
-            &row["result"],
-            &format!("metadata {index}"),
-        );
+        // Word timing is a native addition the released observations predate.
+        let result =
+            elevenlabs::transcription_result(&row["payload"], row["speakers"].as_bool().unwrap())
+                .map(|value| {
+                    let mut value = serde_json::to_value(value).unwrap();
+                    value.as_object_mut().unwrap().remove("words");
+                    value
+                });
+        compare(result, &row["result"], &format!("metadata {index}"));
     }
+}
+
+#[test]
+fn batch_word_times_are_kept_without_spacing_or_audio_events() {
+    let result = elevenlabs::transcription_result(
+        &json!({"text": "Look here.", "language_code": "eng", "words": [
+            {"text": "Look", "start": 0.4, "end": 0.7, "type": "word"},
+            {"text": " ", "start": 0.7, "end": 0.75, "type": "spacing"},
+            {"text": "(click)", "start": 0.75, "end": 0.8, "type": "audio_event"},
+            {"text": "here.", "start": 0.8, "end": 1.1, "type": "word"},
+            {"text": "late", "start": 2.0, "end": 1.0, "type": "word"}
+        ]}),
+        false,
+    )
+    .unwrap();
+    let words: Vec<_> = result
+        .words
+        .iter()
+        .map(|w| (w.text.as_str(), w.start_seconds, w.end_seconds))
+        .collect();
+    assert_eq!(
+        words,
+        [("Look", 0.4, 0.7), ("here.", 0.8, 1.1), ("late", 2.0, 2.0)]
+    );
+    assert_eq!(result.text, "Look here.");
+    assert!(result.speaker_segments.is_empty());
 }
 
 #[test]

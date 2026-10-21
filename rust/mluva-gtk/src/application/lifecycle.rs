@@ -551,6 +551,9 @@ impl ApplicationDesktop {
                 } else {
                     self.publish_capture();
                 }
+                if phase == CapturePhase::Recording {
+                    self.start_annotation();
+                }
             }
             _ => self.idle(),
         }
@@ -597,6 +600,7 @@ impl ApplicationDesktop {
             id.as_deref(),
             result.incognito,
         );
+        self.finish_annotations(&completion.session.identifier, id.as_deref());
         if let Some(context) = context.as_ref()
             && let Some(entry) = result.history_entry.as_ref()
             && let Some(target) = context.target.as_ref()
@@ -615,8 +619,13 @@ impl ApplicationDesktop {
                 self.agent_voice
                     .disarm(mluva_core::agent_voice::DraftReason::Interrupted);
             }
-            self.agent_voice
-                .completed(attempt, &result.transcription.text, id);
+            // The agent receives the transcript and any annotation summary as one message.
+            self.agent_voice.completed(
+                attempt,
+                &result.transcription.text,
+                id,
+                result.delivery_appendix.clone(),
+            );
             return;
         }
         self.idle();
@@ -654,7 +663,11 @@ impl ApplicationDesktop {
             } else {
                 "Dictation ready."
             };
-            self.publish_terminal("copied", message);
+            if result.delivery_appendix.is_some() {
+                self.publish_terminal("copied", &format!("{message} Screen annotation included."));
+            } else {
+                self.publish_terminal("copied", message);
+            }
         }
     }
     pub(super) fn capture_failed(self: &Rc<Self>, failure: CaptureFailure) {
@@ -673,6 +686,7 @@ impl ApplicationDesktop {
         self.account.cancel_live(&failure.session_identifier);
         if failure.phase == CapturePhase::Preparing {
             self.preserve_interrupted_screenshots(&failure.session_identifier);
+            self.discard_annotation(&failure.session_identifier);
         }
         let context = self.current.borrow_mut().take();
         let entry = match &failure.error {
@@ -686,6 +700,11 @@ impl ApplicationDesktop {
                 context
                     .as_ref()
                     .is_some_and(|context| context.options.incognito),
+            );
+            self.stop_annotation(&failure.session_identifier);
+            self.finish_annotations(
+                &failure.session_identifier,
+                entry.map(|entry| entry.identifier.as_str()),
             );
         }
         if let Some(entry) = entry
@@ -713,6 +732,7 @@ impl ApplicationDesktop {
         }
         self.current.borrow_mut().take();
         self.discard_screenshots(id);
+        self.discard_annotation(id);
         self.account.cancel_live(id);
         self.idle();
         self.clear_overlay();
@@ -764,6 +784,7 @@ impl ApplicationDesktop {
         // Immediate local words must neither increase account traffic nor
         // postpone the existing periodic status/account update.
         self.publish_capture_state(false);
+        self.annotation_preview();
     }
     fn publish_capture_state(self: &Rc<Self>, periodic: bool) {
         let capture = self.current.borrow();
@@ -923,6 +944,7 @@ impl ApplicationDesktop {
         self.capture_audio_waiting.set(false);
         self.close_phone_bridge();
         self.close_screenshot_monitoring();
+        self.close_annotation();
         let capture_identifier = self.capture.session_identifier();
         if let Some(identifier) = capture_identifier {
             self.preserve_interrupted_screenshots(&identifier);

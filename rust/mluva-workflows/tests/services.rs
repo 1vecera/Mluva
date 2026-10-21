@@ -174,3 +174,66 @@ fn active_capture_freezes_settings_and_failed_saves_preserve_the_previous_config
     );
     assert_eq!(services.config(), before);
 }
+
+#[test]
+fn startup_gives_an_interrupted_annotation_bundle_a_conversation_and_keeps_its_path() {
+    use mluva_core::annotations::AnnotationStore;
+    let root = tempfile::tempdir().unwrap();
+    let paths = paths(root.path());
+    let history = HistoryStore::new(paths.data.join("history.sqlite3"));
+    history.initialize().unwrap();
+    let store = AnnotationStore::new(&history.database.path);
+    let bundle = store.create("interrupted-capture").unwrap();
+    fs::create_dir(bundle.directory.join("frames")).unwrap();
+    fs::write(bundle.directory.join("frames/frame-01.png"), b"png").unwrap();
+    fs::write(
+        bundle.directory.join("annotation.json"),
+        r#"{"keyframes":[{"file":"frames/frame-01.png"}]}"#,
+    )
+    .unwrap();
+    fs::write(bundle.directory.join("summary.md"), "[Screen annotation]\n").unwrap();
+    // Interrupted while being written: no summary, or a listed frame missing.
+    let unwritten = store.create("half-written-capture").unwrap();
+    fs::write(
+        unwritten.directory.join("annotation.json"),
+        r#"{"keyframes":[{"file":"frames/frame-01.png"}]}"#,
+    )
+    .unwrap();
+    let missing_frame = store.create("missing-frame-capture").unwrap();
+    fs::write(
+        missing_frame.directory.join("annotation.json"),
+        r#"{"keyframes":[{"file":"frames/frame-01.png"}]}"#,
+    )
+    .unwrap();
+    fs::write(
+        missing_frame.directory.join("summary.md"),
+        "[Screen annotation]\n",
+    )
+    .unwrap();
+    let services = ApplicationServices::open(paths).unwrap();
+    assert!(!unwritten.directory.exists() && !missing_frame.directory.exists());
+    assert_eq!(
+        services
+            .history
+            .recent(10)
+            .unwrap()
+            .iter()
+            .filter(|entry| entry.delivered_text.starts_with("Screen annotation from"))
+            .count(),
+        1,
+        "only the finished bundle becomes a History entry"
+    );
+    let store = AnnotationStore::new(&services.history.database.path);
+    assert!(store.pending_captures().unwrap().is_empty());
+    let entry = services
+        .history
+        .recent(10)
+        .unwrap()
+        .into_iter()
+        .find(|entry| entry.delivered_text == "Screen annotation from an interrupted recording.")
+        .unwrap();
+    let owned = store.recent(&entry.identifier, false).unwrap();
+    assert_eq!(owned.len(), 1);
+    assert_eq!(owned[0].directory, bundle.directory);
+    assert!(bundle.directory.join("summary.md").is_file());
+}

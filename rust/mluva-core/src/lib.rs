@@ -2,6 +2,7 @@
 
 pub mod account;
 pub mod agent_voice;
+pub mod annotations;
 pub mod config;
 pub mod conversation;
 pub mod database;

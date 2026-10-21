@@ -10,6 +10,7 @@ description = "Native recording, delivery and recovery orchestration"
 
 [dependencies]
 mluva-core = { path = "../mluva-core" }
+mluva-annotate = { path = "../mluva-annotate" }
 mluva-providers = { path = "../mluva-providers" }
 mluva-audio = { path = "../mluva-audio" }
 serde.workspace = true

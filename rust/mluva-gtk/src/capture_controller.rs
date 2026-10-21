@@ -12,7 +12,10 @@ use mluva_core::{
 };
 use mluva_workflows::{
     capture::{CaptureError, CapturePhase, CaptureSession},
-    dictation::{DeliveryTarget, WorkflowError, WorkflowOutcome, WorkflowResult},
+    dictation::{
+        DeliveryAppendix, DeliveryTarget, WorkflowError, WorkflowOutcome, WorkflowResult,
+        with_appendix,
+    },
 };
 use std::{
     cell::{Cell, RefCell},
@@ -42,6 +45,8 @@ pub type CaptureImages = Rc<dyn Fn(&str) -> WorkflowOutcome<Vec<ImageInput>>>;
 pub type WaitForCaptureImages =
     Rc<dyn Fn(&str) -> Pin<Box<dyn Future<Output = WorkflowOutcome<()>>>>>;
 pub type PrepareCaptureResult = Rc<dyn Fn(&CaptureSession, &mut WorkflowOutcome<WorkflowResult>)>;
+/// Text delivered after the dictation, such as a screen annotation summary, decided at Stop.
+pub type CaptureAppendix = Rc<dyn Fn(&CaptureSession) -> Option<DeliveryAppendix>>;
 
 pub struct CaptureCompletion {
     pub result: WorkflowResult,
@@ -62,6 +67,7 @@ pub struct CaptureControllerCallbacks {
     pub images: CaptureImages,
     pub wait_for_images: WaitForCaptureImages,
     pub prepare_result: PrepareCaptureResult,
+    pub appendix: CaptureAppendix,
     /// Reconcile saved history before selecting the completed conversation.
     pub refresh_history: Rc<dyn Fn(&mut WorkflowResult)>,
     pub completed: Rc<dyn Fn(CaptureCompletion)>,
@@ -443,6 +449,7 @@ impl CaptureController {
         self.page.workspace.set_live_status("Processing…", false);
         (self.callbacks.phase_changed)(CapturePhase::Processing);
         let waiting = (self.callbacks.wait_for_images)(&session.identifier);
+        let appendix = (self.callbacks.appendix)(&session);
         let snapshot = self.callbacks.images.clone();
         let weak = Rc::downgrade(self);
         self.runtime.spawn(async move {
@@ -454,7 +461,9 @@ impl CaptureController {
                     vec![]
                 }))
             };
-            let mut result = session.complete_with_images(target.as_deref(), images).await;
+            let mut result = session
+                .complete_with_appendix(target.as_deref(), images, appendix)
+                .await;
             let Some(controller) = weak
                 .upgrade()
                 .filter(|controller| controller.owns(&session.identifier))
@@ -474,7 +483,7 @@ impl CaptureController {
                 let receipt = |guidance: &str|DeliveryReceipt {copied:false,pasted:false,guidance:guidance.into(),paste_dispatched:false,paste_confirmed:None};
                 match appended {
                     Ok((output,entry)) => {
-                        result.delivery = deliver_text(&output,false,DeliveryOptions::default()).unwrap_or_else(|_|receipt("Recording appended. Automatic copy failed; use Copy."));
+                        result.delivery = deliver_text(&with_appendix(&output, result.delivery_appendix.as_deref()),false,DeliveryOptions::default()).unwrap_or_else(|_|receipt("Recording appended. Automatic copy failed; use Copy."));
                         result.output_text = output;
                         result.history_entry = Some(entry);
                     }

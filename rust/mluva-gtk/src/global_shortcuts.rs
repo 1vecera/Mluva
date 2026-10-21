@@ -29,6 +29,8 @@ const CANCEL: &str = "cancel-capture";
 const REWRITE: &str = "open-rewrite";
 const AGENT_HOLD: &str = "agent-hold";
 const AGENT_DRAFT: &str = "agent-keep-draft";
+const ANNOTATE_INK: &str = crate::screen_annotation::hyprland::INK;
+const ANNOTATE_PIN: &str = crate::screen_annotation::hyprland::PIN;
 const CLOSED: &str = "The global shortcut request was closed.";
 type Properties = BTreeMap<String, glib::Variant>;
 type Result<T> = std::result::Result<T, PortalError>;
@@ -62,10 +64,28 @@ pub struct AgentShortcutCallbacks {
     pub binding_changed: AgentBindingCallback,
 }
 
+/// Screen annotation registers two keyless actions; temporary Hyprland bindings trigger them only
+/// while an annotated recording runs. `ink` receives press (true) and release (false).
+/// `registered` reports whether this portal session approved both actions: Hyprland bindings
+/// that dispatch to unregistered actions would swallow every Shift-click.
+#[derive(Clone)]
+pub struct AnnotationShortcutCallbacks {
+    pub ink: Rc<dyn Fn(bool)>,
+    pub pin: Rc<dyn Fn()>,
+    pub registered: Rc<dyn Fn(bool)>,
+}
+
+fn annotation_registered(bound: &[BoundShortcut]) -> bool {
+    [ANNOTATE_INK, ANNOTATE_PIN]
+        .iter()
+        .all(|id| bound.iter().any(|shortcut| shortcut.id == *id))
+}
+
 #[derive(Clone)]
 pub struct ShortcutCallbacks {
     pub persist_bindings: Rc<dyn Fn() -> bool>,
     pub agent: Option<AgentShortcutCallbacks>,
+    pub annotation: Option<AnnotationShortcutCallbacks>,
     pub toggle_recording: Rc<dyn Fn()>,
     pub cancel: Rc<dyn Fn()>,
     pub open_rewrite: Rc<dyn Fn()>,
@@ -158,6 +178,12 @@ impl GlobalShortcutService {
         *self.session.borrow_mut() = Some(session.clone());
         match session.connect().await {
             Ok(mut bound) => {
+                // The portal's own approval, before managed Hyprland keys replace the list.
+                if let Some(annotation) = &self.callbacks.annotation
+                    && !self.closing.get()
+                {
+                    (annotation.registered)(annotation_registered(&bound));
+                }
                 match hyprland::apply(key, &self.callbacks).await {
                     Ok(Some(native)) => bound = native,
                     Ok(None) => {}
@@ -172,6 +198,9 @@ impl GlobalShortcutService {
                 session.close().await;
                 if !self.closing.get() {
                     (self.callbacks.error)(&error.0);
+                    if let Some(annotation) = &self.callbacks.annotation {
+                        (annotation.registered)(false);
+                    }
                 }
                 let mut current = self.session.borrow_mut();
                 if current

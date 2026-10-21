@@ -1,0 +1,9 @@
+[
+  {
+    "conversation": "403aff04-5aea-43f1-8e31-6f513ae0b2cc",
+    "raw": "Here is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge. Now an error banner covers the title, so pin one marks where it should sit instead.",
+    "working": "Here is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge. Now an error banner covers the title, so pin one marks where it should sit instead.",
+    "annotation": "692414cf-3ed1-438d-8d7b-8e830fa47cae",
+    "keyframes": 3
+  }
+]

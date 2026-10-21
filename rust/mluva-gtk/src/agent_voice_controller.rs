@@ -103,6 +103,8 @@ pub struct AgentVoiceController {
     /// Claude Code's own registry, when this account has a Claude Code configuration.
     registry: Option<Arc<Mutex<ClaudeRegistry>>>,
     editor: RefCell<Option<crate::markdown_view::MarkdownTextView>>,
+    /// The screen annotation summary of the recording whose draft is in the editor.
+    draft_appendix: RefCell<Option<String>>,
     voice_error: RefCell<Option<String>>,
     syncing: Cell<bool>,
     polling: Cell<bool>,
@@ -158,6 +160,7 @@ impl AgentVoiceController {
             recipients: RefCell::new(vec![]),
             registry: ClaudeRegistry::from_environment().map(|r| Arc::new(Mutex::new(r))),
             editor: RefCell::new(None),
+            draft_appendix: RefCell::new(None),
             voice_error: RefCell::new(None),
             syncing: Cell::new(false),
             polling: Cell::new(false),
@@ -250,7 +253,7 @@ impl AgentVoiceController {
         let weak = Rc::downgrade(self);
         self.view.copy_draft.connect_clicked(move |_| {
             if let Some(owner) = weak.upgrade() {
-                (owner.callbacks.copy)(&owner.draft_text());
+                (owner.callbacks.copy)(&owner.with_annotation(owner.draft_text()));
             }
         });
         let weak = Rc::downgrade(self);
@@ -402,6 +405,11 @@ impl AgentVoiceController {
             .as_ref()
             .map_or_else(String::new, |editor| editor.text())
     }
+    /// A draft keeps the screen annotation its own recording delivered, never the summaries
+    /// of earlier recordings on a continued or merged conversation.
+    fn with_annotation(&self, text: String) -> String {
+        mluva_workflows::dictation::with_appendix(&text, self.draft_appendix.borrow().as_deref())
+    }
     pub fn save_draft(&self) -> bool {
         let history = self
             .route
@@ -448,7 +456,7 @@ impl AgentVoiceController {
         if !self.save_draft() {
             return;
         }
-        let text = self.draft_text();
+        let text = self.with_annotation(self.draft_text());
         if let Ok(id) = self.begin() {
             self.route.borrow_mut().release(now());
             self.route
@@ -496,10 +504,24 @@ impl AgentVoiceController {
             .as_ref()
             .is_some_and(|a| a.id == id && a.phase == RoutePhase::Recording)
     }
-    pub fn completed(self: &Rc<Self>, id: &str, text: &str, history: Option<String>) {
-        if !self.route.borrow_mut().recognized(id, text, history, now()) {
+    /// Final recognition for an attempt; `appendix` is its recording's annotation summary,
+    /// sent after the text and kept for the draft.
+    pub fn completed(
+        self: &Rc<Self>,
+        id: &str,
+        text: &str,
+        history: Option<String>,
+        appendix: Option<String>,
+    ) {
+        let message = mluva_workflows::dictation::with_appendix(text, appendix.as_deref());
+        if !self
+            .route
+            .borrow_mut()
+            .recognized(id, &message, history, now())
+        {
             return;
         }
+        self.draft_appendix.replace(appendix);
         self.attach_editor(id);
         self.render();
     }

@@ -292,6 +292,11 @@ fn actual_native_bundle_is_complete_private_and_atomic() {
             .expect("The native ASR data and derived implementation need their upstream notice"),
         fs::read(repository.join("rust/mluva-asr/resources/onnx-asr-LICENSE")).unwrap()
     );
+    assert_eq!(
+        fs::read(output.join("third-party-licenses/scrawl/LICENSE"))
+            .expect("The adapted annotation logic needs Scrawl's notice"),
+        fs::read(repository.join("rust/mluva-annotate/resources/scrawl-LICENSE")).unwrap()
+    );
     let dependency_inventory: Value =
         serde_json::from_slice(&fs::read(output.join("RUST-DEPENDENCIES.json")).unwrap()).unwrap();
     assert_eq!(dependency_inventory["schema"], 1);

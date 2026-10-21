@@ -9,6 +9,7 @@ use chrono::{DateTime, Duration, NaiveDateTime, Utc};
 use rusqlite::{OptionalExtension, Row, params};
 use serde::{Deserialize, Serialize};
 
+use crate::annotations::AnnotationStore;
 use crate::conversation::Rewrite;
 use crate::database::{Database, StoreError, StoreResult, invalid, timestamp};
 use crate::private_files::{atomic_write_private, resolve_path};
@@ -430,6 +431,7 @@ impl HistoryStore {
         }
         self.delete_retained_audio(&entry)?;
         ScreenshotStore::new(&self.database.path).delete_owner(identifier, false)?;
+        AnnotationStore::new(&self.database.path).delete_owner(identifier, false)?;
         crate::conversation::ConversationStore::new(self.clone()).remove_markdown(identifier)?;
         self.database.connect()?.execute(
             "DELETE FROM transcription_history WHERE identifier = ?",
@@ -486,6 +488,7 @@ impl HistoryStore {
             }
             for entry in group {
                 ScreenshotStore::new(&self.database.path).delete_owner(&entry.identifier, false)?;
+                AnnotationStore::new(&self.database.path).delete_owner(&entry.identifier, false)?;
                 crate::conversation::ConversationStore::new(self.clone())
                     .remove_markdown(&entry.identifier)?;
                 match self.delete_retained_audio(entry) {

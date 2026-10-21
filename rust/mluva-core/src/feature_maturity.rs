@@ -33,6 +33,12 @@ pub const CAPABILITIES: &[Capability] = &[
         maturity: Maturity::Experimental,
     },
     Capability {
+        identifier: "screen_annotations",
+        title: "Annotate the screen while dictating",
+        summary: "Opt-in Hyprland Shift ink and pins deliver keyframes with the transcript; overlay, capture and agent delivery passed an isolated headless sway run, while Hyprland bindings, the live portal and physical input await acceptance.",
+        maturity: Maturity::Experimental,
+    },
+    Capability {
         identifier: "dictation",
         title: "Recording and transcription",
         summary: "F9 and the visible record control start, stop, and finalize ordinary dictation.",

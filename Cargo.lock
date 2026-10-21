@@ -1508,6 +1508,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "mluva-annotate"
+version = "2.4.0"
+dependencies = [
+ "cairo-rs",
+ "gdk-pixbuf",
+ "libc",
+ "mluva-core",
+ "pango",
+ "pangocairo",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "mluva-asr"
 version = "2.4.0"
 dependencies = [
@@ -1576,6 +1592,7 @@ dependencies = [
  "libadwaita",
  "libc",
  "libloading",
+ "mluva-annotate",
  "mluva-audio",
  "mluva-core",
  "mluva-providers",
@@ -1678,6 +1695,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "libc",
+ "mluva-annotate",
  "mluva-audio",
  "mluva-core",
  "mluva-providers",

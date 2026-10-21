@@ -73,6 +73,20 @@ impl ApplicationDesktop {
                         }),
                     }
                 }),
+                annotation: self.annotation_shortcuts_wanted().then(|| {
+                    let ink = weak.clone();
+                    let pin = weak.clone();
+                    let registered = weak.clone();
+                    crate::global_shortcuts::AnnotationShortcutCallbacks {
+                        ink: Rc::new(move |down| {
+                            current(&ink, generation, |o| o.annotation_ink(down))
+                        }),
+                        pin: Rc::new(move || current(&pin, generation, |o| o.annotation_pin())),
+                        registered: Rc::new(move |ready| {
+                            current(&registered, generation, |o| o.annotations.portal.set(ready))
+                        }),
+                    }
+                }),
                 toggle_recording: dispatch(ApplicationAction::GlobalRecord),
                 cancel: dispatch(ApplicationAction::Cancel),
                 open_rewrite: dispatch(ApplicationAction::Latest),
@@ -188,6 +202,8 @@ impl ApplicationDesktop {
         self.shortcut_generation
             .set(self.shortcut_generation.get() + 1);
         self.approved_recording.borrow_mut().take();
+        // A new portal session must register the annotation actions again.
+        self.annotations.portal.set(false);
         self.agent_voice.shortcut_binding(None, None);
         let service = self.shortcuts.borrow_mut().take();
         self.refresh_shortcuts();

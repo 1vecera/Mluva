@@ -112,6 +112,7 @@ async fn compare(runtime: &Rc<DesktopRuntime>, fixture: &Value, peer: &mut Peer)
             ShortcutCallbacks {
                 persist_bindings: Rc::new(|| true),
                 agent: None,
+                annotation: None,
                 toggle_recording: callback("record"),
                 cancel: callback("cancel"),
                 open_rewrite: callback("rewrite"),
@@ -218,6 +219,7 @@ async fn compare(runtime: &Rc<DesktopRuntime>, fixture: &Value, peer: &mut Peer)
         assert!(peer.0.try_wait().unwrap().is_none(), "portal peer exited");
     }
     agent_toggles(runtime, &bus).await;
+    annotation_actions(runtime, &bus).await;
     bus.close_future().await.unwrap();
     runtime.shutdown(async {}).await.unwrap();
     eprintln!(
@@ -239,6 +241,7 @@ async fn agent_toggles(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) 
         "F9",
         ShortcutCallbacks {
             persist_bindings: Rc::new(|| true),
+            annotation: None,
             agent: Some(mluva_gtk::global_shortcuts::AgentShortcutCallbacks {
                 hold_key: "F8".into(),
                 draft_key: "F7".into(),
@@ -294,4 +297,105 @@ async fn agent_toggles(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) 
     .await;
     settle().await;
     assert_eq!(events.borrow().len(), 5);
+}
+
+fn annotation_service(
+    runtime: &Rc<DesktopRuntime>,
+    events: &Rc<RefCell<Vec<String>>>,
+) -> Rc<GlobalShortcutService> {
+    let ink = events.clone();
+    let pin = events.clone();
+    let registered = events.clone();
+    let bound = events.clone();
+    GlobalShortcutService::new(
+        runtime.clone(),
+        "F9",
+        ShortcutCallbacks {
+            persist_bindings: Rc::new(|| true),
+            agent: None,
+            annotation: Some(mluva_gtk::global_shortcuts::AnnotationShortcutCallbacks {
+                ink: Rc::new(move |down| {
+                    ink.borrow_mut()
+                        .push(if down { "down" } else { "up" }.into())
+                }),
+                pin: Rc::new(move || pin.borrow_mut().push("pin".into())),
+                registered: Rc::new(move |ready| {
+                    registered.borrow_mut().push(format!("registered:{ready}"))
+                }),
+            }),
+            toggle_recording: Rc::new(|| {}),
+            cancel: Rc::new(|| {}),
+            open_rewrite: Rc::new(|| {}),
+            binding_changed: Rc::new(move |_, trigger| {
+                bound
+                    .borrow_mut()
+                    .push(format!("bound:{}", trigger.is_some()))
+            }),
+            rewrite_binding_changed: Rc::new(|_| {}),
+            error: Rc::new(|_| {}),
+        },
+    )
+    .unwrap()
+}
+
+/// Ink delivers press and release, including a release whose press predates the binding;
+/// pins fire on every click and nothing arrives after shutdown. The application learns whether
+/// the portal registered both actions, and binds Hyprland keys only when it did.
+async fn annotation_actions(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnection) {
+    control(bus, "Reset", Some("missing-shortcuts")).await;
+    let refused = Rc::new(RefCell::new(Vec::<String>::new()));
+    let owner = annotation_service(runtime, &refused);
+    owner.start();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while refused.borrow().len() < 2 {
+        assert!(Instant::now() < deadline);
+        settle().await;
+    }
+    // A failed portal session reports the actions unregistered and the recording key unbound.
+    assert_eq!(&*refused.borrow(), &["registered:false", "bound:false"]);
+    owner.shutdown().await;
+
+    control(bus, "Reset", Some("normal")).await;
+    let events = Rc::new(RefCell::new(Vec::<String>::new()));
+    let owner = annotation_service(runtime, &events);
+    owner.start();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !events.borrow().iter().any(|event| event == "bound:true") {
+        assert!(Instant::now() < deadline);
+        settle().await;
+    }
+    for action in [
+        json!({"op":"Deactivated","id":"annotate-ink"}),
+        json!({"op":"Activated","id":"annotate-ink","foreign":true}),
+        json!({"op":"Activated","id":"annotate-ink"}),
+        json!({"op":"Activated","id":"annotate-ink"}),
+        json!({"op":"Activated","id":"annotate-pin"}),
+        json!({"op":"Deactivated","id":"annotate-pin"}),
+        json!({"op":"Activated","id":"annotate-pin"}),
+        json!({"op":"Deactivated","id":"annotate-ink"}),
+    ] {
+        control(bus, "Drive", Some(&action.to_string())).await;
+        settle().await;
+    }
+    assert_eq!(
+        &*events.borrow(),
+        &[
+            "registered:true",
+            "bound:true",
+            "up",
+            "down",
+            "pin",
+            "pin",
+            "up"
+        ]
+    );
+    owner.shutdown().await;
+    control(
+        bus,
+        "Drive",
+        Some(&json!({"op":"Activated","id":"annotate-pin"}).to_string()),
+    )
+    .await;
+    settle().await;
+    assert_eq!(events.borrow().len(), 7);
 }

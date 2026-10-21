@@ -32,6 +32,7 @@ use std::{
 };
 
 mod actions;
+mod annotations;
 mod lifecycle;
 mod phone;
 mod screenshots;
@@ -80,6 +81,7 @@ pub struct ApplicationDesktop {
     startup_record_requested: Cell<bool>,
     current: RefCell<Option<CaptureContext>>,
     screenshots: screenshots::ScreenshotOwners,
+    annotations: annotations::AnnotationOwners,
     overlay: RefCell<Option<OverlayPublisher>>,
     overlay_timer: RefCell<Option<glib::SourceId>>,
     closed: Cell<bool>,
@@ -225,6 +227,14 @@ impl ApplicationDesktop {
                 },
                 prepare_result: bind!(link, |app, session, result| app
                     .prepare_screenshot_result(session, result)),
+                appendix: {
+                    let link = link.clone();
+                    Rc::new(move |session: &CaptureSession| {
+                        link.borrow()
+                            .upgrade()
+                            .and_then(|app| app.annotation_appendix(&session.identifier))
+                    })
+                },
                 images: {
                     let link = link.clone();
                     Rc::new(move |id| {
@@ -332,6 +342,15 @@ impl ApplicationDesktop {
             .shortcuts
             .add(&agent_voice.view.shortcut_status);
         settings.capture.capture.add(&agent_voice.view.settings);
+        let (annotations, annotation_error) = annotations::AnnotationOwners::new(&services);
+        settings.capture.capture.add(&annotations.group);
+        {
+            let link = link.clone();
+            annotations.row.connect_active_notify(move |row| {
+                let active = row.is_active();
+                linked(&link, |app| app.set_annotation_enabled(active));
+            });
+        }
         let owner = Rc::new(Self {
             agent_voice,
             capture_audio_waiting: Cell::new(false),
@@ -360,6 +379,7 @@ impl ApplicationDesktop {
             startup_record_requested: Cell::new(false),
             current: RefCell::new(None),
             screenshots: screenshots::ScreenshotOwners::default(),
+            annotations,
             overlay: RefCell::new(application.dbus_connection().and_then(|connection| {
                 let mut publisher = OverlayPublisher::new(connection);
                 publisher.clear().then_some(publisher)
@@ -379,6 +399,25 @@ impl ApplicationDesktop {
                 }
             }),
         );
+        // Shift ink and pins as application actions: Hyprland's temporary bindings use the
+        // portal instead, other layer-shell desktops and the offscreen harness call these.
+        for (name, gesture) in [
+            ("annotation-ink-down", Some(true)),
+            ("annotation-ink-up", Some(false)),
+            ("annotation-pin", None),
+        ] {
+            let weak = Rc::downgrade(&owner);
+            let action = gio::SimpleAction::new(name, None);
+            action.connect_activate(move |_, _| {
+                if let Some(owner) = weak.upgrade().filter(|owner| !owner.closed.get()) {
+                    match gesture {
+                        Some(down) => owner.annotation_ink(down),
+                        None => owner.annotation_pin(),
+                    }
+                }
+            });
+            application.add_action(&action);
+        }
         owner.open_latest(false)?;
         if let Some(connection) = application.dbus_connection() {
             owner.agent_voice.register_cli(&connection).map_err(|_| {
@@ -394,6 +433,10 @@ impl ApplicationDesktop {
         if !owner.services.recovery_message.is_empty() {
             owner.shell.show_message(&owner.services.recovery_message);
         }
+        if let Some(message) = annotation_error {
+            owner.shell.show_message(message);
+        }
+        owner.clean_annotation_leftovers();
         owner.adapt(owner.shell.window.width() > 0 && owner.shell.window.width() <= 736);
         owner.initialize_services(true);
         owner

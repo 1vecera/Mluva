@@ -1,5 +1,8 @@
 fn main() -> glib::ExitCode {
     let arguments: Vec<_> = std::env::args().collect();
+    if let Some(code) = mluva_gtk::screen_annotation::run_cleanup(&arguments) {
+        return glib::ExitCode::from(code);
+    }
     if let Some(code) = mluva_gtk::herdr_cli::run(&arguments) {
         return glib::ExitCode::from(code);
     }

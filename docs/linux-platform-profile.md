@@ -13,6 +13,7 @@ Both desktops use native Rust executables, GTK 4, Libadwaita and PipeWire, with 
 | Recording shortcuts | Native Hyprland `mluva-shell global-record` binding or portal-approved F9, cancellation and latest-conversation actions | Portal client; actual keys depend on desktop approval |
 | Clipboard | Completed dictation and rewrites copy by default | Same; recent desktop behavior unverified |
 | Automatic insertion | Experimental and disabled by default | Experimental; historically unreliable in the acceptance setup |
+| Screen annotation | Experimental, off by default: temporary Hyprland Shift bindings and a layer-shell ink overlay | Unavailable; GNOME has no layer-shell |
 
 Feature status is tracked separately in the [capability matrix](feature-maturity.md). A working platform does not establish every provider, model or target application's behavior.
 
@@ -25,6 +26,12 @@ Hyprland's portal registers action identifiers without assigning requested keys.
 Native Hyprland bindings can invoke the same global recording path through `mluva-shell global-record`, without a portal session or opening the app window. The bar/menu action `mluva-shell record` remains copy-only. See the [Omarchy binding setup](omarchy-integration.md) before replacing a keyboard binding.
 
 Omarchy's recorder opens without taking typing focus. Clicking it allows interaction; drag its status row or focus it and press Super+T to tile. Floating mode stays above other windows and across workspaces. This requires Quickshell 0.3+ and Hyprland 0.55+. The optional GNOME bottom bar remains display-only and is installed separately.
+
+## Screen annotation
+
+On Hyprland, an annotated recording adds `Shift_L` with `ignore_mods` and `non_consuming`, so both press and release reach Mluva through `hl.dsp.global` and the GlobalShortcuts portal while capitals still type, and a consuming `SHIFT + mouse:272` binding for pins. They are added with `hyprctl eval` under a per-recording token, only after the GlobalShortcuts portal registered the two actions they dispatch to, verified in `hyprctl -j binds` and removed by handle, also after any failed step of adding them. A transparent overlay on the overlay layer, with keyboard mode none, covers each monitor; its input region is empty except while Shift is held. Hyprland moves pointer focus to it with the first motion, which starts the stroke; pins come from the binding and the cursor position, because a click without motion still reaches the previously focused surface.
+
+Frames come from `grim` per output as private JPEGs in the memory-backed runtime directory: the first view, then, from the first ink or pin, a clean frame when each stroke starts, before its ink is shown, periodic samples, and settled views after `activewindow` or `workspacev2` events once no ink is visible. Unchanged screens reuse the previous frame, and frames are capped at 120 and 192 MiB. Each frame records the boxes of the windows shown on that output, from `j/clients` and `j/monitors`, for whole-window crops; window titles are never read. Hyprland's `no_screen_share` would black out the whole overlay, so ink is never hidden from capture; it is composited from vectors instead. Marks use the recording's sample clock. Other layer-shell compositors get the overlay and frames through Mluva's application actions but no bindings, cursor position or focus events.
 
 ## Text delivery
 

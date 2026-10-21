@@ -10,6 +10,7 @@ description = "Native Mluva desktop widgets and application surfaces"
 
 [dependencies]
 mluva-core = { path = "../mluva-core" }
+mluva-annotate = { path = "../mluva-annotate" }
 mluva-workflows = { path = "../mluva-workflows" }
 mluva-providers = { path = "../mluva-providers" }
 mluva-audio = { path = "../mluva-audio" }
@@ -33,10 +34,10 @@ tokio-util.workspace = true
 futures-util.workspace = true
 tokio-tungstenite.workspace = true
 uuid.workspace = true
+tempfile.workspace = true
 
 [dev-dependencies]
 reqwest.workspace = true
-tempfile.workspace = true
 rusqlite.workspace = true
 native-tls = "0.2"
 

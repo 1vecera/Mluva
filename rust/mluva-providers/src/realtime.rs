@@ -559,6 +559,7 @@ impl RealtimeSession {
                 language_probability: None,
                 transcription_id: Some(self.shared.identifier.clone()),
                 speaker_segments: vec![],
+                words: vec![],
                 audio_duration_seconds: Some(
                     state.bytes_sent as f64 / (f64::from(SAMPLE_RATE) * SAMPLE_WIDTH_BYTES as f64),
                 ),

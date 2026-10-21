@@ -7,6 +7,7 @@ use crate::{
 use chrono::Utc;
 use mluva_audio::{capture::CaptureStorage, recorder::PipeWireRecorder};
 use mluva_core::{
+    annotations::AnnotationStore,
     config::{AppConfig, AppPaths, ConfigError},
     conversation::ConversationStore,
     database::{StoreError, StoreResult},
@@ -119,7 +120,9 @@ impl ApplicationServices {
         let history = HistoryStore::new(paths.data.join("history.sqlite3"));
         history.initialize()?;
         let screenshots = ScreenshotStore::new(&history.database.path);
+        let annotations = AnnotationStore::new(&history.database.path);
         if !config.incognito_mode {
+            let mut recovered_captures = std::collections::BTreeMap::new();
             for capture in screenshots.pending_captures()? {
                 let recovered = history.add(HistoryInput {
                     language_code: config.language_code.clone(),
@@ -127,6 +130,35 @@ impl ApplicationServices {
                     ..HistoryInput::dictation("", "Screenshots from an interrupted narration.")
                 })?;
                 screenshots.bind_capture(&capture, &recovered.identifier)?;
+                recovered_captures.insert(capture, recovered.identifier);
+            }
+            // A finished bundle's summary may already have been delivered, so its paths must
+            // stay valid. One interrupted while being written was never delivered.
+            for capture in annotations.pending_captures()? {
+                for bundle in annotations.recent(&capture, true)? {
+                    if !annotations.is_complete(&bundle.identifier) {
+                        annotations.delete(&bundle.identifier)?;
+                    }
+                }
+                if annotations.recent(&capture, true)?.is_empty() {
+                    continue;
+                }
+                let conversation = match recovered_captures.get(&capture) {
+                    Some(identifier) => identifier.clone(),
+                    None => {
+                        history
+                            .add(HistoryInput {
+                                language_code: config.language_code.clone(),
+                                delivery_outcome: "failed".into(),
+                                ..HistoryInput::dictation(
+                                    "",
+                                    "Screen annotation from an interrupted recording.",
+                                )
+                            })?
+                            .identifier
+                    }
+                };
+                annotations.bind_capture(&capture, &conversation)?;
             }
         }
         let conversations = ConversationStore::new(history.clone());

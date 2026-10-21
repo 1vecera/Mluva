@@ -257,6 +257,7 @@ impl ConversationStore {
         }
         transaction.execute("UPDATE recording_continuations SET history_identifier = ? WHERE history_identifier = ?", params![target, source])?;
         transaction.execute("UPDATE conversation_screenshots SET history_identifier = ? WHERE history_identifier = ?", params![target, source])?;
+        transaction.execute("UPDATE conversation_annotations SET history_identifier = ? WHERE history_identifier = ?", params![target, source])?;
         transaction.execute(
             "INSERT INTO recording_continuations VALUES (?, ?)",
             params![source, target],

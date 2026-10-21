@@ -1,0 +1,8 @@
+700 /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae
+600 /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/annotation.json
+600 /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/contact-sheet.png
+700 /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/frames
+600 /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/summary.md
+600 /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/frames/frame-01.png
+600 /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/frames/frame-02.png
+600 /tmp/mluva-e2e.WmOvzs/home/.local/share/mluva/annotations/692414cf-3ed1-438d-8d7b-8e830fa47cae/frames/frame-03.png

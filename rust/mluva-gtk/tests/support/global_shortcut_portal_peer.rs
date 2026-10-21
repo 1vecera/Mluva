@@ -206,20 +206,17 @@ impl Peer {
             let payload = body.child_value(1);
             let proposals = payload.get::<Vec<(String, Dict)>>().unwrap();
             self.payloads.push(payload.clone());
-            self.trace.push(json!({"method":"BindShortcuts","client":index+1,"signature":body.type_().as_str(),"session_owned":self.sessions.last().unwrap()==selected.str().unwrap(),"parent":body.child_value(2).str().unwrap(),"token_valid":valid_token(&token,"mluva_"),"shortcuts":proposals.iter().map(|(id,options)|json!({"id":id,"description":text(options,"description"),"trigger":text(options,"preferred_trigger")})).collect::<Vec<_>>()}));
+            self.trace.push(json!({"method":"BindShortcuts","client":index+1,"signature":body.type_().as_str(),"session_owned":self.sessions.last().unwrap()==selected.str().unwrap(),"parent":body.child_value(2).str().unwrap(),"token_valid":valid_token(&token,"mluva_"),"shortcuts":proposals.iter().map(|(id,options)|json!({"id":id,"description":text(options,"description"),"trigger":options.get("preferred_trigger").and_then(|v| v.str().map(str::to_owned))})).collect::<Vec<_>>()}));
             let approved = proposals
                 .iter()
                 .map(|(id, options)| {
-                    (
-                        id,
-                        Dict::from([
-                            ("description".into(), options["description"].clone()),
-                            (
-                                "trigger_description".into(),
-                                options["preferred_trigger"].clone(),
-                            ),
-                        ]),
-                    )
+                    // A preferred trigger is optional in the portal API; keyless actions omit it.
+                    let mut approved =
+                        Dict::from([("description".into(), options["description"].clone())]);
+                    if let Some(trigger) = options.get("preferred_trigger") {
+                        approved.insert("trigger_description".into(), trigger.clone());
+                    }
+                    (id, approved)
                 })
                 .collect::<Vec<_>>()
                 .to_variant();

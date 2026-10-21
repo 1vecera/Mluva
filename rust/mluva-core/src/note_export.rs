@@ -4,6 +4,7 @@ use std::{fs, path::PathBuf};
 use chrono::DateTime;
 
 use crate::{
+    annotations::AnnotationStore,
     conversation::ConversationStore,
     database::{StoreResult, invalid},
     private_files::atomic_write_private_durable,
@@ -92,6 +93,38 @@ impl ConversationStore {
                 "\n![Screenshot {number}](../screenshots/{}.png)\n",
                 image.identifier
             ));
+        }
+        let annotations = AnnotationStore::new(&self.history.database.path);
+        let mut bundles = annotations.recent(identifier, false)?;
+        for segment in &segments {
+            bundles.extend(annotations.recent(&segment.identifier, false)?);
+        }
+        bundles.sort_by(|a, b| (&a.created_at, &a.identifier).cmp(&(&b.created_at, &b.identifier)));
+        if !bundles.is_empty() {
+            output.push_str("\n## Screen annotations\n\nKeyframes chosen from marks drawn while speaking, with the speech heard while each was on screen. Times are elapsed from that recording's start.\n");
+        }
+        for (index, bundle) in bundles.iter().enumerate() {
+            output.push_str(&format!("\n### Annotation {}\n\n", index + 1));
+            if let Some(summary) = annotations.summary(&bundle.identifier)? {
+                output.push_str(summary.trim_end());
+                output.push('\n');
+            }
+            let mut frames: Vec<String> = match fs::read_dir(bundle.directory.join("frames")) {
+                Ok(entries) => entries
+                    .filter_map(|entry| entry.ok()?.file_name().into_string().ok())
+                    .filter(|name| name.starts_with("frame-") && name.ends_with(".png"))
+                    .collect(),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => vec![],
+                Err(error) => return Err(error.into()),
+            };
+            frames.sort();
+            for (number, name) in frames.iter().enumerate() {
+                output.push_str(&format!(
+                    "\n![Keyframe {}](../annotations/{}/frames/{name})\n",
+                    number + 1,
+                    bundle.identifier
+                ));
+            }
         }
         output.push_str(&format!(
             "\n## Original recognition\n\n{}\n",

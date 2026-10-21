@@ -17,7 +17,9 @@ use mluva_core::{
 use mluva_providers::{ProviderError, TranscriptionResult, speech::SpeechClient};
 use std::{
     fmt, fs,
+    future::Future,
     path::{Path, PathBuf},
+    pin::Pin,
     time::Instant,
 };
 use uuid::Uuid;
@@ -28,6 +30,22 @@ pub trait DeliveryTarget {
     fn restore(&self) -> TargetResult<bool>;
     fn confirm_insertion(&self, inserted_text: &str) -> TargetResult<Option<bool>>;
     fn insert_text(&self, inserted_text: &str) -> TargetResult<Option<bool>>;
+}
+
+/// Text added after the dictation when it is delivered, built once recognition is final. It is
+/// never stored as the working text; `WorkflowResult::delivery_appendix` reports what was added.
+pub type DeliveryAppendix =
+    Box<dyn FnOnce(&TranscriptionResult) -> Pin<Box<dyn Future<Output = Option<String>>>>>;
+
+/// Join a dictation and its appendix as one delivered message.
+pub fn with_appendix(text: &str, appendix: Option<&str>) -> String {
+    match appendix
+        .map(|value| value.trim_end())
+        .filter(|value| !value.is_empty())
+    {
+        Some(appendix) => format!("{}\n\n{appendix}", text.trim_end()),
+        None => text.into(),
+    }
 }
 
 pub struct Completion<'a> {
@@ -44,6 +62,7 @@ pub struct Completion<'a> {
     pub transcript_preparation: Option<TranscriptPreparationSnapshot>,
     pub defer_delivery: bool,
     pub images: Vec<ImageInput>,
+    pub appendix: Option<DeliveryAppendix>,
 }
 impl Default for Completion<'_> {
     fn default() -> Self {
@@ -61,6 +80,7 @@ impl Default for Completion<'_> {
             transcript_preparation: None,
             defer_delivery: false,
             images: vec![],
+            appendix: None,
         }
     }
 }
@@ -81,6 +101,8 @@ pub struct WorkflowResult {
     pub recognition_fallback: bool,
     pub recognition_route: String,
     pub recognition_fallback_reason: Option<String>,
+    /// What followed `output_text` in the delivered message, such as an annotation summary.
+    pub delivery_appendix: Option<String>,
 }
 
 #[derive(Debug)]
@@ -307,6 +329,7 @@ impl DictationWorkflow {
                 recognition_fallback: used_fallback,
                 recognition_route: progress.recognition_route.unwrap(),
                 recognition_fallback_reason: progress.recognition_fallback_reason,
+                delivery_appendix: None,
             });
         }
         let enhancement_started = Instant::now();
@@ -322,9 +345,14 @@ impl DictationWorkflow {
             enhancement_seconds,
         );
         progress.enhancement_ms = Some(enhancement_ms);
+        let delivery_appendix = match request.appendix.take() {
+            Some(appendix) => appendix(&transcription).await,
+            None => None,
+        };
+        let delivered = with_appendix(&output_text, delivery_appendix.as_deref());
         let delivery_started = Instant::now();
         let mut warnings = Vec::new();
-        let delivery = self.deliver(&output_text, &request, &mut warnings);
+        let delivery = self.deliver(&delivered, &request, &mut warnings);
         let delivery_seconds = delivery_started.elapsed().as_secs_f64();
         let delivery_ms = milliseconds(delivery_seconds);
         let mut delivery = match delivery {
@@ -426,6 +454,7 @@ impl DictationWorkflow {
             recognition_fallback: used_fallback,
             recognition_route,
             recognition_fallback_reason,
+            delivery_appendix,
         })
     }
 
