@@ -326,7 +326,11 @@ fn annotation_service(
             toggle_recording: Rc::new(|| {}),
             cancel: Rc::new(|| {}),
             open_rewrite: Rc::new(|| {}),
-            binding_changed: Rc::new(move |_, _| bound.borrow_mut().push("bound".into())),
+            binding_changed: Rc::new(move |_, trigger| {
+                bound
+                    .borrow_mut()
+                    .push(format!("bound:{}", trigger.is_some()))
+            }),
             rewrite_binding_changed: Rc::new(|_| {}),
             error: Rc::new(|_| {}),
         },
@@ -343,11 +347,12 @@ async fn annotation_actions(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnect
     let owner = annotation_service(runtime, &refused);
     owner.start();
     let deadline = Instant::now() + Duration::from_secs(5);
-    while refused.borrow().is_empty() {
+    while refused.borrow().len() < 2 {
         assert!(Instant::now() < deadline);
         settle().await;
     }
-    assert_eq!(&*refused.borrow(), &["registered:false"]);
+    // A failed portal session reports the actions unregistered and the recording key unbound.
+    assert_eq!(&*refused.borrow(), &["registered:false", "bound:false"]);
     owner.shutdown().await;
 
     control(bus, "Reset", Some("normal")).await;
@@ -355,7 +360,7 @@ async fn annotation_actions(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnect
     let owner = annotation_service(runtime, &events);
     owner.start();
     let deadline = Instant::now() + Duration::from_secs(5);
-    while !events.borrow().iter().any(|event| event == "bound") {
+    while !events.borrow().iter().any(|event| event == "bound:true") {
         assert!(Instant::now() < deadline);
         settle().await;
     }
@@ -374,7 +379,15 @@ async fn annotation_actions(runtime: &Rc<DesktopRuntime>, bus: &gio::DBusConnect
     }
     assert_eq!(
         &*events.borrow(),
-        &["registered:true", "bound", "up", "down", "pin", "pin", "up"]
+        &[
+            "registered:true",
+            "bound:true",
+            "up",
+            "down",
+            "pin",
+            "pin",
+            "up"
+        ]
     );
     owner.shutdown().await;
     control(
