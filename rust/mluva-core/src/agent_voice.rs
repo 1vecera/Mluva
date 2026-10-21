@@ -15,7 +15,12 @@ pub struct Recipient {
     pub pane_id: String,
     /// Opaque server-issued identity, including the actual agent process/session.
     pub guard: String,
+    /// Herdr's agent label, used for `mluva herdr select`; often a dispatch handle.
     pub name: String,
+    /// The agent's own session title (Codex thread name, Claude Code session title).
+    /// Empty when the agent has not named the session yet.
+    #[serde(default)]
+    pub title: String,
     pub kind: String,
     pub project: String,
     pub status: AgentStatus,
@@ -27,6 +32,15 @@ impl Recipient {
             && self.server_epoch == other.server_epoch
             && self.pane_id == other.pane_id
             && self.guard == other.guard
+    }
+
+    /// The name a person recognizes: the agent's own session title, else Herdr's label.
+    pub fn display_name(&self) -> &str {
+        if self.title.trim().is_empty() {
+            &self.name
+        } else {
+            &self.title
+        }
     }
 
     pub fn can_receive(&self) -> bool {
@@ -41,7 +55,7 @@ impl Recipient {
     /// Metadata-only fallback; it deliberately makes no claim about a particular turn.
     pub fn spoken_status(&self) -> String {
         let name: String = self
-            .name
+            .display_name()
             .chars()
             .filter(|c| c.is_alphanumeric() || matches!(c, ' ' | '-' | '_'))
             .take(48)

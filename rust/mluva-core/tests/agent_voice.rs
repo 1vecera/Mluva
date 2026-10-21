@@ -8,6 +8,7 @@ fn recipient() -> Recipient {
         pane_id: "w1:p2".into(),
         guard: "process-session-a".into(),
         name: "builder".into(),
+        title: String::new(),
         kind: "codex".into(),
         project: "example".into(),
         status: AgentStatus::Idle,

@@ -4,7 +4,7 @@ Mluva uses Rust, GTK4/Libadwaita and PipeWire. Preserve privacy, exact-target de
 
 ## Local setup
 
-Install the repository-pinned Rust 1.95 toolchain, a C compiler, pkg-config and development libraries for GTK 4.14+, Libadwaita 1.5+, libatspi, Fontconfig, SQLite and OpenSSL. Bash, coreutils and util-linux coordinate builds. WebKitGTK 6.0 loads only when diagrams need it. See the [Linux runtime guide](linux/README.md) and [native verification](rust/README.md) for additional test dependencies. Python and uv are not required.
+Install the repository-pinned Rust 1.95 toolchain, a C compiler, pkg-config and development libraries for GTK 4.14+, Libadwaita 1.5+, gtk4-layer-shell, libatspi, Fontconfig, SQLite and OpenSSL. Bash, coreutils and util-linux coordinate builds. WebKitGTK 6.0 loads only when diagrams need it. See the [Linux runtime guide](linux/README.md) and [native verification](rust/README.md) for additional test dependencies. Python and uv are not required.
 
 `make` builds and validates an optimized native bundle. Compiler artifacts stay in `tmp/native-build` unless `CARGO_TARGET_DIR` is set. `make run` prepares a temporary bundle and launches the app; Quit removes it, while closing the window keeps the resident app running. Automated launch checks must use the private desktop runner.
 

@@ -4,6 +4,8 @@ use mluva_core::agent_voice::{AgentStatus, Recipient, SendOutcome, Submission};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::{
+    collections::HashMap,
+    io::{Read, Seek, SeekFrom},
     os::unix::fs::{FileTypeExt, MetadataExt},
     path::{Path, PathBuf},
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -114,6 +116,12 @@ async fn rpc(path: &Path, method: &str, params: Value) -> Result<Value> {
 }
 
 #[derive(Deserialize)]
+struct AgentSession {
+    agent: String,
+    kind: String,
+    value: String,
+}
+#[derive(Deserialize)]
 struct Agent {
     pane_id: String,
     name: Option<String>,
@@ -122,6 +130,8 @@ struct Agent {
     agent_status: AgentStatus,
     cwd: Option<String>,
     foreground_cwd: Option<String>,
+    terminal_title_stripped: Option<String>,
+    agent_session: Option<AgentSession>,
 }
 fn label(value: &str, max: usize) -> String {
     value
@@ -130,12 +140,97 @@ fn label(value: &str, max: usize) -> String {
         .take(max)
         .collect()
 }
-fn recipient(path: &Path, epoch: &str, guard: &str, value: Value) -> Option<Recipient> {
+
+/// Titles are shown whole; this bound only rejects runaway metadata.
+const MAX_TITLE_CHARS: usize = 240;
+/// Codex appends one line per naming event, so the newest names sit at the end.
+const MAX_CODEX_INDEX_BYTES: u64 = 4 * 1_048_576;
+
+/// Codex thread names by session ID from Codex's own `session_index.jsonl`; the latest line wins.
+pub fn codex_thread_names(index: &Path) -> HashMap<String, String> {
+    #[derive(Deserialize)]
+    struct Entry {
+        id: String,
+        thread_name: Option<String>,
+    }
+    let mut names = HashMap::new();
+    let Ok(mut file) = std::fs::File::open(index) else {
+        return names;
+    };
+    let length = file.metadata().map_or(0, |m| m.len());
+    let skip = length.saturating_sub(MAX_CODEX_INDEX_BYTES);
+    let mut bytes = Vec::new();
+    if file.seek(SeekFrom::Start(skip)).is_err()
+        || file
+            .take(MAX_CODEX_INDEX_BYTES)
+            .read_to_end(&mut bytes)
+            .is_err()
+    {
+        return names;
+    }
+    let text = String::from_utf8_lossy(&bytes);
+    // A tail read can start inside a line; only whole lines are trusted.
+    let whole = if skip > 0 {
+        text.split_once('\n').map_or("", |(_, rest)| rest)
+    } else {
+        &text
+    };
+    for entry in whole
+        .lines()
+        .filter_map(|line| serde_json::from_str::<Entry>(line).ok())
+    {
+        match entry.thread_name.filter(|name| !name.trim().is_empty()) {
+            Some(name) => names.insert(entry.id, name),
+            None => names.remove(&entry.id),
+        };
+    }
+    names
+}
+
+/// `$CODEX_HOME/session_index.jsonl`, defaulting to `~/.codex`.
+pub fn codex_index_path() -> Option<PathBuf> {
+    std::env::var_os("CODEX_HOME")
+        .filter(|home| !home.is_empty())
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".codex")))
+        .map(|home| home.join("session_index.jsonl"))
+}
+
+/// The agent's own name for this session, or empty when it has none yet.
+fn session_title(agent: &Agent, kind: &str, codex_threads: &HashMap<String, String>) -> String {
+    let title = if kind == "codex" {
+        // Codex composes its terminal title from configurable items (thread, project,
+        // activity), so the title comes from its thread index for this exact session.
+        agent
+            .agent_session
+            .as_ref()
+            .filter(|s| s.agent == "codex" && s.kind == "id")
+            .and_then(|s| codex_threads.get(&s.value))
+            .map(String::as_str)
+    } else {
+        // Claude Code titles the terminal with the session's custom or generated title;
+        // Herdr strips its activity glyph. The product name means no title yet.
+        agent
+            .terminal_title_stripped
+            .as_deref()
+            .filter(|title| !title.trim().eq_ignore_ascii_case("claude code"))
+    };
+    title.map_or_else(String::new, |title| label(title.trim(), MAX_TITLE_CHARS))
+}
+
+fn recipient(
+    path: &Path,
+    epoch: &str,
+    guard: &str,
+    value: Value,
+    codex_threads: &HashMap<String, String>,
+) -> Option<Recipient> {
     let agent: Agent = serde_json::from_value(value).ok()?;
-    let kind = agent.agent?;
+    let kind = agent.agent.clone()?;
     if !matches!(kind.as_str(), "claude" | "claude_code" | "codex") {
         return None;
     }
+    let title = session_title(&agent, &kind, codex_threads);
     let project = agent.foreground_cwd.or(agent.cwd).unwrap_or_default();
     Some(Recipient {
         socket: path.to_string_lossy().into_owned(),
@@ -150,6 +245,7 @@ fn recipient(path: &Path, epoch: &str, guard: &str, value: Value) -> Option<Reci
                 .unwrap_or(&agent.pane_id),
             80,
         ),
+        title,
         kind,
         project: label(&project, 240),
         status: agent.agent_status,
@@ -157,6 +253,12 @@ fn recipient(path: &Path, epoch: &str, guard: &str, value: Value) -> Option<Reci
 }
 
 pub async fn discover(path: &Path) -> Result<Discovery> {
+    discover_with(path, codex_index_path().as_deref()).await
+}
+
+/// Discover with an explicit Codex thread index; tests pass a fixture.
+pub async fn discover_with(path: &Path, codex_index: Option<&Path>) -> Result<Discovery> {
+    let codex_threads = codex_index.map(codex_thread_names).unwrap_or_default();
     let response = rpc(path, "agent.guarded_list", json!({})).await?;
     if let Some(result) = response.get("result") {
         let epoch = result
@@ -176,7 +278,13 @@ pub async fn discover(path: &Path) -> Result<Discovery> {
                 if guard.len() != 64 || !guard.bytes().all(|b| b.is_ascii_hexdigit()) {
                     return None;
                 }
-                recipient(path, epoch, &guard, entry.get("agent")?.clone())
+                recipient(
+                    path,
+                    epoch,
+                    &guard,
+                    entry.get("agent")?.clone(),
+                    &codex_threads,
+                )
             })
             .collect();
         return Ok(Discovery {
@@ -194,7 +302,7 @@ pub async fn discover(path: &Path) -> Result<Discovery> {
         recipients: agents
             .iter()
             .take(128)
-            .filter_map(|agent| recipient(path, "", "", agent.clone()))
+            .filter_map(|agent| recipient(path, "", "", agent.clone(), &codex_threads))
             .collect(),
         guarded: false,
     })
@@ -301,6 +409,7 @@ mod tests {
                 pane_id: "w1:p2".into(),
                 guard: "a".repeat(64),
                 name: "selected".into(),
+                title: String::new(),
                 kind: "codex".into(),
                 project: "/synthetic".into(),
                 status: AgentStatus::Working,
@@ -341,6 +450,127 @@ mod tests {
             SendOutcome::Accepted
         );
         peer.await.unwrap();
+    }
+    #[tokio::test]
+    async fn names_come_from_each_agents_own_session_title_in_herdr_order() {
+        let (temp, path, listener) = peer();
+        let index = temp.path().join("session_index.jsonl");
+        let long = "Investigate why the clipboard owner changes after suspend and resume, then \
+                    write the regression test before the next release";
+        std::fs::write(
+            &index,
+            [
+                json!({"id": "codex-a", "thread_name": "First name, later renamed"}),
+                json!({"id": "codex-b", "thread_name": long}),
+                json!({"id": "codex-a", "thread_name": "Lockdown check"}),
+                json!({"id": "codex-c", "thread_name": "Přehled zkoušek 修复 🙂"}),
+            ]
+            .iter()
+            .map(|line| format!("{line}\n"))
+            .collect::<String>(),
+        )
+        .unwrap();
+        let agent = |pane: &str, kind: &str, name: &str, title: Value, session: Value| {
+            json!({"guard": "e".repeat(64), "agent": {"pane_id": pane, "agent": kind, "name": name,
+                "agent_status": "idle", "terminal_title_stripped": title,
+                "agent_session": session}})
+        };
+        let codex = |id: &str| json!({"source": "herdr:codex", "agent": "codex", "kind": "id", "value": id});
+        let claude = |id: &str| json!({"source": "herdr:claude", "agent": "claude", "kind": "id", "value": id});
+        let agents = json!([
+            agent(
+                "w1:p1",
+                "codex",
+                "dispatch-01",
+                json!("Lockdown check | project"),
+                codex("codex-a")
+            ),
+            agent(
+                "w1:p2",
+                "claude",
+                "seg-lead",
+                json!("segmentation"),
+                claude("claude-a")
+            ),
+            agent(
+                "w1:p3",
+                "codex",
+                "cos",
+                json!("Fallback | project"),
+                codex("codex-b")
+            ),
+            agent(
+                "w2:p1",
+                "claude",
+                "reviewer",
+                json!("Claude Code"),
+                claude("claude-b")
+            ),
+            agent(
+                "w2:p2",
+                "codex",
+                "unnamed-codex",
+                json!("project"),
+                codex("codex-new")
+            ),
+            agent("w2:p3", "codex", "", Value::Null, codex("codex-c")),
+            agent("w2:p4", "claude", "", Value::Null, Value::Null),
+        ]);
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "agent.guarded_list");
+            reply(
+                &mut stream,
+                &request,
+                json!({"server_epoch": "epoch", "agents": agents}),
+            )
+            .await;
+        });
+        let found = discover_with(&path, Some(&index)).await.unwrap();
+        peer.await.unwrap();
+        let shown: Vec<_> = found
+            .recipients
+            .iter()
+            .map(|r| (r.pane_id.as_str(), r.display_name(), r.title.as_str()))
+            .collect();
+        assert_eq!(
+            shown,
+            [
+                // Codex: the thread index for this session, never its terminal-title layout.
+                ("w1:p1", "Lockdown check", "Lockdown check"),
+                // Claude Code: its own session title, not Herdr's dispatch label.
+                ("w1:p2", "segmentation", "segmentation"),
+                // Long titles stay whole.
+                ("w1:p3", long, long),
+                // No session title yet: Herdr's label is a genuine fallback, not a parse.
+                ("w2:p1", "reviewer", ""),
+                ("w2:p2", "unnamed-codex", ""),
+                (
+                    "w2:p3",
+                    "Přehled zkoušek 修复 🙂",
+                    "Přehled zkoušek 修复 🙂"
+                ),
+                ("w2:p4", "w2:p4", ""),
+            ]
+        );
+        // Identity is unchanged by naming; the guard and pane remain the selection key.
+        assert!(found.recipients.iter().all(|r| r.guard == "e".repeat(64)));
+        assert!(codex_thread_names(&temp.path().join("missing.jsonl")).is_empty());
+    }
+    #[test]
+    fn a_large_codex_index_is_read_from_its_newest_whole_lines() {
+        let temp = tempfile::tempdir().unwrap();
+        let index = temp.path().join("session_index.jsonl");
+        let filler = format!("{}\n", json!({"id": "old", "thread_name": "x".repeat(200)}));
+        let mut body = filler.repeat((MAX_CODEX_INDEX_BYTES as usize / filler.len()) + 8);
+        body.push_str(&format!(
+            "{}\n",
+            json!({"id": "new", "thread_name": "Newest thread"})
+        ));
+        std::fs::write(&index, body).unwrap();
+        let names = codex_thread_names(&index);
+        assert_eq!(names.get("new").map(String::as_str), Some("Newest thread"));
+        assert!(names.get("old").is_some_and(|name| name.len() == 200));
     }
     #[tokio::test]
     async fn old_server_has_metadata_only_and_never_receives_an_unguarded_prompt() {

@@ -79,7 +79,7 @@ fn parse(args: &[String]) -> Result<Request, &'static str> {
     Ok(request)
 }
 pub fn summary(recipient: &mluva_core::agent_voice::Recipient) -> Value {
-    json!({"name":recipient.name,"pane":recipient.pane_id,"kind":recipient.kind,
+    json!({"name":recipient.name,"title":recipient.title,"pane":recipient.pane_id,"kind":recipient.kind,
         "project":recipient.project,"socket":recipient.socket,"status":recipient.status,
         "available":recipient.can_receive()})
 }

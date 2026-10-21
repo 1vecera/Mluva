@@ -101,6 +101,17 @@ fn screenshot(owner: &ApplicationDesktop, root: &Path, name: &str, width: i32) {
     );
     assert!(owner.agent_voice.view.widget.width() <= owner.shell.window.width());
 }
+/// The wheel grows with its sessions but always fits the private screen.
+fn wheel_fits_screen(wheel: &mluva_gtk::agent_session_wheel::SessionWheel) -> bool {
+    let screen = gtk::gdk::Display::default()
+        .unwrap()
+        .monitors()
+        .item(0)
+        .and_downcast::<gtk::gdk::Monitor>()
+        .unwrap()
+        .geometry();
+    wheel.window.width() <= screen.width() && wheel.window.height() <= screen.height()
+}
 #[test]
 #[ignore = "requires private GTK, network, devices and fixture peers"]
 fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application() {
@@ -149,7 +160,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     let audit = root.join("herdr-wire.jsonl");
     let mut data = json!({"agents": [
         {"guard": "a".repeat(64), "agent": {"name":"Chief of staff", "pane_id":"w1:p1", "agent":"codex", "agent_status":"working", "cwd":"/synthetic/product"}},
-        {"guard": "b".repeat(64), "agent": {"name":"Chief of staff", "pane_id":"w1:p2", "agent":"claude", "agent_status":"idle", "cwd":"/synthetic/research"}}
+        {"guard": "b".repeat(64), "agent": {"name":"Chief of staff", "pane_id":"w1:p2", "agent":"claude", "agent_status":"idle", "cwd":"/synthetic/research", "terminal_title_stripped":"Research notes"}}
     ]});
     state(&peer_state, &data);
     let mut peer = Peer(
@@ -351,6 +362,12 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     });
     assert!(owner.capture.phase().is_none());
     assert!(sent(&audit).is_empty());
+    // The wheel names a session by its agent's own title; Herdr's label remains for routing.
+    let second = owner.agent_voice.wheel.entries.borrow()[1].clone();
+    assert_eq!(
+        (second.display_name(), second.name.as_str()),
+        ("Research notes", "Chief of staff")
+    );
     owner.agent_voice.shortcut_binding(Some("F11"), Some("F7"));
     settle(100);
     assert_eq!(owner.agent_voice.wheel.record_key.label().as_str(), "F11");
@@ -392,8 +409,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
                 .unwrap()
                 .success()
         );
-        assert!(owner.agent_voice.wheel.window.width() <= mluva_gtk::agent_session_wheel::WIDTH);
-        assert!(owner.agent_voice.wheel.window.height() <= mluva_gtk::agent_session_wheel::HEIGHT);
+        assert!(wheel_fits_screen(&owner.agent_voice.wheel));
     }
     wheel_key("s");
     assert_eq!(
@@ -482,11 +498,12 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     );
     // More than one wheel page, non-alphabetical server order, reorder and loss.
     let original_agents = data["agents"].clone();
-    for i in 3..=8 {
-        data["agents"].as_array_mut().unwrap().push(json!({"guard":"d".repeat(64),"agent":{"name":if i == 3 { "long-session-name-for-regression".to_owned() } else { format!("Z session {}", 9-i) },"pane_id":format!("w1:p{i}"),"agent":"codex","agent_status":"idle"}}));
+    // More sessions than one page of 26 letter keys, in non-alphabetical server order.
+    for i in 3..=30 {
+        data["agents"].as_array_mut().unwrap().push(json!({"guard":"d".repeat(64),"agent":{"name":if i == 3 { "long-session-name-for-regression".to_owned() } else { format!("Z session {}", 31-i) },"pane_id":format!("w1:p{i}"),"agent":"codex","agent_status":"idle"}}));
     }
     let all_agents = data["agents"].clone();
-    for count in 0..=6 {
+    for count in [0, 1, 2, 3, 6, 20] {
         owner.agent_voice.view.recipients.set_selected(0);
         data["agents"] = json!(all_agents.as_array().unwrap()[..count].to_vec());
         state(&peer_state, &data);
@@ -495,15 +512,14 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         owner.agent_voice.shortcut();
         settle(100);
         assert!(owner.agent_voice.wheel.window.is_visible());
-        assert!(owner.agent_voice.wheel.window.width() <= mluva_gtk::agent_session_wheel::WIDTH);
-        assert!(owner.agent_voice.wheel.window.height() <= mluva_gtk::agent_session_wheel::HEIGHT);
+        assert!(wheel_fits_screen(&owner.agent_voice.wheel));
         assert!(owner.capture.phase().is_none());
         owner.dispatch(mluva_gtk::application_shell::ApplicationAction::Cancel);
     }
     data["agents"] = all_agents;
     state(&peer_state, &data);
     owner.agent_voice.refresh();
-    until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == 9);
+    until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == 31);
     owner.agent_voice.shortcut();
     assert_eq!(owner.agent_voice.wheel.entries.borrow()[0].pane_id, "w1:p1");
     settle(100);
@@ -520,7 +536,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     assert!(
         Command::new("import")
             .args(["-window", wheel_window.lines().next().unwrap()])
-            .arg(root.join("wheel-six-sessions.png"))
+            .arg(root.join("wheel-thirty-sessions.png"))
             .status()
             .unwrap()
             .success()
@@ -530,20 +546,20 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     wheel_key("a");
     assert_eq!(
         owner.agent_voice.settings().selected.unwrap().pane_id,
-        "w1:p7"
+        "w1:p27"
     );
     data["agents"].as_array_mut().unwrap().reverse();
     state(&peer_state, &data);
     owner.agent_voice.refresh();
-    until(|| owner.agent_voice.wheel.entries.borrow()[0].pane_id == "w1:p8");
+    until(|| owner.agent_voice.wheel.entries.borrow()[0].pane_id == "w1:p30");
     assert_eq!(
         owner.agent_voice.settings().selected.unwrap().pane_id,
-        "w1:p7"
+        "w1:p27"
     );
     data["agents"]
         .as_array_mut()
         .unwrap()
-        .retain(|a| a["agent"]["pane_id"] != "w1:p7");
+        .retain(|a| a["agent"]["pane_id"] != "w1:p27");
     state(&peer_state, &data);
     owner.agent_voice.refresh();
     until(|| !owner.agent_voice.wheel.record.is_sensitive());
@@ -554,7 +570,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     );
     assert_eq!(
         owner.agent_voice.settings().selected.unwrap().pane_id,
-        "w1:p7"
+        "w1:p27"
     );
     data["agents"] = original_agents;
     state(&peer_state, &data);

@@ -79,15 +79,15 @@ if [[ "${assume_yes}" == false ]]; then
 fi
 
 if [[ "${platform}" == omarchy ]]; then
-    packages=(git gtk4 libadwaita at-spi2-core dbus pipewire pipewire-audio
+    packages=(git gtk4 libadwaita gtk4-layer-shell at-spi2-core dbus pipewire pipewire-audio
         wl-clipboard wtype procps-ng webkitgtk-6.0 bubblewrap openssl sqlite)
     if [[ "$source_build" == true ]]; then packages+=(gcc pkgconf); fi
     omarchy pkg add "${packages[@]}"
 else
-    packages=(git gtk4 libadwaita at-spi2-core dbus-daemon pipewire-utils
+    packages=(git gtk4 libadwaita gtk4-layer-shell at-spi2-core dbus-daemon pipewire-utils
         wl-clipboard procps-ng webkitgtk6.0 bubblewrap openssl-libs sqlite-libs)
     if [[ "$source_build" == true ]]; then
-        packages+=(gcc pkgconf-pkg-config gtk4-devel libadwaita-devel at-spi2-core-devel
+        packages+=(gcc pkgconf-pkg-config gtk4-devel libadwaita-devel gtk4-layer-shell-devel at-spi2-core-devel
             fontconfig-devel openssl-devel sqlite-devel)
     fi
     sudo dnf install -y "${packages[@]}"
