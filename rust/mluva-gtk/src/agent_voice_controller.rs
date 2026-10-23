@@ -135,6 +135,17 @@ fn now() -> u64 {
         .unwrap_or_default()
         .as_millis() as u64
 }
+
+/// What a new recording that stops a pending send tells the user: the text is in History only
+/// when History holds it, which Incognito never does.
+fn interrupted_send_message(saved_in_history: bool) -> &'static str {
+    if saved_in_history {
+        "A new recording stopped the pending send. Nothing was sent; the text is in History."
+    } else {
+        "A new recording stopped the pending send. Nothing was sent."
+    }
+}
+
 impl AgentVoiceController {
     pub fn new(
         runtime: Rc<DesktopRuntime>,
@@ -490,17 +501,14 @@ impl AgentVoiceController {
     }
     pub fn leave_for_capture(&self) {
         self.wheel.window.set_visible(false);
-        let countdown = self
-            .route
-            .borrow()
-            .attempt
-            .as_ref()
-            .is_some_and(|a| matches!(a.phase, RoutePhase::Grace { .. }));
+        // The attempt that was counting down, and whether its text reached History: Incognito
+        // keeps no History row, so only a saved one may be promised.
+        let countdown = self.route.borrow().attempt.as_ref().and_then(|a| {
+            matches!(a.phase, RoutePhase::Grace { .. }).then(|| a.history_id.is_some())
+        });
         self.disarm(DraftReason::Interrupted);
-        if countdown {
-            self.view.reply.set_label(
-                "A new recording stopped the pending send. Nothing was sent; the text is in History.",
-            );
+        if let Some(saved) = countdown {
+            self.view.reply.set_label(interrupted_send_message(saved));
         }
         if self
             .route
@@ -1128,5 +1136,17 @@ fn connection_message(found: &Found) -> String {
         "Herdr needs the guarded prompt integration. Sending is unavailable.".into()
     } else {
         "No session was started from Herdr, so dictation keeps a draft in Mluva.".into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::interrupted_send_message;
+
+    #[test]
+    fn an_interrupted_send_promises_history_only_when_a_row_exists() {
+        assert!(interrupted_send_message(true).contains("the text is in History"));
+        let incognito = interrupted_send_message(false);
+        assert!(incognito.contains("Nothing was sent.") && !incognito.contains("History"));
     }
 }

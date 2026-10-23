@@ -6,6 +6,10 @@ use std::{path::PathBuf, time::Duration};
 
 const HEADER: &str = "-- Mluva managed portal bindings v1\n";
 const PREFIX: &str = "Mluva portal: ";
+/// The session wheel appears at once, as Omarchy's own menus do, with no compositor fade. One
+/// handle is kept across reloads: a live rule is reused and a rule the compositor dropped is
+/// made again, so rules never stack.
+const WHEEL_RULE: &str = "local wheel = _G.mluva_wheel_rule\nlocal alive, enabled = pcall(function() return wheel:is_enabled() end)\nif not alive then\n  _G.mluva_wheel_rule = hl.layer_rule({ name = \"mluva-session-wheel\", match = { namespace = \"^mluva-session-wheel$\" }, no_anim = true, animation = \"none\" })\nelseif not enabled then\n  wheel:set_enabled(true)\nend\n";
 
 struct Binding {
     key: String,
@@ -74,6 +78,7 @@ fn script(desired: &[Binding]) -> String {
     let mut lua = format!(
         "{HEADER}for _, binding in ipairs(_G.mluva_portal_bindings or {{}}) do binding:remove() end\n_G.mluva_portal_bindings = {{}}\n"
     );
+    lua.push_str(WHEEL_RULE);
     for binding in desired {
         lua.push_str(&format!(
             "table.insert(_G.mluva_portal_bindings, hl.bind(\"{}\", hl.dsp.global(\"com.mluva.Linux:{}\"), {{ description = \"{PREFIX}{}\" }}))\n",
@@ -194,7 +199,7 @@ mod tests {
             process::{Command, Stdio},
         };
         let mut lua = String::from(
-            "local active = { other = true }; local removed = 0; hl = { dsp = { global = function(id) return id end }, bind = function(key, target, options) assert(not active[key]); active[key] = target; return { remove = function() active[key] = nil; removed = removed + 1 end } end };\n",
+            "local active = { other = true }; local removed = 0; local rules = 0; hl = { dsp = { global = function(id) return id end }, bind = function(key, target, options) assert(not active[key]); active[key] = target; return { remove = function() active[key] = nil; removed = removed + 1 end } end, layer_rule = function(spec) assert(spec.match.namespace == '^mluva-session-wheel$' and spec.no_anim == true); rules = rules + 1; local on = true; return { is_enabled = function() return on end, set_enabled = function(_, value) on = value end } end };\n",
         );
         lua.push_str(&script(&[Binding {
             key: "F12".into(),
@@ -208,6 +213,12 @@ mod tests {
             id: AGENT_HOLD.into(),
         }]));
         lua.push_str("assert(active.F12 == nil and active.F11 == 'com.mluva.Linux:agent-hold' and active.other == true and removed == 1)\n");
+        // Two applies leave one rule; a rule that was switched off comes back; a dropped one is remade.
+        lua.push_str("assert(rules == 1)\n_G.mluva_wheel_rule:set_enabled(false)\n");
+        lua.push_str(&script(&[]));
+        lua.push_str("assert(rules == 1 and _G.mluva_wheel_rule:is_enabled())\n_G.mluva_wheel_rule = { is_enabled = function() error('dropped') end }\n");
+        lua.push_str(&script(&[]));
+        lua.push_str("assert(rules == 2)\n");
         let mut child = Command::new("lua")
             .arg("-")
             .stdin(Stdio::piped())
