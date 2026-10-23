@@ -222,6 +222,19 @@ fn hand_box(scale: f64) -> graphene::Rect {
     )
 }
 
+/// Draw `paint` only inside the ring between two radii.
+fn in_band(snapshot: &gtk::Snapshot, inner: f64, outer: f64, paint: impl FnOnce(&gtk::Snapshot)) {
+    snapshot.push_rounded_clip(&disc(outer));
+    snapshot.push_mask(gsk::MaskMode::InvertedAlpha);
+    clipped_to(snapshot, inner, |s| {
+        s.append_color(&RGBA::new(0., 0., 0., 1.), &square(inner));
+    });
+    snapshot.pop();
+    paint(snapshot);
+    snapshot.pop();
+    snapshot.pop();
+}
+
 /// The case with its contact shadow.
 pub fn under(snapshot: &gtk::Snapshot, face: &Face) {
     let assets = assets();
@@ -246,6 +259,39 @@ pub fn under(snapshot: &gtk::Snapshot, face: &Face) {
     // The case is lifted so its steel reads as lit metal; the gasket stays darker than it.
     lifted(snapshot, CASE_GAIN, 0.03, |s| draw(s, &assets.case, &frame));
     snapshot.pop();
+    let scale = face.scale();
+    // The bezel's inner ring carries baked noise; a light blur of that band at load smooths it.
+    in_band(snapshot, 760. * scale, 835. * scale, |s| {
+        s.push_blur(1.6);
+        lifted(s, CASE_GAIN, 0.03, |s| draw(s, &assets.case, &frame));
+        s.pop();
+    });
+    // A broad bevel sheen on the band between the knurl and the dial, lit from the upper left and
+    // in neutral steel, whatever the theme.
+    let bright = |angle: f64| 0.6 * (angle - LIGHT_BEARING).to_radians().cos().max(0.).powf(1.5);
+    let dark = |angle: f64| {
+        0.5 * (angle - LIGHT_BEARING - 180.)
+            .to_radians()
+            .cos()
+            .max(0.)
+            .powf(1.2)
+    };
+    in_band(snapshot, 800. * scale, 885. * scale, |s| {
+        let sweep = |level: f32, shade: &dyn Fn(f64) -> f64| {
+            let stops: Vec<gsk::ColorStop> = (0..=24)
+                .map(|k| {
+                    let angle = f64::from(k) * 15.;
+                    stop(
+                        (angle / 360.) as f32,
+                        RGBA::new(level, level, level, shade(angle) as f32),
+                    )
+                })
+                .collect();
+            s.append_conic_gradient(&frame, &at(0., 0.), 0., &stops);
+        };
+        sweep(1., &bright);
+        sweep(0., &dark);
+    });
 }
 
 /// The sunray sheen: a bright bar through the centre that turns to face the light.
@@ -264,11 +310,44 @@ pub fn sheen(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, sun: f64, stren
     });
 }
 
+/// A soft hole over the dial text: the sheen, beam and pool fade out under it, so `F12 RECORD`
+/// stays readable wherever the light falls.
+pub fn text_hole(snapshot: &gtk::Snapshot, face: &Face) {
+    let centre = 0.42 * face.dial + 2.;
+    snapshot.push_blur(8.);
+    snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(
+        rect(-110., centre - 17., 220., 34.),
+        17.,
+    ));
+    snapshot.append_color(
+        &RGBA::new(0., 0., 0., 0.92),
+        &rect(-110., centre - 17., 220., 34.),
+    );
+    snapshot.pop();
+    snapshot.pop();
+}
+
 /// The light: a soft wedge from the centre toward the choice and a pool where it lands.
 pub fn light(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, sun: f64, glow: f64) {
     if glow <= 0.01 {
         return;
     }
+    // Feathered at the dial's radius, not clipped hard.
+    snapshot.push_mask(gsk::MaskMode::Alpha);
+    snapshot.append_radial_gradient(
+        &square(face.dial),
+        &at(0., 0.),
+        face.dial as f32,
+        face.dial as f32,
+        0.,
+        1.,
+        &[
+            stop(0., RGBA::new(0., 0., 0., 1.)),
+            stop(0.86, RGBA::new(0., 0., 0., 1.)),
+            stop(1., clear()),
+        ],
+    );
+    snapshot.pop();
     let lit = if face.warn { p.warn_lit } else { p.lit };
     let glow = glow as f32;
     let dial = face.dial;
@@ -300,9 +379,9 @@ pub fn light(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, sun: f64, glow:
             &[
                 stop(0., clear()),
                 stop(3. / 360., tint(0.12)),
-                stop(8. / 360., tint(0.65)),
-                stop(14. / 360., tint(0.75)),
-                stop(20. / 360., tint(0.65)),
+                stop(8. / 360., tint(0.5)),
+                stop(14. / 360., tint(0.6)),
+                stop(20. / 360., tint(0.5)),
                 stop(25. / 360., tint(0.12)),
                 stop(28. / 360., clear()),
                 stop(1., clear()),
@@ -320,14 +399,15 @@ pub fn light(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, sun: f64, glow:
             0.,
             1.,
             &[
-                stop(0., tint(0.9)),
-                stop(0.34, tint(0.4)),
+                stop(0., tint(0.55)),
+                stop(0.34, tint(0.25)),
                 stop(0.68, clear()),
                 stop(1., clear()),
             ],
         );
         s.pop();
     });
+    snapshot.pop();
 }
 
 /// A light source blooming: a wide halo, a near one and the source itself.
@@ -357,6 +437,12 @@ fn index_view(snapshot: &gtk::Snapshot, atlas: &gdk::Texture, face: &Face, angle
     let cell = CELL * scale;
     snapshot.save();
     snapshot.translate(&at(cx, cy));
+    // At many sessions the batons are slimmed a little across their width.
+    if face.marks.len() > 14 {
+        snapshot.rotate(angle as f32);
+        snapshot.scale(0.86, 1.);
+        snapshot.rotate((-angle) as f32);
+    }
     snapshot.rotate(residual as f32);
     snapshot.push_clip(&rect(-cell / 2., -cell / 2., cell, cell));
     // The polished steel is lifted a little so each baton reads as one bright piece.
@@ -381,7 +467,7 @@ fn lume_channel(snapshot: &gtk::Snapshot, face: &Face, angle: f64, color: &RGBA,
     let scale = face.scale();
     // Almost flush with the recess (at most half a pixel of dark edge), with a fainter wider
     // pass for a soft edge, so each index reads as one baton with a lighter line.
-    let core = (LUME_WIDTH * scale * widen * 1.45 - 0.5).max(1.6);
+    let core = (LUME_WIDTH * scale * widen * 1.85 - 0.5).max(1.6);
     snapshot.save();
     snapshot.rotate(angle as f32);
     for (width, alpha) in [(core + 1.2, 0.35), (core, 1.)] {
@@ -459,15 +545,26 @@ pub fn marks(snapshot: &gtk::Snapshot, p: &Palette, face: &Face) {
 
 /// The chosen index lit by the light: its lume in the light's colour.
 pub fn lit_index(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, angle: f64, kind: Kind) {
-    let lit = if face.warn { p.warn_lit } else { p.lit };
+    // The chosen mark is the brightest on the dial: its facets again above the light, and lume
+    // lifted toward the steel.
+    let lit = if face.warn { p.warn_lit } else { p.lit }.over(p.steel, 0.55);
     let scale = face.scale();
+    if kind != Kind::Gone {
+        let assets = assets();
+        let atlas = if kind == Kind::Draft {
+            &assets.hollow
+        } else {
+            &assets.atlas
+        };
+        lifted(snapshot, 1.3, 0.0, |s| index_view(s, atlas, face, angle));
+    }
     if kind == Kind::Gone {
         let (x, y) = point(angle, INDEX_MID * scale);
         let ring = gsk::PathBuilder::new();
         ring.add_circle(&at(x, y), (8. * scale).max(3.) as f32);
         snapshot.append_stroke(&ring.to_path(), &gsk::Stroke::new(1.5), &lit.solid());
     } else {
-        let widen = if kind == Kind::Draft { 1.8 } else { 1.5 };
+        let widen = if kind == Kind::Draft { 1.3 } else { 1.0 };
         lume_channel(snapshot, face, angle, &lit.solid(), widen);
     }
 }
@@ -481,6 +578,15 @@ fn tail_clip(scale: f64) -> graphene::Rect {
         b.2 * scale,
         (-b.1 + TAIL * 567.2) * scale,
     )
+}
+
+/// A faint lift of an index's lume while its name is hovered.
+pub fn hover_lift(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, angle: f64, kind: Kind) {
+    if matches!(kind, Kind::Gone | Kind::Draft) {
+        return;
+    }
+    let lit = if face.warn { p.warn_lit } else { p.lit };
+    lume_channel(snapshot, face, angle, &lit.alpha(1.0), 1.0);
 }
 
 /// The faceted hand and its shadow on the dial. The lit and shaded facets trade places as it
@@ -612,8 +718,40 @@ pub fn cap(snapshot: &gtk::Snapshot, p: &Palette, face: &Face) {
 }
 
 /// The domed crystal with its Fresnel reflections, over everything on the dial.
-pub fn crystal(snapshot: &gtk::Snapshot, face: &Face) {
+pub fn crystal(snapshot: &gtk::Snapshot, p: &Palette, face: &Face) {
+    // The baked Fresnel arc at the lower right is dimmed to a faint rim, so it never outshines
+    // the chosen index, and the main reflection sits at the upper left with the other lights.
+    snapshot.push_mask(gsk::MaskMode::Alpha);
+    let stops: Vec<gsk::ColorStop> = (0..=24)
+        .map(|k| {
+            let angle = f64::from(k) * 15.;
+            let toward = (angle - 135.).to_radians().cos().max(0.);
+            stop(
+                (angle / 360.) as f32,
+                RGBA::new(0., 0., 0., (1. - 0.78 * toward.powf(0.8)) as f32),
+            )
+        })
+        .collect();
+    snapshot.append_conic_gradient(&face.frame(), &at(0., 0.), 0., &stops);
+    snapshot.pop();
     draw(snapshot, &assets().crystal, &face.frame());
+    snapshot.pop();
+    let dial = face.dial;
+    clipped_to(snapshot, dial * 1.02, |s| {
+        s.append_radial_gradient(
+            &square(dial * 1.02),
+            &at(-dial * 0.42, -dial * 0.5),
+            (dial * 0.8) as f32,
+            (dial * 0.5) as f32,
+            0.,
+            1.,
+            &[
+                stop(0., p.steel.alpha(0.2)),
+                stop(0.7, clear()),
+                stop(1., clear()),
+            ],
+        );
+    });
 }
 
 /// Triangular-PDF noise of ±1 level for one channel of one pixel, from a hash of its place.
@@ -718,6 +856,7 @@ pub fn room_texture(
         (14. * unit, 26. * unit, 25. * unit, 0.45),
     ];
     let (room, lift) = (p.room, p.room_lift);
+    let vignette = if p.light_theme { 0.08 } else { 0.4 };
     let pixels = paint_rows(width, height, |x, y| {
         let (dx, dy) = (x as f32 + 0.5 - cx, y as f32 + 0.5 - cy);
         let r = dx.hypot(dy);
@@ -728,7 +867,8 @@ pub fn room_texture(
             room.2 * t + lift.2 * (1. - t),
         ];
         let edge = ((r / far - 0.5) / 0.5).clamp(0., 1.);
-        let mut keep = 1. - 0.4 * edge * edge * (3. - 2. * edge);
+        // A light room darkens far less toward its corners, so they never turn muddy grey.
+        let mut keep = 1. - vignette * edge * edge * (3. - 2. * edge);
         if face.dial > 0. {
             for (sx, sy, sigma, strength) in shadows {
                 let d = (dx - sx).hypot(dy - sy);

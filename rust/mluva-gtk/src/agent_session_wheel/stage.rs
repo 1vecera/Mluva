@@ -152,6 +152,7 @@ mod imp {
         pub(super) room: RefCell<Option<(RoomKey, gdk::Texture)>>,
         pub(super) dial: RefCell<Option<(DialKey, gdk::Texture)>>,
         pub(super) motion: RefCell<Motion>,
+        pub hover: Cell<Option<usize>>,
         pub tick: RefCell<Option<gtk::TickCallbackId>>,
     }
 
@@ -284,7 +285,15 @@ mod imp {
                 let layers = layers.as_ref().expect("layers recorded above");
                 snapshot.save();
                 snapshot.translate(&graphene::Point::new(centre.0 as f32, centre.1 as f32));
-                paint_watch(snapshot, &dial, palette, face, layers, &motion);
+                paint_watch(
+                    snapshot,
+                    &dial,
+                    palette,
+                    face,
+                    layers,
+                    &motion,
+                    self.hover.get(),
+                );
                 snapshot.restore();
             }
             drop(motion);
@@ -370,7 +379,7 @@ mod imp {
                 under: layer(&|s| watch::under(s, face)),
                 marks: layer(&|s| watch::marks(s, palette, face)),
                 cap: layer(&|s| watch::cap(s, palette, face)),
-                crystal: layer(&|s| watch::crystal(s, face)),
+                crystal: layer(&|s| watch::crystal(s, palette, face)),
                 face: face.clone(),
                 scale,
             };
@@ -387,7 +396,9 @@ fn paint_watch(
     face: &Face,
     layers: &Layers,
     motion: &Motion,
+    hover: Option<usize>,
 ) {
+    let hovered = hover.and_then(|index| face.marks.get(index).copied());
     let chosen = face
         .chosen
         .and_then(|index| face.marks.get(index).map(|(angle, kind)| (*angle, *kind)));
@@ -397,8 +408,12 @@ fn paint_watch(
     layers.under.append(snapshot);
     snapshot.append_scaled_texture(dial, gsk::ScalingFilter::Linear, &face.frame());
     snapshot.pop();
+    snapshot.push_mask(gsk::MaskMode::InvertedAlpha);
+    watch::text_hole(snapshot, face);
+    snapshot.pop();
     watch::sheen(snapshot, palette, face, motion.sun, bar);
     watch::light(snapshot, palette, face, motion.sun, motion.glow);
+    snapshot.pop();
     snapshot.pop();
     layers.marks.append(snapshot);
     let glowing = chosen.into_iter().chain(
@@ -410,6 +425,11 @@ fn paint_watch(
         let strength = watch::proximity(motion.sun, angle);
         watch::bloom(snapshot, strength, |s| {
             watch::lit_index(s, palette, face, angle, kind);
+        });
+    }
+    if let Some((angle, kind)) = hovered.filter(|_| face.chosen != hover) {
+        watch::bloom(snapshot, 0.6, |s| {
+            watch::hover_lift(s, palette, face, angle, kind)
         });
     }
     if chosen.is_some() {
@@ -488,6 +508,17 @@ impl Stage {
     /// True when the active theme's canvas is lighter than its ink.
     pub fn light_theme(&self) -> bool {
         Palette::new(read_tokens(self.upcast_ref())).light_theme
+    }
+
+    pub fn hover(&self) -> Option<usize> {
+        self.imp().hover.get()
+    }
+
+    /// The index whose name is under the pointer lifts its lume a little; no ring, no box.
+    pub fn set_hover(&self, index: Option<usize>) {
+        if self.imp().hover.replace(index) != index {
+            self.queue_draw();
+        }
     }
 
     /// The dial, or an index on it, under a point in the stage's coordinates.

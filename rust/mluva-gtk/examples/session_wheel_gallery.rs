@@ -349,7 +349,7 @@ fn main() -> glib::ExitCode {
     // The hand swings to a new choice with the light trailing it; capture it in flight and at rest.
     let wheel = show(&entries, Some(0), 0);
     wheel.update(&entries, Some(entries[4].clone()), "F12", "F9");
-    settle(9);
+    settle(4);
     capture(
         &wheel.window,
         &output.join(format!("{palette}-swing-mid.png")),

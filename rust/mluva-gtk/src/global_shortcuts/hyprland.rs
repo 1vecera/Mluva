@@ -8,8 +8,9 @@ const HEADER: &str = "-- Mluva managed portal bindings v1\n";
 const PREFIX: &str = "Mluva portal: ";
 /// The session wheel appears at once, as Omarchy's own menus do, with no compositor fade. One
 /// handle is kept across reloads: a live rule is reused and a rule the compositor dropped is
-/// made again, so rules never stack.
-const WHEEL_RULE: &str = "local wheel = _G.mluva_wheel_rule\nlocal alive, enabled = pcall(function() return wheel:is_enabled() end)\nif not alive then\n  _G.mluva_wheel_rule = hl.layer_rule({ name = \"mluva-session-wheel\", match = { namespace = \"^mluva-session-wheel$\" }, no_anim = true, animation = \"none\" })\nelseif not enabled then\n  wheel:set_enabled(true)\nend\n";
+/// made again, so rules never stack. It runs under `pcall`, and after the bindings, so a
+/// Hyprland without the layer-rule API, or an error in it, can never stop the bindings applying.
+const WHEEL_RULE: &str = "pcall(function()\n  local wheel = _G.mluva_wheel_rule\n  local alive, enabled = pcall(function() return wheel:is_enabled() end)\n  if not alive then\n    _G.mluva_wheel_rule = hl.layer_rule({ name = \"mluva-session-wheel\", match = { namespace = \"^mluva-session-wheel$\" }, no_anim = true, animation = \"none\" })\n  elseif not enabled then\n    wheel:set_enabled(true)\n  end\nend)\n";
 
 struct Binding {
     key: String,
@@ -78,13 +79,13 @@ fn script(desired: &[Binding]) -> String {
     let mut lua = format!(
         "{HEADER}for _, binding in ipairs(_G.mluva_portal_bindings or {{}}) do binding:remove() end\n_G.mluva_portal_bindings = {{}}\n"
     );
-    lua.push_str(WHEEL_RULE);
     for binding in desired {
         lua.push_str(&format!(
             "table.insert(_G.mluva_portal_bindings, hl.bind(\"{}\", hl.dsp.global(\"com.mluva.Linux:{}\"), {{ description = \"{PREFIX}{}\" }}))\n",
             binding.trigger(), binding.id, binding.id,
         ));
     }
+    lua.push_str(WHEEL_RULE);
     lua
 }
 
@@ -231,5 +232,32 @@ mod tests {
             .write_all(lua.as_bytes())
             .unwrap();
         assert!(child.wait().unwrap().success());
+        // A layer rule that throws, or no layer-rule API at all, still leaves the bindings applied.
+        for rule in [
+            "layer_rule = function() error('no such api') end",
+            "layer_rule = nil",
+        ] {
+            let mut lua = format!(
+                "local active = {{}}; hl = {{ dsp = {{ global = function(id) return id end }}, bind = function(key, target) active[key] = target; return {{ remove = function() end }} end, {rule} }};\n"
+            );
+            lua.push_str(&script(&[Binding {
+                key: "F12".into(),
+                mask: 0,
+                id: AGENT_HOLD.into(),
+            }]));
+            lua.push_str("assert(active.F12 == 'com.mluva.Linux:agent-hold')\n");
+            let mut child = Command::new("lua")
+                .arg("-")
+                .stdin(Stdio::piped())
+                .spawn()
+                .unwrap();
+            child
+                .stdin
+                .take()
+                .unwrap()
+                .write_all(lua.as_bytes())
+                .unwrap();
+            assert!(child.wait().unwrap().success(), "{rule}");
+        }
     }
 }

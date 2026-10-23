@@ -28,7 +28,7 @@ window.ml-session-wheel.csd:backdrop, window.ml-session-wheel.solid-csd:backdrop
 .ml-session-wheel .ml-wheel-pager button:active, .ml-session-wheel .ml-wheel-pager button:focus {
   background: none; box-shadow: none; outline: none; }
 
-.ml-session-wheel .ml-wheel-name { font-size: 16.5px; line-height: 1.28; color: @vs_ink_secondary;
+.ml-session-wheel .ml-wheel-name { font-size: 16.5px; line-height: 1.28; color: mix(@vs_ink, @vs_canvas, 0.3);
   transition: color 160ms ease-out; }
 .ml-session-wheel .ml-wheel-key { font-size: 14px; font-weight: 700; min-width: 15px; color: mix(@vs_ink, @vs_canvas, 0.22);
   transition: color 160ms ease-out; }

@@ -653,6 +653,7 @@ impl SessionWheel {
             placements: RefCell::new(vec![]),
         };
         wheel.wire_pointer();
+        wheel.wire_hover();
         wheel
     }
 
@@ -687,6 +688,21 @@ impl SessionWheel {
         // The watch fades in and its hand sweeps in each time the wheel opens.
         let stage = self.stage.clone();
         self.window.connect_map(move |_| stage.open());
+    }
+
+    /// Hovering a name lifts its index's lume on the dial.
+    fn wire_hover(&self) {
+        for (index, choice) in self.choices.iter().enumerate() {
+            let stage = self.stage.clone();
+            choice.connect_state_flags_changed(move |button, _| {
+                let hovered = button.state_flags().contains(gtk::StateFlags::PRELIGHT);
+                if hovered {
+                    stage.set_hover(Some(index));
+                } else if stage.hover() == Some(index) {
+                    stage.set_hover(None);
+                }
+            });
+        }
     }
 
     /// True for a point, in window coordinates, that belongs to a control: a name, the legend or
