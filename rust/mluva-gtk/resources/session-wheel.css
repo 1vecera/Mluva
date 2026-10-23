@@ -1,87 +1,77 @@
-/* Session wheel in Omarchy's menu grammar: the theme ground and the monospace face Omarchy
-   configures, foreground hairlines, square key caps and accent only for the chosen session and
-   Record. Alphas follow omarchy-shell's [controls] and [menu] defaults. */
-window.ml-session-wheel, window.ml-session-wheel.background { background: @vs_canvas; color: @vs_ink; }
-/* One frame: Hyprland draws the window border, so the toolkit adds no outline or inset of its own. */
-window.ml-session-wheel, window.ml-session-wheel.csd { border: none; border-radius: 0; outline: none; box-shadow: none; }
-.ml-session-wheel label { font-family: monospace, "JetBrains Mono"; font-size: 13px; }
+/* Session wheel: a sundial watch in an opaque room. The watch itself is painted by the stage
+   from the same theme tokens as this sheet; the names, the dial text and the legend are real
+   widgets styled here. Hover and keyboard focus brighten text and light a key, never a box or a
+   ring. Lit is the accent mixed toward the ink; a blocked or missing choice uses the warning. */
+/* The room's own ground, as the stage paints it, so no edge of the window shows a different colour. */
+window.ml-session-wheel, window.ml-session-wheel.background { background: mix(black, @vs_canvas, 0.54); color: @vs_ink; }
+window.ml-session-wheel.ml-wheel-on-light, window.ml-session-wheel.ml-wheel-on-light.background { background: mix(@vs_canvas, @vs_ink, 0.07); }
+/* One frame: Hyprland draws the window border, so the toolkit adds no outline, shadow or inset of
+   its own. On X11, without a compositor, libadwaita would draw a solid 5 px frame. */
+window.ml-session-wheel, window.ml-session-wheel.csd, window.ml-session-wheel.solid-csd, window.ml-session-wheel:backdrop,
+window.ml-session-wheel.csd:backdrop, window.ml-session-wheel.solid-csd:backdrop {
+  border: none; border-radius: 0; outline: none; box-shadow: none; margin: 0; padding: 0; }
 
-.ml-session-wheel .ml-wheel-dial { color: @vs_ink; }
-.ml-session-wheel .ml-wheel-alert { color: @vs_warning; }
-.ml-session-wheel .ml-wheel-needle { color: @vs_action; }
-.ml-session-wheel .ml-wheel-needle.ml-wheel-unavailable { color: @vs_warning; }
+/* Names and printing: the system sans for names, JetBrains Mono for keys, captions and the dial. */
+.ml-session-wheel label { font-family: "Adwaita Sans", "Inter", sans-serif; font-size: 14px; }
+.ml-session-wheel .ml-wheel-key, .ml-session-wheel .ml-wheel-caption, .ml-session-wheel .ml-wheel-legend-key,
+.ml-session-wheel .ml-wheel-dial-key, .ml-session-wheel .ml-wheel-dial-action, .ml-session-wheel .ml-wheel-page {
+  font-family: "JetBrains Mono", monospace; }
 
-.ml-session-wheel .ml-wheel-key { min-width: 18px; min-height: 20px; padding: 0 3px; border-radius: 0;
-  background: alpha(@vs_ink, 0.04); border: 1px solid alpha(@vs_ink, 0.4);
-  font-size: 11px; font-weight: 700; color: @vs_ink; }
+/* A name is a flat button: no fill, no border, no ring. */
+.ml-session-wheel button.ml-wheel-slot, .ml-session-wheel button.ml-wheel-legend, .ml-session-wheel .ml-wheel-pager button {
+  min-height: 0; min-width: 0; padding: 0; margin: 0; border: none; border-radius: 0; background: none;
+  box-shadow: none; outline: none; -gtk-icon-shadow: none; text-shadow: none; }
+.ml-session-wheel button.ml-wheel-slot:hover, .ml-session-wheel button.ml-wheel-slot:active,
+.ml-session-wheel button.ml-wheel-slot:focus, .ml-session-wheel button.ml-wheel-slot:checked,
+.ml-session-wheel button.ml-wheel-legend:hover, .ml-session-wheel button.ml-wheel-legend:active,
+.ml-session-wheel button.ml-wheel-legend:focus, .ml-session-wheel .ml-wheel-pager button:hover,
+.ml-session-wheel .ml-wheel-pager button:active, .ml-session-wheel .ml-wheel-pager button:focus {
+  background: none; box-shadow: none; outline: none; }
 
-.ml-session-wheel button.ml-wheel-slot { min-height: 0; min-width: 0; padding: 5px 9px; border-radius: 0;
-  background: transparent; border: 1px solid transparent; box-shadow: none; outline: none;
-  transition: background-color 140ms ease-out, border-color 140ms ease-out; }
-.ml-session-wheel button.ml-wheel-slot:hover { background: alpha(@vs_ink, 0.08); border-color: alpha(@vs_ink, 0.25); }
-.ml-session-wheel button.ml-wheel-slot:active { background: alpha(@vs_ink, 0.22); }
-/* The chosen name keeps the theme ground behind its accent text, so it stays above 4.5:1. */
-.ml-session-wheel button.ml-wheel-slot.ml-wheel-selected { background: transparent; border-color: alpha(@vs_ink, 0.25); }
-.ml-session-wheel button.ml-wheel-slot:focus-visible { border-color: @vs_focus; }
-.ml-session-wheel .ml-wheel-name { color: @vs_ink; }
-.ml-session-wheel .ml-wheel-selected .ml-wheel-name { color: @vs_action; font-weight: 700; }
-.ml-session-wheel .ml-wheel-selected .ml-wheel-key { background: @vs_action; border-color: @vs_action; color: @vs_on_action; }
-.ml-session-wheel .ml-wheel-unavailable .ml-wheel-name { color: @vs_ink_muted; }
-.ml-session-wheel button.ml-wheel-slot.ml-wheel-selected.ml-wheel-unavailable { border-color: alpha(@vs_warning, 0.55); }
-.ml-session-wheel .ml-wheel-selected.ml-wheel-unavailable .ml-wheel-name { color: @vs_ink; }
-.ml-session-wheel .ml-wheel-selected.ml-wheel-unavailable .ml-wheel-key { background: @vs_warning;
-  border-color: @vs_warning; color: @vs_canvas; }
-.ml-session-wheel .ml-wheel-meta { font-size: 11px; color: @vs_ink_muted; }
-.ml-session-wheel .ml-wheel-meta.ml-wheel-warning { color: @vs_warning; }
+.ml-session-wheel .ml-wheel-name { font-size: 16.5px; line-height: 1.28; color: @vs_ink_secondary;
+  transition: color 160ms ease-out; }
+.ml-session-wheel .ml-wheel-key { font-size: 14px; font-weight: 700; min-width: 15px; color: mix(@vs_ink, @vs_canvas, 0.22);
+  transition: color 160ms ease-out; }
+.ml-session-wheel .ml-wheel-caption { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; margin-top: 4px;
+  color: @vs_ink_secondary; }
+.ml-session-wheel .ml-wheel-caption.ml-wheel-warning { color: mix(@vs_warning, @vs_ink, 0.2); }
+.ml-session-wheel .ml-wheel-dim .ml-wheel-name { opacity: 0.72; }
 
-/* The hub is the one primary action. */
-.ml-session-wheel button.ml-wheel-hub { padding: 0; border-radius: 9999px;
-  background: alpha(@vs_ink, 0.04); border: 1px solid alpha(@vs_ink, 0.4); box-shadow: none;
-  transition: background-color 160ms ease-out, border-color 160ms ease-out; }
-.ml-session-wheel button.ml-wheel-hub:hover { background: alpha(@vs_ink, 0.08); }
-.ml-session-wheel button.ml-wheel-hub:active { background: alpha(@vs_ink, 0.22); }
-.ml-session-wheel button.ml-wheel-hub:focus-visible { border-color: @vs_focus; outline: 1px solid alpha(@vs_focus, 0.5);
-  outline-offset: 3px; }
-.ml-session-wheel button.ml-wheel-hub:disabled { opacity: 1; background: transparent;
-  border: 1px dashed alpha(@vs_ink, 0.25); }
-.ml-session-wheel button.ml-wheel-hub:disabled, .ml-session-wheel button.ml-wheel-hub:disabled label { filter: none; }
-.ml-session-wheel .ml-wheel-hub-name { font-size: 15px; font-weight: 700; color: @vs_ink; }
-.ml-session-wheel button.ml-wheel-hub:disabled .ml-wheel-hub-name { color: @vs_ink_secondary; }
-.ml-session-wheel .ml-wheel-dot { min-width: 7px; min-height: 7px; border-radius: 9999px; background: @vs_success; }
-/* Working is a hollow ring so it differs from Ready in every palette, not only by hue. */
-.ml-session-wheel .ml-wheel-dot.ml-wheel-busy { min-width: 3px; min-height: 3px; background: transparent;
-  border: 2px solid @vs_ink_secondary; }
-.ml-session-wheel .ml-wheel-dot.ml-wheel-warning { background: @vs_warning; }
-/* Draft only is a quiet square, and its action is outlined: present, but nothing is sent. */
-.ml-session-wheel .ml-wheel-dot.ml-wheel-draft { border-radius: 0; background: transparent;
-  min-width: 5px; min-height: 5px; border: 1px solid @vs_ink_secondary; }
-.ml-session-wheel .ml-wheel-action { padding: 3px 10px 3px 3px; background: @vs_action; }
-.ml-session-wheel .ml-wheel-action label { color: @vs_on_action; }
-.ml-session-wheel .ml-wheel-action .ml-wheel-key { background: alpha(@vs_on_action, 0.12);
-  border-color: alpha(@vs_on_action, 0.45); }
-.ml-session-wheel .ml-wheel-action-label { font-size: 12px; font-weight: 700; }
-.ml-session-wheel .ml-wheel-action.ml-wheel-draft { background: transparent; padding: 2px 9px 2px 2px;
-  border: 1px solid alpha(@vs_ink, 0.4); }
-.ml-session-wheel .ml-wheel-action.ml-wheel-draft label { color: @vs_ink; }
-.ml-session-wheel .ml-wheel-action.ml-wheel-draft .ml-wheel-key { background: alpha(@vs_ink, 0.04);
-  border-color: alpha(@vs_ink, 0.4); }
-.ml-session-wheel .ml-wheel-hint { font-size: 11px; color: @vs_ink_secondary; }
+/* Hover and keyboard focus: the name brightens and its key takes the light's colour. */
+.ml-session-wheel button.ml-wheel-slot:hover .ml-wheel-name, .ml-session-wheel button.ml-wheel-slot:focus-visible .ml-wheel-name { color: @vs_ink; }
+.ml-session-wheel button.ml-wheel-slot:hover .ml-wheel-key, .ml-session-wheel button.ml-wheel-slot:focus-visible .ml-wheel-key {
+  color: mix(@vs_action, @vs_ink, 0.3); }
+.ml-session-wheel button.ml-wheel-slot.ml-wheel-warn:hover .ml-wheel-key, .ml-session-wheel button.ml-wheel-slot.ml-wheel-warn:focus-visible .ml-wheel-key {
+  color: mix(@vs_warning, @vs_ink, 0.2); }
+.ml-session-wheel button.ml-wheel-slot:active .ml-wheel-name { color: @vs_ink; }
 
-/* Overlay: Omarchy's scrim over the desktop, nearly opaque within the wheel's reach so names stay legible over any window, with the wheel floating on
-   it and no card. The hub becomes a solid disc so the chosen name reads over anything below. */
-window.ml-session-wheel.ml-wheel-overlay, window.ml-session-wheel.ml-wheel-overlay.background {
-  background-color: transparent;
-  background-image: radial-gradient(circle farthest-side at center, alpha(@vs_canvas, 0.94) 0%,
-    alpha(@vs_canvas, 0.92) 58%, alpha(@vs_canvas, 0.62) 100%); }
-.ml-session-wheel.ml-wheel-overlay button.ml-wheel-hub { background: @vs_canvas; }
-.ml-session-wheel.ml-wheel-overlay button.ml-wheel-hub:hover { background: mix(@vs_canvas, @vs_ink, 0.08); }
+/* The chosen name is larger and semibold (set as type attributes), its key in the light's colour. */
+.ml-session-wheel .ml-wheel-selected .ml-wheel-name { color: @vs_ink; }
+.ml-session-wheel .ml-wheel-selected .ml-wheel-key { color: mix(@vs_action, @vs_ink, 0.3); }
+.ml-session-wheel .ml-wheel-selected.ml-wheel-warn .ml-wheel-key { color: mix(@vs_warning, @vs_ink, 0.2); }
+.ml-session-wheel .ml-wheel-selected.ml-wheel-dim .ml-wheel-name { opacity: 1; }
 
-/* Key legend centred under the wheel and, for long lists, the pager. */
-.ml-session-wheel .ml-wheel-footer { padding: 4px 12px 14px; }
-.ml-session-wheel .ml-wheel-footer button { min-height: 0; min-width: 0; padding: 3px 9px 3px 3px; border-radius: 0;
-  background: transparent; border: 1px solid transparent; box-shadow: none; }
-.ml-session-wheel .ml-wheel-footer button:hover { background: alpha(@vs_ink, 0.08); border-color: alpha(@vs_ink, 0.25); }
-.ml-session-wheel .ml-wheel-footer button:focus-visible { border-color: @vs_focus; outline: none; }
-.ml-session-wheel .ml-wheel-footer .ml-wheel-pager button { padding: 3px; }
-.ml-session-wheel .ml-wheel-hint-label { font-size: 12px; color: @vs_ink_secondary; }
+/* The dial's printing: the record key in the light's colour, the action in quiet capitals. A
+   light theme prints on its dark dial with the canvas instead of the ink. */
+.ml-session-wheel .ml-wheel-dial-text label { text-shadow: none; }
+.ml-session-wheel .ml-wheel-dial-key { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: mix(@vs_action, @vs_ink, 0.3); }
+.ml-session-wheel .ml-wheel-dial-action { font-size: 12px; font-weight: 600; letter-spacing: 0.32em; color: mix(@vs_ink, @vs_canvas, 0.7); }
+.ml-session-wheel .ml-wheel-dial-hint { font-size: 11px; color: mix(@vs_ink, @vs_canvas, 0.55); }
+.ml-session-wheel.ml-wheel-on-light .ml-wheel-dial-key { color: mix(@vs_action, @vs_canvas, 0.5); }
+.ml-session-wheel.ml-wheel-on-light .ml-wheel-dial-action { color: mix(@vs_canvas, @vs_ink, 0.7); }
+.ml-session-wheel.ml-wheel-on-light .ml-wheel-dial-hint { color: mix(@vs_canvas, @vs_ink, 0.55); }
+.ml-session-wheel .ml-wheel-dial-warn .ml-wheel-dial-action { color: mix(@vs_warning, @vs_ink, 0.2); }
+.ml-session-wheel .ml-wheel-dial-muted .ml-wheel-dial-action { opacity: 0.7; }
+
+/* The legend: the keys, then what they do. Record dims while it is withdrawn. */
+.ml-session-wheel .ml-wheel-legend-key { font-size: 12.5px; font-weight: 700; color: @vs_ink; transition: color 160ms ease-out; }
+.ml-session-wheel .ml-wheel-legend-text { font-size: 13px; letter-spacing: 0.02em; color: @vs_ink_secondary;
+  transition: color 160ms ease-out; }
+.ml-session-wheel button.ml-wheel-legend:hover .ml-wheel-legend-text, .ml-session-wheel button.ml-wheel-legend:focus-visible .ml-wheel-legend-text { color: @vs_ink; }
+.ml-session-wheel button.ml-wheel-legend:hover .ml-wheel-legend-key, .ml-session-wheel button.ml-wheel-legend:focus-visible .ml-wheel-legend-key {
+  color: mix(@vs_action, @vs_ink, 0.3); }
+.ml-session-wheel button.ml-wheel-legend:disabled { opacity: 0.4; }
 .ml-session-wheel .ml-wheel-page { font-size: 12px; color: @vs_ink_secondary; font-feature-settings: "tnum"; }
+.ml-session-wheel .ml-wheel-pager button { color: @vs_ink_secondary; padding: 0 4px; }
+.ml-session-wheel .ml-wheel-pager button:hover, .ml-session-wheel .ml-wheel-pager button:focus-visible { color: @vs_ink; }
+.ml-session-wheel .ml-wheel-pager button:disabled { opacity: 0.35; }

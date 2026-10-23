@@ -162,7 +162,7 @@ impl AgentVoiceController {
             }
         });
         if self.wheel.overlay {
-            // Clicking the scrim, anywhere outside a control, dismisses the overlay.
+            // Clicking the room, anywhere outside a control, dismisses the overlay.
             let click = gtk::GestureClick::new();
             let weak = Rc::downgrade(self);
             click.connect_released(move |_, _, x, y| {
@@ -170,12 +170,14 @@ impl AgentVoiceController {
                     return;
                 };
                 let window = &owner.wheel.window;
-                let on_control = window
-                    .pick(x, y, gtk::PickFlags::DEFAULT)
-                    .is_some_and(|widget| {
-                        widget.is::<gtk::Button>()
-                            || widget.ancestor(gtk::Button::static_type()).is_some()
-                    });
+                // A name, the legend and the dial are controls; the rest of the room dismisses.
+                let on_control = owner.wheel.on_control(x, y)
+                    || window
+                        .pick(x, y, gtk::PickFlags::DEFAULT)
+                        .is_some_and(|widget| {
+                            widget.is::<gtk::Button>()
+                                || widget.ancestor(gtk::Button::static_type()).is_some()
+                        });
                 if !on_control {
                     window.set_visible(false);
                 }
