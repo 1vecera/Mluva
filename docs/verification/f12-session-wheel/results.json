@@ -1,7 +1,7 @@
 {
   "date": "2026-10-23",
   "native_gate": {
-    "passed": 231,
+    "passed": 232,
     "failed": 0,
     "ignored": 69,
     "clippy": "both strict configurations clean",
@@ -98,7 +98,7 @@
     "order": "Herdr workspace, tab, pane layout",
     "sessions_per_page": 26,
     "keys": "asdfghjklqwertyuiopzxcvbnm",
-    "names": "each on its index's bearing, hanging off a point just beyond the case; pushed apart toward their pole; never touching the case",
+    "names": "each on its index's bearing, hanging off a point just beyond the case (1.247 dials); pushed apart toward their pole",
     "dial_radius_px": {
       "1": 170,
       "6": 244,
@@ -169,21 +169,25 @@
     "hyprland_rule": "managed Lua adds a no_anim layer rule for mluva-session-wheel, kept as one handle across reloads (a live rule is reused, a switched-off one re-enabled, a dropped one recreated); lua test passes"
   },
   "rendering": {
-    "toolkit": "GtkSnapshot with conic and radial gradients, blur for bloom, masks, Screen blend for the light, rotation transforms, rounded clips and outset shadows",
+    "toolkit": "GtkSnapshot compositing Blender-baked layers: case, tinted dial luminance, 24-view index atlases, hand, facet masks, cap, crystal; live sheen, beam and pool, lume bloom and hand",
+    "assets": "rust/mluva-gtk/resources/wheel, about 2.5 MB of PNG compiled in with include_bytes",
     "cached": [
       "case",
-      "dial texture",
-      "minute track",
-      "indices",
+      "dial",
+      "indices and dim lume",
       "cap",
       "crystal"
     ],
     "per_frame": [
-      "sunburst bar",
-      "light",
-      "bloom",
-      "hand"
+      "sheen",
+      "beam and pool",
+      "chosen lume bloom",
+      "hand, facets and shadow"
     ],
+    "proportions": {
+      "case_outer_over_dial": 1.247,
+      "index_mid_over_dial": 0.844
+    },
     "motion": {
       "hand_spring": {
         "stiffness": 260,
@@ -197,6 +201,6 @@
       "open_sweep_from_degrees": -40,
       "reduced_motion": "placed at rest"
     },
-    "hidpi": "layers bake at the display scale; a 3840x2400 screen at scale 2 rendered the same 1920x1200 logical wheel (RMSE 0.003 against the 1x render) with no warnings"
+    "renderer_checked": "private desktop default (cairo); 3840x2400 at scale 2 rendered the same logical wheel"
   }
 }

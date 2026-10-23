@@ -25,16 +25,16 @@ The overlay links `gtk4-layer-shell`, which is part of Omarchy's base install. I
 
 ## The watch
 
-The wheel is a watch, so the chosen session is where the light falls:
+The wheel is a watch, so the chosen session is where the light falls. The static parts are Blender renders baked into layers (see `rust/mluva-gtk/resources/wheel/README.md`) and composited live with GtkSnapshot:
 
-- **Case.** A polished steel case: a conic sweep of highlights, brightest at the upper left, and a fine knurled bezel band. A dark gasket sits under the crystal.
-- **Dial.** A sunray dial: radial brushing that fades out toward the centre, on a radial base. The sunburst bar turns to face the chosen session, with a weaker bar opposite. A matte chapter ring and a quiet railway minute track run round the edge.
-- **Indices.** One applied index per session, faceted, with a drop shadow to the lower right and a lume channel. Working has a lume dot at its inner end, blocked has amber lume, draft-only is hollow, and a gone session is an empty setting with two tiny feet.
-- **Hand and light.** A faceted dauphine hand with a glowing lume channel under a domed cap. The hand is a damped spring with a small mechanical overshoot. A soft beam and a pool of light follow it on a softer spring, so the glow trails the hand and settles on the index, which blooms. The light is the accent mixed toward the ink; for a blocked or missing choice it is the warning colour.
-- **Crystal.** A domed reflection at the upper left above everything on the dial.
+- **Case.** A knurled steel case with real teeth and a baked contact shadow, 1.247 times the dial's radius.
+- **Dial.** A sunray dial stored as luminance and tinted at runtime from the theme's accent and darker ground, so Nord lands on the render's navy and the default palettes get their own tint. A chapter ring and a railway minute track are part of the bake.
+- **Indices.** One chunky faceted applied index per session, picked from a 24-view atlas so its highlights stay fixed in screen space. The lume channel is a recess filled live: the accent mix for the chosen index, the warning colour for blocked, a dim ink otherwise, blooming on the chosen and blocked ones. Working has a lume dot at 0.74 of the dial radius, draft-only uses the hollow atlas, and a gone session is an empty setting with two tiny feet.
+- **Hand and light.** A faceted hand whose lit and shaded facets trade places as it turns against a fixed upper-left light, with a shadow offset to the lower right and a glowing lume channel, under a polished cap. The hand is a damped spring with a small mechanical overshoot. The sunray sheen turns to the light on a softer spring, and a beam and a pool of light follow it, so the glow trails the hand and settles on the index. The light is the accent mixed toward the ink, and the warning colour for a blocked or missing choice.
+- **Crystal.** A domed crystal with Fresnel reflections over everything on the dial.
 - **Dial text.** `F12 RECORD`, 42% of the dial radius below the centre, or `BLOCKED`, `GONE` or `CHOOSE A SESSION`. The centre never repeats the chosen name. The legend at the bottom reads `F12 Record · F9 Transcript only · Esc Cancel`, and Record dims while it is withdrawn.
 
-It is drawn with GtkSnapshot. The case, dial texture, minute track, indices, cap and crystal never move while the choice swings, so each is recorded once, baked into a texture at the display's scale and merely appended each frame. Only the sunburst bar, the light, the bloom and the hand are drawn per frame. Colour comes from the active theme's canvas, ink, action, warning and success tokens, with derived mixes for the darker grounds; a theme whose canvas is lighter than its ink keeps light steel and a dark dial. On open the hand sweeps in from about −40°. With animations disabled everything is placed at rest.
+The case, tinted dial, indices, cap and crystal never move while the choice swings, so each is composited once into a layer, baked into a texture at the display's scale and merely appended each frame. Per frame only the sheen, the beam and pool, the lume bloom of the chosen index, the hand with its shadow and facet shading are drawn, which stays smooth on the cairo renderer the private desktop uses. Colour comes from the active theme's canvas, ink, action, warning and success tokens. The steel stays steel in every theme and only the dial's tint and the lume follow it. On open the hand sweeps in from about −40° and the watch fades in over 160 ms. With animations disabled everything is placed at rest.
 
 ## Layout
 
@@ -79,18 +79,18 @@ The window fallback on X11, at its natural size, with no frame:
 | --- | --- |
 | ![Twenty sessions in the window fallback](window-nord-twenty.jpg) | ![Six sessions in the window fallback](window-nord-six.jpg) |
 
-The design prototype and the native result at twenty sessions, with the same fixtures:
+The Blender render of the watch and the native wheel at twenty sessions:
 
-![The HTML prototype and the native wheel side by side at twenty sessions](prototype-vs-native-twenty.jpg)
+![The Blender render and the native wheel side by side at twenty sessions](blender-vs-native-twenty.jpg)
 
-The native watch differs from the prototype in these ways:
+The native watch still differs from the render in these ways:
 
-- The names stand where the prototype puts them, but are then pushed apart and kept off the case by a deterministic rule, so a crowded pole may differ by a few pixels.
-- The bloom is GSK blur on the lume, not an SVG filter, so its falloff is slightly harder. It also fades in as the light arrives and out as it leaves.
-- The knurled bezel and sunray brushing are drawn as thin wedges, since GSK has no repeating conic gradient, and are baked into a texture.
-- The chapter ring is a matte step with a highlight and a shadow edge, drawn from the prototype's screenshots rather than its stylesheet.
-- The room's grain is a fixed noise tile at about 3% opacity, not an SVG turbulence filter.
-- Ring placement is symmetric, so the watch stays centred even when one side has a very wide name; the prototype pinned it at a fixed point.
+- The render is a lit 3D scene; the native watch composites its layers with a live sheen, beam and pool. The pool of light is less bright than the render's, and the render's reflections move with its camera while the crystal here is fixed.
+- The render's crown is not in the layers.
+- The baked contact shadow reaches the edge of the 2048 px frame, so it is faded out near the frame's edge and is tighter than the render's.
+- Indices are the nearest of 24 baked views, turned by at most 7.5°, so a highlight can be a few degrees off a render's.
+- The default light and dark palettes keep the steel and tint only the dial, so they differ from Nord's blue.
+- Names are pushed apart and kept off the case by a deterministic rule where they crowd.
 
 ## Artifacts removed
 
@@ -114,7 +114,7 @@ Daniel confirmed eleven artifacts of the previous wheel; each is gone, and the c
 
 | Boundary | Evidence |
 | --- | --- |
-| Native gate | `make linux-test` with `TMPDIR` on disk passed: 231 passed, zero failed, 69 gated or ignored. Both strict Clippy configurations, formatting and generated-feature consistency passed. Geometry unit tests cover: the one o'clock start and clockwise angles; names on their own index's side; no overlap with each other or the case for 1–26 sessions and for 400 pseudo-random mixes of count and name size; every name inside a stage that fits the laptop screen; clockwise order per side; each name near its own index; the dial shrinking on a small screen while every name stays; and that the layout depends on the names alone. Spring tests cover the hand's small overshoot, the light trailing it and the short way round. The ignored Lua test, run with the system interpreter, covers the managed Hyprland script: one `no_anim` rule across applies, a switched-off rule re-enabled and a dropped one recreated, with other bindings untouched. |
+| Native gate | `make linux-test` with `TMPDIR` on disk passed: 232 passed, zero failed, 69 gated or ignored. Both strict Clippy configurations, formatting and generated-feature consistency passed. Geometry unit tests cover: the one o'clock start and clockwise angles; names on their own index's side; no overlap with each other or the case for 1–26 sessions and for 400 pseudo-random mixes of count and name size; every name inside a stage that fits the laptop screen; clockwise order per side; each name near its own index; the dial shrinking on a small screen while every name stays; and that the layout depends on the names alone. Spring tests cover the hand's small overshoot, the light trailing it and the short way round. The ignored Lua test, run with the system interpreter, covers the managed Hyprland script: one `no_anim` rule across applies, a switched-off rule re-enabled and a dropped one recreated, with other bindings untouched. |
 | Name provenance | Provider tests use a Herdr peer and a Codex index fixture. They cover Claude titles, renamed Codex threads (latest wins), long and Unicode titles, the "Claude Code" product title, an unnamed Codex thread whose terminal title is only the project, and the fallback to Herdr name and pane. An index larger than 4 MiB is read from its newest whole lines. |
 | Real application | `make linux-agent-voice-test` passed: 15 captures, 13 recognitions, five guarded submissions. Private X11 keys exercise selection, Escape, second F12, F9, paging at 30 sessions, server reorder and target disappearance, and the wheel fits the private screen from zero to 20 sessions. The wording of the notice a new recording gives when it interrupts a countdown is a unit test: History is promised only when a row exists. The four known narrow-editor allocation warnings remain and none comes from the wheel. |
 | Shortcut portal | `make linux-shortcut-test` passed. |
@@ -123,7 +123,7 @@ Daniel confirmed eleven artifacts of the previous wheel; each is gone, and the c
 | Not verified live | The watch has not been shown on the live compositor: no live layer-shell run, no live F12 path and no check of the `no_anim` rule against the running Hyprland. The rule's Lua was run only against a stub of `hl` with the system Lua interpreter. The Lenovo's 3840×2400 screen at scale 2 was approximated by an offscreen 3840×2400 X11 screen at scale 2. Frame pacing on real hardware, GPU renderer behaviour and the Wayland layer-shell surface size are not measured. |
 | Live metadata (read only) | One `agent.guarded_list` read against the developer's running Herdr: all six live Codex and Claude Code sessions resolved to the title held in their agent's own store. That is the Codex `thread_name` for the session ID, or Claude Code's effective `customTitle`/`aiTitle`; none showed a dispatch name. No names are recorded here. |
 | Visual states | The `session_wheel_gallery` example renders the production wheel in 22 synthetic states per palette, at a chosen screen size, as a window or with `overlay` styling at screen size. The states are: one, three, six, 20 and 30 sessions; long, duplicate, Czech, CJK and emoji names; blocked, missing, draft-only and untitled sessions; no selection; empty; hover; keyboard focus on a choice, on Record and on Cancel; and the hand in flight and at rest. It also audits itself and exits with a failure if a name leaves the screen, two names overlap, or three status changes plus a new choice on twenty sessions move any name. |
-| Visual review | Daniel picked the sundial-watch direction from ten prototypes and asked for it to be pushed further; the native build follows that prototype and lists where it differs. The captures in three palettes (Nord, default light and default dark) were reviewed by the implementer against the eleven artifacts and the prototype. No independent finish review has scored the native watch. |
+| Visual review | Daniel picked the sundial-watch direction from ten prototypes and asked for it to be pushed further; then asked for it to look like the Blender render; the native build composites that render's baked layers and lists where it still differs. The captures in three palettes (Nord, default light and default dark) were reviewed by the implementer against the eleven artifacts and the render. No independent finish review has scored the native watch. |
 
 Render the gallery inside the private desktop at the screen being judged:
 
