@@ -272,10 +272,14 @@ fn completeness_accepts_only_keyframe_files_inside_the_bundle() {
 }
 
 #[test]
-fn the_opt_in_defaults_off_and_round_trips_privately() {
+fn the_setting_defaults_on_and_round_trips_privately() {
     use mluva_core::annotations::AnnotationSettings;
     let directory = tempfile::tempdir().unwrap();
     let path = directory.path().join(AnnotationSettings::FILE);
+    assert!(AnnotationSettings::load(&path).unwrap().enabled);
+    fs::write(&path, b"{}").unwrap();
+    assert!(AnnotationSettings::load(&path).unwrap().enabled);
+    AnnotationSettings { enabled: false }.save(&path).unwrap();
     assert!(!AnnotationSettings::load(&path).unwrap().enabled);
     AnnotationSettings { enabled: true }.save(&path).unwrap();
     assert!(AnnotationSettings::load(&path).unwrap().enabled);
