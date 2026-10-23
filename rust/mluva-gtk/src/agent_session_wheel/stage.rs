@@ -94,7 +94,6 @@ impl Layer {
 
 struct Layers {
     under: Layer,
-    over: Layer,
     marks: Layer,
     cap: Layer,
     crystal: Layer,
@@ -293,23 +292,16 @@ mod imp {
             let palette = self.palette.borrow();
             let palette = palette.as_ref().expect("palette set before layers");
             let renderer = stage.native().and_then(|native| native.renderer());
-            let extent = face.case() + 160.;
-            let area = graphene::Rect::new(
-                -extent as f32,
-                -extent as f32,
-                (2. * extent) as f32,
-                (2. * extent) as f32,
-            );
+            let area = face.frame();
             let scale_f = scale as f32;
             let layer = |paint: &dyn Fn(&gtk::Snapshot)| {
                 Layer::record(area, scale_f, renderer.as_ref(), paint)
             };
             let layers = Layers {
                 under: layer(&|s| watch::under(s, palette, face)),
-                over: layer(&|s| watch::over(s, palette, face)),
                 marks: layer(&|s| watch::marks(s, palette, face)),
-                cap: layer(&|s| watch::cap(s, palette)),
-                crystal: layer(&|s| watch::crystal(s, palette, face)),
+                cap: layer(&|s| watch::cap(s, face)),
+                crystal: layer(&|s| watch::crystal(s, face)),
                 face: face.clone(),
                 scale,
             };
@@ -333,9 +325,8 @@ fn paint_watch(
     let bar = 0.3 + 0.7 * motion.glow;
     snapshot.push_blend(gsk::BlendMode::Screen);
     layers.under.append(snapshot);
-    watch::sunburst(snapshot, palette, face, motion.sun, bar);
-    layers.over.append(snapshot);
     snapshot.pop();
+    watch::sheen(snapshot, palette, face, motion.sun, bar);
     watch::light(snapshot, palette, face, motion.sun, motion.glow);
     snapshot.pop();
     layers.marks.append(snapshot);
@@ -351,7 +342,7 @@ fn paint_watch(
         });
     }
     if chosen.is_some() {
-        watch::hand(snapshot, palette, face, motion.hand);
+        watch::hand(snapshot, face, motion.hand);
         watch::hand_lume(snapshot, palette, face, motion.hand);
     }
     layers.cap.append(snapshot);

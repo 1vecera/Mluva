@@ -26,6 +26,12 @@ impl Rgb {
             mix(self.2, other.2),
         )
     }
+    /// Push each channel away from the grey of the same brightness by `factor`.
+    pub fn saturate(self, factor: f32) -> Self {
+        let grey = (self.0 + self.1 + self.2) / 3.;
+        let push = |c: f32| (grey + (c - grey) * factor).clamp(0., 1.);
+        Self(push(self.0), push(self.1), push(self.2))
+    }
     pub fn alpha(self, alpha: f32) -> RGBA {
         RGBA::new(self.0, self.1, self.2, alpha)
     }
@@ -63,9 +69,6 @@ impl Tokens {
     };
 }
 
-/// A multi-stop sweep: angle in degrees from twelve o'clock and its colour.
-pub type Sweep = Vec<(f32, RGBA)>;
-
 pub struct Palette {
     pub light_theme: bool,
     /// The opaque ground, and the faint lift around the watch.
@@ -81,8 +84,8 @@ pub struct Palette {
     pub warn_lit: Rgb,
     pub warning: Rgb,
     pub working: Rgb,
-    /// Dial printing and the minute track.
-    pub print: Rgb,
+    /// The dial's tint: its luminance map is multiplied by this, a navy on Nord.
+    pub dial_tint: Rgb,
 }
 
 impl Palette {
@@ -112,45 +115,10 @@ impl Palette {
             warn_lit: t.warning.over(steel, 0.8),
             warning: t.warning,
             working: t.success.over(steel, 0.7),
-            print: steel.over(metal, 0.7),
+            // Nord's navy is the accent at a fifth of its brightness, twice as saturated, with a little
+            // of the darker ground.
+            dial_tint: t.action.over(BLACK, 0.2).saturate(2.).over(darker, 0.85),
         }
-    }
-
-    /// `percent` of steel over the metal, as the prototype's `fg N% bg`.
-    pub fn fg(&self, percent: f32) -> Rgb {
-        self.steel.over(self.metal, percent / 100.)
-    }
-    pub fn fg_dark(&self, percent: f32) -> Rgb {
-        self.steel.over(self.darker, percent / 100.)
-    }
-
-    /// Polished steel: a conic sweep, brightest at the upper left.
-    pub fn case_sweep(&self) -> Sweep {
-        let stops: [(f32, Rgb); 9] = [
-            (0., self.fg(58.)),
-            (50., self.fg(22.)),
-            (120., self.fg_dark(10.)),
-            (165., self.fg(34.)),
-            (215., self.fg_dark(6.)),
-            (305., self.fg(76.)),
-            (318., self.fg(92.)),
-            (335., self.fg(50.)),
-            (360., self.fg(58.)),
-        ];
-        stops.iter().map(|(a, c)| (*a, c.solid())).collect()
-    }
-    /// The bezel band under the knurling, a little darker than the case.
-    pub fn bezel_sweep(&self) -> Sweep {
-        let over_dark = |p: f32| self.steel.over(self.dark, p / 100.);
-        let over_darker = |p: f32| self.steel.over(self.darker, p / 100.);
-        let stops: [(f32, Rgb); 5] = [
-            (0., over_dark(30.)),
-            (130., over_darker(12.)),
-            (220., over_darker(8.)),
-            (315., over_dark(44.)),
-            (360., over_dark(30.)),
-        ];
-        stops.iter().map(|(a, c)| (*a, c.solid())).collect()
     }
 }
 
@@ -162,6 +130,15 @@ mod tests {
     fn mixes_weight_the_first_colour() {
         let mixed = Rgb(1., 0., 0.).over(Rgb(0., 0., 1.), 0.25);
         assert_eq!(mixed, Rgb(0.25, 0., 0.75));
+    }
+
+    #[test]
+    fn nords_dial_tint_lands_on_the_renders_navy() {
+        // The render's dial averages #11202c.
+        let tint = Palette::new(Tokens::NORD).dial_tint;
+        for (got, want) in [(tint.0, 17.), (tint.1, 32.), (tint.2, 44.)] {
+            assert!((got * 255. - want).abs() < 12., "{got} vs {want}");
+        }
     }
 
     #[test]

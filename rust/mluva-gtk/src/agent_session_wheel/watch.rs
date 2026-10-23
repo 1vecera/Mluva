@@ -1,15 +1,16 @@
-//! Painting the watch with GtkSnapshot: a steel case, a sunray dial, applied indices, a faceted
-//! hand and one moving light.
+//! Painting the watch with GtkSnapshot from layers baked in Blender, plus the live parts.
 //!
-//! Everything that never moves while the choice swings (case, dial texture, minute track,
-//! indices, cap, crystal) is recorded once into a layer, baked into a texture when a renderer
-//! is at hand, and merely appended each frame. Only the sunburst bar, the light, the bloom and
-//! the hand are drawn per frame.
+//! The case, the dial, the applied indices, the cap and the crystal come from renders in
+//! `resources/wheel`: see its README. They never move while the choice swings, so each is
+//! composited once into a layer, baked into a texture at the display's scale and merely appended
+//! each frame. Per frame only the sunray sheen, the light, the lume bloom, the hand and its
+//! shadow are drawn, so the choice can swing smoothly even on the cairo renderer.
 
-use super::palette::{BLACK, Palette};
+use super::palette::Palette;
 use gtk::gdk::RGBA;
 use gtk::prelude::*;
 use gtk::{gdk, graphene, gsk};
+use std::rc::Rc;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Kind {
@@ -31,33 +32,105 @@ pub struct Face {
     pub warn: bool,
 }
 
+/// The renders are 2048 px square with the dial's radius at this many pixels.
+const BAKED_DIAL: f64 = 753.6;
+const FRAME: f64 = 2048.;
+/// Proportions of the baked watch, in render pixels.
+const CASE_OUTER: f64 = 940.;
+const INDEX_INNER: f64 = 583.4;
+const INDEX_OUTER: f64 = 688.8;
+const INDEX_MID: f64 = 636.1;
+const LUME_WIDTH: f64 = 9.7;
+const LUME_INNER: f64 = 595.6;
+const LUME_OUTER: f64 = 676.6;
+const DOT_RADIUS_AT: f64 = 555.;
+const CHAPTER_INNER: f64 = 705.;
+const CELL: f64 = 128.;
+const ATLAS_COLUMNS: usize = 6;
+const CELLS: usize = 24;
+/// The baked contact shadow reaches the render's edge, so it is faded out over this stretch of
+/// the frame's half width.
+const SHADOW_FADE: (f32, f32) = (0.93, 1.0);
+/// The hand layers are cropped to this box of the render: left, top, width, height from the centre.
+const HAND_BOX: (f64, f64, f64, f64) = (-80., -600., 160., 776.);
+const SHADOW_OFFSET: (f64, f64) = (14., 24.);
+/// Light comes from the upper left.
+const LIGHT_BEARING: f64 = 315.;
+
+/// The case's outer radius is this many dials.
+pub const CASE_RATIO: f64 = CASE_OUTER / BAKED_DIAL;
+
+pub fn case_radius(dial: f64) -> f64 {
+    dial * CASE_RATIO
+}
+
 impl Face {
-    pub fn rim(&self) -> f64 {
-        self.dial + 6.
+    fn scale(&self) -> f64 {
+        self.dial / BAKED_DIAL
     }
     pub fn case(&self) -> f64 {
-        self.dial + CASE_BAND
+        case_radius(self.dial)
     }
     pub fn inner(&self) -> f64 {
-        self.dial - 52.
+        INDEX_INNER * self.scale()
     }
     pub fn outer(&self) -> f64 {
-        self.dial - 16.
-    }
-    fn width(&self) -> f64 {
-        if self.marks.len() > 14 { 7. } else { 8. }
-    }
-    fn hand_length(&self) -> f64 {
-        self.inner() - 10.
+        INDEX_OUTER * self.scale()
     }
     /// Where the light lands on the dial at `degrees`.
     fn landing(&self, degrees: f64) -> (f64, f64) {
-        point(degrees, (self.inner() + self.outer()) / 2.)
+        point(degrees, INDEX_MID * self.scale())
+    }
+    /// The area every baked layer covers, centred on the watch.
+    pub fn frame(&self) -> graphene::Rect {
+        let half = FRAME / 2. * self.scale();
+        rect(-half, -half, 2. * half, 2. * half)
     }
 }
 
-/// The steel between the dial and the room.
-pub const CASE_BAND: f64 = 30.;
+/// The baked textures, decoded once per process.
+pub struct Assets {
+    case: gdk::Texture,
+    dial: gdk::Texture,
+    sheen: gdk::Texture,
+    crystal: gdk::Texture,
+    atlas: gdk::Texture,
+    hollow: gdk::Texture,
+    hand: gdk::Texture,
+    facet_left: gdk::Texture,
+    facet_right: gdk::Texture,
+    lume: gdk::Texture,
+    shadow: gdk::Texture,
+    cap: gdk::Texture,
+}
+
+macro_rules! texture {
+    ($name:literal) => {
+        gdk::Texture::from_bytes(&glib::Bytes::from_static(include_bytes!(concat!(
+            "../../resources/wheel/",
+            $name
+        ))))
+        .expect(concat!("bundled wheel texture ", $name))
+    };
+}
+
+pub fn assets() -> Rc<Assets> {
+    thread_local!(static ASSETS: Rc<Assets> = Rc::new(Assets {
+        case: texture!("case.png"),
+        dial: texture!("dial-luma.png"),
+        sheen: texture!("sheen.png"),
+        crystal: texture!("crystal.png"),
+        atlas: texture!("index-atlas.png"),
+        hollow: texture!("index-hollow-atlas.png"),
+        hand: texture!("hand.png"),
+        facet_left: texture!("hand-facet-left.png"),
+        facet_right: texture!("hand-facet-right.png"),
+        lume: texture!("hand-lume.png"),
+        shadow: texture!("hand-shadow.png"),
+        cap: texture!("cap.png"),
+    }));
+    ASSETS.with(Rc::clone)
+}
 
 pub fn point(degrees: f64, radius: f64) -> (f64, f64) {
     let angle = degrees.to_radians();
@@ -85,23 +158,6 @@ fn stop(offset: f32, color: RGBA) -> gsk::ColorStop {
 fn clear() -> RGBA {
     RGBA::new(0., 0., 0., 0.)
 }
-fn sweep(stops: &[(f32, RGBA)]) -> Vec<gsk::ColorStop> {
-    stops.iter().map(|(a, c)| stop(a / 360., *c)).collect()
-}
-
-/// A closed polygon in the local frame.
-fn polygon(points: &[(f64, f64)]) -> gsk::Path {
-    let builder = gsk::PathBuilder::new();
-    for (index, (x, y)) in points.iter().enumerate() {
-        if index == 0 {
-            builder.move_to(*x as f32, *y as f32);
-        } else {
-            builder.line_to(*x as f32, *y as f32);
-        }
-    }
-    builder.close();
-    builder.to_path()
-}
 
 fn fill(snapshot: &gtk::Snapshot, path: &gsk::Path, color: &RGBA) {
     snapshot.append_fill(path, gsk::FillRule::Winding, color);
@@ -113,131 +169,74 @@ fn clipped_to(snapshot: &gtk::Snapshot, radius: f64, paint: impl FnOnce(&gtk::Sn
     snapshot.pop();
 }
 
-/// Thin wedges around the centre: the radial brushing of a sunray dial, or the knurled bezel.
-fn wedges(snapshot: &gtk::Snapshot, radius: f64, period: f64, width: f64, color: &RGBA) {
-    let count = (360. / period).round() as usize;
-    for step in 0..count {
-        let from = (step as f64 * period).to_radians();
-        let to = from + width.to_radians();
-        let path = polygon(&[
-            (0., 0.),
-            (radius * from.sin(), -radius * from.cos()),
-            (radius * to.sin(), -radius * to.cos()),
-        ]);
-        fill(snapshot, &path, color);
-    }
+fn draw(snapshot: &gtk::Snapshot, texture: &gdk::Texture, bounds: &graphene::Rect) {
+    snapshot.append_scaled_texture(texture, gsk::ScalingFilter::Trilinear, bounds);
 }
 
-/// Everything under the sunburst bar: shadow, steel case, knurled bezel, gasket, dial base.
+/// Draw `paint` with every colour channel multiplied by `rgb`, alpha by `alpha`.
+fn tinted(snapshot: &gtk::Snapshot, rgb: [f32; 3], alpha: f32, paint: impl FnOnce(&gtk::Snapshot)) {
+    let matrix = graphene::Matrix::from_float([
+        rgb[0], 0., 0., 0., 0., rgb[1], 0., 0., 0., 0., rgb[2], 0., 0., 0., 0., alpha,
+    ]);
+    snapshot.push_color_matrix(&matrix, &graphene::Vec4::zero());
+    paint(snapshot);
+    snapshot.pop();
+}
+
+/// The hand layers' box, scaled to the watch.
+fn hand_box(scale: f64) -> graphene::Rect {
+    rect(
+        HAND_BOX.0 * scale,
+        HAND_BOX.1 * scale,
+        HAND_BOX.2 * scale,
+        HAND_BOX.3 * scale,
+    )
+}
+
+/// The case with its contact shadow, and the dial tinted to the theme.
 pub fn under(snapshot: &gtk::Snapshot, p: &Palette, face: &Face) {
-    let case = face.case();
-    let black = |alpha| BLACK.alpha(alpha);
-    snapshot.append_outset_shadow(&disc(case), &black(0.72), 18., 34., 0., 70.);
-    snapshot.append_outset_shadow(&disc(case), &black(0.55), 4., 8., 0., 16.);
-    clipped_to(snapshot, case, |s| {
-        s.append_conic_gradient(&square(case), &at(0., 0.), 0., &sweep(&p.case_sweep()));
+    let assets = assets();
+    let frame = face.frame();
+    let half = (FRAME / 2. * face.scale()) as f32;
+    snapshot.push_mask(gsk::MaskMode::Alpha);
+    snapshot.append_radial_gradient(
+        &frame,
+        &at(0., 0.),
+        half,
+        half,
+        0.,
+        1.,
+        &[
+            stop(0., RGBA::new(0., 0., 0., 1.)),
+            stop(SHADOW_FADE.0, RGBA::new(0., 0., 0., 1.)),
+            stop(SHADOW_FADE.1, clear()),
+            stop(1., clear()),
+        ],
+    );
+    snapshot.pop();
+    draw(snapshot, &assets.case, &frame);
+    snapshot.pop();
+    // The dial is a luminance map: colour = tint · luma / 0.5, so a mean luma lands on the tint.
+    let tint = p.dial_tint;
+    tinted(snapshot, [tint.0 * 2., tint.1 * 2., tint.2 * 2.], 1., |s| {
+        draw(s, &assets.dial, &frame)
     });
-    // A fine knurled band on the case top.
-    let bezel = case - 5.;
-    clipped_to(snapshot, bezel, |s| {
-        s.append_conic_gradient(&square(bezel), &at(0., 0.), 0., &sweep(&p.bezel_sweep()));
-        wedges(s, bezel, 1.4, 0.7, &p.steel.alpha(0.09));
-    });
-    snapshot.append_inset_shadow(&disc(bezel), &p.steel.alpha(0.4), 0., 1., 0., 1.);
-    // The dark gasket under the crystal.
-    let rim = face.rim();
-    clipped_to(snapshot, rim, |s| {
-        s.append_color(&p.darker.solid(), &square(rim))
-    });
-    snapshot.append_inset_shadow(&disc(rim), &black(0.8), 2., 3., 0., 6.);
-    // The dial: a radial base, lighter in the middle.
-    let dial = face.dial;
-    clipped_to(snapshot, dial, |s| {
-        s.append_radial_gradient(
-            &square(dial),
-            &at(0., 0.),
-            dial as f32,
-            dial as f32,
-            0.,
-            1.,
-            &[
-                stop(0., p.metal.over(p.steel, 0.92).solid()),
-                stop(0.72, p.dark.solid()),
-                stop(1., p.darker.solid()),
-            ],
-        );
-    });
-    snapshot.append_inset_shadow(&disc(dial), &black(0.4), 0., 0., 1., 0.);
-    snapshot.append_inset_shadow(&disc(dial), &black(0.45), 0., 10., 0., 30.);
 }
 
-/// The sunburst bar: radial brushing catches the light as a bright bar through the centre that
-/// turns to face the light, with a weaker one opposite.
-pub fn sunburst(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, sun: f64, glow: f64) {
+/// The sunray sheen: a bright bar through the centre that turns to face the light.
+pub fn sheen(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, sun: f64, strength: f64) {
     let lit = if face.warn { p.warn_lit } else { p.lit };
-    let glow = glow as f32;
-    let edge = p.dark.over(p.steel, 0.82).solid();
-    let rim = lit.over(p.dark, 0.22 * glow).solid();
-    let core = lit.over(p.metal, 0.34 * glow).solid();
-    let start = (sun - 180.).rem_euclid(360.) as f32;
-    clipped_to(snapshot, face.dial, |s| {
-        s.append_conic_gradient(
-            &square(face.dial),
-            &at(0., 0.),
-            start,
-            &sweep(&[
-                (0., edge),
-                (34., clear()),
-                (146., clear()),
-                (172., rim),
-                (180., core),
-                (188., rim),
-                (214., clear()),
-                (326., clear()),
-                (360., edge),
-            ]),
-        );
-    });
-}
-
-/// Brushing that fades toward the centre, then the matte chapter ring at the dial's edge.
-pub fn over(snapshot: &gtk::Snapshot, p: &Palette, face: &Face) {
-    let dial = face.dial;
-    clipped_to(snapshot, dial, |s| {
-        s.push_mask(gsk::MaskMode::Alpha);
-        let reach = (dial * std::f64::consts::SQRT_2) as f32;
-        s.append_radial_gradient(
-            &square(dial),
-            &at(0., 0.),
-            reach,
-            reach,
-            0.,
-            1.,
-            &[
-                stop(0., clear()),
-                stop(0.18, clear()),
-                stop(0.52, RGBA::new(0., 0., 0., 1.)),
-                stop(1., RGBA::new(0., 0., 0., 1.)),
-            ],
-        );
-        s.pop();
-        wedges(s, dial, 0.9, 0.45, &p.steel.alpha(0.05));
-        s.pop();
-    });
-    // The chapter ring: a matte step a few tenths of a millimetre below the dial.
-    let step = dial - 25.;
-    clipped_to(snapshot, dial, |s| {
-        s.push_mask(gsk::MaskMode::InvertedAlpha);
-        clipped_to(s, step, |s| {
-            s.append_color(&RGBA::new(0., 0., 0., 1.), &square(step));
+    let scale = face.scale();
+    clipped_to(snapshot, CHAPTER_INNER * scale, |s| {
+        s.save();
+        s.rotate(sun as f32);
+        s.push_opacity(0.55 * strength);
+        tinted(s, [lit.0, lit.1, lit.2], 1., |s| {
+            draw(s, &assets().sheen, &face.frame())
         });
         s.pop();
-        s.append_color(&p.darker.alpha(0.4), &square(dial));
-        s.pop();
+        s.restore();
     });
-    snapshot.append_outset_shadow(&disc(step), &p.steel.alpha(0.12), 0., -1., 0., 0.);
-    snapshot.append_outset_shadow(&disc(step), &BLACK.alpha(0.5), 0., 1., 0., 0.);
-    snapshot.append_inset_shadow(&disc(dial), &BLACK.alpha(0.3), 0., 0., 1., 0.);
 }
 
 /// The light: a soft wedge from the centre toward the choice and a pool where it lands.
@@ -273,27 +272,29 @@ pub fn light(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, sun: f64, glow:
             &square(dial),
             &at(0., 0.),
             (sun - 16.).rem_euclid(360.) as f32,
-            &sweep(&[
-                (0., clear()),
-                (10., tint(0.16)),
-                (16., tint(0.34)),
-                (22., tint(0.16)),
-                (32., clear()),
-                (360., clear()),
-            ]),
+            &[
+                stop(0., clear()),
+                stop(10. / 360., tint(0.16)),
+                stop(16. / 360., tint(0.44)),
+                stop(22. / 360., tint(0.16)),
+                stop(32. / 360., clear()),
+                stop(1., clear()),
+            ],
         );
         s.pop();
         let (x, y) = face.landing(sun);
+        // The pool is as wide as the sixth part of the dial, so it keeps its look at any size.
+        let reach = (220. * face.scale()).max(60.);
         s.append_radial_gradient(
-            &rect(x - 75., y - 75., 150., 150.),
+            &rect(x - reach, y - reach, 2. * reach, 2. * reach),
             &at(x, y),
-            75.,
-            75.,
+            reach as f32,
+            reach as f32,
             0.,
             1.,
             &[
-                stop(0., tint(0.5)),
-                stop(0.34, tint(0.18)),
+                stop(0., tint(0.8)),
+                stop(0.34, tint(0.3)),
                 stop(0.68, clear()),
                 stop(1., clear()),
             ],
@@ -308,7 +309,7 @@ pub fn bloom(snapshot: &gtk::Snapshot, strength: f64, paint: impl Fn(&gtk::Snaps
         return;
     }
     snapshot.push_opacity(strength.min(1.));
-    for radius in [20., 20., 6.] {
+    for radius in [10., 10., 4.] {
         snapshot.push_blur(radius);
         paint(snapshot);
         snapshot.pop();
@@ -317,246 +318,182 @@ pub fn bloom(snapshot: &gtk::Snapshot, strength: f64, paint: impl Fn(&gtk::Snaps
     snapshot.pop();
 }
 
-fn rounded(x: f64, y: f64, w: f64, h: f64, radius: f64) -> gsk::RoundedRect {
-    gsk::RoundedRect::from_rect(rect(x, y, w, h), radius as f32)
-}
-
-/// One applied index, in its own frame with twelve o'clock up and the lit edge to the left.
-fn applied_index(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, kind: Kind) {
-    let (inner, outer, width) = (face.inner(), face.outer(), face.width());
-    let length = outer - inner;
-    let body = rounded(-width / 2., -outer, width, length, (width / 2.).min(1.6));
-    let stops = [
-        stop(0., p.fg(96.).solid()),
-        stop(0.48, p.fg(74.).solid()),
-        stop(0.52, p.fg_dark(46.).solid()),
-        stop(1., p.fg_dark(30.).solid()),
-    ];
-    let gradient = |s: &gtk::Snapshot| {
-        s.append_linear_gradient(
-            &rect(-width / 2., -outer, width, length),
-            &at(-width / 2., 0.),
-            &at(width / 2., 0.),
-            &stops,
-        );
-    };
-    match kind {
-        Kind::Gone => {
-            // An empty setting: two tiny feet where the index was.
-            for y in [-outer + 5., -inner - 5.] {
-                let path = gsk::PathBuilder::new();
-                path.add_circle(&at(0., y), 1.6);
-                fill(snapshot, &path.to_path(), &p.darker.solid());
-            }
-        }
-        Kind::Draft => {
-            // Hollow: the facets drawn as an outline only.
-            snapshot.push_rounded_clip(&body);
-            snapshot.push_mask(gsk::MaskMode::InvertedAlpha);
-            snapshot.push_rounded_clip(&rounded(
-                -width / 2. + 1.6,
-                -outer + 1.6,
-                width - 3.2,
-                length - 3.2,
-                0.6,
-            ));
-            snapshot.append_color(
-                &RGBA::new(0., 0., 0., 1.),
-                &rect(-width, -outer, 2. * width, length),
-            );
-            snapshot.pop();
-            snapshot.pop();
-            gradient(snapshot);
-            snapshot.pop();
-            snapshot.pop();
-        }
-        Kind::Ready | Kind::Working | Kind::Blocked => {
-            snapshot.push_rounded_clip(&body);
-            gradient(snapshot);
-            snapshot.pop();
-            // A lume channel down the middle of every index.
-            let channel = if kind == Kind::Blocked {
-                p.warning.solid()
-            } else {
-                p.fg(82.).solid()
-            };
-            snapshot.push_rounded_clip(&rounded(-1.1, -outer + 5., 2.2, length - 10., 1.1));
-            snapshot.append_color(&channel, &rect(-2., -outer + 5., 4., length - 10.));
-            snapshot.pop();
-            if kind == Kind::Working {
-                let dot = gsk::PathBuilder::new();
-                dot.add_circle(&at(0., -inner + 9.), 3.);
-                fill(snapshot, &dot.to_path(), &p.working.solid());
-            }
-        }
-    }
-}
-
-/// The minute track and the applied indices, each with a drop shadow to the lower right.
-pub fn marks(snapshot: &gtk::Snapshot, p: &Palette, face: &Face) {
-    let dial = face.dial;
-    snapshot.push_opacity(0.5);
-    for minute in 0..60 {
-        let five = minute % 5 == 0;
-        let (from, to) = (dial - 9., dial - if five { 2. } else { 4. });
-        snapshot.save();
-        snapshot.rotate((f64::from(minute) * 6.) as f32);
-        let alpha = if five { 0.8 } else { 0.55 };
-        let width = if five { 1.2 } else { 0.8 };
-        snapshot.append_color(
-            &p.print.alpha(alpha),
-            &rect(-width / 2., -to, width, to - from),
-        );
-        snapshot.restore();
-    }
-    snapshot.append_border(
-        &disc(dial - 9.),
-        &[0.8; 4],
-        &[
-            p.print.alpha(0.28),
-            p.print.alpha(0.28),
-            p.print.alpha(0.28),
-            p.print.alpha(0.28),
-        ],
+/// One baked index: the nearest of the 24 views, turned by the few degrees left over. Lighting is
+/// fixed in screen space, so a view is never turned further than half a step.
+fn index_view(snapshot: &gtk::Snapshot, atlas: &gdk::Texture, face: &Face, angle: f64) {
+    let scale = face.scale();
+    let nearest = (angle.rem_euclid(360.) / 15.).round();
+    let residual = angle.rem_euclid(360.) - nearest * 15.;
+    let index = nearest as usize % CELLS;
+    let (column, row) = (index % ATLAS_COLUMNS, index / ATLAS_COLUMNS);
+    let (cx, cy) = point(angle, INDEX_MID * scale);
+    let cell = CELL * scale;
+    snapshot.save();
+    snapshot.translate(&at(cx, cy));
+    snapshot.rotate(residual as f32);
+    snapshot.push_clip(&rect(-cell / 2., -cell / 2., cell, cell));
+    draw(
+        snapshot,
+        atlas,
+        &rect(
+            -(column as f64 + 0.5) * cell,
+            -(row as f64 + 0.5) * cell,
+            768. * scale,
+            512. * scale,
+        ),
     );
     snapshot.pop();
-    snapshot.push_shadow(&[gsk::Shadow::new(BLACK.alpha(0.7), 1.2, 2.2, 1.2)]);
-    for (angle, kind) in &face.marks {
-        snapshot.save();
-        snapshot.rotate(*angle as f32);
-        applied_index(snapshot, p, face, *kind);
-        snapshot.restore();
-    }
-    snapshot.pop();
+    snapshot.restore();
 }
 
-/// The chosen index lit by the light: a filled body and a bright lume core.
+/// The recess down the middle of an index, filled with `color`.
+fn lume_channel(snapshot: &gtk::Snapshot, face: &Face, angle: f64, color: &RGBA, widen: f64) {
+    let scale = face.scale();
+    let width = LUME_WIDTH * scale * widen;
+    snapshot.save();
+    snapshot.rotate(angle as f32);
+    snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(
+        rect(
+            -width / 2.,
+            -LUME_OUTER * scale,
+            width,
+            (LUME_OUTER - LUME_INNER) * scale,
+        ),
+        (width / 2.) as f32,
+    ));
+    snapshot.append_color(
+        color,
+        &rect(
+            -width,
+            -LUME_OUTER * scale,
+            2. * width,
+            (LUME_OUTER - LUME_INNER) * scale,
+        ),
+    );
+    snapshot.pop();
+    snapshot.restore();
+}
+
+fn dot_at(face: &Face, angle: f64) -> (f64, f64, f64) {
+    let scale = face.scale();
+    let (x, y) = point(angle, DOT_RADIUS_AT * scale);
+    (x, y, (6. * scale).max(2.5))
+}
+
+/// The applied indices and their dim lume, set once. A working index has its dot and a blocked
+/// one amber lume, both blooming; a draft is hollow; a gone session leaves an empty setting.
+pub fn marks(snapshot: &gtk::Snapshot, p: &Palette, face: &Face) {
+    let assets = assets();
+    let scale = face.scale();
+    let dim = p.steel.alpha(0.42);
+    for (angle, kind) in &face.marks {
+        match kind {
+            Kind::Gone => {
+                // An empty setting: two tiny feet where the index was.
+                for radius in [INDEX_OUTER - 8., INDEX_INNER + 8.] {
+                    let (x, y) = point(*angle, radius * scale);
+                    let foot = gsk::PathBuilder::new();
+                    foot.add_circle(&at(x, y), (2. * scale).max(1.4) as f32);
+                    fill(snapshot, &foot.to_path(), &p.darker.solid());
+                }
+            }
+            Kind::Draft => index_view(snapshot, &assets.hollow, face, *angle),
+            Kind::Ready | Kind::Working | Kind::Blocked => {
+                index_view(snapshot, &assets.atlas, face, *angle);
+                if *kind == Kind::Blocked {
+                    let warn = p.warning.solid();
+                    lume_channel(snapshot, face, *angle, &warn, 1.);
+                    bloom(snapshot, 0.8, |s| lume_channel(s, face, *angle, &warn, 1.));
+                } else {
+                    lume_channel(snapshot, face, *angle, &dim, 1.);
+                }
+                if *kind == Kind::Working {
+                    let (x, y, radius) = dot_at(face, *angle);
+                    let dot = |s: &gtk::Snapshot| {
+                        let path = gsk::PathBuilder::new();
+                        path.add_circle(&at(x, y), radius as f32);
+                        fill(s, &path.to_path(), &p.working.solid());
+                    };
+                    dot(snapshot);
+                    bloom(snapshot, 0.8, dot);
+                }
+            }
+        }
+    }
+}
+
+/// The chosen index lit by the light: its lume in the light's colour.
 pub fn lit_index(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, angle: f64, kind: Kind) {
     let lit = if face.warn { p.warn_lit } else { p.lit };
-    let (inner, outer, width) = (face.inner(), face.outer(), face.width());
-    snapshot.save();
-    snapshot.rotate(angle as f32);
+    let scale = face.scale();
     if kind == Kind::Gone {
+        let (x, y) = point(angle, INDEX_MID * scale);
         let ring = gsk::PathBuilder::new();
-        ring.add_circle(&at(0., -(inner + outer) / 2.), 4.);
+        ring.add_circle(&at(x, y), (8. * scale).max(3.) as f32);
         snapshot.append_stroke(&ring.to_path(), &gsk::Stroke::new(1.5), &lit.solid());
     } else {
-        snapshot.push_rounded_clip(&rounded(-width / 2., -outer, width, outer - inner, 1.6));
-        snapshot.append_color(
-            &lit.alpha(0.55),
-            &rect(-width / 2., -outer, width, outer - inner),
-        );
-        snapshot.pop();
-        snapshot.push_rounded_clip(&rounded(-1.7, -outer + 4., 3.4, outer - inner - 8., 1.7));
-        snapshot.append_color(
-            &lit.solid(),
-            &rect(-2., -outer + 4., 4., outer - inner - 8.),
-        );
-        snapshot.pop();
+        let widen = if kind == Kind::Draft { 1.8 } else { 1.5 };
+        lume_channel(snapshot, face, angle, &lit.solid(), widen);
     }
-    snapshot.restore();
 }
 
-/// The faceted dauphine hand: a lit half and a shaded half, with its shadow on the dial.
-pub fn hand(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, angle: f64) {
-    let (length, half) = (face.hand_length(), 10.);
-    snapshot.push_shadow(&[gsk::Shadow::new(BLACK.alpha(0.55), 4., 7., 3.5)]);
+/// The faceted hand and its shadow on the dial. The lit and shaded facets trade places as it
+/// turns, against the fixed light from the upper left.
+pub fn hand(snapshot: &gtk::Snapshot, face: &Face, angle: f64) {
+    let assets = assets();
+    let scale = face.scale();
+    let bounds = hand_box(scale);
+    // The shadow falls to the lower right on the screen, whatever way the hand points.
+    snapshot.save();
+    snapshot.translate(&at(SHADOW_OFFSET.0 * scale, SHADOW_OFFSET.1 * scale));
+    snapshot.rotate(angle as f32);
+    tinted(snapshot, [0., 0., 0.], 0.6, |s| {
+        draw(s, &assets.shadow, &bounds)
+    });
+    snapshot.restore();
     snapshot.save();
     snapshot.rotate(angle as f32);
-    fill(
-        snapshot,
-        &polygon(&[(0., -length), (-half, 0.), (0., 14.)]),
-        &p.fg(94.).solid(),
-    );
-    fill(
-        snapshot,
-        &polygon(&[(0., -length), (half, 0.), (0., 14.)]),
-        &p.fg_dark(48.).solid(),
-    );
+    draw(snapshot, &assets.hand, &bounds);
+    for (facet, normal) in [
+        (&assets.facet_left, angle - 90.),
+        (&assets.facet_right, angle + 90.),
+    ] {
+        let facing = (normal - LIGHT_BEARING).to_radians().cos() as f32;
+        if facing > 0. {
+            snapshot.push_opacity(f64::from(0.45 * facing));
+            draw(snapshot, facet, &bounds);
+            snapshot.pop();
+        } else {
+            tinted(snapshot, [0., 0., 0.], 0.5 * -facing, |s| {
+                draw(s, facet, &bounds)
+            });
+        }
+    }
     snapshot.restore();
-    snapshot.pop();
 }
 
 /// The lume channel down the hand, glowing.
 pub fn hand_lume(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, angle: f64) {
     let lit = if face.warn { p.warn_lit } else { p.lit };
-    let length = face.hand_length();
+    let bounds = hand_box(face.scale());
     bloom(snapshot, 0.9, |s| {
         s.save();
         s.rotate(angle as f32);
-        fill(
-            s,
-            &polygon(&[
-                (0., -length + 22.),
-                (-2.4, -length * 0.32),
-                (0., -length * 0.28),
-                (2.4, -length * 0.32),
-            ]),
-            &lit.solid(),
-        );
+        tinted(s, [lit.0, lit.1, lit.2], 1., |s| {
+            draw(s, &assets().lume, &bounds)
+        });
         s.restore();
     });
 }
 
-/// A polished, domed pin where the hand turns.
-pub fn cap(snapshot: &gtk::Snapshot, p: &Palette) {
-    snapshot.push_shadow(&[gsk::Shadow::new(BLACK.alpha(0.7), 1.2, 2.2, 1.2)]);
-    snapshot.push_rounded_clip(&disc(11.));
-    snapshot.append_radial_gradient(
-        &square(11.),
-        &at(-11. * 0.24, -11. * 0.32),
-        11. * 1.4,
-        11. * 1.4,
-        0.,
-        1.,
-        &[
-            stop(0., p.steel.solid()),
-            stop(0.55, p.fg(55.).solid()),
-            stop(1., p.fg_dark(22.).solid()),
-        ],
-    );
-    snapshot.pop();
-    snapshot.pop();
-    let pin = gsk::PathBuilder::new();
-    pin.add_circle(&at(0., 0.), 2.6);
-    fill(snapshot, &pin.to_path(), &p.darker.solid());
+/// The polished pin where the hand turns.
+pub fn cap(snapshot: &gtk::Snapshot, face: &Face) {
+    draw(snapshot, &assets().cap, &hand_box(face.scale()));
 }
 
-/// The domed crystal: a reflection across the upper left and a thin bright edge.
-pub fn crystal(snapshot: &gtk::Snapshot, p: &Palette, face: &Face) {
-    let rim = face.rim();
-    let size = 2. * rim;
-    clipped_to(snapshot, rim, |s| {
-        s.append_radial_gradient(
-            &square(rim),
-            &at(-rim + size * 0.34, -rim + size * 0.22),
-            (size * 0.72) as f32,
-            (size * 0.46) as f32,
-            0.,
-            1.,
-            &[
-                stop(0., p.steel.alpha(0.09)),
-                stop(0.7, clear()),
-                stop(1., clear()),
-            ],
-        );
-        s.append_radial_gradient(
-            &square(rim),
-            &at(-rim + size * 0.7, -rim + size * 0.85),
-            (size * 1.2) as f32,
-            (size * 1.2) as f32,
-            0.,
-            1.,
-            &[
-                stop(0., clear()),
-                stop(0.62, clear()),
-                stop(0.7, p.steel.alpha(0.05)),
-                stop(0.74, clear()),
-                stop(1., clear()),
-            ],
-        );
-    });
-    snapshot.append_inset_shadow(&disc(rim), &p.steel.alpha(0.1), 0., 0., 1., 0.);
+/// The domed crystal with its Fresnel reflections, over everything on the dial.
+pub fn crystal(snapshot: &gtk::Snapshot, face: &Face) {
+    draw(snapshot, &assets().crystal, &face.frame());
 }
 
 /// A tile of faint noise that dithers the room's lift, so it never bands.

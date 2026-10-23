@@ -18,7 +18,7 @@ mod stage;
 mod watch;
 
 use stage::{Area, Hit, Scene, Stage};
-use watch::{CASE_BAND, Face, Kind};
+use watch::{Face, Kind, case_radius};
 
 /// Selection keys clockwise from one o'clock: the home row, then the top and bottom rows.
 pub const KEYS: [char; 26] = [
@@ -101,7 +101,7 @@ pub fn arrange(sizes: &[(f64, f64)], room: (f64, f64)) -> Arrangement {
 
 fn layout(sizes: &[(f64, f64)], dial: f64) -> Vec<Placement> {
     let count = sizes.len();
-    let case = dial + CASE_BAND;
+    let case = case_radius(dial);
     let reach = case + NAME_GAP;
     let clear = case + NAME_CLEARANCE;
     let mut labels: Vec<Placement> = (0..count)
@@ -939,7 +939,7 @@ impl Default for SessionWheel {
 /// Stage size and its top-left corner relative to the ring centre, margin included. The watch
 /// stays centred, so the stage reaches as far on each side as the names reach on the wider one.
 fn stage_bounds(dial: f64, labels: &[Placement]) -> (f64, f64, (f64, f64)) {
-    let ring = dial + CASE_BAND + 8.;
+    let ring = case_radius(dial) + 8.;
     let (mut across, mut down) = (ring, ring);
     for label in labels {
         across = across.max(-label.x).max(label.x + label.width);
@@ -990,7 +990,7 @@ mod tests {
     fn names_never_overlap_each_other_or_the_case() {
         for count in 1..=KEYS.len() {
             let arrangement = arrange(&sizes(count), LAPTOP);
-            let clear = arrangement.dial + CASE_BAND + NAME_CLEARANCE;
+            let clear = case_radius(arrangement.dial) + NAME_CLEARANCE;
             for (index, label) in arrangement.labels.iter().enumerate() {
                 // The nearest point of every box stays outside the case.
                 let dx = 0_f64.clamp(label.x, label.x + label.width);
@@ -1050,7 +1050,7 @@ mod tests {
     fn a_name_stays_near_its_own_index() {
         let one_line = vec![(220., 52.); 20];
         let arrangement = arrange(&one_line, LAPTOP);
-        let reach = arrangement.dial + CASE_BAND + NAME_GAP;
+        let reach = case_radius(arrangement.dial) + NAME_GAP;
         for label in &arrangement.labels {
             let (_, anchor_y) = watch::point(label.angle, reach);
             let centre = label.y + label.height / 2.;
