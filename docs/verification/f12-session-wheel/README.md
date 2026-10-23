@@ -17,7 +17,7 @@ A session without a title shows its Herdr agent name, then its pane ID. This is 
 
 On Omarchy the wheel floats over the desktop like Omarchy's own launcher, with no window, frame or card. It is a wlr-layer-shell overlay that covers the focused monitor, panels included, and takes the keyboard while it is shown.
 
-The room is one opaque ground in the theme's canvas, darkened a little, with a faint lift around the watch and a soft vignette at the edges. It is smooth: a one-level dither, invisible to the eye, keeps it from banding, and the case casts a large soft shadow to the lower right, and nothing on the desktop shows through behind a name. Mluva's managed Hyprland Lua also gives the `mluva-session-wheel` namespace a `no_anim` layer rule, as Omarchy does for its own menus, so the wheel appears with no compositor fade of its own; the watch then fades in over at most 160 ms. The rule is kept as one handle across reloads: a live rule is reused, a switched-off one is switched on and a rule the compositor dropped is made again, so reloads never stack duplicates. Clicking anywhere outside a control dismisses the overlay, like Escape.
+The room is one opaque ground in the theme's canvas, darkened a little, with a faint lift around the watch and a soft vignette at the edges. It is smooth: the ground, the vignette and the case's large soft shadow to the lower right are computed in floating point once per size and scale and quantised once with triangular dither, so no ring shows even under a contrast stretch ([before and after](stretch-room-before-after.png)); the dial is tinted and dithered the same way ([before and after](stretch-dial-before-after.png)), and nothing on the desktop shows through behind a name. Mluva's managed Hyprland Lua also gives the `mluva-session-wheel` namespace a `no_anim` layer rule, as Omarchy does for its own menus, so the wheel appears with no compositor fade of its own; the watch then fades in over at most 160 ms. The rule is kept as one handle across reloads: a live rule is reused, a switched-off one is switched on and a rule the compositor dropped is made again, so reloads never stack duplicates. Clicking anywhere outside a control dismisses the overlay, like Escape.
 
 On X11, or on compositors without layer-shell, the same wheel opens as an ordinary frameless dialog on the same ground. The offscreen tests use that path.
 
@@ -101,7 +101,7 @@ Daniel confirmed eleven artifacts of the previous wheel; each is gone, and the c
 | Artifact | Now |
 | --- | --- |
 | A1: desktop text ghosting behind names | The room is opaque; nothing behind it shows. |
-| A2: banding in the scrim | One smooth ground with a faint lift and a soft vignette, dithered by one level of noise. |
+| A2: banding in the scrim | One smooth ground, vignette and shadow computed in floating point and dithered once at 8 bit. |
 | A3: the accent needle arc | A hand and a light, with no arc. |
 | A4: a box around the chosen name | The chosen name is larger and semibold; nothing is boxed. |
 | A5: leader lines from mark to name | None. Each name stands on its index's bearing. |

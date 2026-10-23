@@ -92,8 +92,22 @@ impl Layer {
     }
 }
 
+#[derive(PartialEq)]
+struct RoomKey {
+    size: (usize, usize),
+    scale: f64,
+    centre: (f64, f64),
+    dial: f64,
+    tokens: Option<Tokens>,
+}
+
+#[derive(PartialEq)]
+struct DialKey {
+    side: usize,
+    tint: Rgb,
+}
+
 struct Layers {
-    shadow: Layer,
     under: Layer,
     marks: Layer,
     cap: Layer,
@@ -135,7 +149,8 @@ mod imp {
         pub palette: RefCell<Option<Palette>>,
         pub tokens: Cell<Option<Tokens>>,
         pub(super) layers: RefCell<Option<Layers>>,
-        pub grain: RefCell<Option<gdk::Texture>>,
+        pub(super) room: RefCell<Option<(RoomKey, gdk::Texture)>>,
+        pub(super) dial: RefCell<Option<(DialKey, gdk::Texture)>>,
         pub(super) motion: RefCell<Motion>,
         pub tick: RefCell<Option<gtk::TickCallbackId>>,
     }
@@ -251,24 +266,25 @@ mod imp {
             }
             let palette = self.palette.borrow();
             let palette = palette.as_ref().expect("palette set above");
-            let grain = self
-                .grain
-                .borrow_mut()
-                .get_or_insert_with(watch::grain)
-                .clone();
             let centre = self.centre.get();
             let motion = self.motion.borrow();
             snapshot.push_opacity(motion.open);
-            watch::room(snapshot, palette, size, centre, &grain);
             let arrangement = self.arrangement.borrow();
             let face = &arrangement.face;
+            let room = self.room_texture(palette, face, size, centre);
+            snapshot.append_scaled_texture(
+                &room,
+                gsk::ScalingFilter::Linear,
+                &graphene::Rect::new(0., 0., size.0 as f32, size.1 as f32),
+            );
             if face.dial > 0. {
+                let dial = self.dial_texture(palette, face);
                 self.ensure_layers(face);
                 let layers = self.layers.borrow();
                 let layers = layers.as_ref().expect("layers recorded above");
                 snapshot.save();
                 snapshot.translate(&graphene::Point::new(centre.0 as f32, centre.1 as f32));
-                paint_watch(snapshot, palette, face, layers, &motion);
+                paint_watch(snapshot, &dial, palette, face, layers, &motion);
                 snapshot.restore();
             }
             drop(motion);
@@ -279,6 +295,58 @@ mod imp {
     }
 
     impl Stage {
+        /// The room, computed once per size, scale, watch and palette.
+        fn room_texture(
+            &self,
+            palette: &Palette,
+            face: &Face,
+            size: (f64, f64),
+            centre: (f64, f64),
+        ) -> gdk::Texture {
+            let scale = f64::from(self.obj().scale_factor().max(1));
+            let key = RoomKey {
+                size: (
+                    (size.0 * scale).round() as usize,
+                    (size.1 * scale).round() as usize,
+                ),
+                scale,
+                centre,
+                dial: face.dial,
+                tokens: self.tokens.get(),
+            };
+            let mut cached = self.room.borrow_mut();
+            if let Some((current, texture)) = cached.as_ref()
+                && *current == key
+            {
+                return texture.clone();
+            }
+            let texture = watch::room_texture(
+                palette,
+                face,
+                key.size,
+                (centre.0 * scale, centre.1 * scale),
+                scale,
+            );
+            *cached = Some((key, texture.clone()));
+            texture
+        }
+        /// The tinted dial at the pixels it covers on screen.
+        fn dial_texture(&self, palette: &Palette, face: &Face) -> gdk::Texture {
+            let scale = f64::from(self.obj().scale_factor().max(1));
+            let key = DialKey {
+                side: (2048. * face.dial / 753.6 * scale).round() as usize,
+                tint: palette.dial_tint,
+            };
+            let mut cached = self.dial.borrow_mut();
+            if let Some((current, texture)) = cached.as_ref()
+                && *current == key
+            {
+                return texture.clone();
+            }
+            let texture = watch::dial_texture(key.tint, key.side);
+            *cached = Some((key, texture.clone()));
+            texture
+        }
         fn ensure_layers(&self, face: &Face) {
             let stage = self.obj();
             let scale = stage.scale_factor().max(1);
@@ -299,10 +367,7 @@ mod imp {
                 Layer::record(area, scale_f, renderer.as_ref(), paint)
             };
             let layers = Layers {
-                shadow: Layer::record(face.shadow_frame(), scale_f, renderer.as_ref(), |s| {
-                    watch::shadow(s, face)
-                }),
-                under: layer(&|s| watch::under(s, palette, face)),
+                under: layer(&|s| watch::under(s, face)),
                 marks: layer(&|s| watch::marks(s, palette, face)),
                 cap: layer(&|s| watch::cap(s, palette, face)),
                 crystal: layer(&|s| watch::crystal(s, face)),
@@ -317,6 +382,7 @@ mod imp {
 /// The light, the bloom and the hand over the cached case, dial and indices.
 fn paint_watch(
     snapshot: &gtk::Snapshot,
+    dial: &gdk::Texture,
     palette: &Palette,
     face: &Face,
     layers: &Layers,
@@ -328,8 +394,8 @@ fn paint_watch(
     // The bar of a sunray dial always catches a little light, more when one is chosen.
     let bar = 0.3 + 0.7 * motion.glow;
     snapshot.push_blend(gsk::BlendMode::Screen);
-    layers.shadow.append(snapshot);
     layers.under.append(snapshot);
+    snapshot.append_scaled_texture(dial, gsk::ScalingFilter::Linear, &face.frame());
     snapshot.pop();
     watch::sheen(snapshot, palette, face, motion.sun, bar);
     watch::light(snapshot, palette, face, motion.sun, motion.glow);

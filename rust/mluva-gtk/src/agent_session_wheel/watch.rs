@@ -105,7 +105,8 @@ impl Face {
 /// The baked textures, decoded once per process.
 pub struct Assets {
     case: gdk::Texture,
-    dial: gdk::Texture,
+    /// The dial's luminance and alpha, straight RGBA, with its side in pixels.
+    dial_pixels: (Vec<u8>, usize),
     sheen: gdk::Texture,
     crystal: gdk::Texture,
     atlas: gdk::Texture,
@@ -130,7 +131,13 @@ macro_rules! texture {
 pub fn assets() -> Rc<Assets> {
     thread_local!(static ASSETS: Rc<Assets> = Rc::new(Assets {
         case: texture!("case.png"),
-        dial: texture!("dial-luma.png"),
+        dial_pixels: {
+            let texture = texture!("dial-luma.png");
+            let mut downloader = gdk::TextureDownloader::new(&texture);
+            downloader.set_format(gdk::MemoryFormat::R8g8b8a8);
+            let (bytes, _) = downloader.download_bytes();
+            (bytes.to_vec(), texture.width() as usize)
+        },
         sheen: texture!("sheen.png"),
         crystal: texture!("crystal.png"),
         atlas: texture!("index-atlas.png"),
@@ -215,30 +222,8 @@ fn hand_box(scale: f64) -> graphene::Rect {
     )
 }
 
-/// A large soft shadow under the case, falling to the lower right.
-pub fn shadow(snapshot: &gtk::Snapshot, face: &Face) {
-    let scale = face.scale();
-    let case = face.case();
-    snapshot.append_outset_shadow(
-        &disc(case),
-        &RGBA::new(0., 0., 0., 0.6),
-        (70. * scale) as f32,
-        (130. * scale) as f32,
-        0.,
-        (260. * scale) as f32,
-    );
-    snapshot.append_outset_shadow(
-        &disc(case),
-        &RGBA::new(0., 0., 0., 0.45),
-        (14. * scale) as f32,
-        (26. * scale) as f32,
-        0.,
-        (50. * scale) as f32,
-    );
-}
-
-/// The case with its contact shadow, and the dial tinted to the theme.
-pub fn under(snapshot: &gtk::Snapshot, p: &Palette, face: &Face) {
+/// The case with its contact shadow.
+pub fn under(snapshot: &gtk::Snapshot, face: &Face) {
     let assets = assets();
     let frame = face.frame();
     let half = (FRAME / 2. * face.scale()) as f32;
@@ -261,11 +246,6 @@ pub fn under(snapshot: &gtk::Snapshot, p: &Palette, face: &Face) {
     // The case is lifted so its steel reads as lit metal; the gasket stays darker than it.
     lifted(snapshot, CASE_GAIN, 0.03, |s| draw(s, &assets.case, &frame));
     snapshot.pop();
-    // The dial is a luminance map: colour = tint · luma / 0.5, so a mean luma lands on the tint.
-    let tint = p.dial_tint;
-    tinted(snapshot, [tint.0 * 2., tint.1 * 2., tint.2 * 2.], 1., |s| {
-        draw(s, &assets.dial, &frame)
-    });
 }
 
 /// The sunray sheen: a bright bar through the centre that turns to face the light.
@@ -399,9 +379,9 @@ fn index_view(snapshot: &gtk::Snapshot, atlas: &gdk::Texture, face: &Face, angle
 /// The recess down the middle of an index, filled with `color`.
 fn lume_channel(snapshot: &gtk::Snapshot, face: &Face, angle: f64, color: &RGBA, widen: f64) {
     let scale = face.scale();
-    // A hair narrower than the recess, so a thin dark outline remains, with a fainter wider pass
-    // for a soft edge.
-    let core = (LUME_WIDTH * scale * widen - 1.5).max(1.6);
+    // Almost flush with the recess (at most half a pixel of dark edge), with a fainter wider
+    // pass for a soft edge, so each index reads as one baton with a lighter line.
+    let core = (LUME_WIDTH * scale * widen * 1.45 - 0.5).max(1.6);
     snapshot.save();
     snapshot.rotate(angle as f32);
     for (width, alpha) in [(core + 1.2, 0.35), (core, 1.)] {
@@ -636,69 +616,168 @@ pub fn crystal(snapshot: &gtk::Snapshot, face: &Face) {
     draw(snapshot, &assets().crystal, &face.frame());
 }
 
-/// A tile of noise of one level, invisible to the eye, that dithers the room's lift so it never bands.
-pub fn grain() -> gdk::Texture {
-    const SIDE: usize = 128;
-    let mut state = 0x2545_f491_4f6c_dd1du64;
-    let mut pixels = Vec::with_capacity(SIDE * SIDE * 4);
-    for _ in 0..SIDE * SIDE {
-        state ^= state << 13;
-        state ^= state >> 7;
-        state ^= state << 17;
-        let level = (state >> 56) as u8;
-        // Premultiplied grey at a low alpha: half the tile lightens, half darkens.
-        let alpha = 1u8;
-        let grey = if level > 127 { alpha } else { 0 };
-        pixels.extend_from_slice(&[grey, grey, grey, alpha]);
-    }
+/// Triangular-PDF noise of ±1 level for one channel of one pixel, from a hash of its place.
+fn dither(x: usize, y: usize, channel: usize) -> f32 {
+    let hash = |salt: u64| {
+        let mut h = (x as u64).wrapping_mul(0x9E37_79B9_7F4A_7C15)
+            ^ (y as u64).wrapping_mul(0xC2B2_AE3D_27D4_EB4F)
+            ^ (channel as u64 + salt).wrapping_mul(0x1656_67B1_9E37_79F9);
+        h ^= h >> 29;
+        h = h.wrapping_mul(0xBF58_476D_1CE4_E5B9);
+        h ^= h >> 32;
+        (h >> 40) as f32 / (1u64 << 24) as f32
+    };
+    hash(1) - hash(2)
+}
+
+fn quantise(value: f32, x: usize, y: usize, channel: usize) -> u8 {
+    (value * 255. + dither(x, y, channel))
+        .round()
+        .clamp(0., 255.) as u8
+}
+
+/// Fill `rows` rows of `width` pixels with `shade(x, y) -> [r, g, b, a]`, split across threads.
+fn paint_rows(
+    width: usize,
+    height: usize,
+    shade: impl Fn(usize, usize) -> [u8; 4] + Sync,
+) -> Vec<u8> {
+    let mut pixels = vec![0u8; width * height * 4];
+    let threads = std::thread::available_parallelism()
+        .map_or(4, |n| n.get())
+        .min(16);
+    let rows = height.div_ceil(threads).max(1);
+    std::thread::scope(|scope| {
+        for (chunk, band) in pixels.chunks_mut(rows * width * 4).enumerate() {
+            let shade = &shade;
+            scope.spawn(move || {
+                for (row, line) in band.chunks_mut(width * 4).enumerate() {
+                    let y = chunk * rows + row;
+                    for (x, pixel) in line.chunks_mut(4).enumerate() {
+                        pixel.copy_from_slice(&shade(x, y));
+                    }
+                }
+            });
+        }
+    });
+    pixels
+}
+
+fn texture_of(
+    pixels: Vec<u8>,
+    width: usize,
+    height: usize,
+    format: gdk::MemoryFormat,
+) -> gdk::Texture {
     gdk::MemoryTexture::new(
-        SIDE as i32,
-        SIDE as i32,
-        gdk::MemoryFormat::R8g8b8a8Premultiplied,
+        width as i32,
+        height as i32,
+        format,
         &glib::Bytes::from_owned(pixels),
-        SIDE * 4,
+        width * 4,
     )
     .upcast()
 }
 
-/// The opaque room: one ground, a faint lift around the watch and grain over both.
-pub fn room(
-    snapshot: &gtk::Snapshot,
+/// Gaussian-blurred edge of a disc: how much of a shadow of radius `radius` and blur `sigma`
+/// covers a point `distance` from its centre.
+fn blurred_disc(distance: f32, radius: f32, sigma: f32) -> f32 {
+    // 0.5 · erfc(x / √2σ), by the Abramowitz and Stegun approximation of erf.
+    let x = (distance - radius) / (sigma * std::f32::consts::SQRT_2);
+    let t = 1. / (1. + 0.327_591_1 * x.abs());
+    let poly = t
+        * (0.254_829_6
+            + t * (-0.284_496_74 + t * (1.421_413_8 + t * (-1.453_152_1 + t * 1.061_405_4))));
+    let erfc_abs = poly * (-x * x).exp();
+    if x >= 0. {
+        0.5 * erfc_abs
+    } else {
+        1. - 0.5 * erfc_abs
+    }
+}
+
+/// The room: one opaque ground, a faint lift around the watch, a soft vignette and the case's
+/// large soft shadow to the lower right, computed in floating point and quantised once with
+/// triangular dither, so it shows no banding at any contrast. `width`, `height` and `centre` are
+/// in device pixels and `scale` is the device pixels per logical pixel.
+pub fn room_texture(
     p: &Palette,
-    (width, height): (f64, f64),
+    face: &Face,
+    (width, height): (usize, usize),
     centre: (f64, f64),
-    grain: &gdk::Texture,
-) {
-    let bounds = rect(0., 0., width, height);
-    snapshot.append_color(&p.room.solid(), &bounds);
-    let reach = (height.max(width) * 0.46) as f32;
-    snapshot.append_radial_gradient(
-        &bounds,
-        &at(centre.0, centre.1),
-        reach,
-        reach,
-        0.,
-        1.,
-        &[stop(0., p.room_lift.solid()), stop(1., p.room.alpha(0.))],
-    );
-    // A soft vignette: the edges fall away to a darker slate.
-    let far = (width.hypot(height) / 2.) as f32;
-    snapshot.append_radial_gradient(
-        &bounds,
-        &at(centre.0, centre.1),
-        far,
-        far,
-        0.,
-        1.,
-        &[
-            stop(0., clear()),
-            stop(0.5, clear()),
-            stop(1., RGBA::new(0., 0., 0., 0.4)),
-        ],
-    );
-    snapshot.push_repeat(&bounds, None);
-    snapshot.append_texture(grain, &rect(0., 0., 128., 128.));
-    snapshot.pop();
+    scale: f64,
+) -> gdk::Texture {
+    let (cx, cy) = (centre.0 as f32, centre.1 as f32);
+    let reach = width.max(height) as f32 * 0.46;
+    let far = (width as f32).hypot(height as f32) / 2.;
+    let unit = (face.scale() * scale) as f32;
+    let case = face.case() as f32 * scale as f32;
+    // (dx, dy, sigma, strength) in pixels, as a large soft shadow and a tighter contact one.
+    let shadows: [(f32, f32, f32, f32); 2] = [
+        (70. * unit, 130. * unit, 130. * unit, 0.6),
+        (14. * unit, 26. * unit, 25. * unit, 0.45),
+    ];
+    let (room, lift) = (p.room, p.room_lift);
+    let pixels = paint_rows(width, height, |x, y| {
+        let (dx, dy) = (x as f32 + 0.5 - cx, y as f32 + 0.5 - cy);
+        let r = dx.hypot(dy);
+        let t = (r / reach).clamp(0., 1.);
+        let mut c = [
+            room.0 * t + lift.0 * (1. - t),
+            room.1 * t + lift.1 * (1. - t),
+            room.2 * t + lift.2 * (1. - t),
+        ];
+        let edge = ((r / far - 0.5) / 0.5).clamp(0., 1.);
+        let mut keep = 1. - 0.4 * edge * edge * (3. - 2. * edge);
+        if face.dial > 0. {
+            for (sx, sy, sigma, strength) in shadows {
+                let d = (dx - sx).hypot(dy - sy);
+                keep *= 1. - strength * blurred_disc(d, case, sigma);
+            }
+        }
+        for v in &mut c {
+            *v *= keep;
+        }
+        [
+            quantise(c[0], x, y, 0),
+            quantise(c[1], x, y, 1),
+            quantise(c[2], x, y, 2),
+            255,
+        ]
+    });
+    texture_of(pixels, width, height, gdk::MemoryFormat::R8g8b8a8)
+}
+
+/// The dial: its luminance map resampled to `side` pixels, tinted (colour = tint · luma / 0.5)
+/// in floating point and quantised once with dither, so the navy never steps.
+pub fn dial_texture(tint: super::palette::Rgb, side: usize) -> gdk::Texture {
+    let assets = assets();
+    let (source, size) = (&assets.dial_pixels.0, assets.dial_pixels.1);
+    let at = |x: usize, y: usize| {
+        let i = (y.min(size - 1) * size + x.min(size - 1)) * 4;
+        (f32::from(source[i]) / 255., f32::from(source[i + 3]) / 255.)
+    };
+    let step = size as f32 / side as f32;
+    let pixels = paint_rows(side, side, |x, y| {
+        // Bilinear sample at the pixel's centre in the source.
+        let (fx, fy) = ((x as f32 + 0.5) * step - 0.5, (y as f32 + 0.5) * step - 0.5);
+        let (x0, y0) = (fx.floor().max(0.), fy.floor().max(0.));
+        let (wx, wy) = ((fx - x0).clamp(0., 1.), (fy - y0).clamp(0., 1.));
+        let (x0, y0) = (x0 as usize, y0 as usize);
+        let mix = |pick: fn((f32, f32)) -> f32| {
+            let top = pick(at(x0, y0)) * (1. - wx) + pick(at(x0 + 1, y0)) * wx;
+            let bottom = pick(at(x0, y0 + 1)) * (1. - wx) + pick(at(x0 + 1, y0 + 1)) * wx;
+            top * (1. - wy) + bottom * wy
+        };
+        let (luma, alpha) = (mix(|v| v.0), mix(|v| v.1));
+        [
+            quantise(tint.0 * 2. * luma, x, y, 0),
+            quantise(tint.1 * 2. * luma, x, y, 1),
+            quantise(tint.2 * 2. * luma, x, y, 2),
+            (alpha * 255.).round() as u8,
+        ]
+    });
+    texture_of(pixels, side, side, gdk::MemoryFormat::R8g8b8a8)
 }
 
 /// Smallest angle between two bearings.
