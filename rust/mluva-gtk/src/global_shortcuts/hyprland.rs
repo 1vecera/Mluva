@@ -6,6 +6,11 @@ use std::{path::PathBuf, time::Duration};
 
 const HEADER: &str = "-- Mluva managed portal bindings v1\n";
 const PREFIX: &str = "Mluva portal: ";
+/// The session wheel appears at once, as Omarchy's own menus do, with no compositor fade. One
+/// handle is kept across reloads: a live rule is reused and a rule the compositor dropped is
+/// made again, so rules never stack. It runs under `pcall`, and after the bindings, so a
+/// Hyprland without the layer-rule API, or an error in it, can never stop the bindings applying.
+const WHEEL_RULE: &str = "pcall(function()\n  local wheel = _G.mluva_wheel_rule\n  local alive, enabled = pcall(function() return wheel:is_enabled() end)\n  if not alive then\n    _G.mluva_wheel_rule = hl.layer_rule({ name = \"mluva-session-wheel\", match = { namespace = \"^mluva-session-wheel$\" }, no_anim = true, animation = \"none\" })\n  elseif not enabled then\n    wheel:set_enabled(true)\n  end\nend)\n";
 
 struct Binding {
     key: String,
@@ -80,6 +85,7 @@ fn script(desired: &[Binding]) -> String {
             binding.trigger(), binding.id, binding.id,
         ));
     }
+    lua.push_str(WHEEL_RULE);
     lua
 }
 
@@ -194,7 +200,7 @@ mod tests {
             process::{Command, Stdio},
         };
         let mut lua = String::from(
-            "local active = { other = true }; local removed = 0; hl = { dsp = { global = function(id) return id end }, bind = function(key, target, options) assert(not active[key]); active[key] = target; return { remove = function() active[key] = nil; removed = removed + 1 end } end };\n",
+            "local active = { other = true }; local removed = 0; local rules = 0; hl = { dsp = { global = function(id) return id end }, bind = function(key, target, options) assert(not active[key]); active[key] = target; return { remove = function() active[key] = nil; removed = removed + 1 end } end, layer_rule = function(spec) assert(spec.match.namespace == '^mluva-session-wheel$' and spec.no_anim == true); rules = rules + 1; local on = true; return { is_enabled = function() return on end, set_enabled = function(_, value) on = value end } end };\n",
         );
         lua.push_str(&script(&[Binding {
             key: "F12".into(),
@@ -208,6 +214,12 @@ mod tests {
             id: AGENT_HOLD.into(),
         }]));
         lua.push_str("assert(active.F12 == nil and active.F11 == 'com.mluva.Linux:agent-hold' and active.other == true and removed == 1)\n");
+        // Two applies leave one rule; a rule that was switched off comes back; a dropped one is remade.
+        lua.push_str("assert(rules == 1)\n_G.mluva_wheel_rule:set_enabled(false)\n");
+        lua.push_str(&script(&[]));
+        lua.push_str("assert(rules == 1 and _G.mluva_wheel_rule:is_enabled())\n_G.mluva_wheel_rule = { is_enabled = function() error('dropped') end }\n");
+        lua.push_str(&script(&[]));
+        lua.push_str("assert(rules == 2)\n");
         let mut child = Command::new("lua")
             .arg("-")
             .stdin(Stdio::piped())
@@ -220,5 +232,32 @@ mod tests {
             .write_all(lua.as_bytes())
             .unwrap();
         assert!(child.wait().unwrap().success());
+        // A layer rule that throws, or no layer-rule API at all, still leaves the bindings applied.
+        for rule in [
+            "layer_rule = function() error('no such api') end",
+            "layer_rule = nil",
+        ] {
+            let mut lua = format!(
+                "local active = {{}}; hl = {{ dsp = {{ global = function(id) return id end }}, bind = function(key, target) active[key] = target; return {{ remove = function() end }} end, {rule} }};\n"
+            );
+            lua.push_str(&script(&[Binding {
+                key: "F12".into(),
+                mask: 0,
+                id: AGENT_HOLD.into(),
+            }]));
+            lua.push_str("assert(active.F12 == 'com.mluva.Linux:agent-hold')\n");
+            let mut child = Command::new("lua")
+                .arg("-")
+                .stdin(Stdio::piped())
+                .spawn()
+                .unwrap();
+            child
+                .stdin
+                .take()
+                .unwrap()
+                .write_all(lua.as_bytes())
+                .unwrap();
+            assert!(child.wait().unwrap().success(), "{rule}");
+        }
     }
 }
