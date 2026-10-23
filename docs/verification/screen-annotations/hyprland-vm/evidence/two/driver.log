@@ -1,0 +1,6 @@
+15:00:20.949 fresh session
+15:00:30.365 windows: [["synthetic.probe",[10,10],[1900,1060]],["stub-agent",[2566,10],[624,700]],["synthetic.settings",[2620,150],[700,760]],["com.mluva.Linux",[1930,10],[624,700]]]
+15:00:33.437 windows: [["synthetic.probe",[10,10],[1900,1060],0],["stub-agent",[2566,10],[624,700],1],["synthetic.settings",[2620,150],[700,760],1],["com.mluva.Linux",[1930,10],[624,344],1],["synthetic.notes",[1930,366],[624,344],1]]
+15:00:36.261 circle the notes' first bullet on Virtual-2 (scale 1.5)
+15:00:40.927 pin on Virtual-2, underline on Virtual-1
+15:00:49.090 bindings (14-two-bindings-after-stop): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft"]

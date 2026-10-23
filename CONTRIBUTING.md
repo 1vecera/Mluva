@@ -65,7 +65,7 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | Continuous settings, section navigation and preference deep links | `make linux-settings-test` (minimum, narrow and wide private sessions) |
 | First-run speech and appearance setup | `make linux-onboarding-test`; provider suite covers downloads/readiness |
 | Screenshot context and real editor narration | `make linux-screenshot-test` |
-| Screen annotation overlay, capture and delivery | `bash docs/verification/screen-annotations/offscreen/run.sh HARNESS tmp/<run>` in an isolated headless layer-shell compositor; Hyprland bindings need a manual check ([record](docs/verification/screen-annotations/README.md)) |
+| Screen annotation overlay, capture and delivery | `bash docs/verification/screen-annotations/offscreen/run.sh HARNESS tmp/<run>` in an isolated headless layer-shell compositor; Hyprland bindings, portal, pins and crops with `docs/verification/screen-annotations/hyprland-vm/harness/run-checks.sh` in the [real-Hyprland VM](docs/verification/screen-annotations/hyprland-vm/README.md) ([record](docs/verification/screen-annotations/README.md)) |
 | Exact-target paste / widget | `make linux-text-target-test` / `make linux-omarchy-test` |
 | Firefox paste and text-read privacy on bus/default transport | `make linux-browser-target-test` |
 | Chromium paste and privacy with manual accessibility controls, native activation and browser startup after the tracker | `make linux-chromium-target-test` |

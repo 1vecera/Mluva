@@ -1,0 +1,65 @@
+{"t": 1164.602280091, "kind": "ready"}
+{"t": 1172.383968236, "kind": "click", "action": "press", "button": 1, "x": 366, "y": 266, "count": 1, "mods": []}
+{"t": 1172.384956592, "kind": "state", "reason": "selection", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 1172.434092325, "kind": "click", "action": "release", "button": 1, "x": 366, "y": 266, "mods": []}
+{"t": 1172.484330445, "kind": "state", "reason": "click", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 1173.85488464, "kind": "key", "action": "press", "name": "space", "code": 65, "mods": []}
+{"t": 1173.855104688, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n ", "selection": {"selected": false, "cursor": 68}}
+{"t": 1173.877189904, "kind": "key", "action": "release", "name": "space", "code": 65, "mods": []}
+{"t": 1173.926268509, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 1173.947062509, "kind": "key", "action": "press", "name": "H", "code": 43, "mods": ["shift"]}
+{"t": 1173.947188548, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n H", "selection": {"selected": false, "cursor": 69}}
+{"t": 1173.967675737, "kind": "key", "action": "release", "name": "H", "code": 43, "mods": ["shift"]}
+{"t": 1173.988686701, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 1174.03961298, "kind": "key", "action": "press", "name": "e", "code": 26, "mods": []}
+{"t": 1174.039778672, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n He", "selection": {"selected": false, "cursor": 70}}
+{"t": 1174.060141558, "kind": "key", "action": "release", "name": "e", "code": 26, "mods": []}
+{"t": 1174.110958314, "kind": "key", "action": "press", "name": "l", "code": 46, "mods": []}
+{"t": 1174.111096147, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hel", "selection": {"selected": false, "cursor": 71}}
+{"t": 1174.131732922, "kind": "key", "action": "release", "name": "l", "code": 46, "mods": []}
+{"t": 1174.182625757, "kind": "key", "action": "press", "name": "l", "code": 46, "mods": []}
+{"t": 1174.182788422, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hell", "selection": {"selected": false, "cursor": 72}}
+{"t": 1174.203399449, "kind": "key", "action": "release", "name": "l", "code": 46, "mods": []}
+{"t": 1174.254320719, "kind": "key", "action": "press", "name": "o", "code": 32, "mods": []}
+{"t": 1174.254436873, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello", "selection": {"selected": false, "cursor": 73}}
+{"t": 1174.275154019, "kind": "key", "action": "release", "name": "o", "code": 32, "mods": []}
+{"t": 1174.326274528, "kind": "key", "action": "press", "name": "space", "code": 65, "mods": []}
+{"t": 1174.326387028, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello ", "selection": {"selected": false, "cursor": 74}}
+{"t": 1174.347135708, "kind": "key", "action": "release", "name": "space", "code": 65, "mods": []}
+{"t": 1174.398088634, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 1174.418613269, "kind": "key", "action": "press", "name": "W", "code": 25, "mods": ["shift"]}
+{"t": 1174.418775873, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello W", "selection": {"selected": false, "cursor": 75}}
+{"t": 1174.439446815, "kind": "key", "action": "release", "name": "W", "code": 25, "mods": ["shift"]}
+{"t": 1174.460417115, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 1174.51089442, "kind": "key", "action": "press", "name": "o", "code": 32, "mods": []}
+{"t": 1174.511034979, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello Wo", "selection": {"selected": false, "cursor": 76}}
+{"t": 1174.531359317, "kind": "key", "action": "release", "name": "o", "code": 32, "mods": []}
+{"t": 1174.582085044, "kind": "key", "action": "press", "name": "r", "code": 27, "mods": []}
+{"t": 1174.582214054, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello Wor", "selection": {"selected": false, "cursor": 77}}
+{"t": 1174.602632993, "kind": "key", "action": "release", "name": "r", "code": 27, "mods": []}
+{"t": 1174.653358273, "kind": "key", "action": "press", "name": "l", "code": 46, "mods": []}
+{"t": 1174.653477054, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello Worl", "selection": {"selected": false, "cursor": 78}}
+{"t": 1174.681347844, "kind": "key", "action": "release", "name": "l", "code": 46, "mods": []}
+{"t": 1174.732372852, "kind": "key", "action": "press", "name": "d", "code": 40, "mods": []}
+{"t": 1174.732525182, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello World", "selection": {"selected": false, "cursor": 79}}
+{"t": 1174.753194329, "kind": "key", "action": "release", "name": "d", "code": 40, "mods": []}
+{"t": 1175.121974817, "kind": "state", "reason": "signal", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello World", "selection": {"selected": false, "cursor": 79}}
+{"t": 1176.056798505, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 1178.165706183, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 1181.365552078, "kind": "click", "action": "press", "button": 1, "x": 366, "y": 266, "count": 1, "mods": []}
+{"t": 1181.366354295, "kind": "state", "reason": "selection", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello World", "selection": {"selected": false, "cursor": 79}}
+{"t": 1181.416877967, "kind": "click", "action": "release", "button": 1, "x": 366, "y": 266, "mods": []}
+{"t": 1181.467234489, "kind": "state", "reason": "click", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello World", "selection": {"selected": false, "cursor": 79}}
+{"t": 1182.107963037, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 1182.878042644, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 1186.179996587, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 1186.549685148, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 1188.235404071, "kind": "state", "reason": "signal", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello World", "selection": {"selected": false, "cursor": 79}}
+{"t": 1189.387760475, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 1190.269684715, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 1190.853293762, "kind": "state", "reason": "signal", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello World", "selection": {"selected": false, "cursor": 79}}
+{"t": 1193.679617045, "kind": "state", "reason": "signal", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello World", "selection": {"selected": false, "cursor": 79}}
+{"t": 1194.909442393, "kind": "state", "reason": "selection", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello World", "selection": {"selected": false, "cursor": 67}}
+{"t": 1194.935987081, "kind": "state", "reason": "changed", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\nHere is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge. Now an error banner covers the title, so pin one marks where it should sit instead.\n\n[Screen annotation \u00b7 0:20 \u00b7 4 keyframes \u00b7 contact sheet /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/contact-sheet.png]\n- #1 (0:02) [circled] \u201cHere is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card.\u201d /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-01.png\n- #2 (0:08) [underlined] \u201cAnd this sync folder label runs past the right edge. Now an error banner covers the title,\u201d /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-02.png\n- #3 (0:12) [pin 1] \u201cso pin one marks where it should sit instead.\u201d /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-03.png\n- #4 (0:16) [pin 2] /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-04.png Hello World", "selection": {"selected": false, "cursor": 1200}}
+{"t": 1194.937381553, "kind": "state", "reason": "selection", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\nHere is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge. Now an error banner covers the title, so pin one marks where it should sit instead.\n\n[Screen annotation \u00b7 0:20 \u00b7 4 keyframes \u00b7 contact sheet /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/contact-sheet.png]\n- #1 (0:02) [circled] \u201cHere is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card.\u201d /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-01.png\n- #2 (0:08) [underlined] \u201cAnd this sync folder label runs past the right edge. Now an error banner covers the title,\u201d /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-02.png\n- #3 (0:12) [pin 1] \u201cso pin one marks where it should sit instead.\u201d /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-03.png\n- #4 (0:16) [pin 2] /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-04.png Hello World", "selection": {"selected": false, "cursor": 1200}}
+{"t": 1197.215543819, "kind": "state", "reason": "signal", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\nHere is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge. Now an error banner covers the title, so pin one marks where it should sit instead.\n\n[Screen annotation \u00b7 0:20 \u00b7 4 keyframes \u00b7 contact sheet /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/contact-sheet.png]\n- #1 (0:02) [circled] \u201cHere is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card.\u201d /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-01.png\n- #2 (0:08) [underlined] \u201cAnd this sync folder label runs past the right edge. Now an error banner covers the title,\u201d /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-02.png\n- #3 (0:12) [pin 1] \u201cso pin one marks where it should sit instead.\u201d /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-03.png\n- #4 (0:16) [pin 2] /home/tester/.local/share/mluva/annotations/680ab82b-d742-457b-b0e9-0bc9c8d7d13b/frames/frame-04.png Hello World", "selection": {"selected": false, "cursor": 1200}}

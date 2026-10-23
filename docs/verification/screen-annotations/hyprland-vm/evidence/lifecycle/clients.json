@@ -1,0 +1,54 @@
+[
+  {
+    "class": "synthetic.probe",
+    "at": [
+      10,
+      10
+    ],
+    "size": [
+      944,
+      1060
+    ],
+    "floating": false,
+    "workspace": 1
+  },
+  {
+    "class": "stub-agent",
+    "at": [
+      966,
+      10
+    ],
+    "size": [
+      944,
+      1060
+    ],
+    "floating": false,
+    "workspace": 1
+  },
+  {
+    "class": "synthetic.settings",
+    "at": [
+      700,
+      150
+    ],
+    "size": [
+      700,
+      760
+    ],
+    "floating": true,
+    "workspace": 1
+  },
+  {
+    "class": "com.mluva.Linux",
+    "at": [
+      10,
+      10
+    ],
+    "size": [
+      1900,
+      1060
+    ],
+    "floating": false,
+    "workspace": 2
+  }
+]

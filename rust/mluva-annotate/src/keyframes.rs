@@ -64,13 +64,26 @@ fn thumbnail_diff(a: &[f32], b: &[f32]) -> f32 {
     (a.iter().zip(b).map(|(x, y)| (x - y).abs()).sum::<f32>() / THUMB_PIXELS as f32).clamp(0.0, 1.0)
 }
 
-/// Global difference, or the fourth-most-changed of 8×6 blocks, so a moving pointer never
-/// counts as a new view while a real change across a region does.
+/// A thumbnail sample whose grey level moves by more than this has visibly changed.
+const CHANGED_SAMPLE: f32 = 0.1;
+/// Weight of the changed share of samples: about 1 % of the screen reaches `NOVELTY`.
+const CHANGED_SHARE_WEIGHT: f32 = 3.0;
+
+/// Global difference, the fourth-most-changed of 8×6 blocks, or the weighted share of samples
+/// that visibly changed. A moving pointer touches a few samples and never counts as a new view;
+/// a change across a region does, and so does a banner or dialog inside one to three blocks,
+/// which on a large screen hold more than a pointer can cover.
 pub fn screen_diff(a: &[f32], b: &[f32]) -> f32 {
     let global = thumbnail_diff(a, b);
     if a.len() != THUMB_PIXELS || b.len() != THUMB_PIXELS {
         return global;
     }
+    let changed = a
+        .iter()
+        .zip(b)
+        .filter(|(x, y)| (*x - *y).abs() > CHANGED_SAMPLE)
+        .count();
+    let share = (changed as f32 / THUMB_PIXELS as f32 * CHANGED_SHARE_WEIGHT).min(1.0);
     const COLS: usize = 8;
     const ROWS: usize = 6;
     const BW: usize = THUMB_WIDTH / COLS;
@@ -92,7 +105,7 @@ pub fn screen_diff(a: &[f32], b: &[f32]) -> f32 {
             }
         }
     }
-    global.max((top[3] * 1.4).clamp(0.0, 1.0))
+    global.max((top[3] * 1.4).clamp(0.0, 1.0)).max(share)
 }
 
 /// Words that point at the screen, in English and Czech. Strong ones are deliberate cues; the
@@ -551,5 +564,41 @@ mod tests {
         assert!(spoken_cue("Tady,").is_some_and(|(_, strong)| strong));
         assert!(spoken_cue("look").is_some());
         assert!(spoken_cue("button").is_none());
+    }
+
+    /// Thumbnail of a light screen with red rectangles, given in logical pixels at `scale`.
+    fn screen(width: usize, height: usize, scale: f64, rects: &[[f64; 4]]) -> Vec<f32> {
+        let stride = width * 4;
+        let mut data = vec![240_u8; stride * height];
+        for rect in rects {
+            let [x, y, w, h] = rect.map(|v| (v * scale).round() as usize);
+            for row in y..y + h {
+                for col in x..x + w {
+                    data[row * stride + col * 4..][..3].copy_from_slice(&[30, 38, 179]);
+                }
+            }
+        }
+        luma(&data, stride, width, height)
+    }
+
+    #[test]
+    fn a_banner_is_a_new_screen_while_a_moving_pointer_is_not() {
+        // The 1280×720 harness, a 1920×1080 output and a 2880×1800 panel at scale 1.5.
+        for (width, height, scale) in [(1280, 720, 1.0), (1920, 1080, 1.0), (2880, 1800, 1.5)] {
+            let empty = screen(width, height, scale, &[]);
+            // A 500×64 error banner within three of the 8×6 blocks on the larger screens.
+            let banner = screen(width, height, scale, &[[770.0, 266.0, 500.0, 64.0]]);
+            assert!(
+                screen_diff(&empty, &banner) >= NOVELTY,
+                "banner missed at {width}×{height}"
+            );
+            // A 24-pixel pointer moving across the screen.
+            let here = screen(width, height, scale, &[[300.0, 300.0, 24.0, 24.0]]);
+            let there = screen(width, height, scale, &[[900.0, 500.0, 24.0, 24.0]]);
+            assert!(
+                screen_diff(&here, &there) < 0.02,
+                "pointer counted at {width}×{height}"
+            );
+        }
     }
 }

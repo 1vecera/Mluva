@@ -1,0 +1,3 @@
+[Screen annotation · 0:12 · 2 keyframes · contact sheet /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/contact-sheet.png]
+- #1 (0:03) [underlined] “Here is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge.” /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/frames/frame-01.png
+- #2 (0:07) [circled] “Now an error banner covers the title, so pin one marks where it should sit instead.” /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/frames/frame-02.png

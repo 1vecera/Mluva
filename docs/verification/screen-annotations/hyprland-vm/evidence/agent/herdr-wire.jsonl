@@ -1,0 +1,27 @@
+{"id":"323076f3-32e2-49d2-b42a-2fc735a60e5d","method":"agent.guarded_list","params":{}}
+{"id":"868a380f-a80f-4f4a-8a67-72ae2cd00684","method":"agent.list","params":{}}
+{"id":"22b045f8-10d7-4a64-9990-c5421c6e36ac","method":"agent.guarded_list","params":{}}
+{"id":"829226fd-8cdf-4f3c-962c-4cd29a454b6b","method":"agent.list","params":{}}
+{"id":"bede9a8d-c035-4cb2-8748-64052c8561cf","method":"agent.guarded_list","params":{}}
+{"id":"49416107-e0d9-4312-b611-111a50497f9f","method":"agent.list","params":{}}
+{"id":"c7cb1cd4-cea7-4a93-aaa9-9aea796bc75d","method":"agent.guarded_list","params":{}}
+{"id":"31eae6b5-f5e1-46ff-8ea4-a844a49f4368","method":"agent.list","params":{}}
+{"id":"900eda81-3884-471f-9827-ada8923ea3c7","method":"agent.guarded_list","params":{}}
+{"id":"508c9545-5c58-4e8c-9bd1-5decf165d42e","method":"agent.list","params":{}}
+{"id":"924cb56f-8069-4fe3-b6d1-8c749e83c317","method":"agent.guarded_list","params":{}}
+{"id":"795e3dcf-a036-4614-9d32-d92df1c4cd28","method":"agent.list","params":{}}
+{"id":"af85c069-c5a5-4822-8c3c-44a344a3f305","method":"agent.guarded_list","params":{}}
+{"id":"3b8a5ea2-af1f-4231-ad02-f88b4ebbf1ab","method":"agent.list","params":{}}
+{"id":"d898dc85-c62d-4a1e-a276-f9a77e5b5c5a","method":"agent.guarded_list","params":{}}
+{"id":"6b0fedaf-d89c-4436-aeeb-c4742d3b321a","method":"agent.list","params":{}}
+{"id":"f09694e8-119a-4c92-a593-fdf9a370851e","method":"agent.guarded_list","params":{}}
+{"id":"c10eeb3f-096d-4d53-addb-9ce0ce2de667","method":"agent.list","params":{}}
+{"id":"68378241-5af7-4ac9-964a-972a00a44944","method":"agent.guarded_list","params":{}}
+{"id":"ceba15ce-5553-4dc9-b920-6089fea404c8","method":"agent.list","params":{}}
+{"id":"3035ab22-782a-4c15-94c8-111f3e636804","method":"agent.guarded_list","params":{}}
+{"id":"f95a75c5-2292-43b7-8637-f29955414007","method":"agent.list","params":{}}
+{"id":"938022d9-d57e-4d63-b8d7-a0f9a310cb34","method":"agent.guarded_list","params":{}}
+{"id":"d25310b4-9d1c-4d1a-8bc9-ce7366329124","method":"agent.list","params":{}}
+{"id":"df7d3ce5-1b3f-4090-80d0-e193119405a8","method":"agent.prompt_guarded","params":{"target":"w1:p1","server_epoch":"synthetic-server","guard":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","operation_id":"45feec73-b789-4331-a30f-a596b5205161","expires_at_unix_ms":1792760004880,"text":"Here is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge. Now an error banner covers the title, so pin one marks where it should sit instead.\n\n[Screen annotation · 0:12 · 2 keyframes · contact sheet /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/contact-sheet.png]\n- #1 (0:03) [underlined] “Here is the synthetic settings page we are fixing. Look at this Save button, it sits outside the card. And this sync folder label runs past the right edge.” /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/frames/frame-01.png\n- #2 (0:07) [circled] “Now an error banner covers the title, so pin one marks where it should sit instead.” /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/frames/frame-02.png"}}
+{"id":"a702ce83-83ee-444e-b7d4-888e6967c005","method":"agent.guarded_list","params":{}}
+{"id":"4aee537a-36a4-4d73-a0e6-2ed596a4d0ef","method":"agent.list","params":{}}

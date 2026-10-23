@@ -1,0 +1,26 @@
+15:01:13.630 fresh session
+15:01:22.734 windows: [["synthetic.probe",[10,10],[944,1060]],["stub-agent",[966,10],[944,1060]],["synthetic.settings",[700,150],[700,760]],["com.mluva.Linux",[10,10],[1900,1060]]]
+15:01:23.622 bindings (08-cancel-bindings-recording): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft","Mluva annotation: annotate-ink","Mluva annotation: annotate-pin"]
+15:01:23.624 Ctrl+Alt+Escape: cancel
+15:01:25.444 bindings (08-cancel-bindings-after): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft"]
+15:01:26.490 bindings (09-kill-bindings-recording): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft","Mluva annotation: annotate-ink","Mluva annotation: annotate-pin"]
+15:01:26.491 SIGKILL Mluva's main process only
+15:01:29.799 bindings (09-kill-bindings-after-main-killed): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft"]
+15:01:33.439 SIGKILL Mluva and its watchdog together
+15:01:36.774 bindings (10-kill-bindings-after-both-killed): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft","Mluva annotation: annotate-ink","Mluva annotation: annotate-pin"]
+15:01:36.930 restart Mluva: startup cleanup
+15:01:40.665 bindings (10-kill-bindings-after-restart): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft"]
+15:01:40.813 restart Mluva with MLUVA_DISABLE_GLOBAL_SHORTCUT=1
+15:01:48.664 bindings (11-portal-off-bindings-recording): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft"]
+15:01:49.259 Shift-click on 'kappa' with the portal off
+15:01:59.259 absorbed-click trial 1: stroke ending on the button, release Shift, click without moving
+15:02:01.150 control trial 1: same stroke, move 2 px after release, then click
+15:02:03.073 absorbed-click trial 2: stroke ending on the button, release Shift, click without moving
+15:02:04.881 control trial 2: same stroke, move 2 px after release, then click
+15:02:06.800 absorbed-click trial 3: stroke ending on the button, release Shift, click without moving
+15:02:08.617 control trial 3: same stroke, move 2 px after release, then click
+15:02:10.529 absorbed-click trial 4: stroke ending on the button, release Shift, click without moving
+15:02:12.316 control trial 4: same stroke, move 2 px after release, then click
+15:02:14.210 absorbed-click trial 5: stroke ending on the button, release Shift, click without moving
+15:02:16.010 control trial 5: same stroke, move 2 px after release, then click
+15:02:17.906 fade: stroke over the probe, frames on the probe's clock

@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "connected": true,
+  "selected": {
+    "name": "Synthetic agent",
+    "title": "",
+    "pane": "w1:p1",
+    "kind": "claude",
+    "project": "/synthetic/project",
+    "socket": "/home/tester/mluva/run/voice.sock",
+    "status": "idle",
+    "available": true
+  },
+  "persisted": true
+}
