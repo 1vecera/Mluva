@@ -346,10 +346,18 @@ impl AnnotationStore {
 
 /// The experimental opt-in, kept beside `config.json` so older releases still read their
 /// settings unchanged.
-#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+/// Whether recordings annotate the screen. On unless the person turned it off, which saves
+/// `enabled: false`; a missing file or field means the default.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct AnnotationSettings {
     pub enabled: bool,
+}
+
+impl Default for AnnotationSettings {
+    fn default() -> Self {
+        Self { enabled: true }
+    }
 }
 
 impl AnnotationSettings {

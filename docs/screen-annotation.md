@@ -2,11 +2,11 @@
 
 Show an agent a problem on screen while you describe it. While Mluva records, hold Shift and move the pointer to draw; Shift-click drops a numbered pin. When you stop, the destination receives your transcript followed by a short summary: one line per keyframe with what you were saying at that moment and the absolute path of an annotated image. Claude Code and Codex can open those paths directly.
 
-This is Experimental and Hyprland-only for automatic Shift handling. It is off by default.
+This is Experimental and Hyprland-only for automatic Shift handling. It is on by default.
 
-## Turn it on
+## Turn it off or on
 
-Open **Settings → Capture → Screen annotation** and enable **Annotate the screen while dictating**. The choice saves automatically to `screen-annotations.json` beside Mluva's other settings and applies to the next recording. Ordinary dictation (F9) and agent dictation (the agent key, the session wheel and `mluva herdr record`) both support it. Phone recordings do not.
+Open **Settings → Capture → Screen annotation** and switch **Annotate the screen while dictating**. The choice saves automatically to `screen-annotations.json` beside Mluva's other settings and applies to the next recording. Ordinary dictation (F9) and agent dictation (the agent key, the session wheel and `mluva herdr record`) both support it. Phone recordings do not.
 
 ## Draw while you talk
 

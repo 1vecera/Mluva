@@ -13,7 +13,7 @@ Both desktops use native Rust executables, GTK 4, Libadwaita and PipeWire, with 
 | Recording shortcuts | Native Hyprland `mluva-shell global-record` binding or portal-approved F9, cancellation and latest-conversation actions | Portal client; actual keys depend on desktop approval |
 | Clipboard | Completed dictation and rewrites copy by default | Same; recent desktop behavior unverified |
 | Automatic insertion | Experimental and disabled by default | Experimental; historically unreliable in the acceptance setup |
-| Screen annotation | Experimental, off by default: temporary Hyprland Shift bindings and a layer-shell ink overlay | Unavailable; GNOME has no layer-shell |
+| Screen annotation | Experimental, on by default: temporary Hyprland Shift bindings and a layer-shell ink overlay | Unavailable; GNOME has no layer-shell |
 
 Feature status is tracked separately in the [capability matrix](feature-maturity.md). A working platform does not establish every provider, model or target application's behavior.
 
