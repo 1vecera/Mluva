@@ -1,13 +1,16 @@
 {
-  "date": "2026-10-21",
+  "date": "2026-10-23",
   "native_gate": {
-    "passed": 170,
+    "passed": 231,
     "failed": 0,
-    "ignored": 68
+    "ignored": 69,
+    "clippy": "both strict configurations clean",
+    "fmt": "clean",
+    "feature_maturity": "consistent"
   },
   "application": {
-    "captures": 12,
-    "recognized": 10,
+    "captures": 15,
+    "recognized": 13,
     "session_wheel": true,
     "wheel_keyboard_order_reorder_loss": true,
     "wheel_paging_sessions": 30,
@@ -22,7 +25,7 @@
     "claude_title_named_in_app": true,
     "herdr_name_kept_for_routing": true,
     "alternate_transcript_no_delivery": true,
-    "guarded_submissions": 4,
+    "guarded_submissions": 5,
     "cancelled_or_disarmed_captures": 8,
     "edited_draft_send": true,
     "editing_rearmed_draft_cancels": true,
@@ -31,7 +34,12 @@
     "recognition_immutable": true,
     "incognito_not_saved": true,
     "clipboard_unchanged": true,
-    "selected_provider_unchanged": true
+    "selected_provider_unchanged": true,
+    "second_press_sends_once": true,
+    "empty_recognition_kept": true,
+    "history_learns_outcome": true,
+    "gtk_warnings": "the four known narrow-editor allocation warnings; none from the wheel",
+    "interrupted_countdown_notice": "History is promised only when a row exists (unit test); not exercised through the real application"
   },
   "shortcut_portal": {
     "passed": true
@@ -90,26 +98,30 @@
     "order": "Herdr workspace, tab, pane layout",
     "sessions_per_page": 26,
     "keys": "asdfghjklqwertyuiopzxcvbnm",
-    "window_on_1920x1200": {
-      "1": [
-        491,
-        382
-      ],
+    "names": "each on its index's bearing, hanging off a point just beyond the case; pushed apart toward their pole; never touching the case",
+    "dial_radius_px": {
+      "1": 170,
+      "6": 244,
+      "20": 318,
+      "26": 318,
+      "smaller_screens": "shrinks until every name fits"
+    },
+    "window_fallback_natural_size": {
       "6": [
-        725,
-        398
+        1044,
+        753
       ],
       "20": [
-        1083,
-        581
-      ],
-      "26": [
-        1041,
-        686
+        1408,
+        1039
       ]
     },
-    "max_leader_jog_px": 14,
-    "leaders": "radial stub (12-66 px, outward only), optional same-direction jog, level run; never reverses"
+    "geometry_depends_on": "count and names only; every name is measured in its chosen type with a fixed-width caption line",
+    "leader_lines": false,
+    "key_caps": false,
+    "boxes": false,
+    "focus_rings": false,
+    "key_display": "uppercase; input is case-insensitive"
   },
   "visual_review": {
     "palettes": [
@@ -121,19 +133,19 @@
       "1920x1200",
       "2560x1440"
     ],
-    "gallery_states_per_palette": 16,
-    "independent_finish_review": "fix",
+    "gallery_states_per_palette": 22,
+    "independent_finish_review": "not run on the watch; the earlier review judged the previous design",
     "declined": [
       "screen-filling type scale (native controls keep a constant size)",
       "PRODUCT.md (product contract remains authority)",
       "scrim via Hyprland rule (desktop-config ownership; raised separately)"
     ],
-    "after_review": "Daniel asked for transparency and no box; overlay adopted and approved by Daniel; not re-scored by the finish reviewer"
+    "audit": "the gallery fails if a name leaves the screen, two names overlap, or three status changes plus a new choice on twenty sessions move any name; it passed",
+    "direction": "Daniel picked the sundial-watch prototype from ten directions and asked for it to be pushed further"
   },
   "overlay": {
     "mechanism": "wlr-layer-shell overlay layer via linked gtk4-layer-shell (Omarchy base package)",
     "fallback": "frameless dialog on X11 or compositors without layer-shell",
-    "scrim": "theme background, 0.94 at centre, 0.92 to 58% of the half-diagonal, 0.62 at the edges",
     "dismiss": [
       "Escape",
       "click outside a control"
@@ -150,7 +162,41 @@
       "observer_confirmed_visible_and_correct": true,
       "screenshot_taken": false,
       "global_shortcut_exercised": false,
-      "unexplained": "hyprctl layers stopped listing the surface about 2-3 s into each run while it stayed visible"
-    }
+      "unexplained": "hyprctl layers stopped listing the surface about 2-3 s into each run while it stayed visible",
+      "note": "recorded for the previous wheel; the watch has not been shown on the live compositor"
+    },
+    "room": "opaque ground from the theme canvas, a faint accent lift around the watch and grain that dithers it",
+    "hyprland_rule": "managed Lua adds a no_anim layer rule for mluva-session-wheel, kept as one handle across reloads (a live rule is reused, a switched-off one re-enabled, a dropped one recreated); lua test passes"
+  },
+  "rendering": {
+    "toolkit": "GtkSnapshot with conic and radial gradients, blur for bloom, masks, Screen blend for the light, rotation transforms, rounded clips and outset shadows",
+    "cached": [
+      "case",
+      "dial texture",
+      "minute track",
+      "indices",
+      "cap",
+      "crystal"
+    ],
+    "per_frame": [
+      "sunburst bar",
+      "light",
+      "bloom",
+      "hand"
+    ],
+    "motion": {
+      "hand_spring": {
+        "stiffness": 260,
+        "damping": 20
+      },
+      "light_spring": {
+        "stiffness": 120,
+        "damping": 19
+      },
+      "open_fade_ms": 160,
+      "open_sweep_from_degrees": -40,
+      "reduced_motion": "placed at rest"
+    },
+    "hidpi": "layers bake at the display scale; a 3840x2400 screen at scale 2 rendered the same 1920x1200 logical wheel (RMSE 0.003 against the 1x render) with no warnings"
   }
 }
