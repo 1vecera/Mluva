@@ -17,7 +17,7 @@ A session without a title shows its Herdr agent name, then its pane ID. This is 
 
 On Omarchy the wheel floats over the desktop like Omarchy's own launcher, with no window, frame or card. It is a wlr-layer-shell overlay that covers the focused monitor, panels included, and takes the keyboard while it is shown.
 
-The room is one opaque ground in the theme's canvas, darkened a little, with a faint lift around the watch. Fine grain over the lift keeps it from banding, and nothing on the desktop shows through behind a name. Mluva's managed Hyprland Lua also gives the `mluva-session-wheel` namespace a `no_anim` layer rule, as Omarchy does for its own menus, so the wheel appears with no compositor fade of its own; the watch then fades in over at most 160 ms. The rule is kept as one handle across reloads: a live rule is reused, a switched-off one is switched on and a rule the compositor dropped is made again, so reloads never stack duplicates. Clicking anywhere outside a control dismisses the overlay, like Escape.
+The room is one opaque ground in the theme's canvas, darkened a little, with a faint lift around the watch and a soft vignette at the edges. It is smooth: a one-level dither, invisible to the eye, keeps it from banding, and the case casts a large soft shadow to the lower right, and nothing on the desktop shows through behind a name. Mluva's managed Hyprland Lua also gives the `mluva-session-wheel` namespace a `no_anim` layer rule, as Omarchy does for its own menus, so the wheel appears with no compositor fade of its own; the watch then fades in over at most 160 ms. The rule is kept as one handle across reloads: a live rule is reused, a switched-off one is switched on and a rule the compositor dropped is made again, so reloads never stack duplicates. Clicking anywhere outside a control dismisses the overlay, like Escape.
 
 On X11, or on compositors without layer-shell, the same wheel opens as an ordinary frameless dialog on the same ground. The offscreen tests use that path.
 
@@ -30,6 +30,7 @@ The wheel is a watch, so the chosen session is where the light falls. The static
 - **Case.** A knurled steel case with real teeth and a baked contact shadow, 1.247 times the dial's radius.
 - **Dial.** A sunray dial stored as luminance and tinted at runtime from the theme's accent and darker ground, so Nord lands on the render's navy and the default palettes get their own tint. A chapter ring and a railway minute track are part of the bake.
 - **Indices.** One chunky faceted applied index per session, picked from a 24-view atlas so its highlights stay fixed in screen space. The lume channel is a recess filled live: the accent mix for the chosen index, the warning colour for blocked, a dim ink otherwise, blooming on the chosen and blocked ones. Working has a lume dot at 0.74 of the dial radius, draft-only uses the hollow atlas, and a gone session is an empty setting with two tiny feet.
+- **Hub.** A small neutral polished-steel cap, 3.5% of the dial radius, drawn live: a thin bevelled rim bright at the upper left and dark at the lower right, a domed face with one soft highlight and a tiny dark pinion hole, with one blurred shadow to the lower right. The hand keeps only a short counterweight, 17% of its length, past it ([4× crop, before and after](hub-before-after.png)).
 - **Hand and light.** A faceted hand whose lit and shaded facets trade places as it turns against a fixed upper-left light, with a shadow offset to the lower right and a glowing lume channel, under a polished cap. The hand is a damped spring with a small mechanical overshoot. The sunray sheen turns to the light on a softer spring, and a beam and a pool of light follow it, so the glow trails the hand and settles on the index. The light is the accent mixed toward the ink, and the warning colour for a blocked or missing choice.
 - **Crystal.** A domed crystal with Fresnel reflections over everything on the dial.
 - **Dial text.** `F12 RECORD`, 42% of the dial radius below the centre, or `BLOCKED`, `GONE` or `CHOOSE A SESSION`. The centre never repeats the chosen name. The legend at the bottom reads `F12 Record · F9 Transcript only · Esc Cancel`, and Record dims while it is withdrawn.
@@ -89,6 +90,7 @@ The native watch still differs from the render in these ways:
 - The render's crown is not in the layers.
 - The baked contact shadow reaches the edge of the 2048 px frame, so it is faded out near the frame's edge and is tighter than the render's.
 - Indices are the nearest of 24 baked views, turned by at most 7.5°, so a highlight can be a few degrees off a render's.
+- The indices read as bright batons with a thin lume line, but the steel halves are still a little more prominent than in the render. The beam is a wedge of about 12° that fans toward the rim, though fainter than the render's.
 - The default light and dark palettes keep the steel and tint only the dial, so they differ from Nord's blue.
 - Names are pushed apart and kept off the case by a deterministic rule where they crowd.
 
@@ -99,7 +101,7 @@ Daniel confirmed eleven artifacts of the previous wheel; each is gone, and the c
 | Artifact | Now |
 | --- | --- |
 | A1: desktop text ghosting behind names | The room is opaque; nothing behind it shows. |
-| A2: banding in the scrim | One flat ground with a faint lift, dithered by grain. |
+| A2: banding in the scrim | One smooth ground with a faint lift and a soft vignette, dithered by one level of noise. |
 | A3: the accent needle arc | A hand and a light, with no arc. |
 | A4: a box around the chosen name | The chosen name is larger and semibold; nothing is boxed. |
 | A5: leader lines from mark to name | None. Each name stands on its index's bearing. |

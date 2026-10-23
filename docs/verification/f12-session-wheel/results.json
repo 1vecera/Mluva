@@ -165,7 +165,7 @@
       "unexplained": "hyprctl layers stopped listing the surface about 2-3 s into each run while it stayed visible",
       "note": "recorded for the previous wheel; the watch has not been shown on the live compositor"
     },
-    "room": "opaque ground from the theme canvas, a faint accent lift around the watch and grain that dithers it",
+    "room": "opaque ground from the theme canvas, a faint accent lift, a soft vignette and a one-level dither; the case casts a large soft shadow to the lower right",
     "hyprland_rule": "managed Lua adds a no_anim layer rule for mluva-session-wheel, kept as one handle across reloads (a live rule is reused, a switched-off one re-enabled, a dropped one recreated); lua test passes"
   },
   "rendering": {

@@ -93,6 +93,7 @@ impl Layer {
 }
 
 struct Layers {
+    shadow: Layer,
     under: Layer,
     marks: Layer,
     cap: Layer,
@@ -298,9 +299,12 @@ mod imp {
                 Layer::record(area, scale_f, renderer.as_ref(), paint)
             };
             let layers = Layers {
+                shadow: Layer::record(face.shadow_frame(), scale_f, renderer.as_ref(), |s| {
+                    watch::shadow(s, face)
+                }),
                 under: layer(&|s| watch::under(s, palette, face)),
                 marks: layer(&|s| watch::marks(s, palette, face)),
-                cap: layer(&|s| watch::cap(s, face)),
+                cap: layer(&|s| watch::cap(s, palette, face)),
                 crystal: layer(&|s| watch::crystal(s, face)),
                 face: face.clone(),
                 scale,
@@ -324,6 +328,7 @@ fn paint_watch(
     // The bar of a sunray dial always catches a little light, more when one is chosen.
     let bar = 0.3 + 0.7 * motion.glow;
     snapshot.push_blend(gsk::BlendMode::Screen);
+    layers.shadow.append(snapshot);
     layers.under.append(snapshot);
     snapshot.pop();
     watch::sheen(snapshot, palette, face, motion.sun, bar);
@@ -342,7 +347,7 @@ fn paint_watch(
         });
     }
     if chosen.is_some() {
-        watch::hand(snapshot, face, motion.hand);
+        watch::hand(snapshot, palette, face, motion.hand);
         watch::hand_lume(snapshot, palette, face, motion.hand);
     }
     layers.cap.append(snapshot);
