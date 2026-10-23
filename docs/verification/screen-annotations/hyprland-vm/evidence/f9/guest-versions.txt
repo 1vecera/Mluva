@@ -1,0 +1,7 @@
+Hyprland 0.56.2 built from branch v0.56.2 at commit efb50993780079460b0cbed1363e2166a2de1d9f clean ([gha] Nix: update inputs).
+hyprland 0.56.2-1
+xdg-desktop-portal-hyprland 1.4.1-1
+xdg-desktop-portal 1.22.1-2
+aquamarine 0.14.0-2
+gtk4 1:4.22.4-1
+linux 7.1.9.arch1-2

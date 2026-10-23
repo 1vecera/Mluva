@@ -1,0 +1,3 @@
+{"t": 1189.387760475, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 1190.269684715, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 1190.853293762, "kind": "state", "reason": "signal", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n Hello World", "selection": {"selected": false, "cursor": 79}}

@@ -1,0 +1,6 @@
+capture-ready|elevenlabs-scribe-v2|completed
+capture-ready|pipewire|completed
+capture|desktop|completed
+recognition|litellm|completed
+enhancement|local|completed
+delivery|desktop|completed

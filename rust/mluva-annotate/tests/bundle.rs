@@ -107,17 +107,34 @@ fn a_bundle_renders_private_keyframes_a_contact_sheet_and_a_summary() {
     assert!(lines[0].starts_with("[Screen annotation · 0:12 · 2 keyframes · contact sheet /"));
     assert!(lines[1].starts_with("- #1 (0:02) [circled] “Circle this panel.” /"));
     assert!(lines[2].starts_with("- #2 (0:09) [pin 1] “Then pin the corner.” /"));
-    assert!(lines[1].ends_with("/frames/frame-01.png"));
+    // Short paths: keyframes and the contact sheet sit directly in the bundle, with no
+    // temporary file left behind.
+    assert!(lines[0].ends_with(&format!("{}/sheet.png]", directory.display())));
+    assert!(lines[1].ends_with(&format!("” {}/01.png", directory.display())));
+    assert!(lines[2].ends_with(&format!("” {}/02.png", directory.display())));
+    let mut names: Vec<_> = fs::read_dir(&directory)
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name().into_string().unwrap())
+        .collect();
+    names.sort();
+    assert_eq!(
+        names,
+        [
+            "01.png",
+            "02.png",
+            "annotation.json",
+            "sheet.png",
+            "summary.md"
+        ]
+    );
     assert_eq!(
         fs::read_to_string(directory.join("summary.md")).unwrap(),
         written.summary
     );
-    for path in [&directory, &directory.join("frames")] {
-        assert_eq!(
-            fs::metadata(path).unwrap().permissions().mode() & 0o777,
-            0o700
-        );
-    }
+    assert_eq!(
+        fs::metadata(&directory).unwrap().permissions().mode() & 0o777,
+        0o700
+    );
     for path in written
         .frames
         .iter()
@@ -135,16 +152,11 @@ fn a_bundle_renders_private_keyframes_a_contact_sheet_and_a_summary() {
     assert!(sheet.width() <= 1600);
     let data: serde_json::Value =
         serde_json::from_slice(&fs::read(directory.join("annotation.json")).unwrap()).unwrap();
+    assert_eq!(data["keyframes"][0]["file"], "01.png");
+    assert_eq!(data["contactSheet"], "sheet.png");
     assert_eq!(data["keyframes"][0]["marks"][0], "m1");
     assert_eq!(data["marks"][1]["shape"], "pin");
     assert_eq!(data["timing"], "even");
-    assert!(fs::read_dir(&directory).unwrap().all(|entry| {
-        !entry
-            .unwrap()
-            .file_name()
-            .to_string_lossy()
-            .starts_with('.')
-    }));
 }
 
 #[test]

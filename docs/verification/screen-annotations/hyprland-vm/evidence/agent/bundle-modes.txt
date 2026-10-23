@@ -1,0 +1,7 @@
+700 /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/
+600 /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/annotation.json
+600 /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/contact-sheet.png
+700 /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/frames
+600 /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7/summary.md
+600 /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7//frames/frame-01.png
+600 /home/tester/.local/share/mluva/annotations/a4ac7348-ae73-4adf-b890-62671370a1f7//frames/frame-02.png

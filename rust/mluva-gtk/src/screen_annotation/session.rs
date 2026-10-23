@@ -58,6 +58,12 @@ struct State {
     outputs: Vec<hyprland::Output>,
     /// While Shift is held: the stroke being drawn and its overlay line, once the pointer moved.
     ink: Option<Option<(usize, u64)>>,
+    /// Shift presses so far, so a late pointer reading only ever touches its own press.
+    presses: u32,
+    /// The pointer where Shift went down, read before the press's first stroke began.
+    origin: Option<(String, StrokePoint)>,
+    /// The press's first stroke and its overlay line, which the pointer reading leads.
+    pressed_stroke: Option<(usize, u64)>,
     pins: u32,
     /// Shift-clicks whose pointer position is still being read.
     pending_pins: u32,
@@ -319,12 +325,20 @@ impl AnnotationSession {
             if self.state.borrow().ink.is_some() {
                 return;
             }
-            self.state.borrow_mut().ink = Some(None);
+            let press = {
+                let mut state = self.state.borrow_mut();
+                state.ink = Some(None);
+                state.presses += 1;
+                state.origin = None;
+                state.pressed_stroke = None;
+                state.presses
+            };
             self.arm();
             for overlay in &overlays {
                 overlay.hide_ink();
                 overlay.set_drawing(true);
             }
+            self.locate_press(press);
             return;
         }
         let Some(stroke) = self.state.borrow_mut().ink.take() else {
@@ -378,12 +392,25 @@ impl AnnotationSession {
                         points: vec![point],
                     });
                     let line = overlay.begin();
-                    state.ink = Some(Some((state.capture.strokes.len() - 1, line)));
-                    Some(line)
+                    let index = state.capture.strokes.len() - 1;
+                    state.ink = Some(Some((index, line)));
+                    let mut led = None;
+                    if state.pressed_stroke.is_none() {
+                        state.pressed_stroke = Some((index, line));
+                        if let Some((screen, origin)) = state.origin.take()
+                            && lead(&mut state.capture.strokes[index], &screen, origin)
+                        {
+                            led = Some((f64::from(origin.x), f64::from(origin.y)));
+                        }
+                    }
+                    Some((line, led))
                 }
             }
         };
-        if let Some(line) = begun {
+        if let Some((line, led)) = begun {
+            if let Some((x, y)) = led {
+                overlay.lead(line, x, y);
+            }
             // This stroke's ink stays hidden until the clean frame under it has been taken.
             let shown = overlay.clone();
             self.capture(
@@ -394,6 +421,56 @@ impl AnnotationSession {
             );
         }
         overlay.point(x, y);
+    }
+
+    /// Read where the pointer is as Shift goes down. The portal reports the press within about a
+    /// millisecond, well before the overlay takes the pointer.
+    fn locate_press(self: &Rc<Self>, press: u32) {
+        if self.desktop != Desktop::Hyprland {
+            return;
+        }
+        let weak = Rc::downgrade(self);
+        self.runtime.spawn(async move {
+            let Some((x, y)) = hyprland::cursor().await else {
+                return;
+            };
+            let Some(owner) = weak.upgrade().filter(|owner| !owner.closed.get()) else {
+                return;
+            };
+            let led = {
+                let mut state = owner.state.borrow_mut();
+                if state.sealed || state.presses != press {
+                    return;
+                }
+                let Some(output) = state.outputs.iter().find(|o| o.contains(x, y)).cloned() else {
+                    return;
+                };
+                let (lx, ly) = (x - output.x, y - output.y);
+                let origin = StrokePoint {
+                    x: lx as f32,
+                    y: ly as f32,
+                    t: 0,
+                };
+                match state.pressed_stroke {
+                    // The first motion arrived before this reading.
+                    Some((index, line)) => lead(
+                        &mut state.capture.strokes[index],
+                        &output.name,
+                        origin,
+                    )
+                    .then_some((output.name, line, lx, ly)),
+                    None => {
+                        state.origin = Some((output.name, origin));
+                        None
+                    }
+                }
+            };
+            if let Some((screen, line, x, y)) = led
+                && let Some(overlay) = owner.overlay(&screen)
+            {
+                overlay.lead(line, x, y);
+            }
+        });
     }
 
     /// Shift-click: a numbered pin where the pointer is.
@@ -826,6 +903,22 @@ fn marked(state: &State) -> bool {
             .any(|stroke| stroke.pin.is_some() || drawn(stroke))
 }
 
+/// The pointer where Shift went down leads that press's first stroke on its screen. The overlay
+/// takes the pointer some 70–85 ms after the press, and motion before then reached the window
+/// underneath, so without it a stroke begun with the press would lose its start.
+fn lead(stroke: &mut Stroke, screen: &str, origin: StrokePoint) -> bool {
+    let Some(first) = stroke.points.first() else {
+        return false;
+    };
+    if stroke.screen != screen || (first.x, first.y) == (origin.x, origin.y) {
+        return false;
+    }
+    // The stroke's clean frame and times stay those of its first motion.
+    let t = first.t;
+    stroke.points.insert(0, StrokePoint { t, ..origin });
+    true
+}
+
 fn drawn(stroke: &Stroke) -> bool {
     let b = mluva_annotate::sketch::bounds(&stroke.xy());
     (b[2] - b[0]).hypot(b[3] - b[1]) >= MIN_STROKE
@@ -948,6 +1041,26 @@ mod tests {
         assert!(!drawn(&stroke(&[(100.0, 100.0)])));
         assert!(!drawn(&stroke(&[(100.0, 100.0), (108.0, 106.0)])));
         assert!(drawn(&stroke(&[(100.0, 100.0), (130.0, 100.0)])));
+    }
+
+    #[test]
+    fn the_pointer_at_the_shift_press_leads_the_first_stroke() {
+        let origin = StrokePoint {
+            x: 80.0,
+            y: 100.0,
+            t: 0,
+        };
+        // Motion in the first 70–85 ms reached the window underneath; the press joins the rest.
+        let mut late = stroke(&[(160.0, 100.0), (172.0, 100.0)]);
+        assert!(lead(&mut late, "DP-1", origin));
+        let xs: Vec<f32> = late.points.iter().map(|p| p.x).collect();
+        assert_eq!(xs, [80.0, 160.0, 172.0]);
+        // A stroke on another screen, or one the overlay already began at the press, stays.
+        let mut elsewhere = stroke(&[(160.0, 100.0)]);
+        assert!(!lead(&mut elsewhere, "DP-2", origin));
+        let mut at_rest = stroke(&[(80.0, 100.0), (92.0, 100.0)]);
+        assert!(!lead(&mut at_rest, "DP-1", origin));
+        assert_eq!(at_rest.points.len(), 2);
     }
 
     #[test]

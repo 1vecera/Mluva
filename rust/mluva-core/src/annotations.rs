@@ -3,6 +3,10 @@
 //! A bundle directory's path never changes once created, because its summary has already been
 //! delivered with absolute frame paths. Ownership moves in the database only; deletion, pruning
 //! and merging follow the owning conversation exactly as screenshots do.
+//!
+//! New bundles are `annotations/<8 hex>/` holding `01.png`, `02.png`… and `sheet.png`, so each
+//! delivered path stays short. Bundles from earlier releases keep their UUID directory with
+//! `frames/frame-NN.png` and `contact-sheet.png`, and are read, recovered and removed alike.
 use std::fs::{self, DirBuilder};
 use std::io::Read;
 use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt};
@@ -10,11 +14,36 @@ use std::path::{Path, PathBuf};
 
 use rusqlite::{OptionalExtension, params};
 
-use crate::database::{Database, StoreResult, invalid, timestamp};
+use crate::database::{Database, StoreError, StoreResult, invalid, timestamp};
 use crate::private_files::resolve_path;
 
 /// The summary a conversation shows is bounded; bundles hold at most twelve short lines.
 const MAX_SUMMARY_BYTES: u64 = 64 * 1024;
+/// A new bundle's contact sheet, beside its keyframes.
+pub const CONTACT_SHEET: &str = "sheet.png";
+/// Fresh identifiers tried before creating a bundle fails. Each is 32 random bits, so a
+/// second attempt is already rare.
+const IDENTIFIER_ATTEMPTS: usize = 8;
+
+/// A new bundle's keyframe file: its two-digit index, directly in the bundle.
+pub fn keyframe_file(index: usize) -> String {
+    format!("{index:02}.png")
+}
+
+/// Whether `relative` names a keyframe in either layout: `NN.png`, or `frames/frame-NN.png`
+/// in a bundle from an earlier release.
+fn is_keyframe_file(relative: &str) -> bool {
+    let numbered = |name: &str, prefix: &str| {
+        name.strip_prefix(prefix)
+            .and_then(|name| name.strip_suffix(".png"))
+            .is_some_and(|digits| !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()))
+    };
+    match relative.split_once('/') {
+        None => numbered(relative, ""),
+        Some(("frames", name)) => numbered(name, "frame-"),
+        Some(_) => false,
+    }
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Annotation {
@@ -29,8 +58,28 @@ pub struct AnnotationStore {
     pub database: Database,
 }
 
-fn canonical_uuid(identifier: &str) -> bool {
-    uuid::Uuid::parse_str(identifier).is_ok_and(|uuid| uuid.to_string() == identifier)
+/// A bundle identifier: eight lowercase hex digits, or the canonical UUID of a bundle from an
+/// earlier release. Anything else, such as a separator or `..`, is refused.
+fn valid_identifier(identifier: &str) -> bool {
+    let short = identifier.len() == 8
+        && identifier
+            .bytes()
+            .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'));
+    short || uuid::Uuid::parse_str(identifier).is_ok_and(|uuid| uuid.to_string() == identifier)
+}
+
+/// Eight lowercase hex digits: the first 32 bits of a v4 UUID, which are all random.
+fn new_identifier() -> String {
+    uuid::Uuid::new_v4().simple().to_string()[..8].to_owned()
+}
+
+/// Whether an insert failed only because the identifier already has a row.
+fn duplicate_identifier(error: &StoreError) -> bool {
+    matches!(
+        error,
+        StoreError::Database(rusqlite::Error::SqliteFailure(failure, _))
+            if failure.extended_code == rusqlite::ffi::SQLITE_CONSTRAINT_PRIMARYKEY
+    )
 }
 fn owner_column(capture: bool) -> &'static str {
     if capture {
@@ -57,7 +106,7 @@ impl AnnotationStore {
 
     /// The bundle directory, refusing links and anything outside the managed directory.
     pub fn path_for(&self, identifier: &str) -> StoreResult<PathBuf> {
-        if !canonical_uuid(identifier) || self.directory().is_symlink() {
+        if !valid_identifier(identifier) || self.directory().is_symlink() {
             return Err(invalid("Invalid annotation identifier."));
         }
         let candidate = self.directory().join(identifier);
@@ -70,38 +119,62 @@ impl AnnotationStore {
         Ok(candidate)
     }
 
-    /// Reserve an empty owner-only bundle directory for a recording.
+    /// Reserve an empty owner-only bundle directory for a recording under a short identifier.
     pub fn create(&self, capture: &str) -> StoreResult<Annotation> {
+        self.create_from(capture, std::iter::repeat_with(new_identifier))
+    }
+
+    /// Take the first of `identifiers` whose directory and row are both new. An identifier in
+    /// use is skipped, never reused: its directory is not entered and its row not replaced.
+    fn create_from(
+        &self,
+        capture: &str,
+        identifiers: impl IntoIterator<Item = String>,
+    ) -> StoreResult<Annotation> {
         if capture.is_empty() {
             return Err(invalid("An annotation needs its recording."));
         }
-        let identifier = uuid::Uuid::new_v4().to_string();
-        let created_at = timestamp();
         DirBuilder::new()
             .recursive(true)
             .mode(0o700)
             .create(self.directory())?;
         fs::set_permissions(self.directory(), fs::Permissions::from_mode(0o700))?;
-        let directory = self.path_for(&identifier)?;
-        // Only clean up a directory this call created.
-        DirBuilder::new().mode(0o700).create(&directory)?;
-        let inserted = self.database.connect().and_then(|connection| {
-            connection.execute(
-                "INSERT INTO conversation_annotations (identifier, capture_identifier, created_at, keyframes) VALUES (?, ?, ?, 0)",
-                params![identifier, capture, created_at],
-            )?;
-            Ok(())
-        });
-        if let Err(error) = inserted {
-            let _ = fs::remove_dir_all(&directory);
-            return Err(error);
+        for identifier in identifiers.into_iter().take(IDENTIFIER_ATTEMPTS) {
+            let directory = self.path_for(&identifier)?;
+            // Creating the directory is the reservation: it fails when the name exists.
+            match DirBuilder::new().mode(0o700).create(&directory) {
+                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                result => result?,
+            }
+            let created_at = timestamp();
+            let inserted = self.database.connect().and_then(|connection| {
+                connection.execute(
+                    "INSERT INTO conversation_annotations (identifier, capture_identifier, created_at, keyframes) VALUES (?, ?, ?, 0)",
+                    params![identifier, capture, created_at],
+                )?;
+                Ok(())
+            });
+            match inserted {
+                Ok(()) => {
+                    return Ok(Annotation {
+                        identifier,
+                        created_at,
+                        directory,
+                        keyframes: 0,
+                    });
+                }
+                // Only the empty directory this call created is removed.
+                Err(error) => {
+                    let _ = fs::remove_dir(&directory);
+                    if !duplicate_identifier(&error) {
+                        return Err(error);
+                    }
+                }
+            }
         }
-        Ok(Annotation {
-            identifier,
-            created_at,
-            directory,
-            keyframes: 0,
-        })
+        Err(invalid(
+            "Could not reserve a new screen annotation directory.",
+        ))
     }
 
     pub fn set_keyframes(&self, identifier: &str, keyframes: usize) -> StoreResult<()> {
@@ -181,13 +254,35 @@ impl AnnotationStore {
             return false;
         };
         keyframes.iter().all(|keyframe| {
-            keyframe["file"].as_str().is_some_and(|file| {
-                let relative = Path::new(file);
-                relative.components().count() == 2
-                    && relative.starts_with("frames")
-                    && regular(&directory.join(relative))
-            })
+            keyframe["file"]
+                .as_str()
+                .is_some_and(|file| is_keyframe_file(file) && regular(&directory.join(file)))
         })
+    }
+
+    /// The bundle's keyframe files relative to it, in order, from either layout.
+    pub fn keyframe_files(&self, identifier: &str) -> StoreResult<Vec<String>> {
+        let directory = self.path_for(identifier)?;
+        let mut files = Vec::new();
+        for prefix in ["", "frames/"] {
+            let listed = match fs::read_dir(directory.join(prefix)) {
+                Ok(entries) => entries,
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+                Err(error) => return Err(error.into()),
+            };
+            for entry in listed {
+                let entry = entry?;
+                let Ok(name) = entry.file_name().into_string() else {
+                    continue;
+                };
+                let relative = format!("{prefix}{name}");
+                if is_keyframe_file(&relative) && entry.file_type()?.is_file() {
+                    files.push(relative);
+                }
+            }
+        }
+        files.sort();
+        Ok(files)
     }
 
     pub fn bind_capture(&self, capture: &str, conversation: &str) -> StoreResult<()> {
@@ -282,5 +377,77 @@ impl AnnotationSettings {
         bytes.push(b'\n');
         crate::private_files::atomic_write_private(path, &bytes)
             .map_err(|_| "Screen annotation settings could not be saved.")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::history::HistoryStore;
+
+    fn store() -> (tempfile::TempDir, AnnotationStore) {
+        let root = tempfile::tempdir().unwrap();
+        let history = HistoryStore::new(root.path().join("history.sqlite3"));
+        history.initialize().unwrap();
+        (root, AnnotationStore::new(&history.database.path))
+    }
+
+    fn ids(names: &[&str]) -> Vec<String> {
+        names.iter().map(|name| (*name).to_owned()).collect()
+    }
+
+    #[test]
+    fn an_identifier_in_use_is_skipped_and_never_reused() {
+        let (_root, store) = store();
+        let kept = store.create_from("first", ids(&["0000000a"])).unwrap();
+        fs::write(kept.directory.join("01.png"), b"first").unwrap();
+        // A directory without a row, and a row whose directory is gone.
+        let orphan = store.directory().join("0000000b");
+        DirBuilder::new().mode(0o700).create(&orphan).unwrap();
+        fs::write(orphan.join("01.png"), b"orphan").unwrap();
+        let rowless = store.create_from("second", ids(&["0000000c"])).unwrap();
+        fs::remove_dir(&rowless.directory).unwrap();
+
+        let fresh = store
+            .create_from(
+                "third",
+                ids(&["0000000a", "0000000b", "0000000c", "0000000d"]),
+            )
+            .unwrap();
+        assert_eq!(fresh.identifier, "0000000d");
+        assert_eq!(fresh.directory, store.directory().join("0000000d"));
+        assert_eq!(fs::read(kept.directory.join("01.png")).unwrap(), b"first");
+        assert_eq!(fs::read(orphan.join("01.png")).unwrap(), b"orphan");
+        assert!(!rowless.directory.exists());
+        let owners = |capture| {
+            store
+                .recent(capture, true)
+                .unwrap()
+                .into_iter()
+                .map(|annotation| annotation.identifier)
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(owners("first"), ["0000000a"]);
+        assert_eq!(owners("second"), ["0000000c"]);
+        assert_eq!(owners("third"), ["0000000d"]);
+    }
+
+    #[test]
+    fn creation_fails_closed_once_its_attempts_are_used() {
+        let (_root, store) = store();
+        store.create_from("first", ids(&["0000000a"])).unwrap();
+        let taken = std::iter::repeat_with(|| "0000000a".to_owned());
+        assert!(store.create_from("second", taken).is_err());
+        assert!(store.create_from("second", ids(&[])).is_err());
+        assert_eq!(store.pending_captures().unwrap(), ["first"]);
+        assert_eq!(fs::read_dir(store.directory()).unwrap().count(), 1);
+    }
+
+    #[test]
+    fn new_identifiers_are_eight_lowercase_hex_digits() {
+        for _ in 0..64 {
+            let identifier = new_identifier();
+            assert!(valid_identifier(&identifier) && identifier.len() == 8);
+        }
     }
 }

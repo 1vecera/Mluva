@@ -1,13 +1,13 @@
-17:21:31.497 starting Mluva
-17:21:36.682 recording to the agent
-17:21:37.002 first PCM written
-17:21:41.539 ink down: circle
-17:21:42.795 ink up
-17:21:46.800 ink down: underline
-17:21:47.602 ink up
-17:21:49.505 banner appears
-17:21:50.810 ink down: pin
-17:21:51.620 ink up
-17:21:54.628 stopping
-17:21:57.842 agent prompt observed: 1
-17:21:59.447 done
+17:04:08.704 starting Mluva
+17:04:13.117 recording to the agent
+17:04:13.271 first PCM written
+17:04:17.800 ink down: circle
+17:04:19.098 ink up
+17:04:23.107 ink down: underline
+17:04:23.918 ink up
+17:04:25.822 banner appears
+17:04:27.136 ink down: pin
+17:04:28.099 ink up
+17:04:31.105 stopping
+17:04:34.359 agent prompt observed: 1
+17:04:36.206 done

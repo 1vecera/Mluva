@@ -1,0 +1,8 @@
+14:52:53.563 fresh session
+14:53:02.457 windows: [["synthetic.probe",[10,10],[944,1060]],["stub-agent",[966,10],[944,1060]],["synthetic.settings",[700,150],[700,760]],["com.mluva.Linux",[10,10],[1900,1060]]]
+14:53:02.629 agent selected: true
+14:53:02.856 F8 opens the session wheel; F8 again records to the selected agent
+14:53:04.935 bindings (06-agent-bindings-recording): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft","Mluva annotation: annotate-ink","Mluva annotation: annotate-pin"]
+14:53:07.938 underline the stub agent's status line; circle the floating window's Save button
+14:53:17.124 F8: stop and send
+14:53:21.746 bindings (07-agent-bindings-after-stop): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft"]

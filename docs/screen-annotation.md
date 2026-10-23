@@ -29,9 +29,9 @@ When you stop, Mluva chooses 6–12 keyframes, or fewer when the recording has f
 ```text
 Fix the settings page. Look at this Save button, it sits outside the card.
 
-[Screen annotation · 0:17 · 3 keyframes · contact sheet /…/annotations/<id>/contact-sheet.png]
-- #1 (0:04) [circled] “Look at this Save button, it sits outside the card.” /…/annotations/<id>/frames/frame-01.png
-- #2 (0:10) [underlined] “And this sync folder label runs past the right edge.” /…/annotations/<id>/frames/frame-02.png
+[Screen annotation · 0:17 · 3 keyframes · contact sheet /home/you/.local/share/mluva/annotations/3f9c2a1b/sheet.png]
+- #1 (0:04) [circled] “Look at this Save button, it sits outside the card.” /home/you/.local/share/mluva/annotations/3f9c2a1b/01.png
+- #2 (0:10) [underlined] “And this sync folder label runs past the right edge.” /home/you/.local/share/mluva/annotations/3f9c2a1b/02.png
 ```
 
 Ordinary dictation delivers this through the existing exact-target insertion or clipboard fallback. Agent dictation sends it through the guarded Herdr send after the usual two-second cancel window; **Keep draft**, **Send draft** and **Copy draft** keep that recording's summary with the edited text, never the summaries of earlier recordings on a continued or merged conversation. Quotes in the summary come from the raw recognition, because they describe what was said. The editor and History keep only your transcript and edits, so local paths never enter account sync.
@@ -40,7 +40,7 @@ Each spoken clause is matched by time. Scribe batch recognition returns word tim
 
 ## Where the files live
 
-Each annotated recording gets a private bundle under Mluva's data directory, `annotations/<id>/`: `frames/frame-NN.png`, `contact-sheet.png`, `summary.md` and `annotation.json` with marks, window-class changes, window boxes, timings and crops. Window titles are never read or stored. Directories are owner-only and files are readable only by you. The bundle belongs to the conversation: deleting, merging or pruning the conversation removes or moves it, and **Copy as path** includes its keyframes in the conversation's Markdown. Raw frames grabbed while recording live only in Mluva's private runtime directory, which must be memory-backed (`XDG_RUNTIME_DIR` on a tmpfs); without one, annotation stays off rather than write screen images to disk. They are bounded in number and size and are deleted once the bundle is written. A bundle interrupted by quitting is removed, never recovered as a conversation. Nothing is uploaded or synced.
+Each annotated recording gets a private bundle under Mluva's data directory, `annotations/<id>/`, where `<id>` is eight random hex digits: the keyframes `01.png`, `02.png`…, the contact sheet `sheet.png`, `summary.md` and `annotation.json` with marks, window-class changes, window boxes, timings and crops. The short names keep each path in the summary near 60 characters. A new bundle never takes an identifier that is already in use. Bundles from earlier releases keep their longer `annotations/<uuid>/frames/frame-NN.png` and `contact-sheet.png` paths, so summaries already delivered stay valid; they are kept, exported, recovered and removed like new ones. Window titles are never read or stored. Directories are owner-only and files are readable only by you. The bundle belongs to the conversation: deleting, merging or pruning the conversation removes or moves it, and **Copy as path** includes its keyframes in the conversation's Markdown. Raw frames grabbed while recording live only in Mluva's private runtime directory, which must be memory-backed (`XDG_RUNTIME_DIR` on a tmpfs); without one, annotation stays off rather than write screen images to disk. They are bounded in number and size and are deleted once the bundle is written. A bundle interrupted by quitting is removed, never recovered as a conversation. Nothing is uploaded or synced.
 
 Incognito never annotates: recording continues without the overlay or bindings.
 
@@ -48,4 +48,4 @@ Incognito never annotates: recording continues without the overlay or bindings.
 
 Only Hyprland gets automatic Shift handling, pointer position for pins, window geometry for crops and focus-change keyframes. On another layer-shell desktop the overlay and frame capture work, driven by Mluva's `annotation-ink-down`, `annotation-ink-up` and `annotation-pin` application actions; nothing binds them for you. GNOME and X11 sessions record without annotation.
 
-After you release Shift, the first click without moving the pointer can be absorbed by the transparent overlay; move the pointer slightly first. Each frame grab may briefly show Hyprland's screen-sharing indicator in bars that follow screencast events. The [verification record](verification/screen-annotations/README.md) lists what has and has not been exercised.
+After you release Shift, the first click without moving the pointer is absorbed by the transparent overlay; move the pointer slightly first. A stroke begun in the same instant as pressing Shift starts about 50 ms of motion late; a brief pause before moving avoids that. Each frame grab may briefly show Hyprland's screen-sharing indicator in bars that follow screencast events. The [verification record](verification/screen-annotations/README.md) lists what has and has not been exercised.

@@ -22,14 +22,16 @@ pub fn valid_token(token: &str) -> bool {
 }
 
 /// `Shift_L` reports both press and release only with `ignore_mods`, and keeps typing capitals
-/// with `non_consuming`. Shift-click is consumed so the click never selects text in the app.
-/// Bindings left by an earlier session that could not clean up are removed first.
+/// with `non_consuming`. It is `transparent` because Hyprland otherwise shadows a binding whose
+/// key is still held once another key is released, so typing a capital or a Shift-click would
+/// lose the release and leave ink on. Shift-click is consumed so the click never selects text in
+/// the app. Bindings left by an earlier session that could not clean up are removed first.
 pub fn add_script(token: &str) -> String {
     assert!(valid_token(token));
     format!(
         "{REMOVE_ALL}\
 _G.mluva_annotation = {{ [\"{token}\"] = {{\n\
-  hl.bind(\"Shift_L\", hl.dsp.global(\"{APP}:{INK}\"), {{ non_consuming = true, ignore_mods = true, description = \"{DESCRIPTION}{INK}\" }}),\n\
+  hl.bind(\"Shift_L\", hl.dsp.global(\"{APP}:{INK}\"), {{ non_consuming = true, ignore_mods = true, transparent = true, description = \"{DESCRIPTION}{INK}\" }}),\n\
   hl.bind(\"SHIFT + mouse:272\", hl.dsp.global(\"{APP}:{PIN}\"), {{ description = \"{DESCRIPTION}{PIN}\" }}),\n\
 }} }}\n"
     )
@@ -497,6 +499,19 @@ mod tests {
         assert!(!script.contains("mluva_portal_bindings"));
         assert!(remove_script(TOKEN).contains(&format!("[\"{TOKEN}\"] = nil")));
         assert!(!valid_token("../x") && !valid_token("abc"));
+    }
+
+    #[test]
+    fn the_shift_release_survives_a_capital_or_a_shift_click() {
+        // Without `transparent`, Hyprland 0.56 shadows the held Shift_L binding when the letter or
+        // button is released, and the Shift release never reaches Mluva.
+        let script = add_script(TOKEN);
+        let ink = script
+            .lines()
+            .find(|line| line.contains("annotate-ink"))
+            .unwrap();
+        assert!(ink.contains("transparent = true"));
+        assert!(ink.contains("ignore_mods = true") && ink.contains("non_consuming = true"));
     }
 
     #[test]

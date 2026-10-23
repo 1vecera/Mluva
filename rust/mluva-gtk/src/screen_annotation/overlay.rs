@@ -263,6 +263,20 @@ impl Overlay {
         self.area.queue_draw();
     }
 
+    /// Put a point before a line's first one: where the pointer was as Shift went down.
+    pub fn lead(&self, id: u64, x: f64, y: f64) {
+        if let Some(line) = self
+            .painting
+            .borrow_mut()
+            .lines
+            .iter_mut()
+            .find(|line| line.id == id)
+        {
+            line.points.insert(0, (x, y));
+        }
+        self.area.queue_draw();
+    }
+
     /// Show one line once its own clean frame exists; other held lines stay hidden.
     pub fn reveal(&self, id: u64) {
         for line in self

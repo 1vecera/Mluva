@@ -184,25 +184,46 @@ fn startup_gives_an_interrupted_annotation_bundle_a_conversation_and_keeps_its_p
     history.initialize().unwrap();
     let store = AnnotationStore::new(&history.database.path);
     let bundle = store.create("interrupted-capture").unwrap();
-    fs::create_dir(bundle.directory.join("frames")).unwrap();
-    fs::write(bundle.directory.join("frames/frame-01.png"), b"png").unwrap();
+    fs::write(bundle.directory.join("01.png"), b"png").unwrap();
     fs::write(
         bundle.directory.join("annotation.json"),
-        r#"{"keyframes":[{"file":"frames/frame-01.png"}]}"#,
+        r#"{"keyframes":[{"file":"01.png"}]}"#,
     )
     .unwrap();
     fs::write(bundle.directory.join("summary.md"), "[Screen annotation]\n").unwrap();
+    // Written by an earlier release: a UUID directory with frames/frame-NN.png.
+    let earlier = "00000000-0000-4000-8000-0000000000e1";
+    let earlier_directory = store.directory().join(earlier);
+    fs::create_dir_all(earlier_directory.join("frames")).unwrap();
+    fs::write(earlier_directory.join("frames/frame-01.png"), b"png").unwrap();
+    fs::write(
+        earlier_directory.join("annotation.json"),
+        r#"{"keyframes":[{"file":"frames/frame-01.png"}]}"#,
+    )
+    .unwrap();
+    fs::write(
+        earlier_directory.join("summary.md"),
+        "[Screen annotation]\n",
+    )
+    .unwrap();
+    rusqlite::Connection::open(&history.database.path)
+        .unwrap()
+        .execute(
+            "INSERT INTO conversation_annotations (identifier, capture_identifier, created_at, keyframes) VALUES (?, 'earlier-capture', '2026-10-20T10:00:00+00:00', 1)",
+            [earlier],
+        )
+        .unwrap();
     // Interrupted while being written: no summary, or a listed frame missing.
     let unwritten = store.create("half-written-capture").unwrap();
     fs::write(
         unwritten.directory.join("annotation.json"),
-        r#"{"keyframes":[{"file":"frames/frame-01.png"}]}"#,
+        r#"{"keyframes":[{"file":"01.png"}]}"#,
     )
     .unwrap();
     let missing_frame = store.create("missing-frame-capture").unwrap();
     fs::write(
         missing_frame.directory.join("annotation.json"),
-        r#"{"keyframes":[{"file":"frames/frame-01.png"}]}"#,
+        r#"{"keyframes":[{"file":"01.png"}]}"#,
     )
     .unwrap();
     fs::write(
@@ -212,28 +233,29 @@ fn startup_gives_an_interrupted_annotation_bundle_a_conversation_and_keeps_its_p
     .unwrap();
     let services = ApplicationServices::open(paths).unwrap();
     assert!(!unwritten.directory.exists() && !missing_frame.directory.exists());
-    assert_eq!(
-        services
-            .history
-            .recent(10)
-            .unwrap()
-            .iter()
-            .filter(|entry| entry.delivered_text.starts_with("Screen annotation from"))
-            .count(),
-        1,
-        "only the finished bundle becomes a History entry"
-    );
-    let store = AnnotationStore::new(&services.history.database.path);
-    assert!(store.pending_captures().unwrap().is_empty());
-    let entry = services
+    let recovered: Vec<_> = services
         .history
         .recent(10)
         .unwrap()
         .into_iter()
-        .find(|entry| entry.delivered_text == "Screen annotation from an interrupted recording.")
-        .unwrap();
-    let owned = store.recent(&entry.identifier, false).unwrap();
-    assert_eq!(owned.len(), 1);
-    assert_eq!(owned[0].directory, bundle.directory);
+        .filter(|entry| entry.delivered_text == "Screen annotation from an interrupted recording.")
+        .collect();
+    assert_eq!(
+        recovered.len(),
+        2,
+        "only the finished bundles become History entries"
+    );
+    let store = AnnotationStore::new(&services.history.database.path);
+    assert!(store.pending_captures().unwrap().is_empty());
+    let mut directories: Vec<_> = recovered
+        .iter()
+        .flat_map(|entry| store.recent(&entry.identifier, false).unwrap())
+        .map(|annotation| annotation.directory)
+        .collect();
+    directories.sort();
+    let mut expected = vec![bundle.directory.clone(), earlier_directory.clone()];
+    expected.sort();
+    assert_eq!(directories, expected);
     assert!(bundle.directory.join("summary.md").is_file());
+    assert!(earlier_directory.join("frames/frame-01.png").is_file());
 }

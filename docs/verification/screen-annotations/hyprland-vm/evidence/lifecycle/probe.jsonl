@@ -1,0 +1,64 @@
+{"t": 14.213951599, "kind": "ready"}
+{"t": 21.682134111, "kind": "click", "action": "press", "button": 1, "x": 366, "y": 266, "count": 1, "mods": []}
+{"t": 21.683253417, "kind": "state", "reason": "selection", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 21.732245324, "kind": "click", "action": "release", "button": 1, "x": 366, "y": 266, "mods": []}
+{"t": 21.782656342, "kind": "state", "reason": "click", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 22.424976395, "kind": "key", "action": "press", "name": "Control_L", "code": 37, "mods": []}
+{"t": 22.445724988, "kind": "key", "action": "press", "name": "Alt_L", "code": 64, "mods": ["ctrl"]}
+{"t": 22.507905996, "kind": "key", "action": "release", "name": "Alt_L", "code": 64, "mods": ["ctrl", "alt"]}
+{"t": 22.528733791, "kind": "key", "action": "release", "name": "Control_L", "code": 37, "mods": ["ctrl"]}
+{"t": 24.40244783, "kind": "click", "action": "press", "button": 1, "x": 366, "y": 266, "count": 1, "mods": []}
+{"t": 24.402733433, "kind": "state", "reason": "selection", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 24.453461815, "kind": "click", "action": "release", "button": 1, "x": 366, "y": 266, "mods": []}
+{"t": 24.503861903, "kind": "state", "reason": "click", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 31.518604605, "kind": "click", "action": "press", "button": 1, "x": 366, "y": 266, "count": 1, "mods": []}
+{"t": 31.519083213, "kind": "state", "reason": "selection", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 31.569354686, "kind": "click", "action": "release", "button": 1, "x": 366, "y": 266, "mods": []}
+{"t": 31.619619645, "kind": "state", "reason": "click", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 44.523917818, "kind": "click", "action": "press", "button": 1, "x": 366, "y": 266, "count": 1, "mods": []}
+{"t": 44.524328908, "kind": "state", "reason": "selection", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 44.574773124, "kind": "click", "action": "release", "button": 1, "x": 366, "y": 266, "mods": []}
+{"t": 44.624944434, "kind": "state", "reason": "click", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 47.73137206, "kind": "state", "reason": "signal", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 48.546230577, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 48.626149244, "kind": "click", "action": "press", "button": 1, "x": 231, "y": 46, "count": 1, "mods": ["shift"]}
+{"t": 48.63231117, "kind": "state", "reason": "selection", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": true, "start": 53, "end": 67, "text": "ppa lambda mu\n", "cursor": 53}}
+{"t": 48.70744229, "kind": "click", "action": "release", "button": 1, "x": 231, "y": 46, "mods": ["shift"]}
+{"t": 48.757742507, "kind": "state", "reason": "click", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": true, "start": 53, "end": 67, "text": "ppa lambda mu\n", "cursor": 53}}
+{"t": 48.910660259, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 49.69699359, "kind": "state", "reason": "signal", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": true, "start": 53, "end": 67, "text": "ppa lambda mu\n", "cursor": 53}}
+{"t": 56.490645491, "kind": "click", "action": "press", "button": 1, "x": 366, "y": 266, "count": 1, "mods": []}
+{"t": 56.491433262, "kind": "state", "reason": "selection", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 56.541617428, "kind": "click", "action": "release", "button": 1, "x": 366, "y": 266, "mods": []}
+{"t": 56.591954881, "kind": "state", "reason": "click", "text": "alpha beta gamma delta epsilon zeta\neta theta iota kappa lambda mu\n", "selection": {"selected": false, "cursor": 67}}
+{"t": 58.214851172, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 58.693491948, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 60.093066202, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 60.564595656, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 61.117212404, "kind": "button", "action": "clicked"}
+{"t": 62.014726104, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 62.460320239, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 63.83122071, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 64.27825048, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 64.835228923, "kind": "button", "action": "clicked"}
+{"t": 65.742719589, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 66.188789338, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 67.561951839, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 68.011161944, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 68.565100476, "kind": "button", "action": "clicked"}
+{"t": 69.471984701, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 69.913218501, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 71.257025351, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 71.697505974, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 72.249610918, "kind": "button", "action": "clicked"}
+{"t": 73.152696938, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 73.59753825, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 74.952483044, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 75.397830753, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 75.950189264, "kind": "button", "action": "clicked"}
+{"t": 77.032845241, "kind": "key", "action": "press", "name": "Shift_L", "code": 50, "mods": []}
+{"t": 79.055531562, "kind": "key", "action": "release", "name": "Shift_L", "code": 50, "mods": ["shift"]}
+{"t": 92.728566197, "kind": "key", "action": "press", "name": "Control_L", "code": 37, "mods": []}
+{"t": 92.736822512, "kind": "key", "action": "press", "name": "Alt_L", "code": 64, "mods": ["ctrl"]}
+{"t": 92.760413786, "kind": "key", "action": "release", "name": "Alt_L", "code": 64, "mods": ["ctrl", "alt"]}
+{"t": 92.76880496, "kind": "key", "action": "release", "name": "Control_L", "code": 37, "mods": ["ctrl"]}

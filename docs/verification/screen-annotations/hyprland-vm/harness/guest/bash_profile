@@ -1,0 +1,4 @@
+[[ -f ~/.bashrc ]] && . ~/.bashrc
+if [[ -z $WAYLAND_DISPLAY && $(tty) == /dev/tty1 && ! -e ~/.no-hyprland ]]; then
+  exec start-hyprland >"$HOME/hyprland-session.log" 2>&1
+fi
