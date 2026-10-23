@@ -1,0 +1,16 @@
+14:52:16.111 fresh session
+14:52:25.176 windows: [["synthetic.probe",[10,10],[944,1060]],["stub-agent",[966,10],[944,1060]],["synthetic.settings",[700,150],[700,760]],["com.mluva.Linux",[10,10],[1900,1060]]]
+14:52:25.189 focus the probe's text with an ordinary click
+14:52:25.890 bindings (01-bindings-before): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft"]
+14:52:26.260 F9: start dictation into the focused text field
+14:52:26.651 bindings (02-bindings-recording): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft","Mluva annotation: annotate-ink","Mluva annotation: annotate-pin"]
+14:52:26.652 check 2: type 'Hello World' with Shift on the virtual keyboard
+14:52:28.728 red pixels in the probe after typing: 0
+14:52:28.731 check 3: hold Shift, circle the Save button (floating settings), release
+14:52:34.159 ordinary click with Shift up into the probe's text
+14:52:34.887 underline the sync folder label
+14:52:37.372 banner appears
+14:52:38.754 pin the banner
+14:52:41.040 check 4: Shift-click without moving on the word 'kappa' in the probe
+14:52:46.492 Stop with F9; Mluva delivers into the captured text field
+14:52:50.671 bindings (05-bindings-after-stop): ["Mluva portal: toggle-recording-f9","Mluva portal: cancel-capture","Mluva portal: open-rewrite","Mluva portal: agent-hold","Mluva portal: agent-keep-draft"]
