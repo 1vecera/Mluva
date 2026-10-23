@@ -3,8 +3,12 @@ use crate::{
     agent_voice_view::AgentVoiceView, async_runtime::DesktopRuntime, capture_view::CapturePage,
 };
 use adw::prelude::*;
-use mluva_core::agent_voice::{
-    AgentStatus, DraftReason, Recipient, RoutePhase, SendOutcome, VoiceRoute, VoiceSettings,
+use mluva_core::{
+    agent_voice::{
+        AgentStatus, Attempt, DraftReason, Recipient, RoutePhase, SendOutcome, Submission,
+        VoiceRoute, VoiceSettings,
+    },
+    diagnostics::{RouteEvent, RouteKind},
 };
 use mluva_providers::{
     claude_sessions::{self, ClaudeRegistry},
@@ -16,7 +20,7 @@ use std::{
     path::{Path, PathBuf},
     rc::Rc,
     sync::{Arc, Mutex},
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 use tokio_util::sync::CancellationToken;
 
@@ -120,6 +124,10 @@ pub struct AgentVoiceController {
     cli: RefCell<Option<(gio::DBusConnection, gio::RegistrationId)>>,
     settings_timer: RefCell<Option<glib::SourceId>>,
     pub(crate) approved_key: RefCell<Option<String>>,
+    /// The attempt and step last written to diagnostics and History, so each is written once.
+    reported: RefCell<Option<(String, &'static str)>>,
+    /// The open wheel's diagnostic session and when it opened.
+    wheel_session: RefCell<Option<(String, Instant)>>,
 }
 fn now() -> u64 {
     SystemTime::now()
@@ -176,6 +184,8 @@ impl AgentVoiceController {
             cli: RefCell::new(None),
             settings_timer: RefCell::new(None),
             approved_key: RefCell::new(None),
+            reported: RefCell::new(None),
+            wheel_session: RefCell::new(None),
         });
         owner.bind();
         owner.bind_wheel();
@@ -480,7 +490,18 @@ impl AgentVoiceController {
     }
     pub fn leave_for_capture(&self) {
         self.wheel.window.set_visible(false);
+        let countdown = self
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .is_some_and(|a| matches!(a.phase, RoutePhase::Grace { .. }));
         self.disarm(DraftReason::Interrupted);
+        if countdown {
+            self.view.reply.set_label(
+                "A new recording stopped the pending send. Nothing was sent; the text is in History.",
+            );
+        }
         if self
             .route
             .borrow()
@@ -614,27 +635,144 @@ impl AgentVoiceController {
         }
         let submission = self.route.borrow_mut().take_submission(time);
         if let Some(submission) = submission {
-            let weak = Rc::downgrade(self);
-            let cancel = self.closed.clone();
-            self.runtime.spawn(async move {
-                let outcome = herdr::submit(&submission, &cancel).await;
-                if let Some(owner) = weak.upgrade().filter(|o| !o.closed.is_cancelled()) {
-                    if owner
-                        .route
-                        .borrow_mut()
-                        .delivered(&submission.id, outcome, now())
-                        && outcome == SendOutcome::Accepted
-                    {
-                        owner.view.reply.set_label(&format!(
-                            "{} accepted your message. Completion is not confirmed.",
-                            submission.recipient.name
-                        ));
-                    }
-                    owner.render();
-                }
-            });
+            self.submit(submission);
         }
         self.render();
+    }
+    /// Sends a message whose automatic-send permission was already consumed.
+    fn submit(self: &Rc<Self>, submission: Submission) {
+        let weak = Rc::downgrade(self);
+        let cancel = self.closed.clone();
+        self.runtime.spawn(async move {
+            let outcome = herdr::submit(&submission, &cancel).await;
+            if let Some(owner) = weak.upgrade().filter(|o| !o.closed.is_cancelled()) {
+                if owner
+                    .route
+                    .borrow_mut()
+                    .delivered(&submission.id, outcome, now())
+                    && outcome == SendOutcome::Accepted
+                {
+                    owner.view.reply.set_label(&format!(
+                        "{} accepted your message. Completion is not confirmed.",
+                        submission.recipient.name
+                    ));
+                }
+                owner.render();
+            }
+        });
+    }
+    /// A second press while the cancel window runs ends it and sends at once, to the same
+    /// guarded recipient. Returns whether a pending send was taken.
+    pub fn send_now(self: &Rc<Self>) -> bool {
+        let submission = self.route.borrow_mut().send_now(now());
+        let Some(submission) = submission else {
+            return false;
+        };
+        self.submit(submission);
+        self.render();
+        true
+    }
+    /// Writes each route step once to diagnostics, and the send outcome to the History row.
+    /// Every path that ends a pending send passes through `render`, so none is unrecorded.
+    fn report_phase(&self, attempt: Option<&Attempt>) {
+        let Some(a) = attempt else {
+            return;
+        };
+        let (step, event, outcome) = match a.phase {
+            RoutePhase::Grace { .. } => ("grace", RouteEvent::CountdownStarted, None),
+            RoutePhase::Sent => ("sent", RouteEvent::SendAccepted, Some("sent")),
+            RoutePhase::Unconfirmed => (
+                "unconfirmed",
+                RouteEvent::SendUnconfirmed,
+                Some("unconfirmed"),
+            ),
+            RoutePhase::Draft(reason) => match reason {
+                DraftReason::Kept => ("kept", RouteEvent::DraftKept, Some("draft-kept")),
+                DraftReason::Edited => ("edited", RouteEvent::DraftEdited, Some("draft-kept")),
+                DraftReason::RecipientChanged => (
+                    "recipient-changed",
+                    RouteEvent::DraftRecipientChanged,
+                    Some("recipient-unavailable"),
+                ),
+                DraftReason::Unavailable => (
+                    "unavailable",
+                    RouteEvent::DraftUnavailable,
+                    Some("recipient-unavailable"),
+                ),
+                DraftReason::Rejected => (
+                    "rejected",
+                    RouteEvent::SendRejected,
+                    Some("recipient-unavailable"),
+                ),
+                DraftReason::Cancelled => {
+                    ("cancelled", RouteEvent::DraftCancelled, Some("cancelled"))
+                }
+                DraftReason::Interrupted => (
+                    "interrupted",
+                    RouteEvent::DraftInterrupted,
+                    Some("draft-kept"),
+                ),
+                // The row already says no speech was recognised; that stays.
+                DraftReason::Empty => ("empty", RouteEvent::DraftEmpty, None),
+                DraftReason::TooLong => ("too-long", RouteEvent::DraftTooLong, Some("draft-kept")),
+            },
+            _ => return,
+        };
+        let key = (a.id.clone(), step);
+        if self.reported.borrow().as_ref() == Some(&key) {
+            return;
+        }
+        self.reported.replace(Some(key));
+        let milliseconds = match (a.submitted_ms, a.received_ms, a.final_ms, a.released_ms) {
+            (Some(sent), Some(received), ..) => received.saturating_sub(sent),
+            _ if step == "grace" => a
+                .final_ms
+                .zip(a.released_ms)
+                .map_or(0, |(done, released)| done.saturating_sub(released)),
+            _ => now().saturating_sub(a.final_ms.unwrap_or(a.started_ms)),
+        };
+        self.trace(&a.id, event, RouteKind::GuardedAgent, milliseconds);
+        if let (Some(outcome), Some(id)) = (outcome, a.history_id.as_deref()) {
+            self.record_outcome(id, outcome);
+        }
+    }
+    /// A diagnostics event for the F12 route; skipped in Incognito. Never carries text.
+    pub fn trace(&self, session: &str, event: RouteEvent, route: RouteKind, milliseconds: u64) {
+        if self.services.config().incognito_mode {
+            return;
+        }
+        let _ = self.services.diagnostics.record_route(
+            session,
+            event,
+            route,
+            milliseconds as f64 / 1000.0,
+        );
+    }
+    /// Tells the History row what became of its text; nothing without a row or in Incognito.
+    fn record_outcome(&self, history_id: &str, outcome: &str) {
+        if self.services.config().incognito_mode {
+            return;
+        }
+        let history = &self.services.history;
+        let Ok(entry) = history.find(history_id) else {
+            return;
+        };
+        if entry.delivery_outcome == outcome {
+            return;
+        }
+        if history
+            .mark_delivered(
+                history_id,
+                &entry.delivered_text,
+                outcome,
+                entry.retained_audio_path.is_some(),
+                None,
+            )
+            .is_ok()
+        {
+            let refresh = self.callbacks.draft_saved.clone();
+            glib::idle_add_local_once(move || refresh());
+        }
     }
     pub fn refresh(self: &Rc<Self>) {
         if !self.settings.borrow().enabled || self.polling.replace(true) {
@@ -805,6 +943,7 @@ impl AgentVoiceController {
         let enabled = self.settings.borrow().enabled;
         self.view.widget.set_visible(enabled);
         let attempt = self.route.borrow().attempt.clone();
+        self.report_phase(attempt.as_ref());
         let pending = attempt.as_ref().is_some_and(|a| {
             matches!(
                 a.phase,
