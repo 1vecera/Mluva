@@ -192,7 +192,7 @@ BUNDLE=$(find "$APP/home/.local/share/mluva/annotations" -mindepth 1 -maxdepth 1
 if [[ -n $BUNDLE ]]; then
   mkdir -p "$EVIDENCE/bundle"
   cp -r "$BUNDLE"/. "$EVIDENCE/bundle/"
-  stat -c '%a %n' "$BUNDLE" "$BUNDLE"/* "$BUNDLE"/frames/* >"$EVIDENCE/bundle-modes.txt"
+  stat -c '%a %n' "$BUNDLE" "$BUNDLE"/* >"$EVIDENCE/bundle-modes.txt"
 fi
 python3 - "$APP/home/.local/share/mluva/history.sqlite3" >"$EVIDENCE/history.json" <<'EOF'
 import json, sqlite3, sys

@@ -109,18 +109,10 @@ impl ConversationStore {
                 output.push_str(summary.trim_end());
                 output.push('\n');
             }
-            let mut frames: Vec<String> = match fs::read_dir(bundle.directory.join("frames")) {
-                Ok(entries) => entries
-                    .filter_map(|entry| entry.ok()?.file_name().into_string().ok())
-                    .filter(|name| name.starts_with("frame-") && name.ends_with(".png"))
-                    .collect(),
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => vec![],
-                Err(error) => return Err(error.into()),
-            };
-            frames.sort();
-            for (number, name) in frames.iter().enumerate() {
+            let frames = annotations.keyframe_files(&bundle.identifier)?;
+            for (number, file) in frames.iter().enumerate() {
                 output.push_str(&format!(
-                    "\n![Keyframe {}](../annotations/{}/frames/{name})\n",
+                    "\n![Keyframe {}](../annotations/{}/{file})\n",
                     number + 1,
                     bundle.identifier
                 ));

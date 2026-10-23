@@ -5,6 +5,7 @@ use crate::{
     model::{Capture, Keyframe, Mark, Transcript, format_clock},
     render::{self, RenderError},
 };
+use mluva_core::annotations::{CONTACT_SHEET, keyframe_file};
 use serde_json::json;
 use std::{
     fs,
@@ -14,7 +15,6 @@ use std::{
 
 pub const SUMMARY: &str = "summary.md";
 pub const DATA: &str = "annotation.json";
-pub const CONTACT_SHEET: &str = "contact-sheet.png";
 /// A keyframe's spoken clause is shortened past this many characters.
 const MAX_SAID_CHARS: usize = 220;
 
@@ -115,7 +115,7 @@ fn data(
         .zip(crops)
         .map(|(keyframe, crop)| {
             json!({"index": keyframe.index, "t": keyframe.t, "reason": keyframe.reason,
-                "file": format!("frames/frame-{:02}.png", keyframe.index),
+                "file": keyframe_file(keyframe.index),
                 "screen": capture.frames[keyframe.frame].screen, "crop": crop,
                 "event": keyframe.event, "said": keyframe.said,
                 "marks": keyframe.marks.iter().filter_map(|&i| marks.get(i)).map(|m| m.id.clone()).collect::<Vec<_>>()})
@@ -150,11 +150,8 @@ pub fn write(
     if keyframes.is_empty() {
         return Err(BundleError::NoFrames);
     }
+    // Nothing creates the directory: a bundle removed while it is written stays removed.
     fs::set_permissions(directory, fs::Permissions::from_mode(0o700))?;
-    let frames_dir = directory.join("frames");
-    // Never create missing parents: a bundle removed while it is written must stay removed.
-    fs::create_dir(&frames_dir)?;
-    fs::set_permissions(&frames_dir, fs::Permissions::from_mode(0o700))?;
     let mut rendered = Vec::with_capacity(keyframes.len());
     let mut paths = Vec::with_capacity(keyframes.len());
     let mut crops = Vec::with_capacity(keyframes.len());
@@ -166,7 +163,7 @@ pub fn write(
         let source = render::load(&frame.path)?;
         crops.push(render::crop(keyframe, &marks, frame, screen));
         let image = render::keyframe(&source, keyframe, &marks, &capture.strokes, frame, screen)?;
-        let path = frames_dir.join(format!("frame-{:02}.png", keyframe.index));
+        let path = directory.join(keyframe_file(keyframe.index));
         write_private(&path, &render::png(&image)?)?;
         paths.push(path);
         rendered.push(image);
@@ -208,17 +205,14 @@ mod tests {
                 keyframe(1, 4_000, Some("This  button\nis wrong.")),
                 keyframe(2, 61_000, None),
             ],
-            &[
-                "/a/frames/frame-01.png".into(),
-                "/a/frames/frame-02.png".into(),
-            ],
-            Path::new("/a/contact-sheet.png"),
+            &["/a/01.png".into(), "/a/02.png".into()],
+            Path::new("/a/sheet.png"),
         );
         assert_eq!(
             text,
-            "[Screen annotation · 1:05 · 2 keyframes · contact sheet /a/contact-sheet.png]\n\
-             - #1 (0:04) [circled] “This button is wrong.” /a/frames/frame-01.png\n\
-             - #2 (1:01) [circled] /a/frames/frame-02.png\n"
+            "[Screen annotation · 1:05 · 2 keyframes · contact sheet /a/sheet.png]\n\
+             - #1 (0:04) [circled] “This button is wrong.” /a/01.png\n\
+             - #2 (1:01) [circled] /a/02.png\n"
         );
     }
 

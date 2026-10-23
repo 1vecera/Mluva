@@ -18,22 +18,23 @@ Run it from the repository root once a layer-shell harness and the debug binarie
 
 ### Result
 
-The [evidence](evidence/) comes from one run on 21 October 2026 with debug binaries built from `b1ba83e`, the branch merged with `main` after #112 ([hashes](evidence/binaries.sha256)). The timeline is in [driver.log](evidence/driver.log); times below are on the recording's sample clock.
+The [evidence](evidence/) comes from one run on 23 October 2026 with debug binaries built from `1002c33`, which shortens the bundle paths on top of `main` after #115 ([hashes](evidence/binaries.sha256)). The timeline is in [driver.log](evidence/driver.log); times below are on the recording's sample clock.
 
 | Check | Observed |
 | --- | --- |
 | Drawing reaches the overlay | Live ink over the synthetic page while Shift was held ([screenshot](evidence/02-drawing-circle.png)); ordinary windows kept their input |
-| Clean frames | Each keyframe was grabbed before its ink showed; the ink in the frames is composited from vectors. Only two raw frames were kept: the underline and the pin reused unchanged screens, keeping their own times |
+| Clean frames | Each keyframe was grabbed before its ink showed; the ink in the frames is composited from vectors. Only two raw frames were kept: the underline reused the circle's unchanged screen, keeping its own time, and the pin's frame shows the banner |
 | No frames before drawing | Nothing was grabbed before the first ink on this desktop, which binds no Shift; sampling started with it |
-| Keyframes | 3 for 3 separate gestures: circle at 0:05, underline at 0:10, pin at 0:14. The banner change and the spoken "Now" were not separate keyframes because the pin's frame already shows that screen |
+| Keyframes | 3 for 3 separate gestures: circle at 0:04, underline at 0:10, pin at 0:14. The banner change and the spoken "Now" were not separate keyframes because the pin's frame already shows that screen |
 | Crops | Whole screen, because this compositor reports no window geometry; no text is cut. Whole-window crops on Hyprland are covered by unit tests on synthetic geometry |
 | Clause matching | Each keyframe carries the words heard while it was on screen, on the preview-growth fallback ([summary](evidence/bundle/summary.md)). At 3 s preview chunks, the start of the banner sentence spills into the underline's line |
-| Delivery | One guarded `agent.prompt_guarded` after the two-second window, its text exactly the transcript, a blank line and `summary.md` ([prompt](evidence/delivered-prompt.txt), [terminal](evidence/04-agent-received.png)) |
+| Delivery | One guarded `agent.prompt_guarded` after the two-second window, its text exactly the transcript, a blank line and `summary.md` without its final newline ([prompt](evidence/delivered-prompt.txt), [terminal](evidence/04-agent-received.png)) |
+| Paths | The bundle is `annotations/51e4ca24/` with `01.png` to `03.png` and `sheet.png` directly inside. Under this run's synthetic home a keyframe path is 73 characters and the contact sheet's 76, against 114 and 112 for the earlier `<uuid>/frames/frame-NN.png` layout ([summary](evidence/bundle/summary.md)) |
 | History | Raw and working text are the transcript only; the bundle belongs to that conversation with 3 keyframes ([history](evidence/history.json)) |
-| Privacy | Bundle directories `0700`, files `0600` ([modes](evidence/bundle-modes.txt)); no raw-frame directory left after Quit ([count](evidence/leftover-frame-directories.txt)) |
-| Speech | Five 3 s preview chunks and one 17.9 s final upload to the loopback peer ([requests](evidence/speech-requests.jsonl)) |
+| Privacy | Bundle directory `0700`, files `0600` ([modes](evidence/bundle-modes.txt)); no raw-frame directory left after Quit ([count](evidence/leftover-frame-directories.txt)) |
+| Speech | Six 3 s preview chunks and one 18.0 s final upload to the loopback peer ([requests](evidence/speech-requests.jsonl)) |
 
-![Contact sheet from the run](evidence/bundle/contact-sheet.png)
+![Contact sheet from the run](evidence/bundle/sheet.png)
 
 ## Real Hyprland in a virtual machine
 
@@ -42,7 +43,7 @@ The [harness](hyprland-vm/README.md) runs Arch Linux in QEMU/KVM, headless, on a
 - **Input.** QMP drives the guest's USB keyboard and tablet, which libinput sees as physical devices.
 - **Observation.** Everything is read inside the guest: `hyprctl`, `grim`, and a probe text app that logs the keys, clicks, text and selection it receives.
 - **Mluva.** Mluva uses the managed Lua shortcut bridge, as on the workstation. Speech comes from the loopback peer, and the agent is the Herdr fixture peer with a stub agent in `foot`.
-- **Build.** Debug binaries from `189f948`, the head of the fixes ([hashes](hyprland-vm/evidence/binaries.sha256)), run on 23 October 2026.
+- **Build.** Debug binaries from `189f948`, the head of the fixes ([hashes](hyprland-vm/evidence/binaries.sha256)), run on 23 October 2026. These bundles predate the short paths and show the earlier `<uuid>/frames/frame-NN.png` layout. The path change touches no platform code, so it was verified offscreen only.
 
 | Check | Result |
 | --- | --- |
@@ -91,8 +92,8 @@ The [harness](hyprland-vm/README.md) runs Arch Linux in QEMU/KVM, headless, on a
 | Keyframes | Every mark kept, distinct moments only, a banner inside three blocks is a new screen at 1920×1080 and 2880×1800 while a moving pointer is not, twelve at most with sixteen marks, separate gestures keep their own keyframe and words, Czech and English cues (`keyframes.rs`) |
 | Timing | Provider words preferred, preview growth interpolated, even spread as the last resort, clauses partitioned (`timing.rs`) |
 | Crops | Marks crop to the whole window under them, the smaller one when a floating window overlaps a tiled one, widened to keep every mark; marks over no window keep every window they touch; other keyframes show the focused window; without geometry the whole screen (`rust/mluva-annotate/src/render.rs`) |
-| Bundle | Synthetic HiDPI frames rendered, cropped and badged; owner-only files; a removed directory is never recreated (`rust/mluva-annotate/tests/bundle.rs`) |
-| Storage | Stable paths while ownership moves; deletion, pruning and merge follow the conversation; Markdown export links keyframes; startup recovery keeps a finished bundle and removes one without a summary or with a missing frame (`rust/mluva-core/tests/annotation_store.rs`, `rust/mluva-workflows/tests/services.rs`) |
+| Bundle | Synthetic HiDPI frames rendered, cropped and badged; keyframes and `sheet.png` directly in the bundle; owner-only files; a removed directory is never recreated (`rust/mluva-annotate/tests/bundle.rs`) |
+| Storage | Short identifiers; an identifier whose directory or row exists is skipped, never reused, and creation fails after a bounded number of attempts; both identifier forms accepted and links, traversal and other names refused; stable paths while ownership moves; deletion, pruning and merge follow the conversation; Markdown export links keyframes; a bundle from an earlier release keeps its UUID layout through export, recovery and pruning; startup recovery keeps a finished bundle and removes one without a summary or with a missing frame (`rust/mluva-core/src/annotations.rs`, `rust/mluva-core/tests/annotation_store.rs`, `rust/mluva-workflows/tests/services.rs`) |
 | Delivery | The summary follows final recognition in the delivered message while raw and working text stay the transcript; silence builds nothing (`rust/mluva-workflows/tests/delivery_appendix.rs`) |
 | Clock | Marks use written samples, not wall time (`rust/mluva-workflows/tests/sample_clock.rs`) |
 | Scribe batch | Word times kept without spacing or audio events (`rust/mluva-providers/tests/contracts.rs`) |
