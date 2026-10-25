@@ -53,7 +53,8 @@ window.ml-session-wheel.csd:backdrop, window.ml-session-wheel.solid-csd:backdrop
 
 /* The dial's printing: the record key in the light's colour, the action in quiet capitals. A
    light theme prints on its dark dial with the canvas instead of the ink. */
-.ml-session-wheel .ml-wheel-dial-text label { text-shadow: none; }
+/* A soft dark halo keeps the printing legible where the light crosses it; it has no edge. */
+.ml-session-wheel .ml-wheel-dial-text label { text-shadow: 0 0 6px alpha(black, 0.85), 0 1px 2px alpha(black, 0.6); }
 .ml-session-wheel .ml-wheel-dial-key { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: mix(@vs_action, @vs_ink, 0.3); }
 .ml-session-wheel .ml-wheel-dial-action { font-size: 12px; font-weight: 600; letter-spacing: 0.32em; color: mix(@vs_ink, @vs_canvas, 0.7); }
 .ml-session-wheel .ml-wheel-dial-hint { font-size: 11px; color: mix(@vs_ink, @vs_canvas, 0.55); }

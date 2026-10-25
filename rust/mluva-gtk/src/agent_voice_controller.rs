@@ -809,6 +809,13 @@ impl AgentVoiceController {
                     return;
                 }
                 owner.connection.replace(connection_message(&found));
+                // A refresh in which no Herdr server answered is a failed read, not an empty
+                // list. While the wheel is open it keeps what it shows, so a transient error
+                // never collapses it or moves its page; sending stays guarded either way.
+                if !found.herdr && !found.errors.is_empty() && owner.wheel.window.is_visible() {
+                    owner.render();
+                    return;
+                }
                 owner.update_recipients(found.recipients);
             }
         });

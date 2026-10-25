@@ -310,21 +310,30 @@ pub fn sheen(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, sun: f64, stren
     });
 }
 
-/// A soft hole over the dial text: the sheen, beam and pool fade out under it, so `F12 RECORD`
-/// stays readable wherever the light falls.
+/// A gentle dip in the light over the dial text: the sheen, beam and pool soften under
+/// `F12 RECORD` along an elliptical falloff with no edge, so no shape of its own appears.
+/// The text's own soft shadow carries the rest of its legibility.
 pub fn text_hole(snapshot: &gtk::Snapshot, face: &Face) {
     let centre = 0.42 * face.dial + 2.;
-    snapshot.push_blur(8.);
-    snapshot.push_rounded_clip(&gsk::RoundedRect::from_rect(
-        rect(-110., centre - 17., 220., 34.),
-        17.,
-    ));
-    snapshot.append_color(
-        &RGBA::new(0., 0., 0., 0.92),
-        &rect(-110., centre - 17., 220., 34.),
+    let (half_width, half_height) = (150_f32, 40_f32);
+    snapshot.append_radial_gradient(
+        &rect(
+            -f64::from(half_width),
+            centre - f64::from(half_height),
+            2. * f64::from(half_width),
+            2. * f64::from(half_height),
+        ),
+        &at(0., centre),
+        half_width,
+        half_height,
+        0.,
+        1.,
+        &[
+            stop(0., RGBA::new(0., 0., 0., 0.55)),
+            stop(0.45, RGBA::new(0., 0., 0., 0.38)),
+            stop(1., clear()),
+        ],
     );
-    snapshot.pop();
-    snapshot.pop();
 }
 
 /// The light: a soft wedge from the centre toward the choice and a pool where it lands.

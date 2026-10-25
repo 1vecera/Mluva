@@ -685,7 +685,25 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .success()
     );
     wheel_key("Right");
+    until(|| owner.agent_voice.wheel.page.get() == 1);
+    // A refresh that cannot read Herdr while the wheel is open is a failed read, not an empty
+    // list: the wheel keeps its thirty sessions and its page.
+    let lists = |audit: &Path| {
+        fs::read_to_string(audit)
+            .unwrap_or_default()
+            .matches("agent.guarded_list")
+            .count()
+    };
+    let before = lists(&audit);
+    data["mode"] = json!("list-down");
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| lists(&audit) > before);
+    settle(300);
     assert_eq!(owner.agent_voice.wheel.page.get(), 1);
+    assert_eq!(owner.agent_voice.wheel.entries.borrow().len(), 30);
+    data["mode"] = Value::Null;
+    state(&peer_state, &data);
     wheel_key("a");
     assert_eq!(
         owner.agent_voice.settings().selected.unwrap().pane_id,

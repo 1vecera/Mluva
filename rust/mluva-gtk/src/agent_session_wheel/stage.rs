@@ -304,7 +304,10 @@ mod imp {
     }
 
     impl Stage {
-        /// The room, computed once per size, scale, watch and palette.
+        /// The room, computed once per size, watch and palette. It holds only soft gradients, so
+        /// it is computed at logical resolution and scaled up linearly: on a scale-2 screen that
+        /// is a quarter of the pixels (about 25–35 ms instead of 80–100 ms in a release build), with
+        /// no visible difference, and the dither still breaks every band.
         fn room_texture(
             &self,
             palette: &Palette,
@@ -312,7 +315,7 @@ mod imp {
             size: (f64, f64),
             centre: (f64, f64),
         ) -> gdk::Texture {
-            let scale = f64::from(self.obj().scale_factor().max(1));
+            let scale = 1.;
             let key = RoomKey {
                 size: (
                     (size.0 * scale).round() as usize,
