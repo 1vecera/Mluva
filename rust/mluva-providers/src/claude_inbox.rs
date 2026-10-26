@@ -10,14 +10,20 @@
 //! (`peerProtocol` 1) and a session without it stays draft only.
 //!
 //! Immediately before writing, the registry entry is read again with the registry's safety bar
-//! and must still name the chosen process, session and socket; the socket path must be private
-//! to this account, and the connected peer must be that process. The frame carries the session
-//! ID, which Claude Code checks as well, so a `/clear` in between drops it. The socket answers
-//! nothing, so acceptance is read from the session's own transcript: the queue's record of
-//! exactly this text, or a record carrying this message's ID. Without one the delivery is
-//! unconfirmed and is never written again. Only lines that can be such a record are parsed, they
-//! are compared in memory and nothing from them is kept or logged.
-use crate::claude_sessions::{self, MAX_SOCKET_PATH};
+//! and must still name the chosen process, session and socket; the socket must sit in one of
+//! Claude Code's inbox directories, private to this account, and the connected peer must be that
+//! process. The frame carries the session ID, which Claude Code checks as well, so a `/clear` in
+//! between drops it. The socket answers nothing, so what happened is read from the session's own
+//! transcript: the queue admitting exactly this text (queued), a turn or queue record carrying
+//! this message's ID (taken into a turn), or a notice that the session holds it for approval.
+//! Without any of them the delivery is unconfirmed and is never written again. Only lines that
+//! can be such a record are parsed, they are compared in memory and nothing from them is kept or
+//! logged.
+use crate::{
+    agent_platform,
+    agent_targets::Receipt,
+    claude_sessions::{self, MAX_SOCKET_PATH},
+};
 use mluva_core::agent_voice::{
     ClaudeInbox, MAX_MESSAGE_BYTES, Route, SendOutcome, Submission, Target,
 };
@@ -37,59 +43,93 @@ use tokio_util::sync::CancellationToken;
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(2);
 /// Claude Code records an accepted message within about 50 ms; a session that has not after
-/// this long refused, held or dropped it, or has not read it yet.
+/// this long refused or dropped it, or has not read it yet.
 const RECEIPT_WINDOW: Duration = Duration::from_millis(2_500);
 const RECEIPT_POLL: Duration = Duration::from_millis(50);
+/// A queued message is taken at the agent's next tool boundary or after its turn; past this,
+/// History keeps saying queued.
+const TAKEN_WATCH: Duration = Duration::from_secs(20 * 60);
+const TAKEN_POLL: Duration = Duration::from_millis(500);
 /// Transcript bytes read per poll; a busy session's tool output is read in later polls.
 const MAX_RECEIPT_READ: u64 = 1_048_576;
 /// A receipt line holds at most the message and its metadata; anything longer is content.
 const MAX_RECEIPT_LINE: usize = 4 * MAX_MESSAGE_BYTES + 16_384;
 
+/// Where and how long the transport looks; tests narrow both.
+struct Limits {
+    /// Claude Code's inbox directories; a socket anywhere else is not trusted.
+    directories: Vec<PathBuf>,
+    receipt: Duration,
+    taken: Duration,
+}
+
 /// Queue a message once into the session's own inbox, then read its receipt.
-pub async fn submit(submission: &Submission, cancel: &CancellationToken) -> SendOutcome {
-    submit_within(submission, cancel, RECEIPT_WINDOW).await
+pub async fn submit(submission: &Submission, cancel: &CancellationToken) -> Receipt {
+    let limits = Limits {
+        directories: agent_platform::inbox_directories(),
+        receipt: RECEIPT_WINDOW,
+        taken: TAKEN_WATCH,
+    };
+    submit_within(submission, cancel, &limits).await
 }
 
 async fn submit_within(
     submission: &Submission,
     cancel: &CancellationToken,
-    window: Duration,
-) -> SendOutcome {
+    limits: &Limits,
+) -> Receipt {
     let target = &submission.target;
     let Some(inbox) = target
         .inbox
         .as_ref()
         .filter(|_| target.route() == Route::ClaudeInbox)
     else {
-        return SendOutcome::Rejected;
+        return SendOutcome::Rejected.into();
     };
     if !target.can_receive()
         || submission.text.trim().is_empty()
         || submission.text.len() > MAX_MESSAGE_BYTES
         || cancel.is_cancelled()
     {
-        return SendOutcome::Rejected;
+        return SendOutcome::Rejected.into();
     }
     // Everything is checked again now; anything that changed refuses rather than retargets.
-    let Some((config, cwd)) = recheck(inbox, target) else {
-        return SendOutcome::Rejected;
+    let Some((config, cwd)) = recheck(inbox, target, &limits.directories) else {
+        return SendOutcome::Rejected.into();
     };
-    let mut transcript = Transcript::new(config, cwd, target.session_id.clone());
+    let mut transcript = Transcript::new(config, cwd, submission);
     let Some(stream) = connect(inbox, target.pid).await else {
-        return SendOutcome::Rejected;
+        return SendOutcome::Rejected.into();
     };
     match write_frame(stream, &frame(submission)).await {
-        Written::Nothing => return SendOutcome::Rejected,
-        Written::Partly => return SendOutcome::Unconfirmed,
+        Written::Nothing => return SendOutcome::Rejected.into(),
+        Written::Partly => return SendOutcome::Unconfirmed.into(),
         Written::Whole => {}
     }
-    transcript.receipt(submission, cancel, window).await
+    match transcript.receipt(cancel, limits.receipt).await {
+        Some(Evidence::Taken) => SendOutcome::Taken.into(),
+        Some(Evidence::Held) => SendOutcome::Held.into(),
+        Some(Evidence::Queued) => {
+            let (cancel, limit) = (cancel.clone(), limits.taken);
+            Receipt {
+                outcome: SendOutcome::Accepted,
+                taken: Some(Box::pin(
+                    async move { transcript.taken(&cancel, limit).await },
+                )),
+            }
+        }
+        None => SendOutcome::Unconfirmed.into(),
+    }
 }
 
 /// The session's registry entry, read again: still this process, this session and this inbox,
 /// at a socket only this account can reach. Returns the configuration directory and the
 /// session's working directory, which locate its transcript.
-fn recheck(inbox: &ClaudeInbox, target: &Target) -> Option<(PathBuf, String)> {
+fn recheck(
+    inbox: &ClaudeInbox,
+    target: &Target,
+    directories: &[PathBuf],
+) -> Option<(PathBuf, String)> {
     let entry = Path::new(&inbox.entry);
     let sessions = entry.parent()?;
     if entry.file_name()?.to_str()? != format!("{}.json", target.pid)
@@ -97,8 +137,8 @@ fn recheck(inbox: &ClaudeInbox, target: &Target) -> Option<(PathBuf, String)> {
     {
         return None;
     }
-    let started = claude_sessions::process_start(target.pid)?;
-    let namespace = claude_sessions::own_namespace();
+    let started = agent_platform::process_start(target.pid)?;
+    let namespace = agent_platform::own_namespace();
     let Some(Ok((start, session))) =
         claude_sessions::read_entry(entry, target.pid, namespace.as_deref())
     else {
@@ -111,20 +151,21 @@ fn recheck(inbox: &ClaudeInbox, target: &Target) -> Option<(PathBuf, String)> {
             .inbox
             .as_ref()
             .is_some_and(|fresh| fresh.socket == inbox.socket);
-    (same && trusted_socket(Path::new(&inbox.socket)))
-        .then(|| (sessions.parent().map(Path::to_path_buf), session.cwd))
-        .and_then(|(config, cwd)| Some((config?, cwd)))
+    let config = sessions.parent()?.to_path_buf();
+    (same && trusted_socket(Path::new(&inbox.socket), directories)).then_some((config, session.cwd))
 }
 
-/// A socket owned by this account, not reached through a symlink, in a directory only this
-/// account can enter, at a path short enough to be bound whole.
-fn trusted_socket(path: &Path) -> bool {
-    let uid = claude_sessions::effective_uid();
-    let directory = path
-        .parent()
-        .and_then(|parent| fs::symlink_metadata(parent).ok());
+/// A socket owned by this account, not reached through a symlink, in one of Claude Code's inbox
+/// directories that only this account can enter, at a path short enough to be bound whole.
+fn trusted_socket(path: &Path, directories: &[PathBuf]) -> bool {
+    let uid = agent_platform::effective_uid();
+    let Some(parent) = path.parent() else {
+        return false;
+    };
+    let directory = fs::symlink_metadata(parent).ok();
     path.is_absolute()
         && path.as_os_str().len() <= MAX_SOCKET_PATH
+        && directories.iter().any(|known| known == parent)
         && directory
             .is_some_and(|d| d.file_type().is_dir() && d.uid() == uid && d.mode() & 0o077 == 0)
         && fs::symlink_metadata(path).is_ok_and(|s| s.file_type().is_socket() && s.uid() == uid)
@@ -136,9 +177,8 @@ async fn connect(inbox: &ClaudeInbox, pid: u32) -> Option<UnixStream> {
         .await
         .ok()?
         .ok()?;
-    let peer = stream.peer_cred().ok()?;
-    let pid = i32::try_from(pid).ok()?;
-    (peer.uid() == claude_sessions::effective_uid() && peer.pid() == Some(pid)).then_some(stream)
+    let (uid, peer) = agent_platform::peer_process(&stream)?;
+    (uid == agent_platform::effective_uid() && peer == pid).then_some(stream)
 }
 
 /// One line: the text as a user message, the session it is meant for and this message's ID.
@@ -184,11 +224,24 @@ async fn write_frame<W: AsyncWrite + Unpin>(mut writer: W, frame: &[u8]) -> Writ
     }
 }
 
+/// What the session's transcript shows of this message, weakest first.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+enum Evidence {
+    /// The queue admitted it.
+    Queued,
+    /// The session holds it until the person approves it there.
+    Held,
+    /// The agent took it into a turn.
+    Taken,
+}
+
 /// The new end of one session's transcript, read for this message's receipt.
 struct Transcript {
     config: PathBuf,
     cwd: String,
     session_id: String,
+    id: String,
+    text: String,
     path: Option<PathBuf>,
     /// Bytes before the write are history, never a receipt.
     offset: u64,
@@ -198,7 +251,8 @@ struct Transcript {
 }
 
 impl Transcript {
-    fn new(config: PathBuf, cwd: String, session_id: String) -> Self {
+    fn new(config: PathBuf, cwd: String, submission: &Submission) -> Self {
+        let session_id = submission.target.session_id.clone();
         let path = claude_sessions::transcript_path(&config, &cwd, &session_id);
         let offset = path
             .as_deref()
@@ -208,6 +262,8 @@ impl Transcript {
             config,
             cwd,
             session_id,
+            id: submission.id.clone(),
+            text: submission.text.clone(),
             path,
             offset,
             partial: vec![],
@@ -215,40 +271,48 @@ impl Transcript {
         }
     }
 
-    /// Accepted once a receipt appears; unconfirmed when none does within the window or the
-    /// wait is cancelled. Nothing is ever written again.
-    async fn receipt(
-        &mut self,
-        submission: &Submission,
-        cancel: &CancellationToken,
-        window: Duration,
-    ) -> SendOutcome {
+    /// The first evidence within the window, if any; a cancelled wait has none.
+    async fn receipt(&mut self, cancel: &CancellationToken, window: Duration) -> Option<Evidence> {
         let deadline = tokio::time::Instant::now() + window;
         loop {
-            if self.read(submission) {
-                return SendOutcome::Accepted;
+            if let Some(evidence) = self.read() {
+                return Some(evidence);
             }
             if tokio::time::Instant::now() >= deadline {
-                return SendOutcome::Unconfirmed;
+                return None;
             }
             tokio::select! {
-                _ = cancel.cancelled() => return SendOutcome::Unconfirmed,
+                _ = cancel.cancelled() => return None,
                 _ = tokio::time::sleep(RECEIPT_POLL) => {}
             }
         }
     }
 
-    /// Read what was appended since the last read; true when it holds this message's receipt.
-    fn read(&mut self, submission: &Submission) -> bool {
+    /// After a queued receipt: true once the agent takes the message into a turn.
+    async fn taken(&mut self, cancel: &CancellationToken, limit: Duration) -> bool {
+        let deadline = tokio::time::Instant::now() + limit;
+        while tokio::time::Instant::now() < deadline {
+            if self.read() == Some(Evidence::Taken) {
+                return true;
+            }
+            tokio::select! {
+                _ = cancel.cancelled() => return false,
+                _ = tokio::time::sleep(TAKEN_POLL) => {}
+            }
+        }
+        false
+    }
+
+    /// Read what was appended since the last read; the strongest evidence in it.
+    fn read(&mut self) -> Option<Evidence> {
         if self.path.is_none() {
             // A session's first message creates its transcript.
             self.path = claude_sessions::transcript_path(&self.config, &self.cwd, &self.session_id);
         }
-        let Some((mut file, metadata)) =
-            self.path.as_deref().and_then(claude_sessions::open_private)
-        else {
-            return false;
-        };
+        let (mut file, metadata) = self
+            .path
+            .as_deref()
+            .and_then(claude_sessions::open_private)?;
         let length = metadata.len();
         if length < self.offset {
             // Rewritten: start again from its beginning.
@@ -256,17 +320,15 @@ impl Transcript {
             self.partial.clear();
         }
         if length == self.offset || file.seek(SeekFrom::Start(self.offset)).is_err() {
-            return false;
+            return None;
         }
         let mut bytes = Vec::new();
-        if (&mut file)
+        (&mut file)
             .take((length - self.offset).min(MAX_RECEIPT_READ))
             .read_to_end(&mut bytes)
-            .is_err()
-        {
-            return false;
-        }
+            .ok()?;
         self.offset += bytes.len() as u64;
+        let mut best = None;
         for byte in bytes {
             if byte != b'\n' {
                 if !self.skipping {
@@ -276,53 +338,64 @@ impl Transcript {
                 continue;
             }
             let line = std::mem::take(&mut self.partial);
-            let whole = !std::mem::replace(&mut self.skipping, false);
-            if whole && receipt_line(&line, submission) {
-                return true;
+            if !std::mem::replace(&mut self.skipping, false) {
+                best = best.max(evidence(&line, &self.id, &self.text, &self.session_id));
             }
         }
         if self.skipping {
             self.partial.clear();
         }
-        false
+        best
     }
 }
 
-/// Whether one transcript line records this message: the queue admitting exactly this text for
-/// this session, or the turn, queue or attachment record carrying this message's ID.
-fn receipt_line(line: &[u8], submission: &Submission) -> bool {
+/// What one transcript line says of this message: the queue admitting exactly this text for
+/// this session, the turn, queue or attachment record carrying this message's ID, or the notice
+/// that holds a message whose preview starts this text.
+fn evidence(line: &[u8], id: &str, text: &str, session_id: &str) -> Option<Evidence> {
     let has = |mark: &[u8]| line.windows(mark.len()).any(|w| w == mark);
-    if !line.starts_with(b"{") || !(has(b"\"queue-operation\"") || has(submission.id.as_bytes())) {
-        return false;
+    if !line.starts_with(b"{")
+        || !(has(b"\"queue-operation\"")
+            || has(id.as_bytes())
+            || has("Held peer message".as_bytes()))
+    {
+        return None;
     }
-    let Ok(record) = serde_json::from_slice::<Value>(line) else {
-        return false;
-    };
+    let record = serde_json::from_slice::<Value>(line).ok()?;
     let field = |key: &str| record.get(key).and_then(Value::as_str);
-    let ours = Some(submission.id.as_str());
-    match field("type") {
-        Some("queue-operation") => {
-            let admitted = field("operation") == Some("enqueue")
-                && field("content").is_some_and(|content| content.trim() == submission.text.trim())
-                && field("sessionId").is_none_or(|id| id == submission.target.session_id);
-            admitted || field("commandUuid") == ours
-        }
-        Some("user") => field("uuid") == ours,
-        Some("attachment") => {
-            record
-                .pointer("/attachment/source_uuid")
-                .and_then(Value::as_str)
-                == ours
-        }
-        _ => false,
+    let ours = Some(id);
+    match field("type")? {
+        "queue-operation" if field("commandUuid") == ours => Some(Evidence::Taken),
+        "queue-operation" => (field("operation") == Some("enqueue")
+            && field("content").is_some_and(|content| content.trim() == text.trim())
+            && field("sessionId").is_none_or(|sid| sid == session_id))
+        .then_some(Evidence::Queued),
+        "user" => (field("uuid") == ours).then_some(Evidence::Taken),
+        "attachment" => (record
+            .pointer("/attachment/source_uuid")
+            .and_then(Value::as_str)
+            == ours)
+            .then_some(Evidence::Taken),
+        "system" => held_preview(field("content")?)
+            .filter(|preview| !preview.is_empty() && text.trim_start().starts_with(preview))
+            .map(|_| Evidence::Held),
+        _ => None,
     }
+}
+
+/// The preview of the text a held-message notice quotes, without a trailing ellipsis.
+fn held_preview(notice: &str) -> Option<&str> {
+    let rest = notice.strip_prefix("Held peer message")?;
+    let start = rest.find('«')? + '«'.len_utf8();
+    let end = start + rest[start..].find('»')?;
+    Some(rest[start..end].trim_end_matches('…').trim())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::claude_sessions::{ClaudeRegistry, merge};
-    use mluva_core::agent_voice::{AgentStatus, Delivery};
+    use mluva_core::agent_voice::{AgentKind, AgentStatus, Delivery};
     use std::os::unix::fs::PermissionsExt;
     use tokio::{io::AsyncReadExt, net::UnixListener};
 
@@ -373,7 +446,7 @@ mod tests {
         fn entry(&self, extra: Value) {
             let pid = std::process::id();
             let mut entry = json!({"pid": pid, "sessionId": SESSION, "cwd": CWD,
-                "startedAt": 1_793_000_000_000_u64, "procStart": claude_sessions::process_start(pid).unwrap(),
+                "startedAt": 1_793_000_000_000_u64, "procStart": agent_platform::process_start(pid).unwrap(),
                 "version": "2.1.310", "peerProtocol": 1, "kind": "interactive", "entrypoint": "cli",
                 "messagingSocketPath": self.socket.to_string_lossy(), "name": "inbox-fixture",
                 "nameSource": "user", "status": "idle"});
@@ -395,11 +468,27 @@ mod tests {
             fs::set_permissions(&self.socket, fs::Permissions::from_mode(0o600)).unwrap();
             listener
         }
-        fn append(&self, line: Value) {
-            let mut file = fs::OpenOptions::new()
-                .append(true)
-                .open(&self.transcript)
-                .unwrap();
+        /// This fixture's socket directory stands in for Claude Code's.
+        fn limits(&self, receipt_ms: u64) -> Limits {
+            Limits {
+                directories: vec![self.socket.parent().unwrap().to_path_buf()],
+                receipt: Duration::from_millis(receipt_ms),
+                taken: Duration::from_secs(5),
+            }
+        }
+        async fn send(&self, submission: &Submission, cancel: &CancellationToken) -> Receipt {
+            submit_within(submission, cancel, &self.limits(2_500)).await
+        }
+        async fn outcome(&self, submission: &Submission) -> SendOutcome {
+            self.send(submission, &CancellationToken::new())
+                .await
+                .outcome
+        }
+    }
+
+    fn append(path: &Path, lines: &[Value]) {
+        let mut file = fs::OpenOptions::new().append(true).open(path).unwrap();
+        for line in lines {
             std::io::Write::write_all(&mut file, format!("{line}\n").as_bytes()).unwrap();
         }
     }
@@ -453,16 +542,17 @@ mod tests {
         let desktop = fixture.target();
         assert_eq!(
             (desktop.kind, desktop.route(), desktop.place().as_str()),
-            (
-                mluva_core::agent_voice::AgentKind::ClaudeDesktop,
-                Route::ClaudeInbox,
-                "app"
-            )
+            (AgentKind::ClaudeDesktop, Route::ClaudeInbox, "app")
         );
-        // A waiting session is shown blocked: a socket message never answers its prompt.
+        // A session waiting on a prompt can be queued to: the message waits behind it.
         fixture.entry(json!({"status": "waiting", "waitingFor": "permission prompt"}));
         let waiting = fixture.target();
-        assert!(!waiting.can_receive() && !waiting.draft_only());
+        assert_eq!(waiting.status, AgentStatus::Blocked);
+        assert!(waiting.can_receive());
+        assert_eq!(
+            waiting.delivery_hint(),
+            Some("Waits behind its prompt, as a message from another Claude session")
+        );
     }
 
     #[tokio::test]
@@ -483,27 +573,24 @@ mod tests {
             );
             assert_eq!(frame["session_id"], SESSION);
             assert_eq!(frame["uuid"], id.as_str());
-            let mut file = fs::OpenOptions::new()
-                .append(true)
-                .open(&transcript)
-                .unwrap();
-            for line in [
-                json!({"type": "queue-operation", "operation": "dequeue", "sessionId": SESSION}),
-                json!({"type": "user", "uuid": id, "isMeta": true, "origin": {"kind": "peer"}}),
-            ] {
-                std::io::Write::write_all(&mut file, format!("{line}\n").as_bytes()).unwrap();
-            }
+            append(
+                &transcript,
+                &[
+                    json!({"type": "queue-operation", "operation": "enqueue", "sessionId": SESSION, "content": "Synthetic Czech: zkus testy znovu."}),
+                    json!({"type": "queue-operation", "operation": "dequeue", "sessionId": SESSION}),
+                    json!({"type": "user", "uuid": id, "isMeta": true, "origin": {"kind": "peer"}}),
+                ],
+            );
             no_more_connections(&listener).await;
         });
-        assert_eq!(
-            submit(&sending, &CancellationToken::new()).await,
-            SendOutcome::Accepted
-        );
+        let receipt = fixture.send(&sending, &CancellationToken::new()).await;
+        assert_eq!(receipt.outcome, SendOutcome::Taken);
+        assert!(receipt.taken.is_none());
         peer.await.unwrap();
     }
 
     #[tokio::test]
-    async fn a_working_session_admitting_exactly_this_text_to_its_queue_is_accepted() {
+    async fn a_working_session_queues_it_and_is_seen_taking_it_at_its_next_tool_boundary() {
         let fixture = Fixture::new();
         let listener = fixture.listen();
         let target = Target {
@@ -511,56 +598,75 @@ mod tests {
             ..fixture.target()
         };
         let sending = submission(target, "Run the tests again");
+        let id = sending.id.clone();
         // An older admission of the same text, before this write, is history.
-        fixture.append(json!({"type": "queue-operation", "operation": "enqueue", "sessionId": SESSION, "content": "Run the tests again"}));
+        append(
+            &fixture.transcript,
+            &[
+                json!({"type": "queue-operation", "operation": "enqueue", "sessionId": SESSION, "content": "Run the tests again"}),
+            ],
+        );
         let transcript = fixture.transcript.clone();
+        let (admitted, absorb) = tokio::sync::oneshot::channel::<()>();
         let peer = tokio::spawn(async move {
             frame_from(&listener).await;
-            let mut file = fs::OpenOptions::new()
-                .append(true)
-                .open(&transcript)
-                .unwrap();
             // Another session's admission and other text are not this message's receipt.
-            for line in [
-                json!({"type": "queue-operation", "operation": "enqueue", "sessionId": "other-session", "content": "Run the tests again"}),
-                json!({"type": "queue-operation", "operation": "enqueue", "sessionId": SESSION, "content": "Different text"}),
-                json!({"type": "queue-operation", "operation": "enqueue", "sessionId": SESSION, "content": "Run the tests again"}),
-            ] {
-                std::io::Write::write_all(&mut file, format!("{line}\n").as_bytes()).unwrap();
-            }
+            append(
+                &transcript,
+                &[
+                    json!({"type": "queue-operation", "operation": "enqueue", "sessionId": "other-session", "content": "Run the tests again"}),
+                    json!({"type": "queue-operation", "operation": "enqueue", "sessionId": SESSION, "content": "Different text"}),
+                    json!({"type": "queue-operation", "operation": "enqueue", "sessionId": SESSION, "content": "Run the tests again"}),
+                ],
+            );
+            absorb.await.unwrap();
+            append(
+                &transcript,
+                &[
+                    json!({"type": "assistant", "message": {"content": "tool output"}}),
+                    json!({"type": "queue-operation", "operation": "remove", "reason": "absorbed_mid_turn", "commandUuid": id}),
+                ],
+            );
         });
-        assert_eq!(
-            submit(&sending, &CancellationToken::new()).await,
-            SendOutcome::Accepted
-        );
+        let receipt = fixture.send(&sending, &CancellationToken::new()).await;
+        assert_eq!(receipt.outcome, SendOutcome::Accepted);
+        let taken = receipt
+            .taken
+            .expect("a queued message is watched until it is taken");
+        admitted.send(()).unwrap();
+        assert!(taken.await);
         peer.await.unwrap();
     }
 
     #[tokio::test]
-    async fn no_receipt_leaves_delivery_unconfirmed_and_never_writes_again() {
+    async fn a_held_message_is_held_and_no_receipt_is_unconfirmed_never_resent() {
         let fixture = Fixture::new();
         let listener = fixture.listen();
-        let sending = submission(fixture.target(), "Held or refused message");
         let transcript = fixture.transcript.clone();
         let peer = tokio::spawn(async move {
             frame_from(&listener).await;
             // A session that holds messages from other sessions shows only a notice.
-            let mut file = fs::OpenOptions::new()
-                .append(true)
-                .open(&transcript)
-                .unwrap();
-            let held = json!({"type": "system", "subtype": "informational", "level": "warning",
-                "content": "Held peer message — from an unidentified session; preview: «Held or refused message» — not delivered to Claude (1 held)."});
-            std::io::Write::write_all(&mut file, format!("{held}\n").as_bytes()).unwrap();
+            append(
+                &transcript,
+                &[
+                    json!({"type": "system", "subtype": "informational", "level": "warning",
+                    "content": "Held peer message — from an unidentified session [verified pid 4100]; preview: «Please review the release notes for…» — not delivered to Claude (1 held)."}),
+                ],
+            );
+            frame_from(&listener).await;
             no_more_connections(&listener).await;
         });
+        let held = submission(
+            fixture.target(),
+            "Please review the release notes for the next version today",
+        );
+        assert_eq!(fixture.outcome(&held).await, SendOutcome::Held);
+        // A refused or dropped message leaves no record at all.
+        let silent = submission(fixture.target(), "Refused message");
         assert_eq!(
-            submit_within(
-                &sending,
-                &CancellationToken::new(),
-                Duration::from_millis(400)
-            )
-            .await,
+            submit_within(&silent, &CancellationToken::new(), &fixture.limits(400))
+                .await
+                .outcome,
             SendOutcome::Unconfirmed
         );
         peer.await.unwrap();
@@ -585,7 +691,7 @@ mod tests {
             fixture.entry(change.clone());
             let sending = submission(chosen.clone(), "Never delivered");
             assert_eq!(
-                submit(&sending, &CancellationToken::new()).await,
+                fixture.outcome(&sending).await,
                 SendOutcome::Rejected,
                 "{change}"
             );
@@ -599,31 +705,28 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            submit(
-                &submission(chosen.clone(), "Never delivered"),
-                &CancellationToken::new()
-            )
-            .await,
+            fixture
+                .outcome(&submission(chosen.clone(), "Never delivered"))
+                .await,
             SendOutcome::Rejected
         );
-        // A blocked or missing target is refused before anything is read.
+        // A missing target, or one whose state no transport accepts, is refused before anything
+        // is read.
         fixture.entry(json!({}));
         for target in [
-            Target {
-                status: AgentStatus::Blocked,
-                ..chosen.clone()
-            },
             Target {
                 missing: true,
                 ..chosen.clone()
             },
+            Target {
+                status: AgentStatus::Unknown,
+                ..chosen.clone()
+            },
         ] {
             assert_eq!(
-                submit(
-                    &submission(target, "Never delivered"),
-                    &CancellationToken::new()
-                )
-                .await,
+                fixture
+                    .outcome(&submission(target, "Never delivered"))
+                    .await,
                 SendOutcome::Rejected
             );
         }
@@ -636,23 +739,34 @@ mod tests {
         let target = fixture.target();
         // No listener: the transport is missing, so nothing is sent.
         assert_eq!(
-            submit(
-                &submission(target.clone(), "No listener"),
-                &CancellationToken::new()
-            )
-            .await,
+            fixture
+                .outcome(&submission(target.clone(), "No listener"))
+                .await,
             SendOutcome::Rejected
         );
         let listener = fixture.listen();
+        // A socket outside Claude Code's inbox directories.
+        let elsewhere = Limits {
+            directories: vec![PathBuf::from("/run/user/fixture/cc-socks")],
+            ..fixture.limits(400)
+        };
+        assert_eq!(
+            submit_within(
+                &submission(target.clone(), "Outside the inbox directories"),
+                &CancellationToken::new(),
+                &elsewhere
+            )
+            .await
+            .outcome,
+            SendOutcome::Rejected
+        );
         // A socket directory others can enter, or a symlink in the socket's place.
         let socks = fixture.socket.parent().unwrap();
         fs::set_permissions(socks, fs::Permissions::from_mode(0o755)).unwrap();
         assert_eq!(
-            submit(
-                &submission(target.clone(), "Shared directory"),
-                &CancellationToken::new()
-            )
-            .await,
+            fixture
+                .outcome(&submission(target.clone(), "Shared directory"))
+                .await,
             SendOutcome::Rejected
         );
         fs::set_permissions(socks, fs::Permissions::from_mode(0o700)).unwrap();
@@ -660,11 +774,9 @@ mod tests {
         fs::rename(&fixture.socket, &real).unwrap();
         std::os::unix::fs::symlink(&real, &fixture.socket).unwrap();
         assert_eq!(
-            submit(
-                &submission(target, "Symlinked socket"),
-                &CancellationToken::new()
-            )
-            .await,
+            fixture
+                .outcome(&submission(target, "Symlinked socket"))
+                .await,
             SendOutcome::Rejected
         );
         no_more_connections(&listener).await;
@@ -675,14 +787,14 @@ mod tests {
         // The registry names this test's parent process, but the socket is this process's.
         let fixture = Fixture::new();
         let listener = fixture.listen();
-        let parent = claude_sessions::parent(std::process::id()).unwrap();
-        let entry = fixture.config.join("sessions");
-        fs::remove_file(entry.join(format!("{}.json", std::process::id()))).unwrap();
+        let parent = agent_platform::parent(std::process::id()).unwrap();
+        let sessions = fixture.config.join("sessions");
+        fs::remove_file(sessions.join(format!("{}.json", std::process::id()))).unwrap();
         let record = json!({"pid": parent, "sessionId": SESSION, "cwd": CWD, "startedAt": 1,
-            "procStart": claude_sessions::process_start(parent).unwrap(), "peerProtocol": 1,
+            "procStart": agent_platform::process_start(parent).unwrap(), "peerProtocol": 1,
             "kind": "interactive", "messagingSocketPath": fixture.socket.to_string_lossy(),
             "status": "idle"});
-        let path = entry.join(format!("{parent}.json"));
+        let path = sessions.join(format!("{parent}.json"));
         fs::write(&path, record.to_string()).unwrap();
         fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();
         let target = fixture.target();
@@ -694,11 +806,7 @@ mod tests {
             assert!(bytes.is_empty(), "nothing was written to the wrong process");
         });
         assert_eq!(
-            submit(
-                &submission(target, "Wrong process"),
-                &CancellationToken::new()
-            )
-            .await,
+            fixture.outcome(&submission(target, "Wrong process")).await,
             SendOutcome::Rejected
         );
         peer.await.unwrap();
@@ -711,7 +819,10 @@ mod tests {
         let cancelled = CancellationToken::new();
         cancelled.cancel();
         assert_eq!(
-            submit(&submission(fixture.target(), "Before"), &cancelled).await,
+            fixture
+                .send(&submission(fixture.target(), "Before"), &cancelled)
+                .await
+                .outcome,
             SendOutcome::Rejected
         );
         let cancel = CancellationToken::new();
@@ -723,7 +834,10 @@ mod tests {
             })
         };
         assert_eq!(
-            submit(&submission(fixture.target(), "During"), &cancel).await,
+            fixture
+                .send(&submission(fixture.target(), "During"), &cancel)
+                .await
+                .outcome,
             SendOutcome::Unconfirmed
         );
         peer.await.unwrap();
@@ -787,50 +901,58 @@ mod tests {
     }
 
     #[test]
-    fn receipts_match_this_message_only_and_skip_content_lines() {
-        let target = Target {
-            session_id: SESSION.into(),
-            ..Target::default()
-        };
-        let sending = submission(target, "Run the tests again");
-        let id = sending.id.as_str();
+    fn evidence_matches_this_message_only_and_skips_content_lines() {
+        let id = "9a9a9a9a-0000-4000-8000-000000000001";
+        let text = "Run the tests again";
         let line = |value: Value| value.to_string().into_bytes();
-        for (record, receipt) in [
-            (json!({"type": "user", "uuid": id}), true),
+        for (record, expected) in [
+            (json!({"type": "user", "uuid": id}), Some(Evidence::Taken)),
             (
                 json!({"type": "queue-operation", "operation": "remove", "reason": "absorbed_mid_turn", "commandUuid": id}),
-                true,
+                Some(Evidence::Taken),
             ),
             (
                 json!({"type": "attachment", "attachment": {"type": "queued_command", "source_uuid": id}}),
-                true,
+                Some(Evidence::Taken),
             ),
             (
                 json!({"type": "queue-operation", "operation": "enqueue", "content": "Run the tests again\n"}),
-                true,
+                Some(Evidence::Queued),
+            ),
+            (
+                json!({"type": "system", "subtype": "informational", "content": "Held peer message — preview: «Run the tests…» — not delivered"}),
+                Some(Evidence::Held),
+            ),
+            (
+                json!({"type": "system", "subtype": "informational", "content": "Held peer message — preview: «Something else» — not delivered"}),
+                None,
+            ),
+            (
+                json!({"type": "queue-operation", "operation": "enqueue", "sessionId": "other", "content": text}),
+                None,
             ),
             (
                 json!({"type": "queue-operation", "operation": "dequeue", "sessionId": SESSION}),
-                false,
+                None,
             ),
             (
                 json!({"type": "user", "uuid": "someone-else", "message": {"content": id}}),
-                false,
+                None,
             ),
             (
                 json!({"type": "assistant", "message": {"content": format!("I saw {id}")}}),
-                false,
+                None,
             ),
         ] {
             assert_eq!(
-                receipt_line(&line(record.clone()), &sending),
-                receipt,
+                evidence(&line(record.clone()), id, text, SESSION),
+                expected,
                 "{record}"
             );
         }
-        assert!(!receipt_line(
-            b"not json with \"queue-operation\"",
-            &sending
-        ));
+        assert_eq!(
+            evidence(b"not json with \"queue-operation\"", id, text, SESSION),
+            None
+        );
     }
 }

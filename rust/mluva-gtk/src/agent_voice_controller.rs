@@ -75,7 +75,7 @@ pub struct AgentVoiceController {
     settings_timer: RefCell<Option<glib::SourceId>>,
     pub(crate) approved_key: RefCell<Option<String>>,
     /// The attempt and step last written to diagnostics and History, so each is written once.
-    reported: RefCell<Option<(String, &'static str)>>,
+    reported: RefCell<(String, Vec<&'static str>)>,
     /// The open wheel's diagnostic session and when it opened.
     wheel_session: RefCell<Option<(String, Instant)>>,
 }
@@ -145,7 +145,7 @@ impl AgentVoiceController {
             cli: RefCell::new(None),
             settings_timer: RefCell::new(None),
             approved_key: RefCell::new(None),
-            reported: RefCell::new(None),
+            reported: RefCell::new((String::new(), vec![])),
             wheel_session: RefCell::new(None),
         });
         owner.bind();
@@ -390,6 +390,7 @@ impl AgentVoiceController {
                 socket,
             ),
             claude: self.registry.clone(),
+            apps: true,
         }
     }
     fn draft_text(&self) -> String {
@@ -627,19 +628,31 @@ impl AgentVoiceController {
         let weak = Rc::downgrade(self);
         let cancel = self.closed.clone();
         self.runtime.spawn(async move {
-            let outcome = agent_targets::deliver(&submission, &cancel).await;
-            if let Some(owner) = weak.upgrade().filter(|o| !o.closed.is_cancelled()) {
+            let receipt = agent_targets::deliver(&submission, &cancel).await;
+            let outcome = receipt.outcome;
+            {
+                let Some(owner) = weak.upgrade().filter(|o| !o.closed.is_cancelled()) else {
+                    return;
+                };
                 if owner
                     .route
                     .borrow_mut()
                     .delivered(&submission.id, outcome, now())
-                    && outcome == SendOutcome::Accepted
+                    && matches!(outcome, SendOutcome::Accepted | SendOutcome::Taken)
                 {
                     owner
                         .view
                         .reply
                         .set_label(&accepted_message(&submission.target));
                 }
+                owner.render();
+            }
+            // A queued message: History learns when the agent takes it, if that is seen.
+            if let Some(taken) = receipt.taken
+                && taken.await
+                && let Some(owner) = weak.upgrade().filter(|o| !o.closed.is_cancelled())
+                && owner.route.borrow_mut().taken(&submission.id)
+            {
                 owner.render();
             }
         });
@@ -661,19 +674,27 @@ impl AgentVoiceController {
         let Some(a) = attempt else {
             return;
         };
-        let (step, event, outcome) = match a.phase {
-            RoutePhase::Grace { .. } => ("grace", RouteEvent::CountdownStarted, None),
-            RoutePhase::Delivered => (
-                "delivered",
-                RouteEvent::SendAccepted,
-                Some(a.target.delivery().outcome()),
-            ),
-            RoutePhase::Unconfirmed => (
+        // Every step the current phase implies, in order; each is written once.
+        let steps: Vec<(&'static str, RouteEvent, Option<&'static str>)> = match a.phase {
+            RoutePhase::Grace { .. } => vec![("grace", RouteEvent::CountdownStarted, None)],
+            RoutePhase::Delivered => {
+                let mut steps = vec![(
+                    "delivered",
+                    RouteEvent::SendAccepted,
+                    Some(a.target.delivery().outcome()),
+                )];
+                if a.taken {
+                    steps.push(("taken", RouteEvent::QueueTaken, Some("delivered")));
+                }
+                steps
+            }
+            RoutePhase::Held => vec![("held", RouteEvent::SendHeld, Some("held"))],
+            RoutePhase::Unconfirmed => vec![(
                 "unconfirmed",
                 RouteEvent::SendUnconfirmed,
                 Some("unconfirmed"),
-            ),
-            RoutePhase::Draft(reason) => match reason {
+            )],
+            RoutePhase::Draft(reason) => vec![match reason {
                 DraftReason::Kept => ("kept", RouteEvent::DraftKept, Some("draft-kept")),
                 DraftReason::Edited => ("edited", RouteEvent::DraftEdited, Some("draft-kept")),
                 DraftReason::RecipientChanged => (
@@ -691,6 +712,7 @@ impl AgentVoiceController {
                     RouteEvent::SendRejected,
                     Some("recipient-unavailable"),
                 ),
+                DraftReason::Busy => ("busy", RouteEvent::DraftBusy, Some("busy")),
                 DraftReason::Cancelled => {
                     ("cancelled", RouteEvent::DraftCancelled, Some("cancelled"))
                 }
@@ -702,14 +724,30 @@ impl AgentVoiceController {
                 // The row already says no speech was recognised; that stays.
                 DraftReason::Empty => ("empty", RouteEvent::DraftEmpty, None),
                 DraftReason::TooLong => ("too-long", RouteEvent::DraftTooLong, Some("draft-kept")),
-            },
+            }],
             _ => return,
         };
-        let key = (a.id.clone(), step);
-        if self.reported.borrow().as_ref() == Some(&key) {
-            return;
+        for (step, event, outcome) in steps {
+            self.report_step(a, step, event, outcome);
         }
-        self.reported.replace(Some(key));
+    }
+    fn report_step(
+        &self,
+        a: &Attempt,
+        step: &'static str,
+        event: RouteEvent,
+        outcome: Option<&'static str>,
+    ) {
+        {
+            let mut reported = self.reported.borrow_mut();
+            if reported.0 != a.id {
+                *reported = (a.id.clone(), vec![]);
+            }
+            if reported.1.contains(&step) {
+                return;
+            }
+            reported.1.push(step);
+        }
         let milliseconds = match (a.submitted_ms, a.received_ms, a.final_ms, a.released_ms) {
             (Some(sent), Some(received), ..) => received.saturating_sub(sent),
             _ if step == "grace" => a
@@ -928,9 +966,10 @@ impl AgentVoiceController {
         let draft = attempt
             .as_ref()
             .is_some_and(|a| matches!(a.phase, RoutePhase::Draft(_)) && !a.text.is_empty());
+        // Some input may be in the session, or it holds the message: never offered again.
         let unconfirmed = attempt
             .as_ref()
-            .is_some_and(|a| a.phase == RoutePhase::Unconfirmed);
+            .is_some_and(|a| matches!(a.phase, RoutePhase::Unconfirmed | RoutePhase::Held));
         self.view.draft_actions.set_visible(
             (draft || unconfirmed)
                 && self
@@ -975,7 +1014,8 @@ impl AgentVoiceController {
                 RoutePhase::Finalizing => format!("Finishing your message to {}…", a.target.name),
                 RoutePhase::Grace {deadline_ms} => countdown_message(&a.target, deadline_ms.saturating_sub(now())),
                 RoutePhase::Submitting => format!("Delivering to {}… Cancel can no longer recall this message.", a.target.name),
-                RoutePhase::Delivered => delivered_message(&a.target),
+                RoutePhase::Delivered => delivered_message(&a.target, a.taken),
+                RoutePhase::Held => format!("{} holds your message until you approve it there. It is never sent again; your draft is here.", a.target.name),
                 RoutePhase::Unconfirmed => format!("Delivery unconfirmed. Check {} before sending again; your draft is here.", a.target.place_to_check()),
                 RoutePhase::Draft(reason) => match reason {
                     DraftReason::Edited | DraftReason::Kept => "Draft kept. Automatic sending is off; edit or copy your text.".into(),
@@ -983,6 +1023,7 @@ impl AgentVoiceController {
                     DraftReason::TooLong => "Message is too long. Split it into smaller messages; nothing was sent.".into(),
                     DraftReason::Cancelled => "Cancelled. Nothing was sent.".into(),
                     DraftReason::RecipientChanged | DraftReason::Unavailable | DraftReason::Rejected => "Recipient changed or unavailable. Nothing was submitted; your text stays here.".into(),
+                    DraftReason::Busy => format!("{} was busy or not open, so nothing was sent. Your draft is here; send it when the session is idle.", a.target.name),
                     DraftReason::Interrupted => "Automatic sending stopped after an interruption. Your text stays here.".into(),
                 },
             },
@@ -1126,7 +1167,13 @@ fn countdown_message(target: &Target, remaining_ms: u64) -> String {
 }
 
 /// The status once the transport accepted the message.
-fn delivered_message(target: &Target) -> String {
+fn delivered_message(target: &Target, taken: bool) -> String {
+    if taken {
+        return format!(
+            "Delivered to {} · it took the message into a turn",
+            target.name
+        );
+    }
     match target.delivery() {
         Delivery::Queue => format!(
             "Queued for {} · it takes the message when it is ready",

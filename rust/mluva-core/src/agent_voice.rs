@@ -10,7 +10,7 @@ pub const MAX_RECORDING_MS: u64 = 5 * 60 * 1_000;
 pub const MAX_MESSAGE_BYTES: usize = 32_768;
 
 pub use crate::agent_target::{
-    AgentKind, AgentStatus, ClaudeInbox, Delivery, HerdrPane, Host, Route, Target,
+    AgentKind, AgentStatus, AppLink, ClaudeInbox, Delivery, HerdrPane, Host, Route, Target,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -108,6 +108,8 @@ pub enum DraftReason {
     Empty,
     TooLong,
     Rejected,
+    /// The session was busy or not open, so the transport withdrew the message unsent.
+    Busy,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -122,6 +124,8 @@ pub enum RoutePhase {
     /// The transport accepted the message at the target's delivery level: sent, queued or
     /// placed in the composer. The agent's own work on it is separate.
     Delivered,
+    /// The session holds the message until the person approves it there. Never resent.
+    Held,
     Unconfirmed,
 }
 
@@ -137,7 +141,21 @@ pub struct Attempt {
     pub final_ms: Option<u64>,
     pub submitted_ms: Option<u64>,
     pub received_ms: Option<u64>,
+    /// A queued message the agent has since taken into a turn.
+    pub taken: bool,
     disarmed: Option<DraftReason>,
+}
+
+impl Attempt {
+    /// History's word for what became of a delivered or held message.
+    pub fn delivered_outcome(&self) -> Option<&'static str> {
+        match self.phase {
+            RoutePhase::Delivered if self.taken => Some("delivered"),
+            RoutePhase::Delivered => Some(self.target.delivery().outcome()),
+            RoutePhase::Held => Some("held"),
+            _ => None,
+        }
+    }
 }
 
 impl Attempt {
@@ -162,8 +180,15 @@ pub struct Submission {
 /// What a transport reports for one delivery attempt.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SendOutcome {
-    /// Accepted at the target's delivery level, for exactly that session.
+    /// Accepted at the target's delivery level, for exactly that session: sent, queued or
+    /// placed in its composer.
     Accepted,
+    /// Queued, and the agent has already taken it into a turn.
+    Taken,
+    /// The session holds it until the person approves it there.
+    Held,
+    /// The session was busy or not open; the transport withdrew it before it ran.
+    Busy,
     /// Refused before anything reached the session.
     Rejected,
     /// Some input may have reached the session; it is never written again automatically.
@@ -210,6 +235,7 @@ impl VoiceRoute {
             final_ms: None,
             submitted_ms: None,
             received_ms: None,
+            taken: false,
             disarmed: None,
         });
         Ok(id)
@@ -248,7 +274,12 @@ impl VoiceRoute {
         let reason = a.disarmed.or_else(|| {
             if text.trim().is_empty() {
                 Some(DraftReason::Empty)
-            } else if text.len() > MAX_MESSAGE_BYTES {
+            } else if text.len() > MAX_MESSAGE_BYTES
+                || a.target
+                    .route()
+                    .max_chars()
+                    .is_some_and(|max| text.chars().count() > max)
+            {
                 Some(DraftReason::TooLong)
             } else {
                 None
@@ -343,9 +374,31 @@ impl VoiceRoute {
         a.received_ms = Some(now_ms);
         a.phase = match outcome {
             SendOutcome::Accepted => RoutePhase::Delivered,
+            SendOutcome::Taken => {
+                a.taken = true;
+                RoutePhase::Delivered
+            }
+            SendOutcome::Held => RoutePhase::Held,
+            SendOutcome::Busy => RoutePhase::Draft(DraftReason::Busy),
             SendOutcome::Rejected => RoutePhase::Draft(DraftReason::Rejected),
             SendOutcome::Unconfirmed => RoutePhase::Unconfirmed,
         };
         true
+    }
+
+    /// A queued message the agent took into a turn after the receipt was read. Only the same,
+    /// still-delivered attempt learns it.
+    pub fn taken(&mut self, id: &str) -> bool {
+        match self
+            .attempt
+            .as_mut()
+            .filter(|a| a.id == id && a.phase == RoutePhase::Delivered && !a.taken)
+        {
+            Some(a) => {
+                a.taken = true;
+                true
+            }
+            None => false,
+        }
     }
 }

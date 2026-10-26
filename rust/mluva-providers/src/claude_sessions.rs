@@ -10,6 +10,7 @@
 //! process start: unknown fields and values are ignored, and a field of an unexpected type is
 //! treated as absent. An entry that names an inbox socket (`messagingSocketPath` with
 //! `peerProtocol` 1) makes its session reachable through [`crate::claude_inbox`].
+use crate::agent_platform::{effective_uid, own_namespace, parent, process_start};
 use crate::herdr::label;
 use mluva_core::agent_voice::{AgentKind, AgentStatus, ClaudeInbox, Host, Target};
 use serde::Deserialize;
@@ -220,18 +221,6 @@ pub(crate) fn private_directory(path: &Path) -> bool {
     })
 }
 
-pub(crate) fn effective_uid() -> u32 {
-    // SAFETY: geteuid has no arguments or memory preconditions.
-    unsafe { libc::geteuid() }
-}
-
-/// This process's PID namespace, which registry entries must share.
-pub(crate) fn own_namespace() -> Option<String> {
-    fs::read_link("/proc/self/ns/pid")
-        .ok()
-        .map(|link| link.to_string_lossy().into_owned())
-}
-
 /// Open a regular file owned by this account without following a final symlink and
 /// without blocking on a FIFO.
 pub(crate) fn open_private(path: &Path) -> Option<(fs::File, fs::Metadata)> {
@@ -360,22 +349,6 @@ fn valid_session_id(id: &str) -> bool {
         && id
             .bytes()
             .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_'))
-}
-
-/// The fields of `/proc/<pid>/stat` after the parenthesised command name, from `state`.
-fn stat_fields(pid: u32) -> Option<Vec<String>> {
-    let stat = fs::read_to_string(format!("/proc/{pid}/stat")).ok()?;
-    let rest = stat.get(stat.rfind(')')? + 1..)?;
-    Some(rest.split_whitespace().map(str::to_owned).collect())
-}
-
-/// Field 22, the start time, which `procStart` records to detect PID reuse.
-pub(crate) fn process_start(pid: u32) -> Option<String> {
-    stat_fields(pid)?.into_iter().nth(19)
-}
-
-pub(crate) fn parent(pid: u32) -> Option<u32> {
-    stat_fields(pid)?.get(1)?.parse().ok()
 }
 
 /// Claude Code names a project's transcript directory after its path, with every UTF-16

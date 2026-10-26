@@ -1153,7 +1153,9 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     let queued = owner.agent_voice.route.borrow().attempt.clone().unwrap();
     assert_eq!(queued.target.session_id, "inbox-session");
     assert!(queued.submitted_ms.unwrap() - queued.final_ms.unwrap() >= 2000);
-    assert_eq!(outcome(&queued.history_id).delivery_outcome, "queued");
+    // The peer answers as an idle session: queued, then taken into a turn at once.
+    assert!(queued.taken);
+    assert_eq!(outcome(&queued.history_id).delivery_outcome, "delivered");
     let frames = || -> Vec<Value> {
         fs::read_to_string(&inbox_wire)
             .unwrap_or_default()
@@ -1242,6 +1244,11 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             "queued-agent"
         ],
         "four sends and one queued message; the incognito attempt is not traced"
+    );
+    assert!(
+        route
+            .iter()
+            .any(|e| e.stage == "route-queue-taken" && e.provider == "queued-agent")
     );
     let clipboard = gtk::gdk::Display::default().unwrap().clipboard();
     assert_eq!(

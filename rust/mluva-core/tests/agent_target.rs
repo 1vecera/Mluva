@@ -274,10 +274,11 @@ fn claude_codes_own_inbox_queues_when_herdr_cannot_send_and_never_outranks_it() 
         Some("Arrives as a message from another Claude session")
     );
     assert_eq!(queued.place_to_check(), "the session");
-    // A working session queues the message behind its turn; a waiting one is left to the person.
+    // A working session queues the message behind its turn, and a waiting one behind its
+    // prompt, which the message never answers. An unknown state is not queued to.
     for (status, receives) in [
         (AgentStatus::Working, true),
-        (AgentStatus::Blocked, false),
+        (AgentStatus::Blocked, true),
         (AgentStatus::Unknown, false),
     ] {
         let target = Target {
@@ -311,4 +312,42 @@ fn claude_codes_own_inbox_queues_when_herdr_cannot_send_and_never_outranks_it() 
     assert!(saved.get("inbox").is_none() && saved.get("host").is_none());
     let loaded: Target = serde_json::from_value(saved).unwrap();
     assert!(loaded.inbox.is_none() && loaded.same_instance(&queued));
+}
+
+#[test]
+fn a_new_claude_chat_is_one_prefill_target_with_its_own_identity_and_length_limit() {
+    let chat = Target {
+        kind: AgentKind::ClaudeDesktop,
+        name: "claude-new-chat".into(),
+        title: "New chat".into(),
+        status: AgentStatus::Idle,
+        app: Some(AppLink::ClaudeNewChat),
+        ..Target::default()
+    };
+    assert_eq!(
+        (chat.route(), chat.delivery(), chat.can_receive()),
+        (Route::ClaudeNewChat, Delivery::Prefill, true)
+    );
+    assert_eq!(Route::ClaudeNewChat.max_chars(), Some(14_336));
+    assert_eq!(Route::Herdr.max_chars(), None);
+    assert_eq!(
+        (chat.place().as_str(), chat.place_to_check()),
+        ("app", "Claude")
+    );
+    assert!(chat.delivery_hint().is_some());
+    // It survives saving, and nothing else ever matches it.
+    let saved = serde_json::to_value(&chat).unwrap();
+    assert_eq!(saved["app"], "claude_new_chat");
+    let loaded: Target = serde_json::from_value(saved).unwrap();
+    assert!(loaded.same_instance(&chat) && loaded.route() == Route::ClaudeNewChat);
+    assert!(!chat.same_instance(&outside()) && !outside().same_instance(&chat));
+    // The link belongs to Claude Desktop only.
+    let elsewhere = Target {
+        kind: AgentKind::ClaudeCode,
+        ..chat.clone()
+    };
+    assert_eq!(elsewhere.route(), Route::DraftOnly);
+    // A saved target without the field is no app surface.
+    let plain = serde_json::to_value(outside()).unwrap();
+    assert!(plain.get("app").is_none());
 }

@@ -308,3 +308,72 @@ fn settings_are_opt_in_private_and_preserve_invalid_files() {
     assert!(VoiceSettings::load(&path).is_err());
     assert_eq!(std::fs::read(&path).unwrap(), b"invalid original");
 }
+
+#[test]
+fn a_queued_message_can_be_taken_held_or_withdrawn_busy_and_none_is_replayed() {
+    let deliver = |outcome: SendOutcome| {
+        let mut route = VoiceRoute::default();
+        let id = route.begin(recipient(), 0).unwrap();
+        route.release(100);
+        route.recognized(&id, "queued text", Some("history-q".into()), 200);
+        route.take_submission(2_200).unwrap();
+        assert!(route.delivered(&id, outcome, 2_300));
+        assert!(route.take_submission(5_000).is_none() && route.send_now(5_000).is_none());
+        (route, id)
+    };
+    let (mut queued, id) = deliver(SendOutcome::Accepted);
+    let attempt = queued.attempt.as_ref().unwrap();
+    assert_eq!(attempt.phase, RoutePhase::Delivered);
+    // The fixture's route is Herdr: accepted means sent.
+    assert_eq!(attempt.delivered_outcome(), Some("sent"));
+    // The agent taking it later is learned once, by the same attempt only.
+    assert!(!queued.taken("another-attempt"));
+    assert!(queued.taken(&id));
+    assert!(!queued.taken(&id));
+    assert_eq!(
+        queued.attempt.as_ref().unwrap().delivered_outcome(),
+        Some("delivered")
+    );
+    let (taken, _) = deliver(SendOutcome::Taken);
+    assert_eq!(
+        taken.attempt.as_ref().unwrap().delivered_outcome(),
+        Some("delivered")
+    );
+    let (held, id) = deliver(SendOutcome::Held);
+    assert_eq!(held.attempt.as_ref().unwrap().phase, RoutePhase::Held);
+    assert_eq!(
+        held.attempt.as_ref().unwrap().delivered_outcome(),
+        Some("held")
+    );
+    let mut held = held;
+    assert!(!held.taken(&id), "a held message is not delivered");
+    let (busy, _) = deliver(SendOutcome::Busy);
+    assert_eq!(
+        busy.attempt.as_ref().unwrap().phase,
+        RoutePhase::Draft(DraftReason::Busy)
+    );
+    assert_eq!(busy.attempt.as_ref().unwrap().delivered_outcome(), None);
+}
+
+#[test]
+fn text_longer_than_the_route_carries_stays_a_draft_rather_than_being_cut() {
+    let chat = Target {
+        kind: AgentKind::ClaudeDesktop,
+        name: "claude-new-chat".into(),
+        status: AgentStatus::Idle,
+        app: Some(AppLink::ClaudeNewChat),
+        ..Default::default()
+    };
+    for (length, phase_is_draft) in [(14_336, false), (14_337, true)] {
+        let mut route = VoiceRoute::default();
+        let id = route.begin(chat.clone(), 0).unwrap();
+        route.release(100);
+        // Two-byte characters: the limit counts characters, not bytes.
+        route.recognized(&id, &"ž".repeat(length), None, 200);
+        assert_eq!(
+            route.attempt.as_ref().unwrap().phase == RoutePhase::Draft(DraftReason::TooLong),
+            phase_is_draft,
+            "{length}"
+        );
+    }
+}

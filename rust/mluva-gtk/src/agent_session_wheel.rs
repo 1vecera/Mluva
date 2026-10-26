@@ -178,6 +178,9 @@ enum Availability {
     Ready(Delivery),
     /// As Ready, while the agent is in a turn.
     Working(Delivery),
+    /// As Ready, while the session waits for the person; the message waits behind the prompt
+    /// and never answers it.
+    Waiting(Delivery),
     Blocked,
     Unavailable,
     /// Present, but nothing can deliver to it: recording keeps an editable draft in Mluva.
@@ -190,6 +193,7 @@ impl Availability {
         }
         match (entry.can_receive(), &entry.status) {
             (true, AgentStatus::Working) => Self::Working(entry.delivery()),
+            (true, AgentStatus::Blocked) => Self::Waiting(entry.delivery()),
             (true, _) => Self::Ready(entry.delivery()),
             (false, AgentStatus::Blocked) => Self::Blocked,
             (false, _) => Self::Unavailable,
@@ -197,11 +201,13 @@ impl Availability {
     }
     fn title(self) -> &'static str {
         match self {
+            // Waiting for the person matters more than how the message will wait.
             Self::Ready(delivery) | Self::Working(delivery) if delivery != Delivery::Send => {
                 delivery.verb()
             }
             Self::Ready(_) => "Ready",
             Self::Working(_) => "Working",
+            Self::Waiting(_) => "Waiting",
             Self::Blocked => "Blocked",
             Self::Unavailable => "Gone",
             Self::Draft => "Draft only",
@@ -221,7 +227,7 @@ impl Availability {
         match self {
             Self::Ready(_) => Kind::Ready,
             Self::Working(_) => Kind::Working,
-            Self::Blocked => Kind::Blocked,
+            Self::Waiting(_) | Self::Blocked => Kind::Blocked,
             Self::Unavailable => Kind::Gone,
             Self::Draft => Kind::Draft,
         }
@@ -516,7 +522,9 @@ impl DialText {
                     "DRAFT".to_owned(),
                     target.draft_hint().to_owned(),
                 ),
-                Availability::Ready(delivery) | Availability::Working(delivery) => (
+                Availability::Ready(delivery)
+                | Availability::Working(delivery)
+                | Availability::Waiting(delivery) => (
                     agent_key,
                     delivery.verb().to_uppercase(),
                     // The remembered session stays chosen while another page is shown.
@@ -1101,7 +1109,13 @@ mod tests {
         assert_eq!(CAPTION_CHARS as usize, "DRAFT ONLY".len());
         let every = [Delivery::Send, Delivery::Queue, Delivery::Prefill]
             .into_iter()
-            .flat_map(|d| [Availability::Ready(d), Availability::Working(d)])
+            .flat_map(|d| {
+                [
+                    Availability::Ready(d),
+                    Availability::Working(d),
+                    Availability::Waiting(d),
+                ]
+            })
             .chain([
                 Availability::Blocked,
                 Availability::Unavailable,

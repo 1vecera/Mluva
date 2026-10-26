@@ -153,7 +153,7 @@ impl AgentVoiceController {
                 RoutePhase::Finalizing => "transcribing",
                 RoutePhase::Grace { .. } => "countdown",
                 RoutePhase::Submitting => "sending",
-                RoutePhase::Delivered => a.target.delivery().outcome(),
+                RoutePhase::Delivered | RoutePhase::Held => a.delivered_outcome().unwrap_or("sent"),
                 RoutePhase::Unconfirmed => "unconfirmed",
                 RoutePhase::Draft(_) => "draft",
             })

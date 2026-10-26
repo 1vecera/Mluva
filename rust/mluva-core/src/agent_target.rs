@@ -151,6 +151,9 @@ pub enum Route {
     /// message to its prompt queue and takes it between tool calls or as a new turn; the agent
     /// sees it as a message from another Claude session, not as typed by the person.
     ClaudeInbox,
+    /// A new Claude desktop chat opened by link with the text in its composer, for the person
+    /// to review and send. It raises the app, so it serves only a target chosen for it.
+    ClaudeNewChat,
 }
 
 impl Route {
@@ -159,6 +162,7 @@ impl Route {
             Self::DraftOnly => "none",
             Self::Herdr => "herdr",
             Self::ClaudeInbox => "claude_inbox",
+            Self::ClaudeNewChat => "claude_new_chat",
         }
     }
     /// The level this transport has been verified to deliver at.
@@ -167,19 +171,35 @@ impl Route {
             Self::DraftOnly => Delivery::DraftOnly,
             Self::Herdr => Delivery::Send,
             Self::ClaudeInbox => Delivery::Queue,
+            Self::ClaudeNewChat => Delivery::Prefill,
         }
     }
     /// Whether the transport may deliver to a session in this state. Herdr writes into a
-    /// working agent's composer without stopping it, and the inbox queues behind a running
-    /// turn. A session waiting for the person is left to them: the inbox would only queue
-    /// behind the prompt, and a dictated "yes" must never look like an answer to it.
+    /// working agent's composer without stopping it but never answers a waiting prompt. The
+    /// inbox queues behind a running turn or a waiting prompt, which it never answers. A new
+    /// chat has no state.
     fn accepts(self, status: AgentStatus) -> bool {
         match self {
             Self::DraftOnly => false,
-            Self::Herdr | Self::ClaudeInbox => matches!(
+            Self::Herdr => matches!(
                 status,
                 AgentStatus::Idle | AgentStatus::Done | AgentStatus::Working
             ),
+            Self::ClaudeInbox => matches!(
+                status,
+                AgentStatus::Idle | AgentStatus::Done | AgentStatus::Working | AgentStatus::Blocked
+            ),
+            Self::ClaudeNewChat => true,
+        }
+    }
+
+    /// The longest text, in characters, the transport carries whole; longer text stays a
+    /// draft rather than being cut.
+    pub fn max_chars(self) -> Option<usize> {
+        match self {
+            // Claude Desktop cuts a link's prompt at this length.
+            Self::ClaudeNewChat => Some(14_336),
+            Self::DraftOnly | Self::Herdr | Self::ClaudeInbox => None,
         }
     }
 }
@@ -214,6 +234,14 @@ pub struct ClaudeInbox {
     pub socket: String,
     /// The process start time the entry recorded, which `/proc` confirmed at discovery.
     pub proc_start: String,
+}
+
+/// An application surface reached by link rather than a running session.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AppLink {
+    /// A new chat in the Claude desktop app.
+    ClaudeNewChat,
 }
 
 /// Where a session outside Herdr runs, as its agent reports it.
@@ -253,6 +281,8 @@ pub struct Target {
     pub inbox: Option<ClaudeInbox>,
     /// Where the session runs when Herdr does not show it. Never saved.
     pub host: Host,
+    /// An application surface reached by link, such as a new Claude desktop chat.
+    pub app: Option<AppLink>,
     /// A remembered choice that discovery no longer reports. Never saved.
     pub missing: bool,
 }
@@ -265,6 +295,9 @@ impl Target {
             Route::Herdr
         } else if self.inbox.is_some() && self.kind.runs_claude_code() {
             Route::ClaudeInbox
+        } else if self.app == Some(AppLink::ClaudeNewChat) && self.kind == AgentKind::ClaudeDesktop
+        {
+            Route::ClaudeNewChat
         } else {
             Route::DraftOnly
         }
@@ -309,7 +342,11 @@ impl Target {
     pub fn delivery_hint(&self) -> Option<&'static str> {
         match self.route() {
             Route::DraftOnly | Route::Herdr => None,
+            Route::ClaudeInbox if self.status == AgentStatus::Blocked => {
+                Some("Waits behind its prompt, as a message from another Claude session")
+            }
             Route::ClaudeInbox => Some("Arrives as a message from another Claude session"),
+            Route::ClaudeNewChat => Some("Opens Claude with it in a new chat; you send it there"),
         }
     }
 
@@ -318,6 +355,9 @@ impl Target {
     /// resumed session in a new process nor a new session in the same pane takes over a
     /// remembered choice, while the same session seen with or without Herdr stays chosen.
     pub fn same_instance(&self, other: &Self) -> bool {
+        if self.app.is_some() || other.app.is_some() {
+            return self.app == other.app && self.kind == other.kind;
+        }
         match (self.guarded_pane(), other.guarded_pane()) {
             (Some(a), Some(b)) => a.same_pane(b) && a.guard == b.guard,
             (None, None) if !self.session_id.is_empty() || !other.session_id.is_empty() => {
@@ -367,6 +407,9 @@ impl Target {
         if let Some(pane) = &self.herdr {
             return format!("Herdr {}", pane.pane_id);
         }
+        if self.app.is_some() {
+            return "app".into();
+        }
         match &self.host {
             Host::Terminal => "terminal".into(),
             Host::Tmux(pane) => format!("tmux {pane}"),
@@ -379,6 +422,7 @@ impl Target {
     pub fn place_to_check(&self) -> &'static str {
         match self.route() {
             Route::Herdr => "Herdr",
+            Route::ClaudeNewChat => "Claude",
             Route::ClaudeInbox | Route::DraftOnly => "the session",
         }
     }
@@ -473,6 +517,8 @@ struct TargetRecord {
     status: AgentStatus,
     session_id: String,
     pid: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    app: Option<AppLink>,
 }
 
 impl From<TargetRecord> for Target {
@@ -494,6 +540,7 @@ impl From<TargetRecord> for Target {
             pid: record.pid,
             inbox: None,
             host: Host::default(),
+            app: record.app,
             missing: false,
         }
     }
@@ -514,6 +561,7 @@ impl From<Target> for TargetRecord {
             status: target.status,
             session_id: target.session_id,
             pid: target.pid,
+            app: target.app,
         }
     }
 }

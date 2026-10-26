@@ -10,7 +10,7 @@
 //! writing, refuses rather than retargets a replaced one, never writes again after an uncertain
 //! write, and reads no terminal content, clipboard or focus.
 use crate::{
-    claude_inbox,
+    claude_desktop, claude_inbox,
     claude_sessions::{self, ClaudeRegistry},
     herdr,
 };
@@ -33,12 +33,15 @@ pub struct Sources {
     pub herdr: Vec<PathBuf>,
     /// Claude Code's own session registry, when this account has a Claude Code configuration.
     pub claude: Option<Arc<Mutex<ClaudeRegistry>>>,
+    /// Offer desktop app surfaces, such as a new Claude chat, when their app is installed.
+    pub apps: bool,
 }
 
 /// One discovery pass over every source.
 #[derive(Clone, Debug, Default)]
 pub struct Found {
-    /// Herdr's panes in order, then sessions Herdr does not show, in the order they started.
+    /// Herdr's panes in order, then sessions Herdr does not show in the order they started,
+    /// then desktop app surfaces.
     pub targets: Vec<Target>,
     /// Some Herdr server answered.
     pub herdr: bool,
@@ -52,7 +55,7 @@ impl Found {
     pub fn summary(&self) -> String {
         if self.targets.is_empty() {
             return self.errors.last().cloned().unwrap_or_else(|| {
-                "No sessions found. Start Claude Code, or Codex in Herdr, then refresh.".into()
+                "No sessions found. Start Claude Code or Codex, then refresh.".into()
             });
         }
         if self.targets.iter().any(Target::has_transport) {
@@ -95,16 +98,39 @@ pub async fn discover(sources: Sources, cancel: &CancellationToken) -> Option<Fo
         .await
         .unwrap_or_default()
     };
-    let (mut found, sessions) = tokio::select! {
+    let apps = async { sources.apps && claude_desktop::installed().await };
+    let (mut found, sessions, desktop) = tokio::select! {
         _ = cancel.cancelled() => return None,
-        found = async { tokio::join!(herdr, claude) } => found,
+        found = async { tokio::join!(herdr, claude, apps) } => found,
     };
     found.targets = claude_sessions::merge(std::mem::take(&mut found.targets), &sessions);
+    if desktop {
+        found.targets.push(claude_desktop::new_chat());
+    }
     Some(found)
 }
 
+/// Resolves true once a queued message is taken into a turn, false when that is not seen.
+pub type Taken = Pin<Box<dyn Future<Output = bool> + Send + 'static>>;
+
+/// What one delivery attempt established.
+pub struct Receipt {
+    pub outcome: SendOutcome,
+    /// For a message accepted into a queue: whether the agent goes on to take it.
+    pub taken: Option<Taken>,
+}
+
+impl From<SendOutcome> for Receipt {
+    fn from(outcome: SendOutcome) -> Self {
+        Self {
+            outcome,
+            taken: None,
+        }
+    }
+}
+
 /// A boxed delivery future, so transports can be held behind one trait object.
-pub type Delivering<'a> = Pin<Box<dyn Future<Output = SendOutcome> + Send + 'a>>;
+pub type Delivering<'a> = Pin<Box<dyn Future<Output = Receipt> + Send + 'a>>;
 
 /// A way to deliver a finished dictation to a target.
 ///
@@ -121,7 +147,7 @@ pub trait Transport: Sync {
     ) -> Delivering<'a>;
 }
 
-/// Herdr's guarded prompt and receipt.
+/// Herdr's guarded prompt and receipt, at Send level.
 pub struct HerdrTransport;
 
 impl Transport for HerdrTransport {
@@ -133,7 +159,7 @@ impl Transport for HerdrTransport {
         submission: &'a Submission,
         cancel: &'a CancellationToken,
     ) -> Delivering<'a> {
-        Box::pin(herdr::submit(submission, cancel))
+        Box::pin(async move { herdr::submit(submission, cancel).await.into() })
     }
 }
 
@@ -153,8 +179,28 @@ impl Transport for ClaudeInboxTransport {
     }
 }
 
+/// A new Claude desktop chat opened by link, at Prefill level.
+pub struct ClaudeNewChatTransport;
+
+impl Transport for ClaudeNewChatTransport {
+    fn route(&self) -> Route {
+        Route::ClaudeNewChat
+    }
+    fn deliver<'a>(
+        &'a self,
+        submission: &'a Submission,
+        cancel: &'a CancellationToken,
+    ) -> Delivering<'a> {
+        Box::pin(claude_desktop::submit(submission, cancel))
+    }
+}
+
 /// Every transport this build carries.
-const TRANSPORTS: &[&dyn Transport] = &[&HerdrTransport, &ClaudeInboxTransport];
+const TRANSPORTS: &[&dyn Transport] = &[
+    &HerdrTransport,
+    &ClaudeInboxTransport,
+    &ClaudeNewChatTransport,
+];
 
 /// The transport for a route; `None` for draft-only targets and routes this build lacks.
 pub fn transport(route: Route) -> Option<&'static dyn Transport> {
@@ -163,10 +209,10 @@ pub fn transport(route: Route) -> Option<&'static dyn Transport> {
 
 /// Deliver once through the target's own transport. A target no transport reaches is rejected
 /// without connecting anywhere.
-pub async fn deliver(submission: &Submission, cancel: &CancellationToken) -> SendOutcome {
+pub async fn deliver(submission: &Submission, cancel: &CancellationToken) -> Receipt {
     match transport(submission.target.route()) {
         Some(transport) => transport.deliver(submission, cancel).await,
-        None => SendOutcome::Rejected,
+        None => SendOutcome::Rejected.into(),
     }
 }
 
@@ -194,7 +240,12 @@ mod tests {
 
     #[test]
     fn every_route_with_a_delivery_level_has_exactly_one_transport() {
-        for route in [Route::DraftOnly, Route::Herdr, Route::ClaudeInbox] {
+        for route in [
+            Route::DraftOnly,
+            Route::Herdr,
+            Route::ClaudeInbox,
+            Route::ClaudeNewChat,
+        ] {
             let carried = TRANSPORTS.iter().filter(|t| t.route() == route).count();
             let expected =
                 usize::from(route.delivery() != mluva_core::agent_voice::Delivery::DraftOnly);
@@ -218,7 +269,9 @@ mod tests {
                 text: "Synthetic message".into(),
             };
             assert_eq!(
-                deliver(&submission, &CancellationToken::new()).await,
+                deliver(&submission, &CancellationToken::new())
+                    .await
+                    .outcome,
                 SendOutcome::Rejected
             );
         }
