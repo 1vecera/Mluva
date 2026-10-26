@@ -7,7 +7,10 @@ use std::{
     ffi::OsString,
     fs,
     io::{self, Write},
-    os::unix::{fs::MetadataExt, net::UnixDatagram},
+    os::unix::{
+        fs::{FileTypeExt, MetadataExt},
+        net::UnixDatagram,
+    },
     path::{Path, PathBuf},
     process::{Command, Stdio},
     thread,
@@ -330,7 +333,7 @@ fn ydotool_socket_ready(environment: &HashMap<OsString, OsString>) -> bool {
     let Ok(metadata) = fs::metadata(&path) else {
         return false;
     };
-    if metadata.mode() & libc::S_IFMT != libc::S_IFSOCK
+    if !metadata.file_type().is_socket()
         || metadata.uid() != unsafe { libc::geteuid() }
         || metadata.mode() & 0o077 != 0
         || metadata.mode() & 0o600 != 0o600

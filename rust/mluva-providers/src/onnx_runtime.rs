@@ -11,6 +11,10 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
+/// POSIX file-type bits as zip archives record them, independent of the host's `mode_t`.
+const ARCHIVE_TYPE_MASK: u32 = 0o170_000;
+const ARCHIVE_REGULAR: u32 = 0o100_000;
+
 pub const GPU_RUNTIME_BUDGET: u64 = 3_500_000_000;
 pub const GPU_FREE_SPACE: u64 = 6_000_000_000;
 pub const CPU_RUNTIME_BUDGET: u64 = 50_000_000;
@@ -198,7 +202,7 @@ pub(crate) fn extract(
         if member.size() != spec.size
             || member.is_dir()
             || member.unix_mode().is_some_and(|mode| {
-                mode & libc::S_IFMT != 0 && mode & libc::S_IFMT != libc::S_IFREG
+                mode & ARCHIVE_TYPE_MASK != 0 && mode & ARCHIVE_TYPE_MASK != ARCHIVE_REGULAR
             })
         {
             return Err(invalid());

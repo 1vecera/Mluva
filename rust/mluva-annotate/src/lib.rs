@@ -4,8 +4,10 @@
 //! Mark classification, clause alignment and the spoken-cue and novelty rules are adapted from
 //! Scrawl by Kit Langton (MIT); see `resources/README.md` for the pinned upstream commit.
 pub mod bundle;
+pub mod geometry;
 pub mod keyframes;
 pub mod model;
+#[cfg(feature = "render")]
 pub mod render;
 pub mod sketch;
 pub mod timing;

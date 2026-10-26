@@ -1,6 +1,7 @@
 //! Managed native providers must not outlive an abruptly terminated owner.
 use tokio::process::Command;
 
+#[cfg(target_os = "linux")]
 pub(crate) fn kill_with_parent(command: &mut Command) {
     let parent = std::process::id() as libc::pid_t;
     // Only async-signal-safe syscalls run between fork and exec. Recheck the
@@ -17,3 +18,7 @@ pub(crate) fn kill_with_parent(command: &mut Command) {
         });
     }
 }
+
+/// Other platforms have no parent-death signal; the managed local runtime is Linux-only.
+#[cfg(not(target_os = "linux"))]
+pub(crate) fn kill_with_parent(_command: &mut Command) {}

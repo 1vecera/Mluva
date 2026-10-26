@@ -857,8 +857,12 @@ mod tests {
         fs::set_permissions(&deep, fs::Permissions::from_mode(0o700)).unwrap();
         let socket = deep.join(socket_name);
         assert_eq!(socket.as_os_str().len(), 105);
-        let listener = UnixListener::bind(&socket).unwrap();
-        fs::set_permissions(&socket, fs::Permissions::from_mode(0o600)).unwrap();
+        // Linux binds paths of up to 107 bytes; macOS binds none past Claude Code's own limit.
+        let listener = cfg!(target_os = "linux").then(|| {
+            let listener = UnixListener::bind(&socket).unwrap();
+            fs::set_permissions(&socket, fs::Permissions::from_mode(0o600)).unwrap();
+            listener
+        });
         fixture.entry(json!({"messagingSocketPath": socket.to_string_lossy()}));
         let found = fixture.target();
         assert!(found.inbox.is_none() && found.draft_only());
@@ -879,7 +883,9 @@ mod tests {
             .outcome,
             SendOutcome::Rejected
         );
-        no_more_connections(&listener).await;
+        if let Some(listener) = &listener {
+            no_more_connections(listener).await;
+        }
     }
 
     #[tokio::test]

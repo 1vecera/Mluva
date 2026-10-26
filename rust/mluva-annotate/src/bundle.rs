@@ -1,9 +1,10 @@
 //! Write one annotation bundle: rendered keyframes, a contact sheet, `summary.md` and
 //! `annotation.json`. Every file is owner-only inside a directory the caller owns.
+#[cfg(feature = "render")]
+use crate::render::{self, RenderError};
 use crate::{
-    keyframes,
+    geometry, keyframes,
     model::{Capture, Keyframe, Mark, Transcript, format_clock},
-    render::{self, RenderError},
 };
 use mluva_core::annotations::{CONTACT_SHEET, keyframe_file};
 use serde_json::json;
@@ -32,6 +33,7 @@ pub enum BundleError {
     Empty,
     #[error("The screen was not captured, so no keyframes could be drawn.")]
     NoFrames,
+    #[cfg(feature = "render")]
     #[error(transparent)]
     Render(#[from] RenderError),
     #[error(transparent)]
@@ -136,13 +138,18 @@ fn data(
     })
 }
 
-/// Select, render and write. `directory` must already exist and belong to the caller; it is
-/// kept owner-only. Captured source frames are read, never moved or deleted.
-pub fn write(
-    directory: &Path,
-    capture: &Capture,
-    transcript: &Transcript,
-) -> Result<Written, BundleError> {
+/// The keyframes chosen for one recording, with the crop each keeps.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Plan {
+    pub marks: Vec<Mark>,
+    pub keyframes: Vec<Keyframe>,
+    /// `[x0, y0, x1, y1]` in logical screen pixels, one per keyframe.
+    pub crops: Vec<[f32; 4]>,
+}
+
+/// Choose the keyframes and their crops. A platform renderer draws them; `finish` then writes
+/// the summary and data beside its images.
+pub fn plan(capture: &Capture, transcript: &Transcript) -> Result<Plan, BundleError> {
     if !capture.has_marks() {
         return Err(BundleError::Empty);
     }
@@ -150,28 +157,48 @@ pub fn write(
     if keyframes.is_empty() {
         return Err(BundleError::NoFrames);
     }
-    // Nothing creates the directory: a bundle removed while it is written stays removed.
-    fs::set_permissions(directory, fs::Permissions::from_mode(0o700))?;
-    let mut rendered = Vec::with_capacity(keyframes.len());
-    let mut paths = Vec::with_capacity(keyframes.len());
     let mut crops = Vec::with_capacity(keyframes.len());
     for keyframe in &keyframes {
         let frame = &capture.frames[keyframe.frame];
         let Some(screen) = capture.screen(&frame.screen) else {
             return Err(BundleError::NoFrames);
         };
-        let source = render::load(&frame.path)?;
-        crops.push(render::crop(keyframe, &marks, frame, screen));
-        let image = render::keyframe(&source, keyframe, &marks, &capture.strokes, frame, screen)?;
-        let path = directory.join(keyframe_file(keyframe.index));
-        write_private(&path, &render::png(&image)?)?;
-        paths.push(path);
-        rendered.push(image);
+        crops.push(geometry::crop(keyframe, &marks, frame, screen));
     }
-    let sheet = directory.join(CONTACT_SHEET);
-    write_private(&sheet, &render::png(&render::contact_sheet(&rendered)?)?)?;
-    let summary = summary(capture.duration_ms, &keyframes, &paths, &sheet);
-    let document = data(capture, transcript, &marks, &keyframes, &crops);
+    Ok(Plan {
+        marks,
+        keyframes,
+        crops,
+    })
+}
+
+/// Write `summary.md` and `annotation.json` for keyframe images and a contact sheet already
+/// written into `directory`, which is kept owner-only.
+pub fn finish(
+    directory: &Path,
+    capture: &Capture,
+    transcript: &Transcript,
+    plan: &Plan,
+    frames: Vec<PathBuf>,
+    contact_sheet: PathBuf,
+) -> Result<Written, BundleError> {
+    if frames.len() != plan.keyframes.len() {
+        return Err(BundleError::NoFrames);
+    }
+    fs::set_permissions(directory, fs::Permissions::from_mode(0o700))?;
+    let summary = summary(
+        capture.duration_ms,
+        &plan.keyframes,
+        &frames,
+        &contact_sheet,
+    );
+    let document = data(
+        capture,
+        transcript,
+        &plan.marks,
+        &plan.keyframes,
+        &plan.crops,
+    );
     let mut json = serde_json::to_vec_pretty(&document).expect("serializable annotation");
     json.push(b'\n');
     write_private(&directory.join(DATA), &json)?;
@@ -179,9 +206,46 @@ pub fn write(
     Ok(Written {
         directory: directory.into(),
         summary,
-        contact_sheet: sheet,
-        frames: paths,
+        contact_sheet,
+        frames,
     })
+}
+
+/// Select, render and write. `directory` must already exist and belong to the caller; it is
+/// kept owner-only. Captured source frames are read, never moved or deleted.
+#[cfg(feature = "render")]
+pub fn write(
+    directory: &Path,
+    capture: &Capture,
+    transcript: &Transcript,
+) -> Result<Written, BundleError> {
+    let plan = plan(capture, transcript)?;
+    // Nothing creates the directory: a bundle removed while it is written stays removed.
+    fs::set_permissions(directory, fs::Permissions::from_mode(0o700))?;
+    let mut rendered = Vec::with_capacity(plan.keyframes.len());
+    let mut paths = Vec::with_capacity(plan.keyframes.len());
+    for keyframe in &plan.keyframes {
+        let frame = &capture.frames[keyframe.frame];
+        let Some(screen) = capture.screen(&frame.screen) else {
+            return Err(BundleError::NoFrames);
+        };
+        let source = render::load(&frame.path)?;
+        let image = render::keyframe(
+            &source,
+            keyframe,
+            &plan.marks,
+            &capture.strokes,
+            frame,
+            screen,
+        )?;
+        let path = directory.join(keyframe_file(keyframe.index));
+        write_private(&path, &render::png(&image)?)?;
+        paths.push(path);
+        rendered.push(image);
+    }
+    let sheet = directory.join(CONTACT_SHEET);
+    write_private(&sheet, &render::png(&render::contact_sheet(&rendered)?)?)?;
+    finish(directory, capture, transcript, &plan, paths, sheet)
 }
 
 #[cfg(test)]

@@ -32,6 +32,9 @@ mod transport;
 
 use serde::{Deserialize, Serialize};
 
+#[cfg(target_os = "macos")]
+pub const USER_AGENT: &str = concat!("MluvaMac/", env!("CARGO_PKG_VERSION"));
+#[cfg(not(target_os = "macos"))]
 pub const USER_AGENT: &str = concat!("MluvaLinux/", env!("CARGO_PKG_VERSION"));
 
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]

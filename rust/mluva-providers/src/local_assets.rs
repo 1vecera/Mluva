@@ -143,7 +143,9 @@ fn free_space(path: &Path) -> Result<u64> {
         return Err(ProviderError::message(IO_FAILURE));
     }
     let status = unsafe { status.assume_init() };
-    Ok(status.f_bavail.saturating_mul(status.f_frsize))
+    // Field widths differ by platform; both are unsigned block counts and sizes.
+    #[allow(clippy::useless_conversion)]
+    Ok(u64::from(status.f_bavail).saturating_mul(u64::from(status.f_frsize)))
 }
 pub fn check_model_storage(used: u64, total: u64, free: u64) -> Result<()> {
     if used.saturating_add(total) > STORAGE_LIMIT || free < total.saturating_add(100_000_000) {

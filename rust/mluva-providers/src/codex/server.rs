@@ -191,8 +191,7 @@ impl Servers {
         // A PID file left from before a reboot, or a PID now used by another process, is no
         // daemon.
         (identity.get("bootId")?.as_str()? == agent_platform::boot_id()?
-            && identity.get("startTicks")?.as_u64()?.to_string()
-                == agent_platform::process_start(pid)?)
+            && agent_platform::codex_identity_matches(identity, pid))
         .then_some(pid)
     }
 
@@ -465,27 +464,58 @@ mod tests {
         std::fs::create_dir_all(&directory).unwrap();
         let servers = Servers::new(home.clone(), None, None);
         let own = std::process::id();
-        let write = |boot: &str, ticks: &str| {
+        let write = |boot: &str, start: &str| {
             let path = directory.join("daemon.pid");
             std::fs::write(
                 &path,
                 format!(
-                    r#"{{"pid":{own},"processStartTime":"x","processIdentity":{{"bootId":"{boot}","startTicks":{ticks}}}}}"#
+                    r#"{{"pid":{own},"processStartTime":"x","processIdentity":{{"bootId":"{boot}",{start}}}}}"#
                 ),
             )
             .unwrap();
             std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600)).unwrap();
         };
         let boot = agent_platform::boot_id().unwrap();
-        let ticks = agent_platform::process_start(own).unwrap();
+        // This process's start as Codex records it: kernel ticks on Linux, the start second and
+        // microsecond on macOS.
+        #[cfg(target_os = "linux")]
+        let (start, other) = (
+            format!(
+                r#""startTicks":{}"#,
+                agent_platform::process_start(own).unwrap()
+            ),
+            r#""startTicks":1"#.to_owned(),
+        );
+        #[cfg(target_os = "macos")]
+        let (start, other) = {
+            let info = macos_start(own);
+            (
+                format!(
+                    r#""startSeconds":{},"startMicroseconds":{}"#,
+                    info.0, info.1
+                ),
+                format!(
+                    r#""startSeconds":{},"startMicroseconds":{}"#,
+                    info.0,
+                    info.1 + 1
+                ),
+            )
+        };
+        assert!(servers.daemon_pid().is_none(), "no PID file yet");
+        write(&boot, &start);
+        assert_eq!(
+            servers.daemon_pid(),
+            Some(own),
+            "this boot and this process"
+        );
         // From before the last reboot.
-        write("00000000-0000-4000-8000-000000000000", &ticks);
-        assert!(servers.daemon().is_none());
+        write("00000000-0000-4000-8000-000000000000", &start);
+        assert!(servers.daemon_pid().is_none());
         // The PID now belongs to a process started at another time.
-        write(&boot, "1");
-        assert!(servers.daemon().is_none());
+        write(&boot, &other);
+        assert!(servers.daemon_pid().is_none());
         // This boot and this process, but no control socket: no daemon either.
-        write(&boot, &ticks);
+        write(&boot, &start);
         assert!(servers.daemon().is_none());
     }
 
@@ -549,5 +579,26 @@ trusted_hash = "0000000000000000000000000000000000000000000000000000000000000000
         );
         // The whole group is gone.
         assert!(!std::path::Path::new(&format!("/proc/{helper}")).exists());
+    }
+
+    /// This process's start second and microsecond from the kernel's process table.
+    #[cfg(target_os = "macos")]
+    fn macos_start(pid: u32) -> (u64, u64) {
+        let mut info = std::mem::MaybeUninit::<libc::proc_bsdinfo>::zeroed();
+        let size = std::mem::size_of::<libc::proc_bsdinfo>() as libc::c_int;
+        // SAFETY: the buffer is exactly one proc_bsdinfo and outlives the call.
+        let written = unsafe {
+            libc::proc_pidinfo(
+                pid as libc::c_int,
+                libc::PROC_PIDTBSDINFO,
+                0,
+                info.as_mut_ptr().cast(),
+                size,
+            )
+        };
+        assert_eq!(written, size);
+        // SAFETY: filled by the call above.
+        let info = unsafe { info.assume_init() };
+        (info.pbi_start_tvsec, info.pbi_start_tvusec)
     }
 }

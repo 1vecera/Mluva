@@ -6,7 +6,7 @@ Daniel's standing [authorization to restart Mluva](AGENTS.md) applies to local d
 
 - Use `make linux-setup` to build the locked native application and prerequisites.
 - Use `make linux-test-fast` for focused configuration, text, storage and migration checks, and `make linux-test` for all native tests, both strict Clippy configurations, formatting and generated-feature consistency. Follow the contribution guide for native integration checks.
-- Run GUI acceptance only through isolated offscreen runners; never drive the active desktop.
+- Run GUI acceptance only through isolated offscreen runners; never drive the active desktop. On macOS, use `macos/scripts/test.sh` and the app's evidence mode ([macOS guide](macos/README.md)).
 - Keep capture and delivery independent of provider choice. PCM is signed little-endian, 16 kHz, 16-bit, mono.
 - Keep raw recognition immutable and separate from working edits, processed text and delivered text. Never deliver volatile recognition.
 - Preserve session/revision checks around asynchronous results and exact-target checks around insertion. Clipboard-only delivery remains available when insertion permission is absent.

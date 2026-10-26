@@ -10,7 +10,9 @@
 //! process start: unknown fields and values are ignored, and a field of an unexpected type is
 //! treated as absent. An entry that names an inbox socket (`messagingSocketPath` with
 //! `peerProtocol` 1) makes its session reachable through [`crate::claude_inbox`].
-use crate::agent_platform::{effective_uid, own_namespace, parent, process_start};
+use crate::agent_platform::{
+    effective_uid, own_namespace, parent, process_start, recorded_start, same_domain,
+};
 use crate::herdr::label;
 use mluva_core::agent_voice::{AgentKind, AgentStatus, ClaudeInbox, Host, Target};
 use serde::Deserialize;
@@ -259,13 +261,13 @@ pub(crate) fn read_entry(
     };
     let text = |key: &str| entry.get(key).and_then(Value::as_str);
     let start = match entry.get("procStart")? {
-        Value::String(start) => start.clone(),
+        Value::String(start) => recorded_start(start),
         Value::Number(start) => start.to_string(),
         _ => return None,
     };
     let domain_matches = match (text("pidDomain"), namespace) {
         (None, _) => true,
-        (Some(domain), Some(ours)) => domain.find("pid:[").is_some_and(|at| &domain[at..] == ours),
+        (Some(domain), Some(ours)) => same_domain(domain, ours),
         (Some(_), None) => false,
     };
     let session_id = text("sessionId").filter(|id| valid_session_id(id))?;
@@ -591,10 +593,13 @@ mod tests {
                 fs::create_dir_all(&directory).unwrap();
                 fs::set_permissions(&directory, fs::Permissions::from_mode(0o700)).unwrap();
             }
-            let namespace = fs::read_link("/proc/self/ns/pid")
-                .unwrap()
-                .to_string_lossy()
-                .into_owned();
+            // Claude Code's own form of this platform's PID domain.
+            let namespace = own_namespace().unwrap();
+            let namespace = if cfg!(target_os = "linux") {
+                format!("linux:0123456789abcdef0123456789abcdef:{namespace}")
+            } else {
+                namespace
+            };
             Self {
                 _temp: temp,
                 config,
@@ -606,7 +611,7 @@ mod tests {
             let mut entry = json!({"pid": pid, "sessionId": session, "cwd": "/synthetic/notes",
                 "startedAt": 1_000 + u64::from(pid % 1_000), "kind": "interactive", "entrypoint": "cli",
                 "name": format!("notes-{:02x}", pid % 256), "nameSource": "derived", "status": "idle",
-                "version": "2.1.306", "pidDomain": format!("linux:0123456789abcdef0123456789abcdef:{}", self.namespace),
+                "version": "2.1.306", "pidDomain": self.namespace,
                 "procStart": process_start(pid).unwrap_or_else(|| "1".into())});
             entry
                 .as_object_mut()
