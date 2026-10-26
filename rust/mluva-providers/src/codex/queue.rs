@@ -2,15 +2,18 @@
 //!
 //! The message is queued for the thread's UUID with a fresh client message ID, through any app
 //! server on the same `CODEX_HOME`; the process that owns the thread takes it from the shared
-//! store. If it leaves the queue within a short window and the thread's own history shows a user
-//! message with that client ID, it was sent to exactly that thread. If the thread does not take
-//! it, because it is busy, waiting for the person or not open, the message is withdrawn and the
-//! draft kept. If the withdrawal finds it already gone, its turn is looked for once more;
-//! without one the delivery is unconfirmed. Nothing is ever queued twice or left behind.
+//! store. The server that has the thread loaded takes it at once; a thread open in another
+//! process, such as a `--no-daemon` TUI or Codex Desktop, takes it at that process's next check
+//! of the store, so Mluva waits one full check period for it. If it leaves the queue within that
+//! window and the thread's own history shows a user message with that client ID, it was sent to
+//! exactly that thread. If the thread does not take it, because it is busy, waiting for the
+//! person or not open, the message is withdrawn and the draft kept. If the withdrawal finds it
+//! already gone, its turn is looked for once more; without one the delivery is unconfirmed.
+//! Nothing is ever queued twice or left behind.
 //!
-//! Only `thread/queue/list`, `thread/queue/add`, `thread/queue/delete` and `thread/turns/list`
-//! are called. Mluva never starts, resumes, steers or interrupts a turn, never starts the queue
-//! and never answers the server's own requests.
+//! Only `thread/loaded/list`, `thread/queue/list`, `thread/queue/add`, `thread/queue/delete`
+//! and `thread/turns/list` are called. Mluva never starts, resumes, steers or interrupts a turn,
+//! never starts the queue and never answers the server's own requests.
 use super::{
     rpc::{AppServer, RpcError},
     server::Servers,
@@ -25,14 +28,26 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
-/// Pickup across processes took up to 2 s when verified.
-const DISPATCH_WINDOW: Duration = Duration::from_secs(3);
+/// How often an app server checks Codex's shared queue store for items another process added:
+/// every 10 s in Codex 0.160.1 (`watch_external_messages`, `codex-rs/ext/queue/src/service.rs`
+/// at tag `rust-v0.160.1`). An item added through the server that has the thread loaded is
+/// dispatched at once instead.
+const EXTERNAL_QUEUE_CHECK_SECS: u64 = 10;
+/// The thread is loaded in the server Mluva talks to: it takes an idle thread's message at once,
+/// so one it has not taken within this window is busy.
+const SAME_SERVER_WINDOW: Duration = Duration::from_secs(3);
+/// The thread is open in another process: one full check period of its server, plus room for
+/// its dispatch and Mluva's own polling.
+const CROSS_PROCESS_WINDOW: Duration = Duration::from_secs(EXTERNAL_QUEUE_CHECK_SECS + 2);
 const POLL: Duration = Duration::from_millis(250);
 /// A dispatched message's turn is recorded at once; a few reads allow for a slow write.
 const CONFIRM_READS: usize = 6;
 
 struct Limits {
-    window: Duration,
+    /// How long to wait when the connected server has the thread loaded.
+    same_server: Duration,
+    /// How long to wait when another process has it open.
+    cross_process: Duration,
     poll: Duration,
 }
 
@@ -42,7 +57,8 @@ pub async fn submit(submission: &Submission, cancel: &CancellationToken) -> Rece
         return SendOutcome::Rejected.into();
     };
     let limits = Limits {
-        window: DISPATCH_WINDOW,
+        same_server: SAME_SERVER_WINDOW,
+        cross_process: CROSS_PROCESS_WINDOW,
         poll: POLL,
     };
     submit_via(submission, cancel, servers, &limits)
@@ -84,6 +100,12 @@ async fn submit_via(
     {
         return SendOutcome::Rejected;
     }
+    // Where the thread is loaded decides how soon an idle thread takes the message.
+    let window = if loaded_here(&mut server, id).await {
+        limits.same_server
+    } else {
+        limits.cross_process
+    };
     let client = uuid_v7();
     let added = server
         .call(
@@ -115,13 +137,24 @@ async fn submit_via(
         return match sending.find().await {
             Some(Found::Queued(item)) => {
                 sending.item = Some(item);
-                sending.until_taken(cancel, limits).await
+                sending.until_taken(cancel, window, limits.poll).await
             }
             Some(Found::Turn) => SendOutcome::Accepted,
             Some(Found::Nowhere) | None => SendOutcome::Unconfirmed,
         };
     }
-    sending.until_taken(cancel, limits).await
+    sending.until_taken(cancel, window, limits.poll).await
+}
+
+/// Whether the connected server has the thread loaded. When that cannot be learned, the longer
+/// wait is assumed, so an idle thread elsewhere is never given up on too early.
+async fn loaded_here(server: &mut AppServer, thread: &str) -> bool {
+    server
+        .call("thread/loaded/list", json!({}))
+        .await
+        .ok()
+        .and_then(|loaded| loaded.get("data").and_then(Value::as_array).cloned())
+        .is_some_and(|loaded| loaded.iter().any(|id| id.as_str() == Some(thread)))
 }
 
 /// One queued message and the connection that watches it.
@@ -141,12 +174,17 @@ enum Found {
 
 impl Sending<'_> {
     /// Wait for the thread to take the message; withdraw it if it does not.
-    async fn until_taken(&mut self, cancel: &CancellationToken, limits: &Limits) -> SendOutcome {
-        let deadline = tokio::time::Instant::now() + limits.window;
+    async fn until_taken(
+        &mut self,
+        cancel: &CancellationToken,
+        window: Duration,
+        poll: Duration,
+    ) -> SendOutcome {
+        let deadline = tokio::time::Instant::now() + window;
         while tokio::time::Instant::now() < deadline {
             tokio::select! {
                 _ = cancel.cancelled() => return self.withdraw().await,
-                _ = tokio::time::sleep(limits.poll) => {}
+                _ = tokio::time::sleep(poll) => {}
             }
             match self.find().await {
                 Some(Found::Queued(_)) => {}
@@ -323,8 +361,10 @@ mod tests {
         }
     }
 
+    /// Codex's windows at a tenth of their length, matching the peer's scaled check period.
     const QUICK: Limits = Limits {
-        window: Duration::from_millis(900),
+        same_server: Duration::from_millis(300),
+        cross_process: Duration::from_millis(1_200),
         poll: Duration::from_millis(50),
     };
 
@@ -344,6 +384,7 @@ mod tests {
                 [
                     "initialize",
                     "initialized",
+                    "thread/loaded/list",
                     "thread/queue/list",
                     "thread/queue/add",
                     "thread/queue/delete",
@@ -454,6 +495,116 @@ mod tests {
         assert_eq!(peer.state.lock().unwrap().connections, 0);
     }
 
+    async fn timed(scenario: Scenario, limits: &Limits) -> (SendOutcome, Duration, Peer) {
+        let home = live();
+        let peer = Peer::start(scenario);
+        let servers = Servers::fixed(home.temp.path().into(), peer.socket.clone());
+        let sending = submission(home.temp.path(), std::process::id());
+        let started = tokio::time::Instant::now();
+        let outcome = submit_via(&sending, &CancellationToken::new(), &servers, limits).await;
+        (outcome, started.elapsed(), peer)
+    }
+
+    /// A thread open in another process takes the message only at that process's next check of
+    /// Codex's queue store. The window covers a full check period, so an idle thread is sent to;
+    /// the earlier same-server window alone withdrew it as busy.
+    #[tokio::test]
+    async fn a_thread_open_in_another_process_gets_a_full_check_period_to_take_it() {
+        let (outcome, elapsed, peer) = timed(Scenario::ExternalIdle, &QUICK).await;
+        assert_eq!(outcome, SendOutcome::Accepted);
+        assert!(
+            elapsed > QUICK.same_server,
+            "taken only at the next check: {elapsed:?}"
+        );
+        assert_eq!(adds(&peer), 1);
+        assert!(peer.methods().contains(&"thread/loaded/list".into()));
+        only_queue_methods(&peer);
+        let short_only = Limits {
+            cross_process: QUICK.same_server,
+            ..QUICK
+        };
+        let (outcome, _, peer) = timed(Scenario::ExternalIdle, &short_only).await;
+        assert_eq!(
+            outcome,
+            SendOutcome::Busy,
+            "the old 3 s window gives up too early"
+        );
+        assert!(peer.state.lock().unwrap().queue.is_empty());
+    }
+
+    /// Where the thread is loaded decides the wait: a loaded busy thread is given up on after the
+    /// short window, one in another process only after a full check period.
+    #[tokio::test]
+    async fn the_short_window_stays_for_threads_the_connected_server_has_loaded() {
+        let (outcome, elapsed, _) = timed(Scenario::Idle, &QUICK).await;
+        assert_eq!(outcome, SendOutcome::Accepted);
+        assert!(
+            elapsed < QUICK.same_server,
+            "same server takes it at once: {elapsed:?}"
+        );
+        let (outcome, elapsed, _) = timed(Scenario::Busy, &QUICK).await;
+        assert_eq!(outcome, SendOutcome::Busy);
+        assert!(elapsed < QUICK.cross_process, "{elapsed:?}");
+        let (outcome, elapsed, peer) = timed(Scenario::ExternalBusy, &QUICK).await;
+        assert_eq!(outcome, SendOutcome::Busy);
+        assert!(elapsed >= QUICK.cross_process, "{elapsed:?}");
+        assert!(
+            peer.state.lock().unwrap().queue.is_empty(),
+            "never left behind"
+        );
+    }
+
+    /// Mluva's own discovery and Send-if-idle transport, with production limits, against a real
+    /// disposable Codex TUI in the private `CODEX_HOME` named by `MLUVA_REAL_CODEX_HOME`, through
+    /// Mluva's own app server. Prints each pickup time.
+    #[tokio::test]
+    #[ignore = "sends to a disposable real Codex TUI in a private CODEX_HOME"]
+    async fn a_disposable_real_codex_thread_takes_each_message() {
+        let home = std::path::PathBuf::from(std::env::var("MLUVA_REAL_CODEX_HOME").unwrap());
+        let runtime = std::path::PathBuf::from(std::env::var("MLUVA_REAL_CODEX_RUNTIME").unwrap());
+        let rounds: usize = std::env::var("MLUVA_REAL_CODEX_ROUNDS")
+            .ok()
+            .and_then(|n| n.parse().ok())
+            .unwrap_or(3);
+        let servers = Servers::new(home, Some(runtime), agent_platform::codex_executable());
+        let mut threads = crate::codex::threads::CodexThreads::default();
+        let target = threads
+            .discover(&servers)
+            .await
+            .into_iter()
+            .next()
+            .expect("the disposable thread is live");
+        let limits = Limits {
+            same_server: SAME_SERVER_WINDOW,
+            cross_process: CROSS_PROCESS_WINDOW,
+            poll: POLL,
+        };
+        for round in 0..rounds {
+            let sending = Submission {
+                id: uuid::Uuid::new_v4().to_string(),
+                target: target.clone(),
+                text: format!("MLUVA-PROBE-{round} reply with the word OK"),
+            };
+            let started = tokio::time::Instant::now();
+            let outcome = submit_via(&sending, &CancellationToken::new(), &servers, &limits).await;
+            println!(
+                "round {round}: {outcome:?} after {:.2} s",
+                started.elapsed().as_secs_f64()
+            );
+            assert_eq!(outcome, SendOutcome::Accepted);
+            // Let the loopback turn finish before the next message.
+            tokio::time::sleep(Duration::from_secs(2)).await;
+        }
+        servers.shutdown().await;
+    }
+
+    #[test]
+    fn the_cross_process_window_covers_codexs_check_period() {
+        assert_eq!(EXTERNAL_QUEUE_CHECK_SECS, 10);
+        assert!(CROSS_PROCESS_WINDOW > Duration::from_secs(EXTERNAL_QUEUE_CHECK_SECS));
+        assert!(SAME_SERVER_WINDOW < Duration::from_secs(EXTERNAL_QUEUE_CHECK_SECS));
+    }
+
     #[tokio::test]
     async fn closing_mid_wait_withdraws_the_message() {
         let home = live();
@@ -467,7 +618,8 @@ mod tests {
             closing.cancel();
         });
         let slow = Limits {
-            window: Duration::from_secs(30),
+            same_server: Duration::from_secs(30),
+            cross_process: Duration::from_secs(30),
             poll: Duration::from_millis(50),
         };
         assert_eq!(

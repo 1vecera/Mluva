@@ -28,7 +28,22 @@ pub enum Scenario {
     UnknownThread,
     /// The add is stored and later dispatched, but its answer never arrives.
     AddAnswerLost,
+    /// The thread is idle but open in another process, which takes queued messages only at its
+    /// next periodic check of the shared store, as Codex's own servers do every 10 s.
+    ExternalIdle,
+    /// Open in another process and busy: never taken.
+    ExternalBusy,
 }
+
+impl Scenario {
+    /// Whether this server has the thread loaded, rather than another process.
+    fn loaded_here(self) -> bool {
+        !matches!(self, Self::ExternalIdle | Self::ExternalBusy)
+    }
+}
+
+/// The other process's check period, a tenth of Codex's 10 s so tests stay quick.
+pub const EXTERNAL_CHECK: Duration = Duration::from_millis(1_000);
 
 #[derive(Default)]
 pub struct State {
@@ -51,6 +66,22 @@ impl Peer {
         let socket = temp.path().join("app-server.sock");
         let listener = UnixListener::bind(&socket).unwrap();
         let state = Arc::new(Mutex::new(State::default()));
+        if scenario == Scenario::ExternalIdle {
+            // The owning process checks the store on its own clock, started with this peer, so
+            // a message added just after a check waits almost a full period.
+            let state = state.clone();
+            tokio::spawn(async move {
+                let mut check = tokio::time::interval(EXTERNAL_CHECK);
+                check.tick().await;
+                loop {
+                    check.tick().await;
+                    let mut locked = state.lock().unwrap();
+                    while !locked.queue.is_empty() {
+                        dispatch(&mut locked);
+                    }
+                }
+            });
+        }
         let shared = state.clone();
         tokio::spawn(async move {
             while let Ok((stream, _)) = listener.accept().await {
@@ -144,6 +175,10 @@ fn answer(scenario: Scenario, method: &str, params: &Value, state: &Arc<Mutex<St
             json!({"userAgent": "mluva/0.160.1 (synthetic)", "codexHome": "/synthetic/codex",
             "platformFamily": "unix", "platformOs": "linux"}),
         ),
+        "thread/loaded/list" => Ok(json!({
+            "data": if scenario.loaded_here() { vec![THREAD] } else { vec![] },
+            "nextCursor": null,
+        })),
         "thread/queue/list" if scenario == Scenario::Unsupported => Err((
             -32601,
             "thread/queue/list requires experimentalApi capability",

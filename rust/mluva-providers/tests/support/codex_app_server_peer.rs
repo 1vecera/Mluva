@@ -130,6 +130,8 @@ async fn main() {
                             "source": "cli", "status": if idle { json!({"type": "idle"}) }
                                 else { json!({"type": "active", "activeFlags": []}) }}})
                         }
+                        // A daemon: the thread is loaded here, so it takes messages at once.
+                        "thread/loaded/list" => json!({"data": [thread], "nextCursor": null}),
                         "thread/queue/list" => json!({"data": locked.queue, "nextCursor": null}),
                         "thread/queue/add" => {
                             let item = json!({"id": format!("item-{}", locked.queue.len() + locked.turns.len() + 1),

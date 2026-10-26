@@ -1018,7 +1018,7 @@ impl AgentVoiceController {
                 RoutePhase::Recording => format!("Recording for {} · {}", a.target.name, stop_hint(a.target.delivery())),
                 RoutePhase::Finalizing => format!("Finishing your message to {}…", a.target.name),
                 RoutePhase::Grace {deadline_ms} => countdown_message(&a.target, deadline_ms.saturating_sub(now())),
-                RoutePhase::Submitting => format!("Delivering to {}… Cancel can no longer recall this message.", a.target.name),
+                RoutePhase::Submitting => submitting_message(&a.target),
                 RoutePhase::Delivered => delivered_message(&a.target, a.taken),
                 RoutePhase::Held => format!("{} holds your message until you approve it there. It is never sent again; your draft is here.", a.target.name),
                 RoutePhase::Unconfirmed => format!("Delivery unconfirmed. Check {} before sending again; your draft is here.", a.target.place_to_check()),
@@ -1173,6 +1173,22 @@ fn countdown_message(target: &Target, remaining_ms: u64) -> String {
     }
 }
 
+/// The status while the transport delivers. A Codex thread open in another process takes the
+/// message only at that process's next check of Codex's queue, up to about ten seconds away.
+fn submitting_message(target: &Target) -> String {
+    if target.route() == mluva_core::agent_voice::Route::CodexQueue {
+        format!(
+            "Handing your message to {} through Codex… a thread open in another app or terminal can take about 10 seconds to pick it up.",
+            target.name
+        )
+    } else {
+        format!(
+            "Delivering to {}… Cancel can no longer recall this message.",
+            target.name
+        )
+    }
+}
+
 /// The status once the transport accepted the message.
 fn delivered_message(target: &Target, taken: bool) -> String {
     if taken {
@@ -1213,7 +1229,37 @@ fn accepted_message(target: &Target) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::interrupted_send_message;
+    use super::{interrupted_send_message, submitting_message};
+    use mluva_core::agent_voice::{AgentKind, AgentStatus, CodexThread, HerdrPane, Target};
+
+    #[test]
+    fn waiting_for_a_codex_thread_says_the_message_is_being_handed_over_not_busy() {
+        let codex = Target {
+            kind: AgentKind::CodexCli,
+            name: "codex-01900000".into(),
+            status: AgentStatus::Unknown,
+            session_id: "01900000-0000-7000-8000-00000000a001".into(),
+            codex: Some(CodexThread {
+                lock: "/synthetic/codex/thread-writer-locks/a.lock".into(),
+                holder: 4_200,
+            }),
+            ..Target::default()
+        };
+        let waiting = submitting_message(&codex);
+        assert!(waiting.starts_with("Handing your message to codex-01900000 through Codex"));
+        assert!(waiting.contains("10 seconds") && !waiting.contains("busy"));
+        let herdr = Target {
+            kind: AgentKind::ClaudeCode,
+            name: "builder".into(),
+            status: AgentStatus::Idle,
+            herdr: Some(HerdrPane {
+                guard: "a".repeat(64),
+                ..HerdrPane::default()
+            }),
+            ..Target::default()
+        };
+        assert!(submitting_message(&herdr).starts_with("Delivering to builder…"));
+    }
 
     #[test]
     fn an_interrupted_send_promises_history_only_when_a_row_exists() {
