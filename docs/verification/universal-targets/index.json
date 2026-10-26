@@ -1,0 +1,842 @@
+{
+  "nord-universal-send-herdr.jpg": {
+    "page": 0,
+    "chosen": 0,
+    "targets": [
+      {
+        "name": "Shortcut portal fix",
+        "kind": "Claude Code",
+        "place": "Herdr w1:p2",
+        "status": "idle",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Release checklist",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p3",
+        "status": "working",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Onboarding copy",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p5",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Cold start profile",
+        "kind": "Claude Code",
+        "place": "tmux work:@3.%7",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Přehled zkoušek",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "blocked",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Migration notes",
+        "kind": "Claude Code",
+        "place": "background",
+        "status": "working",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Inbox triage 🙂",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Parakeet benchmark",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Narration port",
+        "kind": "Codex CLI",
+        "place": "terminal",
+        "status": "unknown",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Widget breathing",
+        "kind": "Codex Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "New chat",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_new_chat",
+        "delivery": "prefill",
+        "receives_now": true
+      }
+    ]
+  },
+  "nord-universal-queue-tmux.jpg": {
+    "page": 0,
+    "chosen": 3,
+    "targets": [
+      {
+        "name": "Shortcut portal fix",
+        "kind": "Claude Code",
+        "place": "Herdr w1:p2",
+        "status": "idle",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Release checklist",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p3",
+        "status": "working",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Onboarding copy",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p5",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Cold start profile",
+        "kind": "Claude Code",
+        "place": "tmux work:@3.%7",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Přehled zkoušek",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "blocked",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Migration notes",
+        "kind": "Claude Code",
+        "place": "background",
+        "status": "working",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Inbox triage 🙂",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Parakeet benchmark",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Narration port",
+        "kind": "Codex CLI",
+        "place": "terminal",
+        "status": "unknown",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Widget breathing",
+        "kind": "Codex Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "New chat",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_new_chat",
+        "delivery": "prefill",
+        "receives_now": true
+      }
+    ]
+  },
+  "nord-universal-queue-waiting.jpg": {
+    "page": 0,
+    "chosen": 4,
+    "targets": [
+      {
+        "name": "Shortcut portal fix",
+        "kind": "Claude Code",
+        "place": "Herdr w1:p2",
+        "status": "idle",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Release checklist",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p3",
+        "status": "working",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Onboarding copy",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p5",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Cold start profile",
+        "kind": "Claude Code",
+        "place": "tmux work:@3.%7",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Přehled zkoušek",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "blocked",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Migration notes",
+        "kind": "Claude Code",
+        "place": "background",
+        "status": "working",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Inbox triage 🙂",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Parakeet benchmark",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Narration port",
+        "kind": "Codex CLI",
+        "place": "terminal",
+        "status": "unknown",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Widget breathing",
+        "kind": "Codex Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "New chat",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_new_chat",
+        "delivery": "prefill",
+        "receives_now": true
+      }
+    ]
+  },
+  "nord-universal-queue-desktop.jpg": {
+    "page": 0,
+    "chosen": 6,
+    "targets": [
+      {
+        "name": "Shortcut portal fix",
+        "kind": "Claude Code",
+        "place": "Herdr w1:p2",
+        "status": "idle",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Release checklist",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p3",
+        "status": "working",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Onboarding copy",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p5",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Cold start profile",
+        "kind": "Claude Code",
+        "place": "tmux work:@3.%7",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Přehled zkoušek",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "blocked",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Migration notes",
+        "kind": "Claude Code",
+        "place": "background",
+        "status": "working",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Inbox triage 🙂",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Parakeet benchmark",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Narration port",
+        "kind": "Codex CLI",
+        "place": "terminal",
+        "status": "unknown",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Widget breathing",
+        "kind": "Codex Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "New chat",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_new_chat",
+        "delivery": "prefill",
+        "receives_now": true
+      }
+    ]
+  },
+  "nord-universal-draft-only.jpg": {
+    "page": 0,
+    "chosen": 7,
+    "targets": [
+      {
+        "name": "Shortcut portal fix",
+        "kind": "Claude Code",
+        "place": "Herdr w1:p2",
+        "status": "idle",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Release checklist",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p3",
+        "status": "working",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Onboarding copy",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p5",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Cold start profile",
+        "kind": "Claude Code",
+        "place": "tmux work:@3.%7",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Přehled zkoušek",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "blocked",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Migration notes",
+        "kind": "Claude Code",
+        "place": "background",
+        "status": "working",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Inbox triage 🙂",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Parakeet benchmark",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Narration port",
+        "kind": "Codex CLI",
+        "place": "terminal",
+        "status": "unknown",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Widget breathing",
+        "kind": "Codex Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "New chat",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_new_chat",
+        "delivery": "prefill",
+        "receives_now": true
+      }
+    ]
+  },
+  "nord-universal-send-codex.jpg": {
+    "page": 0,
+    "chosen": 8,
+    "targets": [
+      {
+        "name": "Shortcut portal fix",
+        "kind": "Claude Code",
+        "place": "Herdr w1:p2",
+        "status": "idle",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Release checklist",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p3",
+        "status": "working",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Onboarding copy",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p5",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Cold start profile",
+        "kind": "Claude Code",
+        "place": "tmux work:@3.%7",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Přehled zkoušek",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "blocked",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Migration notes",
+        "kind": "Claude Code",
+        "place": "background",
+        "status": "working",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Inbox triage 🙂",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Parakeet benchmark",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Narration port",
+        "kind": "Codex CLI",
+        "place": "terminal",
+        "status": "unknown",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Widget breathing",
+        "kind": "Codex Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "New chat",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_new_chat",
+        "delivery": "prefill",
+        "receives_now": true
+      }
+    ]
+  },
+  "nord-universal-send-codex-desktop.jpg": {
+    "page": 0,
+    "chosen": 9,
+    "targets": [
+      {
+        "name": "Shortcut portal fix",
+        "kind": "Claude Code",
+        "place": "Herdr w1:p2",
+        "status": "idle",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Release checklist",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p3",
+        "status": "working",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Onboarding copy",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p5",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Cold start profile",
+        "kind": "Claude Code",
+        "place": "tmux work:@3.%7",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Přehled zkoušek",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "blocked",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Migration notes",
+        "kind": "Claude Code",
+        "place": "background",
+        "status": "working",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Inbox triage 🙂",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Parakeet benchmark",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Narration port",
+        "kind": "Codex CLI",
+        "place": "terminal",
+        "status": "unknown",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Widget breathing",
+        "kind": "Codex Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "New chat",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_new_chat",
+        "delivery": "prefill",
+        "receives_now": true
+      }
+    ]
+  },
+  "nord-universal-prefill-new-chat.jpg": {
+    "page": 0,
+    "chosen": 10,
+    "targets": [
+      {
+        "name": "Shortcut portal fix",
+        "kind": "Claude Code",
+        "place": "Herdr w1:p2",
+        "status": "idle",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Release checklist",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p3",
+        "status": "working",
+        "route": "herdr",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Onboarding copy",
+        "kind": "Codex CLI",
+        "place": "Herdr w1:p5",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Cold start profile",
+        "kind": "Claude Code",
+        "place": "tmux work:@3.%7",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Přehled zkoušek",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "blocked",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Migration notes",
+        "kind": "Claude Code",
+        "place": "background",
+        "status": "working",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Inbox triage 🙂",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_inbox",
+        "delivery": "queue",
+        "receives_now": true
+      },
+      {
+        "name": "Parakeet benchmark",
+        "kind": "Claude Code",
+        "place": "terminal",
+        "status": "idle",
+        "route": "none",
+        "delivery": "draft_only",
+        "receives_now": false
+      },
+      {
+        "name": "Narration port",
+        "kind": "Codex CLI",
+        "place": "terminal",
+        "status": "unknown",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "Widget breathing",
+        "kind": "Codex Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "codex_queue",
+        "delivery": "send",
+        "receives_now": true
+      },
+      {
+        "name": "New chat",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "status": "idle",
+        "route": "claude_new_chat",
+        "delivery": "prefill",
+        "receives_now": true
+      }
+    ]
+  }
+}

@@ -89,8 +89,8 @@ impl DiagnosticOutcome {
 pub enum RouteKind {
     /// Mluva's own session wheel.
     Wheel,
-    /// A recording sent to a guarded Herdr session.
-    GuardedAgent,
+    /// A recording for an agent, at the delivery level its target offered.
+    Agent(crate::agent_target::Delivery),
     /// A recording kept as an editable transcript, never sent.
     Transcript,
 }
@@ -105,6 +105,10 @@ pub enum RouteEvent {
     SendAccepted,
     SendRejected,
     SendUnconfirmed,
+    /// The session holds the message until the person approves it there.
+    SendHeld,
+    /// A queued message the agent took into a turn.
+    QueueTaken,
     DraftKept,
     DraftEdited,
     DraftRecipientChanged,
@@ -113,12 +117,19 @@ pub enum RouteEvent {
     DraftInterrupted,
     DraftEmpty,
     DraftTooLong,
+    /// The session was busy or not open; the message was withdrawn unsent.
+    DraftBusy,
 }
 impl RouteKind {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Wheel => "wheel",
-            Self::GuardedAgent => "guarded-agent",
+            Self::Agent(delivery) => match delivery {
+                crate::agent_target::Delivery::Send => "guarded-agent",
+                crate::agent_target::Delivery::Queue => "queued-agent",
+                crate::agent_target::Delivery::Prefill => "prefilled-agent",
+                crate::agent_target::Delivery::DraftOnly => "transcript",
+            },
             Self::Transcript => "transcript",
         }
     }
@@ -136,6 +147,8 @@ impl RouteEvent {
             Self::SendAccepted => "route-send-accepted",
             Self::SendRejected => "route-send-rejected",
             Self::SendUnconfirmed => "route-send-unconfirmed",
+            Self::SendHeld => "route-send-held",
+            Self::QueueTaken => "route-queue-taken",
             Self::DraftKept => "route-draft-kept",
             Self::DraftEdited => "route-draft-edited",
             Self::DraftRecipientChanged => "route-draft-recipient-changed",
@@ -144,6 +157,7 @@ impl RouteEvent {
             Self::DraftInterrupted => "route-draft-interrupted",
             Self::DraftEmpty => "route-draft-empty",
             Self::DraftTooLong => "route-draft-too-long",
+            Self::DraftBusy => "route-draft-busy",
         }
     }
     fn outcome(self) -> DiagnosticOutcome {
@@ -157,7 +171,9 @@ impl RouteEvent {
             | Self::DraftRecipientChanged
             | Self::DraftInterrupted
             | Self::DraftEmpty
-            | Self::DraftTooLong => DiagnosticOutcome::Deferred,
+            | Self::DraftTooLong
+            | Self::DraftBusy
+            | Self::SendHeld => DiagnosticOutcome::Deferred,
             _ => DiagnosticOutcome::Completed,
         }
     }

@@ -167,6 +167,80 @@ fn native_session(root: &Path, id: &str, title: &str) -> NativeSession {
     .unwrap();
     NativeSession(pid, entry)
 }
+/// A synthetic Claude Code session outside Herdr and outside this test's process tree, with its
+/// own inbox, registered in the private home's registry by the inbox fixture peer.
+struct InboxSession(u32, PathBuf);
+impl Drop for InboxSession {
+    fn drop(&mut self) {
+        // SAFETY: signals only the orphaned fixture peer this helper started.
+        unsafe { libc::kill(self.0 as i32, libc::SIGKILL) };
+        let _ = fs::remove_file(&self.1);
+    }
+}
+fn inbox_session(id: &str, title: &str, wire: &Path, mode: &Path) -> InboxSession {
+    let config = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".claude");
+    let sockets = PathBuf::from(std::env::var_os("XDG_RUNTIME_DIR").unwrap()).join("cc-socks");
+    // The shell exits at once, so the peer is no descendant of this process (Mluva's own).
+    let output = Command::new("sh")
+        .args(["-c", r#""$0" "$@" >/dev/null 2>&1 & echo $!"#])
+        .arg(env!("CARGO_BIN_EXE_claude-inbox-fixture-peer"))
+        .arg(&config)
+        .arg(&sockets)
+        .args([id, "/synthetic/inbox", title])
+        .arg(wire)
+        .arg(mode)
+        .output()
+        .unwrap();
+    let pid: u32 = String::from_utf8(output.stdout)
+        .unwrap()
+        .trim()
+        .parse()
+        .unwrap();
+    let entry = config.join(format!("sessions/{pid}.json"));
+    until(|| entry.exists());
+    InboxSession(pid, entry)
+}
+/// A synthetic Codex daemon with one live thread in the private home's `~/.codex`, run by the
+/// Codex fixture peer outside this test's process tree. `mode` says whether the thread is idle.
+struct CodexDaemon(u32);
+impl Drop for CodexDaemon {
+    fn drop(&mut self) {
+        // SAFETY: signals only the orphaned fixture peer this helper started.
+        unsafe { libc::kill(self.0 as i32, libc::SIGKILL) };
+    }
+}
+fn codex_daemon(thread: &str, title: &str, mode: &Path, wire: &Path) -> CodexDaemon {
+    let home = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".codex");
+    let runtime = PathBuf::from(std::env::var_os("XDG_RUNTIME_DIR").unwrap());
+    let target = PathBuf::from(std::env::var_os("CARGO_TARGET_DIR").unwrap()).join("debug");
+    let output = Command::new("sh")
+        .args(["-c", r#""$0" "$@" >/dev/null 2>&1 & echo $!"#])
+        .arg(target.join("codex-app-server-fixture-peer"))
+        .arg(&home)
+        .arg(&runtime)
+        .args([thread, title, "/synthetic/codex"])
+        .arg(mode)
+        .arg(wire)
+        .output()
+        .unwrap();
+    let pid: u32 = String::from_utf8(output.stdout)
+        .unwrap()
+        .trim()
+        .parse()
+        .unwrap();
+    until(|| home.join("app-server-daemon/daemon.pid").exists());
+    CodexDaemon(pid)
+}
+/// The dropdown position of the first session whose row contains `text`.
+fn row_containing(owner: &ApplicationDesktop, text: &str) -> Option<u32> {
+    let model = owner.agent_voice.view.recipients.model()?;
+    (0..model.n_items()).find(|i| {
+        model
+            .item(*i)
+            .and_downcast::<gtk::StringObject>()
+            .is_some_and(|row| row.string().contains(text))
+    })
+}
 #[test]
 #[ignore = "requires private GTK, network, devices and fixture peers"]
 fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application() {
@@ -195,7 +269,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     .unwrap();
     let text = "Synthetic message: verify the selected agent only.";
     // The twelfth capture recognises nothing: an agent route must keep it, not drop it.
-    let responses: Vec<_> = (0..13).map(|n| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":if n == 11 { "" } else { text }, "language_code":"eng"}})).collect();
+    let responses: Vec<_> = (0..18).map(|n| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":if n == 11 { "" } else { text }, "language_code":"eng"}})).collect();
     let mut speech = http::Peer::new(&responses);
     let paths = AppPaths {
         config: root.join("config/mluva"),
@@ -287,6 +361,74 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
                 .model()
                 .is_some_and(|m| m.n_items() == 3)
     });
+    // Herdr's guard coming and going leaves one chosen row for the session: the research
+    // session (its native session and process known from Claude Code's registry) stays chosen
+    // while Herdr stops vouching for it, and when Herdr vouches for it again.
+    owner.agent_voice.view.recipients.set_selected(2);
+    settle(50);
+    let research_session = owner.agent_voice.settings().selected.unwrap();
+    assert_eq!(research_session.session_id, "research-session");
+    let guarded_agents = data["agents"].clone();
+    let unguarded = data["agents"][1]["agent"].clone();
+    data["agents"].as_array_mut().unwrap().remove(1);
+    data["unmanaged"] = json!([unguarded]);
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| {
+        owner
+            .agent_voice
+            .view
+            .recipients
+            .model()
+            .and_downcast::<gtk::StringList>()
+            .is_some_and(|rows| {
+                (0..rows.n_items()).any(|i| {
+                    rows.string(i)
+                        .is_some_and(|row| row.ends_with("· Draft only"))
+                })
+            })
+    });
+    assert_eq!(
+        owner.agent_voice.view.recipients.model().unwrap().n_items(),
+        3,
+        "no gone copy"
+    );
+    assert_eq!(
+        owner.agent_voice.view.recipients.selected(),
+        2,
+        "still chosen"
+    );
+    data["agents"] = guarded_agents;
+    data.as_object_mut().unwrap().remove("unmanaged");
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| {
+        owner
+            .agent_voice
+            .view
+            .recipients
+            .model()
+            .and_downcast::<gtk::StringList>()
+            .is_some_and(|rows| {
+                (0..rows.n_items()).all(|i| {
+                    rows.string(i)
+                        .is_none_or(|row| !row.ends_with("· Draft only"))
+                })
+            })
+    });
+    assert_eq!(
+        owner.agent_voice.view.recipients.model().unwrap().n_items(),
+        3
+    );
+    assert_eq!(owner.agent_voice.view.recipients.selected(), 2);
+    assert!(
+        owner
+            .agent_voice
+            .settings()
+            .selected
+            .unwrap()
+            .same_instance(&research_session)
+    );
     owner.agent_voice.view.recipients.set_selected(1);
     settle(50);
     gtk::gdk::Display::default()
@@ -436,7 +578,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .borrow()
             .as_ref()
             .unwrap()
-            .pane_id,
+            .locator(),
         "w1:p1"
     );
     for (width, name) in [
@@ -463,7 +605,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     }
     wheel_key("s");
     assert_eq!(
-        owner.agent_voice.settings().selected.unwrap().pane_id,
+        owner.agent_voice.settings().selected.unwrap().locator(),
         "w1:p2"
     );
     wheel_key("Escape");
@@ -478,7 +620,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .borrow()
             .as_ref()
             .unwrap()
-            .pane_id,
+            .locator(),
         "w1:p2"
     );
     // Second F12 starts, with key repeat unable to toggle a second time.
@@ -564,11 +706,13 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         .entries
         .borrow()
         .iter()
-        .map(|r| {
+        .map(|t| {
             (
-                r.pane_id.clone(),
-                r.display_name().to_owned(),
-                r.can_receive(),
+                t.herdr
+                    .as_ref()
+                    .map_or_else(String::new, |pane| pane.pane_id.clone()),
+                t.display_name().to_owned(),
+                t.can_receive(),
             )
         })
         .collect();
@@ -633,9 +777,9 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         (
             alone.display_name(),
             alone.draft_only(),
-            alone.socket.as_str()
+            alone.herdr.is_none()
         ),
-        ("Research notes", true, "")
+        ("Research notes", true, true)
     );
     owner.dispatch(mluva_gtk::application_shell::ApplicationAction::Cancel);
     // The paging checks below count Herdr panes alone.
@@ -669,7 +813,10 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     owner.agent_voice.refresh();
     until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == 31);
     owner.agent_voice.shortcut();
-    assert_eq!(owner.agent_voice.wheel.entries.borrow()[0].pane_id, "w1:p1");
+    assert_eq!(
+        owner.agent_voice.wheel.entries.borrow()[0].locator(),
+        "w1:p1"
+    );
     settle(100);
     let wheel_window = Command::new("xdotool")
         .args(["search", "--onlyvisible", "--name", "^Choose a session$"])
@@ -706,15 +853,15 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     state(&peer_state, &data);
     wheel_key("a");
     assert_eq!(
-        owner.agent_voice.settings().selected.unwrap().pane_id,
+        owner.agent_voice.settings().selected.unwrap().locator(),
         "w1:p27"
     );
     data["agents"].as_array_mut().unwrap().reverse();
     state(&peer_state, &data);
     owner.agent_voice.refresh();
-    until(|| owner.agent_voice.wheel.entries.borrow()[0].pane_id == "w1:p30");
+    until(|| owner.agent_voice.wheel.entries.borrow()[0].locator() == "w1:p30");
     assert_eq!(
-        owner.agent_voice.settings().selected.unwrap().pane_id,
+        owner.agent_voice.settings().selected.unwrap().locator(),
         "w1:p27"
     );
     data["agents"]
@@ -730,7 +877,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         "A missing target must not silently choose another session"
     );
     assert_eq!(
-        owner.agent_voice.settings().selected.unwrap().pane_id,
+        owner.agent_voice.settings().selected.unwrap().locator(),
         "w1:p27"
     );
     data["agents"] = original_agents;
@@ -790,7 +937,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .as_ref()
             .unwrap()
             .phase
-            == RoutePhase::Sent
+            == RoutePhase::Delivered
     });
     assert_eq!(sent(&audit).len(), 1);
     assert_eq!(sent(&audit)[0]["params"]["text"], text);
@@ -874,7 +1021,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .as_ref()
             .unwrap()
             .phase
-            == RoutePhase::Sent
+            == RoutePhase::Delivered
     });
     assert_eq!(sent(&audit).len(), 2);
     assert_eq!(
@@ -971,7 +1118,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .as_ref()
             .unwrap()
             .phase
-            == RoutePhase::Sent
+            == RoutePhase::Delivered
     });
     assert_eq!(sent(&audit).len(), 3);
     data["mode"] = json!("uncertain");
@@ -1037,7 +1184,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .as_ref()
             .unwrap()
             .phase
-            == RoutePhase::Sent
+            == RoutePhase::Delivered
     });
     let now_sent = owner.agent_voice.route.borrow().attempt.clone().unwrap();
     assert_eq!(now_sent.id, pending.id);
@@ -1069,6 +1216,187 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     );
     settle(2300);
     assert_eq!(sent(&audit).len(), 5);
+    // A Claude Code session outside Herdr with its own inbox: the recording is queued through
+    // it once, after the same countdown, and nothing reaches Herdr.
+    let inbox_wire = root.join("claude-inbox-wire.jsonl");
+    let inbox_mode = root.join("claude-inbox-mode");
+    fs::write(&inbox_mode, "idle").unwrap();
+    let inbox = inbox_session("inbox-session", "Queued notes", &inbox_wire, &inbox_mode);
+    owner.agent_voice.refresh();
+    until(|| row_containing(&owner, "Queued notes").is_some());
+    let row = row_containing(&owner, "Queued notes").unwrap();
+    assert!(
+        owner
+            .agent_voice
+            .view
+            .recipients
+            .model()
+            .unwrap()
+            .item(row)
+            .and_downcast::<gtk::StringObject>()
+            .unwrap()
+            .string()
+            .ends_with("· Queue")
+    );
+    owner.agent_voice.view.recipients.set_selected(row);
+    record();
+    finish();
+    until(|| {
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .unwrap()
+            .phase
+            == RoutePhase::Delivered
+    });
+    let queued = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert_eq!(queued.target.session_id, "inbox-session");
+    assert!(queued.submitted_ms.unwrap() - queued.final_ms.unwrap() >= 2000);
+    // The peer answers as an idle session: queued, then taken into a turn at once.
+    assert!(queued.taken);
+    assert_eq!(outcome(&queued.history_id).delivery_outcome, "delivered");
+    let frames = || -> Vec<Value> {
+        fs::read_to_string(&inbox_wire)
+            .unwrap_or_default()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect()
+    };
+    assert_eq!(frames().len(), 1);
+    assert_eq!(frames()[0]["session_id"], "inbox-session");
+    assert_eq!(frames()[0]["message"]["content"], text);
+    assert_eq!(frames()[0]["uuid"], queued.id.as_str());
+    settle(2300);
+    assert_eq!(frames().len(), 1, "a queued message is never written again");
+    assert_eq!(sent(&audit).len(), 5);
+    // A busy session queues the next message and takes it later. A new dictation to another
+    // session starts meanwhile; the earlier row still learns that it was delivered.
+    fs::write(&inbox_mode, "working").unwrap();
+    record();
+    finish();
+    until(|| {
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .unwrap()
+            .phase
+            == RoutePhase::Delivered
+    });
+    let later = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert!(!later.taken);
+    assert_eq!(outcome(&later.history_id).delivery_outcome, "queued");
+    owner.agent_voice.view.recipients.set_selected(1);
+    record();
+    finish();
+    until(|| {
+        let route = owner.agent_voice.route.borrow();
+        let current = route.attempt.as_ref().unwrap();
+        current.id != later.id && current.phase == RoutePhase::Delivered
+    });
+    assert_eq!(sent(&audit).len(), 6);
+    until(|| outcome(&later.history_id).delivery_outcome == "delivered");
+    drop(inbox);
+    // A live Codex thread outside Herdr, through a running Codex daemon: sent if it is idle,
+    // confirmed by its own turn; when busy, withdrawn with the draft kept and Send draft offered.
+    let codex_mode = root.join("codex-mode");
+    let codex_wire = root.join("codex-wire.jsonl");
+    fs::write(&codex_mode, "idle").unwrap();
+    let codex = codex_daemon(
+        "01900000-0000-7000-8000-00000000a001",
+        "Codex release notes",
+        &codex_mode,
+        &codex_wire,
+    );
+    owner.agent_voice.refresh();
+    until(|| row_containing(&owner, "Codex release notes").is_some());
+    let row = row_containing(&owner, "Codex release notes").unwrap();
+    owner.agent_voice.view.recipients.set_selected(row);
+    let codex_row = owner
+        .agent_voice
+        .view
+        .recipients
+        .model()
+        .unwrap()
+        .item(row)
+        .and_downcast::<gtk::StringObject>()
+        .unwrap()
+        .string();
+    assert!(codex_row.contains("Codex CLI") && codex_row.ends_with("· Send"));
+    let adds = || -> Vec<Value> {
+        fs::read_to_string(&codex_wire)
+            .unwrap_or_default()
+            .lines()
+            .map(|line| serde_json::from_str::<Value>(line).unwrap())
+            .filter(|m| m["method"] == "thread/queue/add")
+            .collect()
+    };
+    record();
+    finish();
+    until(|| {
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .unwrap()
+            .phase
+            == RoutePhase::Delivered
+    });
+    let codex_sent = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert_eq!(outcome(&codex_sent.history_id).delivery_outcome, "sent");
+    assert_eq!(adds().len(), 1);
+    assert_eq!(adds()[0]["params"]["input"][0]["text"], text);
+    fs::write(&codex_mode, "busy").unwrap();
+    record();
+    finish();
+    until(|| {
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .unwrap()
+            .phase
+            == RoutePhase::Draft(DraftReason::Busy)
+    });
+    let busy = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert_eq!(outcome(&busy.history_id).delivery_outcome, "busy");
+    assert_eq!(adds().len(), 2, "one add per attempt, never repeated");
+    assert!(
+        fs::read_to_string(&codex_wire)
+            .unwrap()
+            .contains("thread/queue/delete"),
+        "a message the thread did not take is withdrawn"
+    );
+    assert!(owner.agent_voice.view.send_draft.is_sensitive());
+    assert!(
+        owner
+            .agent_voice
+            .view
+            .status
+            .label()
+            .contains("was busy or not open")
+    );
+    let codex_methods = fs::read_to_string(&codex_wire).unwrap();
+    for never in [
+        "thread/resume",
+        "thread/start",
+        "turn/",
+        "thread/queue/start",
+    ] {
+        assert!(!codex_methods.contains(never), "{never}");
+    }
+    drop(codex);
+    assert_eq!(sent(&audit).len(), 6);
+    owner.agent_voice.view.recipients.set_selected(1);
     // Incognito uses the same explicit recipient but never creates local History.
     let saved = services.history.recent(100).unwrap().len();
     owner.settings.capture.incognito.set_active(true);
@@ -1089,12 +1417,12 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     );
     assert_eq!(services.history.recent(100).unwrap().len(), saved);
     settle(2200);
-    assert_eq!(sent(&audit).len(), 5);
+    assert_eq!(sent(&audit).len(), 6);
     // Cancellation during capture does not finalize or submit its audio.
     record();
     owner.agent_voice.view.cancel.emit_clicked();
     until(|| owner.capture.phase().is_none());
-    assert_eq!(sent(&audit).len(), 5);
+    assert_eq!(sent(&audit).len(), 6);
     // The route leaves a trace of every step, with no text, session title or credential, and
     // Incognito leaves none.
     let events = services.diagnostics.recent(1_000).unwrap();
@@ -1112,20 +1440,45 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         "route-draft-cancelled",
         "route-draft-recipient-changed",
         "route-draft-empty",
+        "route-draft-busy",
     ] {
         assert!(route.iter().any(|e| e.stage == stage), "missing {stage}");
     }
     let traced = serde_json::to_string(&route).unwrap();
-    for private in [text, "Chief of staff", "Research notes", "SYNTHETIC_KEY"] {
+    for private in [
+        text,
+        "Chief of staff",
+        "Research notes",
+        "Queued notes",
+        "Codex release notes",
+        "SYNTHETIC_KEY",
+    ] {
         assert!(!traced.contains(private), "{private}");
     }
+    let mut accepted: Vec<_> = route
+        .iter()
+        .filter(|e| e.stage == "route-send-accepted")
+        .map(|e| e.provider.as_str())
+        .collect();
+    accepted.sort_unstable();
     assert_eq!(
+        accepted,
+        [
+            "guarded-agent",
+            "guarded-agent",
+            "guarded-agent",
+            "guarded-agent",
+            "guarded-agent",
+            "guarded-agent",
+            "queued-agent",
+            "queued-agent"
+        ],
+        "five Herdr sends, one Codex send and two queued messages; the incognito attempt is not traced"
+    );
+    assert!(
         route
             .iter()
-            .filter(|e| e.stage == "route-send-accepted")
-            .count(),
-        4,
-        "four accepted sends; the incognito attempt is not traced"
+            .any(|e| e.stage == "route-queue-taken" && e.provider == "queued-agent")
     );
     let clipboard = gtk::gdk::Display::default().unwrap().clipboard();
     assert_eq!(
@@ -1138,7 +1491,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     let ended = owner.shutdown();
     glib::MainContext::default().block_on(ended).unwrap();
     let observed = speech.finish();
-    assert_eq!(observed.len(), 13);
+    assert_eq!(observed.len(), 18);
     assert!(wire(&audit).iter().all(|r| {
         [
             "agent.guarded_list",
@@ -1148,5 +1501,5 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         ]
         .contains(&r["method"].as_str().unwrap())
     }));
-    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":15,"recognized":13,"session_wheel":true,"draft_only_sessions_no_delivery":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":5,"second_press_sends_once":true,"empty_recognition_kept":true,"history_learns_outcome":true,"route_traced_without_text":true,"live_page_on_start":true,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
+    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":20,"recognized":18,"queued_through_inbox":2,"earlier_queued_upgraded":true,"codex_sent_if_idle":1,"codex_busy_draft_kept":1,"session_wheel":true,"draft_only_sessions_no_delivery":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":5,"second_press_sends_once":true,"empty_recognition_kept":true,"history_learns_outcome":true,"route_traced_without_text":true,"live_page_on_start":true,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
 }

@@ -22,6 +22,8 @@ for _ in {1..100}; do [[ -S "$socket" ]] && break; sleep 0.05; done
 test -S "$socket"
 cp "$root/app-process.json" "$root/cli-owner-before.json"
 "$app" herdr list --socket "$socket" | jq -e '.ok and (.recipients|length==2)' >/dev/null
+# `agents` is the same command; each session says how a recording reaches it.
+"$app" agents list --socket "$socket" | jq -e '.ok and (.recipients|length==2) and all(.recipients[]; .route=="herdr" and .delivery=="send")' >/dev/null
 "$app" herdr status | jq -e '.ok and (.connected|not)' >/dev/null
 if "$app" herdr select 'Synthetic team' --socket "$socket" > "$root/ambiguous.json"; then
   echo 'Ambiguous name unexpectedly selected' >&2; exit 1

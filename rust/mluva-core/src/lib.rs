@@ -1,6 +1,7 @@
 //! Native behavior shared by the desktop, speech workers and command-line integrations.
 
 pub mod account;
+pub mod agent_target;
 pub mod agent_voice;
 pub mod annotations;
 pub mod config;

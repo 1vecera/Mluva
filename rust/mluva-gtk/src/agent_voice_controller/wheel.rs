@@ -22,12 +22,7 @@ impl AgentVoiceController {
             .borrow()
             .selected
             .is_none()
-            .then(|| {
-                self.recipients
-                    .borrow()
-                    .iter()
-                    .position(Recipient::can_receive)
-            })
+            .then(|| self.targets.borrow().iter().position(Target::can_receive))
             .flatten();
         if let Some(index) = initial {
             self.view.recipients.set_selected(index as u32 + 1);
@@ -38,10 +33,10 @@ impl AgentVoiceController {
                 .selected
                 .as_ref()
                 .and_then(|s| {
-                    self.recipients
+                    self.targets
                         .borrow()
                         .iter()
-                        .position(|r| r.same_instance(s))
+                        .position(|t| t.same_instance(s))
                 })
                 .unwrap_or(0)
                 / KEYS.len(),
@@ -72,10 +67,10 @@ impl AgentVoiceController {
             .cloned();
         if let Some(target) = target {
             let index = self
-                .recipients
+                .targets
                 .borrow()
                 .iter()
-                .position(|r| r.same_instance(&target));
+                .position(|t| t.same_instance(&target));
             if let Some(index) = index {
                 self.view.recipients.set_selected(index as u32 + 1);
             }
@@ -114,7 +109,7 @@ impl AgentVoiceController {
             .recording_trigger
             .unwrap_or_else(|| self.services.config().global_recording_key);
         self.wheel.update(
-            &self.recipients.borrow(),
+            &self.targets.borrow(),
             self.selected(),
             &agent_key,
             &transcript_key,

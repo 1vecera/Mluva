@@ -149,7 +149,7 @@ fn route_events_hold_only_the_step_the_route_and_its_timing() {
         .record_route(
             session,
             RouteEvent::CountdownStarted,
-            RouteKind::GuardedAgent,
+            RouteKind::Agent(mluva_core::agent_target::Delivery::Send),
             0.25,
         )
         .unwrap();
@@ -157,7 +157,7 @@ fn route_events_hold_only_the_step_the_route_and_its_timing() {
         .record_route(
             session,
             RouteEvent::DraftCancelled,
-            RouteKind::GuardedAgent,
+            RouteKind::Agent(mluva_core::agent_target::Delivery::Send),
             1.5,
         )
         .unwrap();

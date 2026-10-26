@@ -1,6 +1,8 @@
 //! Local Herdr metadata and guarded prompt transport. No terminal reads, clipboard or focus.
 use crate::{ProviderError, Result};
-use mluva_core::agent_voice::{AgentStatus, Recipient, SendOutcome, Submission};
+use mluva_core::agent_voice::{
+    AgentKind, AgentStatus, HerdrPane, Route, SendOutcome, Submission, Target,
+};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::{
@@ -23,7 +25,7 @@ const INCOMPATIBLE: &str =
 
 #[derive(Clone, Debug)]
 pub struct Discovery {
-    pub recipients: Vec<Recipient>,
+    pub targets: Vec<Target>,
     pub guarded: bool,
 }
 
@@ -52,8 +54,7 @@ pub fn socket_candidates(config_home: &Path, explicit: Option<&str>) -> Vec<Path
 fn secure_socket(path: &Path) -> Result<()> {
     let metadata =
         std::fs::symlink_metadata(path).map_err(|_| ProviderError::message(UNAVAILABLE))?;
-    // SAFETY: geteuid has no arguments or memory preconditions.
-    let uid = unsafe { libc::geteuid() };
+    let uid = crate::agent_platform::effective_uid();
     if !path.is_absolute()
         || !metadata.file_type().is_socket()
         || metadata.uid() != uid
@@ -77,7 +78,7 @@ async fn rpc(path: &Path, method: &str, params: Value) -> Result<Value> {
             .peer_cred()
             .map_err(|_| ProviderError::message(UNAVAILABLE))?
             .uid()
-            != unsafe { libc::geteuid() }
+            != crate::agent_platform::effective_uid()
         {
             return Err(ProviderError::message(
                 "The Herdr connection belongs to another account.",
@@ -148,43 +149,94 @@ const MAX_CODEX_INDEX_BYTES: u64 = 4 * 1_048_576;
 
 /// Codex thread names by session ID from Codex's own `session_index.jsonl`; the latest line wins.
 pub fn codex_thread_names(index: &Path) -> HashMap<String, String> {
-    #[derive(Deserialize)]
-    struct Entry {
-        id: String,
-        thread_name: Option<String>,
+    let mut names = CodexNames::new(index.to_path_buf());
+    names.refresh();
+    names.names
+}
+
+/// Codex thread names, read incrementally: the newest 4 MiB of the index on first sight, then
+/// only what Codex appended since, so a large index is not read again on every pass.
+#[derive(Debug, Default)]
+pub struct CodexNames {
+    path: PathBuf,
+    inode: u64,
+    offset: u64,
+    /// The start of a line Codex is still writing.
+    partial: Vec<u8>,
+    names: HashMap<String, String>,
+}
+
+impl CodexNames {
+    pub fn new(path: PathBuf) -> Self {
+        Self {
+            path,
+            ..Self::default()
+        }
     }
-    let mut names = HashMap::new();
-    let Ok(mut file) = std::fs::File::open(index) else {
-        return names;
-    };
-    let length = file.metadata().map_or(0, |m| m.len());
-    let skip = length.saturating_sub(MAX_CODEX_INDEX_BYTES);
-    let mut bytes = Vec::new();
-    if file.seek(SeekFrom::Start(skip)).is_err()
-        || file
-            .take(MAX_CODEX_INDEX_BYTES)
+
+    /// The names after reading what was appended; the latest line for an ID wins.
+    pub fn refresh(&mut self) -> &HashMap<String, String> {
+        #[derive(Deserialize)]
+        struct Entry {
+            id: String,
+            thread_name: Option<String>,
+        }
+        let Ok(mut file) = std::fs::File::open(&self.path) else {
+            self.names.clear();
+            return &self.names;
+        };
+        let Ok(metadata) = file.metadata() else {
+            return &self.names;
+        };
+        let length = metadata.len();
+        let mut skip_partial = false;
+        if metadata.ino() != self.inode || length < self.offset {
+            // A new or rewritten index: start again from its newest whole lines.
+            self.inode = metadata.ino();
+            self.offset = length.saturating_sub(MAX_CODEX_INDEX_BYTES);
+            self.names.clear();
+            self.partial.clear();
+            skip_partial = self.offset > 0;
+        }
+        if length == self.offset || file.seek(SeekFrom::Start(self.offset)).is_err() {
+            return &self.names;
+        }
+        let mut bytes = Vec::new();
+        if (&mut file)
+            .take((length - self.offset).min(MAX_CODEX_INDEX_BYTES))
             .read_to_end(&mut bytes)
             .is_err()
-    {
-        return names;
-    }
-    let text = String::from_utf8_lossy(&bytes);
-    // A tail read can start inside a line; only whole lines are trusted.
-    let whole = if skip > 0 {
-        text.split_once('\n').map_or("", |(_, rest)| rest)
-    } else {
-        &text
-    };
-    for entry in whole
-        .lines()
-        .filter_map(|line| serde_json::from_str::<Entry>(line).ok())
-    {
-        match entry.thread_name.filter(|name| !name.trim().is_empty()) {
-            Some(name) => names.insert(entry.id, name),
-            None => names.remove(&entry.id),
+        {
+            return &self.names;
+        }
+        self.offset += bytes.len() as u64;
+        // A read that starts inside a line trusts only the whole lines after it.
+        let start = if skip_partial {
+            bytes
+                .iter()
+                .position(|b| *b == b'\n')
+                .map_or(bytes.len(), |at| at + 1)
+        } else {
+            0
         };
+        let mut pending = std::mem::take(&mut self.partial);
+        pending.extend_from_slice(&bytes[start..]);
+        let complete = pending
+            .iter()
+            .rposition(|b| *b == b'\n')
+            .map_or(0, |at| at + 1);
+        self.partial = pending.split_off(complete);
+        for entry in pending
+            .split(|b| *b == b'\n')
+            .filter_map(|line| serde_json::from_slice::<Entry>(line).ok())
+        {
+            match entry.thread_name.filter(|name| !name.trim().is_empty()) {
+                Some(name) => self.names.insert(entry.id, name),
+                None => self.names.remove(&entry.id),
+            };
+        }
+        &self.names
     }
-    names
 }
 
 /// `$CODEX_HOME/session_index.jsonl`, defaulting to `~/.codex`.
@@ -197,8 +249,12 @@ pub fn codex_index_path() -> Option<PathBuf> {
 }
 
 /// The agent's own name for this session, or empty when it has none yet.
-fn session_title(agent: &Agent, kind: &str, codex_threads: &HashMap<String, String>) -> String {
-    let title = if kind == "codex" {
+fn session_title(
+    agent: &Agent,
+    kind: AgentKind,
+    codex_threads: &HashMap<String, String>,
+) -> String {
+    let title = if kind == AgentKind::CodexCli {
         // Codex composes its terminal title from configurable items (thread, project,
         // activity), so the title comes from its thread index for this exact session.
         agent
@@ -218,19 +274,16 @@ fn session_title(agent: &Agent, kind: &str, codex_threads: &HashMap<String, Stri
     title.map_or_else(String::new, |title| label(title.trim(), MAX_TITLE_CHARS))
 }
 
-fn recipient(
+fn target(
     path: &Path,
     epoch: &str,
     guard: &str,
     value: Value,
     codex_threads: &HashMap<String, String>,
-) -> Option<Recipient> {
+) -> Option<Target> {
     let agent: Agent = serde_json::from_value(value).ok()?;
-    let kind = agent.agent.clone()?;
-    if !matches!(kind.as_str(), "claude" | "claude_code" | "codex") {
-        return None;
-    }
-    let title = session_title(&agent, &kind, codex_threads);
+    let kind = AgentKind::from_herdr(agent.agent.as_deref()?)?;
+    let title = session_title(&agent, kind, codex_threads);
     let session_id = agent
         .agent_session
         .as_ref()
@@ -238,11 +291,13 @@ fn recipient(
         .map(|s| label(&s.value, 128))
         .unwrap_or_default();
     let project = agent.foreground_cwd.or(agent.cwd).unwrap_or_default();
-    Some(Recipient {
-        socket: path.to_string_lossy().into_owned(),
-        server_epoch: epoch.into(),
-        pane_id: agent.pane_id.clone(),
-        guard: guard.into(),
+    Some(Target {
+        herdr: Some(HerdrPane {
+            socket: path.to_string_lossy().into_owned(),
+            server_epoch: epoch.into(),
+            pane_id: agent.pane_id.clone(),
+            guard: guard.into(),
+        }),
         name: label(
             agent
                 .name
@@ -256,7 +311,7 @@ fn recipient(
         project: label(&project, 240),
         status: agent.agent_status,
         session_id,
-        ..Recipient::default()
+        ..Target::default()
     })
 }
 
@@ -273,6 +328,14 @@ async fn listed_agents(path: &Path) -> Result<Vec<Value>> {
         .ok_or_else(|| ProviderError::message(INCOMPATIBLE))
 }
 
+/// Discover with Codex thread names already read.
+pub async fn discover_named(
+    path: &Path,
+    codex_threads: &HashMap<String, String>,
+) -> Result<Discovery> {
+    discover_listed(path, codex_threads).await
+}
+
 /// Discover with an explicit Codex thread index; tests pass a fixture.
 ///
 /// Herdr guards only the sessions it can vouch for, such as those it launched itself, so
@@ -281,14 +344,21 @@ async fn listed_agents(path: &Path) -> Result<Vec<Value>> {
 /// sent to. The rest stay visible without a transport.
 pub async fn discover_with(path: &Path, codex_index: Option<&Path>) -> Result<Discovery> {
     let codex_threads = codex_index.map(codex_thread_names).unwrap_or_default();
+    discover_listed(path, &codex_threads).await
+}
+
+async fn discover_listed(
+    path: &Path,
+    codex_threads: &HashMap<String, String>,
+) -> Result<Discovery> {
     let response = rpc(path, "agent.guarded_list", json!({})).await?;
     let Some(result) = response.get("result") else {
         // Metadata-only compatibility view. There is intentionally no legacy send fallback.
         let agents = listed_agents(path).await?;
         return Ok(Discovery {
-            recipients: agents
+            targets: agents
                 .into_iter()
-                .filter_map(|agent| recipient(path, "", "", agent, &codex_threads))
+                .filter_map(|agent| target(path, "", "", agent, codex_threads))
                 .collect(),
             guarded: false,
         });
@@ -315,34 +385,34 @@ pub async fn discover_with(path: &Path, codex_index: Option<&Path>) -> Result<Di
         .collect();
     // Without the full list, the guarded agents are still correct on their own.
     let listed = listed_agents(path).await.unwrap_or_default();
-    let mut recipients = Vec::with_capacity(listed.len().max(guarded.len()));
+    let mut targets = Vec::with_capacity(listed.len().max(guarded.len()));
     for agent in listed {
         let pane = agent.get("pane_id").and_then(Value::as_str);
         let found = guarded.iter().position(|(p, ..)| Some(p.as_str()) == pane);
-        recipients.extend(match found {
+        targets.extend(match found {
             // The guard belongs to the guarded snapshot, so its metadata is used with it.
             Some(index) => {
                 let (_, guard, agent) = guarded.remove(index);
-                recipient(path, epoch, &guard, agent, &codex_threads)
+                target(path, epoch, &guard, agent, codex_threads)
             }
-            None => recipient(path, epoch, "", agent, &codex_threads),
+            None => target(path, epoch, "", agent, codex_threads),
         });
     }
     // An agent guarded between the two reads keeps its guard, after the others.
-    recipients.extend(
+    targets.extend(
         guarded
             .into_iter()
-            .filter_map(|(_, guard, agent)| recipient(path, epoch, &guard, agent, &codex_threads)),
+            .filter_map(|(_, guard, agent)| target(path, epoch, &guard, agent, codex_threads)),
     );
     Ok(Discovery {
-        recipients,
+        targets,
         guarded: true,
     })
 }
 
-fn receipt(response: &Value, submission: &Submission) -> Option<SendOutcome> {
+fn receipt(response: &Value, epoch: &str, submission: &Submission) -> Option<SendOutcome> {
     let result = response.get("result")?;
-    if result.get("server_epoch")?.as_str()? != submission.recipient.server_epoch
+    if result.get("server_epoch")?.as_str()? != epoch
         || result.get("operation_id")?.as_str()? != submission.id
     {
         return None;
@@ -356,27 +426,33 @@ fn receipt(response: &Value, submission: &Submission) -> Option<SendOutcome> {
 }
 
 /// Send once, then reconcile only by reading its receipt. Cancellation never triggers replay.
+///
+/// Herdr re-checks the guard against the exact agent process and pane before it writes, so a
+/// replaced or restarted session is refused there, not here.
 pub async fn submit(submission: &Submission, cancel: &CancellationToken) -> SendOutcome {
-    if !submission.recipient.can_receive()
-        || submission.text.trim().is_empty()
-        || submission.text.len() > mluva_core::agent_voice::MAX_MESSAGE_BYTES
-        || cancel.is_cancelled()
-    {
+    let target = &submission.target;
+    let Some(pane) = target
+        .herdr
+        .as_ref()
+        .filter(|_| target.route() == Route::Herdr)
+    else {
+        return SendOutcome::Rejected;
+    };
+    if !crate::agent_targets::admissible(submission, cancel) {
         return SendOutcome::Rejected;
     }
-    let recipient = &submission.recipient;
-    let path = Path::new(&recipient.socket);
+    let path = Path::new(&pane.socket);
     let expires = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis() as u64
         + 5_000;
-    let params = json!({"target": recipient.pane_id, "server_epoch": recipient.server_epoch,
-        "guard": recipient.guard, "operation_id": submission.id, "expires_at_unix_ms": expires, "text": submission.text});
+    let params = json!({"target": pane.pane_id, "server_epoch": pane.server_epoch,
+        "guard": pane.guard, "operation_id": submission.id, "expires_at_unix_ms": expires, "text": submission.text});
     let first = tokio::select! { _ = cancel.cancelled() => return SendOutcome::Unconfirmed,
     result = rpc(path, "agent.prompt_guarded", params) => result };
     if let Ok(response) = first {
-        if let Some(outcome) = receipt(&response, submission) {
+        if let Some(outcome) = receipt(&response, &pane.server_epoch, submission) {
             return outcome;
         }
         if response.pointer("/error/code").and_then(Value::as_str)
@@ -385,7 +461,7 @@ pub async fn submit(submission: &Submission, cancel: &CancellationToken) -> Send
             return SendOutcome::Rejected;
         }
     }
-    let lookup = json!({"server_epoch": recipient.server_epoch, "operation_id": submission.id});
+    let lookup = json!({"server_epoch": pane.server_epoch, "operation_id": submission.id});
     let deadline = tokio::time::Instant::now() + Duration::from_secs(6);
     loop {
         let response = tokio::select! {
@@ -394,7 +470,7 @@ pub async fn submit(submission: &Submission, cancel: &CancellationToken) -> Send
             response = rpc(path, "agent.prompt_receipt", lookup.clone()) => response,
         };
         if let Ok(response) = response {
-            if let Some(outcome) = receipt(&response, submission) {
+            if let Some(outcome) = receipt(&response, &pane.server_epoch, submission) {
                 return outcome;
             }
             if response.get("error").is_some() {
@@ -412,14 +488,14 @@ mod tests {
     use std::os::unix::fs::PermissionsExt;
     use tokio::net::UnixListener;
     fn peer() -> (tempfile::TempDir, PathBuf, UnixListener) {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_sockets::socket_dir();
         let path = temp.path().join("herdr.sock");
         let listener = UnixListener::bind(&path).unwrap();
         std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600)).unwrap();
         (temp, path, listener)
     }
     async fn receive(listener: &UnixListener) -> (UnixStream, Value) {
-        let (stream, _) = listener.accept().await.unwrap();
+        let stream = crate::test_sockets::accept_within(listener, "Mluva never asked Herdr").await;
         let mut reader = BufReader::new(stream);
         let mut line = String::new();
         reader.read_line(&mut line).await.unwrap();
@@ -431,21 +507,26 @@ mod tests {
             .await
             .unwrap();
     }
+    fn pane(target: &Target) -> &str {
+        &target.herdr.as_ref().unwrap().pane_id
+    }
     fn submission(path: &Path) -> Submission {
         Submission {
             id: uuid::Uuid::new_v4().to_string(),
             text: "Synthetic Czech: zkouška příjemce.".into(),
-            recipient: Recipient {
-                socket: path.to_string_lossy().into(),
-                server_epoch: "epoch".into(),
-                pane_id: "w1:p2".into(),
-                guard: "a".repeat(64),
+            target: Target {
+                herdr: Some(HerdrPane {
+                    socket: path.to_string_lossy().into(),
+                    server_epoch: "epoch".into(),
+                    pane_id: "w1:p2".into(),
+                    guard: "a".repeat(64),
+                }),
                 name: "selected".into(),
                 title: String::new(),
-                kind: "codex".into(),
+                kind: AgentKind::CodexCli,
                 project: "/synthetic".into(),
                 status: AgentStatus::Working,
-                ..Recipient::default()
+                ..Target::default()
             },
         }
     }
@@ -562,9 +643,9 @@ mod tests {
         let found = discover_with(&path, Some(&index)).await.unwrap();
         peer.await.unwrap();
         let shown: Vec<_> = found
-            .recipients
+            .targets
             .iter()
-            .map(|r| (r.pane_id.as_str(), r.display_name(), r.title.as_str()))
+            .map(|t| (pane(t), t.display_name(), t.title.as_str()))
             .collect();
         assert_eq!(
             shown,
@@ -587,7 +668,12 @@ mod tests {
             ]
         );
         // Identity is unchanged by naming; the guard and pane remain the selection key.
-        assert!(found.recipients.iter().all(|r| r.guard == "e".repeat(64)));
+        assert!(
+            found
+                .targets
+                .iter()
+                .all(|t| t.herdr.as_ref().unwrap().guard == "e".repeat(64))
+        );
         assert!(codex_thread_names(&temp.path().join("missing.jsonl")).is_empty());
     }
     /// Herdr guards only sessions it launched; one typed into a pane is in `agent.list` but
@@ -627,9 +713,9 @@ mod tests {
         });
         let found = discover_with(&path, None).await.unwrap();
         let shown: Vec<_> = found
-            .recipients
+            .targets
             .iter()
-            .map(|r| (r.pane_id.as_str(), r.display_name(), r.can_receive()))
+            .map(|t| (pane(t), t.display_name(), t.can_receive()))
             .collect();
         assert_eq!(
             shown,
@@ -642,12 +728,13 @@ mod tests {
         );
         peer.await.unwrap();
         assert!(found.guarded);
-        let typed = found.recipients[1].clone();
-        assert!(typed.guard.is_empty());
-        assert_eq!(typed.server_epoch, "epoch");
+        let typed = found.targets[1].clone();
+        assert!(typed.herdr.as_ref().unwrap().guard.is_empty());
+        assert_eq!(typed.herdr.as_ref().unwrap().server_epoch, "epoch");
+        assert!(typed.draft_only() && typed.route() == Route::DraftOnly);
         // Without a guard there is no send path: nothing even connects.
         let sending = Submission {
-            recipient: typed,
+            target: typed,
             ..submission(&path)
         };
         assert_eq!(
@@ -678,9 +765,9 @@ mod tests {
         });
         let found = discover_with(&path, None).await.unwrap();
         peer.await.unwrap();
-        assert_eq!(found.recipients.len(), 1);
-        assert_eq!(found.recipients[0].session_id, "managed-session");
-        assert!(found.recipients[0].can_receive());
+        assert_eq!(found.targets.len(), 1);
+        assert_eq!(found.targets[0].session_id, "managed-session");
+        assert!(found.targets[0].can_receive());
     }
     #[test]
     fn a_large_codex_index_is_read_from_its_newest_whole_lines() {
@@ -720,11 +807,11 @@ mod tests {
         });
         let found = discover(&path).await.unwrap();
         assert!(!found.guarded);
-        assert_eq!(found.recipients.len(), 1);
-        assert!(!found.recipients[0].can_receive());
+        assert_eq!(found.targets.len(), 1);
+        assert!(!found.targets[0].can_receive());
         peer.await.unwrap();
         let sending = Submission {
-            recipient: found.recipients[0].clone(),
+            target: found.targets[0].clone(),
             ..submission(&path)
         };
         assert_eq!(
