@@ -26,7 +26,7 @@ const Wire: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
   const mx = (x0 + x1) / 2;
   const d = `M ${x0} ${SOURCE.y} C ${mx} ${SOURCE.y} ${mx} ${y} ${x1} ${y}`;
   const live = row.outcome === "SEND";
-  const draw = live ? ramp(frame, k(1) + i * 3, k(1) + i * 3 + 12, easeInOut) : ramp(frame, 4 + i * 2, 18 + i * 2);
+  const draw = live ? ramp(frame, k(1) + i * 3, k(1) + i * 3 + 12, easeInOut) : ramp(frame, 2 + i, 14 + i);
   const stopAt = row.outcome === "NOT LISTED" ? 0.38 : 0.62;
   const shown = live ? draw : draw * stopAt;
   const decided = frame >= k(2) + (i - 2) * 7;
@@ -64,7 +64,7 @@ const Wire: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
 
 const Row: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
   const row = BEFORE[i];
-  const enter = ramp(frame, 2 + i * 2, 16 + i * 2, easeOut);
+  const enter = ramp(frame, i, 10 + i, easeOut);
   const live = row.outcome === "SEND";
   const at = live ? k(1) + i * 3 + 10 : k(2) + (i - 2) * 7;
   const tag = ramp(frame, at, at + 6);
@@ -112,8 +112,8 @@ const Row: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
 };
 
 const Diagram: React.FC<{ frame: number }> = ({ frame }) => {
-  const enter = ramp(frame, 0, 12, easeOut);
-  const head = ramp(frame, 4, 16, easeOut);
+  const enter = ramp(frame, 0, 8, easeOut);
+  const head = ramp(frame, 2, 12, easeOut);
   const glitch = frame >= GLITCH ? ramp(frame, GLITCH, GLITCH + 14, easeIn) : 0;
   // Horizontal slices tear sideways as the old routing falls apart.
   const slices = 9;
@@ -141,7 +141,7 @@ const Diagram: React.FC<{ frame: number }> = ({ frame }) => {
           BEFORE
         </div>
         <div style={{ display: "flex", alignItems: "baseline", marginTop: 14 }}>
-          <span style={{ ...display(T.s) }}>One route</span>
+          <span style={{ ...display(T.s) }}>One way to send</span>
           <MarkPeriod fontSize={T.s} local={frame} at={10} />
         </div>
         <div style={{ ...mono(15, LABEL), marginTop: 16 }}>ONLY HERDR'S GUARDED PROMPT COULD SEND</div>
@@ -197,7 +197,7 @@ const Rebuilt: React.FC<{ frame: number }> = ({ frame }) => {
       ) : null}
       {line}
       <div style={{ ...mono(15, LABEL), position: "absolute", top: 760, opacity: ramp(frame, b + 6, b + 14) * (1 - collapse) }}>
-        ONE TARGET MODEL · EVERY ROUTE BEHIND IT
+        ONE TARGET MODEL · FOUR ROUTES BEHIND IT
       </div>
     </AbsoluteFill>
   );

@@ -16,7 +16,7 @@ export type Chapter = { index: number; name: string; from: number; to: number; b
 // Chapter boundaries in beats. The drop lands on beat 32, the re-drop on 44, the final impact on 56.
 const PLAN: [string, number, number][] = [
   ["KINETIC TYPE", 0, 8],
-  ["SPLIT SCREEN", 8, 16],
+  ["INFOGRAPHICS", 8, 16],
   ["MOTION SYSTEMS", 16, 24],
   ["UI ANIMATION", 24, 32],
   ["SCREEN CAPTURE", 32, 44],

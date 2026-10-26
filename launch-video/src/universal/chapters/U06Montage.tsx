@@ -1,23 +1,32 @@
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { beatFrame } from "../timing";
-import { BLOOM, C, display, easeIn, easeOut, LABEL, mono, outline, ramp, ring, T } from "../../showreel/theme";
+import { BLOOM, C, display, easeIn, easeOut, mono, outline, ramp, T } from "../../showreel/theme";
 import { Keycap } from "../../showreel/parts/Keycap";
 import { MarkPeriod } from "../../showreel/parts/MarkPeriod";
 import { scramble } from "../../showreel/parts/Scramble";
-import { Delivery } from "../parts/Delivery";
+import { Delivery, Shot } from "../parts/Delivery";
 
 const B0 = beatFrame(44);
 const k = (beat: number) => beatFrame(44 + beat) - B0;
 const LENGTH = k(12);
-// Bar 13: eight cuts on eighth notes. Bar 14 is the score's break before the final impact.
+// Bar 13: four cuts, one per beat. Bar 14 is the score's break before the final impact.
 const CUT0 = k(4);
-export const CUTS = Array.from({ length: 9 }, (_, i) => beatFrame(48 + i / 2) - B0);
+export const CUTS = Array.from({ length: 5 }, (_, i) => beatFrame(48 + i) - B0);
 const BREAK = k(8);
 
-const Punch: React.FC<{ f: number; children: React.ReactNode; bg?: string }> = ({ f, children, bg }) => {
+// The re-drop: the queued dictation lands in Claude Code ("Portal test") at take 22.10 s and its
+// reply at 22.58 s; Mluva reports it delivered from 22.42 s. Real speed.
+const CLAUDE: Shot[] = [
+  { beat: 0, from: 22.05, rate: 1, framing: "claude", push: 0.06, label: "CLAUDE CODE · QUEUED IN ITS OWN INBOX" },
+  { beat: 2, from: 22.983, rate: 1, framing: "status", push: 0.05, label: "DELIVERED · TAKEN INTO A TURN" },
+];
+
+// `iris` opens the cut from the centre instead of popping it, for the white card.
+const Punch: React.FC<{ f: number; children: React.ReactNode; bg?: string; iris?: boolean }> = ({ f, children, bg, iris }) => {
   const inT = ramp(f, 0, 4, easeOut);
+  const open = iris ? ramp(f, 0, 7, easeOut) : 1;
   return (
-    <AbsoluteFill style={{ background: bg }}>
+    <AbsoluteFill style={{ background: bg, clipPath: open < 1 ? `circle(${open * 120}% at 50% 50%)` : undefined }}>
       <AbsoluteFill style={{ transform: `scale(${1.08 - 0.08 * inT + 0.008 * f})`, filter: inT < 1 ? `blur(${(1 - inT) * 8}px)` : undefined }}>
         {children}
       </AbsoluteFill>
@@ -25,17 +34,13 @@ const Punch: React.FC<{ f: number; children: React.ReactNode; bg?: string }> = (
   );
 };
 
-// Where dictation goes now, one word per eighth note. Codex Desktop is listed on the wheel but
-// its delivery is not yet verified live, so it is not named here.
+// Where dictation goes now, one product per beat. Codex Desktop is listed on the wheel but its
+// delivery is not yet verified live, so it is not named here.
 const WORDS: { word: string; sub: string; style: "solid" | "outline" | "red" | "card" }[] = [
-  { word: "CLAUDE CODE", sub: "SEND · QUEUE", style: "solid" },
-  { word: "TERMINAL", sub: "ANY TERMINAL", style: "outline" },
-  { word: "TMUX", sub: "THROUGH THE AGENT'S OWN QUEUE", style: "red" },
-  { word: "HERDR", sub: "GUARDED PROMPT", style: "outline" },
-  { word: "BACKGROUND", sub: "CLAUDE --BG", style: "solid" },
+  { word: "CLAUDE CODE", sub: "TERMINAL · TMUX · HERDR · BACKGROUND", style: "solid" },
+  { word: "CODEX", sub: "TERMINAL · TMUX · HERDR · SEND IF IDLE", style: "red" },
   { word: "CLAUDE DESKTOP", sub: "CODE SESSIONS · NEW CHATS", style: "outline" },
-  { word: "CODEX", sub: "LIVE THREADS · SEND IF IDLE", style: "red" },
-  { word: "ANY AGENT", sub: "ONE TARGET MODEL", style: "card" },
+  { word: "ANY AGENT", sub: "WITH OR WITHOUT HERDR", style: "card" },
 ];
 
 const Cut: React.FC<{ i: number; f: number }> = ({ i, f }) => {
@@ -43,7 +48,7 @@ const Cut: React.FC<{ i: number; f: number }> = ({ i, f }) => {
   const size = w.word.length > 11 ? T.l : T.xl;
   const text =
     w.style === "outline" ? (
-      <div style={outline(size, "rgba(245,245,245,0.92)", 2.5)}>{w.word}</div>
+      <div style={outline(size, C.ink, 3)}>{w.word}</div>
     ) : w.style === "red" ? (
       <div style={{ ...display(size), color: C.red, textShadow: `0 0 40px ${C.redGlow}` }}>{w.word}</div>
     ) : w.style === "card" ? (
@@ -55,10 +60,10 @@ const Cut: React.FC<{ i: number; f: number }> = ({ i, f }) => {
       <div style={{ ...display(size), textShadow: BLOOM }}>{w.word}</div>
     );
   return (
-    <Punch f={f} bg={w.style === "card" ? C.ink : undefined}>
+    <Punch f={f} bg={w.style === "card" ? C.ink : undefined} iris={w.style === "card"}>
       <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
         {text}
-        <div style={{ ...mono(18, w.style === "card" ? "#262626" : LABEL), marginTop: 34, letterSpacing: "0.24em" }}>
+        <div style={{ ...mono(22, w.style === "card" ? "#262626" : C.ink2), marginTop: 38, letterSpacing: "0.22em" }}>
           {scramble(w.sub, ramp(f, 1, 5), `cut-${i}`, f)}
         </div>
       </AbsoluteFill>
@@ -84,17 +89,17 @@ const OneKey: React.FC<{ f: number }> = ({ f }) => {
           <Keycap label="F12" size={200} press={press} lit={Math.max(press, glow)} />
         </div>
       </div>
-      <div style={{ ...mono(18, LABEL), position: "absolute", top: 720, letterSpacing: "0.24em", opacity: ramp(f, 8, 16) }}>
-        OPEN · CHOOSE · SPEAK · SENT
+      <div style={{ ...mono(22, C.ink2), position: "absolute", top: 720, letterSpacing: "0.22em", opacity: ramp(f, 8, 16) }}>
+        OPEN · CHOOSE · SPEAK · DELIVERED
       </div>
-      <AbsoluteFill style={{ background: `radial-gradient(circle at 50% 50%, rgba(255,255,255,${0.5 * glow}), rgba(233,27,39,${0.3 * glow}) 30%, transparent 60%)` }} />
+      <AbsoluteFill style={{ background: `radial-gradient(circle at 50% 50%, rgba(255,255,255,${0.32 * glow}), rgba(233,27,39,${0.28 * glow}) 30%, transparent 60%)` }} />
     </AbsoluteFill>
   );
 };
 
 export const U06Montage: React.FC = () => {
   const frame = useCurrentFrame();
-  if (frame < CUT0) return <Delivery which="second" frame={frame} length={CUT0} />;
+  if (frame < CUT0) return <Delivery frame={frame} b0={44} shots={CLAUDE} length={CUT0} note="REAL APP · SCRIPTED DEMO · LOOPBACK MODEL" />;
   if (frame < BREAK) {
     let i = 0;
     CUTS.forEach((c, j) => {

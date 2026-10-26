@@ -82,10 +82,10 @@ export const U04Wheel: React.FC = () => {
       </div>
       <div style={{ position: "absolute", left: COLUMN, top: 400, width: 1792 - COLUMN, opacity: ramp(frame, 4, 12) }}>
         <div style={{ ...mono(15, LABEL) }}>CHOSEN</div>
-        <div style={{ ...display(38, 800), letterSpacing: "-0.01em", marginTop: 14, transform: `scale(${pop})`, transformOrigin: "0 50%" }}>
+        <div style={{ ...display(46, 800), letterSpacing: "-0.015em", marginTop: 14, transform: `scale(${pop})`, transformOrigin: "0 50%" }}>
           {scramble(fixture.kind.toUpperCase(), settle, `wk-${since}`, frame)}
         </div>
-        <div style={{ ...mono(15, C.ink2), marginTop: 12 }}>{scramble(fixture.place.toUpperCase(), settle, `wp-${since}`, frame)}</div>
+        <div style={{ ...mono(18, C.ink2), marginTop: 14 }}>{scramble(fixture.place.toUpperCase(), settle, `wp-${since}`, frame)}</div>
       </div>
       <div style={{ position: "absolute", left: COLUMN, top: 600, width: 1792 - COLUMN, opacity: ramp(frame, 4, 12) }}>
         <div style={{ ...mono(15, LABEL) }}>DELIVERY</div>
@@ -102,11 +102,11 @@ export const U04Wheel: React.FC = () => {
         >
           {scramble(level, settle, `wl-${since}`, frame)}
         </div>
-        <div style={{ ...mono(13, LABEL), marginTop: 14, letterSpacing: "0.14em" }}>{fixture.line}</div>
+        <div style={{ ...mono(15, C.ink2), marginTop: 14, letterSpacing: "0.12em" }}>{fixture.line}</div>
       </div>
       <div style={{ position: "absolute", left: COLUMN, top: 860, opacity: ramp(frame, 6, 14) }}>
-        <div style={{ ...mono(13, LABEL), letterSpacing: "0.14em" }}>REAL APP · FIXTURE SESSIONS</div>
-        <div style={{ ...mono(13, C.ink3), letterSpacing: "0.14em", marginTop: 8 }}>
+        <div style={{ ...mono(16, C.ink2), letterSpacing: "0.16em" }}>REAL APP · FIXTURE SESSIONS</div>
+        <div style={{ ...mono(14, LABEL), letterSpacing: "0.14em", marginTop: 10 }}>
           {take.screen[0]}×{take.screen[1]} TAKE · SHOWN AT 1:2
         </div>
       </div>

@@ -53,30 +53,31 @@
     "w": 2360,
     "h": 1630
   },
+  "panel_scale": 0.5,
   "fixtures": [
     {
-      "name": "Shortcut portal fix",
+      "name": "Cold start profile",
       "kind": "Claude Code",
       "place": "in Herdr",
       "route": "herdr",
       "caption": "SEND",
-      "line": "SUBMITTED TO THAT SESSION \u00b7 CONFIRMED"
+      "line": "SUBMITTED · WITH HERDR'S RECEIPT"
     },
     {
-      "name": "Release checklist",
+      "name": "api-tests",
       "kind": "Codex CLI",
       "place": "in Herdr",
       "route": "herdr",
       "caption": "SEND",
-      "line": "SUBMITTED TO THAT SESSION \u00b7 CONFIRMED"
+      "line": "SUBMITTED · WITH HERDR'S RECEIPT"
     },
     {
-      "name": "Cold start profile",
+      "name": "Portal test",
       "kind": "Claude Code",
       "place": "in tmux",
       "route": "claude_inbox",
       "caption": "QUEUE",
-      "line": "TAKEN AT ITS NEXT TURN"
+      "line": "TAKEN WHEN THE AGENT IS READY"
     },
     {
       "name": "Onboarding copy",
@@ -84,7 +85,7 @@
       "place": "in a terminal",
       "route": "claude_inbox",
       "caption": "QUEUE",
-      "line": "TAKEN AT ITS NEXT TURN"
+      "line": "TAKEN WHEN THE AGENT IS READY"
     },
     {
       "name": "Inbox triage",
@@ -92,7 +93,7 @@
       "place": "a Code session",
       "route": "claude_inbox",
       "caption": "QUEUE",
-      "line": "TAKEN AT ITS NEXT TURN"
+      "line": "TAKEN WHEN THE AGENT IS READY"
     },
     {
       "name": "Parakeet benchmark",
@@ -100,23 +101,23 @@
       "place": "in a terminal",
       "route": "none",
       "caption": "DRAFT ONLY",
-      "line": "KEPT AS AN EDITABLE DRAFT IN MLUVA"
+      "line": "AN EDITABLE DRAFT IN MLUVA"
     },
     {
-      "name": "Narration port",
+      "name": "Release notes",
       "kind": "Codex CLI",
-      "place": "in tmux",
+      "place": "in a terminal",
       "route": "codex_queue",
-      "caption": "SEND \u00b7 IF IDLE",
-      "line": "STARTED BY THAT THREAD \u00b7 ELSE KEPT"
+      "caption": "SEND · IF IDLE",
+      "line": "ITS NEXT TURN · BUSY: DRAFT KEPT"
     },
     {
       "name": "Widget breathing",
       "kind": "Codex Desktop",
       "place": "desktop app",
       "route": "codex_queue",
-      "caption": "SEND \u00b7 IF IDLE",
-      "line": "STARTED BY THAT THREAD \u00b7 ELSE KEPT"
+      "caption": "SEND · IF IDLE",
+      "line": "ITS NEXT TURN · BUSY: DRAFT KEPT"
     },
     {
       "name": "New chat",
@@ -124,12 +125,11 @@
       "place": "a new chat",
       "route": "claude_new_chat",
       "caption": "PREFILL",
-      "line": "IN A NEW CHAT \u00b7 YOU PRESS SEND"
+      "line": "A NEW CHAT · YOU PRESS SEND"
     }
   ],
   "md5": {
     "frames": 341,
     "matching": 341
-  },
-  "panel_scale": 0.5
+  }
 }

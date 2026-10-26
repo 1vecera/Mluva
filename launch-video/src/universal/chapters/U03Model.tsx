@@ -10,10 +10,10 @@ const B0 = beatFrame(16);
 const k = (beat: number) => beatFrame(16 + beat) - B0;
 const LENGTH = k(8);
 
-const CHIP = { x: 128, w: 380, h: 66 };
-const CARD = { x: 650, y: 300, w: 600, h: 430 };
-const OUT = { x: 1400, w: 400 };
-const rowY = (i: number) => 330 + i * 98;
+const CHIP = { x: 128, w: 420, h: 76 };
+const CARD = { x: 610, y: 280, w: 700, h: 480 };
+const OUT = { x: 1390, w: 420 };
+const rowY = (i: number) => 320 + i * 108;
 
 const tick = (l: boolean, t: boolean): React.CSSProperties => ({
   position: "absolute",
@@ -63,7 +63,7 @@ const Card: React.FC<{ frame: number }> = ({ frame }) => {
       <div style={tick(false, false)} />
       <div style={{ display: "flex", justifyContent: "space-between", padding: "22px 30px 0", opacity: ramp(frame, 10, 18) }}>
         <div style={{ ...mono(15, C.ink) }}>TARGET</div>
-        <div style={{ ...mono(15, LABEL) }}>ONE MODEL · EVERY AGENT</div>
+        <div style={{ ...mono(15, LABEL) }}>FOUR ROUTES · FOUR LEVELS</div>
       </div>
       <div style={{ padding: "26px 30px 0" }}>
         {FIELDS.map((field, i) => {
@@ -83,18 +83,18 @@ const Card: React.FC<{ frame: number }> = ({ frame }) => {
               style={{
                 display: "flex",
                 alignItems: "baseline",
-                height: 78,
+                height: 92,
                 borderTop: "1px solid rgba(245,245,245,0.08)",
                 opacity: shown ? 1 : 0.25,
               }}
             >
-              <div style={{ ...mono(15, LABEL), width: 150, paddingTop: 28 }}>{field.key}</div>
+              <div style={{ ...mono(16, LABEL), width: 170, paddingTop: 34 }}>{field.key}</div>
               <div
                 style={{
-                  ...display(field.key === "NAME" ? 24 : 34, field.key === "NAME" ? 500 : 800),
+                  ...display(field.key === "NAME" ? 28 : 40, field.key === "NAME" ? 500 : 800),
                   letterSpacing: field.key === "NAME" ? "0.02em" : "-0.01em",
                   color: hot ? C.ink : shown ? C.ink : C.ink3,
-                  paddingTop: 22,
+                  paddingTop: 26,
                   textShadow: hot ? BLOOM : undefined,
                 }}
               >
@@ -126,7 +126,7 @@ const Chip: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
         border: `1px solid ${current ? C.red : lit ? "rgba(245,245,245,0.32)" : "rgba(245,245,245,0.12)"}`,
         background: current ? "rgba(233,27,39,0.07)" : "rgba(245,245,245,0.02)",
         boxShadow: current ? `0 0 26px rgba(233,27,39,0.3)` : "none",
-        opacity: appear,
+        opacity: appear * (lit ? 1 : 0.5),
         transform: `translateX(${(1 - appear) * -50}px) scale(${lit ? bump : 1})`,
         display: "flex",
         flexDirection: "column",
@@ -135,8 +135,8 @@ const Chip: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
         boxSizing: "border-box",
       }}
     >
-      <div style={{ ...mono(15, lit ? C.ink : C.ink2) }}>{pair.route}</div>
-      <div style={{ ...mono(13, LABEL), marginTop: 7, letterSpacing: "0.16em" }}>{pair.where}</div>
+      <div style={{ ...mono(17, lit ? C.ink : C.ink2) }}>{pair.route}</div>
+      <div style={{ ...mono(14, LABEL), marginTop: 9, letterSpacing: "0.16em" }}>{pair.where}</div>
     </div>
   );
 };
@@ -149,10 +149,10 @@ const Outcome: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
   const current = activeAt(frame) === i;
   return (
     <div style={{ position: "absolute", left: OUT.x, top: rowY(i) + 2, width: OUT.w, opacity: inT, transform: `translateX(${(1 - inT) * 40}px)` }}>
-      <div style={{ ...display(34, 800), letterSpacing: "-0.01em", color: current ? C.ink : C.ink2, textShadow: current ? BLOOM : undefined }}>
+      <div style={{ ...display(42, 800), letterSpacing: "-0.01em", color: current ? C.ink : C.ink2, textShadow: current ? BLOOM : undefined }}>
         {pair.level}
       </div>
-      <div style={{ ...mono(13, LABEL), marginTop: 9, letterSpacing: "0.14em" }}>{pair.line}</div>
+      <div style={{ ...mono(15, C.ink2), marginTop: 10, letterSpacing: "0.12em" }}>{pair.line}</div>
     </div>
   );
 };
@@ -169,7 +169,7 @@ const Wires: React.FC<{ frame: number }> = ({ frame }) => {
       </defs>
       {PAIRS.map((_, i) => {
         const y = rowY(i) + CHIP.h / 2;
-        const cy = CARD.y + 120 + i * 70;
+        const cy = CARD.y + 130 + i * 92;
         const inPath = `M ${CHIP.x + CHIP.w} ${y} C ${CHIP.x + CHIP.w + 80} ${y} ${CARD.x - 80} ${cy} ${CARD.x} ${cy}`;
         const outPath = `M ${CARD.x + CARD.w} ${cy} C ${CARD.x + CARD.w + 80} ${cy} ${OUT.x - 90} ${y} ${OUT.x - 22} ${y}`;
         const on = k(4 + i);
@@ -258,7 +258,7 @@ export const U03Model: React.FC = () => {
       {PAIRS.map((_, i) => (
         <Outcome key={i} i={i} frame={frame} />
       ))}
-      <div style={{ ...mono(13, LABEL), position: "absolute", left: OUT.x, top: rowY(4) + 6, letterSpacing: "0.14em", opacity: ramp(frame, k(7) + 10, k(7) + 18) }}>
+      <div style={{ ...mono(15, LABEL), position: "absolute", left: OUT.x, top: rowY(4) - 4, letterSpacing: "0.12em", opacity: ramp(frame, k(7) + 10, k(7) + 18) }}>
         NO ROUTE → <span style={{ color: C.ink2 }}>DRAFT ONLY</span> · KEPT IN MLUVA
       </div>
       <BigWord frame={frame} />

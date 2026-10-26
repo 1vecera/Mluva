@@ -84,18 +84,24 @@ fn sessions() -> Vec<Target> {
     vec![
         Target {
             herdr: herdr("w1:p1"),
-            ..target(AgentKind::ClaudeCode, "Shortcut portal fix", 1)
+            ..target(AgentKind::ClaudeCode, "Cold start profile", 1)
         },
         Target {
             herdr: herdr("w1:p2"),
-            ..target(AgentKind::CodexCli, "Release checklist", 2)
+            ..target(AgentKind::CodexCli, "api-tests", 2)
         },
-        inboxed(AgentKind::ClaudeCode, "Cold start profile", 3, Host::Tmux("work:@3.%7".into())),
+        // The same names as the disposable sessions in the delivery take.
+        inboxed(
+            AgentKind::ClaudeCode,
+            "Portal test",
+            3,
+            Host::Tmux("work:@0.%1".into()),
+        ),
         inboxed(AgentKind::ClaudeCode, "Onboarding copy", 4, Host::Terminal),
         inboxed(AgentKind::ClaudeDesktop, "Inbox triage", 5, Host::App),
         // Found in Claude Code's registry without an inbox, such as a `--bare` session.
         target(AgentKind::ClaudeCode, "Parakeet benchmark", 6),
-        codex_thread(AgentKind::CodexCli, "Narration port", 7, Host::Tmux("work:@4.%2".into())),
+        codex_thread(AgentKind::CodexCli, "Release notes", 7, Host::Terminal),
         codex_thread(AgentKind::CodexDesktop, "Widget breathing", 8, Host::App),
         Target {
             kind: AgentKind::ClaudeDesktop,
@@ -112,10 +118,15 @@ fn sessions() -> Vec<Target> {
 /// the driver says, so every animation advances exactly one frame per step.
 fn clock_setter() -> Option<extern "C" fn(i64)> {
     unsafe extern "C" {
-        fn dlsym(handle: *mut std::ffi::c_void, symbol: *const std::ffi::c_char) -> *mut std::ffi::c_void;
+        fn dlsym(
+            handle: *mut std::ffi::c_void,
+            symbol: *const std::ffi::c_char,
+        ) -> *mut std::ffi::c_void;
     }
     let symbol = unsafe { dlsym(std::ptr::null_mut(), c"mluva_take_clock_set".as_ptr()) };
-    (!symbol.is_null()).then(|| unsafe { std::mem::transmute::<*mut std::ffi::c_void, extern "C" fn(i64)>(symbol) })
+    (!symbol.is_null()).then(|| unsafe {
+        std::mem::transmute::<*mut std::ffi::c_void, extern "C" fn(i64)>(symbol)
+    })
 }
 
 fn monotonic_ns() -> i64 {
@@ -199,7 +210,16 @@ fn main() -> glib::ExitCode {
         gtk::gdk::Display::default().unwrap().sync();
         let png = frames_dir.join(format!("{frame:05}.png"));
         let status = Command::new("ffmpeg")
-            .args(["-nostdin", "-y", "-v", "error", "-f", "x11grab", "-draw_mouse", "0"])
+            .args([
+                "-nostdin",
+                "-y",
+                "-v",
+                "error",
+                "-f",
+                "x11grab",
+                "-draw_mouse",
+                "0",
+            ])
             .args(["-video_size", &format!("{width}x{height}")])
             .args(["-i", &format!("{display}+0,0"), "-frames:v", "1"])
             .arg(&png)
@@ -241,7 +261,8 @@ fn main() -> glib::ExitCode {
                 break;
             }
             wheel.update(&entries, Some(entries[**index].clone()), "F12", "F9");
-            timeline.push(serde_json::json!({"frame": frame, "event": "select", "selected": index}));
+            timeline
+                .push(serde_json::json!({"frame": frame, "event": "select", "selected": index}));
             moves.next();
         }
         wheel.window.queue_draw();

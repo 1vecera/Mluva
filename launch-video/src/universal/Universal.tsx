@@ -3,7 +3,7 @@ import { Background, Grain } from "../showreel/parts/Background";
 import { BlurDefs } from "../showreel/parts/Blur";
 import { easeInOut, ramp } from "../showreel/theme";
 import { Hud } from "./parts/Hud";
-import { chapterAt, CHAPTERS } from "./timing";
+import { beatFrame, chapterAt, CHAPTERS } from "./timing";
 import { U01Kinetic } from "./chapters/U01Kinetic";
 import { U02Before } from "./chapters/U02Before";
 import { U03Model } from "./chapters/U03Model";
@@ -77,7 +77,10 @@ export const MluvaShowreelUniversal: React.FC<{ audio?: boolean }> = ({ audio = 
           </Sequence>
         );
       })}
-      <Hud quiet={ramp(frame, CHAPTERS[6].from + 2, CHAPTERS[6].from + 18, easeInOut)} />
+      <Hud
+        quiet={ramp(frame, CHAPTERS[6].from + 2, CHAPTERS[6].from + 18, easeInOut)}
+        onLight={frame >= beatFrame(51) && frame < beatFrame(52)}
+      />
       <Grain />
       {audio ? <Soundtrack /> : null}
     </AbsoluteFill>

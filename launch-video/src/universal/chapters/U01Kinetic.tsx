@@ -9,7 +9,7 @@ import { MarkPeriod } from "../../showreel/parts/MarkPeriod";
 const PHRASES = [
   { text: "SPEAK", sub: "F12 · RECORD · STOP", start: beatFrame(2) },
   { text: "ANY AGENT", sub: "CLAUDE CODE · CLAUDE DESKTOP · CODEX", start: beatFrame(4) },
-  { text: "DELIVERED", sub: "SENT · QUEUED · OR KEPT AS A DRAFT", start: beatFrame(6) },
+  { text: "DELIVERED", sub: "SENT · QUEUED · PREFILLED · OR A DRAFT", start: beatFrame(6) },
 ];
 const END = beatFrame(8);
 const COLLAPSE = END - 7;

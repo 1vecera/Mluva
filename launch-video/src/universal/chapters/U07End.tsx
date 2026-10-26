@@ -30,7 +30,7 @@ const lerpBox = (a: Box, b: Box, t: number): Box => ({
 
 const Explosion: React.FC<{ frame: number }> = ({ frame }) => {
   if (frame > 36) return null;
-  const core = ramp(frame, 0, 12, easeOut, 1, 0);
+  const core = ramp(frame, 0, 8, easeOut, 0.75, 0);
   const wave = ramp(frame, 0, 28, easeOut);
   const t = frame / 60;
   return (
@@ -79,8 +79,9 @@ const Explosion: React.FC<{ frame: number }> = ({ frame }) => {
 // The drop's full-frame hit: white, then a red afterglow, gone in six frames.
 const Hit: React.FC<{ frame: number }> = ({ frame }) => {
   if (frame > 6) return null;
-  const white = frame <= 2 ? 0.7 : ramp(frame, 2, 5, easeOut, 0.7, 0);
-  const red = frame < 3 ? 0.25 * ramp(frame, 0, 3) : ramp(frame, 3, 6, easeOut, 0.25, 0);
+  // A clean white hit for two frames, then straight back to black with a red afterglow.
+  const white = frame <= 1 ? 0.85 : ramp(frame, 1, 4, easeOut, 0.85, 0);
+  const red = frame < 2 ? 0.2 * ramp(frame, 0, 2) : ramp(frame, 2, 6, easeOut, 0.2, 0);
   return (
     <>
       <AbsoluteFill style={{ background: "#fff", opacity: white, mixBlendMode: "screen" }} />
