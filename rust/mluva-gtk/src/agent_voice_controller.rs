@@ -1015,12 +1015,12 @@ impl AgentVoiceController {
             .set_sensitive(enabled && !self.settings.borrow().voice_id.is_empty());
         let status = match attempt {
             Some(a) => match a.phase {
-                RoutePhase::Recording => format!("Recording for {} · {}", a.target.name, stop_hint(a.target.delivery())),
-                RoutePhase::Finalizing => format!("Finishing your message to {}…", a.target.name),
+                RoutePhase::Recording => format!("Recording for {} · {}", a.target.display_name(), stop_hint(a.target.delivery())),
+                RoutePhase::Finalizing => format!("Finishing your message to {}…", a.target.display_name()),
                 RoutePhase::Grace {deadline_ms} => countdown_message(&a.target, deadline_ms.saturating_sub(now())),
                 RoutePhase::Submitting => submitting_message(&a.target),
                 RoutePhase::Delivered => delivered_message(&a.target, a.taken),
-                RoutePhase::Held => format!("{} holds your message until you approve it there. It is never sent again; your draft is here.", a.target.name),
+                RoutePhase::Held => format!("{} holds your message until you approve it there. It is never sent again; your draft is here.", a.target.display_name()),
                 RoutePhase::Unconfirmed => format!("Delivery unconfirmed. Check {} before sending again; your draft is here.", a.target.place_to_check()),
                 RoutePhase::Draft(reason) => match reason {
                     DraftReason::Edited | DraftReason::Kept => "Draft kept. Automatic sending is off; edit or copy your text.".into(),
@@ -1028,7 +1028,7 @@ impl AgentVoiceController {
                     DraftReason::TooLong => "Message is too long. Split it into smaller messages; nothing was sent.".into(),
                     DraftReason::Cancelled => "Cancelled. Nothing was sent.".into(),
                     DraftReason::RecipientChanged | DraftReason::Unavailable | DraftReason::Rejected => "Recipient changed or unavailable. Nothing was submitted; your text stays here.".into(),
-                    DraftReason::Busy => format!("{} was busy or not open, so nothing was sent. Your draft is here; send it when the session is idle.", a.target.name),
+                    DraftReason::Busy => format!("{} was busy or not open, so nothing was sent. Your draft is here; send it when the session is idle.", a.target.display_name()),
                     DraftReason::Interrupted => "Automatic sending stopped after an interruption. Your text stays here.".into(),
                 },
             },
@@ -1047,11 +1047,9 @@ impl AgentVoiceController {
             self.selected()
                 .map(|t| {
                     format!(
-                        "Local · {} · {} · {} · {} · {}",
-                        t.name,
-                        t.kind.label(),
-                        t.project,
-                        t.place(),
+                        "{} · {} · {}",
+                        t.display_name(),
+                        t.whereabouts(),
                         t.delivery().verb()
                     )
                 })
@@ -1165,10 +1163,13 @@ fn stop_hint(delivery: Delivery) -> &'static str {
 fn countdown_message(target: &Target, remaining_ms: u64) -> String {
     let seconds = remaining_ms as f64 / 1000.0;
     match target.delivery() {
-        Delivery::Queue => format!("Queueing for {} in {seconds:.1} s", target.name),
-        Delivery::Prefill => format!("Placing in {}'s composer in {seconds:.1} s", target.name),
+        Delivery::Queue => format!("Queueing for {} in {seconds:.1} s", target.display_name()),
+        Delivery::Prefill => format!(
+            "Placing in {}'s composer in {seconds:.1} s",
+            target.display_name()
+        ),
         Delivery::Send | Delivery::DraftOnly => {
-            format!("Sending to {} in {seconds:.1} s", target.name)
+            format!("Sending to {} in {seconds:.1} s", target.display_name())
         }
     }
 }
@@ -1179,12 +1180,12 @@ fn submitting_message(target: &Target) -> String {
     if target.route() == mluva_core::agent_voice::Route::CodexQueue {
         format!(
             "Handing your message to {} through Codex… a thread open in another app or terminal can take about 10 seconds to pick it up.",
-            target.name
+            target.display_name()
         )
     } else {
         format!(
-            "Delivering to {}… Cancel can no longer recall this message.",
-            target.name
+            "Submitting to {}… Cancel can no longer recall this message.",
+            target.display_name()
         )
     }
 }
@@ -1194,17 +1195,23 @@ fn delivered_message(target: &Target, taken: bool) -> String {
     if taken {
         return format!(
             "Delivered to {} · it took the message into a turn",
-            target.name
+            target.display_name()
         );
     }
     match target.delivery() {
         Delivery::Queue => format!(
             "Queued for {} · it takes the message when it is ready",
-            target.name
+            target.display_name()
         ),
-        Delivery::Prefill => format!("In {}'s composer · press Enter there to send", target.name),
+        Delivery::Prefill => format!(
+            "In {}'s composer · press Enter there to send",
+            target.display_name()
+        ),
         Delivery::Send | Delivery::DraftOnly => {
-            format!("Sent to {} · agent completion is separate", target.name)
+            format!(
+                "Sent to {} · agent completion is separate",
+                target.display_name()
+            )
         }
     }
 }
@@ -1214,23 +1221,118 @@ fn accepted_message(target: &Target) -> String {
     match target.delivery() {
         Delivery::Queue => format!(
             "{} queued your message. When it runs is up to the agent.",
-            target.name
+            target.display_name()
         ),
         Delivery::Prefill => format!(
             "Your message is in {}'s composer. Nothing is sent until you press Enter.",
-            target.name
+            target.display_name()
         ),
         Delivery::Send | Delivery::DraftOnly => format!(
             "{} accepted your message. Completion is not confirmed.",
-            target.name
+            target.display_name()
         ),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{interrupted_send_message, submitting_message};
-    use mluva_core::agent_voice::{AgentKind, AgentStatus, CodexThread, HerdrPane, Target};
+    use super::{
+        accepted_message, countdown_message, delivered_message, interrupted_send_message,
+        submitting_message,
+    };
+    use mluva_core::agent_voice::{
+        AgentKind, AgentStatus, ClaudeInbox, CodexThread, HerdrPane, Target,
+    };
+
+    fn codex_thread(title: &str) -> Target {
+        Target {
+            kind: AgentKind::CodexCli,
+            name: "codex-01a17855".into(),
+            title: title.into(),
+            status: AgentStatus::Idle,
+            session_id: "01a17855-0000-7000-8000-00000000a001".into(),
+            pid: 4_200,
+            codex: Some(CodexThread {
+                lock: "/synthetic/codex/thread-writer-locks/a.lock".into(),
+                holder: 4_200,
+            }),
+            ..Target::default()
+        }
+    }
+
+    fn claude_session(title: &str) -> Target {
+        Target {
+            kind: AgentKind::ClaudeCode,
+            name: "claude-535".into(),
+            title: title.into(),
+            status: AgentStatus::Idle,
+            session_id: "fixture-session".into(),
+            pid: 535,
+            inbox: Some(ClaudeInbox {
+                entry: "/synthetic/claude/sessions/535.json".into(),
+                socket: "/run/user/fixture/cc-socks/535.sock".into(),
+                proc_start: "1".into(),
+            }),
+            ..Target::default()
+        }
+    }
+
+    /// The countdown and outcome lines name a session as the wheel and dropdown do: by its own
+    /// title, never by the handle behind it.
+    #[test]
+    fn status_lines_name_a_session_by_its_title() {
+        let codex = codex_thread("Release notes");
+        assert_eq!(
+            countdown_message(&codex, 1_400),
+            "Sending to Release notes in 1.4 s"
+        );
+        assert_eq!(
+            delivered_message(&codex, false),
+            "Sent to Release notes · agent completion is separate"
+        );
+        assert_eq!(
+            accepted_message(&codex),
+            "Release notes accepted your message. Completion is not confirmed."
+        );
+        assert!(submitting_message(&codex).starts_with("Handing your message to Release notes"));
+        let claude = claude_session("Portal test");
+        assert_eq!(
+            countdown_message(&claude, 2_000),
+            "Queueing for Portal test in 2.0 s"
+        );
+        assert_eq!(
+            delivered_message(&claude, false),
+            "Queued for Portal test · it takes the message when it is ready"
+        );
+        assert_eq!(
+            delivered_message(&claude, true),
+            "Delivered to Portal test · it took the message into a turn"
+        );
+        for line in [
+            countdown_message(&codex, 1_400),
+            delivered_message(&claude, true),
+            accepted_message(&claude),
+            submitting_message(&claude),
+        ] {
+            assert!(
+                !line.contains("codex-01a17855") && !line.contains("claude-535"),
+                "{line}"
+            );
+        }
+    }
+
+    /// A session with no title yet falls back to its handle, as on the wheel.
+    #[test]
+    fn an_untitled_session_is_named_by_its_handle() {
+        assert_eq!(
+            countdown_message(&codex_thread(""), 1_000),
+            "Sending to codex-01a17855 in 1.0 s"
+        );
+        assert_eq!(
+            delivered_message(&claude_session("  "), false),
+            "Queued for claude-535 · it takes the message when it is ready"
+        );
+    }
 
     #[test]
     fn waiting_for_a_codex_thread_says_the_message_is_being_handed_over_not_busy() {
@@ -1258,7 +1360,7 @@ mod tests {
             }),
             ..Target::default()
         };
-        assert!(submitting_message(&herdr).starts_with("Delivering to builder…"));
+        assert!(submitting_message(&herdr).starts_with("Submitting to builder…"));
     }
 
     #[test]

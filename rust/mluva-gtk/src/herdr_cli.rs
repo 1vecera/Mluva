@@ -84,11 +84,14 @@ fn parse(args: &[String]) -> Result<Request, &'static str> {
     request.validate()?;
     Ok(request)
 }
-/// One target as the command line reports it. `pane` and `socket` are Herdr's and empty
-/// elsewhere; `route` names the transport and `delivery` what recording does.
+/// One target as the command line reports it. `display_name` is the name the wheel shows (the
+/// session's own title, else its handle); `name` is the handle `select` matches. `pane` and
+/// `socket` are Herdr's and empty elsewhere; `route` names the transport and `delivery` what
+/// recording does.
 pub fn summary(target: &mluva_core::agent_voice::Target) -> Value {
     let pane = target.herdr.clone().unwrap_or_default();
-    json!({"name":target.name,"title":target.title,"pane":pane.pane_id,"kind":target.kind,
+    json!({"name":target.name,"title":target.title,"display_name":target.display_name(),
+        "pane":pane.pane_id,"kind":target.kind,
         "project":target.project,"socket":pane.socket,"status":target.status,
         "session":target.session_id,"route":target.route().as_str(),
         "delivery":target.delivery(),"available":target.can_receive()})
@@ -178,6 +181,7 @@ mod tests {
         use mluva_core::agent_voice::{AgentKind, AgentStatus, HerdrPane, Target};
         let outside = Target {
             name: "notes-3f".into(),
+            title: "Portal test".into(),
             kind: AgentKind::ClaudeCode,
             status: AgentStatus::Idle,
             session_id: "fixture-session".into(),
@@ -185,6 +189,11 @@ mod tests {
             ..Target::default()
         };
         let value = summary(&outside);
+        // People read the title; `select` matches the handle.
+        assert_eq!(
+            (&value["display_name"], &value["name"]),
+            (&json!("Portal test"), &json!("notes-3f"))
+        );
         assert_eq!(
             (
                 &value["route"],
