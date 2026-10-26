@@ -19,13 +19,20 @@ const FOOTER_GAP: f64 = 16.;
 /// quarter of the desktop shows through. A window, which cannot be see-through everywhere, gets
 /// an opaque ground instead.
 const WASH: f32 = 0.72;
-/// Under every line of text the overlay clears the cells, as a terminal overwrites the cells it
-/// prints in: the wash's colour at `CELL_ALPHA`, reaching `CELL_PAD` beyond the text sideways and
-/// up and down, feathered over `FEATHER` pixels. Over the empty wash it cannot be seen, so it is
-/// no panel; over the desktop it keeps desktop text from reading as part of a name.
-const CELL_ALPHA: f32 = 0.9;
+/// Under every label the overlay clears the desktop, as a terminal overwrites the cells it prints
+/// in, in two layers of the wash's colour. Close behind the glyphs, out to `GLYPH_REACH` pixels
+/// and softened over `GLYPH_SOFT`, it clears at the full strength, so desktop text never runs
+/// through a letter. Around them a faint cell reaches `CELL_PAD` beyond the text sideways and up
+/// and down and feathers out over `FEATHER` pixels: it quiets desktop text between the letters
+/// and lines yet stays so light that over empty ground it cannot be told from the wash, so it is
+/// never a panel. Each strength is `(glyphs, cell)`; a light wash over a dark desktop lifts the
+/// ground the most, so the light theme clears more gently.
+const CLEAR_DARK: (f32, f32) = (0.9, 0.3);
+const CLEAR_LIGHT: (f32, f32) = (0.6, 0.1);
+const GLYPH_REACH: f32 = 1.5;
+const GLYPH_SOFT: f64 = 2.;
 const CELL_PAD: (f64, f64) = (8., 4.);
-const FEATHER: f32 = 8.;
+const FEATHER: f32 = 20.;
 /// The focused name's underline: its thickness and its distance below the baseline.
 const UNDERLINE: (f64, f64) = (2., 3.);
 
@@ -185,10 +192,12 @@ impl Default for Motion {
 }
 
 impl Motion {
-    /// Head for `angle`, or put the hand away. A swing keeps the hand's place and speed and tunes
-    /// the spring for what is left of the way, so a new choice mid-swing bends the swing rather
-    /// than restarting it; a hand already rushing toward the new tick is held a little firmer so
-    /// that it still arrives without passing it. Anything else places the hand at once.
+    /// Head for `angle`, or put the hand away. A swing keeps the hand's place and tunes the spring
+    /// for what is left of the way, so the hand never moves further from the tick it heads for:
+    /// speed toward the new tick is kept, held a little firmer when the hand rushes so that it
+    /// still arrives without passing the tick, and speed away from it is dropped, so the hand
+    /// turns where it is instead of carrying on and coming back. Anything else places the hand at
+    /// once.
     fn aim(&mut self, angle: Option<f64>, swing: bool) {
         let Some(angle) = angle else {
             self.target = None;
@@ -199,10 +208,16 @@ impl Motion {
         if swing && self.target.is_some() {
             let gap = target - self.hand;
             let mut frequency = frequency_for_hop(gap);
-            // A critically damped hand passes its target only if it moves toward it faster
-            // than the frequency times the gap.
-            if gap.abs() > 1e-9 && self.speed * gap > 0. {
+            if self.speed * gap > 0. {
+                // A critically damped hand passes its target only if it moves toward it faster
+                // than the frequency times the gap; held at least that firm, its distance to
+                // the target only shrinks.
                 frequency = frequency.max(self.speed.abs() / gap.abs());
+            } else {
+                // From rest a critically damped hand closes on its target without turning, so
+                // dropping the speed away from the new tick is all it takes never to move
+                // further from it.
+                self.speed = 0.;
             }
             self.frequency = frequency;
         } else {
@@ -378,30 +393,39 @@ mod imp {
     }
 
     impl Stage {
-        /// Clear the cells under every line, from a texture baked the last time the boxes were
+        /// Clear the cells under every line, from a texture baked the last time the lines were
         /// the same, or baked now.
         fn clear_cells(
             &self,
             snapshot: &gtk::Snapshot,
             color: gtk::gdk::RGBA,
+            strength: (f32, f32),
             lines: &[(Line, f64, (f64, f64))],
         ) {
             let Some((boxes, bounds)) = cell_boxes(lines) else {
                 return;
             };
+            let glyphs = glyph_runs(lines);
             let stage = self.obj();
             let scale = stage.scale_factor().max(1) as f32;
-            let key: Vec<[f32; 5]> = boxes
-                .iter()
-                .map(|(r, shown)| [r.x(), r.y(), r.width(), r.height(), *shown])
-                .chain([[
+            let key = CellKey {
+                boxes: boxes
+                    .iter()
+                    .map(|(r, shown)| [r.x(), r.y(), r.width(), r.height(), *shown])
+                    .collect(),
+                glyphs: glyphs
+                    .iter()
+                    .map(|(layout, at, shown)| (layout.text(), [at.x(), at.y(), *shown]))
+                    .collect(),
+                paint: [
                     color.red(),
                     color.green(),
                     color.blue(),
-                    color.alpha(),
+                    strength.0,
+                    strength.1,
                     scale,
-                ]])
-                .collect();
+                ],
+            };
             if let Some((known, texture, area)) = self.cells.borrow().as_ref()
                 && *known == key
             {
@@ -409,7 +433,7 @@ mod imp {
                 return;
             }
             let record = gtk::Snapshot::new();
-            paint_cells(&record, color, &boxes, &bounds);
+            paint_cells(&record, color, strength, &boxes, &glyphs, &bounds);
             let Some(node) = record.to_node() else {
                 return;
             };
@@ -612,7 +636,12 @@ mod imp {
                 });
             }
             if see_through {
-                self.clear_cells(snapshot, palette.wash.alpha(CELL_ALPHA), &lines);
+                let strength = if palette.light_theme {
+                    CLEAR_LIGHT
+                } else {
+                    CLEAR_DARK
+                };
+                self.clear_cells(snapshot, palette.wash.alpha(1.), strength, &lines);
             }
             if face.dial > 0. {
                 snapshot.save();
@@ -661,16 +690,27 @@ mod imp {
     }
 }
 
-/// Cleared cells baked into a texture: the boxes and colour they were baked from, the texture and
-/// the area it covers.
-type BakedCells = (Vec<[f32; 5]>, gdk::Texture, graphene::Rect);
+/// What a bake of the cleared cells depends on: each cell with how much it shows, each label's
+/// text with where it sits and how much it shows, and the colour, strengths and scale.
+#[derive(PartialEq)]
+pub(super) struct CellKey {
+    boxes: Vec<[f32; 5]>,
+    glyphs: Vec<(glib::GString, [f32; 3])>,
+    paint: [f32; 6],
+}
 
-/// One laid-out line of a label, in the stage's coordinates: its logical box, its baseline, and
-/// whether it is the text of a name or legend entry that has keyboard focus.
+/// Cleared cells baked into a texture: what they were baked from, the texture and the area it
+/// covers.
+type BakedCells = (CellKey, gdk::Texture, graphene::Rect);
+
+/// One laid-out line of a label, in the stage's coordinates: its logical box, its baseline,
+/// whether it is the text of a name or legend entry that has keyboard focus, and on the first
+/// line of each label, the label's layout with where its origin sits.
 struct Line {
     rect: graphene::Rect,
     baseline: f64,
     focused: bool,
+    layout: Option<(gtk::pango::Layout, graphene::Point)>,
 }
 
 /// Every line of text in `widget` and the widgets below it, as the stage will paint it, with
@@ -695,6 +735,9 @@ fn text_lines(stage: &Stage, widget: &gtk::Widget, found: &mut dyn FnMut(Line)) 
                 });
         let layout = label.layout();
         let (ox, oy) = label.layout_offsets();
+        let mut whole = label
+            .compute_point(stage, &graphene::Point::new(ox as f32, oy as f32))
+            .map(|origin| (layout.clone(), origin));
         let scale = f64::from(gtk::pango::SCALE);
         let mut iter = layout.iter();
         loop {
@@ -715,6 +758,7 @@ fn text_lines(stage: &Stage, widget: &gtk::Widget, found: &mut dyn FnMut(Line)) 
                     ),
                     baseline: baseline + lift,
                     focused,
+                    layout: whole.take(),
                 });
             }
             if !iter.next_line() {
@@ -729,6 +773,7 @@ fn text_lines(stage: &Stage, widget: &gtk::Widget, found: &mut dyn FnMut(Line)) 
                 rect: bounds,
                 baseline: f64::from(bounds.y() + bounds.height()),
                 focused: false,
+                layout: None,
             });
         }
         return;
@@ -781,19 +826,42 @@ fn cell_boxes(
     bounds.map(|bounds| (boxes, bounds))
 }
 
-/// Paint the cleared cells: one mask of the feathered boxes, so boxes that meet or overlap never
-/// darken twice, filled with `color` over `bounds`.
+/// Each shown label's layout with where its paint sits and how much it shows.
+fn glyph_runs(
+    lines: &[(Line, f64, (f64, f64))],
+) -> Vec<(gtk::pango::Layout, graphene::Point, f32)> {
+    lines
+        .iter()
+        .filter(|(_, shown, _)| *shown > 0.)
+        .filter_map(|(line, shown, (dx, dy))| {
+            let (layout, origin) = line.layout.as_ref()?;
+            let at = graphene::Point::new(
+                (f64::from(origin.x()) + dx) as f32,
+                (f64::from(origin.y()) + dy) as f32,
+            );
+            Some((layout.clone(), at, *shown as f32))
+        })
+        .collect()
+}
+
+/// Paint the cleared cells: one mask, so layers that meet or overlap never darken twice, filled
+/// with `color` over `bounds`. The mask holds the faint feathered cells and, over them, every
+/// label's glyphs spread a little in each direction and softened, at the full strength.
 fn paint_cells(
     snapshot: &gtk::Snapshot,
     color: gtk::gdk::RGBA,
+    (glyph_strength, cell_strength): (f32, f32),
     boxes: &[(graphene::Rect, f32)],
+    glyphs: &[(gtk::pango::Layout, graphene::Point, f32)],
     bounds: &graphene::Rect,
 ) {
     snapshot.push_mask(gtk::gsk::MaskMode::Alpha);
     for (cell, shown) in boxes {
-        // A solid core inset by half the feather, and a blurred edge around it.
-        let core = cell.inset_r(FEATHER / 2., FEATHER / 2.);
-        let black = gtk::gdk::RGBA::new(0., 0., 0., *shown);
+        // A solid core inset by half the feather, never thinner than a pixel, and a blurred edge
+        // around it.
+        let inset = (FEATHER / 2.).min(cell.height() / 2. - 0.5).max(0.);
+        let core = cell.inset_r(inset, inset);
+        let black = gtk::gdk::RGBA::new(0., 0., 0., shown * cell_strength);
         snapshot.append_color(&black, &core);
         snapshot.append_outset_shadow(
             &gtk::gsk::RoundedRect::from_rect(core, 0.),
@@ -804,6 +872,26 @@ fn paint_cells(
             FEATHER,
         );
     }
+    snapshot.push_blur(GLYPH_SOFT);
+    let black = gtk::gdk::RGBA::new(0., 0., 0., 1.);
+    for (layout, at, shown) in glyphs {
+        // The glyphs and eight copies around them, as one shape at the label's strength.
+        snapshot.push_opacity(f64::from(shown * glyph_strength));
+        for step in 0..9 {
+            let (dx, dy) = if step == 0 {
+                (0., 0.)
+            } else {
+                let turn = std::f32::consts::FRAC_PI_4 * step as f32;
+                (GLYPH_REACH * turn.cos(), GLYPH_REACH * turn.sin())
+            };
+            snapshot.save();
+            snapshot.translate(&graphene::Point::new(at.x() + dx, at.y() + dy));
+            snapshot.append_layout(layout, &black);
+            snapshot.restore();
+        }
+        snapshot.pop();
+    }
+    snapshot.pop();
     snapshot.pop();
     snapshot.append_color(&color, bounds);
     snapshot.pop();
@@ -1145,9 +1233,11 @@ mod tests {
         );
     }
 
-    /// Swing from 30° toward 200°, then after `frames` choose `to`: the furthest the hand passes
-    /// `to`, checking that the retarget keeps the hand's place and speed and that no frame jumps.
-    fn retarget(frames: usize, to: f64) -> f64 {
+    /// Swing from 30° toward 200°, then after `frames` choose `to`. Checks that the retarget keeps
+    /// the hand's place, that no frame jumps and that the hand settles on `to`; returns the most
+    /// the hand's distance to `to` grows from one frame to the next, and the furthest it passes
+    /// `to` from the side it was on when `to` was chosen.
+    fn retarget(frames: usize, to: f64) -> (f64, f64) {
         let mut motion = swinging(30.);
         motion.aim(Some(200.), true);
         for _ in 0..frames {
@@ -1155,29 +1245,55 @@ mod tests {
         }
         let (hand, speed) = (motion.hand, motion.speed);
         motion.aim(Some(to), true);
-        assert_eq!((motion.hand, motion.speed), (hand, speed));
-        let direction = (to - hand).signum();
-        let (mut previous, mut past, mut count) = (hand, 0_f64, 0);
+        assert_eq!(motion.hand, hand);
+        let side = (hand - to).signum();
+        let (mut previous, mut grows, mut past, mut count) = (hand, 0_f64, 0_f64, 0);
         while !motion.advance(FRAME) {
             let moved = (motion.hand - previous).abs();
             assert!(moved <= speed.abs() * FRAME + 30., "jump of {moved}°");
+            grows = grows.max((motion.hand - to).abs() - (previous - to).abs());
+            past = past.max((to - motion.hand) * side);
             previous = motion.hand;
-            past = past.max((motion.hand - to) * direction);
             count += 1;
             assert!(count < 120, "the hand never settles");
         }
+        grows = grows.max((motion.hand - to).abs() - (previous - to).abs());
         assert!((motion.hand - to).abs() < 1e-9, "{} vs {to}", motion.hand);
-        past
+        (grows, past)
     }
 
     #[test]
     fn a_new_choice_mid_swing_bends_the_swing_and_never_passes_the_new_tick() {
-        // A tick just ahead of a hand already rushing toward it.
-        assert!(retarget(2, 60.) <= 1e-9);
-        // A tick behind the hand: it carries on a little, turns and arrives without passing.
-        assert!(retarget(6, 60.) <= 1e-9);
-        // A tick further on: it simply carries on.
-        assert!(retarget(3, 250.) <= 1e-9);
+        // A tick just ahead of a hand already rushing toward it, a tick short of the first one,
+        // and a tick further on: the swing bends and never passes the new tick.
+        for (frames, to) in [(1, 60.), (2, 120.), (3, 250.)] {
+            let (_, past) = retarget(frames, to);
+            assert!(past <= 1e-9, "{frames} frames, {to}°: passes it by {past}°");
+        }
+    }
+
+    #[test]
+    fn after_a_new_choice_the_hand_never_moves_further_from_its_tick() {
+        // The hand has just passed the new tick, has passed it long ago, or heads the other way
+        // round entirely: it turns where it is and closes on the tick.
+        // Ahead, and further on, it keeps its speed and stops on the tick.
+        for (frames, to) in [
+            (2, 60.),
+            (6, 60.),
+            (4, 20.),
+            (8, 100.),
+            (1, 60.),
+            (2, 120.),
+            (3, 250.),
+            (5, 199.),
+        ] {
+            let (grows, past) = retarget(frames, to);
+            assert!(
+                grows <= 1e-9,
+                "{frames} frames, {to}°: moves {grows}° further away"
+            );
+            assert!(past <= 1e-9, "{frames} frames, {to}°: passes it by {past}°");
+        }
     }
 
     #[test]
