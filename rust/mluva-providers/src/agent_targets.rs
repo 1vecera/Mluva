@@ -12,6 +12,7 @@
 use crate::{
     claude_desktop, claude_inbox,
     claude_sessions::{self, ClaudeRegistry},
+    codex::{self, server::Servers, threads::CodexThreads},
     herdr,
 };
 use mluva_core::agent_voice::{Route, SendOutcome, Submission, Target};
@@ -33,6 +34,8 @@ pub struct Sources {
     pub herdr: Vec<PathBuf>,
     /// Claude Code's own session registry, when this account has a Claude Code configuration.
     pub claude: Option<Arc<Mutex<ClaudeRegistry>>>,
+    /// Live Codex threads, found through their writer locks and an app server.
+    pub codex: Option<Arc<tokio::sync::Mutex<CodexThreads>>>,
     /// Offer desktop app surfaces, such as a new Claude chat, when their app is installed.
     pub apps: bool,
 }
@@ -98,12 +101,19 @@ pub async fn discover(sources: Sources, cancel: &CancellationToken) -> Option<Fo
         .await
         .unwrap_or_default()
     };
+    let codex = async {
+        let (Some(threads), Some(servers)) = (sources.codex, Servers::system()) else {
+            return vec![];
+        };
+        threads.lock().await.discover(servers).await
+    };
     let apps = async { sources.apps && claude_desktop::installed().await };
-    let (mut found, sessions, desktop) = tokio::select! {
+    let (mut found, sessions, threads, desktop) = tokio::select! {
         _ = cancel.cancelled() => return None,
-        found = async { tokio::join!(herdr, claude, apps) } => found,
+        found = async { tokio::join!(herdr, claude, codex, apps) } => found,
     };
     found.targets = claude_sessions::merge(std::mem::take(&mut found.targets), &sessions);
+    found.targets = codex::threads::merge(std::mem::take(&mut found.targets), threads);
     if desktop {
         found.targets.push(claude_desktop::new_chat());
     }
@@ -195,12 +205,36 @@ impl Transport for ClaudeNewChatTransport {
     }
 }
 
+/// Codex's own queue for a live thread, sent only if the thread is idle.
+pub struct CodexQueueTransport;
+
+impl Transport for CodexQueueTransport {
+    fn route(&self) -> Route {
+        Route::CodexQueue
+    }
+    fn deliver<'a>(
+        &'a self,
+        submission: &'a Submission,
+        cancel: &'a CancellationToken,
+    ) -> Delivering<'a> {
+        Box::pin(codex::queue::submit(submission, cancel))
+    }
+}
+
 /// Every transport this build carries.
 const TRANSPORTS: &[&dyn Transport] = &[
     &HerdrTransport,
     &ClaudeInboxTransport,
     &ClaudeNewChatTransport,
+    &CodexQueueTransport,
 ];
+
+/// Stop anything a transport started for this process, such as Mluva's Codex app server.
+pub async fn shutdown() {
+    if let Some(servers) = Servers::system() {
+        servers.shutdown().await;
+    }
+}
 
 /// The transport for a route; `None` for draft-only targets and routes this build lacks.
 pub fn transport(route: Route) -> Option<&'static dyn Transport> {
@@ -245,6 +279,7 @@ mod tests {
             Route::Herdr,
             Route::ClaudeInbox,
             Route::ClaudeNewChat,
+            Route::CodexQueue,
         ] {
             let carried = TRANSPORTS.iter().filter(|t| t.route() == route).count();
             let expected =

@@ -8,6 +8,7 @@ pub mod catalog;
 pub mod claude_desktop;
 pub mod claude_inbox;
 pub mod claude_sessions;
+pub mod codex;
 pub mod compatible;
 pub mod credentials;
 pub mod elevenlabs;

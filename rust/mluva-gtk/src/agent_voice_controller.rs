@@ -13,6 +13,7 @@ use mluva_core::{
 use mluva_providers::{
     agent_targets::{self, Sources},
     claude_sessions::ClaudeRegistry,
+    codex::threads::CodexThreads,
     herdr, spoken_reply,
 };
 use mluva_workflows::services::ApplicationServices;
@@ -56,6 +57,8 @@ pub struct AgentVoiceController {
     targets: RefCell<Vec<Target>>,
     /// Claude Code's own registry, when this account has a Claude Code configuration.
     registry: Option<Arc<Mutex<ClaudeRegistry>>>,
+    /// Live Codex threads, remembered across discovery passes.
+    codex: Arc<tokio::sync::Mutex<CodexThreads>>,
     editor: RefCell<Option<crate::markdown_view::MarkdownTextView>>,
     /// The screen annotation summary of the recording whose draft is in the editor.
     draft_appendix: RefCell<Option<String>>,
@@ -128,6 +131,7 @@ impl AgentVoiceController {
             callbacks,
             targets: RefCell::new(vec![]),
             registry: ClaudeRegistry::from_environment().map(|r| Arc::new(Mutex::new(r))),
+            codex: Arc::default(),
             editor: RefCell::new(None),
             draft_appendix: RefCell::new(None),
             voice_error: RefCell::new(None),
@@ -390,6 +394,7 @@ impl AgentVoiceController {
                 socket,
             ),
             claude: self.registry.clone(),
+            codex: Some(self.codex.clone()),
             apps: true,
         }
     }
@@ -1120,6 +1125,8 @@ impl AgentVoiceController {
             let _ = connection.unregister_object(registration);
         }
         self.closed.cancel();
+        // Mluva's own Codex app server, if one was started, ends with Mluva.
+        self.runtime.spawn(agent_targets::shutdown());
         self.stop_voice();
         self.route
             .borrow_mut()

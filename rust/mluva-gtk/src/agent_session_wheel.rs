@@ -500,9 +500,8 @@ impl DialText {
             None if empty => (
                 "",
                 "NO SESSIONS".to_owned(),
-                // Claude Code is found on its own; Codex is found through Herdr.
                 // No-break spaces keep each product name on one line.
-                "Start Claude\u{a0}Code, or Codex in\u{a0}Herdr".to_owned(),
+                "Start Claude\u{a0}Code or Codex".to_owned(),
             ),
             None => {
                 muted = true;

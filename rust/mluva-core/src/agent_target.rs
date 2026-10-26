@@ -72,6 +72,10 @@ impl AgentKind {
     pub fn runs_claude_code(self) -> bool {
         matches!(self, Self::ClaudeCode | Self::ClaudeDesktop)
     }
+    /// A Codex thread, in a terminal or in the Codex desktop app.
+    pub fn is_codex(self) -> bool {
+        matches!(self, Self::CodexCli | Self::CodexDesktop)
+    }
     /// A desktop app rather than a terminal session.
     pub fn is_desktop(self) -> bool {
         matches!(self, Self::ClaudeDesktop | Self::CodexDesktop)
@@ -154,6 +158,10 @@ pub enum Route {
     /// A new Claude desktop chat opened by link with the text in its composer, for the person
     /// to review and send. It raises the app, so it serves only a target chosen for it.
     ClaudeNewChat,
+    /// Codex's own message queue for a live thread, sent if the thread is idle: the message is
+    /// queued, confirmed as that thread's turn by its client ID, and withdrawn unsent if the
+    /// thread does not take it at once.
+    CodexQueue,
 }
 
 impl Route {
@@ -163,6 +171,7 @@ impl Route {
             Self::Herdr => "herdr",
             Self::ClaudeInbox => "claude_inbox",
             Self::ClaudeNewChat => "claude_new_chat",
+            Self::CodexQueue => "codex_queue",
         }
     }
     /// The level this transport has been verified to deliver at.
@@ -172,6 +181,7 @@ impl Route {
             Self::Herdr => Delivery::Send,
             Self::ClaudeInbox => Delivery::Queue,
             Self::ClaudeNewChat => Delivery::Prefill,
+            Self::CodexQueue => Delivery::Send,
         }
     }
     /// Whether the transport may deliver to a session in this state. Herdr writes into a
@@ -190,6 +200,9 @@ impl Route {
                 AgentStatus::Idle | AgentStatus::Done | AgentStatus::Working | AgentStatus::Blocked
             ),
             Self::ClaudeNewChat => true,
+            // Sending only if idle settles the state at send time, so even an unknown one is
+            // offered; a busy thread keeps the draft.
+            Self::CodexQueue => true,
         }
     }
 
@@ -199,7 +212,7 @@ impl Route {
         match self {
             // Claude Desktop cuts a link's prompt at this length.
             Self::ClaudeNewChat => Some(14_336),
-            Self::DraftOnly | Self::Herdr | Self::ClaudeInbox => None,
+            Self::DraftOnly | Self::Herdr | Self::ClaudeInbox | Self::CodexQueue => None,
         }
     }
 }
@@ -234,6 +247,15 @@ pub struct ClaudeInbox {
     pub socket: String,
     /// The process start time the entry recorded, which `/proc` confirmed at discovery.
     pub proc_start: String,
+}
+
+/// A live Codex thread: the lock file whose exclusive hold makes it live, and its holder.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct CodexThread {
+    /// `$CODEX_HOME/thread-writer-locks/<thread>.lock`.
+    pub lock: String,
+    /// The process holding it: a Codex TUI, the shared daemon or Codex Desktop's server.
+    pub holder: u32,
 }
 
 /// An application surface reached by link rather than a running session.
@@ -283,6 +305,8 @@ pub struct Target {
     pub host: Host,
     /// An application surface reached by link, such as a new Claude desktop chat.
     pub app: Option<AppLink>,
+    /// The live Codex thread, when its writer lock is held. Never saved.
+    pub codex: Option<CodexThread>,
     /// A remembered choice that discovery no longer reports. Never saved.
     pub missing: bool,
 }
@@ -295,6 +319,8 @@ impl Target {
             Route::Herdr
         } else if self.inbox.is_some() && self.kind.runs_claude_code() {
             Route::ClaudeInbox
+        } else if self.codex.is_some() && self.kind.is_codex() {
+            Route::CodexQueue
         } else if self.app == Some(AppLink::ClaudeNewChat) && self.kind == AgentKind::ClaudeDesktop
         {
             Route::ClaudeNewChat
@@ -347,6 +373,7 @@ impl Target {
             }
             Route::ClaudeInbox => Some("Arrives as a message from another Claude session"),
             Route::ClaudeNewChat => Some("Opens Claude with it in a new chat; you send it there"),
+            Route::CodexQueue => Some("Sends if the thread is idle; otherwise your draft is kept"),
         }
     }
 
@@ -423,6 +450,7 @@ impl Target {
         match self.route() {
             Route::Herdr => "Herdr",
             Route::ClaudeNewChat => "Claude",
+            Route::CodexQueue => "the Codex thread",
             Route::ClaudeInbox | Route::DraftOnly => "the session",
         }
     }
@@ -541,6 +569,7 @@ impl From<TargetRecord> for Target {
             inbox: None,
             host: Host::default(),
             app: record.app,
+            codex: None,
             missing: false,
         }
     }
