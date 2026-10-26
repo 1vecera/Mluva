@@ -1,6 +1,6 @@
 # Contributing to Mluva
 
-Mluva uses Rust, GTK4/Libadwaita and PipeWire. Preserve privacy, exact-target delivery, immutable raw recognition and recoverable failures. Omarchy is the primary platform; Fedora GNOME compatibility remains without recent desktop acceptance. Contributions use the [Apache License 2.0](LICENSE).
+Mluva uses Rust, GTK4/Libadwaita and PipeWire on Linux, and Swift with the same Rust core on macOS. Preserve privacy, exact-target delivery, immutable raw recognition and recoverable failures. Omarchy is the primary platform; Fedora GNOME compatibility remains without recent desktop acceptance. Contributions use the [Apache License 2.0](LICENSE).
 
 ## Local setup
 
@@ -37,6 +37,8 @@ GTK callbacks stay on the main thread; provider/audio work runs outside it. The 
 | Separate account-based hosted phone/laptop companion, Lambda API and cloud history | `hosted/` |
 | Installation, identity migration, package/archive, widget and editor launch | `rust/mluva-install/src` |
 | Omarchy widget / GNOME recording display | `linux/quickshell/mluva.dictation` / `linux/gnome-extension` |
+| C ABI over the core for native shells | `rust/mluva-ffi` |
+| macOS menu-bar app, pill, session wheel, History, Settings and annotation | `macos/` ([guide](macos/README.md)) |
 
 ## Verification
 
@@ -73,6 +75,8 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | GNOME display extension | `make linux-overlay-test` in GNOME's headless test environment |
 
 Remaining physical-device, desktop permission and platform limits are recorded in the [2.0.0 cutover evidence](docs/verification/rust-cutover/README.md). Historical Python comparison and artwork recipes are available from v1.6.0 and are not maintained or shipped in 2.0.0.
+
+For macOS changes, run `macos/scripts/test.sh` and `cargo test -p mluva-ffi`, and build with `macos/scripts/build-app.sh release --universal`. Screenshots come from the app's [evidence mode](macos/README.md#evidence-mode), which uses synthetic data in a private home and never drives the desktop.
 
 ## Pull requests
 

@@ -4,11 +4,11 @@ import AVFoundation
 import CoreGraphics
 import Observation
 
-/// The macOS privacy permissions Mluva uses, and what each one enables.
+/// The macOS privacy permissions Mluva uses, and what each one enables. Input Monitoring is not
+/// among them: function-key shortcuts are Carbon hot keys and Shift is read as modifier state.
 public enum Permission: String, CaseIterable, Sendable, Identifiable {
     case microphone
     case accessibility
-    case inputMonitoring
     case screenRecording
 
     public var id: String { rawValue }
@@ -17,7 +17,6 @@ public enum Permission: String, CaseIterable, Sendable, Identifiable {
         switch self {
         case .microphone: "Microphone"
         case .accessibility: "Accessibility"
-        case .inputMonitoring: "Input Monitoring"
         case .screenRecording: "Screen Recording"
         }
     }
@@ -28,8 +27,6 @@ public enum Permission: String, CaseIterable, Sendable, Identifiable {
             "Records your voice while you dictate. Nothing is recorded until you press the shortcut."
         case .accessibility:
             "Pastes a finished dictation into the exact field you started from. Without it, Mluva copies to the clipboard."
-        case .inputMonitoring:
-            "Lets screen annotation notice when you hold Shift to draw while you talk."
         case .screenRecording:
             "Lets screen annotation capture what you marked, so an agent can see it."
         }
@@ -39,7 +36,6 @@ public enum Permission: String, CaseIterable, Sendable, Identifiable {
         switch self {
         case .microphone: "mic.fill"
         case .accessibility: "accessibility"
-        case .inputMonitoring: "keyboard"
         case .screenRecording: "rectangle.dashed.badge.record"
         }
     }
@@ -51,7 +47,6 @@ public enum Permission: String, CaseIterable, Sendable, Identifiable {
         switch self {
         case .microphone: "Privacy_Microphone"
         case .accessibility: "Privacy_Accessibility"
-        case .inputMonitoring: "Privacy_ListenEvent"
         case .screenRecording: "Privacy_ScreenCapture"
         }
     }
@@ -84,7 +79,6 @@ public final class PermissionCenter {
         default: next[.microphone] = .denied
         }
         next[.accessibility] = AXIsProcessTrusted() ? .granted : .notAsked
-        next[.inputMonitoring] = CGPreflightListenEventAccess() ? .granted : .notAsked
         next[.screenRecording] = CGPreflightScreenCaptureAccess() ? .granted : .notAsked
         if next != states { states = next }
     }
@@ -103,8 +97,6 @@ public final class PermissionCenter {
         case .accessibility:
             let prompt = "AXTrustedCheckOptionPrompt" as CFString
             _ = AXIsProcessTrustedWithOptions([prompt: true] as CFDictionary)
-        case .inputMonitoring:
-            _ = CGRequestListenEventAccess()
         case .screenRecording:
             _ = CGRequestScreenCaptureAccess()
         }

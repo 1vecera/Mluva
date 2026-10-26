@@ -206,8 +206,9 @@ private struct Script {
             }
         }
         let toolbar = ellipse(cx: left + frame.width - 92, cy: top + 26, rx: 92, ry: 26, t: 1_800)
+        // Under "This list should start with today." in the dictation's text.
         let underline = (0...20).map { step in
-            Annotation.Point(x: left + 26 + Double(step) * 10, y: top + 112, t: 4_200 + UInt64(step) * 20)
+            Annotation.Point(x: left + 642 + Double(step) * 9.6, y: top + 136, t: 4_200 + UInt64(step) * 20)
         }
         let strokes: [Annotation.Stroke] = [
             .init(t0: 1_800, t1: 2_520, screen: name, pin: nil, points: toolbar),
