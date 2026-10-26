@@ -436,7 +436,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .borrow()
             .as_ref()
             .unwrap()
-            .pane_id,
+            .locator(),
         "w1:p1"
     );
     for (width, name) in [
@@ -463,7 +463,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     }
     wheel_key("s");
     assert_eq!(
-        owner.agent_voice.settings().selected.unwrap().pane_id,
+        owner.agent_voice.settings().selected.unwrap().locator(),
         "w1:p2"
     );
     wheel_key("Escape");
@@ -478,7 +478,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .borrow()
             .as_ref()
             .unwrap()
-            .pane_id,
+            .locator(),
         "w1:p2"
     );
     // Second F12 starts, with key repeat unable to toggle a second time.
@@ -564,11 +564,13 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         .entries
         .borrow()
         .iter()
-        .map(|r| {
+        .map(|t| {
             (
-                r.pane_id.clone(),
-                r.display_name().to_owned(),
-                r.can_receive(),
+                t.herdr
+                    .as_ref()
+                    .map_or_else(String::new, |pane| pane.pane_id.clone()),
+                t.display_name().to_owned(),
+                t.can_receive(),
             )
         })
         .collect();
@@ -633,9 +635,9 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         (
             alone.display_name(),
             alone.draft_only(),
-            alone.socket.as_str()
+            alone.herdr.is_none()
         ),
-        ("Research notes", true, "")
+        ("Research notes", true, true)
     );
     owner.dispatch(mluva_gtk::application_shell::ApplicationAction::Cancel);
     // The paging checks below count Herdr panes alone.
@@ -669,7 +671,10 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     owner.agent_voice.refresh();
     until(|| owner.agent_voice.view.recipients.model().unwrap().n_items() == 31);
     owner.agent_voice.shortcut();
-    assert_eq!(owner.agent_voice.wheel.entries.borrow()[0].pane_id, "w1:p1");
+    assert_eq!(
+        owner.agent_voice.wheel.entries.borrow()[0].locator(),
+        "w1:p1"
+    );
     settle(100);
     let wheel_window = Command::new("xdotool")
         .args(["search", "--onlyvisible", "--name", "^Choose a session$"])
@@ -706,15 +711,15 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     state(&peer_state, &data);
     wheel_key("a");
     assert_eq!(
-        owner.agent_voice.settings().selected.unwrap().pane_id,
+        owner.agent_voice.settings().selected.unwrap().locator(),
         "w1:p27"
     );
     data["agents"].as_array_mut().unwrap().reverse();
     state(&peer_state, &data);
     owner.agent_voice.refresh();
-    until(|| owner.agent_voice.wheel.entries.borrow()[0].pane_id == "w1:p30");
+    until(|| owner.agent_voice.wheel.entries.borrow()[0].locator() == "w1:p30");
     assert_eq!(
-        owner.agent_voice.settings().selected.unwrap().pane_id,
+        owner.agent_voice.settings().selected.unwrap().locator(),
         "w1:p27"
     );
     data["agents"]
@@ -730,7 +735,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         "A missing target must not silently choose another session"
     );
     assert_eq!(
-        owner.agent_voice.settings().selected.unwrap().pane_id,
+        owner.agent_voice.settings().selected.unwrap().locator(),
         "w1:p27"
     );
     data["agents"] = original_agents;
@@ -790,7 +795,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .as_ref()
             .unwrap()
             .phase
-            == RoutePhase::Sent
+            == RoutePhase::Delivered
     });
     assert_eq!(sent(&audit).len(), 1);
     assert_eq!(sent(&audit)[0]["params"]["text"], text);
@@ -874,7 +879,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .as_ref()
             .unwrap()
             .phase
-            == RoutePhase::Sent
+            == RoutePhase::Delivered
     });
     assert_eq!(sent(&audit).len(), 2);
     assert_eq!(
@@ -971,7 +976,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .as_ref()
             .unwrap()
             .phase
-            == RoutePhase::Sent
+            == RoutePhase::Delivered
     });
     assert_eq!(sent(&audit).len(), 3);
     data["mode"] = json!("uncertain");
@@ -1037,7 +1042,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .as_ref()
             .unwrap()
             .phase
-            == RoutePhase::Sent
+            == RoutePhase::Delivered
     });
     let now_sent = owner.agent_voice.route.borrow().attempt.clone().unwrap();
     assert_eq!(now_sent.id, pending.id);

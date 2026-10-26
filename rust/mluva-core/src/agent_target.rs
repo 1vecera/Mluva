@@ -1,0 +1,458 @@
+//! One model for every agent session Mluva can dictate to, whatever runs it and however it is
+//! reached.
+//!
+//! A [`Target`] is a running session: what it is ([`AgentKind`]), what it is called, what it is
+//! doing ([`AgentStatus`]), where it runs and how a finished dictation reaches it ([`Route`] and
+//! its [`Delivery`] level). Discovery and delivery live with each transport; the session wheel,
+//! the routing owner, the command line, History and diagnostics read only this model, so a new
+//! transport plugs in here and in its own module without changing them.
+//!
+//! Identity never comes from a name or a position. A target matches a remembered choice only by
+//! the identity its transport vouches for ([`Target::same_instance`]), and a target that cannot
+//! be reached is still shown, as draft only.
+
+use serde::{Deserialize, Serialize};
+use std::path::Path;
+
+/// The agent product running a session.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum AgentKind {
+    /// Claude Code in a terminal, a multiplexer pane or Herdr.
+    #[serde(rename = "claude", alias = "claude_code")]
+    ClaudeCode,
+    /// The Claude desktop app's composer.
+    #[serde(rename = "claude_desktop")]
+    ClaudeDesktop,
+    /// The Codex command-line agent in a terminal, a multiplexer pane or Herdr.
+    #[serde(rename = "codex")]
+    CodexCli,
+    /// A thread in the Codex desktop app.
+    #[serde(rename = "codex_desktop")]
+    CodexDesktop,
+    /// A kind this version does not know, kept so a newer saved choice still loads.
+    #[default]
+    #[serde(other, rename = "unknown")]
+    Unknown,
+}
+
+impl AgentKind {
+    /// The product's name as people say it.
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::ClaudeCode => "Claude Code",
+            Self::ClaudeDesktop => "Claude Desktop",
+            Self::CodexCli => "Codex CLI",
+            Self::CodexDesktop => "Codex Desktop",
+            Self::Unknown => "Agent",
+        }
+    }
+    /// The identifier Herdr and the command line use: `claude`, `codex`, ...
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::ClaudeCode => "claude",
+            Self::ClaudeDesktop => "claude_desktop",
+            Self::CodexCli => "codex",
+            Self::CodexDesktop => "codex_desktop",
+            Self::Unknown => "unknown",
+        }
+    }
+    /// Herdr's agent identifiers for the kinds it reports; anything else is not a target.
+    pub fn from_herdr(agent: &str) -> Option<Self> {
+        match agent {
+            "claude" | "claude_code" => Some(Self::ClaudeCode),
+            "codex" => Some(Self::CodexCli),
+            _ => None,
+        }
+    }
+    pub fn is_claude_code(self) -> bool {
+        self == Self::ClaudeCode
+    }
+    /// A desktop app rather than a terminal session.
+    pub fn is_desktop(self) -> bool {
+        matches!(self, Self::ClaudeDesktop | Self::CodexDesktop)
+    }
+}
+
+/// What a session is doing, as its own agent or Herdr reports it.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AgentStatus {
+    Idle,
+    Working,
+    /// Waiting for the person: a permission prompt, a question or an open dialog.
+    Blocked,
+    Done,
+    #[default]
+    #[serde(other)]
+    Unknown,
+}
+
+/// How far Mluva can take a finished dictation for a target, weakest first.
+#[derive(
+    Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum Delivery {
+    /// Nothing reaches it: recording keeps an editable draft in Mluva.
+    #[default]
+    DraftOnly,
+    /// Placed in the agent's composer; the person submits it there.
+    Prefill,
+    /// Accepted by the agent's own message queue for exactly that session; the agent takes it
+    /// when it is ready, which may be after its current turn.
+    Queue,
+    /// Written and submitted to exactly that session, and acknowledged.
+    Send,
+}
+
+impl Delivery {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::DraftOnly => "draft_only",
+            Self::Prefill => "prefill",
+            Self::Queue => "queue",
+            Self::Send => "send",
+        }
+    }
+    /// The word for what happens, as the wheel and the panel print it.
+    pub fn verb(self) -> &'static str {
+        match self {
+            Self::DraftOnly => "Draft only",
+            Self::Prefill => "Prefill",
+            Self::Queue => "Queue",
+            Self::Send => "Send",
+        }
+    }
+    /// History's outcome once the transport accepted a message at this level.
+    pub fn outcome(self) -> &'static str {
+        match self {
+            Self::Send => "sent",
+            Self::Queue => "queued",
+            Self::Prefill => "prefilled",
+            Self::DraftOnly => "draft-kept",
+        }
+    }
+}
+
+/// The transport that carries a dictation to a target.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Route {
+    /// No transport reaches the session.
+    DraftOnly,
+    /// Herdr's guarded prompt: the server re-checks its guard for the exact agent process and
+    /// pane before writing, and returns a receipt for the operation.
+    Herdr,
+}
+
+impl Route {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::DraftOnly => "none",
+            Self::Herdr => "herdr",
+        }
+    }
+    /// The level this transport has been verified to deliver at.
+    pub fn delivery(self) -> Delivery {
+        match self {
+            Self::DraftOnly => Delivery::DraftOnly,
+            Self::Herdr => Delivery::Send,
+        }
+    }
+    /// Whether the transport may deliver to a session in this state. Herdr writes into a
+    /// working agent's composer without stopping it, but never answers a waiting prompt.
+    fn accepts(self, status: AgentStatus) -> bool {
+        match self {
+            Self::DraftOnly => false,
+            Self::Herdr => matches!(
+                status,
+                AgentStatus::Idle | AgentStatus::Done | AgentStatus::Working
+            ),
+        }
+    }
+}
+
+/// A pane on a local Herdr server.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct HerdrPane {
+    /// The server's local socket.
+    pub socket: String,
+    pub server_epoch: String,
+    pub pane_id: String,
+    /// Herdr's opaque identity for the exact agent process and session in this pane. Empty when
+    /// Herdr will not vouch for the session, which then cannot be sent to through Herdr.
+    pub guard: String,
+}
+
+impl HerdrPane {
+    fn same_pane(&self, other: &Self) -> bool {
+        self.socket == other.socket
+            && self.server_epoch == other.server_epoch
+            && self.pane_id == other.pane_id
+    }
+}
+
+/// A running agent session, wherever it runs.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(from = "TargetRecord", into = "TargetRecord")]
+pub struct Target {
+    pub kind: AgentKind,
+    /// A short handle: Herdr's agent label (used by `mluva agents select`), else the agent's
+    /// own generated handle, else the pane.
+    pub name: String,
+    /// The agent's own session title: a Codex thread name, a Claude Code session title. Empty
+    /// until the agent names the session.
+    pub title: String,
+    pub project: String,
+    pub status: AgentStatus,
+    /// The agent's own session or thread ID.
+    pub session_id: String,
+    /// The agent process, when known; 0 otherwise.
+    pub pid: u32,
+    /// The Herdr pane the session runs in, when Herdr lists it.
+    pub herdr: Option<HerdrPane>,
+    /// A remembered choice that discovery no longer reports. Never saved.
+    pub missing: bool,
+}
+
+impl Target {
+    /// The transport that would carry a dictation, whatever the session is doing now.
+    pub fn route(&self) -> Route {
+        match self.guarded_pane() {
+            Some(_) => Route::Herdr,
+            None => Route::DraftOnly,
+        }
+    }
+
+    /// The strongest level a dictation reaches this target at.
+    pub fn delivery(&self) -> Delivery {
+        self.route().delivery()
+    }
+
+    /// A transport reaches the session, whether or not it can take a message right now.
+    pub fn has_transport(&self) -> bool {
+        self.route() != Route::DraftOnly
+    }
+
+    /// The session is present and its transport may deliver now.
+    pub fn can_receive(&self) -> bool {
+        let route = self.route();
+        !self.missing && self.kind != AgentKind::Unknown && route.accepts(self.status)
+    }
+
+    /// Present, but nothing can deliver to it: recording keeps an editable draft in Mluva.
+    pub fn draft_only(&self) -> bool {
+        !self.missing && !self.has_transport()
+    }
+
+    /// Why a draft-only session cannot be delivered to.
+    pub fn draft_hint(&self) -> &'static str {
+        match &self.herdr {
+            // Herdr withholds a guard until it confirms the session and sees it ready.
+            Some(_) => "Draft only: Herdr can't send to it now",
+            None => "Draft only: it runs outside Herdr",
+        }
+    }
+
+    /// What the route does with a message when it is not a plain send; `None` for Send and for
+    /// draft-only targets, whose hint is [`Self::draft_hint`].
+    pub fn delivery_hint(&self) -> Option<&'static str> {
+        match self.route() {
+            Route::DraftOnly | Route::Herdr => None,
+        }
+    }
+
+    /// Guarded Herdr identities match only exactly: server, pane and the guard for the agent
+    /// process. Any other session matches by its native session and process, so neither a
+    /// resumed session in a new process nor a new session in the same pane takes over a
+    /// remembered choice, while the same session seen with or without Herdr stays chosen.
+    pub fn same_instance(&self, other: &Self) -> bool {
+        match (self.guarded_pane(), other.guarded_pane()) {
+            (Some(a), Some(b)) => a.same_pane(b) && a.guard == b.guard,
+            (None, None) if !self.session_id.is_empty() || !other.session_id.is_empty() => {
+                self.session_id == other.session_id && self.pid == other.pid
+            }
+            // A metadata-only Herdr pane without a native session: its pane, as before.
+            (None, None) => match (&self.herdr, &other.herdr) {
+                (Some(a), Some(b)) => a.same_pane(b),
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+
+    /// The Herdr pane, when Herdr vouches for the session in it.
+    fn guarded_pane(&self) -> Option<&HerdrPane> {
+        self.herdr.as_ref().filter(|pane| !pane.guard.is_empty())
+    }
+
+    /// The name a person recognizes: the agent's own session title, else the handle.
+    pub fn display_name(&self) -> &str {
+        if self.title.trim().is_empty() {
+            &self.name
+        } else {
+            &self.title
+        }
+    }
+
+    /// What tells this session apart from another with the same name: its Herdr pane, else the
+    /// agent's own handle, else its process.
+    pub fn locator(&self) -> String {
+        if let Some(pane) = &self.herdr {
+            pane.pane_id.clone()
+        } else if self.name != self.display_name() {
+            self.name.clone()
+        } else if self.pid != 0 {
+            format!("pid {}", self.pid)
+        } else {
+            self.session_id.clone()
+        }
+    }
+
+    /// Where the session runs, in a few words: `Herdr w1:p2`, `outside Herdr`.
+    pub fn place(&self) -> String {
+        match &self.herdr {
+            Some(pane) => format!("Herdr {}", pane.pane_id),
+            None => "outside Herdr".into(),
+        }
+    }
+
+    /// Where to look after an uncertain delivery: `Herdr`, or the session itself.
+    pub fn place_to_check(&self) -> &'static str {
+        match self.route() {
+            Route::Herdr => "Herdr",
+            Route::DraftOnly => "the session",
+        }
+    }
+
+    /// The project folder's own name, for menus and tooltips.
+    pub fn project_name(&self) -> &str {
+        Path::new(&self.project)
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("Local")
+    }
+
+    /// A second line for tooltips: product, place, handle and project.
+    pub fn whereabouts(&self) -> String {
+        match &self.herdr {
+            Some(pane) => format!(
+                "{} · {} · Herdr {} · {}",
+                self.kind.label(),
+                pane.pane_id,
+                self.name,
+                self.project_name()
+            ),
+            None => format!(
+                "{} · {} · {} · {}",
+                self.kind.label(),
+                self.locator(),
+                self.place(),
+                self.project_name()
+            ),
+        }
+    }
+
+    /// Whether a command-line query names this target: its handle, its Herdr pane or its
+    /// native session ID. Titles are not matched; they change and repeat.
+    pub fn answers_to(&self, query: &str) -> bool {
+        self.name == query
+            || self
+                .herdr
+                .as_ref()
+                .is_some_and(|pane| pane.pane_id == query)
+            || (!self.session_id.is_empty() && self.session_id == query)
+    }
+
+    /// Metadata-only status sentence; it deliberately makes no claim about a particular turn.
+    pub fn spoken_status(&self) -> String {
+        let name: String = self
+            .display_name()
+            .chars()
+            .filter(|c| c.is_alphanumeric() || matches!(c, ' ' | '-' | '_'))
+            .take(48)
+            .collect();
+        let name = if name.trim().is_empty() {
+            "Your agent"
+        } else {
+            name.trim()
+        };
+        match self.status {
+            AgentStatus::Idle => format!("{name} is ready for your next message."),
+            AgentStatus::Working => {
+                format!("{name} is working; its latest result is not confirmed yet.")
+            }
+            AgentStatus::Blocked if self.herdr.is_some() => {
+                format!("{name} needs your attention in Herdr before it can continue.")
+            }
+            // Answered where the session runs.
+            AgentStatus::Blocked => {
+                format!("{name} needs your attention before it can continue.")
+            }
+            AgentStatus::Done => {
+                format!("{name} has finished a turn; open its session to review the result.")
+            }
+            AgentStatus::Unknown => {
+                format!("{name} is unavailable or its current activity is not clear yet.")
+            }
+        }
+    }
+}
+
+/// The saved shape of a target. Herdr's fields stay flat, as choices saved before targets
+/// existed were written, so those load unchanged and an older Mluva can still read new ones.
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
+struct TargetRecord {
+    socket: String,
+    server_epoch: String,
+    pane_id: String,
+    guard: String,
+    name: String,
+    title: String,
+    kind: AgentKind,
+    project: String,
+    status: AgentStatus,
+    session_id: String,
+    pid: u32,
+}
+
+impl From<TargetRecord> for Target {
+    fn from(record: TargetRecord) -> Self {
+        let in_herdr = !record.socket.is_empty() || !record.pane_id.is_empty();
+        Self {
+            herdr: in_herdr.then_some(HerdrPane {
+                socket: record.socket,
+                server_epoch: record.server_epoch,
+                pane_id: record.pane_id,
+                guard: record.guard,
+            }),
+            kind: record.kind,
+            name: record.name,
+            title: record.title,
+            project: record.project,
+            status: record.status,
+            session_id: record.session_id,
+            pid: record.pid,
+            missing: false,
+        }
+    }
+}
+
+impl From<Target> for TargetRecord {
+    fn from(target: Target) -> Self {
+        let pane = target.herdr.unwrap_or_default();
+        Self {
+            socket: pane.socket,
+            server_epoch: pane.server_epoch,
+            pane_id: pane.pane_id,
+            guard: pane.guard,
+            name: target.name,
+            title: target.title,
+            kind: target.kind,
+            project: target.project,
+            status: target.status,
+            session_id: target.session_id,
+            pid: target.pid,
+        }
+    }
+}

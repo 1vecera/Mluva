@@ -331,7 +331,7 @@ impl ApplicationDesktop {
         } else if self.agent_voice.wheel.window.is_visible() {
             self.agent_voice.wheel.window.set_visible(false);
             if self.agent_voice.draft_only_selected() {
-                // Herdr cannot send to this session: keep an editable transcript in Mluva,
+                // Nothing can deliver to this session: keep an editable transcript in Mluva,
                 // exactly like the wheel's dictation key, with no clipboard, paste or send.
                 self.toggle_recording(CaptureOrigin::Transcript);
             } else {
@@ -530,7 +530,11 @@ impl ApplicationDesktop {
         if phase == CapturePhase::Recording && self.route_capture.borrow().is_none() {
             let started = self.current.borrow().as_ref().and_then(|context| {
                 let route = if context.agent_attempt.is_some() {
-                    mluva_core::diagnostics::RouteKind::GuardedAgent
+                    mluva_core::diagnostics::RouteKind::Agent(
+                        self.agent_voice
+                            .attempt_delivery()
+                            .unwrap_or(mluva_core::agent_voice::Delivery::Send),
+                    )
                 } else if context.transcript_only {
                     mluva_core::diagnostics::RouteKind::Transcript
                 } else {

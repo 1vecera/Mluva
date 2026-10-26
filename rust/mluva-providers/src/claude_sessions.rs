@@ -10,7 +10,7 @@
 //! process start: unknown fields and values are ignored, and a field of an unexpected type is
 //! treated as absent.
 use crate::herdr::label;
-use mluva_core::agent_voice::{AgentStatus, Recipient};
+use mluva_core::agent_voice::{AgentKind, AgentStatus, Target};
 use serde::Deserialize;
 use serde_json::Value;
 use std::{
@@ -468,34 +468,30 @@ impl Titles {
     }
 }
 
-fn is_claude(kind: &str) -> bool {
-    matches!(kind, "claude" | "claude_code")
-}
-
 /// One wheel: Herdr's agents first, in Herdr's pane order, then Claude Code sessions Herdr
 /// does not show, in the order they started. A Claude agent in Herdr is matched to its
 /// registry session by session ID and named from it; Herdr keeps its transport and status.
-pub fn merge(herdr: Vec<Recipient>, sessions: &[ClaudeSession]) -> Vec<Recipient> {
+pub fn merge(herdr: Vec<Target>, sessions: &[ClaudeSession]) -> Vec<Target> {
     let by_id: HashMap<&str, &ClaudeSession> = sessions
         .iter()
         .map(|s| (s.session_id.as_str(), s))
         .collect();
     let mut joined = HashSet::new();
-    let mut merged: Vec<Recipient> = herdr
+    let mut merged: Vec<Target> = herdr
         .into_iter()
-        .map(|mut recipient| {
-            if is_claude(&recipient.kind) {
-                let session = by_id.get(recipient.session_id.as_str()).copied();
+        .map(|mut target| {
+            if target.kind.is_claude_code() {
+                let session = by_id.get(target.session_id.as_str()).copied();
                 if let Some(session) = session {
                     joined.insert(session.session_id.as_str());
-                    recipient.pid = session.pid;
-                    if recipient.project.is_empty() {
-                        recipient.project.clone_from(&session.cwd);
+                    target.pid = session.pid;
+                    if target.project.is_empty() {
+                        target.project.clone_from(&session.cwd);
                     }
                 }
-                name_in_herdr(&mut recipient, session);
+                name_in_herdr(&mut target, session);
             }
-            recipient
+            target
         })
         .collect();
     let mut native: Vec<&ClaudeSession> = sessions
@@ -504,18 +500,18 @@ pub fn merge(herdr: Vec<Recipient>, sessions: &[ClaudeSession]) -> Vec<Recipient
         .collect();
     native.sort_by_key(|s| (s.started_at, s.pid));
     merged.extend(native.into_iter().map(|session| {
-        Recipient {
+        Target {
             name: session
                 .derived_name
                 .clone()
                 .unwrap_or_else(|| format!("claude-{}", session.pid)),
             title: session.own_title().unwrap_or_default().into(),
-            kind: "claude".into(),
+            kind: AgentKind::ClaudeCode,
             project: session.cwd.clone(),
             status: session.status,
             session_id: session.session_id.clone(),
             pid: session.pid,
-            ..Recipient::default()
+            ..Target::default()
         }
     }));
     merged
@@ -524,21 +520,22 @@ pub fn merge(herdr: Vec<Recipient>, sessions: &[ClaudeSession]) -> Vec<Recipient
 /// Claude names in Herdr: the session's own title, then Herdr's label, then the terminal
 /// title unless it is only the `--agent` type, then Claude Code's generated handle.
 /// On entry `title` holds Herdr's terminal title, already without the bare product name.
-fn name_in_herdr(recipient: &mut Recipient, session: Option<&ClaudeSession>) {
-    let labelled = !recipient.name.trim().is_empty() && recipient.name != recipient.pane_id;
+fn name_in_herdr(target: &mut Target, session: Option<&ClaudeSession>) {
+    let pane = target.herdr.as_ref().map(|pane| pane.pane_id.as_str());
+    let labelled = !target.name.trim().is_empty() && Some(target.name.as_str()) != pane;
     let agent_type = session.and_then(|s| s.agent_type.as_deref());
-    let terminal = Some(recipient.title.trim())
+    let terminal = Some(target.title.trim())
         .filter(|t| !t.is_empty() && agent_type.is_none_or(|a| !t.eq_ignore_ascii_case(a)));
-    recipient.title = match session.and_then(ClaudeSession::own_title) {
+    target.title = match session.and_then(ClaudeSession::own_title) {
         Some(own) => own.into(),
         None if labelled => String::new(),
         None => terminal.unwrap_or_default().into(),
     };
     if !labelled
-        && recipient.title.is_empty()
+        && target.title.is_empty()
         && let Some(derived) = session.and_then(|s| s.derived_name.clone())
     {
-        recipient.name = derived;
+        target.name = derived;
     }
 }
 
@@ -879,23 +876,25 @@ mod tests {
         assert_eq!(fresh.sessions()[0].own_title(), Some("My review"));
     }
 
-    fn claude(pane: &str, name: &str, terminal: &str, session: &str, guard: &str) -> Recipient {
-        Recipient {
-            socket: "/run/user/fixture/herdr.sock".into(),
-            server_epoch: "epoch".into(),
-            pane_id: pane.into(),
-            guard: guard.into(),
+    fn claude(pane: &str, name: &str, terminal: &str, session: &str, guard: &str) -> Target {
+        Target {
+            herdr: Some(mluva_core::agent_voice::HerdrPane {
+                socket: "/run/user/fixture/herdr.sock".into(),
+                server_epoch: "epoch".into(),
+                pane_id: pane.into(),
+                guard: guard.into(),
+            }),
             name: if name.is_empty() {
                 pane.into()
             } else {
                 name.into()
             },
             title: terminal.into(),
-            kind: "claude".into(),
+            kind: AgentKind::ClaudeCode,
             project: "/synthetic/project".into(),
             status: AgentStatus::Idle,
             session_id: session.into(),
-            ..Recipient::default()
+            ..Target::default()
         }
     }
 
@@ -916,8 +915,8 @@ mod tests {
 
     #[test]
     fn herdr_order_comes_first_enriched_by_session_and_unmatched_sessions_follow() {
-        let codex = Recipient {
-            kind: "codex".into(),
+        let codex = Target {
+            kind: AgentKind::CodexCli,
             title: "Thread name".into(),
             session_id: "shared-id".into(),
             ..claude("w1:p1", "dispatch", "", "", &"a".repeat(64))
@@ -958,12 +957,12 @@ mod tests {
         let merged = merge(herdr, &sessions);
         let shown: Vec<_> = merged
             .iter()
-            .map(|r| {
+            .map(|t| {
                 (
-                    r.pane_id.as_str(),
-                    r.display_name(),
-                    r.has_transport(),
-                    r.pid,
+                    t.herdr.as_ref().map_or("", |pane| pane.pane_id.as_str()),
+                    t.display_name(),
+                    t.has_transport(),
+                    t.pid,
                 )
             })
             .collect();
@@ -988,7 +987,7 @@ mod tests {
         // Herdr keeps its status; registry sessions report their own.
         assert_eq!(merged[2].status, AgentStatus::Idle);
         assert_eq!(merged[5].status, AgentStatus::Working);
-        assert!(merged[5].socket.is_empty() && merged[5].draft_only());
+        assert!(merged[5].herdr.is_none() && merged[5].draft_only());
         // Without Herdr, the registry alone is the wheel.
         assert_eq!(merge(vec![], &sessions).len(), sessions.len());
         // Herdr's label outranks a plain terminal title when the session has no own title.

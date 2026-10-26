@@ -42,27 +42,19 @@ impl AgentVoiceController {
         Ok(())
     }
 
-    async fn cli_discover(&self, socket: Option<&str>) -> (Vec<Recipient>, Vec<String>) {
-        let paths = herdr::socket_candidates(
-            self.services
-                .paths
-                .config
-                .parent()
-                .unwrap_or(Path::new("/")),
-            socket,
-        );
-        discover_sessions(paths, self.registry.clone(), &self.closed)
+    async fn cli_discover(&self, socket: Option<&str>) -> (Vec<Target>, Vec<String>) {
+        agent_targets::discover(self.sources(socket), &self.closed)
             .await
-            .map(|found| (found.recipients, found.errors))
+            .map(|found| (found.targets, found.errors))
             .unwrap_or_default()
     }
     async fn cli_request(self: &Rc<Self>, request: Request) -> Result<Value, String> {
         let generation = self.generation.get();
         match request {
             Request::List { socket } => {
-                let (recipients, errors) = self.cli_discover(socket.as_deref()).await;
+                let (targets, errors) = self.cli_discover(socket.as_deref()).await;
                 Ok(
-                    json!({"ok":true,"recipients":recipients.iter().map(summary).collect::<Vec<_>>(),"errors":errors}),
+                    json!({"ok":true,"recipients":targets.iter().map(summary).collect::<Vec<_>>(),"errors":errors}),
                 )
             }
             Request::Record {} => {
@@ -77,7 +69,7 @@ impl AgentVoiceController {
                 }
                 if !recording
                     && (!self.settings().enabled
-                        || !self.selected().is_some_and(|r| r.can_receive()))
+                        || !self.selected().is_some_and(|t| t.can_receive()))
                 {
                     return Err("Choose an available agent before recording.".into());
                 }
@@ -90,25 +82,26 @@ impl AgentVoiceController {
                 let socket = settings
                     .selected
                     .as_ref()
-                    .map(|r| r.socket.as_str())
+                    .and_then(|t| t.herdr.as_ref())
+                    .map(|pane| pane.socket.as_str())
                     .filter(|socket| !socket.is_empty())
                     .or(settings.socket.as_deref());
-                let (recipients, errors) = self.cli_discover(socket).await;
+                let (targets, errors) = self.cli_discover(socket).await;
                 if self.closed.is_cancelled() || self.generation.get() != generation {
                     return Err("Routing changed during discovery. Check status again.".into());
                 }
                 let live = settings
                     .selected
                     .as_ref()
-                    .and_then(|s| recipients.iter().find(|r| r.same_instance(s)));
-                let selected = live.or(settings.selected.as_ref()).map(|recipient| {
-                    let mut value = summary(recipient);
-                    value["available"] = json!(live.is_some_and(Recipient::can_receive));
+                    .and_then(|s| targets.iter().find(|t| t.same_instance(s)));
+                let selected = live.or(settings.selected.as_ref()).map(|target| {
+                    let mut value = summary(target);
+                    value["available"] = json!(live.is_some_and(Target::can_receive));
                     value
                 });
                 Ok(json!({"ok":true,"running":true,"enabled":settings.enabled,
                     "selected":selected,
-                    "connected":settings.enabled && live.is_some_and(Recipient::can_receive),
+                    "connected":settings.enabled && live.is_some_and(Target::can_receive),
                     "hold_key":settings.hold_key,"draft_key":settings.draft_key,"shortcuts":self.page.shortcut_state(),
                     "agent_shortcut":{"preferred":settings.hold_key,"assigned":self.approved_key.borrow().clone(),"ready":self.approved_key.borrow().is_some()},
                     "delivery":self.delivery_status(),"incognito":self.services.config().incognito_mode,"errors":errors}))
@@ -116,28 +109,25 @@ impl AgentVoiceController {
             Request::Select { target, socket } => {
                 // The user's switch intent must cancel a pending send before discovery waits.
                 self.disarm(DraftReason::RecipientChanged);
-                let (recipients, _) = self.cli_discover(socket.as_deref()).await;
+                let (targets, _) = self.cli_discover(socket.as_deref()).await;
                 if self.closed.is_cancelled() || self.generation.get() != generation {
                     return Err(
                         "Routing changed during discovery. Check status and try again.".into(),
                     );
                 }
-                let matches: Vec<_> = recipients
-                    .iter()
-                    .filter(|r| r.name == target || r.pane_id == target)
-                    .collect();
+                let matches: Vec<_> = targets.iter().filter(|t| t.answers_to(&target)).collect();
                 if matches.len() > 1 {
                     return Err(
-                        "Multiple recipients match. Use an exact pane ID and, if needed, --socket."
+                        "Multiple recipients match. Use an exact pane or session ID and, if needed, --socket."
                             .into(),
                     );
                 }
-                let selected = matches.first().filter(|r| r.can_receive())
-                    .ok_or("No matching available guarded recipient. Use 'mluva herdr list' to check the session.")?;
+                let selected = matches.first().filter(|t| t.can_receive())
+                    .ok_or("No matching recipient Mluva can deliver to. Use 'mluva agents list' to check the session.")?;
                 self.cli_select(Some((*selected).clone()))?;
                 self.connection
-                    .replace("Local Herdr · press to start and again to stop and send".into());
-                self.update_recipients(recipients);
+                    .replace("Local agents · press to start and again to stop and deliver".into());
+                self.update_targets(targets);
                 Ok(
                     json!({"ok":true,"connected":true,"selected":self.settings().selected.as_ref().map(summary),
                     "persisted":!self.services.config().incognito_mode}),
@@ -145,8 +135,8 @@ impl AgentVoiceController {
             }
             Request::Clear {} => {
                 self.cli_select(None)?;
-                let recipients = self.recipients.borrow().clone();
-                self.update_recipients(recipients);
+                let targets = self.targets.borrow().clone();
+                self.update_targets(targets);
                 Ok(
                     json!({"ok":true,"connected":false,"selected":null,"persisted":!self.services.config().incognito_mode}),
                 )
@@ -163,20 +153,23 @@ impl AgentVoiceController {
                 RoutePhase::Finalizing => "transcribing",
                 RoutePhase::Grace { .. } => "countdown",
                 RoutePhase::Submitting => "sending",
-                RoutePhase::Sent => "sent",
+                RoutePhase::Delivered => a.target.delivery().outcome(),
                 RoutePhase::Unconfirmed => "unconfirmed",
                 RoutePhase::Draft(_) => "draft",
             })
     }
-    fn cli_select(self: &Rc<Self>, selected: Option<Recipient>) -> Result<(), String> {
+    fn cli_select(self: &Rc<Self>, selected: Option<Target>) -> Result<(), String> {
         if self.closed.is_cancelled() {
             return Err("Mluva is closing.".into());
         }
         let mut proposed = self.settings();
         let enabled_before = proposed.enabled;
-        if let Some(recipient) = &selected {
+        if let Some(target) = &selected {
             proposed.enabled = true;
-            proposed.socket = Some(recipient.socket.clone());
+            // A Herdr session pins its server; any other keeps the configured socket.
+            if let Some(pane) = &target.herdr {
+                proposed.socket = Some(pane.socket.clone());
+            }
         }
         proposed.selected = selected;
         if !self.services.config().incognito_mode {

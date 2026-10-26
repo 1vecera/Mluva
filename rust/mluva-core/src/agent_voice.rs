@@ -1,5 +1,6 @@
 //! Toggle recording with agent routing is a one-shot delivery intent, independent of capture providers.
-//! No pending send is serialized or replayed after restart.
+//! No pending send is serialized or replayed after restart. The recipient is a [`Target`],
+//! whatever transport reaches it.
 
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Read, path::Path};
@@ -8,151 +9,14 @@ pub const CANCEL_WINDOW_MS: u64 = 2_000;
 pub const MAX_RECORDING_MS: u64 = 5 * 60 * 1_000;
 pub const MAX_MESSAGE_BYTES: usize = 32_768;
 
-/// A running agent session. Herdr supplies its pane and, when guarded, its only send
-/// transport; Claude Code's own session registry supplies sessions Herdr does not manage.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Recipient {
-    /// Herdr socket; empty for a session found only in Claude Code's registry.
-    pub socket: String,
-    pub server_epoch: String,
-    pub pane_id: String,
-    /// Opaque server-issued identity, including the actual agent process/session.
-    /// Empty when Herdr cannot send to the session: it is then draft-only.
-    pub guard: String,
-    /// Herdr's agent label, used for `mluva herdr select`; often a dispatch handle.
-    /// Without one, Claude Code's generated session handle or the pane ID.
-    pub name: String,
-    /// The agent's own session title (Codex thread name, Claude Code session title).
-    /// Empty when the agent has not named the session yet.
-    #[serde(default)]
-    pub title: String,
-    pub kind: String,
-    pub project: String,
-    pub status: AgentStatus,
-    /// The agent's native session ID, as Herdr or Claude Code's registry reports it.
-    #[serde(default)]
-    pub session_id: String,
-    /// The Claude Code process from its registry; 0 when unknown.
-    #[serde(default)]
-    pub pid: u32,
-    /// A remembered session that discovery no longer reports. Never saved.
-    #[serde(skip)]
-    pub missing: bool,
-}
-
-impl Recipient {
-    /// Guarded recipients keep Herdr's exact guarded identity. Sessions without a guard
-    /// match by native session and process, so neither a resumed session in a new process
-    /// nor a new session in the same pane takes over a remembered choice.
-    pub fn same_instance(&self, other: &Self) -> bool {
-        if self.guard.is_empty() != other.guard.is_empty() {
-            return false;
-        }
-        let herdr = self.socket == other.socket
-            && self.server_epoch == other.server_epoch
-            && self.pane_id == other.pane_id;
-        if !self.guard.is_empty() {
-            return herdr && self.guard == other.guard;
-        }
-        if !self.session_id.is_empty() || !other.session_id.is_empty() {
-            return self.session_id == other.session_id && self.pid == other.pid;
-        }
-        // Metadata-only Herdr without a native session: its pane, as before.
-        herdr
-    }
-
-    /// Herdr's guarded prompt is Mluva's only send path; anything else is draft-only.
-    pub fn has_transport(&self) -> bool {
-        !self.guard.is_empty()
-    }
-
-    /// A present session Mluva can record a draft for but cannot send to.
-    pub fn draft_only(&self) -> bool {
-        !self.missing && !self.has_transport()
-    }
-
-    /// Why a draft-only session cannot be sent to.
-    pub fn draft_hint(&self) -> &'static str {
-        if self.socket.is_empty() {
-            // Found only in Claude Code's registry: no Herdr pane can carry a prompt.
-            "Draft only: it runs outside Herdr"
-        } else {
-            // Herdr withholds a guard until it confirms the session and sees it ready.
-            "Draft only: Herdr can't send to it now"
-        }
-    }
-
-    /// The name a person recognizes: the agent's own session title, else Herdr's label.
-    pub fn display_name(&self) -> &str {
-        if self.title.trim().is_empty() {
-            &self.name
-        } else {
-            &self.title
-        }
-    }
-
-    pub fn can_receive(&self) -> bool {
-        !self.guard.is_empty()
-            && matches!(self.kind.as_str(), "codex" | "claude" | "claude_code")
-            && matches!(
-                self.status,
-                AgentStatus::Idle | AgentStatus::Done | AgentStatus::Working
-            )
-    }
-
-    /// Metadata-only fallback; it deliberately makes no claim about a particular turn.
-    pub fn spoken_status(&self) -> String {
-        let name: String = self
-            .display_name()
-            .chars()
-            .filter(|c| c.is_alphanumeric() || matches!(c, ' ' | '-' | '_'))
-            .take(48)
-            .collect();
-        let name = if name.trim().is_empty() {
-            "Your agent"
-        } else {
-            name.trim()
-        };
-        match self.status {
-            AgentStatus::Idle => format!("{name} is ready for your next message."),
-            AgentStatus::Working => {
-                format!("{name} is working; its latest result is not confirmed yet.")
-            }
-            // A session outside Herdr is answered in its own terminal.
-            AgentStatus::Blocked if self.socket.is_empty() => {
-                format!("{name} needs your attention before it can continue.")
-            }
-            AgentStatus::Blocked => {
-                format!("{name} needs your attention in Herdr before it can continue.")
-            }
-            AgentStatus::Done => {
-                format!("{name} has finished a turn; open its session to review the result.")
-            }
-            AgentStatus::Unknown => {
-                format!("{name} is unavailable or its current activity is not clear yet.")
-            }
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum AgentStatus {
-    Idle,
-    Working,
-    Blocked,
-    Done,
-    #[default]
-    #[serde(other)]
-    Unknown,
-}
+pub use crate::agent_target::{AgentKind, AgentStatus, Delivery, HerdrPane, Route, Target};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct VoiceSettings {
     pub enabled: bool,
     pub socket: Option<String>,
-    pub selected: Option<Recipient>,
+    pub selected: Option<Target>,
     pub hold_key: String,
     pub draft_key: String,
     pub spoken_updates: bool,
@@ -212,12 +76,12 @@ impl VoiceSettings {
         });
         match read {
             Ok(bytes) if bytes.len() <= 16_384 => serde_json::from_slice(&bytes).map_err(
-                |_| "Herdr voice settings could not be read; the original file was preserved.",
+                |_| "Agent routing settings could not be read; the original file was preserved.",
             ),
-            Ok(_) => Err("Herdr voice settings are too large; the original file was preserved."),
+            Ok(_) => Err("Agent routing settings are too large; the original file was preserved."),
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(Self::default()),
             Err(_) => {
-                Err("Herdr voice settings could not be read; the original file was preserved.")
+                Err("Agent routing settings could not be read; the original file was preserved.")
             }
         }
     }
@@ -225,9 +89,9 @@ impl VoiceSettings {
     pub fn save(&self, path: &Path, recording_key: &str) -> Result<(), &'static str> {
         self.validate(recording_key)?;
         let bytes = serde_json::to_vec_pretty(self)
-            .map_err(|_| "Herdr voice settings could not be saved.")?;
+            .map_err(|_| "Agent routing settings could not be saved.")?;
         crate::private_files::atomic_write_private(path, &bytes)
-            .map_err(|_| "Herdr voice settings could not be saved.")
+            .map_err(|_| "Agent routing settings could not be saved.")
     }
 }
 
@@ -248,17 +112,21 @@ pub enum DraftReason {
 pub enum RoutePhase {
     Recording,
     Finalizing,
-    Grace { deadline_ms: u64 },
+    Grace {
+        deadline_ms: u64,
+    },
     Draft(DraftReason),
     Submitting,
-    Sent,
+    /// The transport accepted the message at the target's delivery level: sent, queued or
+    /// placed in the composer. The agent's own work on it is separate.
+    Delivered,
     Unconfirmed,
 }
 
 #[derive(Clone, Debug)]
 pub struct Attempt {
     pub id: String,
-    pub recipient: Recipient,
+    pub target: Target,
     pub phase: RoutePhase,
     pub text: String,
     pub history_id: Option<String>,
@@ -276,7 +144,7 @@ impl Attempt {
         self.submitted_ms = Some(now_ms);
         Submission {
             id: self.id.clone(),
-            recipient: self.recipient.clone(),
+            target: self.target.clone(),
             text: self.text.clone(),
         }
     }
@@ -285,14 +153,18 @@ impl Attempt {
 #[derive(Clone, Debug)]
 pub struct Submission {
     pub id: String,
-    pub recipient: Recipient,
+    pub target: Target,
     pub text: String,
 }
 
+/// What a transport reports for one delivery attempt.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SendOutcome {
+    /// Accepted at the target's delivery level, for exactly that session.
     Accepted,
+    /// Refused before anything reached the session.
     Rejected,
+    /// Some input may have reached the session; it is never written again automatically.
     Unconfirmed,
 }
 
@@ -302,7 +174,7 @@ pub struct VoiceRoute {
 }
 
 impl VoiceRoute {
-    pub fn begin(&mut self, recipient: Recipient, now_ms: u64) -> Result<String, &'static str> {
+    pub fn begin(&mut self, target: Target, now_ms: u64) -> Result<String, &'static str> {
         if self.attempt.as_ref().is_some_and(|a| {
             matches!(
                 a.phase,
@@ -319,15 +191,15 @@ impl VoiceRoute {
         {
             return Err("A message is about to send. Press again to send it now, or cancel it.");
         }
-        if !recipient.can_receive() {
+        if !target.can_receive() {
             return Err(
-                "Choose a connected, ready agent; permission prompts need your attention in Herdr.",
+                "Choose a connected, ready agent; a session waiting for your answer needs you first.",
             );
         }
         let id = uuid::Uuid::new_v4().to_string();
         self.attempt = Some(Attempt {
             id: id.clone(),
-            recipient,
+            target,
             phase: RoutePhase::Recording,
             text: String::new(),
             history_id: None,
@@ -417,14 +289,14 @@ impl VoiceRoute {
         }
     }
 
-    pub fn observe(&mut self, recipients: &[Recipient]) {
+    pub fn observe(&mut self, targets: &[Target]) {
         if self.attempt.as_ref().is_some_and(|a| {
             matches!(
                 a.phase,
                 RoutePhase::Recording | RoutePhase::Finalizing | RoutePhase::Grace { .. }
-            ) && !recipients
+            ) && !targets
                 .iter()
-                .any(|r| a.recipient.same_instance(r) && r.can_receive())
+                .any(|t| a.target.same_instance(t) && t.can_receive())
         }) {
             self.disarm(DraftReason::Unavailable);
         }
@@ -451,8 +323,7 @@ impl VoiceRoute {
         Some(a.start_submission(now_ms))
     }
 
-    /// Ends the cancel window early: the pending send goes now, to the same guarded
-    /// recipient and text. Outside the window nothing is consumed, so an uncertain or
+    /// Ends the cancel window early: the pending send goes now, to the same target and text. Outside the window nothing is consumed, so an uncertain or
     /// submitted message is never replayed.
     pub fn send_now(&mut self, now_ms: u64) -> Option<Submission> {
         let a = self.attempt.as_mut()?;
@@ -469,7 +340,7 @@ impl VoiceRoute {
         };
         a.received_ms = Some(now_ms);
         a.phase = match outcome {
-            SendOutcome::Accepted => RoutePhase::Sent,
+            SendOutcome::Accepted => RoutePhase::Delivered,
             SendOutcome::Rejected => RoutePhase::Draft(DraftReason::Rejected),
             SendOutcome::Unconfirmed => RoutePhase::Unconfirmed,
         };

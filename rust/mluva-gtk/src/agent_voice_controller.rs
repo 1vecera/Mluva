@@ -5,19 +5,20 @@ use crate::{
 use adw::prelude::*;
 use mluva_core::{
     agent_voice::{
-        AgentStatus, Attempt, DraftReason, Recipient, RoutePhase, SendOutcome, Submission,
+        AgentStatus, Attempt, Delivery, DraftReason, RoutePhase, SendOutcome, Submission, Target,
         VoiceRoute, VoiceSettings,
     },
     diagnostics::{RouteEvent, RouteKind},
 };
 use mluva_providers::{
-    claude_sessions::{self, ClaudeRegistry},
+    agent_targets::{self, Sources},
+    claude_sessions::ClaudeRegistry,
     herdr, spoken_reply,
 };
 use mluva_workflows::services::ApplicationServices;
 use std::{
     cell::{Cell, RefCell},
-    path::{Path, PathBuf},
+    path::Path,
     rc::Rc,
     sync::{Arc, Mutex},
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
@@ -43,57 +44,6 @@ struct SpeechJob {
     cancel: CancellationToken,
     done: CancellationToken,
 }
-/// One discovery pass over local Herdr servers and Claude Code's own session registry.
-#[derive(Default)]
-struct Found {
-    recipients: Vec<Recipient>,
-    /// Some Herdr server answered.
-    herdr: bool,
-    /// Some Herdr server offers guarded prompts.
-    guarded: bool,
-    errors: Vec<String>,
-}
-/// Herdr's panes in order, then Claude Code sessions Herdr does not show. The registry is
-/// read on a blocking thread; Herdr is only ever asked to list.
-async fn discover_sessions(
-    paths: Vec<PathBuf>,
-    registry: Option<Arc<Mutex<ClaudeRegistry>>>,
-    cancel: &CancellationToken,
-) -> Option<Found> {
-    let herdr = async {
-        let mut found = Found::default();
-        for path in paths.into_iter().take(16) {
-            match herdr::discover(&path).await {
-                Ok(discovery) => {
-                    found.herdr = true;
-                    found.guarded |= discovery.guarded;
-                    found.recipients.extend(discovery.recipients);
-                }
-                Err(error) => found.errors.push(error.to_string()),
-            }
-        }
-        found
-    };
-    let native = async {
-        let Some(registry) = registry else {
-            return vec![];
-        };
-        tokio::task::spawn_blocking(move || {
-            registry
-                .lock()
-                .map(|mut registry| registry.sessions())
-                .unwrap_or_default()
-        })
-        .await
-        .unwrap_or_default()
-    };
-    let (mut found, sessions) = tokio::select! {
-        _ = cancel.cancelled() => return None,
-        found = async { tokio::join!(herdr, native) } => found,
-    };
-    found.recipients = claude_sessions::merge(std::mem::take(&mut found.recipients), &sessions);
-    Some(found)
-}
 pub struct AgentVoiceController {
     pub view: AgentVoiceView,
     pub wheel: crate::agent_session_wheel::SessionWheel,
@@ -103,7 +53,7 @@ pub struct AgentVoiceController {
     page: Rc<CapturePage>,
     runtime: Rc<DesktopRuntime>,
     callbacks: AgentVoiceCallbacks,
-    recipients: RefCell<Vec<Recipient>>,
+    targets: RefCell<Vec<Target>>,
     /// Claude Code's own registry, when this account has a Claude Code configuration.
     registry: Option<Arc<Mutex<ClaudeRegistry>>>,
     editor: RefCell<Option<crate::markdown_view::MarkdownTextView>>,
@@ -176,7 +126,7 @@ impl AgentVoiceController {
             page,
             runtime,
             callbacks,
-            recipients: RefCell::new(vec![]),
+            targets: RefCell::new(vec![]),
             registry: ClaudeRegistry::from_environment().map(|r| Arc::new(Mutex::new(r))),
             editor: RefCell::new(None),
             draft_appendix: RefCell::new(None),
@@ -216,7 +166,7 @@ impl AgentVoiceController {
                 let selected = dropdown
                     .selected()
                     .checked_sub(1)
-                    .and_then(|i| owner.recipients.borrow().get(i as usize).cloned());
+                    .and_then(|i| owner.targets.borrow().get(i as usize).cloned());
                 owner.settings.borrow_mut().selected = selected;
                 owner.generation.set(owner.generation.get() + 1);
                 owner.save_choice();
@@ -406,19 +356,41 @@ impl AgentVoiceController {
         self.refresh();
         self.render();
     }
-    /// The remembered session is present but Herdr cannot send to it: the next agent
+    /// The remembered session is present but nothing can deliver to it: the next agent
     /// key press records an editable draft in Mluva instead.
     pub fn draft_only_selected(&self) -> bool {
-        self.selected().is_some_and(|r| r.draft_only())
+        self.selected().is_some_and(|t| t.draft_only())
     }
-    fn selected(&self) -> Option<Recipient> {
+    /// The delivery level of the attempt being recorded, for diagnostics.
+    pub fn attempt_delivery(&self) -> Option<Delivery> {
+        self.route
+            .borrow()
+            .attempt
+            .as_ref()
+            .map(|a| a.target.delivery())
+    }
+    fn selected(&self) -> Option<Target> {
         let settings = self.settings.borrow();
         let selected = settings.selected.as_ref()?;
-        self.recipients
+        self.targets
             .borrow()
             .iter()
-            .find(|r| r.same_instance(selected))
+            .find(|t| t.same_instance(selected))
             .cloned()
+    }
+    /// Where discovery may look: local Herdr servers and Claude Code's registry.
+    fn sources(&self, socket: Option<&str>) -> Sources {
+        Sources {
+            herdr: herdr::socket_candidates(
+                self.services
+                    .paths
+                    .config
+                    .parent()
+                    .unwrap_or(Path::new("/")),
+                socket,
+            ),
+            claude: self.registry.clone(),
+        }
     }
     fn draft_text(&self) -> String {
         self.editor
@@ -491,8 +463,10 @@ impl AgentVoiceController {
         if !self.settings.borrow().enabled {
             return Err("Enable agent dictation in Settings → Capture first.");
         }
-        let recipient = self.selected().ok_or("Choose an available Herdr agent.")?;
-        let id = self.route.borrow_mut().begin(recipient, now())?;
+        let target = self
+            .selected()
+            .ok_or("Choose an available agent session.")?;
+        let id = self.route.borrow_mut().begin(target, now())?;
         self.wheel.window.set_visible(false);
         self.view.reply.set_label("");
         self.spoken_attempt.borrow_mut().take();
@@ -647,12 +621,13 @@ impl AgentVoiceController {
         }
         self.render();
     }
-    /// Sends a message whose automatic-send permission was already consumed.
+    /// Delivers a message whose automatic-send permission was already consumed, through the
+    /// target's own transport.
     fn submit(self: &Rc<Self>, submission: Submission) {
         let weak = Rc::downgrade(self);
         let cancel = self.closed.clone();
         self.runtime.spawn(async move {
-            let outcome = herdr::submit(&submission, &cancel).await;
+            let outcome = agent_targets::deliver(&submission, &cancel).await;
             if let Some(owner) = weak.upgrade().filter(|o| !o.closed.is_cancelled()) {
                 if owner
                     .route
@@ -660,17 +635,17 @@ impl AgentVoiceController {
                     .delivered(&submission.id, outcome, now())
                     && outcome == SendOutcome::Accepted
                 {
-                    owner.view.reply.set_label(&format!(
-                        "{} accepted your message. Completion is not confirmed.",
-                        submission.recipient.name
-                    ));
+                    owner
+                        .view
+                        .reply
+                        .set_label(&accepted_message(&submission.target));
                 }
                 owner.render();
             }
         });
     }
-    /// A second press while the cancel window runs ends it and sends at once, to the same
-    /// guarded recipient. Returns whether a pending send was taken.
+    /// A second press while the cancel window runs ends it and delivers at once, to the same
+    /// target. Returns whether a pending delivery was taken.
     pub fn send_now(self: &Rc<Self>) -> bool {
         let submission = self.route.borrow_mut().send_now(now());
         let Some(submission) = submission else {
@@ -688,7 +663,11 @@ impl AgentVoiceController {
         };
         let (step, event, outcome) = match a.phase {
             RoutePhase::Grace { .. } => ("grace", RouteEvent::CountdownStarted, None),
-            RoutePhase::Sent => ("sent", RouteEvent::SendAccepted, Some("sent")),
+            RoutePhase::Delivered => (
+                "delivered",
+                RouteEvent::SendAccepted,
+                Some(a.target.delivery().outcome()),
+            ),
             RoutePhase::Unconfirmed => (
                 "unconfirmed",
                 RouteEvent::SendUnconfirmed,
@@ -739,7 +718,12 @@ impl AgentVoiceController {
                 .map_or(0, |(done, released)| done.saturating_sub(released)),
             _ => now().saturating_sub(a.final_ms.unwrap_or(a.started_ms)),
         };
-        self.trace(&a.id, event, RouteKind::GuardedAgent, milliseconds);
+        self.trace(
+            &a.id,
+            event,
+            RouteKind::Agent(a.target.delivery()),
+            milliseconds,
+        );
         if let (Some(outcome), Some(id)) = (outcome, a.history_id.as_deref()) {
             self.record_outcome(id, outcome);
         }
@@ -788,19 +772,11 @@ impl AgentVoiceController {
         }
         self.last_poll.set(now());
         let generation = self.generation.get();
-        let paths = herdr::socket_candidates(
-            self.services
-                .paths
-                .config
-                .parent()
-                .unwrap_or(Path::new("/")),
-            self.settings.borrow().socket.as_deref(),
-        );
+        let sources = self.sources(self.settings.borrow().socket.as_deref());
         let weak = Rc::downgrade(self);
         let cancel = self.closed.clone();
-        let registry = self.registry.clone();
         self.runtime.spawn(async move {
-            let Some(found) = discover_sessions(paths, registry, &cancel).await else {
+            let Some(found) = agent_targets::discover(sources, &cancel).await else {
                 return;
             };
             if let Some(owner) = weak.upgrade() {
@@ -808,7 +784,7 @@ impl AgentVoiceController {
                 if owner.generation.get() != generation || owner.closed.is_cancelled() {
                     return;
                 }
-                owner.connection.replace(connection_message(&found));
+                owner.connection.replace(found.summary());
                 // A refresh in which no Herdr server answered is a failed read, not an empty
                 // list. While the wheel is open it keeps what it shows, so a transient error
                 // never collapses it or moves its page; sending stays guarded either way.
@@ -816,56 +792,38 @@ impl AgentVoiceController {
                     owner.render();
                     return;
                 }
-                owner.update_recipients(found.recipients);
+                owner.update_targets(found.targets);
             }
         });
     }
-    fn update_recipients(self: &Rc<Self>, mut recipients: Vec<Recipient>) {
-        // Herdr already enumerates workspace, tab and layout-pane order.
-        // Selection is the guarded identity, never this display position.
+    fn update_targets(self: &Rc<Self>, mut targets: Vec<Target>) {
+        // Discovery already enumerates Herdr's workspace, tab and layout-pane order, then the
+        // sessions outside it. Selection is the target's identity, never this position.
         let previous = self.selected();
-        self.route.borrow_mut().observe(&recipients);
+        self.route.borrow_mut().observe(&targets);
         let selected = self.settings.borrow().selected.clone();
         if let Some(selected) = &selected
-            && !recipients.iter().any(|r| r.same_instance(selected))
+            && !targets.iter().any(|t| t.same_instance(selected))
         {
             let mut missing = selected.clone();
             missing.status = AgentStatus::Unknown;
             missing.missing = true;
-            recipients.push(missing);
+            targets.push(missing);
         }
-        let changed = *self.recipients.borrow() != recipients;
+        let changed = *self.targets.borrow() != targets;
         let selected_index = selected
             .as_ref()
-            .and_then(|s| recipients.iter().position(|r| r.same_instance(s)))
+            .and_then(|s| targets.iter().position(|t| t.same_instance(s)))
             .map_or(0, |i| i + 1) as u32;
-        self.recipients.replace(recipients);
+        self.targets.replace(targets);
         if changed || self.view.recipients.selected() != selected_index {
-            let recipients = self.recipients.borrow();
+            let targets = self.targets.borrow();
             let mut labels = vec!["Choose a session".to_owned()];
-            labels.extend(recipients.iter().map(|r| {
-                let project = Path::new(&r.project)
-                    .file_name()
-                    .and_then(|s| s.to_str())
-                    .unwrap_or("Local");
-                if r.socket.is_empty() {
-                    format!(
-                        "{} · {} · {project} ({:?}) · not in Herdr, draft only",
-                        r.display_name(),
-                        r.kind,
-                        r.status
-                    )
-                } else {
-                    format!(
-                        "{} · {} · {project} · {} ({:?}) · Local {}",
-                        r.name, r.kind, r.pane_id, r.status, r.socket
-                    )
-                }
-            }));
+            labels.extend(targets.iter().map(menu_label));
             let strings: Vec<_> = labels.iter().map(String::as_str).collect();
             let index = selected
                 .as_ref()
-                .and_then(|s| recipients.iter().position(|r| r.same_instance(s)))
+                .and_then(|s| targets.iter().position(|t| t.same_instance(s)))
                 .map_or(0, |i| i + 1);
             self.syncing.set(true);
             self.view
@@ -883,7 +841,7 @@ impl AgentVoiceController {
                 .borrow()
                 .attempt
                 .as_ref()
-                .filter(|a| a.phase == RoutePhase::Sent && a.recipient.same_instance(&current))
+                .filter(|a| a.phase == RoutePhase::Delivered && a.target.same_instance(&current))
                 .map(|a| a.id.clone());
             if transition
                 && matches!(current.status, AgentStatus::Blocked | AgentStatus::Done)
@@ -904,8 +862,8 @@ impl AgentVoiceController {
         (!job.done.is_cancelled()).then(|| job.done.clone())
     }
     pub fn read_status(self: &Rc<Self>) {
-        if let Some(recipient) = self.selected() {
-            self.view.reply.set_label(&recipient.spoken_status());
+        if let Some(target) = self.selected() {
+            self.view.reply.set_label(&target.spoken_status());
             self.speak_visible();
         }
     }
@@ -983,11 +941,11 @@ impl AgentVoiceController {
         );
         self.view
             .send_draft
-            .set_sensitive(draft && enabled && self.selected().is_some_and(|r| r.can_receive()));
+            .set_sensitive(draft && enabled && self.selected().is_some_and(|t| t.can_receive()));
         self.view.feedback.set_visible(enabled);
         self.view.record.set_sensitive(
             enabled
-                && self.selected().is_some_and(|r| r.can_receive())
+                && self.selected().is_some_and(|t| t.can_receive())
                 && !attempt.as_ref().is_some_and(|a| {
                     matches!(a.phase, RoutePhase::Finalizing | RoutePhase::Submitting)
                 }),
@@ -1013,12 +971,12 @@ impl AgentVoiceController {
             .set_sensitive(enabled && !self.settings.borrow().voice_id.is_empty());
         let status = match attempt {
             Some(a) => match a.phase {
-                RoutePhase::Recording => format!("Recording for {} · press again to stop and send", a.recipient.name),
-                RoutePhase::Finalizing => format!("Finishing your message to {}…", a.recipient.name),
-                RoutePhase::Grace {deadline_ms} => format!("Sending to {} in {:.1} s", a.recipient.name, deadline_ms.saturating_sub(now()) as f64/1000.0),
-                RoutePhase::Submitting => format!("Submitting to {}… Cancel can no longer recall this message.", a.recipient.name),
-                RoutePhase::Sent => format!("Sent to {} · agent completion is separate", a.recipient.name),
-                RoutePhase::Unconfirmed => "Delivery unconfirmed. Check Herdr before sending again; your draft is here.".into(),
+                RoutePhase::Recording => format!("Recording for {} · {}", a.target.name, stop_hint(a.target.delivery())),
+                RoutePhase::Finalizing => format!("Finishing your message to {}…", a.target.name),
+                RoutePhase::Grace {deadline_ms} => countdown_message(&a.target, deadline_ms.saturating_sub(now())),
+                RoutePhase::Submitting => format!("Delivering to {}… Cancel can no longer recall this message.", a.target.name),
+                RoutePhase::Delivered => delivered_message(&a.target),
+                RoutePhase::Unconfirmed => format!("Delivery unconfirmed. Check {} before sending again; your draft is here.", a.target.place_to_check()),
                 RoutePhase::Draft(reason) => match reason {
                     DraftReason::Edited | DraftReason::Kept => "Draft kept. Automatic sending is off; edit or copy your text.".into(),
                     DraftReason::Empty => "No words recognized. Nothing was sent.".into(),
@@ -1029,8 +987,8 @@ impl AgentVoiceController {
                 },
             },
             None if !enabled => "Enable agent dictation in Settings → Capture.".into(),
-            None => match self.selected().filter(Recipient::draft_only) {
-                Some(r) => format!("{} · {}.", r.display_name(), r.draft_hint()),
+            None => match self.selected().filter(Target::draft_only) {
+                Some(t) => format!("{} · {}.", t.display_name(), t.draft_hint()),
                 None => self.connection.borrow().clone(),
             },
         };
@@ -1041,13 +999,15 @@ impl AgentVoiceController {
         };
         self.view.recipients.set_tooltip_text(
             self.selected()
-                .map(|r| {
-                    let place = if r.socket.is_empty() {
-                        "not in Herdr"
-                    } else {
-                        &r.socket
-                    };
-                    format!("Local · {} · {} · {} · {place}", r.name, r.kind, r.project)
+                .map(|t| {
+                    format!(
+                        "Local · {} · {} · {} · {} · {}",
+                        t.name,
+                        t.kind.label(),
+                        t.project,
+                        t.place(),
+                        t.delivery().verb()
+                    )
                 })
                 .as_deref(),
         );
@@ -1130,19 +1090,70 @@ impl AgentVoiceController {
     }
 }
 
-/// The panel's line for what discovery found; Herdr is needed only for sending.
-fn connection_message(found: &Found) -> String {
-    if found.recipients.is_empty() {
-        return found.errors.last().cloned().unwrap_or_else(|| {
-            "No sessions found. Start Claude Code, or Codex in Herdr, then refresh.".into()
-        });
+/// One dropdown row: name, product, project, place, state and what recording does.
+fn menu_label(target: &Target) -> String {
+    format!(
+        "{} · {} · {} · {} ({:?}) · {}",
+        target.display_name(),
+        target.kind.label(),
+        target.project_name(),
+        target.place(),
+        target.status,
+        target.delivery().verb()
+    )
+}
+
+/// What the second press does, said while recording.
+fn stop_hint(delivery: Delivery) -> &'static str {
+    match delivery {
+        Delivery::Send => "press again to stop and send",
+        Delivery::Queue => "press again to stop and queue",
+        Delivery::Prefill => "press again to stop and place it in the composer",
+        Delivery::DraftOnly => "press again to stop and keep a draft",
     }
-    if found.recipients.iter().any(Recipient::has_transport) {
-        "Local Herdr · press to start and again to stop and send".into()
-    } else if found.herdr && !found.guarded {
-        "Herdr needs the guarded prompt integration. Sending is unavailable.".into()
-    } else {
-        "No session was started from Herdr, so dictation keeps a draft in Mluva.".into()
+}
+
+/// The cancel window's line, by what will happen when it ends.
+fn countdown_message(target: &Target, remaining_ms: u64) -> String {
+    let seconds = remaining_ms as f64 / 1000.0;
+    match target.delivery() {
+        Delivery::Queue => format!("Queueing for {} in {seconds:.1} s", target.name),
+        Delivery::Prefill => format!("Placing in {}'s composer in {seconds:.1} s", target.name),
+        Delivery::Send | Delivery::DraftOnly => {
+            format!("Sending to {} in {seconds:.1} s", target.name)
+        }
+    }
+}
+
+/// The status once the transport accepted the message.
+fn delivered_message(target: &Target) -> String {
+    match target.delivery() {
+        Delivery::Queue => format!(
+            "Queued for {} · it takes the message when it is ready",
+            target.name
+        ),
+        Delivery::Prefill => format!("In {}'s composer · press Enter there to send", target.name),
+        Delivery::Send | Delivery::DraftOnly => {
+            format!("Sent to {} · agent completion is separate", target.name)
+        }
+    }
+}
+
+/// The reply line after an accepted delivery; completion is never claimed.
+fn accepted_message(target: &Target) -> String {
+    match target.delivery() {
+        Delivery::Queue => format!(
+            "{} queued your message. When it runs is up to the agent.",
+            target.name
+        ),
+        Delivery::Prefill => format!(
+            "Your message is in {}'s composer. Nothing is sent until you press Enter.",
+            target.name
+        ),
+        Delivery::Send | Delivery::DraftOnly => format!(
+            "{} accepted your message. Completion is not confirmed.",
+            target.name
+        ),
     }
 }
 

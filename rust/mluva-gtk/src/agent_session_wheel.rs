@@ -1,17 +1,18 @@
 //! Native, keyboard-first session wheel; routing remains in the application owner.
 //!
 //! The wheel is a watch: one index per session on a sunray dial, a hand that turns to the chosen
-//! one and a light that follows it. Sessions sit clockwise from one o'clock in Herdr pane order,
-//! then Claude Code sessions outside Herdr in the order they started. Each full name stands in
+//! one and a light that follows it. Sessions sit clockwise from one o'clock in discovery order:
+//! Herdr's panes, then sessions outside Herdr in the order they started. Each full name stands in
 //! the room around the watch on its index's bearing, an uppercase key first; nothing is
-//! shortened, and the watch shrinks, never the names, when the screen is small.
+//! shortened, and the watch shrinks, never the names, when the screen is small. The wheel reads
+//! only the target model: what a session is, its state and how a recording reaches it.
 //!
 //! Geometry depends only on the number of sessions and on their names, never on status captions
 //! or on which session is chosen, so a refresh that changes a status moves nothing.
 use adw::prelude::*;
-use mluva_core::agent_voice::{AgentStatus, Recipient};
+use mluva_core::agent_voice::{AgentKind, AgentStatus, Delivery, Target};
 use std::cell::{Cell, RefCell};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 mod palette;
 mod stage;
@@ -173,33 +174,44 @@ fn layout(sizes: &[(f64, f64)], dial: f64) -> Vec<Placement> {
 
 #[derive(Clone, Copy, PartialEq)]
 enum Availability {
-    Ready,
-    Working,
+    /// Recording reaches the session now, at this level.
+    Ready(Delivery),
+    /// As Ready, while the agent is in a turn.
+    Working(Delivery),
     Blocked,
     Unavailable,
-    /// Present, but Herdr cannot send to it: recording keeps an editable draft in Mluva.
+    /// Present, but nothing can deliver to it: recording keeps an editable draft in Mluva.
     Draft,
 }
 impl Availability {
-    fn of(entry: &Recipient) -> Self {
+    fn of(entry: &Target) -> Self {
         if entry.draft_only() {
             return Self::Draft;
         }
         match (entry.can_receive(), &entry.status) {
-            (true, AgentStatus::Working) => Self::Working,
-            (true, _) => Self::Ready,
+            (true, AgentStatus::Working) => Self::Working(entry.delivery()),
+            (true, _) => Self::Ready(entry.delivery()),
             (false, AgentStatus::Blocked) => Self::Blocked,
             (false, _) => Self::Unavailable,
         }
     }
     fn title(self) -> &'static str {
         match self {
-            Self::Ready => "Ready",
-            Self::Working => "Working",
+            Self::Ready(delivery) | Self::Working(delivery) if delivery != Delivery::Send => {
+                delivery.verb()
+            }
+            Self::Ready(_) => "Ready",
+            Self::Working(_) => "Working",
             Self::Blocked => "Blocked",
             Self::Unavailable => "Gone",
             Self::Draft => "Draft only",
         }
+    }
+    /// The caption under a name: a state or a delivery level worth knowing, never a plain send
+    /// to an idle session. A level other than Send outranks `working`: it already says the
+    /// message waits for the agent.
+    fn caption(self) -> Option<&'static str> {
+        (self != Self::Ready(Delivery::Send)).then(|| self.title())
     }
     fn warns(self) -> bool {
         matches!(self, Self::Blocked | Self::Unavailable)
@@ -207,8 +219,8 @@ impl Availability {
     /// How the session's index is set on the dial.
     fn kind(self) -> Kind {
         match self {
-            Self::Ready => Kind::Ready,
-            Self::Working => Kind::Working,
+            Self::Ready(_) => Kind::Ready,
+            Self::Working(_) => Kind::Working,
             Self::Blocked => Kind::Blocked,
             Self::Unavailable => Kind::Gone,
             Self::Draft => Kind::Draft,
@@ -265,44 +277,17 @@ fn legend_key(text: &str) -> gtk::Label {
     label(text, &["ml-wheel-legend-key"])
 }
 
-/// Agent product in the user's words; Claude Code reports either kind.
-fn product(kind: &str) -> &str {
-    match kind {
-        "claude" | "claude_code" => "claude",
-        other => other,
-    }
-}
-
-/// Where a session is: its Herdr pane, else Claude Code's own handle or its process.
-fn locator(entry: &Recipient) -> String {
-    if !entry.pane_id.is_empty() {
-        entry.pane_id.clone()
-    } else if entry.name != entry.display_name() {
-        entry.name.clone()
-    } else {
-        format!("pid {}", entry.pid)
-    }
-}
-
-/// The tooltip's second line: agent, place and, in Herdr, its label.
-fn whereabouts(entry: &Recipient) -> String {
-    let project = std::path::Path::new(&entry.project)
-        .file_name()
-        .and_then(|s| s.to_str())
-        .unwrap_or("Local");
-    if entry.socket.is_empty() {
-        format!(
-            "{} · {} · not in Herdr · {project}",
-            product(&entry.kind),
-            locator(entry)
-        )
-    } else {
-        format!(
-            "{} · {} · Herdr {} · {project}",
-            product(&entry.kind),
-            entry.pane_id,
-            entry.name
-        )
+/// What follows a name to tell it apart, if anything. A shared name gets the session's pane or
+/// handle, led by its product when the sessions sharing it are different agents; a desktop app
+/// gets its product, which says where it lives.
+fn tag(entry: &Target, sharing: Option<&HashSet<AgentKind>>) -> Option<String> {
+    match sharing {
+        Some(kinds) if kinds.len() > 1 => {
+            Some(format!("{} {}", entry.kind.label(), entry.locator()))
+        }
+        Some(_) => Some(entry.locator()),
+        None if entry.kind.is_desktop() => Some(entry.kind.label().to_owned()),
+        None => None,
     }
 }
 
@@ -383,19 +368,25 @@ impl Slot {
         self.key
             .set_attributes(Some(&type_attributes(chosen, 15. / 14.)));
     }
-    fn show(&self, letter: char, entry: &Recipient, selected: bool, duplicate: bool) {
+    fn show(
+        &self,
+        letter: char,
+        entry: &Target,
+        selected: bool,
+        sharing: Option<&HashSet<AgentKind>>,
+    ) {
         let availability = Availability::of(entry);
         let name = entry.display_name();
-        let note =
-            (availability != Availability::Ready).then(|| availability.title().to_lowercase());
-        // Names lead; a pane appears only to tell a shared name apart, a caption only for state.
-        let place = locator(entry);
-        let pane = (duplicate && name != place).then_some(place.as_str());
+        let note = availability.caption().map(str::to_lowercase);
+        // Names lead; a tag appears only to tell a name apart, a caption only for state or a
+        // delivery level other than a plain send.
+        let place = entry.locator();
+        let tag = tag(entry, sharing).filter(|tag| tag != name);
         let title = glib::markup_escape_text(name);
-        self.name.set_markup(&match pane {
-            Some(pane) => format!(
+        self.name.set_markup(&match &tag {
+            Some(tag) => format!(
                 "{title}  <span font_family=\"JetBrains Mono\" size=\"small\" alpha=\"75%\">{}</span>",
-                glib::markup_escape_text(pane)
+                glib::markup_escape_text(tag)
             ),
             None => title.to_string(),
         });
@@ -409,8 +400,11 @@ impl Slot {
         toggle_class(&self.button, "ml-wheel-selected", selected);
         self.chosen.set(selected);
         self.typeset(selected);
-        self.button
-            .set_tooltip_text(Some(&format!("{name}\n{}", whereabouts(entry))));
+        self.button.set_tooltip_text(Some(&format!(
+            "{name}\n{}\n{}",
+            entry.whereabouts(),
+            what_recording_does(entry)
+        )));
         self.button
             .update_property(&[gtk::accessible::Property::Label(&format!(
                 "{} · {name} · {place}{}",
@@ -489,7 +483,7 @@ impl DialText {
     }
     fn show(
         &self,
-        target: Option<&Recipient>,
+        target: Option<&Target>,
         other_page: Option<usize>,
         empty: bool,
         agent_key: &str,
@@ -522,12 +516,13 @@ impl DialText {
                     "DRAFT".to_owned(),
                     target.draft_hint().to_owned(),
                 ),
-                Availability::Ready | Availability::Working => (
+                Availability::Ready(delivery) | Availability::Working(delivery) => (
                     agent_key,
-                    "RECORD".to_owned(),
+                    delivery.verb().to_uppercase(),
                     // The remembered session stays chosen while another page is shown.
                     other_page
                         .map(|page| format!("Chosen on page {}", page + 1))
+                        .or_else(|| target.delivery_hint().map(str::to_owned))
                         .unwrap_or_default(),
                 ),
             },
@@ -564,8 +559,8 @@ pub struct SessionWheel {
     rendered_page: Cell<usize>,
     rendered_keys: RefCell<(String, String)>,
     rendered_room: Cell<(f64, f64)>,
-    pub entries: RefCell<Vec<Recipient>>,
-    pub selected: RefCell<Option<Recipient>>,
+    pub entries: RefCell<Vec<Target>>,
+    pub selected: RefCell<Option<Target>>,
     placements: RefCell<Vec<Placement>>,
 }
 impl SessionWheel {
@@ -766,8 +761,8 @@ impl SessionWheel {
 
     pub fn update(
         &self,
-        entries: &[Recipient],
-        selected: Option<Recipient>,
+        entries: &[Target],
+        selected: Option<Target>,
         agent_key: &str,
         transcript_key: &str,
     ) {
@@ -810,11 +805,14 @@ impl SessionWheel {
             .and_then(|s| entries.iter().position(|e| e.same_instance(s)));
         let other_page = position.map(|i| i / KEYS.len()).filter(|p| *p != page);
         self.show_record(selected.as_ref(), other_page, entries.is_empty(), agent_key);
-        let mut names: HashMap<&str, usize> = HashMap::new();
+        // The products sharing each name, for names that more than one session has.
+        let mut names: HashMap<&str, (usize, HashSet<AgentKind>)> = HashMap::new();
         for entry in entries {
-            *names.entry(entry.display_name()).or_default() += 1;
+            let (count, kinds) = names.entry(entry.display_name()).or_default();
+            *count += 1;
+            kinds.insert(entry.kind);
         }
-        let shown: Vec<&Recipient> = entries
+        let shown: Vec<&Target> = entries
             .iter()
             .skip(page * KEYS.len())
             .take(KEYS.len())
@@ -828,7 +826,10 @@ impl SessionWheel {
                     KEYS[index],
                     entry,
                     chosen == Some(index),
-                    names[entry.display_name()] > 1,
+                    names
+                        .get(entry.display_name())
+                        .filter(|(count, _)| *count > 1)
+                        .map(|(_, kinds)| kinds),
                 ),
                 None => slot.button.set_visible(false),
             }
@@ -849,7 +850,7 @@ impl SessionWheel {
     /// The Record legend and the dial text, from the remembered session.
     fn show_record(
         &self,
-        target: Option<&Recipient>,
+        target: Option<&Target>,
         other_page: Option<usize>,
         empty: bool,
         agent_key: &str,
@@ -866,18 +867,16 @@ impl SessionWheel {
         let ready = target.can_receive();
         let draft = availability == Availability::Draft;
         let name = target.display_name();
-        let place = locator(target);
+        let place = target.locator();
         self.record.set_sensitive(ready || draft);
+        self.record.set_tooltip_text(Some(&format!(
+            "{name}\n{}\n{}",
+            target.whereabouts(),
+            what_recording_does(target)
+        )));
         self.record
-            .set_tooltip_text(Some(&format!("{name}\n{}", whereabouts(target))));
-        self.record
-            .update_property(&[gtk::accessible::Property::Label(&if ready {
-                format!("{agent_key} · Record to {name} · {place}")
-            } else if draft {
-                format!(
-                    "{agent_key} · Record a draft for {name} · {place} · {}",
-                    target.draft_hint()
-                )
+            .update_property(&[gtk::accessible::Property::Label(&if ready || draft {
+                format!("{agent_key} · {} · {place}", what_recording_does(target))
             } else {
                 format!("{name} · {place} · {}", availability.title())
             })]);
@@ -903,9 +902,9 @@ impl SessionWheel {
     fn place(
         &self,
         arrangement: &Arrangement,
-        shown: &[&Recipient],
+        shown: &[&Target],
         chosen: Option<usize>,
-        selected: &Option<Recipient>,
+        selected: &Option<Target>,
     ) {
         let (width, height, (left, top)) = stage_bounds(arrangement.dial, &arrangement.labels);
         let marks = shown
@@ -949,6 +948,20 @@ impl SessionWheel {
 impl Default for SessionWheel {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// What recording for a session does, in one sentence for tooltips and screen readers.
+fn what_recording_does(target: &Target) -> String {
+    let name = target.display_name();
+    if target.draft_only() {
+        return format!("Record a draft for {name} · {}", target.draft_hint());
+    }
+    match target.delivery() {
+        Delivery::Send => format!("Record and send to {name}"),
+        Delivery::Queue => format!("Record and queue for {name}"),
+        Delivery::Prefill => format!("Record into {name}'s composer; you press Enter"),
+        Delivery::DraftOnly => format!("Record a draft for {name}"),
     }
 }
 
@@ -1086,8 +1099,17 @@ mod tests {
         let names = sizes(20);
         assert_eq!(arrange(&names, LAPTOP), arrange(&names, LAPTOP));
         assert_eq!(CAPTION_CHARS as usize, "DRAFT ONLY".len());
-        for caption in ["WORKING", "BLOCKED", "GONE", "DRAFT ONLY"] {
-            assert!(caption.len() <= CAPTION_CHARS as usize);
+        let every = [Delivery::Send, Delivery::Queue, Delivery::Prefill]
+            .into_iter()
+            .flat_map(|d| [Availability::Ready(d), Availability::Working(d)])
+            .chain([
+                Availability::Blocked,
+                Availability::Unavailable,
+                Availability::Draft,
+            ]);
+        for availability in every {
+            let caption = availability.caption().unwrap_or_default();
+            assert!(caption.len() <= CAPTION_CHARS as usize, "{caption}");
         }
     }
 

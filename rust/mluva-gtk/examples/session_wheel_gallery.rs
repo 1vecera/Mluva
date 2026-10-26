@@ -12,7 +12,7 @@
 use std::path::{Path, PathBuf};
 
 use adw::prelude::*;
-use mluva_core::agent_voice::{AgentStatus, Recipient};
+use mluva_core::agent_voice::{AgentKind, AgentStatus, HerdrPane, Target};
 use mluva_gtk::agent_session_wheel::SessionWheel;
 use mluva_gtk::theme::ThemeController;
 
@@ -53,26 +53,36 @@ const TITLES: [&str; 30] = [
     "Theme tokens",
 ];
 
-fn session(index: usize, status: AgentStatus) -> Recipient {
-    Recipient {
+fn pane(index: usize, guard: &str) -> Option<HerdrPane> {
+    Some(HerdrPane {
         socket: "/run/user/fixture/herdr.sock".into(),
         server_epoch: "fixture".into(),
         pane_id: format!("w{}:p{}", index / 8 + 1, index % 8 + 1),
-        guard: "g".repeat(64),
+        guard: guard.into(),
+    })
+}
+
+fn session(index: usize, status: AgentStatus) -> Target {
+    Target {
+        herdr: pane(index, &"g".repeat(64)),
         name: format!("agent-{}", index + 1),
         title: TITLES[index].into(),
-        kind: if index % 3 == 1 { "claude" } else { "codex" }.into(),
+        kind: if index % 3 == 1 {
+            AgentKind::ClaudeCode
+        } else {
+            AgentKind::CodexCli
+        },
         project: "/fixture/project".into(),
         status,
-        ..Recipient::default()
+        ..Target::default()
     }
 }
 
 /// A Claude Code session Herdr lists but cannot send to, such as one typed into a pane.
-fn unmanaged(index: usize, status: AgentStatus) -> Recipient {
-    Recipient {
-        guard: String::new(),
-        kind: "claude".into(),
+fn unmanaged(index: usize, status: AgentStatus) -> Target {
+    Target {
+        herdr: pane(index, ""),
+        kind: AgentKind::ClaudeCode,
         session_id: format!("fixture-session-{index}"),
         pid: 40_000 + index as u32,
         ..session(index, status)
@@ -80,25 +90,22 @@ fn unmanaged(index: usize, status: AgentStatus) -> Recipient {
 }
 
 /// A Claude Code session found only in its own registry: no Herdr pane or socket.
-fn native(index: usize, title: &str, status: AgentStatus) -> Recipient {
-    Recipient {
-        socket: String::new(),
-        server_epoch: String::new(),
-        pane_id: String::new(),
-        guard: String::new(),
+fn native(index: usize, title: &str, status: AgentStatus) -> Target {
+    Target {
+        herdr: None,
         name: format!("project-{:02x}", 0x3a + index),
         title: title.into(),
-        kind: "claude".into(),
+        kind: AgentKind::ClaudeCode,
         project: "/fixture/project".into(),
         status,
         session_id: format!("fixture-native-{index}"),
         pid: 50_000 + index as u32,
-        ..Recipient::default()
+        ..Target::default()
     }
 }
 
 /// Herdr-guarded, Herdr-unmanaged and registry-only sessions together, in that order.
-fn mixed() -> Vec<Recipient> {
+fn mixed() -> Vec<Target> {
     vec![
         session(0, AgentStatus::Idle),
         session(1, AgentStatus::Working),
@@ -111,7 +118,7 @@ fn mixed() -> Vec<Recipient> {
 }
 
 /// Herdr is absent: Claude Code's registry alone, two sessions sharing a title.
-fn native_only() -> Vec<Recipient> {
+fn native_only() -> Vec<Target> {
     vec![
         native(0, "Release checklist", AgentStatus::Idle),
         native(1, "Shortcut portal fix", AgentStatus::Working),
@@ -121,7 +128,7 @@ fn native_only() -> Vec<Recipient> {
     ]
 }
 
-fn sessions(count: usize) -> Vec<Recipient> {
+fn sessions(count: usize) -> Vec<Target> {
     (0..count)
         .map(|i| {
             let status = match i {
@@ -162,7 +169,7 @@ fn capture(window: &adw::Window, path: &Path) {
     println!("{} {width}x{height}", path.display());
 }
 
-fn show(entries: &[Recipient], selected: Option<usize>, page: usize) -> SessionWheel {
+fn show(entries: &[Target], selected: Option<usize>, page: usize) -> SessionWheel {
     let wheel = SessionWheel::new();
     if std::env::args().nth(3).as_deref() == Some("overlay") {
         let screen = gtk::gdk::Display::default()
@@ -258,16 +265,16 @@ fn main() -> glib::ExitCode {
     let thirty = sessions(30);
     let mut missing = sessions(3);
     let mut gone = session(7, AgentStatus::Unknown);
-    gone.socket = "/run/user/fixture/other.sock".into();
+    gone.herdr.as_mut().unwrap().socket = "/run/user/fixture/other.sock".into();
     missing.push(gone);
     let mut unnamed = sessions(4);
     unnamed[1].title.clear();
     unnamed[3].title.clear();
-    unnamed[3].name = unnamed[3].pane_id.clone();
+    unnamed[3].name = unnamed[3].locator();
     // Twenty with the last one found outside Herdr, as the design prototype shows it.
     let mut twenty_draft = sessions(20);
     twenty_draft[19] = unmanaged(19, AgentStatus::Idle);
-    let scenarios: Vec<(&str, Vec<Recipient>, Option<usize>, usize)> = vec![
+    let scenarios: Vec<(&str, Vec<Target>, Option<usize>, usize)> = vec![
         ("one", sessions(1), Some(0), 0),
         ("three", sessions(3), Some(1), 0),
         ("six", sessions(6), Some(0), 0),

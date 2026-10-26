@@ -89,8 +89,8 @@ impl DiagnosticOutcome {
 pub enum RouteKind {
     /// Mluva's own session wheel.
     Wheel,
-    /// A recording sent to a guarded Herdr session.
-    GuardedAgent,
+    /// A recording for an agent, at the delivery level its target offered.
+    Agent(crate::agent_target::Delivery),
     /// A recording kept as an editable transcript, never sent.
     Transcript,
 }
@@ -118,7 +118,12 @@ impl RouteKind {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Wheel => "wheel",
-            Self::GuardedAgent => "guarded-agent",
+            Self::Agent(delivery) => match delivery {
+                crate::agent_target::Delivery::Send => "guarded-agent",
+                crate::agent_target::Delivery::Queue => "queued-agent",
+                crate::agent_target::Delivery::Prefill => "prefilled-agent",
+                crate::agent_target::Delivery::DraftOnly => "transcript",
+            },
             Self::Transcript => "transcript",
         }
     }

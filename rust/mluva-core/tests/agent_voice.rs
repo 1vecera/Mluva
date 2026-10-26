@@ -1,15 +1,21 @@
 use mluva_core::agent_voice::*;
 use std::os::unix::fs::PermissionsExt;
 
-fn recipient() -> Recipient {
-    Recipient {
+fn herdr_pane(pane: &str, guard: &str) -> Option<HerdrPane> {
+    Some(HerdrPane {
         socket: "/tmp/private/herdr.sock".into(),
         server_epoch: "server-a".into(),
-        pane_id: "w1:p2".into(),
-        guard: "process-session-a".into(),
+        pane_id: pane.into(),
+        guard: guard.into(),
+    })
+}
+
+fn recipient() -> Target {
+    Target {
+        herdr: herdr_pane("w1:p2", "process-session-a"),
         name: "builder".into(),
         title: String::new(),
-        kind: "codex".into(),
+        kind: AgentKind::CodexCli,
         project: "example".into(),
         status: AgentStatus::Idle,
         ..Default::default()
@@ -17,11 +23,11 @@ fn recipient() -> Recipient {
 }
 
 /// A Claude Code session Herdr cannot send to, or one found only in Claude Code's registry.
-fn draft_only() -> Recipient {
-    Recipient {
+fn draft_only() -> Target {
+    Target {
         name: "notes-3f".into(),
         title: "Synthetic notes".into(),
-        kind: "claude".into(),
+        kind: AgentKind::ClaudeCode,
         project: "/synthetic/notes".into(),
         status: AgentStatus::Idle,
         session_id: "session-a".into(),
@@ -38,10 +44,8 @@ fn draft_hint_says_whether_the_session_is_outside_herdr() {
     );
     // A Claude Code session typed into a Herdr pane can be guarded; without a guard yet,
     // the hint must not tell the user to restart it from Herdr.
-    let in_herdr = Recipient {
-        socket: "/tmp/private/herdr.sock".into(),
-        server_epoch: "server-a".into(),
-        pane_id: "w1:p4".into(),
+    let in_herdr = Target {
+        herdr: herdr_pane("w1:p4", ""),
         ..draft_only()
     };
     assert_eq!(
@@ -57,36 +61,34 @@ fn draft_only_sessions_match_by_native_session_and_process_and_never_send() {
     let mut route = VoiceRoute::default();
     assert!(route.begin(native.clone(), 0).is_err());
     // The same session seen through Herdr, unmanaged, is the same choice.
-    let in_herdr = Recipient {
-        socket: "/tmp/private/herdr.sock".into(),
-        server_epoch: "server-a".into(),
-        pane_id: "w1:p4".into(),
+    let in_herdr = Target {
+        herdr: herdr_pane("w1:p4", ""),
         ..draft_only()
     };
     assert!(native.same_instance(&in_herdr));
     // A resumed session in a new process, or a new session in the same pane, is not.
-    let resumed = Recipient {
+    let resumed = Target {
         pid: 4_200,
         ..draft_only()
     };
-    let replaced = Recipient {
+    let replaced = Target {
         session_id: "session-b".into(),
         ..in_herdr.clone()
     };
     assert!(!native.same_instance(&resumed));
     assert!(!in_herdr.same_instance(&replaced));
     // A guarded identity never matches an unguarded one, even for the same session.
-    let guarded = Recipient {
-        guard: "g".repeat(64),
+    let guarded = Target {
+        herdr: herdr_pane("w1:p4", &"g".repeat(64)),
         ..in_herdr.clone()
     };
     assert!(!guarded.same_instance(&in_herdr) && !in_herdr.same_instance(&guarded));
-    assert!(guarded.same_instance(&Recipient {
+    assert!(guarded.same_instance(&Target {
         session_id: String::new(),
         pid: 0,
         ..guarded.clone()
     }));
-    let missing = Recipient {
+    let missing = Target {
         missing: true,
         ..draft_only()
     };
@@ -105,14 +107,17 @@ fn release_finalization_grace_and_acceptance_have_distinct_boundaries() {
     assert!(route.take_submission(25_999).is_none());
     let submission = route.take_submission(26_000).unwrap();
     assert_eq!(submission.text, "Final original.");
-    assert_eq!(submission.recipient.guard, "process-session-a");
+    assert_eq!(
+        submission.target.herdr.as_ref().unwrap().guard,
+        "process-session-a"
+    );
     assert!(route.take_submission(26_001).is_none());
     assert!(!route.disarm(DraftReason::Cancelled));
     assert!(!route.delivered("old-message", SendOutcome::Accepted, 26_010));
     assert!(route.delivered(&id, SendOutcome::Accepted, 26_100));
     assert!(!route.delivered(&id, SendOutcome::Unconfirmed, 26_200));
     let a = route.attempt.as_ref().unwrap();
-    assert_eq!(a.phase, RoutePhase::Sent);
+    assert_eq!(a.phase, RoutePhase::Delivered);
     assert_eq!(a.history_id.as_deref(), Some("history-a"));
     assert_eq!(a.released_ms, Some(21_000));
     assert_eq!(a.final_ms, Some(24_000));
@@ -172,7 +177,7 @@ fn a_second_press_in_the_cancel_window_sends_once_to_the_same_target() {
         (submission.id.as_str(), submission.text.as_str()),
         (id.as_str(), "send me now")
     );
-    assert_eq!(submission.recipient, recipient());
+    assert_eq!(submission.target, recipient());
     assert_eq!(
         route.attempt.as_ref().unwrap().phase,
         RoutePhase::Submitting
@@ -181,7 +186,7 @@ fn a_second_press_in_the_cancel_window_sends_once_to_the_same_target() {
     assert!(route.send_now(500).is_none());
     assert!(route.take_submission(2_200).is_none());
     assert!(route.delivered(&id, SendOutcome::Accepted, 600));
-    assert_eq!(route.attempt.as_ref().unwrap().phase, RoutePhase::Sent);
+    assert_eq!(route.attempt.as_ref().unwrap().phase, RoutePhase::Delivered);
     assert!(route.send_now(700).is_none());
 }
 
@@ -216,16 +221,17 @@ fn identity_changes_never_retarget_and_timeouts_never_replay() {
         route.release(100);
         route.recognized(&id, "private message", None, 200);
         let mut other = recipient();
+        let pane = other.herdr.as_mut().unwrap();
         match change {
-            0 => other.server_epoch = "restarted".into(),
-            1 => other.guard = "replacement agent with the same name".into(),
-            2 => other.pane_id = "w2:p2".into(),
-            3 => other.socket = "/tmp/other-server.sock".into(),
+            0 => pane.server_epoch = "restarted".into(),
+            1 => pane.guard = "replacement agent with the same name".into(),
+            2 => pane.pane_id = "w2:p2".into(),
+            3 => pane.socket = "/tmp/other-server.sock".into(),
             _ => other.status = AgentStatus::Blocked,
         }
         route.observe(&[other]);
         assert!(route.take_submission(2_200).is_none());
-        assert_eq!(route.attempt.as_ref().unwrap().recipient, recipient());
+        assert_eq!(route.attempt.as_ref().unwrap().target, recipient());
     }
     let mut route = VoiceRoute::default();
     let id = route.begin(recipient(), 0).unwrap();
@@ -288,7 +294,7 @@ fn settings_are_opt_in_private_and_preserve_invalid_files() {
     assert!(loaded.same_instance(&recipient()) && loaded.session_id.is_empty());
     // The draft-only choice round-trips; the in-memory missing marker is never saved.
     settings.hold_key = "F8".into();
-    settings.selected = Some(Recipient {
+    settings.selected = Some(Target {
         missing: true,
         ..draft_only()
     });
