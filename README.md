@@ -23,6 +23,14 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 | Something on screen | Attach a region screenshot with F10 and annotate it in the optional Tensaku editor. Images stay local. |
 | A problem to point at | Turn on [screen annotation](docs/screen-annotation.md) (Experimental, Hyprland). While dictating, hold Shift and move to draw, or Shift-click to pin; the agent receives keyframes matched to what you said. |
 
+### Choose the agent on a watch face
+
+![The F12 session wheel: a sundial watch whose light falls on the chosen agent session](docs/assets/sundial-watch.jpg)
+
+Press F12 and every agent session appears as an index on a watch dial, in Herdr pane order from one o'clock, each with its full name and its letter. Press the letter to choose a session; the hand swings to it and the light falls on it. Press F12 again to dictate to it, or Esc to leave. The watch follows your Omarchy theme.
+
+<sub>A Blender render of the wheel's design; Mluva draws the wheel from the same baked art.</sub>
+
 One dictation mode, one editor. Smooth following is always enabled and respects reduced motion and intentional scrolling away from the end. **Ctrl+P** finds actions. Polish, rewriting, prompts, generated titles, Notes and Command capture modes have been removed. Existing saved replies remain readable and exportable; unfinished Notes recover into local History.
 
 Choose ElevenLabs Scribe, one of the three managed local models, or a compatible speech API. Login never changes the selected speech provider. Contextual editing belongs in the receiving agent. The separate Meeting recorder remains available. See [feature status](docs/feature-maturity.md) and [talking to Claude Code and Codex agents](docs/agent-routing.md).
