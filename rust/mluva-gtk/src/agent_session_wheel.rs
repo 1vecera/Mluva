@@ -1,11 +1,12 @@
 //! Native, keyboard-first session wheel; routing remains in the application owner.
 //!
-//! The wheel is a watch: one index per session on a sunray dial, a hand that turns to the chosen
-//! one and a light that follows it. Sessions sit clockwise from one o'clock in discovery order:
-//! Herdr's panes, then sessions outside Herdr in the order they started. Each full name stands in
-//! the room around the watch on its index's bearing, an uppercase key first; nothing is
-//! shortened, and the watch shrinks, never the names, when the screen is small. The wheel reads
-//! only the target model: what a session is, its state and how a recording reaches it.
+//! The wheel is a dial drawn in a few thin lines over the desktop: one tick per session on a
+//! hairline ring, a hand that turns to the chosen one and a soft light that follows it. Sessions
+//! sit clockwise from one o'clock in discovery order: Herdr's panes, then sessions outside Herdr in
+//! the order they started. Each full name stands just outside the ring on its tick's bearing, an
+//! uppercase key first; nothing is shortened, and the dial shrinks, never the names, when the
+//! screen is small. The wheel reads only the target model: what a session is, its state and how a
+//! recording reaches it.
 //!
 //! Geometry depends only on the number of sessions and on their names, never on status captions
 //! or on which session is chosen, so a refresh that changes a status moves nothing.
@@ -14,12 +15,13 @@ use mluva_core::agent_voice::{AgentKind, AgentStatus, Delivery, Target};
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 
+mod dial;
 mod palette;
 mod stage;
-mod watch;
 
+pub use dial::Light;
+use dial::{Face, Kind, halo_radius};
 use stage::{Area, Hit, Scene, Stage};
-use watch::{Face, Kind, case_radius};
 
 /// Selection keys clockwise from one o'clock: the home row, then the top and bottom rows.
 pub const KEYS: [char; 26] = [
@@ -28,9 +30,9 @@ pub const KEYS: [char; 26] = [
 ];
 /// The first session in Herdr order sits at one o'clock.
 const START_DEGREES: f64 = 30.;
-/// Where a name's anchor lies beyond the case, and the least a name may come to it.
-const NAME_GAP: f64 = 26.;
-const NAME_CLEARANCE: f64 = 12.;
+/// Where a name's anchor lies beyond the ring's halo, and the least a name may come to it.
+const NAME_GAP: f64 = 16.;
+const NAME_CLEARANCE: f64 = 8.;
 const STACK_GAP: f64 = 4.;
 /// Boxes closer than this to touching count as clear of each other.
 const EPSILON: f64 = 1e-6;
@@ -45,13 +47,15 @@ const SCREEN_RESERVE: (f64, f64) = (96., 168.);
 /// The longest status caption, in characters, which every name reserves so that a status change
 /// can never resize a name.
 const CAPTION_CHARS: i32 = 10;
+/// The status line's width in characters: the longest delivery hint fits on one line.
+const HINT_CHARS: i32 = 68;
 
-/// A name's box beside the watch, relative to the ring centre; y grows downward.
+/// A name's box beside the dial, relative to the ring centre; y grows downward.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Placement {
     /// Clockwise from twelve o'clock, in degrees.
     pub angle: f64,
-    /// Right-hand names grow rightward from the watch; left-hand names mirror them.
+    /// Right-hand names grow rightward from the dial; left-hand names mirror them.
     pub right: bool,
     pub x: f64,
     pub y: f64,
@@ -73,19 +77,20 @@ pub fn clock_angle(index: usize, count: usize) -> f64 {
     (START_DEGREES + 360. * index as f64 / count.max(1) as f64).rem_euclid(360.)
 }
 
-/// The dial radius a count of sessions asks for: small for a few, large for twenty.
+/// The ring radius a count of sessions asks for: small for a few, large for twenty.
 pub fn preferred_dial(count: usize) -> f64 {
     match count {
-        0..=1 => 170.,
-        2..=6 => 190. + count as f64 * 9.,
-        _ => (244. + (count as f64 - 6.) * 5.3).min(318.),
+        0..=1 => 150.,
+        2..=6 => 166. + count as f64 * 8.,
+        // It grows up to twenty sessions, then holds.
+        _ => 214. + (count.min(20) as f64 - 6.) * 5.4,
     }
 }
 
-/// Place names of the given sizes clockwise from one o'clock around a watch that fits `room`.
+/// Place names of the given sizes clockwise from one o'clock around a dial that fits `room`.
 ///
-/// Each name stands on its own index's bearing, its nearest edge on the anchor point just
-/// beyond the case. Names that would touch are pushed apart toward their pole, the one nearest
+/// Each name stands on its own tick's bearing, its nearest edge on the anchor point just
+/// beyond the ring. Names that would touch are pushed apart toward their pole, the one nearest
 /// the equator keeping its place, and the dial shrinks until the whole wheel fits `room`.
 pub fn arrange(sizes: &[(f64, f64)], room: (f64, f64)) -> Arrangement {
     let mut dial = preferred_dial(sizes.len());
@@ -102,15 +107,15 @@ pub fn arrange(sizes: &[(f64, f64)], room: (f64, f64)) -> Arrangement {
 
 fn layout(sizes: &[(f64, f64)], dial: f64) -> Vec<Placement> {
     let count = sizes.len();
-    let case = case_radius(dial);
-    let reach = case + NAME_GAP;
-    let clear = case + NAME_CLEARANCE;
+    let halo = halo_radius(dial);
+    let reach = halo + NAME_GAP;
+    let clear = halo + NAME_CLEARANCE;
     let mut labels: Vec<Placement> = (0..count)
         .map(|i| {
             let angle = clock_angle(i, count);
-            let (px, py) = watch::point(angle, reach);
+            let (px, py) = dial::point(angle, reach);
             let (width, height) = sizes[i];
-            // The box hangs off its anchor on the side away from the watch: wholly to the right
+            // The box hangs off its anchor on the side away from the dial: wholly to the right
             // on the right, wholly to the left on the left, centred at the poles, and wholly
             // above or below near the top and bottom.
             let sideways = (angle.to_radians().sin() * 2.6).clamp(-1., 1.);
@@ -125,8 +130,8 @@ fn layout(sizes: &[(f64, f64)], dial: f64) -> Vec<Placement> {
             }
         })
         .collect();
-    // Keep every name clear of the case, sliding it outward along its own side. This comes
-    // first: pushing a name poleward later only moves it further from the case.
+    // Keep every name clear of the ring, sliding it outward along its own side. This comes
+    // first: pushing a name poleward later only moves it further from the ring.
     for label in &mut labels {
         let nearest = if label.y <= 0. && label.y + label.height >= 0. {
             0.
@@ -143,7 +148,7 @@ fn layout(sizes: &[(f64, f64)], dial: f64) -> Vec<Placement> {
     // Start from the equator and move outward, so a name that must give way goes poleward.
     let mut order: Vec<usize> = (0..count).collect();
     order.sort_by(|a, b| {
-        let height = |i: &usize| watch::point(labels[*i].angle, reach).1.abs();
+        let height = |i: &usize| dial::point(labels[*i].angle, reach).1.abs();
         height(a).total_cmp(&height(b))
     });
     let mut placed: Vec<usize> = Vec::with_capacity(count);
@@ -222,7 +227,7 @@ impl Availability {
     fn warns(self) -> bool {
         matches!(self, Self::Blocked | Self::Unavailable)
     }
-    /// How the session's index is set on the dial.
+    /// How the session's tick is drawn on the dial.
     fn kind(self) -> Kind {
         match self {
             Self::Ready(_) => Kind::Ready,
@@ -314,17 +319,14 @@ struct Slot {
     chosen: Cell<bool>,
 }
 
-/// Type attributes for a name or its key. The chosen name is larger and semibold; setting this
-/// as Pango attributes, not CSS, makes the size count the moment it is measured.
-fn type_attributes(chosen: bool, scale: f64) -> gtk::pango::AttrList {
+/// Type attributes for a name or its key. The chosen name is bold; setting this as Pango
+/// attributes, not CSS, makes the weight count the moment it is measured.
+fn type_attributes(chosen: bool) -> gtk::pango::AttrList {
     let attributes = gtk::pango::AttrList::new();
     // Names wrap at spaces, or inside a long unbroken token, and are never ellipsized.
     attributes.insert(gtk::pango::AttrInt::new_insert_hyphens(false));
     if chosen {
-        attributes.insert(gtk::pango::AttrFloat::new_scale(scale));
-        attributes.insert(gtk::pango::AttrInt::new_weight(
-            gtk::pango::Weight::Semibold,
-        ));
+        attributes.insert(gtk::pango::AttrInt::new_weight(gtk::pango::Weight::Bold));
     }
     attributes
 }
@@ -336,7 +338,7 @@ impl Slot {
         let name = gtk::Label::builder()
             .wrap(true)
             .wrap_mode(gtk::pango::WrapMode::WordChar)
-            .attributes(&type_attributes(false, 1.))
+            .attributes(&type_attributes(false))
             .css_classes(["ml-wheel-name"])
             .build();
         // The caption line always exists, as wide as the longest caption, so a status change
@@ -348,7 +350,7 @@ impl Slot {
         text.set_baseline_child(0);
         text.append(&name);
         text.append(&caption);
-        let body = gtk::Box::new(gtk::Orientation::Horizontal, 12);
+        let body = gtk::Box::new(gtk::Orientation::Horizontal, 9);
         body.set_baseline_position(gtk::BaselinePosition::Top);
         body.append(&key);
         body.append(&text);
@@ -367,12 +369,10 @@ impl Slot {
             chosen: Cell::new(false),
         }
     }
-    /// Set the name and its key in the chosen (larger, semibold) type, or in the plain one.
+    /// Set the name and its key in the chosen (bold) type, or in the plain one.
     fn typeset(&self, chosen: bool) {
-        self.name
-            .set_attributes(Some(&type_attributes(chosen, 19. / 16.5)));
-        self.key
-            .set_attributes(Some(&type_attributes(chosen, 15. / 14.)));
+        self.name.set_attributes(Some(&type_attributes(chosen)));
+        self.key.set_attributes(Some(&type_attributes(chosen)));
     }
     fn show(
         &self,
@@ -391,15 +391,13 @@ impl Slot {
         let title = glib::markup_escape_text(name);
         self.name.set_markup(&match &tag {
             Some(tag) => format!(
-                "{title}  <span font_family=\"JetBrains Mono\" size=\"small\" alpha=\"75%\">{}</span>",
+                "{title}  <span size=\"small\" alpha=\"70%\">{}</span>",
                 glib::markup_escape_text(tag)
             ),
             None => title.to_string(),
         });
         self.key.set_label(&letter.to_ascii_uppercase().to_string());
-        let caption = note.as_deref().map(str::to_uppercase);
-        self.caption
-            .set_label(caption.as_deref().unwrap_or("\u{a0}"));
+        self.caption.set_label(note.as_deref().unwrap_or("\u{a0}"));
         toggle_class(&self.caption, "ml-wheel-warning", availability.warns());
         toggle_class(&self.button, "ml-wheel-dim", availability.warns());
         toggle_class(&self.button, "ml-wheel-warn", availability.warns());
@@ -419,7 +417,7 @@ impl Slot {
             ))]);
         self.button.set_visible(true);
     }
-    /// Keys face the watch; names read away from it.
+    /// Keys face the dial; names read away from it.
     fn face(&self, right: bool) {
         if right {
             self.body.reorder_child_after(&self.text, Some(&self.key));
@@ -441,7 +439,7 @@ impl Slot {
             gtk::Align::End
         });
     }
-    /// The size this name takes at a measure, in its largest (chosen) type, so that choosing
+    /// The size this name takes at a measure, in its widest (chosen) type, so that choosing
     /// another session never changes any size.
     fn measured(&self, measure: i32) -> (f64, f64) {
         self.typeset(true);
@@ -453,79 +451,72 @@ impl Slot {
     }
 }
 
-/// The text printed on the dial: the record key and action, or why Record is withdrawn.
+/// The hub at the dial's centre: what happens to the words once the agent key has recorded
+/// them, or why Record is withdrawn. The status line above the legend explains a level, a draft
+/// or a page; it always holds one line, so a new choice never moves anything.
 struct DialText {
     root: gtk::Box,
-    key: gtk::Label,
+    lead: gtk::Label,
     action: gtk::Label,
     hint: gtk::Label,
 }
 impl DialText {
     fn new() -> Self {
-        let key = label("", &["ml-wheel-dial-key"]);
+        let lead = label("→", &["ml-wheel-dial-lead"]);
         let action = label("", &["ml-wheel-dial-action"]);
-        let line = gtk::Box::new(gtk::Orientation::Horizontal, 10);
-        line.set_halign(gtk::Align::Center);
-        line.append(&key);
-        line.append(&action);
-        let hint = gtk::Label::builder()
-            .wrap(true)
-            .justify(gtk::Justification::Center)
-            .max_width_chars(26)
-            .margin_top(8)
-            .css_classes(["ml-wheel-dial-hint"])
-            .build();
-        let root = gtk::Box::new(gtk::Orientation::Vertical, 0);
+        let root = gtk::Box::new(gtk::Orientation::Horizontal, 8);
         root.add_css_class("ml-wheel-dial-text");
         root.set_can_target(false);
-        root.append(&line);
-        root.append(&hint);
+        root.append(&lead);
+        root.append(&action);
+        let hint = gtk::Label::builder()
+            .label("\u{a0}")
+            .width_chars(HINT_CHARS)
+            .css_classes(["ml-wheel-hint"])
+            .build();
+        hint.set_can_target(false);
         Self {
             root,
-            key,
+            lead,
             action,
             hint,
         }
     }
-    fn show(
-        &self,
-        target: Option<&Target>,
-        other_page: Option<usize>,
-        empty: bool,
-        agent_key: &str,
-    ) {
+    fn show(&self, target: Option<&Target>, other_page: Option<usize>, empty: bool) {
         let mut warn = false;
         let mut muted = false;
-        let (key, action, hint) = match target {
-            None if empty => (
-                "",
-                "NO SESSIONS".to_owned(),
-                // No-break spaces keep each product name on one line.
-                "Start Claude\u{a0}Code or Codex".to_owned(),
-            ),
+        let mut lead = true;
+        let (action, hint) = match target {
+            None if empty => {
+                lead = false;
+                (
+                    "no sessions".to_owned(),
+                    // No-break spaces keep each product name on one line.
+                    "Start Claude\u{a0}Code or Codex".to_owned(),
+                )
+            }
             None => {
+                lead = false;
                 muted = true;
-                ("", "CHOOSE A SESSION".to_owned(), String::new())
+                ("choose a session".to_owned(), String::new())
             }
             Some(target) => match Availability::of(target) {
                 Availability::Blocked => {
                     warn = true;
-                    ("", "BLOCKED".to_owned(), String::new())
+                    lead = false;
+                    ("blocked".to_owned(), String::new())
                 }
                 Availability::Unavailable => {
                     warn = true;
-                    ("", "GONE".to_owned(), String::new())
+                    lead = false;
+                    ("gone".to_owned(), String::new())
                 }
-                Availability::Draft => (
-                    agent_key,
-                    "DRAFT".to_owned(),
-                    target.draft_hint().to_owned(),
-                ),
+                // The hub already says draft only; the status line says why.
+                Availability::Draft => ("draft only".to_owned(), sentence(target.draft_hint())),
                 Availability::Ready(delivery)
                 | Availability::Working(delivery)
                 | Availability::Waiting(delivery) => (
-                    agent_key,
-                    delivery.verb().to_uppercase(),
+                    delivery.verb().to_lowercase(),
                     // The remembered session stays chosen while another page is shown.
                     other_page
                         .map(|page| format!("Chosen on page {}", page + 1))
@@ -534,14 +525,22 @@ impl DialText {
                 ),
             },
         };
-        self.key.set_label(&key.to_uppercase());
-        self.key.set_visible(!key.is_empty());
+        self.lead.set_visible(lead);
         self.action.set_label(&action);
-        self.hint.set_label(&hint);
-        self.hint.set_visible(!hint.is_empty());
+        self.hint
+            .set_label(if hint.is_empty() { "\u{a0}" } else { &hint });
         toggle_class(&self.root, "ml-wheel-dial-warn", warn);
         toggle_class(&self.root, "ml-wheel-dial-muted", muted);
     }
+}
+
+/// A draft hint without its leading "Draft only: ", as a sentence.
+fn sentence(hint: &str) -> String {
+    let rest = hint.strip_prefix("Draft only: ").unwrap_or(hint);
+    let mut chars = rest.chars();
+    chars.next().map_or_else(String::new, |first| {
+        first.to_uppercase().chain(chars).collect()
+    })
 }
 
 pub struct SessionWheel {
@@ -580,8 +579,8 @@ impl SessionWheel {
             .hide_on_close(true)
             .build();
         window.add_css_class("ml-session-wheel");
-        // Like Omarchy's launcher: the wheel floats over the desktop on its own opaque ground,
-        // with no window frame, wherever the compositor supports layer-shell.
+        // Like Omarchy's launcher: the wheel floats over the desktop behind one flat translucent
+        // wash, with no window frame, wherever the compositor supports layer-shell.
         let overlay = crate::layer_shell::overlay(&window, "mluva-session-wheel");
         if overlay {
             // The compositor sizes an overlay to its output; a fixed size would pin it small.
@@ -599,13 +598,13 @@ impl SessionWheel {
         stage.set_dial_text(&dial.root);
 
         let record_key = legend_key("");
-        let record = legend_item(&record_key, "Record");
+        let record = legend_item(&record_key, "record");
         let transcript_key = legend_key("");
-        let transcript = legend_item(&transcript_key, "Transcript only");
+        let transcript = legend_item(&transcript_key, "transcript only");
         transcript.set_tooltip_text(Some(
             "Keep an editable transcript in Mluva without copying or sending",
         ));
-        let cancel = legend_item(&legend_key("Esc"), "Cancel");
+        let cancel = legend_item(&legend_key("Esc"), "cancel");
         let pager = gtk::Box::new(gtk::Orientation::Horizontal, 2);
         pager.add_css_class("ml-wheel-pager");
         let previous = gtk::Button::builder()
@@ -621,13 +620,17 @@ impl SessionWheel {
         pager.append(&previous);
         pager.append(&page_label);
         pager.append(&next);
-        let legend = gtk::Box::new(gtk::Orientation::Horizontal, 36);
-        legend.add_css_class("ml-wheel-footer");
+        let legend = gtk::Box::new(gtk::Orientation::Horizontal, 32);
+        legend.set_halign(gtk::Align::Center);
         legend.append(&record);
         legend.append(&transcript);
         legend.append(&cancel);
         legend.append(&pager);
-        stage.set_footer(&legend);
+        let footer = gtk::Box::new(gtk::Orientation::Vertical, 12);
+        footer.add_css_class("ml-wheel-footer");
+        footer.append(&dial.hint);
+        footer.append(&legend);
+        stage.set_footer(&footer);
         window.set_content(Some(&stage));
 
         let wheel = Self {
@@ -659,7 +662,7 @@ impl SessionWheel {
         wheel
     }
 
-    /// A click on an index chooses it; a click elsewhere on the dial records, as the legend's
+    /// A click on a tick chooses it; a click elsewhere on the dial records, as the legend's
     /// Record does. The pointer shows a hand over both.
     fn wire_pointer(&self) {
         let click = gtk::GestureClick::new();
@@ -687,12 +690,12 @@ impl SessionWheel {
             stage.set_cursor_from_name(over.then_some("pointer"));
         });
         self.stage.add_controller(motion);
-        // The watch fades in and its hand sweeps in each time the wheel opens.
+        // The dial fades in and its hand sweeps in each time the wheel opens.
         let stage = self.stage.clone();
         self.window.connect_map(move |_| stage.open());
     }
 
-    /// Hovering a name lifts its index's lume on the dial.
+    /// Hovering a name brightens its tick on the dial.
     fn wire_hover(&self) {
         for (index, choice) in self.choices.iter().enumerate() {
             let stage = self.stage.clone();
@@ -766,6 +769,11 @@ impl SessionWheel {
         self.placements.borrow().clone()
     }
 
+    /// How the light falls on the choice.
+    pub fn set_light(&self, light: Light) {
+        self.stage.set_light(light);
+    }
+
     pub fn update(
         &self,
         entries: &[Target],
@@ -805,7 +813,6 @@ impl SessionWheel {
             .update_property(&[gtk::accessible::Property::Label(&format!(
                 "{transcript_key} · Transcript only"
             ))]);
-        toggle_class(&self.window, "ml-wheel-on-light", self.stage.light_theme());
 
         let position = selected
             .as_ref()
@@ -862,7 +869,7 @@ impl SessionWheel {
         empty: bool,
         agent_key: &str,
     ) {
-        self.dial.show(target, other_page, empty, agent_key);
+        self.dial.show(target, other_page, empty);
         let Some(target) = target else {
             self.record.set_sensitive(false);
             self.record.set_tooltip_text(None);
@@ -972,10 +979,10 @@ fn what_recording_does(target: &Target) -> String {
     }
 }
 
-/// Stage size and its top-left corner relative to the ring centre, margin included. The watch
+/// Stage size and its top-left corner relative to the ring centre, margin included. The dial
 /// stays centred, so the stage reaches as far on each side as the names reach on the wider one.
 fn stage_bounds(dial: f64, labels: &[Placement]) -> (f64, f64, (f64, f64)) {
-    let ring = case_radius(dial) + 8.;
+    let ring = halo_radius(dial) + 8.;
     let (mut across, mut down) = (ring, ring);
     for label in labels {
         across = across.max(-label.x).max(label.x + label.width);
@@ -1023,15 +1030,18 @@ mod tests {
     }
 
     #[test]
-    fn names_never_overlap_each_other_or_the_case() {
+    fn names_never_overlap_each_other_or_the_ring() {
         for count in 1..=KEYS.len() {
             let arrangement = arrange(&sizes(count), LAPTOP);
-            let clear = case_radius(arrangement.dial) + NAME_CLEARANCE;
+            let clear = halo_radius(arrangement.dial) + NAME_CLEARANCE;
             for (index, label) in arrangement.labels.iter().enumerate() {
-                // The nearest point of every box stays outside the case.
+                // The nearest point of every box stays outside the ring and its halo.
                 let dx = 0_f64.clamp(label.x, label.x + label.width);
                 let dy = 0_f64.clamp(label.y, label.y + label.height);
-                assert!(dx.hypot(dy) >= clear - 0.01, "{count}: {index} inside case");
+                assert!(
+                    dx.hypot(dy) >= clear - 0.01,
+                    "{count}: {index} inside the ring"
+                );
                 for other in &arrangement.labels[index + 1..] {
                     assert!(!overlap(label, other), "{count}: overlapping names");
                 }
@@ -1086,9 +1096,9 @@ mod tests {
     fn a_name_stays_near_its_own_index() {
         let one_line = vec![(220., 52.); 20];
         let arrangement = arrange(&one_line, LAPTOP);
-        let reach = case_radius(arrangement.dial) + NAME_GAP;
+        let reach = halo_radius(arrangement.dial) + NAME_GAP;
         for label in &arrangement.labels {
-            let (_, anchor_y) = watch::point(label.angle, reach);
+            let (_, anchor_y) = dial::point(label.angle, reach);
             let centre = label.y + label.height / 2.;
             assert!(
                 (centre - anchor_y).abs() < 80.,
@@ -1127,7 +1137,7 @@ mod tests {
     }
 
     #[test]
-    fn small_wheels_stay_compact_and_the_watch_shrinks_on_a_small_screen() {
+    fn small_wheels_stay_compact_and_the_dial_shrinks_on_a_small_screen() {
         assert!(preferred_dial(1) < preferred_dial(6));
         assert!(preferred_dial(6) < preferred_dial(20));
         assert_eq!(preferred_dial(26), preferred_dial(20));

@@ -3,8 +3,10 @@
 //! Run inside the off-screen desktop helper with `light`, `dark` or `nord`, then the output
 //! directory and optionally `overlay`. The wheel sizes itself to the helper's screen, so set
 //! its screen to the display being judged. X11 has no layer-shell, so `overlay` applies the
-//! overlay styling to a screen-sized window. The room is opaque, so a capture needs no desktop
-//! behind it. Every session name, pane, socket, process and session ID is a fixture.
+//! overlay styling to a screen-sized window. An overlay is see-through, so its captures keep
+//! their alpha: composite them over a desktop to judge them. A last argument of `glow`, `trace`
+//! or `wedge` picks how the light falls on the choice. Every session name, pane, socket,
+//! process and session ID is a fixture.
 //!
 //! Besides the captures the gallery audits the wheel and exits with a failure if a name leaves
 //! the screen, two names overlap, or a status or a different choice moves any name.
@@ -15,7 +17,7 @@ use adw::prelude::*;
 use mluva_core::agent_voice::{
     AgentKind, AgentStatus, AppLink, ClaudeInbox, CodexThread, HerdrPane, Host, Target,
 };
-use mluva_gtk::agent_session_wheel::SessionWheel;
+use mluva_gtk::agent_session_wheel::{Light, SessionWheel};
 use mluva_gtk::theme::ThemeController;
 
 const NORD: &str = "mode = \"dark\"\naccent = \"#81a1c1\"\nselection = \"#434c5e\"\nmuted = \"#4c566a\"\nbackground = \"#2e3440\"\nforeground = \"#d8dee9\"\nred = \"#bf616a\"\nyellow = \"#ebcb8b\"\ngreen = \"#a3be8c\"\n";
@@ -278,8 +280,17 @@ fn capture(window: &adw::Window, path: &Path) {
     println!("{} {width}x{height}", path.display());
 }
 
+fn light() -> Light {
+    match std::env::args().nth(4).as_deref() {
+        Some("trace") => Light::Trace,
+        Some("wedge") => Light::Wedge,
+        _ => Light::Glow,
+    }
+}
+
 fn show(entries: &[Target], selected: Option<usize>, page: usize) -> SessionWheel {
     let wheel = SessionWheel::new();
+    wheel.set_light(light());
     if std::env::args().nth(3).as_deref() == Some("overlay") {
         let screen = gtk::gdk::Display::default()
             .and_then(|display| display.monitors().item(0))

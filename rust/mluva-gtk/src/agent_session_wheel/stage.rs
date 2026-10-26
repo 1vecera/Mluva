@@ -1,21 +1,23 @@
-//! The wheel's one custom widget: it lays out the names and the legend around the watch, paints
-//! the room and the watch behind them, and runs the hand and the light as springs.
+//! The wheel's one custom widget: it lays out the names and the legend around the dial, paints
+//! the wash and the dial behind them, and runs the hand and the light as springs.
 
+use super::dial::{self, Face, Light};
 use super::palette::{Palette, Rgb, Tokens};
-use super::watch::{self, Face};
 use adw::prelude::*;
 use glib::subclass::prelude::*;
 use gtk::subclass::prelude::*;
-use gtk::{gdk, graphene, gsk};
+use gtk::{gdk, graphene};
 use std::cell::{Cell, RefCell};
 
-/// Room between the legend and the bottom edge, and between the legend and the watch.
+/// Room between the legend and the bottom edge, and between the legend and the dial.
 const FOOTER_BOTTOM: f64 = 40.;
 const FOOTER_GAP: f64 = 16.;
-/// The dial text sits this fraction of the dial radius below the centre.
-const DIAL_TEXT_DROP: f64 = 0.42;
+/// The flat wash between the desktop and the overlay, in the theme's canvas: strong enough that
+/// names stay legible over busy terminals and bright pages, light enough that the desktop shows.
+/// A window, which cannot be see-through everywhere, gets an opaque ground instead.
+const WASH: f32 = 0.88;
 /// A damped spring with a small mechanical overshoot for the hand; a softer one for the light,
-/// so the glow trails the hand and settles on the index.
+/// so the glow trails the hand and settles on the tick.
 const HAND: (f64, f64) = (260., 20.);
 const SUN: (f64, f64) = (120., 19.);
 /// Where the hand starts when the wheel opens.
@@ -45,75 +47,6 @@ pub enum Hit {
     Index(usize),
     Dial,
     Outside,
-}
-
-/// A part of the watch that never moves while the choice swings.
-struct Layer {
-    node: gsk::RenderNode,
-    texture: Option<gdk::Texture>,
-    area: graphene::Rect,
-}
-impl Layer {
-    fn record(
-        area: graphene::Rect,
-        scale: f32,
-        renderer: Option<&gsk::Renderer>,
-        paint: impl FnOnce(&gtk::Snapshot),
-    ) -> Self {
-        let snapshot = gtk::Snapshot::new();
-        paint(&snapshot);
-        let node = snapshot
-            .to_node()
-            .unwrap_or_else(|| gsk::ContainerNode::new(&[]).upcast());
-        // Baked at the display's scale so the steel stays crisp on a HiDPI screen.
-        let texture = renderer.map(|renderer| {
-            let baking = gtk::Snapshot::new();
-            baking.scale(scale, scale);
-            baking.translate(&graphene::Point::new(-area.x(), -area.y()));
-            baking.append_node(&node);
-            let bounds = graphene::Rect::new(0., 0., area.width() * scale, area.height() * scale);
-            baking
-                .to_node()
-                .map(|baked| renderer.render_texture(&baked, Some(&bounds)))
-        });
-        Self {
-            node,
-            texture: texture.flatten(),
-            area,
-        }
-    }
-    fn append(&self, snapshot: &gtk::Snapshot) {
-        match &self.texture {
-            Some(texture) => {
-                snapshot.append_scaled_texture(texture, gsk::ScalingFilter::Linear, &self.area)
-            }
-            None => snapshot.append_node(&self.node),
-        }
-    }
-}
-
-#[derive(PartialEq)]
-struct RoomKey {
-    size: (usize, usize),
-    scale: f64,
-    centre: (f64, f64),
-    dial: f64,
-    tokens: Option<Tokens>,
-}
-
-#[derive(PartialEq)]
-struct DialKey {
-    side: usize,
-    tint: Rgb,
-}
-
-struct Layers {
-    under: Layer,
-    marks: Layer,
-    cap: Layer,
-    crystal: Layer,
-    face: Face,
-    scale: i32,
 }
 
 #[derive(Default)]
@@ -148,9 +81,7 @@ mod imp {
         pub centre: Cell<(f64, f64)>,
         pub palette: RefCell<Option<Palette>>,
         pub tokens: Cell<Option<Tokens>>,
-        pub(super) layers: RefCell<Option<Layers>>,
-        pub(super) room: RefCell<Option<(RoomKey, gdk::Texture)>>,
-        pub(super) dial: RefCell<Option<(DialKey, gdk::Texture)>>,
+        pub light: Cell<Light>,
         pub(super) motion: RefCell<Motion>,
         pub hover: Cell<Option<usize>>,
         pub tick: RefCell<Option<gtk::TickCallbackId>>,
@@ -230,14 +161,14 @@ mod imp {
                     -1,
                 );
             }
+            // The hub text sits on the centre; the hand starts clear of it.
             if let Some(text) = self.dial_text.borrow().as_ref() {
                 let (_, w, _, _) = text.measure(gtk::Orientation::Horizontal, -1);
                 let (_, h, _, _) = text.measure(gtk::Orientation::Vertical, w);
-                let drop = DIAL_TEXT_DROP * arrangement.face.dial;
                 text.size_allocate(
                     &gdk::Rectangle::new(
                         (centre.0 - f64::from(w) / 2.).round() as i32,
-                        (centre.1 + drop - 9.).round() as i32,
+                        (centre.1 - f64::from(h) / 2.).round() as i32,
                         w,
                         h,
                     ),
@@ -259,7 +190,7 @@ mod imp {
 
         fn snapshot(&self, snapshot: &gtk::Snapshot) {
             let stage = self.obj();
-            let size = (f64::from(stage.width()), f64::from(stage.height()));
+            let size = (stage.width() as f32, stage.height() as f32);
             if self.palette.borrow().is_none() {
                 let tokens = super::read_tokens(stage.upcast_ref());
                 self.tokens.set(Some(tokens));
@@ -270,29 +201,27 @@ mod imp {
             let centre = self.centre.get();
             let motion = self.motion.borrow();
             snapshot.push_opacity(motion.open);
+            // One flat wash: no gradient, so nothing can band. An overlay lets the desktop show
+            // through it; a window is opaque.
+            let see_through = stage
+                .root()
+                .is_some_and(|root| root.has_css_class("ml-wheel-overlay"));
+            snapshot.append_color(
+                &palette.wash.alpha(if see_through { WASH } else { 1. }),
+                &graphene::Rect::new(0., 0., size.0, size.1),
+            );
             let arrangement = self.arrangement.borrow();
             let face = &arrangement.face;
-            let room = self.room_texture(palette, face, size, centre);
-            snapshot.append_scaled_texture(
-                &room,
-                gsk::ScalingFilter::Linear,
-                &graphene::Rect::new(0., 0., size.0 as f32, size.1 as f32),
-            );
             if face.dial > 0. {
-                let dial = self.dial_texture(palette, face);
-                self.ensure_layers(face);
-                let layers = self.layers.borrow();
-                let layers = layers.as_ref().expect("layers recorded above");
                 snapshot.save();
                 snapshot.translate(&graphene::Point::new(centre.0 as f32, centre.1 as f32));
-                paint_watch(
+                paint_dial(
                     snapshot,
-                    &dial,
                     palette,
                     face,
-                    layers,
                     &motion,
                     self.hover.get(),
+                    self.light.get(),
                 );
                 snapshot.restore();
             }
@@ -302,148 +231,56 @@ mod imp {
             snapshot.pop();
         }
     }
-
-    impl Stage {
-        /// The room, computed once per size, watch and palette. It holds only soft gradients, so
-        /// it is computed at logical resolution and scaled up linearly: on a scale-2 screen that
-        /// is a quarter of the pixels (about 25–35 ms instead of 80–100 ms in a release build), with
-        /// no visible difference, and the dither still breaks every band.
-        fn room_texture(
-            &self,
-            palette: &Palette,
-            face: &Face,
-            size: (f64, f64),
-            centre: (f64, f64),
-        ) -> gdk::Texture {
-            let scale = 1.;
-            let key = RoomKey {
-                size: (
-                    (size.0 * scale).round() as usize,
-                    (size.1 * scale).round() as usize,
-                ),
-                scale,
-                centre,
-                dial: face.dial,
-                tokens: self.tokens.get(),
-            };
-            let mut cached = self.room.borrow_mut();
-            if let Some((current, texture)) = cached.as_ref()
-                && *current == key
-            {
-                return texture.clone();
-            }
-            let texture = watch::room_texture(
-                palette,
-                face,
-                key.size,
-                (centre.0 * scale, centre.1 * scale),
-                scale,
-            );
-            *cached = Some((key, texture.clone()));
-            texture
-        }
-        /// The tinted dial at the pixels it covers on screen.
-        fn dial_texture(&self, palette: &Palette, face: &Face) -> gdk::Texture {
-            let scale = f64::from(self.obj().scale_factor().max(1));
-            let key = DialKey {
-                side: (2048. * face.dial / 753.6 * scale).round() as usize,
-                tint: palette.dial_tint,
-            };
-            let mut cached = self.dial.borrow_mut();
-            if let Some((current, texture)) = cached.as_ref()
-                && *current == key
-            {
-                return texture.clone();
-            }
-            let texture = watch::dial_texture(key.tint, key.side);
-            *cached = Some((key, texture.clone()));
-            texture
-        }
-        fn ensure_layers(&self, face: &Face) {
-            let stage = self.obj();
-            let scale = stage.scale_factor().max(1);
-            let current = self.layers.borrow().as_ref().is_some_and(|layers| {
-                layers.scale == scale
-                    && layers.face.dial == face.dial
-                    && layers.face.marks == face.marks
-            });
-            if current {
-                return;
-            }
-            let palette = self.palette.borrow();
-            let palette = palette.as_ref().expect("palette set before layers");
-            let renderer = stage.native().and_then(|native| native.renderer());
-            let area = face.frame();
-            let scale_f = scale as f32;
-            let layer = |paint: &dyn Fn(&gtk::Snapshot)| {
-                Layer::record(area, scale_f, renderer.as_ref(), paint)
-            };
-            let layers = Layers {
-                under: layer(&|s| watch::under(s, face)),
-                marks: layer(&|s| watch::marks(s, palette, face)),
-                cap: layer(&|s| watch::cap(s, palette, face)),
-                crystal: layer(&|s| watch::crystal(s, palette, face)),
-                face: face.clone(),
-                scale,
-            };
-            self.layers.replace(Some(layers));
-        }
-    }
 }
 
-/// The light, the bloom and the hand over the cached case, dial and indices.
-fn paint_watch(
+/// The ring, the ticks, the hand and the light on the choice.
+fn paint_dial(
     snapshot: &gtk::Snapshot,
-    dial: &gdk::Texture,
     palette: &Palette,
     face: &Face,
-    layers: &Layers,
     motion: &Motion,
     hover: Option<usize>,
+    light: Light,
 ) {
-    let hovered = hover.and_then(|index| face.marks.get(index).copied());
     let chosen = face
         .chosen
         .and_then(|index| face.marks.get(index).map(|(angle, kind)| (*angle, *kind)));
-    // The bar of a sunray dial always catches a little light, more when one is chosen.
-    let bar = 0.3 + 0.7 * motion.glow;
-    snapshot.push_blend(gsk::BlendMode::Screen);
-    layers.under.append(snapshot);
-    snapshot.append_scaled_texture(dial, gsk::ScalingFilter::Linear, &face.frame());
-    snapshot.pop();
-    snapshot.push_mask(gsk::MaskMode::InvertedAlpha);
-    watch::text_hole(snapshot, face);
-    snapshot.pop();
-    watch::sheen(snapshot, palette, face, motion.sun, bar);
-    watch::light(snapshot, palette, face, motion.sun, motion.glow);
-    snapshot.pop();
-    snapshot.pop();
-    layers.marks.append(snapshot);
-    let glowing = chosen.into_iter().chain(
-        motion
-            .afterglow
-            .and_then(|angle| face.marks.iter().find(|(a, _)| *a == angle).copied()),
+    match light {
+        Light::Trace => dial::trace(snapshot, palette, face, motion.sun, motion.glow),
+        Light::Wedge => dial::wedge(snapshot, palette, face, motion.sun, motion.glow),
+        Light::Glow => {}
+    }
+    dial::ring(snapshot, palette, face);
+    dial::ticks(
+        snapshot,
+        palette,
+        face,
+        hover.filter(|h| face.chosen != Some(*h)),
     );
-    for (angle, kind) in glowing {
-        let strength = watch::proximity(motion.sun, angle);
-        watch::bloom(snapshot, strength, |s| {
-            watch::lit_index(s, palette, face, angle, kind);
+    let Some((angle, kind)) = chosen else {
+        return;
+    };
+    if light == Light::Glow {
+        // The glow arrives with the light and leaves the previous choice as it goes.
+        let previous = motion
+            .afterglow
+            .and_then(|a| face.marks.iter().find(|(m, _)| *m == a).copied());
+        for (at, was) in previous.into_iter().chain([(angle, kind)]) {
+            let strength = dial::proximity(motion.sun, at);
+            dial::pool(snapshot, palette, face, at, strength);
+            dial::glow(snapshot, strength, |s, weight| {
+                dial::chosen_tick(s, palette, face, at, was, weight)
+            });
+        }
+        dial::glow(snapshot, motion.glow, |s, weight| {
+            dial::hand(s, palette, face, motion.hand, weight)
         });
     }
-    if let Some((angle, kind)) = hovered.filter(|_| face.chosen != hover) {
-        watch::bloom(snapshot, 0.6, |s| {
-            watch::hover_lift(s, palette, face, angle, kind)
-        });
-    }
-    if chosen.is_some() {
-        watch::hand(snapshot, palette, face, motion.hand);
-        watch::hand_lume(snapshot, palette, face, motion.hand);
-    }
-    layers.cap.append(snapshot);
-    layers.crystal.append(snapshot);
+    dial::chosen_tick(snapshot, palette, face, angle, kind, 1.);
+    dial::hand(snapshot, palette, face, motion.hand, 1.);
 }
 
-/// The theme's colour roles for the watch, with Nord for any that the stylesheet lacks.
+/// The theme's colour roles for the dial, with Nord for any that the stylesheet lacks.
 #[allow(deprecated)]
 fn read_tokens(widget: &gtk::Widget) -> Tokens {
     let context = widget.style_context();
@@ -496,11 +333,10 @@ impl Stage {
         let tokens = read_tokens(self.upcast_ref());
         if self.imp().tokens.get() != Some(tokens) {
             self.imp().palette.take();
-            self.imp().layers.take();
         }
     }
 
-    /// Place the names and size the watch.
+    /// Place the names and size the dial.
     pub fn arrange(&self, arrangement: Scene) {
         self.follow_theme();
         self.imp().arrangement.replace(arrangement);
@@ -508,30 +344,31 @@ impl Stage {
         self.queue_draw();
     }
 
-    /// True when the active theme's canvas is lighter than its ink.
-    pub fn light_theme(&self) -> bool {
-        Palette::new(read_tokens(self.upcast_ref())).light_theme
+    /// How the light falls on the choice.
+    pub fn set_light(&self, light: Light) {
+        self.imp().light.set(light);
+        self.queue_draw();
     }
 
     pub fn hover(&self) -> Option<usize> {
         self.imp().hover.get()
     }
 
-    /// The index whose name is under the pointer lifts its lume a little; no ring, no box.
+    /// The tick whose name is under the pointer brightens; no ring, no box.
     pub fn set_hover(&self, index: Option<usize>) {
         if self.imp().hover.replace(index) != index {
             self.queue_draw();
         }
     }
 
-    /// The dial, or an index on it, under a point in the stage's coordinates.
+    /// The dial, or a tick on it, under a point in the stage's coordinates.
     pub fn hit(&self, x: f64, y: f64) -> Hit {
         let arrangement = self.imp().arrangement.borrow();
         let face = &arrangement.face;
         let centre = self.imp().centre.get();
         let (dx, dy) = (x - centre.0, y - centre.1);
         let radius = dx.hypot(dy);
-        if face.dial <= 0. || radius > face.dial {
+        if face.dial <= 0. || radius > face.outer() + 12. {
             return Hit::Outside;
         }
         let bearing = dx.atan2(-dy).to_degrees();
@@ -540,8 +377,8 @@ impl Stage {
             .iter()
             .enumerate()
             .filter_map(|(index, (angle, _))| {
-                let apart = watch::separation(bearing, *angle).to_radians();
-                // Along the index and across it, in the index's own frame.
+                let apart = dial::separation(bearing, *angle).to_radians();
+                // Along the tick and across it, in the tick's own frame.
                 let (along, across) = (radius * apart.cos(), radius * apart.sin());
                 let near = along >= face.inner() - 12.
                     && along <= face.outer() + 12.
@@ -549,7 +386,11 @@ impl Stage {
                 near.then_some((index, across.abs()))
             })
             .min_by(|a, b| a.1.total_cmp(&b.1));
-        best.map_or(Hit::Dial, |(index, _)| Hit::Index(index))
+        match best {
+            Some((index, _)) => Hit::Index(index),
+            None if radius <= face.dial => Hit::Dial,
+            None => Hit::Outside,
+        }
     }
 
     fn animated(&self) -> bool {
@@ -593,7 +434,7 @@ impl Stage {
         self.queue_draw();
     }
 
-    /// Fade the watch in and sweep the hand in from the side.
+    /// Fade the dial in and sweep the hand in from the side.
     pub fn open(&self) {
         self.follow_theme();
         let animated = self.animated();
