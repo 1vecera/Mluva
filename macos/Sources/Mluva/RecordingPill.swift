@@ -1,34 +1,30 @@
 import MluvaKit
 import SwiftUI
 
-/// The floating recording display: a glass capsule with the jelly light, what is happening,
-/// where the words go, and the live transcript growing out of it.
+/// The floating recording display: a ruled sheet of live words over a title-block strip with
+/// the signal light, a state word, the timer, where the words go, and the keys that act.
 struct RecordingPillView: View {
     let model: AppModel
-    @Namespace private var glass
 
     private var dictation: DictationController { model.dictation }
     private var route: RouteState? { model.agents.route }
+    private var key: String { model.config?.global_recording_key ?? "F9" }
+    private var draftKey: String { model.agents.settings?.draft_key ?? "F7" }
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             Spacer(minLength: 0)
-            GlassEffectContainer(spacing: 14) {
-                VStack(spacing: 10) {
-                    if let transcript, !transcript.isEmpty {
-                        TranscriptCard(text: transcript, committedCount: dictation.committed.count, live: dictation.phase == .recording)
-                            .glassEffect(.regular, in: .rect(cornerRadius: 22))
-                            .glassEffectID("transcript", in: glass)
-                            .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .bottom)))
-                    }
-                    capsule
-                        .glassEffect(.regular, in: .capsule)
-                        .glassEffectID("capsule", in: glass)
-                }
+            if let transcript, !transcript.isEmpty {
+                TranscriptCard(text: transcript, committedCount: dictation.committed.count, live: dictation.phase == .recording)
+                    .graphiteGlass(.rect(cornerRadius: 10))
+                    .transition(.opacity.combined(with: .offset(y: 6)))
             }
-            .animation(.smooth(duration: 0.35), value: transcript?.isEmpty ?? true)
-            .animation(.smooth(duration: 0.3), value: stateKey)
+            strip
+                .graphiteGlass(.rect(cornerRadius: 10))
         }
+        .foregroundStyle(Ink.chalk)
+        .animation(.smooth(duration: 0.3), value: transcript?.isEmpty ?? true)
+        .animation(.smooth(duration: 0.25), value: stateKey)
         .padding(.horizontal, 24)
         .padding(.bottom, 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
@@ -47,73 +43,72 @@ struct RecordingPillView: View {
         "\(dictation.phase)|\(route?.phase ?? "")"
     }
 
-    private var capsule: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                if route?.phase == "grace", let deadline = route?.deadline_ms {
-                    CountdownRing(deadline: deadline)
+    /// Cells divided by hairlines, like a drawing's title block.
+    private var strip: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                HStack(spacing: 9) {
+                    JellyLight(mood: mood, level: dictation.level, size: 20)
+                    StateWord(text: stateWord, color: stateColor)
+                    if dictation.phase == .recording, let started = dictation.startedAt {
+                        ElapsedTime(since: started)
+                    }
                 }
-                JellyLight(mood: mood, level: dictation.level, size: 34)
+                .padding(.horizontal, 12)
+                .fixedSize()
+                Rule(vertical: true, color: Ink.rule)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(headline)
+                        .font(.mono(12.5, .medium))
+                        .lineLimit(1)
+                    Text(detail)
+                        .font(.mono(10.5))
+                        .foregroundStyle(Ink.chalkDim)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityElement(children: .combine)
+                actions
+                    .padding(.trailing, 10)
             }
-            .frame(width: 44, height: 44)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(headline)
-                    .font(.headline)
-                    .lineLimit(1)
-                Text(detail)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityElement(children: .combine)
-            if dictation.phase == .recording, let started = dictation.startedAt {
-                ElapsedTime(since: started)
-            }
-            actions
+            .padding(.vertical, 9)
+            footer
+                .frame(height: 14)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 6)
         }
-        .padding(.leading, 12)
-        .padding(.trailing, 10)
-        .padding(.vertical, 9)
-        .frame(minWidth: 380)
+        .frame(width: 540)
         .fixedSize(horizontal: false, vertical: true)
     }
 
+    /// The live trace while recording; the cancel window as a shrinking dimension line.
+    @ViewBuilder private var footer: some View {
+        if route?.phase == "grace", let deadline = route?.deadline_ms {
+            CountdownLine(deadline: deadline)
+        } else if dictation.phase == .recording {
+            LevelTrace(level: dictation.level)
+        } else {
+            Rule(color: Ink.rule)
+        }
+    }
+
     @ViewBuilder private var actions: some View {
-        if route?.phase == "grace" {
-            Button("Keep draft") { model.agents.disarm("kept") }
-                .buttonStyle(.glass)
-            Button(role: .cancel) { model.agents.disarm("cancelled") } label: {
-                Image(systemName: "xmark")
+        HStack(spacing: 10) {
+            if route?.phase == "grace" {
+                KeyAction(key: draftKey, label: "keep draft") { model.agents.disarm("kept") }
+                PlainAction(label: "cancel") { model.agents.disarm("cancelled") }
+                    .accessibilityLabel("Cancel sending")
+            } else if dictation.phase == .recording || dictation.phase == .preparing {
+                KeyAction(key: key, label: "stop", lit: true) { Task { await dictation.stop() } }
+                    .disabled(dictation.phase == .preparing)
+                    .accessibilityLabel("Stop and deliver")
+                PlainAction(label: "cancel") { dictation.cancel() }
+                    .accessibilityLabel("Cancel recording")
+            } else if case .failed = dictation.phase {
+                PlainAction(label: "dismiss") { dictation.reset() }
             }
-            .buttonStyle(.glass)
-            .buttonBorderShape(.circle)
-            .accessibilityLabel("Cancel sending")
-        } else if dictation.phase == .recording || dictation.phase == .preparing {
-            Button { Task { await dictation.stop() } } label: {
-                Image(systemName: "stop.fill")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 34, height: 34)
-                    .contentShape(.circle)
-            }
-            .buttonStyle(.plain)
-            // Solid, because a panel that never takes focus shows tinted glass as inactive.
-            .background(Color.mluva.gradient, in: .circle)
-            .shadow(color: Color.mluva.opacity(0.35), radius: 6, y: 2)
-            .disabled(dictation.phase == .preparing)
-            .opacity(dictation.phase == .preparing ? 0.5 : 1)
-            .accessibilityLabel("Stop and deliver")
-            Button(role: .cancel) { dictation.cancel() } label: {
-                Image(systemName: "xmark")
-            }
-            .buttonStyle(.glass)
-            .buttonBorderShape(.circle)
-            .controlSize(.large)
-            .accessibilityLabel("Cancel recording")
-        } else if case .failed = dictation.phase {
-            Button("Dismiss") { dictation.reset() }
-                .buttonStyle(.glass)
         }
     }
 
@@ -130,53 +125,96 @@ struct RecordingPillView: View {
         }
     }
 
+    private var stateWord: String {
+        switch route?.phase {
+        case "grace": return "send"
+        case "submitting": return "sending"
+        case "sent": return "sent"
+        case "unconfirmed": return "check"
+        case "draft": return "draft"
+        default: break
+        }
+        switch dictation.phase {
+        case .idle: return "ready"
+        case .preparing: return "arming"
+        case .recording: return dictation.incognito ? "rec · incog" : "rec"
+        case .finalizing: return "reading"
+        case .finished: return finishedWord
+        case .noSpeech: return "silence"
+        case .failed: return "stopped"
+        }
+    }
+
+    private var stateColor: Color {
+        if route?.phase == "unconfirmed" { return Ink.amber }
+        if case .failed = dictation.phase { return Ink.amber }
+        return dictation.phase == .recording || route?.phase == "grace" ? .mluva : Ink.chalk
+    }
+
+    private var finishedWord: String {
+        if case .finished(let guidance) = dictation.phase {
+            if guidance.hasPrefix("Pasted") { return "pasted" }
+            if guidance.hasPrefix("Saved") { return "saved" }
+        }
+        return "copied"
+    }
+
     private var agentName: String { route?.recipient.title.isEmpty == false ? route!.recipient.title : (route?.recipient.name ?? "the agent") }
 
     private var headline: String {
         switch route?.phase {
-        case "grace": return "Sending to \(agentName)"
-        case "submitting": return "Sending to \(agentName)…"
-        case "sent": return "Sent to \(agentName)"
+        case "grace", "submitting": return "→ \(agentName)"
+        case "sent": return "→ \(agentName)"
         case "unconfirmed": return "Delivery unconfirmed"
         default: break
         }
         switch dictation.phase {
-        case .idle: return "Ready"
-        case .preparing: return "Getting ready…"
-        case .recording: return dictation.incognito ? "Listening · Incognito" : "Listening"
-        case .finalizing: return "Finishing…"
-        case .finished: return route?.phase == "draft" ? "Kept as a draft" : finishedHeadline
+        case .idle: return "\(key) to dictate"
+        case .preparing, .recording: return "→ \(destinationName)"
+        case .finalizing: return "Recognizing what you said"
+        case .finished: return route?.phase == "draft" ? "Kept as a draft" : "→ \(destinationName)"
         case .noSpeech: return "No speech detected"
         case .failed: return "Couldn't finish"
         }
     }
 
-    private var finishedHeadline: String {
-        if case .finished(let guidance) = dictation.phase {
-            if guidance.hasPrefix("Pasted") { return "Pasted" }
-            if guidance.hasPrefix("Saved") { return "Saved in History" }
+    private var destinationName: String {
+        switch dictation.destination {
+        case .target(let target): target?.applicationName ?? "clipboard"
+        case .manual: "clipboard"
+        case .agent(let session): session.display_name
+        case .document(let session): session.map { "draft for \($0.display_name)" } ?? "Mluva draft"
         }
-        return "Copied"
     }
 
     private var detail: String {
         switch route?.phase {
-        case "grace": return "Keep draft or cancel to stop it."
+        case "grace": return "Sends when the line runs out."
+        case "submitting": return "Writing into the session."
         case "sent": return "Herdr confirmed the message reached the session."
         case "unconfirmed": return "Some text may have arrived. Check the session; Mluva won't resend."
         case "draft": return draftReason
         default: break
         }
         switch dictation.phase {
-        case .preparing: return dictation.destination.label
+        case .preparing: return "Opening the microphone"
         case .recording:
-            if let notice = model.annotation.notice { return "\(dictation.destination.label) · \(notice)" }
-            return model.annotation.active ? "\(dictation.destination.label) · Shift draws on the screen" : dictation.destination.label
-        case .finalizing: return "Recognizing what you said"
+            if let notice = model.annotation.notice { return notice }
+            return model.annotation.active ? "Hold shift to mark the screen" : destinationDetail
+        case .finalizing: return "Final words from Scribe"
         case .finished(let guidance): return dictation.notice ?? model.annotation.notice ?? guidance
         case .noSpeech: return "Nothing was copied or saved."
         case .failed(let message): return message
-        case .idle: return "Press F9 to dictate"
+        case .idle: return "Press \(key) again to stop"
+        }
+    }
+
+    private var destinationDetail: String {
+        switch dictation.destination {
+        case .target(let target): target == nil ? "Copied when you stop" : "Pasted when you stop"
+        case .manual: "Copied when you stop"
+        case .agent: "Sent after a two-second cancel window"
+        case .document: "An editable draft; nothing is sent"
         }
     }
 
@@ -192,6 +230,44 @@ struct RecordingPillView: View {
     }
 }
 
+/// A shortcut drawn as its keycap beside what it does; clicking does the same.
+private struct KeyAction: View {
+    let key: String
+    let label: String
+    var lit = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Keycap(key, lit: lit)
+                Text(label).font(.mono(11))
+            }
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// An action with no shortcut: just its word, underlined on hover.
+private struct PlainAction: View {
+    let label: String
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.mono(11))
+                .foregroundStyle(hovering ? Ink.chalk : Ink.chalkDim)
+                .underline(hovering)
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+    }
+}
+
 /// Five lines at most, newest at the bottom; volatile words are dimmed.
 private struct TranscriptCard: View {
     let text: String
@@ -202,8 +278,8 @@ private struct TranscriptCard: View {
         ScrollViewReader { reader in
             ScrollView {
                 styled
-                    .font(.body)
-                    .lineSpacing(3)
+                    .font(.mono(13.5))
+                    .lineSpacing(7)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 18)
                     .padding(.vertical, 14)
@@ -213,6 +289,7 @@ private struct TranscriptCard: View {
             .defaultScrollAnchor(.bottom)
             .onChange(of: text) { reader.scrollTo("end", anchor: .bottom) }
         }
+        .frame(width: 540)
         .frame(maxHeight: 5 * 22 + 28)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityLabel(text)
@@ -221,7 +298,7 @@ private struct TranscriptCard: View {
     private var styled: Text {
         guard live, committedCount < text.count else { return Text(text) }
         let split = text.index(text.startIndex, offsetBy: committedCount)
-        return Text("\(Text(text[..<split]))\(Text(text[split...]).foregroundStyle(.secondary))")
+        return Text("\(Text(text[..<split]))\(Text(text[split...]).foregroundStyle(Ink.chalkFaint))")
     }
 }
 
@@ -231,26 +308,43 @@ private struct ElapsedTime: View {
     var body: some View {
         TimelineView(.periodic(from: since, by: 1)) { context in
             let seconds = max(0, Int(context.date.timeIntervalSince(since)))
-            Text(String(format: "%d:%02d", seconds / 60, seconds % 60))
-                .font(.system(.title3, design: .rounded).monospacedDigit())
-                .foregroundStyle(.secondary)
+            Text(String(format: "%02d:%02d", seconds / 60, seconds % 60))
+                .font(.mono(12.5, .medium))
+                .monospacedDigit()
                 .accessibilityLabel("Elapsed \(seconds / 60) minutes \(seconds % 60) seconds")
         }
     }
 }
 
-/// The two-second cancel window draining around the light.
-private struct CountdownRing: View {
+/// The two-second cancel window as a red dimension line shrinking toward its end mark, with
+/// the time left set beside it.
+private struct CountdownLine: View {
     let deadline: UInt64
 
     var body: some View {
         TimelineView(.animation) { context in
             let remaining = max(0, Double(deadline) / 1_000 - context.date.timeIntervalSince1970)
-            Circle()
-                .trim(from: 0, to: remaining / 2)
-                .stroke(Color.mluva, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .padding(1.5)
+            GeometryReader { proxy in
+                let width = proxy.size.width - 44
+                let mid = proxy.size.height / 2
+                ZStack(alignment: .leading) {
+                    Path { path in
+                        path.move(to: CGPoint(x: 0, y: mid - 4)); path.addLine(to: CGPoint(x: 0, y: mid + 4))
+                        path.move(to: CGPoint(x: width, y: mid - 4)); path.addLine(to: CGPoint(x: width, y: mid + 4))
+                    }
+                    .stroke(Ink.rule, lineWidth: 1)
+                    Path { path in
+                        path.move(to: CGPoint(x: 0, y: mid))
+                        path.addLine(to: CGPoint(x: width * min(1, remaining / 2), y: mid))
+                    }
+                    .stroke(Color.mluva, lineWidth: 1.5)
+                    Text(String(format: "%.1fs", remaining))
+                        .font(.mono(10, .medium))
+                        .monospacedDigit()
+                        .foregroundStyle(Color.mluva)
+                        .offset(x: width + 8)
+                }
+            }
         }
         .accessibilityHidden(true)
     }

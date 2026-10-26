@@ -31,6 +31,10 @@ build="$(git -C "$root" rev-list --count HEAD 2>/dev/null || echo 1)"
 sed -e "s/__VERSION__/$version/" -e "s/__BUILD__/$build/" "$here/Resources/Info.plist" > "$app/Contents/Info.plist"
 printf 'APPL????' > "$app/Contents/PkgInfo"
 cp "$root/docs/brand/svg/mluva-mark-symbolic.svg" "$app/Contents/Resources/MenuBarMark.svg"
+# The Linux app's typeface, unchanged, with its licence.
+mkdir -p "$app/Contents/Resources/Fonts"
+cp "$root"/rust/mluva-gtk/resources/fonts/JetBrainsMono-{Regular,Medium,Bold,Italic}.ttf \
+  "$root/rust/mluva-gtk/resources/fonts/OFL.txt" "$app/Contents/Resources/Fonts/"
 iconset="$(mktemp -d /tmp/mluva-iconset.XXXXXX)"
 swift "$here/scripts/make-icon.swift" "$root/docs/brand/png/mluva-mark-1024.png" "$iconset/AppIcon.iconset"
 iconutil -c icns "$iconset/AppIcon.iconset" -o "$app/Contents/Resources/AppIcon.icns"

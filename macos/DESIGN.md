@@ -1,48 +1,160 @@
-# Mluva for macOS: design language
+---
+name: Mluva for macOS
+description: A drafting instrument made of glass for speaking into apps and agent sessions.
+colors:
+  redline: "#E91B27"
+  redline-on-graphite: "#FF4048"
+  graphite: "#121316"
+  chalk: "#F0F0F0"
+  chalk-dim: "#F0F0F09E"
+  chalk-faint: "#F0F0F061"
+  rule-on-graphite: "#FFFFFF29"
+  amber: "#FFB847"
+typography:
+  display:
+    fontFamily: "JetBrains Mono, SF Mono, monospace"
+    fontSize: "30pt"
+    fontWeight: 700
+    lineHeight: 1.1
+  headline:
+    fontFamily: "JetBrains Mono, SF Mono, monospace"
+    fontSize: "22pt"
+    fontWeight: 700
+  title:
+    fontFamily: "JetBrains Mono, SF Mono, monospace"
+    fontSize: "15pt"
+    fontWeight: 700
+  body:
+    fontFamily: "JetBrains Mono, SF Mono, monospace"
+    fontSize: "13.5pt"
+    fontWeight: 400
+    lineHeight: "22pt"
+  label:
+    fontFamily: "JetBrains Mono, SF Mono, monospace"
+    fontSize: "11pt"
+    fontWeight: 500
+  state:
+    fontFamily: "JetBrains Mono, SF Mono, monospace"
+    fontSize: "10.5pt"
+    fontWeight: 700
+    letterSpacing: "1.2pt"
+rounded:
+  keycap: "3pt"
+  plate: "6pt"
+  sheet: "10pt"
+spacing:
+  hairline: "0.75pt"
+  cell: "12pt"
+  sheet: "24pt"
+components:
+  keycap:
+    textColor: "{colors.chalk}"
+    typography: "{typography.label}"
+    rounded: "{rounded.keycap}"
+    padding: "0 5pt"
+  keycap-lit:
+    backgroundColor: "{colors.redline}"
+    textColor: "#FFFFFF"
+    rounded: "{rounded.keycap}"
+  pill-strip:
+    backgroundColor: "{colors.graphite}"
+    textColor: "{colors.chalk}"
+    rounded: "{rounded.sheet}"
+    width: "540pt"
+  wheel-plate:
+    backgroundColor: "{colors.graphite}"
+    textColor: "{colors.chalk}"
+    rounded: "{rounded.plate}"
+    padding: "7pt 12pt 7pt 7pt"
+---
 
-Soft-futurist Liquid Glass. Mluva follows macOS 26's own materials and controls, and spends its personality in one place: a living red jelly light that breathes with your voice.
+# Design System: Mluva for macOS
 
-## Authority
+## Overview
 
-1. Apple's Human Interface Guidelines for macOS and the Liquid Glass adoption guide (materials, menu bar, panels, colour, onboarding).
-2. The Mluva brand set in `docs/brand`: the glossy red jelly mark and the soft M.
-3. The [product contract](../docs/product-contract.md) for what each surface must say.
+**Creative North Star: "The glass drafting instrument"**
 
-## Layers
+Mluva on the Mac shares the spirit of the Omarchy build, not its styling: keyboard first, text first, one typeface, honest labels and nothing decorative. Words are set like measurements in JetBrains Mono, the same bundled face as on Linux. Every key is drawn as an outlined legend. Structure comes from hairline rules, ticks and leader lines rather than boxes and cards. Everything that floats over other apps is graphite Liquid Glass, so the pill and wheel read the same over any wallpaper or window.
 
-| Layer | Material | Where |
-| --- | --- | --- |
-| Functional, floating | Liquid Glass (`glassEffect`, regular) in a `GlassEffectContainer` so shapes merge and morph | Recording pill, live transcript card, session wheel ring and centre |
-| Functional, system | Whatever macOS gives standard components | Menu bar panel, toolbars, sidebars, Settings, sheets, buttons |
-| Content | Opaque system backgrounds and text | History editor, transcripts in History, settings forms |
+Red is the redline: the live recording signal, the chosen session and the marks you draw on the screen. Nothing else is red. The glossy jelly mark from `docs/brand` stays the one organic shape, as the signal lamp.
 
-Glass is never used in the content layer, never stacked on glass, and never applied as decoration. The wheel sits on a 35% black dimming layer because the desktop behind it can be bright (HIG guidance for clear surfaces).
+The first build was rejected as generic: SF Pro, rounded glass capsules and tinted chips. Those are the anti-reference.
 
-## Colour
+**Key Characteristics:**
+- One typeface everywhere the app writes its own words; native controls keep their native chrome.
+- Keycaps, rules, ticks and leader lines are the whole ornament vocabulary.
+- Graphite glass for floating layers; windows follow the system appearance.
+- Red only for live, chosen or marked; amber only for needs-attention.
 
-- One tint: Mluva red. Light `#E91B27`; dark `#FF4048` for contrast on dark glass. It marks recording, the primary action and the selected session, nothing else.
-- Everything else uses semantic colours (`primary`, `secondary`, `separator`), so Dark Mode, Increase Contrast and Reduce Transparency work without special cases.
-- Status colours come from the system: green ready, orange attention, secondary unknown.
+## Colors
 
-## Type
+Monochrome graphite and chalk, cut by one redline.
 
-- San Francisco through text styles, so Dynamic Type and accessibility sizes apply.
-- SF Pro Rounded for the few display moments that should feel soft: the wheel's centre name, the pill's timer and the onboarding title.
-- Monospaced digits for elapsed time. No monospace elsewhere: transcripts are prose.
+### Primary
+- **Redline** (#E91B27; #FF4048 on graphite): recording state word and timer, the lit keycap of the action that stops recording or records for a session, the wheel's selection arc, node and plate underline, the cancel-window line, screen ink and keyframe badges.
 
-## The jelly light
+### Neutral
+- **Graphite** (#121316 at 55% under Liquid Glass): the ground of the pill, transcript sheet, wheel disc, wheel plates and pager.
+- **Chalk** (#F0F0F0): text on graphite. Dim (62%) for secondary lines, faint (38%) for volatile words and ring ticks.
+- **Rule on graphite** (white at 16%): hairlines and glass edges on floating layers. In windows the rule is `primary` at 16%.
+- **Amber** (#FFB847): a blocked agent session and delivery that needs checking. Never decorative.
 
-The recording light is the brand mark brought to life: a red, glossy, slightly irregular blob with a specular highlight, drawn natively. It idles still, swells with the microphone level while recording on a 3.4-second breathing cycle, slows and dims while finalizing, and becomes a check when delivered. Reduce Motion keeps it steady and changes only its opacity. This is the single authored motion moment; everything else uses system transitions.
+### Named Rules
+**The Redline Rule.** Red marks only what is live, chosen or drawn by the person. If it is neither, it is chalk or `primary`.
 
-## Surfaces
+## Typography
 
-- **Menu bar panel.** A compact window: status, the primary Dictate button (glass prominent, red), the agent session control, the latest dictation with Copy, and quiet links to History and Settings. Setup problems appear first, as one sentence with one action.
-- **Recording pill.** Bottom centre of the active screen, never taking focus. A capsule with the jelly light, what is happening and where the text will go, the timer, Stop and Cancel. Live words appear in a glass card that grows out of the capsule; at most five lines, newest at the bottom. The agent cancel window shows a draining ring around the light with Keep draft and Cancel.
-- **Session wheel.** Full-screen, keyboard-first. Sessions sit on a ring, the first at one o'clock, each a glass capsule with its letter key, status and full name. The remembered session is tinted. The centre names it, says whether it can be sent to or is draft only, and shows the next key to press. Escape or a click outside dismisses it.
-- **History.** A standard split view: searchable sidebar by day, an editor that autosaves, the original recognition in a disclosure, and Copy in the toolbar.
-- **Settings.** Standard grouped forms in toolbar tabs: General, Speech, Shortcuts, Agents, Personalization, Annotation, Permissions.
-- **Welcome.** One window, one permission per step, each with what it enables and a live status; skippable steps are labelled optional.
+**All authored text:** JetBrains Mono Regular, Medium and Bold, bundled in `Contents/Resources/Fonts` with its OFL licence and registered through `ATSApplicationFontsPath`.
+**Native chrome:** window titles, toolbars, search fields, form controls and buttons keep the system face.
 
-## Accessibility
+### Hierarchy
+- **Display** (Bold, 30 pt): the Welcome statement only.
+- **Headline** (Bold, 22 pt): each Welcome step's lowercase title.
+- **Title** (Bold, 15 pt; 18 pt in History): the wheel's chosen session and the History title.
+- **Body** (Regular, 13.5–14 pt on 22 pt leading): transcripts and the History editor, which keeps a 640 pt measure (about 72 characters).
+- **Label** (Medium, 11–12.5 pt): row titles, plate names, actions, keycap legends.
+- **State** (Bold, 10.5 pt, uppercase, 1.2 pt tracking): REC, SEND, PASTED, READY and other one-word states.
 
-Every icon-only control has an accessibility label. The pill and wheel expose their state as text. Reduce Motion and Reduce Transparency are honoured; the wheel is fully operable from the keyboard.
+### Named Rules
+**The Lowercase Voice Rule.** Mluva's own labels and actions are lowercase (dictate, agent wheel, keep draft, history). Sentences keep sentence case.
+
+## Layout
+
+Floating layers sit bottom centre (pill, 540 pt wide) or fill the screen (wheel). The pill is a title block: cells divided by vertical hairlines for state, destination and actions, with a 14 pt footer band for the live trace or the countdown. The wheel centres a 236 pt disc inside a 146 pt-radius protractor ring with 72 ticks (long every 30°); plates sit on the tightest ring that clears the disc and each other, joined to their ring node by a radial-then-straight leader. Windows use 16–24 pt margins and separate groups with full-width rules.
+
+## Elevation & Depth
+
+Depth comes from the glass itself and the 42% black dim behind the wheel; nothing adds its own shadow except the jelly lamp's contact shadow. Floating layers are one level: glass is never stacked on glass.
+
+## Shapes
+
+Small, squared corners: 3 pt keycaps, 6 pt plates, 10 pt sheets, circles only for the wheel disc, ring and nodes. Lines are 0.75 pt hairlines; the selection arc is 2 pt with round caps; leaders are 0.75 pt, 1.25 pt when chosen.
+
+## Components
+
+### Keycap
+An outlined 1 pt box (`primary` at 45%) with a Medium mono legend; lit, it fills red with a white legend. Used for every shortcut, and as a button when the action has a key.
+
+### Recording strip and sheet
+The strip shows the jelly lamp, a state word and a 00:00 timer; then `→ destination` with a dim detail line; then keycap actions and plain lowercase actions (cancel, dismiss) that underline on hover. The footer is a scrolling hairline level trace while recording, or a red dimension line that shrinks over the two-second send window with the time left beside it. The sheet above holds up to five lines of live words; volatile words are faint.
+
+### Session dial
+Protractor ring, nodes, leaders and the red arc from twelve o'clock to the chosen session. Plates hold a keycap letter, the session name and a status mark with words. Status marks are drawn on a fixed ramp: ready is a solid dot, working a half-filled ring, blocked an amber diamond, unknown an empty ring, draft-only an empty square.
+
+### Menu bar panel
+A key legend: the header with the lamp, `mluva` and a state word; rows of keycap, action and current value; the last dictation in mono with copy and open; lowercase links for history, settings and quit.
+
+### History
+A mono sidebar whose rows put the outcome left and the time right against the margin; a mono title, a ruled meta line and the editor on a fixed measure; keyframes as hairline-framed thumbnails.
+
+## Do's and Don'ts
+
+### Do:
+- **Do** draw a shortcut as a `Keycap` wherever it is mentioned.
+- **Do** separate with 0.75 pt rules and leader lines before reaching for a container.
+- **Do** keep native controls (toggles, pickers, search, toolbars) native and set only their words in mono.
+
+### Don't:
+- **Don't** use SF Pro or rounded system type for Mluva's own words.
+- **Don't** use capsule chips, tinted glass or cards to group content.
+- **Don't** use red for anything that is not live, chosen or a mark.

@@ -1,5 +1,5 @@
-// Compose the macOS app icon from the brand's glossy mark: the red jelly floating on a pale,
-// glass-like tile drawn to Apple's macOS icon grid (an 824-point rounded square in 1024).
+// Compose the macOS app icon from the brand's glossy mark: the red jelly inside a hairline
+// protractor ring on a graphite tile drawn to Apple's macOS icon grid (824 points in 1024).
 // Usage: swift make-icon.swift <mluva-mark-1024.png> <output.iconset>
 import AppKit
 import CoreGraphics
@@ -22,43 +22,53 @@ func render(_ size: Int) -> CGImage {
     let shape = CGPath(roundedRect: tile, cornerWidth: 185, cornerHeight: 185, transform: nil)
     // Grid shadow under the tile.
     context.saveGState()
-    context.setShadow(offset: CGSize(width: 0, height: -10), blur: 28, color: CGColor(gray: 0, alpha: 0.32))
+    context.setShadow(offset: CGSize(width: 0, height: -10), blur: 28, color: CGColor(gray: 0, alpha: 0.38))
     context.addPath(shape)
-    context.setFillColor(CGColor(gray: 0.94, alpha: 1))
+    context.setFillColor(CGColor(gray: 0.04, alpha: 1))
     context.fillPath()
     context.restoreGState()
-    // Frosted glass: a cool-to-warm pale gradient with a bright upper edge.
+    // Graphite glass: near black, lit faintly from the top, as the brand puts the mark on black.
     context.saveGState()
     context.addPath(shape)
     context.clip()
     let glass = CGGradient(colorsSpace: space, colors: [
-        CGColor(red: 0.99, green: 0.97, blue: 0.97, alpha: 1),
-        CGColor(red: 0.93, green: 0.93, blue: 0.95, alpha: 1),
-        CGColor(red: 0.86, green: 0.87, blue: 0.90, alpha: 1),
-    ] as CFArray, locations: [0, 0.55, 1])!
+        CGColor(red: 0.16, green: 0.165, blue: 0.18, alpha: 1),
+        CGColor(red: 0.07, green: 0.075, blue: 0.085, alpha: 1),
+        CGColor(red: 0.03, green: 0.03, blue: 0.035, alpha: 1),
+    ] as CFArray, locations: [0, 0.5, 1])!
     context.drawLinearGradient(glass, start: CGPoint(x: 512, y: 924), end: CGPoint(x: 512, y: 100), options: [])
-    // The jelly's red light diffusing into the glass.
-    let glow = CGGradient(colorsSpace: space, colors: [
-        CGColor(red: 1, green: 0.25, blue: 0.28, alpha: 0.30),
-        CGColor(red: 1, green: 0.25, blue: 0.28, alpha: 0),
-    ] as CFArray, locations: [0, 1])!
-    context.drawRadialGradient(glow, startCenter: CGPoint(x: 512, y: 470), startRadius: 0,
-                               endCenter: CGPoint(x: 512, y: 470), endRadius: 430, options: [])
-    // Specular sheen across the top.
-    let sheen = CGGradient(colorsSpace: space, colors: [
-        CGColor(gray: 1, alpha: 0.75), CGColor(gray: 1, alpha: 0),
-    ] as CFArray, locations: [0, 1])!
-    context.drawLinearGradient(sheen, start: CGPoint(x: 512, y: 924), end: CGPoint(x: 512, y: 760), options: [])
+    // The drafting ring: a protractor of hairline ticks around the mark, the red arc from twelve
+    // o'clock like the session wheel's selection.
+    let center = CGPoint(x: 512, y: 512)
+    let radius: CGFloat = 330
+    context.setStrokeColor(CGColor(gray: 1, alpha: 0.22))
+    context.setLineWidth(3)
+    context.strokeEllipse(in: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
+    for tick in 0..<72 {
+        let angle = CGFloat(tick) * 5 * .pi / 180
+        let long = tick % 6 == 0
+        let inner = radius + 6, outer = radius + (long ? 40 : 20)
+        context.move(to: CGPoint(x: center.x + inner * sin(angle), y: center.y + inner * cos(angle)))
+        context.addLine(to: CGPoint(x: center.x + outer * sin(angle), y: center.y + outer * cos(angle)))
+    }
+    context.setStrokeColor(CGColor(gray: 1, alpha: 0.30))
+    context.setLineWidth(3)
+    context.strokePath()
+    context.addArc(center: center, radius: radius, startAngle: .pi / 2, endAngle: .pi / 2 - .pi * 2 / 3, clockwise: true)
+    context.setStrokeColor(CGColor(red: 1, green: 0.25, blue: 0.28, alpha: 1))
+    context.setLineWidth(9)
+    context.setLineCap(.round)
+    context.strokePath()
     context.restoreGState()
     // Inner rim.
     context.addPath(shape)
-    context.setStrokeColor(CGColor(gray: 1, alpha: 0.7))
+    context.setStrokeColor(CGColor(gray: 1, alpha: 0.14))
     context.setLineWidth(3)
     context.strokePath()
     // The glossy mark, with a soft contact shadow.
     context.saveGState()
     context.setShadow(offset: CGSize(width: 0, height: -22), blur: 40, color: CGColor(red: 0.55, green: 0.02, blue: 0.06, alpha: 0.45))
-    context.draw(mark, in: CGRect(x: 227, y: 232, width: 570, height: 570))
+    context.draw(mark, in: CGRect(x: 302, y: 307, width: 420, height: 420))
     context.restoreGState()
     return context.makeImage()!
 }

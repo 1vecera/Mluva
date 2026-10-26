@@ -16,7 +16,9 @@ struct SettingsView: View {
             Tab("Vocabulary", systemImage: "character.book.closed", value: .vocabulary) { VocabularySettings() }
             Tab("Privacy", systemImage: "hand.raised", value: .privacy) { PermissionSettings(model: model) }
         }
-        .frame(width: 560)
+        // The forms stay native; their words are set in Mluva's typeface.
+        .font(.mono(12.5))
+        .frame(width: 580)
         .frame(minHeight: 460)
     }
 }
@@ -52,9 +54,9 @@ private struct GeneralSettings: View {
                         }
                     }
                 if LaunchAtLogin.needsApproval {
-                    Text("Approve Mluva in System Settings → General → Login Items.").font(.callout).foregroundStyle(.secondary)
+                    Text("Approve Mluva in System Settings → General → Login Items.").font(.mono(11)).foregroundStyle(.secondary)
                 }
-                if let loginError { Text(loginError).font(.callout).foregroundStyle(.orange) }
+                if let loginError { Text(loginError).font(.mono(11)).foregroundStyle(Ink.amber) }
             }
             Section("Privacy") {
                 Toggle(isOn: Binding(get: { model.config?.incognito_mode ?? false }, set: { value in update(model) { $0.incognito_mode = value } })) {
@@ -78,7 +80,7 @@ private struct GeneralSettings: View {
                     Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([model.paths.data]) }
                 }
             } footer: {
-                Text("Settings and History use the same files as Mluva on Linux.").font(.caption).foregroundStyle(.secondary)
+                Text("Settings and History use the same files as Mluva on Linux.").font(.mono(10.5)).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
@@ -112,13 +114,13 @@ private struct SpeechSettings: View {
                         }
                     }
                     Spacer()
-                    if let message { Text(message).font(.callout).foregroundStyle(.secondary) }
+                    if let message { Text(message).font(.mono(11)).foregroundStyle(.secondary) }
                 }
             } header: {
                 Text("Recognition")
             } footer: {
                 Text("Audio goes to ElevenLabs while you dictate. The key stays in your login Keychain and never enters settings, History or logs.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.mono(10.5)).foregroundStyle(.secondary)
             }
             Section {
                 Picker("Language", selection: Binding(get: { model.config?.language_code ?? "eng" }, set: { value in update(model) { $0.language_code = value } })) {
@@ -157,16 +159,16 @@ private struct ShortcutSettings: View {
                 keyPicker("Dictate", selection: model.config?.global_recording_key ?? "F9") { value in update(model) { $0.global_recording_key = value } }
                 keyPicker("Agent session wheel", selection: model.agents.settings?.hold_key ?? "F12") { value in voice { $0.hold_key = value } }
                 keyPicker("Keep draft", selection: model.agents.settings?.draft_key ?? "F7") { value in voice { $0.draft_key = value } }
-                if let error { Text(error).font(.callout).foregroundStyle(.orange) }
+                if let error { Text(error).font(.mono(11)).foregroundStyle(Ink.amber) }
                 if !model.refusedKeys.isEmpty {
                     Text("macOS refused \(model.refusedKeys.map(\.rawValue).joined(separator: ", ")). Another app may own that key.")
-                        .font(.callout).foregroundStyle(.orange)
+                        .font(.mono(11)).foregroundStyle(Ink.amber)
                 }
             } header: {
                 Text("Global shortcuts")
             } footer: {
                 Text("On a Mac keyboard, hold fn with the function key, or turn on “Use F1, F2, etc. keys as standard function keys” in Keyboard settings. Shortcuts see only their own key.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.mono(10.5)).foregroundStyle(.secondary)
             }
             Section("While recording") {
                 LabeledContent("Stop and deliver", value: "Press the same key again")
@@ -211,7 +213,7 @@ private struct AgentSettings: View {
                 Text("Discovery")
             } footer: {
                 Text("Sending needs Herdr with the guarded prompt integration. Other sessions are draft only: Mluva records an editable transcript and never types into them.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.mono(10.5)).foregroundStyle(.secondary)
             }
             Section("Sessions") {
                 if model.agents.sessions.isEmpty {
@@ -223,7 +225,7 @@ private struct AgentSettings: View {
                         VStack(alignment: .leading) {
                             Text(session.display_name)
                             Text(session.draft_only ? "\(session.project) · draft only" : session.project)
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(.mono(10.5)).foregroundStyle(.secondary)
                         }
                         Spacer()
                         if model.agents.selected?.id == session.id {
@@ -284,12 +286,12 @@ private struct VocabularySettings: View {
                     }
                     .disabled(spoken.isEmpty || written.isEmpty)
                 }
-                if let error { Text(error).font(.callout).foregroundStyle(.orange) }
+                if let error { Text(error).font(.mono(11)).foregroundStyle(Ink.amber) }
             } header: {
                 Text("Replacements")
             } footer: {
                 Text("Applied to every dictation and given to recognition as vocabulary. The original recognition is kept unchanged.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.mono(10.5)).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
@@ -314,11 +316,11 @@ private struct AnnotationSettings: View {
                     Text("While recording, hold Shift and move to draw; Shift-click drops a numbered pin. Marked recordings deliver keyframes and a short summary with the text.")
                 }
                 if let error = model.annotation.settingsError {
-                    Text(error).font(.callout).foregroundStyle(.orange)
+                    Text(error).font(.mono(11)).foregroundStyle(Ink.amber)
                 }
             } footer: {
                 Text("Changes apply to the next recording. Off in Incognito. Raw screen captures stay in memory; only the marked keyframes are saved, beside the dictation in History.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.mono(10.5)).foregroundStyle(.secondary)
             }
             Section("Permission") {
                 PermissionRow(permission: .screenRecording, permissions: model.permissions)
@@ -345,7 +347,7 @@ private struct PermissionSettings: View {
                 }
             } footer: {
                 Text("Mluva works with the microphone alone: dictations are copied. The other permissions add pasting and screen annotation.")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.mono(10.5)).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
@@ -363,22 +365,23 @@ struct PermissionRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: permission.symbol)
-                .font(.title3)
-                .foregroundStyle(Color.mluva)
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(.secondary)
                 .frame(width: 26)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(permission.title).fontWeight(.medium)
-                    if !permission.isRequired { Text("Optional").font(.caption).foregroundStyle(.secondary) }
+                    Text(permission.title).font(.mono(12.5, .medium))
+                    if !permission.isRequired { Text("optional").font(.mono(10)).foregroundStyle(.secondary) }
                 }
-                Text(permission.purpose).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(permission.purpose).font(.mono(11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
             switch permissions.state(permission) {
             case .granted:
-                Label("Allowed", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .labelStyle(.titleAndIcon)
+                HStack(spacing: 6) {
+                    StatusMark(status: .idle, size: 7)
+                    Text("allowed").font(.mono(11, .medium))
+                }
             case .notAsked, .denied:
                 Button(permissions.state(permission) == .denied ? "Open Settings" : "Allow…") { permissions.request(permission) }
             }

@@ -12,21 +12,22 @@ struct HistoryView: View {
         NavigationSplitView {
             List(selection: $selection) {
                 ForEach(groups, id: \.title) { group in
-                    Section(group.title) {
+                    Section {
                         ForEach(group.entries) { entry in
                             HistoryRow(entry: entry).tag(entry.identifier)
                         }
+                    } header: {
+                        Text(group.title.lowercased()).font(.mono(10.5, .bold)).tracking(1)
                     }
                 }
             }
             .searchable(text: $query, placement: .sidebar, prompt: "Search dictations")
-            .navigationSplitViewColumnWidth(min: 240, ideal: 280)
+            .navigationSplitViewColumnWidth(min: 250, ideal: 290)
             .overlay {
                 if results.isEmpty {
-                    ContentUnavailableView(
-                        query.isEmpty ? "No dictations yet" : "No matches",
-                        systemImage: query.isEmpty ? "waveform" : "magnifyingglass",
-                        description: Text(query.isEmpty ? "Press \(model.config?.global_recording_key ?? "F9") anywhere to dictate." : "Try other words."))
+                    EmptySheet(key: query.isEmpty ? (model.config?.global_recording_key ?? "F9") : nil,
+                               title: query.isEmpty ? "no dictations yet" : "no matches",
+                               detail: query.isEmpty ? "Press the key anywhere and talk." : "Try other words.")
                 }
             }
         } detail: {
@@ -34,7 +35,7 @@ struct HistoryView: View {
                 HistoryDetail(model: model, entry: entry) { reload() }
                     .id(entry.identifier)
             } else {
-                ContentUnavailableView("Choose a dictation", systemImage: "text.bubble", description: Text("Its text opens here for editing."))
+                EmptySheet(key: nil, title: "choose a dictation", detail: "Its text opens here for editing.")
             }
         }
         .navigationTitle("History")
@@ -71,31 +72,36 @@ struct HistoryView: View {
     }
 }
 
+/// A title line, then its outcome and the time set right against the margin.
 private struct HistoryRow: View {
     let entry: HistoryEntry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(entry.displayTitle).lineLimit(1)
+        VStack(alignment: .leading, spacing: 3) {
+            Text(entry.displayTitle)
+                .font(.mono(12))
+                .lineLimit(1)
             HStack(spacing: 6) {
-                if let date = entry.createdAt {
-                    Text(date, format: .dateTime.hour().minute())
-                }
                 Text(outcome)
+                Spacer(minLength: 4)
+                if let date = entry.createdAt {
+                    Text(date, format: .dateTime.hour(.twoDigits(amPM: .omitted)).minute())
+                        .monospacedDigit()
+                }
             }
-            .font(.caption)
+            .font(.mono(10))
             .foregroundStyle(.secondary)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 3)
     }
 
     private var outcome: String {
         switch entry.delivery_outcome {
-        case "pasted": "Pasted"
-        case "paste-unconfirmed": "Pasted, unconfirmed"
-        case "copied": "Copied"
-        case "failed": "Needs attention"
-        default: "Draft"
+        case "pasted": "pasted"
+        case "paste-unconfirmed": "pasted · unconfirmed"
+        case "copied": "copied"
+        case "failed": "needs attention"
+        default: "draft"
         }
     }
 }
@@ -118,24 +124,30 @@ private struct HistoryDetail: View {
         VStack(alignment: .leading, spacing: 0) {
             TextField("Title", text: $title, prompt: Text(entry.displayTitle))
                 .textFieldStyle(.plain)
-                .font(.title2.weight(.semibold))
+                .font(.mono(18, .bold))
                 .padding(.horizontal, 24)
                 .padding(.top, 18)
                 .onSubmit(saveTitle)
             HStack(spacing: 8) {
                 if let date = entry.createdAt { Text(date, format: .dateTime.weekday().day().month().hour().minute()) }
                 Text("·")
-                Text(saveError ?? (saved ? "Saved" : "Saving…"))
-                    .foregroundStyle(saveError == nil ? Color.secondary : Color.orange)
+                Text(saveError ?? (saved ? "saved" : "saving…"))
+                    .foregroundStyle(saveError == nil ? Color.secondary : Ink.amber)
             }
-            .font(.caption)
+            .font(.mono(10.5))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 24)
             .padding(.vertical, 6)
+            Rule()
+                .padding(.horizontal, 24)
+                .padding(.bottom, 10)
+            // A fixed reading measure, about seventy characters, like the Linux editor.
             TextEditor(text: $text)
-                .font(.body)
-                .lineSpacing(4)
+                .font(.mono(14))
+                .lineSpacing(8)
                 .scrollContentBackground(.hidden)
+                .frame(maxWidth: 640, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 19)
                 .onChange(of: text) { scheduleSave() }
             if !bundles.isEmpty {
@@ -143,13 +155,16 @@ private struct HistoryDetail: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 10)
             }
-            DisclosureGroup("Original recognition", isExpanded: $showOriginal) {
+            DisclosureGroup(isExpanded: $showOriginal) {
                 Text(entry.raw_text)
-                    .font(.callout)
+                    .font(.mono(12))
+                    .lineSpacing(5)
                     .foregroundStyle(.secondary)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 6)
+            } label: {
+                Text("original recognition").font(.mono(11, .medium))
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 14)
@@ -244,14 +259,12 @@ private struct AnnotationStrip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Label("Screen annotation", systemImage: "pencil.tip.crop.circle")
-                    .font(.callout.weight(.medium))
-                Text(count).font(.callout).foregroundStyle(.secondary)
+                Text("screen marks").font(.mono(11, .bold))
+                Text(count).font(.mono(11)).foregroundStyle(.secondary)
                 Spacer()
-                Button("Show in Finder") {
+                LinkAction(label: "show in finder") {
                     NSWorkspace.shared.activateFileViewerSelecting(bundles.map { URL(fileURLWithPath: $0.contact_sheet) })
                 }
-                .buttonStyle(.link)
             }
             ScrollView(.horizontal) {
                 HStack(spacing: 10) {
@@ -290,11 +303,29 @@ private struct Thumbnail: View {
         }
         .frame(height: 112)
         .frame(maxWidth: 200)
-        .clipShape(.rect(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.separator))
+        .clipShape(.rect(cornerRadius: 3))
+        .overlay(RoundedRectangle(cornerRadius: 3).strokeBorder(Color.primary.opacity(0.25), lineWidth: 0.75))
         .task(id: path) {
             let url = URL(fileURLWithPath: path)
             image = await Task.detached { NSImage(contentsOf: url) }.value
         }
+    }
+}
+
+/// An empty state in the drafting language: the key that fills it, a line, and what to do.
+private struct EmptySheet: View {
+    let key: String?
+    let title: String
+    let detail: String
+
+    var body: some View {
+        VStack(spacing: 10) {
+            if let key { Keycap(key, size: 14) }
+            Text(title).font(.mono(13, .bold))
+            Rule().frame(width: 80)
+            Text(detail).font(.mono(11)).foregroundStyle(.secondary)
+        }
+        .multilineTextAlignment(.center)
+        .padding(24)
     }
 }

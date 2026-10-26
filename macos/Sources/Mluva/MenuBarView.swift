@@ -14,16 +14,43 @@ struct MenuBarView: View {
     private var agentKey: String { model.agents.settings?.hold_key ?? "F12" }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 0) {
             header
-            if model.needsSetup { setupCallout }
-            dictateButton
-            agentRow
-            if let latest = model.recent.first { latestCard(latest) }
-            Divider()
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+                .padding(.bottom, 12)
+            if model.needsSetup {
+                setupNotice
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+            }
+            Rule()
+            VStack(spacing: 2) {
+                KeyRow(key: key, title: dictation.phase == .recording ? "stop and copy" : "dictate",
+                       value: dictation.phase == .recording ? "recording" : "copy to clipboard",
+                       live: dictation.phase == .recording) {
+                    model.stopOrStart(manual: true)
+                }
+                .disabled(model.needsSetup || dictation.phase == .finalizing)
+                .help("Records and copies the text. Use \(key) anywhere to paste where you were typing.")
+                KeyRow(key: agentKey, title: "agent wheel", value: model.agents.selected?.display_name ?? "\(model.agents.sessions.count) sessions") {
+                    model.openWheel()
+                }
+                sessionPicker
+            }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
+            if let entry = model.recent.first {
+                Rule()
+                latest(entry)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+            }
+            Rule()
             footer
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
         }
-        .padding(16)
         .frame(width: 340)
         .onAppear {
             model.permissions.refresh()
@@ -35,129 +62,146 @@ struct MenuBarView: View {
 
     private var header: some View {
         HStack(spacing: 10) {
-            JellyLight(mood: dictation.phase == .recording ? .listening : .idle, level: dictation.level, size: 26)
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Mluva").font(.headline)
-                Text(status).font(.caption).foregroundStyle(.secondary)
-            }
+            JellyLight(mood: dictation.phase == .recording ? .listening : .idle, level: dictation.level, size: 22)
+            Text("mluva").font(.mono(15, .bold))
             Spacer()
             if model.config?.incognito_mode == true {
-                Label("Incognito", systemImage: "eye.slash")
-                    .labelStyle(.iconOnly)
-                    .foregroundStyle(.secondary)
+                StateWord(text: "incognito", color: .secondary)
                     .help("Incognito: nothing is saved to History")
             }
+            StateWord(text: status, color: dictation.phase == .recording ? .mluva : (model.needsSetup ? Ink.amber : .secondary))
         }
     }
 
     private var status: String {
         switch dictation.phase {
-        case .recording: "Listening"
-        case .preparing: "Getting ready"
-        case .finalizing: "Finishing"
-        default: model.needsSetup ? "Setup needed" : "Ready · \(key) to dictate"
+        case .recording: "rec"
+        case .preparing: "arming"
+        case .finalizing: "reading"
+        default: model.needsSetup ? "setup" : "ready"
         }
     }
 
-    private var setupCallout: some View {
+    private var setupNotice: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Image(systemName: "exclamationmark.circle.fill").foregroundStyle(.orange)
             Text(!model.hasKey ? "Add your ElevenLabs key to start dictating." : "Allow the microphone to start dictating.")
-                .font(.callout)
+                .font(.mono(11.5))
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 4)
             Button("Set up") { openWindow(id: "welcome"); NSApp.activate() }
                 .controlSize(.small)
         }
-        .padding(10)
-        .background(.orange.opacity(0.12), in: .rect(cornerRadius: 10))
     }
 
-    private var dictateButton: some View {
-        Button {
-            model.stopOrStart(manual: true)
-        } label: {
-            HStack {
-                Image(systemName: dictation.phase == .recording ? "stop.fill" : "mic.fill")
-                Text(dictation.phase == .recording ? "Stop and copy" : "Dictate")
-                Spacer()
-                Text(key).font(.callout.monospaced()).opacity(0.8)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
-        }
-        .buttonStyle(.glassProminent)
-        .tint(.mluva)
-        .controlSize(.large)
-        .disabled(model.needsSetup || dictation.phase == .finalizing)
-        .help("Records and copies the text. Use \(key) anywhere to paste where you were typing.")
-    }
-
-    @ViewBuilder private var agentRow: some View {
+    /// The session the wheel and the agent key start on, chosen from a standard menu.
+    private var sessionPicker: some View {
         let sessions = model.agents.sessions
-        HStack(spacing: 8) {
-            Menu {
-                if sessions.isEmpty {
-                    Text("No agent sessions found")
+        return Menu {
+            if sessions.isEmpty { Text("No agent sessions found") }
+            ForEach(sessions) { session in
+                Button {
+                    model.choose(session)
+                } label: {
+                    Text(session.draft_only ? "\(session.display_name) — draft only" : session.display_name)
                 }
-                ForEach(sessions) { session in
-                    Button {
-                        model.choose(session)
-                    } label: {
-                        Text(session.draft_only ? "\(session.display_name) — draft only" : session.display_name)
-                    }
-                }
-            } label: {
-                Label(model.agents.selected?.display_name ?? "Choose an agent session", systemImage: "terminal")
-                    .lineLimit(1)
             }
-            .menuStyle(.button)
-            .buttonStyle(.glass)
-            Button {
-                model.openWheel()
-            } label: {
-                Text(agentKey).font(.callout.monospaced())
-            }
-            .buttonStyle(.glass)
-            .help("Open the session wheel (\(agentKey))")
+        } label: {
+            Text("choose session…").font(.mono(11))
         }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .foregroundStyle(.secondary)
+        .padding(.leading, 64)
+        .padding(.vertical, 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func latestCard(_ entry: HistoryEntry) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text("Latest").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+    private func latest(_ entry: HistoryEntry) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(alignment: .firstTextBaseline) {
+                StateWord(text: "last", color: .secondary)
                 Spacer()
                 if let date = entry.createdAt {
-                    Text(date, format: .relative(presentation: .named)).font(.caption).foregroundStyle(.secondary)
+                    Text(date, format: .relative(presentation: .named))
+                        .font(.mono(10.5))
+                        .foregroundStyle(.secondary)
                 }
             }
             Text(entry.delivered_text)
-                .font(.callout)
+                .font(.mono(12))
+                .lineSpacing(4)
                 .lineLimit(3)
                 .textSelection(.enabled)
-            HStack {
-                Button("Copy", systemImage: "doc.on.doc") { TextDelivery.copy(entry.delivered_text) }
-                Button("Open", systemImage: "arrow.up.forward.app") {
+            HStack(spacing: 14) {
+                LinkAction(label: "copy") { TextDelivery.copy(entry.delivered_text) }
+                LinkAction(label: "open in history") {
                     openWindow(id: "history", value: entry.identifier)
                     NSApp.activate()
                 }
             }
-            .buttonStyle(.borderless)
-            .font(.caption)
         }
-        .padding(12)
-        .background(.background.secondary, in: .rect(cornerRadius: 12))
     }
 
     private var footer: some View {
-        HStack(spacing: 14) {
-            Button("History") { openWindow(id: "history", value: ""); NSApp.activate() }
-            Button("Settings…") { openSettings(); NSApp.activate() }
+        HStack(spacing: 16) {
+            LinkAction(label: "history") { openWindow(id: "history", value: ""); NSApp.activate() }
+            LinkAction(label: "settings") { openSettings(); NSApp.activate() }
             Spacer()
-            Button("Quit") { NSApp.terminate(nil) }
+            LinkAction(label: "quit") { NSApp.terminate(nil) }
         }
-        .buttonStyle(.borderless)
-        .font(.callout)
+    }
+}
+
+/// One command: its key on the left, what it does, and its current value on the right.
+private struct KeyRow: View {
+    let key: String
+    let title: String
+    let value: String
+    var live = false
+    let action: () -> Void
+    @State private var hovering = false
+    @Environment(\.isEnabled) private var enabled
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Keycap(key, lit: live)
+                    .frame(width: 36, alignment: .leading)
+                Text(title)
+                    .font(.mono(12.5, .medium))
+                Spacer(minLength: 8)
+                Text(value)
+                    .font(.mono(10.5))
+                    .foregroundStyle(live ? Color.mluva : .secondary)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 7)
+            .background(hovering && enabled ? Color.primary.opacity(0.07) : .clear, in: .rect(cornerRadius: 5))
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .opacity(enabled ? 1 : 0.45)
+        .onHover { hovering = $0 }
+    }
+}
+
+/// A lowercase word that acts, underlined on hover.
+struct LinkAction: View {
+    let label: String
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.mono(11))
+                .foregroundStyle(hovering ? .primary : .secondary)
+                .underline(hovering)
+                .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
     }
 }

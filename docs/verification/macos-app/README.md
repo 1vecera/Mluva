@@ -19,8 +19,11 @@ These paths need macOS permission grants on the physical Mac or Daniel's ElevenL
 
 ## Screens
 
+The interface follows [macos/DESIGN.md](../../../macos/DESIGN.md): JetBrains Mono as on Linux, keys drawn as legends, hairline rules and leader lines, graphite glass for what floats, and red only for what is live, chosen or marked.
+
 | | |
 | --- | --- |
+| App icon | ![App icon](app-icon.png) |
 | Menu bar | ![Menu bar, light](menu-bar-light.png) ![Menu bar, dark](menu-bar-dark.png) |
 | Recording pill with live words | ![Pill recording, light](pill-recording-light.png) ![Pill recording, dark](pill-recording-dark.png) |
 | Agent send countdown and paste | ![Countdown](pill-agent-countdown-light.png) ![Pasted](pill-pasted-dark.png) |
