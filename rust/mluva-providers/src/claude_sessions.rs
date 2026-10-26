@@ -150,9 +150,7 @@ impl ClaudeRegistry {
         let Ok(listing) = fs::read_dir(&directory) else {
             return vec![];
         };
-        let namespace = fs::read_link("/proc/self/ns/pid")
-            .ok()
-            .map(|link| link.to_string_lossy().into_owned());
+        let namespace = process::domain();
         let mut seen = HashMap::new();
         for item in listing.take(MAX_DIRECTORY_ENTRIES).flatten() {
             if seen.len() >= MAX_SESSIONS {
@@ -169,18 +167,20 @@ impl ClaudeRegistry {
             else {
                 continue;
             };
-            let Some(started) = process_start(pid) else {
+            let Some(started) = process::start(pid) else {
                 continue;
             };
             let parsed = read_entry(&item.path(), pid, namespace.as_deref());
             let session = match parsed {
-                Some(Ok((start, session))) if start == started => Some(session),
+                Some(Ok((start, session))) if process::same_start(&start, &started) => {
+                    Some(session)
+                }
                 Some(Ok(_)) => None,
                 // Unreadable this instant: keep this exact process's last whole entry.
                 Some(Err(())) => self
                     .entries
                     .get(&pid)
-                    .filter(|(start, _)| *start == started)
+                    .filter(|(start, _)| process::same_start(start, &started))
                     .map(|(_, session)| session.clone()),
                 None => None,
             };
@@ -197,7 +197,7 @@ impl ClaudeRegistry {
             if pid == self.exclude {
                 return true;
             }
-            match parent(pid) {
+            match process::parent(pid) {
                 Some(next) if next > 1 && next != pid => pid = next,
                 _ => return false,
             }
@@ -259,7 +259,7 @@ fn read_entry(
     };
     let domain_matches = match (text("pidDomain"), namespace) {
         (None, _) => true,
-        (Some(domain), Some(ours)) => domain.find("pid:[").is_some_and(|at| &domain[at..] == ours),
+        (Some(domain), Some(ours)) => process::same_domain(domain, ours),
         (Some(_), None) => false,
     };
     let session_id = text("sessionId").filter(|id| valid_session_id(id))?;
@@ -316,20 +316,126 @@ fn valid_session_id(id: &str) -> bool {
             .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_'))
 }
 
-/// The fields of `/proc/<pid>/stat` after the parenthesised command name, from `state`.
-fn stat_fields(pid: u32) -> Option<Vec<String>> {
-    let stat = fs::read_to_string(format!("/proc/{pid}/stat")).ok()?;
-    let rest = stat.get(stat.rfind(')')? + 1..)?;
-    Some(rest.split_whitespace().map(str::to_owned).collect())
+/// Process facts Claude Code records in its registry, read the way it reads them per platform.
+#[cfg(target_os = "linux")]
+mod process {
+    use std::fs;
+
+    /// The fields of `/proc/<pid>/stat` after the parenthesised command name, from `state`.
+    fn stat_fields(pid: u32) -> Option<Vec<String>> {
+        let stat = fs::read_to_string(format!("/proc/{pid}/stat")).ok()?;
+        let rest = stat.get(stat.rfind(')')? + 1..)?;
+        Some(rest.split_whitespace().map(str::to_owned).collect())
+    }
+
+    /// Field 22, the start time, which `procStart` records to detect PID reuse.
+    pub(super) fn start(pid: u32) -> Option<String> {
+        stat_fields(pid)?.into_iter().nth(19)
+    }
+
+    pub(super) fn parent(pid: u32) -> Option<u32> {
+        stat_fields(pid)?.get(1)?.parse().ok()
+    }
+
+    pub(super) fn same_start(recorded: &str, current: &str) -> bool {
+        recorded == current
+    }
+
+    /// This process's PID namespace, such as `pid:[4026531836]`.
+    pub(super) fn domain() -> Option<String> {
+        fs::read_link("/proc/self/ns/pid")
+            .ok()
+            .map(|link| link.to_string_lossy().into_owned())
+    }
+
+    /// `pidDomain` ends with the namespace of the process that registered.
+    pub(super) fn same_domain(recorded: &str, ours: &str) -> bool {
+        recorded
+            .find("pid:[")
+            .is_some_and(|at| &recorded[at..] == ours)
+    }
 }
 
-/// Field 22, the start time, which `procStart` records to detect PID reuse.
-fn process_start(pid: u32) -> Option<String> {
-    stat_fields(pid)?.into_iter().nth(19)
+/// On macOS Claude Code records `ps -o lstart` in UTC, such as `Mon Oct 26 11:10:03 2026`,
+/// and the domain `darwin`. The kernel's process table supplies the same second.
+#[cfg(target_os = "macos")]
+mod process {
+    fn info(pid: u32) -> Option<libc::proc_bsdinfo> {
+        let pid = libc::c_int::try_from(pid).ok()?;
+        // SAFETY: proc_bsdinfo is plain data; zeroed is a valid value that the call overwrites.
+        let mut info: libc::proc_bsdinfo = unsafe { std::mem::zeroed() };
+        let size = libc::c_int::try_from(std::mem::size_of::<libc::proc_bsdinfo>()).ok()?;
+        // SAFETY: the buffer is exactly one proc_bsdinfo and outlives the call.
+        let written = unsafe {
+            libc::proc_pidinfo(pid, libc::PROC_PIDTBSDINFO, 0, (&raw mut info).cast(), size)
+        };
+        (written == size).then_some(info)
+    }
+
+    pub(super) fn start(pid: u32) -> Option<String> {
+        let seconds = libc::time_t::try_from(info(pid)?.pbi_start_tvsec).ok()?;
+        lstart(seconds)
+    }
+
+    pub(super) fn parent(pid: u32) -> Option<u32> {
+        Some(info(pid)?.pbi_ppid)
+    }
+
+    /// `ps` pads the day of the month, so only the words are compared.
+    pub(super) fn same_start(recorded: &str, current: &str) -> bool {
+        recorded.split_whitespace().eq(current.split_whitespace())
+    }
+
+    pub(super) fn domain() -> Option<String> {
+        Some("darwin".into())
+    }
+
+    pub(super) fn same_domain(recorded: &str, ours: &str) -> bool {
+        recorded == ours
+    }
+
+    /// `%a %b %e %H:%M:%S %Y` in UTC, independent of the locale.
+    pub(super) fn lstart(seconds: libc::time_t) -> Option<String> {
+        const DAYS: [&str; 7] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const MONTHS: [&str; 12] = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+        ];
+        // SAFETY: tm is plain data and gmtime_r writes only into it.
+        let mut tm: libc::tm = unsafe { std::mem::zeroed() };
+        if unsafe { libc::gmtime_r(&seconds, &mut tm) }.is_null() {
+            return None;
+        }
+        Some(format!(
+            "{} {} {:>2} {:02}:{:02}:{:02} {}",
+            DAYS.get(usize::try_from(tm.tm_wday).ok()?)?,
+            MONTHS.get(usize::try_from(tm.tm_mon).ok()?)?,
+            tm.tm_mday,
+            tm.tm_hour,
+            tm.tm_min,
+            tm.tm_sec,
+            tm.tm_year + 1900
+        ))
+    }
 }
 
-fn parent(pid: u32) -> Option<u32> {
-    stat_fields(pid)?.get(1)?.parse().ok()
+/// Elsewhere no process facts are known, so no session is admitted.
+#[cfg(not(any(target_os = "linux", target_os = "macos")))]
+mod process {
+    pub(super) fn start(_pid: u32) -> Option<String> {
+        None
+    }
+    pub(super) fn parent(_pid: u32) -> Option<u32> {
+        None
+    }
+    pub(super) fn same_start(_recorded: &str, _current: &str) -> bool {
+        false
+    }
+    pub(super) fn domain() -> Option<String> {
+        None
+    }
+    pub(super) fn same_domain(_recorded: &str, _ours: &str) -> bool {
+        false
+    }
 }
 
 /// Claude Code names a project's transcript directory after its path, with every UTF-16
@@ -561,10 +667,15 @@ mod tests {
                 fs::create_dir_all(&directory).unwrap();
                 fs::set_permissions(&directory, fs::Permissions::from_mode(0o700)).unwrap();
             }
-            let namespace = fs::read_link("/proc/self/ns/pid")
-                .unwrap()
-                .to_string_lossy()
-                .into_owned();
+            // Claude Code's own form of this platform's PID domain.
+            let namespace = if cfg!(target_os = "linux") {
+                format!(
+                    "linux:0123456789abcdef0123456789abcdef:{}",
+                    process::domain().unwrap()
+                )
+            } else {
+                process::domain().unwrap()
+            };
             Self {
                 _temp: temp,
                 config,
@@ -576,8 +687,8 @@ mod tests {
             let mut entry = json!({"pid": pid, "sessionId": session, "cwd": "/synthetic/notes",
                 "startedAt": 1_000 + u64::from(pid % 1_000), "kind": "interactive", "entrypoint": "cli",
                 "name": format!("notes-{:02x}", pid % 256), "nameSource": "derived", "status": "idle",
-                "version": "2.1.306", "pidDomain": format!("linux:0123456789abcdef0123456789abcdef:{}", self.namespace),
-                "procStart": process_start(pid).unwrap_or_else(|| "1".into())});
+                "version": "2.1.306", "pidDomain": self.namespace,
+                "procStart": process::start(pid).unwrap_or_else(|| "1".into())});
             entry
                 .as_object_mut()
                 .unwrap()
@@ -622,7 +733,7 @@ mod tests {
     fn only_live_interactive_entries_are_admitted_and_key_files_are_never_opened() {
         let fixture = Fixture::new();
         let own = std::process::id();
-        let parent = parent(own).unwrap();
+        let parent = process::parent(own).unwrap();
         fixture.write(
             &format!("{own}.json"),
             &fixture.entry(own, "live-session", json!({})),
@@ -727,6 +838,34 @@ mod tests {
         writer.join().unwrap();
     }
 
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_start_times_match_claude_codes_utc_lstart() {
+        // 2026-10-26 11:10:03 UTC and a single-digit day, which `ps` pads.
+        assert_eq!(
+            process::lstart(1_793_013_003).as_deref(),
+            Some("Mon Oct 26 11:10:03 2026")
+        );
+        assert_eq!(
+            process::lstart(1_791_282_000).as_deref(),
+            Some("Tue Oct  6 10:20:00 2026")
+        );
+        assert!(process::same_start(
+            "Tue Oct 6 10:20:00 2026",
+            "Tue Oct  6 10:20:00 2026"
+        ));
+        assert!(!process::same_start(
+            "Tue Oct 6 10:20:01 2026",
+            "Tue Oct  6 10:20:00 2026"
+        ));
+        let own = process::start(std::process::id()).unwrap();
+        assert_eq!(own.split_whitespace().count(), 5, "{own}");
+        assert_eq!(
+            process::parent(std::process::id()),
+            Some(std::os::unix::process::parent_id())
+        );
+    }
+
     fn mkfifo(path: &Path) {
         let path = std::ffi::CString::new(path.as_os_str().as_encoded_bytes()).unwrap();
         // SAFETY: a valid NUL-terminated path and a mode; no memory is retained.
@@ -760,7 +899,7 @@ mod tests {
                 .is_empty()
         );
         assert!(
-            ClaudeRegistry::new(&fixture.config, parent(own).unwrap())
+            ClaudeRegistry::new(&fixture.config, process::parent(own).unwrap())
                 .sessions()
                 .is_empty()
         );
