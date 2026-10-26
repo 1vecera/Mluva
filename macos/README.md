@@ -1,6 +1,6 @@
 # Mluva for macOS
 
-A native menu-bar app for macOS 26 with Liquid Glass. It shares settings, History, personalization, Scribe recognition, agent discovery, the guarded agent send and the screen annotation planner with the Linux app through the Rust core; Swift owns what is bound to the Mac desktop.
+A native menu-bar app for macOS 26 with Liquid Glass, drawn in its own [drafting language](DESIGN.md): JetBrains Mono as on Linux, keys drawn as legends, hairline rules and leader lines, graphite glass for what floats, and red only for what is live, chosen or marked. It shares settings, History, personalization, Scribe recognition, agent discovery, the guarded agent send and the screen annotation planner with the Linux app through the Rust core; Swift owns what is bound to the Mac desktop.
 
 | Area | macOS behavior |
 | --- | --- |
@@ -46,7 +46,7 @@ The microphone is the only requirement. Accessibility adds pasting into the capt
 
 ## Limits
 
-- Herdr releases without the guarded prompt API are discovered, but their sessions are draft-only, as on Linux.
+- Herdr releases without the guarded prompt API are discovered, but their sessions are draft-only, as on Linux. The [guarded patch](../integrations/herdr/README.md) applies to Herdr 0.9.5 and builds and passes its guarded, schema, wire and PTY tests on macOS with Zig 0.16.0.
 - A Shift-click during recording pins instead of reaching the app underneath; that is how the overlay keeps pins out of other apps.
 - The build is signed ad hoc. Distribution to other Macs needs a Developer ID signature and notarization.
 - Local speech models, meetings, narrated screenshots and the hosted companion remain Linux-only.
