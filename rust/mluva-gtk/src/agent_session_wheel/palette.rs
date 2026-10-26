@@ -81,6 +81,8 @@ pub struct Palette {
     /// The light's colour, and its colour for a blocked or missing choice.
     pub lit: Rgb,
     pub warn_lit: Rgb,
+    /// The theme's own accent, saturated, for the light on a light wash.
+    pub accent: Rgb,
     pub warning: Rgb,
     pub working: Rgb,
 }
@@ -99,6 +101,7 @@ impl Palette {
             ink: t.ink,
             lit: t.action.over(t.ink, 0.72),
             warn_lit: t.warning.over(t.ink, 0.85),
+            accent: t.action,
             warning: t.warning,
             working: t.success,
         }
@@ -106,6 +109,19 @@ impl Palette {
     /// The light for the current choice, `warn` of the way from its own colour to amber.
     pub fn light(&self, warn: f64) -> Rgb {
         self.warn_lit.over(self.lit, warn.clamp(0., 1.) as f32)
+    }
+    /// The saturated accent, `warn` of the way to amber.
+    pub fn accent(&self, warn: f64) -> Rgb {
+        self.warning.over(self.accent, warn.clamp(0., 1.) as f32)
+    }
+    /// The trace's bright core: near white with a tint of the light on a dark wash, so it reads as
+    /// light over a bright page too; the saturated accent on a light wash.
+    pub fn core(&self, warn: f64) -> Rgb {
+        if self.light_theme {
+            self.accent(warn)
+        } else {
+            self.light(warn).over(Rgb(1., 1., 1.), 0.45)
+        }
     }
 }
 

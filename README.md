@@ -27,7 +27,7 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 
 ![The F12 session wheel: twenty agent sessions as ticks on a thin ring over a busy desktop, a light trace on the ring at the chosen one](docs/assets/session-wheel.jpg)
 
-Press F12 and every agent session appears as a tick on a thin dial over your desktop, Herdr's panes first from one o'clock and then sessions outside Herdr, each with its full name and its letter. Press the letter to choose a session; the hand swings to it with a light along the ring and the centre says what then happens to your words: send, queue, prefill or keep a draft. Press F12 again to dictate to it, or Esc to leave. The dial follows your Omarchy theme.
+Press F12 and every agent session appears as a tick on a thin dial over your desktop, Herdr's panes first from one o'clock and then sessions outside Herdr, each with its full name and its letter. Press the letter to choose a session; the hand swings to it with a light along the ring and the centre shows F12 and what then happens to your words: send, queue, prefill or keep a draft. Press F12 again to dictate to it, or Esc to leave. The dial follows your Omarchy theme.
 
 <sub>Twenty synthetic sessions over a synthetic desktop, from Mluva's own renderer.</sub>
 

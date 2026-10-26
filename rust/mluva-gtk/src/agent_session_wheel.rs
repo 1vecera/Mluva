@@ -38,14 +38,25 @@ const EPSILON: f64 = 1e-6;
 const STAGE_MARGIN: f64 = 28.;
 /// The smallest dial; a smaller screen than this fits is out of scope for a wheel.
 const MIN_DIAL: f64 = 120.;
-/// Name measures in characters, tried in turn until the wheel fits the screen. Most titles
-/// fit one comfortable line; longer lines trade width for height, then narrower ones the reverse.
-const NAME_MEASURES: [i32; 5] = [44, 58, 72, 34, 26];
+/// Name measures in characters, tried in turn until the wheel fits the screen. Most titles,
+/// with room for a caption after them, fit one comfortable line, and a long legacy name wraps to
+/// two lines rather than three, so it stays near its tick; wider lines trade width for height,
+/// then narrower ones the reverse.
+const NAME_MEASURES: [i32; 5] = [58, 72, 44, 34, 26];
 /// Room kept for the legend and the compositor's gaps around the dialog.
 const SCREEN_RESERVE: (f64, f64) = (96., 168.);
+/// The furthest a key may sit from its own tick, centre to the tick's outer end, in pixels; a
+/// one-line name's key sits about 40 px out.
+pub const KEY_REACH: f64 = 72.;
 /// The longest status caption, in characters, which every name reserves so that a status change
 /// can never resize a name.
 const CAPTION_CHARS: i32 = 10;
+/// Room between a key and its name: two cells of 14 px JetBrains Mono.
+const KEY_GAP: i32 = 17;
+/// The hub's width, room for its widest text, `F12 → draft only` or `choose a session`, at 16 px.
+const HUB_WIDTH: i32 = 190;
+/// The hub and the status line cross-fade over this many milliseconds when their text changes.
+const HUB_FADE_MS: u32 = 160;
 /// The status line's width in characters: the longest delivery hint fits on one line.
 const HINT_CHARS: i32 = 68;
 
@@ -60,6 +71,8 @@ pub struct Placement {
     pub y: f64,
     pub width: f64,
     pub height: f64,
+    /// The outer end of the name's tick on the ring.
+    pub tick: (f64, f64),
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -109,6 +122,11 @@ fn layout(sizes: &[(f64, f64)], dial: f64) -> Vec<Placement> {
     let halo = halo_radius(dial);
     let reach = halo + NAME_GAP;
     let clear = halo + NAME_CLEARANCE;
+    // A name's first line, which holds its key, is as tall as the shortest name.
+    let line = sizes
+        .iter()
+        .map(|(_, height)| *height)
+        .fold(f64::MAX, f64::min);
     let mut labels: Vec<Placement> = (0..count)
         .map(|i| {
             let angle = clock_angle(i, count);
@@ -116,29 +134,41 @@ fn layout(sizes: &[(f64, f64)], dial: f64) -> Vec<Placement> {
             let (width, height) = sizes[i];
             // The box hangs off its anchor on the side away from the dial: wholly to the right
             // on the right and wholly to the left on the left, even beside the poles, so every
-            // key sits at its own tick's bearing; and wholly above or below near the top and
-            // bottom.
+            // key sits at its own tick's bearing; and its first line wholly above or below the
+            // anchor near the top and bottom. A name that wraps grows toward the equator, where
+            // the ticks are further apart, instead of pushing its neighbours toward the pole:
+            // above the equator its further lines hang below its first, which stays where a
+            // one-line name's would; below the equator it rises so that its last line ends where
+            // a one-line name's would.
             let right = angle < 180.;
             let upright = (angle.to_radians().cos() * 2.6).clamp(-1., 1.);
+            let more = (height - line).max(0.);
             Placement {
                 angle,
                 right,
                 x: if right { px } else { px - width },
-                y: py - (1. + upright) / 2. * height,
+                y: py - (1. + upright) / 2. * line - (1. - upright) / 2. * more,
                 width,
                 height,
+                tick: dial::point(angle, dial),
             }
         })
         .collect();
-    // Keep every name clear of the ring, sliding it outward along its own side. This comes
-    // first: pushing a name poleward later only moves it further from the ring.
-    for label in &mut labels {
+    // How far from the centre a name at this height must start to keep clear of the ring.
+    let needed = |label: &Placement| {
         let nearest = if label.y <= 0. && label.y + label.height >= 0. {
             0.
         } else {
             label.y.abs().min((label.y + label.height).abs())
         };
-        let needed = (clear * clear - nearest * nearest).max(0.).sqrt();
+        (clear * clear - nearest * nearest).max(0.).sqrt()
+    };
+    // Where each name would start sideways if nothing were in its way.
+    let anchors: Vec<f64> = labels.iter().map(|label| label.x).collect();
+    // Keep every name clear of the ring, sliding it outward along its own side. This comes
+    // first: pushing a name poleward later only moves it further from the ring.
+    for label in &mut labels {
+        let needed = needed(label);
         if label.right {
             label.x = label.x.max(needed);
         } else {
@@ -173,6 +203,48 @@ fn layout(sizes: &[(f64, f64)], dial: f64) -> Vec<Placement> {
             };
         }
         placed.push(index);
+    }
+    // A name pushed poleward may now clear the ring nearer its anchor: slide it back toward the
+    // anchor, sideways only, as far as the ring and every other name allow, so its key stays near
+    // its tick.
+    let overlaps = |me: &Placement, other: &Placement| {
+        me.x < other.x + other.width - EPSILON
+            && other.x < me.x + me.width - EPSILON
+            && me.y < other.y + other.height + STACK_GAP - EPSILON
+            && other.y < me.y + me.height + STACK_GAP - EPSILON
+    };
+    for index in 0..count {
+        let label = labels[index];
+        let home = if label.right {
+            anchors[index].max(needed(&label))
+        } else {
+            anchors[index].min(-needed(&label) - label.width)
+        };
+        if (home - label.x).abs() < EPSILON {
+            continue;
+        }
+        let fits = |x: f64| {
+            let moved = Placement { x, ..label };
+            labels
+                .iter()
+                .enumerate()
+                .all(|(other, them)| other == index || !overlaps(&moved, them))
+        };
+        // The nearest free position between where the name is and its home.
+        let (mut free, mut blocked) = (label.x, home);
+        if fits(home) {
+            free = home;
+        } else {
+            for _ in 0..24 {
+                let middle = (free + blocked) / 2.;
+                if fits(middle) {
+                    free = middle;
+                } else {
+                    blocked = middle;
+                }
+            }
+        }
+        labels[index].x = free;
     }
     labels
 }
@@ -315,11 +387,12 @@ struct Slot {
     body: gtk::Box,
     key: gtk::Label,
     name: gtk::Label,
-    /// The title and tag as markup, dimmed for a session Record cannot reach.
+    /// The title and tag as markup.
     title: RefCell<String>,
     /// The caption as markup, if any.
     caption: RefCell<Option<String>>,
-    chosen: Cell<bool>,
+    /// The markup last set, so an unchanged name is not laid out again.
+    markup: RefCell<String>,
 }
 
 /// A caption in markup: small and quiet, or in the warning colour. A no-break space keeps
@@ -332,15 +405,12 @@ fn caption_markup(text: &str, warning: Option<&str>) -> String {
     }
 }
 
-/// Type attributes for a name or its key. The chosen name is bold; setting this as Pango
-/// attributes, not CSS, makes the weight count the moment it is measured.
-fn type_attributes(chosen: bool) -> gtk::pango::AttrList {
+/// Type attributes for a name: it wraps at spaces, or inside a long unbroken token, and is never
+/// ellipsized or hyphenated. The chosen name keeps the same weight, since a change of weight
+/// cannot ease; it is carried by brightness, which can.
+fn type_attributes() -> gtk::pango::AttrList {
     let attributes = gtk::pango::AttrList::new();
-    // Names wrap at spaces, or inside a long unbroken token, and are never ellipsized.
     attributes.insert(gtk::pango::AttrInt::new_insert_hyphens(false));
-    if chosen {
-        attributes.insert(gtk::pango::AttrInt::new_weight(gtk::pango::Weight::Bold));
-    }
     attributes
 }
 
@@ -351,14 +421,15 @@ impl Slot {
         let name = gtk::Label::builder()
             .wrap(true)
             .wrap_mode(gtk::pango::WrapMode::WordChar)
-            .attributes(&type_attributes(false))
+            .attributes(&type_attributes())
             .css_classes(["ml-wheel-name"])
             .build();
         name.set_valign(gtk::Align::Baseline);
         // The name takes the room reserved for the longest caption, so the key stays at the
         // dial's end of the box whatever caption follows the name.
         name.set_hexpand(true);
-        let body = gtk::Box::new(gtk::Orientation::Horizontal, 9);
+        // Two cells between the key and the name, so the key reads as its own column.
+        let body = gtk::Box::new(gtk::Orientation::Horizontal, KEY_GAP);
         body.set_baseline_position(gtk::BaselinePosition::Top);
         body.append(&key);
         body.append(&name);
@@ -374,22 +445,20 @@ impl Slot {
             name,
             title: RefCell::new(String::new()),
             caption: RefCell::new(None),
-            chosen: Cell::new(false),
+            markup: RefCell::new(String::new()),
         }
-    }
-    /// Set the name and its key in the chosen (bold) type, or in the plain one.
-    fn typeset(&self, chosen: bool) {
-        self.name.set_attributes(Some(&type_attributes(chosen)));
-        self.key.set_attributes(Some(&type_attributes(chosen)));
     }
     /// The name's markup with `caption` after the title, if any. The caption joins the last line
     /// of the title and never moves a word of it, because lines break greedily.
     fn render(&self, caption: Option<&str>) {
-        let title = self.title.borrow();
-        self.name.set_markup(&match caption {
-            Some(caption) => format!("{title}  {caption}"),
-            None => title.clone(),
-        });
+        let markup = match caption {
+            Some(caption) => format!("{}  {caption}", self.title.borrow()),
+            None => self.title.borrow().clone(),
+        };
+        if *self.markup.borrow() != markup {
+            self.name.set_markup(&markup);
+            self.markup.replace(markup);
+        }
     }
     fn show(
         &self,
@@ -407,10 +476,6 @@ impl Slot {
         let place = entry.locator();
         let tag = tag(entry, sharing).filter(|tag| tag != name);
         let mut title = glib::markup_escape_text(name).to_string();
-        // A session Record cannot reach rests dimmer, unless it is the choice.
-        if availability.warns() && !selected {
-            title = format!("<span alpha=\"62%\">{title}</span>");
-        }
         if let Some(tag) = &tag {
             title = format!(
                 "{title}  <span size=\"small\" alpha=\"70%\">{}</span>",
@@ -427,9 +492,13 @@ impl Slot {
         self.render(self.caption.borrow().as_deref());
         self.key.set_label(&letter.to_ascii_uppercase().to_string());
         toggle_class(&self.button, "ml-wheel-warn", availability.warns());
+        // A session Record cannot reach rests dimmer, unless it is the choice; the colour eases.
+        toggle_class(
+            &self.button,
+            "ml-wheel-dim",
+            availability.warns() && !selected,
+        );
         toggle_class(&self.button, "ml-wheel-selected", selected);
-        self.chosen.set(selected);
-        self.typeset(selected);
         self.button.set_tooltip_text(Some(&format!(
             "{name}\n{}\n{}",
             entry.whereabouts(),
@@ -458,10 +527,9 @@ impl Slot {
         self.name.set_xalign(xalign);
         self.name.set_justify(justify);
     }
-    /// The size this name takes at a measure, in its widest (chosen) type and with the longest
-    /// caption, so that neither a new choice nor a status change ever changes any size.
+    /// The size this name takes at a measure with the longest caption, so that no status change
+    /// ever changes any size.
     fn measured(&self, measure: i32) -> (f64, f64) {
-        self.typeset(true);
         self.render(Some(&caption_markup(
             &"x".repeat(CAPTION_CHARS as usize),
             None,
@@ -469,99 +537,174 @@ impl Slot {
         self.name.set_max_width_chars(measure);
         self.button.set_size_request(-1, -1);
         let size = natural_size(&self.button);
-        self.typeset(self.chosen.get());
         self.render(self.caption.borrow().as_deref());
         size
     }
 }
 
-/// The hub at the dial's centre: what happens to the words once the agent key has recorded
-/// them, or why Record is withdrawn. The status line above the legend explains a level, a draft
-/// or a page; it always holds one line, so a new choice never moves anything.
-struct DialText {
+/// One line of the hub: the agent key in the light's colour, an arrow and what then happens.
+struct HubLine {
     root: gtk::Box,
+    key: gtk::Label,
     lead: gtk::Label,
     action: gtk::Label,
-    hint: gtk::Label,
 }
-impl DialText {
+impl HubLine {
     fn new() -> Self {
+        let key = label("", &["ml-wheel-dial-key"]);
         let lead = label("→", &["ml-wheel-dial-lead"]);
         let action = label("", &["ml-wheel-dial-action"]);
         let root = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        root.set_halign(gtk::Align::Center);
         root.add_css_class("ml-wheel-dial-text");
-        root.set_can_target(false);
+        root.append(&key);
         root.append(&lead);
         root.append(&action);
-        let hint = gtk::Label::builder()
-            .label("\u{a0}")
-            .width_chars(HINT_CHARS)
-            .css_classes(["ml-wheel-hint"])
-            .build();
-        hint.set_can_target(false);
         Self {
             root,
+            key,
             lead,
             action,
-            hint,
         }
     }
-    fn show(&self, target: Option<&Target>, other_page: Option<usize>, empty: bool) {
-        let mut warn = false;
-        let mut muted = false;
-        let mut lead = true;
-        let (action, hint) = match target {
-            None if empty => {
-                lead = false;
-                (
-                    "no sessions".to_owned(),
-                    // No-break spaces keep each product name on one line.
-                    "Start Claude\u{a0}Code or Codex".to_owned(),
-                )
-            }
-            None => {
-                lead = false;
-                muted = true;
-                ("choose a session".to_owned(), String::new())
-            }
+}
+
+/// What the hub and the status line say.
+#[derive(Clone, Debug, Default, PartialEq)]
+struct HubText {
+    /// The agent key, when the key goes on to record; empty when Record is withdrawn.
+    key: String,
+    action: String,
+    hint: String,
+    warn: bool,
+    muted: bool,
+}
+
+/// The hub at the dial's centre: the agent key and what then happens to the words, `F12 → send`,
+/// or why Record is withdrawn. The status line above the legend explains a level, a draft or a
+/// page. Each holds two pages that cross-fade when the text changes, at a fixed size, so a new
+/// choice never moves anything and no text snaps.
+struct DialText {
+    hub: gtk::Stack,
+    lines: [HubLine; 2],
+    hint: gtk::Stack,
+    hints: [gtk::Label; 2],
+    shown: RefCell<(usize, HubText)>,
+}
+impl DialText {
+    fn new() -> Self {
+        let crossfade = |stack: &gtk::Stack| {
+            stack.set_transition_type(gtk::StackTransitionType::Crossfade);
+            stack.set_transition_duration(HUB_FADE_MS);
+            stack.set_hhomogeneous(true);
+            stack.set_vhomogeneous(true);
+            stack.set_can_target(false);
+        };
+        let hub = gtk::Stack::new();
+        crossfade(&hub);
+        // As wide as the widest hub, so a new text is centred without moving the hub.
+        hub.set_size_request(HUB_WIDTH, -1);
+        let lines = [HubLine::new(), HubLine::new()];
+        for line in &lines {
+            hub.add_child(&line.root);
+        }
+        let hint = gtk::Stack::new();
+        crossfade(&hint);
+        let hints = [0, 1].map(|_| {
+            let label = gtk::Label::builder()
+                .label("\u{a0}")
+                .width_chars(HINT_CHARS)
+                .css_classes(["ml-wheel-hint"])
+                .build();
+            hint.add_child(&label);
+            label
+        });
+        Self {
+            hub,
+            lines,
+            hint,
+            hints,
+            shown: RefCell::new((0, HubText::default())),
+        }
+    }
+    fn show(
+        &self,
+        target: Option<&Target>,
+        other_page: Option<usize>,
+        empty: bool,
+        agent_key: &str,
+    ) {
+        let key = agent_key.to_uppercase();
+        let text = match target {
+            None if empty => HubText {
+                action: "no sessions".to_owned(),
+                // No-break spaces keep each product name on one line.
+                hint: "Start Claude\u{a0}Code or Codex".to_owned(),
+                ..HubText::default()
+            },
+            None => HubText {
+                action: "choose a session".to_owned(),
+                muted: true,
+                ..HubText::default()
+            },
             Some(target) => match Availability::of(target) {
                 // Record is withdrawn; the status line says why and what to do.
-                Availability::Blocked => {
-                    warn = true;
-                    lead = false;
-                    (
-                        "blocked".to_owned(),
-                        "Answer its prompt where it runs, or choose another session".to_owned(),
-                    )
-                }
-                Availability::Unavailable => {
-                    warn = true;
-                    lead = false;
-                    (
-                        "gone".to_owned(),
-                        "Mluva can't find it now; choose another session".to_owned(),
-                    )
-                }
+                Availability::Blocked => HubText {
+                    action: "blocked".to_owned(),
+                    hint: "Answer its prompt where it runs, or choose another session".to_owned(),
+                    warn: true,
+                    ..HubText::default()
+                },
+                Availability::Unavailable => HubText {
+                    action: "gone".to_owned(),
+                    hint: "Mluva can't find it now; choose another session".to_owned(),
+                    warn: true,
+                    ..HubText::default()
+                },
                 // The hub already says draft only; the status line says why.
-                Availability::Draft => ("draft only".to_owned(), sentence(target.draft_hint())),
+                Availability::Draft => HubText {
+                    key,
+                    action: "draft only".to_owned(),
+                    hint: sentence(target.draft_hint()),
+                    ..HubText::default()
+                },
                 Availability::Ready(delivery)
                 | Availability::Working(delivery)
-                | Availability::Waiting(delivery) => (
-                    delivery.verb().to_lowercase(),
+                | Availability::Waiting(delivery) => HubText {
+                    key,
+                    action: delivery.verb().to_lowercase(),
                     // The remembered session stays chosen while another page is shown.
-                    other_page
+                    hint: other_page
                         .map(|page| format!("Chosen on page {}", page + 1))
                         .or_else(|| target.delivery_hint().map(str::to_owned))
                         .unwrap_or_default(),
-                ),
+                    ..HubText::default()
+                },
             },
         };
-        self.lead.set_visible(lead);
-        self.action.set_label(&action);
-        self.hint
-            .set_label(if hint.is_empty() { "\u{a0}" } else { &hint });
-        toggle_class(&self.root, "ml-wheel-dial-warn", warn);
-        toggle_class(&self.root, "ml-wheel-dial-muted", muted);
+        let mut shown = self.shown.borrow_mut();
+        if shown.1 == text {
+            return;
+        }
+        // Write the new text into the hidden page and fade across to it.
+        let next = 1 - shown.0;
+        let line = &self.lines[next];
+        line.key.set_label(&text.key);
+        line.key.set_visible(!text.key.is_empty());
+        line.lead.set_visible(!text.key.is_empty());
+        line.action.set_label(&text.action);
+        toggle_class(&line.root, "ml-wheel-dial-warn", text.warn);
+        toggle_class(&line.root, "ml-wheel-dial-muted", text.muted);
+        self.hub.set_visible_child(&line.root);
+        // Both stacks turn to the same page; an unchanged status line fades into itself.
+        let hint = &self.hints[next];
+        hint.set_label(if text.hint.is_empty() {
+            "\u{a0}"
+        } else {
+            &text.hint
+        });
+        self.hint.set_visible_child(hint);
+        *shown = (next, text);
     }
 }
 
@@ -573,6 +716,9 @@ fn sentence(hint: &str) -> String {
         first.to_uppercase().chain(chars).collect()
     })
 }
+
+/// What an arrangement depends on: each shown name's markup and the room.
+type LayoutKey = (Vec<String>, (f64, f64));
 
 pub struct SessionWheel {
     pub window: adw::Window,
@@ -599,6 +745,8 @@ pub struct SessionWheel {
     pub entries: RefCell<Vec<Target>>,
     pub selected: RefCell<Option<Target>>,
     placements: RefCell<Vec<Placement>>,
+    /// The last arrangement and what it was measured from: each shown name's markup and the room.
+    layout: RefCell<Option<(LayoutKey, Arrangement)>>,
 }
 impl SessionWheel {
     pub fn new() -> Self {
@@ -626,7 +774,7 @@ impl SessionWheel {
             stage.put_name(&slot.button);
         }
         let dial = DialText::new();
-        stage.set_dial_text(&dial.root);
+        stage.set_dial_text(&dial.hub);
 
         let record_key = legend_key("");
         let record = legend_item(&record_key, "record");
@@ -687,6 +835,7 @@ impl SessionWheel {
             entries: RefCell::new(vec![]),
             selected: RefCell::new(None),
             placements: RefCell::new(vec![]),
+            layout: RefCell::new(None),
         };
         wheel.wire_pointer();
         wheel.wire_hover();
@@ -881,7 +1030,26 @@ impl SessionWheel {
                 None => slot.button.set_visible(false),
             }
         }
-        let arrangement = self.arrange(shown.len());
+        // Geometry depends only on the names, their tags and the room, so a new choice or a
+        // status change reuses it and the swing's first frame is not held up measuring names.
+        let key = (
+            self.slots[..shown.len()]
+                .iter()
+                .map(|slot| slot.title.borrow().clone())
+                .collect::<Vec<_>>(),
+            room,
+        );
+        let cached = self
+            .layout
+            .borrow()
+            .as_ref()
+            .filter(|(known, _)| *known == key)
+            .map(|(_, arrangement)| arrangement.clone());
+        let arrangement = cached.unwrap_or_else(|| {
+            let arrangement = self.arrange(shown.len());
+            self.layout.replace(Some((key, arrangement.clone())));
+            arrangement
+        });
         let previous_marks = self.stage_marks();
         self.place(&arrangement, &shown, chosen, &selected);
         // Only a choice changing on an unchanged wheel swings; opening or reshaping places.
@@ -895,8 +1063,8 @@ impl SessionWheel {
     }
 
     /// Advance the wheel's motion by `seconds` on a stepped clock instead of the frame clock, so
-    /// review captures can render it frame by frame. True once everything has settled.
-    pub fn step_motion(&self, seconds: f64) -> bool {
+    /// review captures can render it frame by frame. Returns the hand's bearing, if it shows.
+    pub fn step_motion(&self, seconds: f64) -> Option<f64> {
         self.stage.step(seconds)
     }
 
@@ -912,7 +1080,7 @@ impl SessionWheel {
         empty: bool,
         agent_key: &str,
     ) {
-        self.dial.show(target, other_page, empty);
+        self.dial.show(target, other_page, empty, agent_key);
         let Some(target) = target else {
             self.record.set_sensitive(false);
             self.record.set_tooltip_text(None);
@@ -1149,6 +1317,40 @@ mod tests {
                 label.angle,
                 centre - anchor_y
             );
+        }
+    }
+
+    #[test]
+    fn every_key_sits_near_its_own_tick_even_beside_a_wrapped_name() {
+        // A stress mix: one-line names, with a long legacy name wrapping to two lines every
+        // fourth, up to six of them around one dial.
+        let (line, key) = (25., 15.);
+        for count in [6, 20, 26] {
+            let names: Vec<(f64, f64)> = (0..count)
+                .map(|i| {
+                    if i % 4 == 3 {
+                        (495., 2. * line - 1.)
+                    } else {
+                        (245., line)
+                    }
+                })
+                .collect();
+            let arrangement = arrange(&names, LAPTOP);
+            for label in &arrangement.labels {
+                // The key is the first glyph cell on the first line, on the dial's side.
+                let kx = if label.right {
+                    label.x + key / 2.
+                } else {
+                    label.x + label.width - key / 2.
+                };
+                let ky = label.y + line / 2.;
+                let distance = (kx - label.tick.0).hypot(ky - label.tick.1);
+                assert!(
+                    distance < KEY_REACH,
+                    "{count}: the key at {}° is {distance:.0} px from its tick",
+                    label.angle
+                );
+            }
         }
     }
 

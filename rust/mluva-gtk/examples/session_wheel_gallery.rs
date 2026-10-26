@@ -21,7 +21,7 @@ use adw::prelude::*;
 use mluva_core::agent_voice::{
     AgentKind, AgentStatus, AppLink, ClaudeInbox, CodexThread, HerdrPane, Host, Target,
 };
-use mluva_gtk::agent_session_wheel::SessionWheel;
+use mluva_gtk::agent_session_wheel::{KEY_REACH, SessionWheel};
 use mluva_gtk::theme::ThemeController;
 
 const NORD: &str = "mode = \"dark\"\naccent = \"#81a1c1\"\nselection = \"#434c5e\"\nmuted = \"#4c566a\"\nbackground = \"#2e3440\"\nforeground = \"#d8dee9\"\nred = \"#bf616a\"\nyellow = \"#ebcb8b\"\ngreen = \"#a3be8c\"\n";
@@ -347,30 +347,110 @@ fn key_boxes(wheel: &SessionWheel) -> Vec<gtk::graphene::Rect> {
     keys
 }
 
-/// Every name is on screen and no two overlap. Returns what is wrong, if anything.
+/// How far each shown key's centre is from the outer end of its own tick, in pixels.
+fn key_distances(wheel: &SessionWheel) -> Vec<f64> {
+    let placements = wheel.placements();
+    name_boxes(wheel)
+        .iter()
+        .zip(key_boxes(wheel))
+        .zip(&placements)
+        .map(|((name, key), placement)| {
+            // The ring centre in window coordinates, from where this name was placed.
+            let (cx, cy) = (
+                f64::from(name.x()) - placement.x,
+                f64::from(name.y()) - placement.y,
+            );
+            let (tx, ty) = (cx + placement.tick.0, cy + placement.tick.1);
+            let (kx, ky) = (
+                f64::from(key.x() + key.width() / 2.),
+                f64::from(key.y() + key.height() / 2.),
+            );
+            (kx - tx).hypot(ky - ty)
+        })
+        .collect()
+}
+
+/// Every control the wheel shows, by name, in window coordinates: the names, then the legend's
+/// entries and the pager when it shows.
+fn controls(wheel: &SessionWheel) -> Vec<(String, gtk::Widget)> {
+    let names = wheel
+        .choices
+        .iter()
+        .enumerate()
+        .filter(|(_, choice)| choice.is_visible())
+        .map(|(index, choice)| (format!("name {index}"), choice.clone().upcast()));
+    let legend = [
+        ("record", wheel.record.clone().upcast::<gtk::Widget>()),
+        ("transcript", wheel.transcript.clone().upcast()),
+        ("cancel", wheel.cancel.clone().upcast()),
+        ("pager", wheel.pager.clone().upcast()),
+    ]
+    .into_iter()
+    .filter(|(_, widget)| widget.is_visible())
+    .map(|(name, widget)| (name.to_owned(), widget));
+    names.chain(legend).collect()
+}
+
+/// Every name and legend entry is on screen, none overlaps another, and none is squeezed below
+/// its natural width, which would let its text run over its neighbour. Returns what is wrong.
 fn audit(wheel: &SessionWheel, label: &str) -> Vec<String> {
     let (width, height) = (wheel.window.width() as f32, wheel.window.height() as f32);
-    let boxes = name_boxes(wheel);
+    let controls = controls(wheel);
+    let boxes: Vec<gtk::graphene::Rect> = controls
+        .iter()
+        .map(|(_, widget)| {
+            widget
+                .compute_bounds(&wheel.window)
+                .expect("control inside the window")
+        })
+        .collect();
     let mut problems = vec![];
-    for (index, one) in boxes.iter().enumerate() {
+    let distances = key_distances(wheel);
+    if let Some((index, worst)) = distances
+        .iter()
+        .copied()
+        .enumerate()
+        .max_by(|a, b| a.1.total_cmp(&b.1))
+    {
+        println!("{label}: farthest key from its tick: {worst:.0} px (name {index})");
+        if worst > KEY_REACH {
+            problems.push(format!(
+                "{label}: key of name {index} is {worst:.0} px from its tick"
+            ));
+        }
+    }
+    for (index, ((name, widget), one)) in controls.iter().zip(&boxes).enumerate() {
         if one.x() < 0.
             || one.y() < 0.
             || one.x() + one.width() > width
             || one.y() + one.height() > height
         {
             problems.push(format!(
-                "{label}: name {index} leaves the {width}x{height} screen"
+                "{label}: {name} leaves the {width}x{height} screen"
             ));
         }
-        for (other, two) in boxes.iter().enumerate().skip(index + 1) {
+        let (_, natural, _, _) = widget.measure(gtk::Orientation::Horizontal, -1);
+        if one.width() + 0.5 < natural as f32 {
+            problems.push(format!(
+                "{label}: {name} is squeezed to {} of its {natural} px",
+                one.width()
+            ));
+        }
+        for ((other, _), two) in controls.iter().zip(&boxes).skip(index + 1) {
             if one
                 .intersection(two)
                 .is_some_and(|common| common.width() > 0.5 && common.height() > 0.5)
             {
                 problems.push(format!(
-                    "{label}: names {index} and {other} overlap: ({},{} {}x{}) ({},{} {}x{}); placed {:?} {:?}",
-                    one.x(), one.y(), one.width(), one.height(), two.x(), two.y(), two.width(), two.height(),
-                    wheel.placements()[index], wheel.placements()[other]
+                    "{label}: {name} and {other} overlap: ({},{} {}x{}) ({},{} {}x{})",
+                    one.x(),
+                    one.y(),
+                    one.width(),
+                    one.height(),
+                    two.x(),
+                    two.y(),
+                    two.width(),
+                    two.height(),
                 ));
             }
         }
@@ -404,13 +484,16 @@ fn motion(output: &Path) -> glib::ExitCode {
     std::fs::create_dir_all(&frames).unwrap();
     let mut index = 0;
     let mut timings: Vec<(String, f64)> = vec![];
+    // Every frame's scene and the hand's bearing, for a plot of the hand against time.
+    let mut hands: Vec<serde_json::Value> = vec![];
     let mut play = |wheel: &SessionWheel, scene: &str, count: usize| {
         for _ in 0..count {
-            wheel.step_motion(STEP);
+            let hand = wheel.step_motion(STEP);
             // Let the frame clock paint the step; the stepped clock alone moves the dial.
             settle(1);
             let seconds = frame(&wheel.window, &frames.join(format!("{index:05}.png")));
             timings.push((scene.to_owned(), seconds));
+            hands.push(serde_json::json!({"frame": index, "scene": scene, "hand": hand}));
             index += 1;
         }
     };
@@ -430,8 +513,14 @@ fn motion(output: &Path) -> glib::ExitCode {
         settle(100);
         wheel
     };
+    // How long each new choice takes before the swing's first frame can be drawn.
+    let updates = std::cell::RefCell::new(vec![]);
     let choose = |wheel: &SessionWheel, entries: &[Target], selected: usize| {
+        let started = std::time::Instant::now();
         wheel.update(entries, Some(entries[selected].clone()), "F12", "F9");
+        updates
+            .borrow_mut()
+            .push(started.elapsed().as_secs_f64() * 1000.);
         glib::MainContext::default().iteration(false);
     };
 
@@ -490,6 +579,8 @@ fn motion(output: &Path) -> glib::ExitCode {
             "frames": index,
             "measures": "snapshot of the whole window and render to a texture with the active GSK renderer, per frame",
             "scenes": scenes,
+            "choice_update_ms": *updates.borrow(),
+            "hands": hands,
         }))
         .unwrap(),
     )

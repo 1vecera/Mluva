@@ -10,42 +10,24 @@ use glib::subclass::prelude::*;
 use gtk::subclass::prelude::*;
 use gtk::{gdk, graphene};
 use std::cell::{Cell, RefCell};
-use std::f64::consts::PI;
 
 /// The least room between the legend and the bottom edge, and the room between the names and
 /// the status line above the legend.
 const FOOTER_BOTTOM: f64 = 40.;
 const FOOTER_GAP: f64 = 16.;
 /// The flat wash between the desktop and the overlay, the theme's canvas deepened: about a
-/// quarter of the desktop shows through, and with each glyph's halo in the same colour names
-/// keep their contrast over bright pages. A window, which cannot be see-through everywhere, gets
+/// quarter of the desktop shows through. A window, which cannot be see-through everywhere, gets
 /// an opaque ground instead.
 const WASH: f32 = 0.72;
-
-/// The opening, in seconds: the wash and the text fade in over `WASH_IN`; the ring draws itself
-/// clockwise from one o'clock over `SWEEP`, decelerating; each tick fades in over `TICK_IN` as
-/// the draw passes it and each name settles in over `NAME_IN`, `SETTLE` pixels from further
-/// out. The hand springs from one o'clock to the remembered choice meanwhile.
-const WASH_IN: f64 = 0.12;
-const SWEEP: f64 = 0.22;
-const TICK_IN: f64 = 0.05;
-const NAME_IN: f64 = 0.08;
-const SETTLE: f64 = 10.;
-/// When the opening has run its course.
-const OPEN_DONE: f64 = SWEEP + NAME_IN;
-/// A page turn: the new page's ticks and names turn `TURN_DEGREES` into place and fade in.
-const TURN_SECONDS: f64 = 0.18;
-const TURN_DEGREES: f64 = 8.;
-/// How quickly the light, the amber and a hover lift follow their targets: the time to cover
-/// about two thirds of the way. The light rises softly when the hand arrives and dips quickly
-/// when it leaves.
-const LIGHT_RISE: f64 = 0.1;
-const LIGHT_DIP: f64 = 0.04;
-const WARN_EASE: f64 = 0.09;
-const LIFT_EASE: f64 = 0.05;
-/// While the hand turns faster than this, in degrees a second, the light dims to `TRAVEL_LIGHT`.
-const TRAVELLING: f64 = 60.;
-const TRAVEL_LIGHT: f64 = 0.7;
+/// Under every line of text the overlay clears the cells, as a terminal overwrites the cells it
+/// prints in: the wash's colour at `CELL_ALPHA`, reaching `CELL_PAD` beyond the text sideways and
+/// up and down, feathered over `FEATHER` pixels. Over the empty wash it cannot be seen, so it is
+/// no panel; over the desktop it keeps desktop text from reading as part of a name.
+const CELL_ALPHA: f32 = 0.9;
+const CELL_PAD: (f64, f64) = (8., 4.);
+const FEATHER: f32 = 8.;
+/// The focused name's underline: its thickness and its distance below the baseline.
+const UNDERLINE: (f64, f64) = (2., 3.);
 
 /// A box relative to the ring centre; y grows downward.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -61,7 +43,7 @@ pub struct Area {
 pub struct Scene {
     pub face: Face,
     pub names: Vec<Area>,
-    /// Left, top, right and bottom of the names and the case around the ring centre.
+    /// Left, top, right and bottom of the names and the ring around the ring centre.
     pub bounds: (f64, f64, f64, f64),
 }
 
@@ -72,50 +54,82 @@ pub enum Hit {
     Outside,
 }
 
-/// A damped spring for the hand, tuned to the length of the hop it makes: one small overshoot
-/// that grows with the hop but never past a few degrees, a quick settle for a short hop and a
-/// slightly longer one across the dial, and no second swing worth seeing.
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct Spring {
-    stiffness: f64,
-    damping: f64,
-}
+/// The opening, about 0.3 s on the strong ease-out: the wash, the hub and the legend fade in over
+/// `WASH_IN`; the ring draws itself clockwise from one o'clock over `SWEEP`; each tick fades in
+/// over `TICK_IN` as the draw reaches it and each name settles in over `NAME_IN` from `SETTLE`
+/// pixels further out, so the dial arrives in reading order. The hand springs from one o'clock
+/// to the remembered choice meanwhile. Nothing waits for it.
+const WASH_IN: f64 = 0.12;
+const SWEEP: f64 = 0.2;
+const TICK_IN: f64 = 0.08;
+const NAME_IN: f64 = 0.1;
+const SETTLE: f64 = 8.;
+/// When the opening has run its course.
+const OPEN_DONE: f64 = SWEEP + NAME_IN;
+/// A page turn: the new page's ticks and names turn `TURN_DEGREES` into place and fade in.
+const TURN_SECONDS: f64 = 0.18;
+const TURN_DEGREES: f64 = 8.;
+/// How quickly eased values follow their targets: the time to cover about two thirds of the way,
+/// on an exponential that never overshoots. The light rises softly as the hand arrives and dips
+/// quickly when it leaves; the chosen tick grows while the previous one shrinks back.
+const LIGHT_RISE: f64 = 0.08;
+const LIGHT_DIP: f64 = 0.04;
+const WARN_EASE: f64 = 0.08;
+const LIFT_EASE: f64 = 0.05;
+const CHOSEN_EASE: f64 = 0.06;
+/// While the hand turns faster than this, in degrees a second, the light dims to `TRAVEL_LIGHT`.
+const TRAVELLING: f64 = 60.;
+const TRAVEL_LIGHT: f64 = 0.75;
+/// The hand's spring is critically damped, so it never passes its tick. Its natural frequency,
+/// in radians a second, falls from `BRISK` for a neighbour to `ACROSS` for a hop across the dial:
+/// 99% of the way in about 0.19 s and 0.25 s.
+const BRISK: f64 = 36.;
+const ACROSS: f64 = 26.;
+/// The strong ease-out for things arriving, as a CSS cubic-bezier.
+const EASE_OUT: [f64; 4] = [0.23, 1., 0.32, 1.];
 
-impl Spring {
-    fn for_hop(degrees: f64) -> Self {
-        let distance = degrees.abs().max(1.);
-        // The overshoot past the tick in degrees, as a share of the hop, gives the damping ratio.
-        let overshoot = (0.07 * distance).clamp(0.5, 3.);
-        let share = (overshoot / distance).min(0.12);
-        let zeta = -share.ln() / (PI * PI + share.ln().powi(2)).sqrt();
-        // The hand reaches its peak in 0.11 s for the shortest hop and 0.25 s across the dial.
-        let peak = 0.11 + 0.0008 * distance.min(180.);
-        let omega = PI / (peak * (1. - zeta * zeta).sqrt());
-        Self {
-            stiffness: omega * omega,
-            damping: 2. * zeta * omega,
+/// A CSS `cubic-bezier(x1, y1, x2, y2)` timing function at `x`, solved for the curve's parameter.
+fn bezier([x1, y1, x2, y2]: [f64; 4], x: f64) -> f64 {
+    if x <= 0. {
+        return 0.;
+    }
+    if x >= 1. {
+        return 1.;
+    }
+    let curve = |a: f64, b: f64, s: f64| {
+        3. * a * s * (1. - s).powi(2) + 3. * b * s * s * (1. - s) + s.powi(3)
+    };
+    let (mut low, mut high) = (0., 1.);
+    for _ in 0..40 {
+        let middle = (low + high) / 2.;
+        if curve(x1, x2, middle) < x {
+            low = middle;
+        } else {
+            high = middle;
         }
     }
+    curve(y1, y2, (low + high) / 2.)
 }
 
-impl Default for Spring {
-    fn default() -> Self {
-        Self::for_hop(60.)
-    }
-}
-
-/// Smooth deceleration for arrivals, close to `cubic-bezier(0.16, 1, 0.3, 1)`.
+/// The strong ease-out at `t`, 0 to 1.
 fn ease_out(t: f64) -> f64 {
-    1. - (1. - t.clamp(0., 1.)).powi(4)
+    bezier(EASE_OUT, t)
 }
 
-/// Move `value` toward `target` as a first-order lag with time constant `tau`.
+/// Move `value` toward `target` as a first-order lag with time constant `tau`: an ease-out that
+/// never overshoots and retargets smoothly.
 fn follow(value: &mut f64, target: f64, tau: f64, seconds: f64) {
     *value += (target - *value) * (1. - (-seconds / tau).exp());
     // Closer than this the difference cannot be seen.
     if (*value - target).abs() < 4e-3 {
         *value = target;
     }
+}
+
+/// The hand's natural frequency for a hop of `degrees`.
+fn frequency_for_hop(degrees: f64) -> f64 {
+    let across = ((degrees.abs() - 15.) / 165.).clamp(0., 1.);
+    BRISK + (ACROSS - BRISK) * across
 }
 
 /// Everything that moves on the dial, as plain numbers: the stage paints from it, and it advances
@@ -127,7 +141,8 @@ struct Motion {
     speed: f64,
     /// Where the hand heads, unwrapped so it takes the short way round.
     target: Option<f64>,
-    spring: Spring,
+    /// The spring's natural frequency for the present hop.
+    frequency: f64,
     /// How bright the light is: 0 with no choice, dimmer while the hand travels, 1 at rest.
     light: f64,
     /// 0 to 1, from the light's own colour to amber, and where it heads.
@@ -140,6 +155,9 @@ struct Motion {
     /// Each tick's lift, and the tick whose name is hovered or focused.
     lift: Vec<f64>,
     hover: Option<usize>,
+    /// How far each tick has grown into the chosen tick, and which tick is chosen.
+    chosen: Vec<f64>,
+    chosen_target: Option<usize>,
     /// The frame clock's time at the last step, in microseconds.
     last: Option<i64>,
 }
@@ -150,7 +168,7 @@ impl Default for Motion {
             hand: super::START_DEGREES,
             speed: 0.,
             target: None,
-            spring: Spring::default(),
+            frequency: BRISK,
             light: 0.,
             warn: 0.,
             warn_target: 0.,
@@ -159,15 +177,18 @@ impl Default for Motion {
             turn_direction: 1.,
             lift: Vec::new(),
             hover: None,
+            chosen: Vec::new(),
+            chosen_target: None,
             last: None,
         }
     }
 }
 
 impl Motion {
-    /// Head for `angle`, or put the hand away. A swing keeps the hand's place and speed and
-    /// retunes the spring for what is left of the way, so a new choice mid-swing turns smoothly;
-    /// otherwise the hand is placed at once.
+    /// Head for `angle`, or put the hand away. A swing keeps the hand's place and speed and tunes
+    /// the spring for what is left of the way, so a new choice mid-swing bends the swing rather
+    /// than restarting it; a hand already rushing toward the new tick is held a little firmer so
+    /// that it still arrives without passing it. Anything else places the hand at once.
     fn aim(&mut self, angle: Option<f64>, swing: bool) {
         let Some(angle) = angle else {
             self.target = None;
@@ -176,7 +197,14 @@ impl Motion {
         };
         let target = shortest(self.hand, angle);
         if swing && self.target.is_some() {
-            self.spring = Spring::for_hop(target - self.hand);
+            let gap = target - self.hand;
+            let mut frequency = frequency_for_hop(gap);
+            // A critically damped hand passes its target only if it moves toward it faster
+            // than the frequency times the gap.
+            if gap.abs() > 1e-9 && self.speed * gap > 0. {
+                frequency = frequency.max(self.speed.abs() / gap.abs());
+            }
+            self.frequency = frequency;
         } else {
             self.hand = target;
             self.speed = 0.;
@@ -185,17 +213,19 @@ impl Motion {
         self.target = Some(target);
     }
 
-    /// Begin the opening: the hand springs from one o'clock to the choice while the ring draws.
+    /// Begin the opening: the hand springs from one o'clock to the choice while the ring draws,
+    /// and the chosen tick grows as it arrives.
     fn open(&mut self) {
         self.opened = 0.;
         self.turned = TURN_SECONDS;
         self.lift.iter_mut().for_each(|lift| *lift = 0.);
+        self.chosen.iter_mut().for_each(|level| *level = 0.);
         self.warn = self.warn_target;
         if let Some(target) = self.target {
             self.hand = shortest(target, super::START_DEGREES);
             self.target = Some(shortest(self.hand, target));
             self.speed = 0.;
-            self.spring = Spring::for_hop(target - self.hand);
+            self.frequency = frequency_for_hop(target - self.hand);
             self.light = 0.;
         }
     }
@@ -210,10 +240,25 @@ impl Motion {
         }
         self.speed = 0.;
         self.warn = self.warn_target;
-        let hover = self.hover;
+        let (hover, chosen) = (self.hover, self.chosen_target);
         for (index, lift) in self.lift.iter_mut().enumerate() {
             *lift = if hover == Some(index) { 1. } else { 0. };
         }
+        for (index, level) in self.chosen.iter_mut().enumerate() {
+            *level = if chosen == Some(index) { 1. } else { 0. };
+        }
+    }
+
+    /// Fit the per-tick levels to `count` ticks with `chosen` lit. A new set of ticks, on opening
+    /// or a new page, starts at rest; the same set keeps its levels so they can ease.
+    fn fit(&mut self, count: usize, chosen: Option<usize>) {
+        if self.chosen.len() != count {
+            self.lift = vec![0.; count];
+            self.chosen = (0..count)
+                .map(|index| if chosen == Some(index) { 1. } else { 0. })
+                .collect();
+        }
+        self.chosen_target = chosen;
     }
 
     /// Advance by `seconds`; true once everything has settled.
@@ -222,13 +267,12 @@ impl Motion {
         self.turned = (self.turned + seconds).min(TURN_SECONDS);
         let mut settled = true;
         if let Some(target) = self.target {
-            let steps = (seconds / 0.002).ceil().max(1.) as usize;
-            let dt = seconds / steps as f64;
-            let Spring { stiffness, damping } = self.spring;
-            for _ in 0..steps {
-                self.speed += (-stiffness * (self.hand - target) - damping * self.speed) * dt;
-                self.hand += self.speed * dt;
-            }
+            // The exact critically damped step: x(t) = (x0 + (v0 + w x0) t) e^(-w t).
+            let (gap, w) = (self.hand - target, self.frequency);
+            let decay = (-w * seconds).exp();
+            let pull = self.speed + w * gap;
+            self.hand = target + (gap + pull * seconds) * decay;
+            self.speed = (self.speed - w * pull * seconds) * decay;
             // A twentieth of a degree is a quarter of a pixel on the largest ring.
             if (self.hand - target).abs() < 0.05 && self.speed.abs() < 2. {
                 self.hand = target;
@@ -249,11 +293,16 @@ impl Motion {
         };
         follow(&mut self.light, light, tau, seconds);
         follow(&mut self.warn, self.warn_target, WARN_EASE, seconds);
-        let hover = self.hover;
+        let (hover, chosen) = (self.hover, self.chosen_target);
         for (index, lift) in self.lift.iter_mut().enumerate() {
             let target = if hover == Some(index) { 1. } else { 0. };
             follow(lift, target, LIFT_EASE, seconds);
             settled &= *lift == target;
+        }
+        for (index, level) in self.chosen.iter_mut().enumerate() {
+            let target = if chosen == Some(index) { 1. } else { 0. };
+            follow(level, target, CHOSEN_EASE, seconds);
+            settled &= *level == target;
         }
         settled
             && self.light == light
@@ -266,15 +315,23 @@ impl Motion {
     fn wash(&self) -> f64 {
         ease_out(self.opened / WASH_IN)
     }
-    /// How much of the ring has been drawn: a cubic deceleration, gentler than the other
-    /// arrivals, so the draw itself can be seen.
+    /// How much of the ring has been drawn.
     fn drawn(&self) -> f64 {
-        1. - (1. - (self.opened / SWEEP).clamp(0., 1.)).powi(3)
+        ease_out(self.opened / SWEEP)
     }
     /// When, in seconds into the opening, the drawing ring reaches `angle`.
     fn reached(angle: f64) -> f64 {
         let share = (angle - super::START_DEGREES).rem_euclid(360.) / 360.;
-        SWEEP * (1. - (1. - share).cbrt())
+        let (mut low, mut high) = (0., 1.);
+        for _ in 0..40 {
+            let middle = (low + high) / 2.;
+            if ease_out(middle) < share {
+                low = middle;
+            } else {
+                high = middle;
+            }
+        }
+        SWEEP * (low + high) / 2.
     }
     /// How far a page turn has come, eased.
     fn turning(&self) -> f64 {
@@ -315,6 +372,70 @@ mod imp {
         pub tick: RefCell<Option<gtk::TickCallbackId>>,
         /// A stepped clock drives the motion instead of the frame clock, for review captures.
         pub manual: Cell<bool>,
+        /// The cleared cells, baked into a texture, and the boxes they were baked from: they
+        /// stay put while the hand swings, so they are drawn once and reused.
+        pub(super) cells: RefCell<Option<BakedCells>>,
+    }
+
+    impl Stage {
+        /// Clear the cells under every line, from a texture baked the last time the boxes were
+        /// the same, or baked now.
+        fn clear_cells(
+            &self,
+            snapshot: &gtk::Snapshot,
+            color: gtk::gdk::RGBA,
+            lines: &[(Line, f64, (f64, f64))],
+        ) {
+            let Some((boxes, bounds)) = cell_boxes(lines) else {
+                return;
+            };
+            let stage = self.obj();
+            let scale = stage.scale_factor().max(1) as f32;
+            let key: Vec<[f32; 5]> = boxes
+                .iter()
+                .map(|(r, shown)| [r.x(), r.y(), r.width(), r.height(), *shown])
+                .chain([[
+                    color.red(),
+                    color.green(),
+                    color.blue(),
+                    color.alpha(),
+                    scale,
+                ]])
+                .collect();
+            if let Some((known, texture, area)) = self.cells.borrow().as_ref()
+                && *known == key
+            {
+                snapshot.append_scaled_texture(texture, gtk::gsk::ScalingFilter::Linear, area);
+                return;
+            }
+            let record = gtk::Snapshot::new();
+            paint_cells(&record, color, &boxes, &bounds);
+            let Some(node) = record.to_node() else {
+                return;
+            };
+            let Some(renderer) = stage.native().and_then(|native| native.renderer()) else {
+                snapshot.append_node(&node);
+                return;
+            };
+            let baking = gtk::Snapshot::new();
+            baking.scale(scale, scale);
+            baking.translate(&graphene::Point::new(-bounds.x(), -bounds.y()));
+            baking.append_node(&node);
+            let Some(baked) = baking.to_node() else {
+                return;
+            };
+            let texture = renderer.render_texture(
+                &baked,
+                Some(&graphene::Rect::new(
+                    0.,
+                    0.,
+                    bounds.width() * scale,
+                    bounds.height() * scale,
+                )),
+            );
+            snapshot.append_scaled_texture(&texture, gtk::gsk::ScalingFilter::Linear, &bounds);
+            self.cells.replace(Some((key, texture, bounds)));
+        }
     }
 
     #[glib::object_subclass]
@@ -443,55 +564,248 @@ mod imp {
             );
             let arrangement = self.arrangement.borrow();
             let face = &arrangement.face;
+            // Each name settles in along its bearing as the ring reaches it, and turns with the
+            // page; only its paint moves, never its allocation.
+            let turn = motion.turn_offset().to_radians();
+            let names: Vec<(gtk::Widget, f64, (f64, f64))> = self
+                .names
+                .borrow()
+                .iter()
+                .zip(&arrangement.names)
+                .zip(&face.marks)
+                .map(|((child, area), (angle, _))| {
+                    let shown = motion.name_shown(*angle);
+                    let (cx, cy) = (area.x + area.width / 2., area.y + area.height / 2.);
+                    let out = cx.hypot(cy).max(1.);
+                    let settle = SETTLE * (1. - shown);
+                    let (sin, cos) = turn.sin_cos();
+                    let dx = cx * cos - cy * sin - cx + settle * cx / out;
+                    let dy = cx * sin + cy * cos - cy + settle * cy / out;
+                    (child.clone(), shown, (dx, dy))
+                })
+                .collect();
+            let others: Vec<gtk::Widget> = [
+                self.dial_text.borrow().clone(),
+                self.footer.borrow().clone(),
+            ]
+            .into_iter()
+            .flatten()
+            .collect();
+            // Every line of text, with how much it shows and how far its paint has moved.
+            let mut lines: Vec<(Line, f64, (f64, f64))> = vec![];
+            for (child, shown, offset) in &names {
+                if *shown > 0. && child.is_drawable() {
+                    text_lines(&stage, child, &mut |line| {
+                        lines.push((line, *shown, *offset))
+                    });
+                }
+            }
+            for child in &others {
+                text_lines(&stage, child, &mut |line| {
+                    lines.push((line, wash, (0., 0.)))
+                });
+            }
+            if see_through {
+                self.clear_cells(snapshot, palette.wash.alpha(CELL_ALPHA), &lines);
+            }
             if face.dial > 0. {
                 snapshot.save();
                 snapshot.translate(&graphene::Point::new(centre.0 as f32, centre.1 as f32));
                 paint_dial(snapshot, palette, face, &motion);
                 snapshot.restore();
             }
-            // Each name settles in along its bearing as the ring reaches it, and turns with the
-            // page; only its paint moves, never its allocation.
-            let turn = motion.turn_offset().to_radians();
-            for ((child, area), (angle, _)) in self
-                .names
-                .borrow()
-                .iter()
-                .zip(&arrangement.names)
-                .zip(&face.marks)
-            {
-                let shown = motion.name_shown(*angle);
-                if shown <= 0. {
+            for (child, shown, (dx, dy)) in &names {
+                if *shown <= 0. {
                     continue;
                 }
-                let (cx, cy) = (area.x + area.width / 2., area.y + area.height / 2.);
-                let out = cx.hypot(cy).max(1.);
-                let settle = SETTLE * (1. - shown);
-                let (sin, cos) = turn.sin_cos();
-                let dx = cx * cos - cy * sin - cx + settle * cx / out;
-                let dy = cx * sin + cy * cos - cy + settle * cy / out;
                 snapshot.save();
-                snapshot.translate(&graphene::Point::new(dx as f32, dy as f32));
-                snapshot.push_opacity(shown);
+                snapshot.translate(&graphene::Point::new(*dx as f32, *dy as f32));
+                snapshot.push_opacity(*shown);
                 stage.snapshot_child(child, snapshot);
                 snapshot.pop();
                 snapshot.restore();
             }
-            let others = [
-                self.dial_text.borrow().clone(),
-                self.footer.borrow().clone(),
-            ];
             snapshot.push_opacity(wash);
-            for child in others.iter().flatten() {
+            for child in &others {
                 stage.snapshot_child(child, snapshot);
             }
             snapshot.pop();
+            // Keyboard focus underlines the focused name or legend entry in the light's colour.
+            let underline = palette.lit.alpha(1.);
+            for (line, shown, (dx, dy)) in &lines {
+                if line.focused {
+                    let r = &line.rect;
+                    snapshot.append_color(
+                        &gtk::gdk::RGBA::new(
+                            underline.red(),
+                            underline.green(),
+                            underline.blue(),
+                            *shown as f32,
+                        ),
+                        &graphene::Rect::new(
+                            (f64::from(r.x()) + dx) as f32,
+                            (line.baseline + UNDERLINE.1 + dy) as f32,
+                            r.width(),
+                            UNDERLINE.0 as f32,
+                        ),
+                    );
+                }
+            }
         }
     }
 }
 
-/// The ring, the light along it at the hand's bearing, the ticks, the chosen tick and the hand,
-/// as the motion stands. The light is drawn at the hand itself, so it rides the hand through a
-/// swing and settles with it; ticks and the hand turn with a page turn.
+/// Cleared cells baked into a texture: the boxes and colour they were baked from, the texture and
+/// the area it covers.
+type BakedCells = (Vec<[f32; 5]>, gdk::Texture, graphene::Rect);
+
+/// One laid-out line of a label, in the stage's coordinates: its logical box, its baseline, and
+/// whether it is the text of a name or legend entry that has keyboard focus.
+struct Line {
+    rect: graphene::Rect,
+    baseline: f64,
+    focused: bool,
+}
+
+/// Every line of text in `widget` and the widgets below it, as the stage will paint it, with
+/// pager arrows counted as a line each.
+fn text_lines(stage: &Stage, widget: &gtk::Widget, found: &mut dyn FnMut(Line)) {
+    if !widget.is_drawable() {
+        return;
+    }
+    if let Some(label) = widget.downcast_ref::<gtk::Label>() {
+        if label.text().trim().is_empty() {
+            return;
+        }
+        // The text of a focused name or legend entry is underlined; its key is not.
+        let focused = (label.has_css_class("ml-wheel-name")
+            || label.has_css_class("ml-wheel-legend-text"))
+            && label
+                .ancestor(gtk::Button::static_type())
+                .is_some_and(|button| {
+                    button
+                        .state_flags()
+                        .contains(gtk::StateFlags::FOCUS_VISIBLE)
+                });
+        let layout = label.layout();
+        let (ox, oy) = label.layout_offsets();
+        let scale = f64::from(gtk::pango::SCALE);
+        let mut iter = layout.iter();
+        loop {
+            let (_, logical) = iter.line_extents();
+            let x = f64::from(ox) + f64::from(logical.x()) / scale;
+            let y = f64::from(oy) + f64::from(logical.y()) / scale;
+            let baseline = f64::from(oy) + f64::from(iter.baseline()) / scale;
+            if let Some(origin) =
+                label.compute_point(stage, &graphene::Point::new(x as f32, y as f32))
+            {
+                let lift = f64::from(origin.y()) - y;
+                found(Line {
+                    rect: graphene::Rect::new(
+                        origin.x(),
+                        origin.y(),
+                        (f64::from(logical.width()) / scale) as f32,
+                        (f64::from(logical.height()) / scale) as f32,
+                    ),
+                    baseline: baseline + lift,
+                    focused,
+                });
+            }
+            if !iter.next_line() {
+                break;
+            }
+        }
+        return;
+    }
+    if widget.is::<gtk::Image>() {
+        if let Some(bounds) = widget.compute_bounds(stage) {
+            found(Line {
+                rect: bounds,
+                baseline: f64::from(bounds.y() + bounds.height()),
+                focused: false,
+            });
+        }
+        return;
+    }
+    let mut child = widget.first_child();
+    while let Some(widget) = child {
+        text_lines(stage, &widget, found);
+        child = widget.next_sibling();
+    }
+}
+
+/// The boxes to clear under every line, padded, with how much each shows, and the area they
+/// cover with their feather. Lines that share a row and an offset, such as a key and the first
+/// line of its name, become one span.
+fn cell_boxes(
+    lines: &[(Line, f64, (f64, f64))],
+) -> Option<(Vec<(graphene::Rect, f32)>, graphene::Rect)> {
+    let mut rows: Vec<(graphene::Rect, f64, (f64, f64))> = vec![];
+    for (line, shown, offset) in lines.iter().filter(|(_, shown, _)| *shown > 0.) {
+        let r = line.rect;
+        let middle = r.y() + r.height() / 2.;
+        let row = rows.iter_mut().find(|(other, their_shown, their_offset)| {
+            their_offset == offset
+                && their_shown == shown
+                && (other.y() + other.height() / 2. - middle).abs()
+                    < r.height().min(other.height()) / 2.
+                && (other.x() - (r.x() + r.width())).max(r.x() - (other.x() + other.width()))
+                    < 3. * CELL_PAD.0 as f32
+        });
+        match row {
+            Some((other, _, _)) => *other = other.union(&r),
+            None => rows.push((r, *shown, *offset)),
+        }
+    }
+    let mut bounds: Option<graphene::Rect> = None;
+    let boxes: Vec<(graphene::Rect, f32)> = rows
+        .iter()
+        .map(|(r, shown, (dx, dy))| {
+            let cell = graphene::Rect::new(
+                (f64::from(r.x()) + dx - CELL_PAD.0) as f32,
+                (f64::from(r.y()) + dy - CELL_PAD.1) as f32,
+                (f64::from(r.width()) + 2. * CELL_PAD.0) as f32,
+                (f64::from(r.height()) + 2. * CELL_PAD.1) as f32,
+            );
+            let reach = cell.inset_r(-FEATHER, -FEATHER);
+            bounds = Some(bounds.map_or(reach, |b| b.union(&reach)));
+            (cell, *shown as f32)
+        })
+        .collect();
+    bounds.map(|bounds| (boxes, bounds))
+}
+
+/// Paint the cleared cells: one mask of the feathered boxes, so boxes that meet or overlap never
+/// darken twice, filled with `color` over `bounds`.
+fn paint_cells(
+    snapshot: &gtk::Snapshot,
+    color: gtk::gdk::RGBA,
+    boxes: &[(graphene::Rect, f32)],
+    bounds: &graphene::Rect,
+) {
+    snapshot.push_mask(gtk::gsk::MaskMode::Alpha);
+    for (cell, shown) in boxes {
+        // A solid core inset by half the feather, and a blurred edge around it.
+        let core = cell.inset_r(FEATHER / 2., FEATHER / 2.);
+        let black = gtk::gdk::RGBA::new(0., 0., 0., *shown);
+        snapshot.append_color(&black, &core);
+        snapshot.append_outset_shadow(
+            &gtk::gsk::RoundedRect::from_rect(core, 0.),
+            &black,
+            0.,
+            0.,
+            0.,
+            FEATHER,
+        );
+    }
+    snapshot.pop();
+    snapshot.append_color(&color, bounds);
+    snapshot.pop();
+}
+
+/// The ring, the light along it at the hand's bearing, the ticks and the hand, as the motion
+/// stands. The light is drawn at the hand itself, so it rides the hand through a swing and settles
+/// with it; ticks and the hand turn with a page turn.
 fn paint_dial(snapshot: &gtk::Snapshot, palette: &Palette, face: &Face, motion: &Motion) {
     dial::ring(
         snapshot,
@@ -502,16 +816,19 @@ fn paint_dial(snapshot: &gtk::Snapshot, palette: &Palette, face: &Face, motion: 
     );
     snapshot.save();
     snapshot.rotate(motion.turn_offset() as f32);
-    let shown: Vec<f64> = face
+    let levels: Vec<dial::Tick> = face
         .marks
         .iter()
-        .map(|(angle, _)| motion.tick_shown(*angle))
+        .enumerate()
+        .map(|(index, (angle, _))| dial::Tick {
+            shown: motion.tick_shown(*angle),
+            lift: motion.lift.get(index).copied().unwrap_or(0.),
+            chosen: motion.chosen.get(index).copied().unwrap_or(0.),
+        })
         .collect();
-    let chosen = face
-        .chosen
-        .and_then(|index| face.marks.get(index).map(|mark| (index, *mark)));
+    let chosen = motion.target.is_some() && face.chosen.is_some();
     snapshot.push_opacity(motion.wash());
-    if chosen.is_some() {
+    if chosen {
         dial::trace(
             snapshot,
             palette,
@@ -523,11 +840,8 @@ fn paint_dial(snapshot: &gtk::Snapshot, palette: &Palette, face: &Face, motion: 
         );
     }
     snapshot.pop();
-    dial::ticks(snapshot, palette, face, &shown, &motion.lift);
-    if let Some((index, (angle, kind))) = chosen {
-        snapshot.push_opacity(shown[index].max(motion.wash()));
-        dial::chosen_tick(snapshot, palette, face, angle, kind, motion.warn);
-        snapshot.pop();
+    dial::ticks(snapshot, palette, face, &levels, motion.warn);
+    if chosen {
         snapshot.push_opacity(motion.wash());
         dial::hand(snapshot, palette, face, motion.hand, motion.warn);
         snapshot.pop();
@@ -595,18 +909,19 @@ impl Stage {
     /// gently.
     pub fn arrange(&self, arrangement: Scene) {
         self.follow_theme();
+        let moving = self.moving();
         {
             let mut motion = self.imp().motion.borrow_mut();
             motion.warn_target = if arrangement.face.warn { 1. } else { 0. };
-            motion.lift.resize(arrangement.face.marks.len(), 0.);
-            if !self.moving() {
-                motion.warn = motion.warn_target;
+            motion.fit(arrangement.face.marks.len(), arrangement.face.chosen);
+            if !moving {
+                motion.rest();
             }
         }
         self.imp().arrangement.replace(arrangement);
         self.queue_resize();
         self.queue_draw();
-        if self.moving() {
+        if moving {
             self.run();
         }
     }
@@ -733,15 +1048,19 @@ impl Stage {
     }
 
     /// Advance the motion by `seconds` on a stepped clock, from now on instead of the frame
-    /// clock, so captures can be rendered frame by frame. True once everything has settled.
-    pub fn step(&self, seconds: f64) -> bool {
+    /// clock, so captures can be rendered frame by frame. Returns the hand's bearing, if it shows.
+    pub fn step(&self, seconds: f64) -> Option<f64> {
         self.imp().manual.set(true);
         if let Some(tick) = self.imp().tick.take() {
             tick.remove();
         }
-        let at_rest = self.imp().motion.borrow_mut().advance(seconds);
+        let hand = {
+            let mut motion = self.imp().motion.borrow_mut();
+            motion.advance(seconds);
+            motion.target.map(|_| motion.hand)
+        };
         self.queue_draw();
-        at_rest
+        hand
     }
 
     fn run(&self) {
@@ -777,94 +1096,105 @@ mod tests {
 
     const FRAME: f64 = 1. / 60.;
 
-    /// Swing from `from` to `to` frame by frame: the furthest past the target, the deepest swing
-    /// back before it after that, and the seconds until the hand stays within a quarter of a
-    /// degree, which is as good as still.
-    fn hop(from: f64, to: f64) -> (f64, f64, f64) {
-        let mut motion = Motion {
+    fn swinging(from: f64) -> Motion {
+        Motion {
             hand: from,
             target: Some(from),
             light: 1.,
             ..Motion::default()
-        };
+        }
+    }
+
+    /// Swing from `from` to `to` frame by frame: the furthest the hand passes the target, and the
+    /// seconds until it stays within a quarter of a degree, which is as good as still.
+    fn hop(from: f64, to: f64) -> (f64, f64) {
+        let mut motion = swinging(from);
         motion.aim(Some(to), true);
         let direction = (to - from).signum();
-        let (mut past, mut back, mut peaked) = (0_f64, 0_f64, false);
-        let (mut seconds, mut still) = (0., 0.);
+        let (mut past, mut seconds, mut still) = (0_f64, 0., 0.);
         while !(motion.hand == to && motion.speed == 0.) {
             motion.advance(FRAME);
             seconds += FRAME;
+            past = past.max((motion.hand - to) * direction);
             if (motion.hand - to).abs() > 0.25 {
                 still = seconds;
             }
-            let beyond = (motion.hand - to) * direction;
-            if beyond > 0. {
-                peaked = true;
-                past = past.max(beyond);
-            } else if peaked {
-                back = back.max(-beyond);
-            }
             assert!(seconds < 2., "the hand never settles");
         }
-        assert_eq!(motion.hand, to);
-        assert!(seconds < 0.7, "full rest after {seconds} s");
-        (past, back, still)
+        (past, still)
     }
 
     #[test]
-    fn a_short_hop_and_one_across_the_dial_each_overshoot_once_a_little_then_settle() {
-        let (past, back, seconds) = hop(30., 48.);
-        assert!(past > 0.3 && past < 1.8, "short hop overshoot {past}");
-        assert!(back < 0.15, "short hop swings back {back}");
-        assert!(seconds < 0.25, "short hop takes {seconds} s");
+    fn the_hand_never_passes_its_tick_on_a_short_hop_or_across_the_dial() {
+        let (past, still) = hop(30., 48.);
+        assert!(past <= 1e-9, "short hop passes by {past}");
+        assert!(still < 0.2, "short hop still after {still} s");
         // 170° clockwise: exactly 180° would be the short way either side.
-        let (past, back, seconds) = hop(30., 200.);
-        assert!(past > 1.5 && past < 3.5, "long hop overshoot {past}");
-        assert!(back < 0.15, "long hop swings back {back}");
-        assert!(seconds < 0.4, "long hop takes {seconds} s");
+        let (past, still) = hop(30., 200.);
+        assert!(past <= 1e-9, "long hop passes by {past}");
+        assert!(still < 0.36, "long hop still after {still} s");
+        assert!(
+            still > 0.2,
+            "a hop across the dial takes a little longer: {still} s"
+        );
     }
 
-    #[test]
-    fn a_new_choice_mid_swing_turns_smoothly_from_where_the_hand_is() {
-        let mut motion = Motion {
-            hand: 30.,
-            target: Some(30.),
-            light: 1.,
-            ..Motion::default()
-        };
+    /// Swing from 30° toward 200°, then after `frames` choose `to`: the furthest the hand passes
+    /// `to`, checking that the retarget keeps the hand's place and speed and that no frame jumps.
+    fn retarget(frames: usize, to: f64) -> f64 {
+        let mut motion = swinging(30.);
         motion.aim(Some(200.), true);
-        for _ in 0..5 {
+        for _ in 0..frames {
             motion.advance(FRAME);
         }
         let (hand, speed) = (motion.hand, motion.speed);
-        // The new choice lies behind the hand: it must turn back without a jump.
-        assert!(hand > 60., "the hand has passed the new choice: {hand}");
-        assert!(speed.abs() > 100., "still swinging fast: {speed}");
-        motion.aim(Some(60.), true);
-        // Retargeting moves nothing by itself: the hand keeps its place and speed.
+        motion.aim(Some(to), true);
         assert_eq!((motion.hand, motion.speed), (hand, speed));
-        let mut previous = motion.hand;
-        let mut past = 0_f64;
+        let direction = (to - hand).signum();
+        let (mut previous, mut past, mut count) = (hand, 0_f64, 0);
+        while !motion.advance(FRAME) {
+            let moved = (motion.hand - previous).abs();
+            assert!(moved <= speed.abs() * FRAME + 30., "jump of {moved}°");
+            previous = motion.hand;
+            past = past.max((motion.hand - to) * direction);
+            count += 1;
+            assert!(count < 120, "the hand never settles");
+        }
+        assert!((motion.hand - to).abs() < 1e-9, "{} vs {to}", motion.hand);
+        past
+    }
+
+    #[test]
+    fn a_new_choice_mid_swing_bends_the_swing_and_never_passes_the_new_tick() {
+        // A tick just ahead of a hand already rushing toward it.
+        assert!(retarget(2, 60.) <= 1e-9);
+        // A tick behind the hand: it carries on a little, turns and arrives without passing.
+        assert!(retarget(6, 60.) <= 1e-9);
+        // A tick further on: it simply carries on.
+        assert!(retarget(3, 250.) <= 1e-9);
+    }
+
+    #[test]
+    fn the_chosen_tick_grows_while_the_previous_one_shrinks_back() {
+        let mut motion = swinging(30.);
+        motion.fit(6, Some(0));
+        motion.fit(6, Some(3));
+        motion.aim(Some(210.), true);
+        let mut previous = (motion.chosen[0], motion.chosen[3]);
+        assert_eq!(previous, (1., 0.));
         let mut frames = 0;
         while !motion.advance(FRAME) {
-            // The first frame carries on at the speed the hand already had, give or take what
-            // the new pull adds in one frame, and no frame jumps.
-            let moved = (motion.hand - previous).abs();
-            if frames == 0 {
-                let pull = motion.spring.stiffness * (60. - hand).abs() * FRAME * FRAME / 2.;
-                assert!(
-                    moved <= speed.abs() * FRAME + pull + 0.5,
-                    "jump of {moved}°"
-                );
-            }
-            assert!(moved < 30., "jump of {moved}° at frame {frames}");
-            previous = motion.hand;
-            past = past.max((motion.hand - 60.) * (60. - hand).signum());
+            let now = (motion.chosen[0], motion.chosen[3]);
+            assert!(now.0 <= previous.0 && now.1 >= previous.1, "{now:?}");
+            assert!(
+                previous.0 - now.0 < 0.3 && now.1 - previous.1 < 0.3,
+                "a level jumps"
+            );
+            previous = now;
             frames += 1;
-            assert!(frames < 120, "the hand never settles");
         }
-        assert_eq!(motion.hand, 60.);
-        assert!(past < 6., "overshoot after the retarget {past}");
+        assert_eq!(previous, (0., 1.));
+        assert!(frames < 40);
     }
 
     #[test]
@@ -873,7 +1203,7 @@ mod tests {
             target: Some(150.),
             ..Motion::default()
         };
-        motion.lift = vec![0.; 20];
+        motion.fit(20, Some(6));
         motion.open();
         assert_eq!(motion.hand, START_DEGREES_FOR_TEST);
         assert_eq!((motion.drawn(), motion.wash()), (0., 0.));
@@ -886,32 +1216,42 @@ mod tests {
             motion.advance(FRAME);
             seconds += FRAME;
         }
-        assert_eq!((motion.drawn(), motion.wash()), (1., 1.));
+        assert!((motion.drawn() - 1.).abs() < 1e-9 && (motion.wash() - 1.).abs() < 1e-9);
         for angle in &angles {
-            assert_eq!(motion.tick_shown(*angle), 1.);
-            assert_eq!(motion.name_shown(*angle), 1.);
+            assert!((motion.tick_shown(*angle) - 1.).abs() < 1e-9);
+            assert!((motion.name_shown(*angle) - 1.).abs() < 1e-9);
         }
         const { assert!(OPEN_DONE <= 0.3 + 1e-9) };
     }
 
     #[test]
+    fn the_strong_ease_out_starts_fast_and_lands_softly() {
+        assert_eq!(ease_out(0.), 0.);
+        assert!((ease_out(1.) - 1.).abs() < 1e-9);
+        // Most of the way in the first third, then a long soft landing.
+        assert!(ease_out(0.33) > 0.75);
+        let steps: Vec<f64> = (0..=10).map(|k| ease_out(f64::from(k) / 10.)).collect();
+        assert!(steps.windows(2).all(|w| w[1] >= w[0]));
+    }
+
+    #[test]
     fn the_light_dims_while_the_hand_travels_and_brightens_as_it_settles() {
-        let mut motion = Motion {
-            hand: 30.,
-            target: Some(30.),
-            light: 1.,
-            ..Motion::default()
-        };
-        motion.aim(Some(210.), true);
-        for _ in 0..8 {
+        let mut motion = swinging(30.);
+        motion.aim(Some(200.), true);
+        for _ in 0..6 {
             motion.advance(FRAME);
         }
         assert!(
-            motion.light < 0.85,
+            motion.light < 0.9,
             "light while travelling {}",
             motion.light
         );
-        while !motion.advance(FRAME) {}
+        let mut previous = motion.light;
+        while !motion.advance(FRAME) {
+            // It eases; it never jumps.
+            assert!((motion.light - previous).abs() < 0.25);
+            previous = motion.light;
+        }
         assert_eq!(motion.light, 1.);
     }
 
@@ -934,11 +1274,11 @@ mod tests {
     #[test]
     fn a_page_turn_and_a_hover_lift_finish_quickly() {
         let mut motion = Motion {
-            lift: vec![0.; 6],
             turned: 0.,
-            hover: Some(2),
             ..Motion::default()
         };
+        motion.fit(6, None);
+        motion.hover = Some(2);
         assert!(motion.turn_offset().abs() > 0.);
         let mut seconds = 0.;
         while !motion.advance(FRAME) {
@@ -953,19 +1293,17 @@ mod tests {
     fn with_animations_off_everything_is_placed_at_rest() {
         let mut motion = Motion {
             target: Some(150.),
+            warn_target: 1.,
             ..Motion::default()
         };
-        motion.lift = vec![0.; 6];
+        motion.fit(6, Some(2));
         motion.hover = Some(1);
-        motion.warn_target = 1.;
         motion.open();
         motion.rest();
         assert_eq!(motion.hand, 150.);
         assert_eq!((motion.light, motion.warn, motion.lift[1]), (1., 1., 1.));
-        assert_eq!(
-            (motion.drawn(), motion.wash(), motion.turn_offset()),
-            (1., 1., 0.)
-        );
+        assert_eq!((motion.chosen[2], motion.chosen[1]), (1., 0.));
+        assert!((motion.drawn() - 1.).abs() < 1e-9 && motion.turn_offset() == 0.);
         assert!(motion.advance(FRAME));
     }
 

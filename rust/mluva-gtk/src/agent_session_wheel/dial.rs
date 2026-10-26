@@ -1,9 +1,10 @@
 //! Painting the dial with GtkSnapshot: a hairline ring, one tick per session and a hand, with one
 //! light: a trace along the ring at the hand's bearing. Everything is drawn live in the theme's
 //! colours; nothing is baked, so the whole dial is a few strokes per frame even on the cairo
-//! renderer.
+//! renderer. Every quantity that changes with the choice arrives here as an eased level, so the
+//! painting itself never snaps.
 
-use super::palette::Palette;
+use super::palette::{Palette, Rgb};
 use gtk::gdk::RGBA;
 use gtk::prelude::*;
 use gtk::{graphene, gsk};
@@ -29,6 +30,15 @@ pub struct Face {
     pub warn: bool,
 }
 
+/// How far one tick has come, each from 0 to 1: faded in, lifted by hover or focus, and lit as
+/// the choice.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Tick {
+    pub shown: f64,
+    pub lift: f64,
+    pub chosen: f64,
+}
+
 /// A tick's length inside the ring, and the chosen tick's.
 const TICK: f64 = 12.;
 const CHOSEN_TICK: f64 = 20.;
@@ -38,20 +48,28 @@ const HALO: f64 = 8.;
 const HAND_GAP: f64 = 14.;
 /// The hand starts on an ellipse around the hub text, so it never runs through the words: half
 /// the ellipse's width and half its height.
-const HUB_CLEAR: (f64, f64) = (70., 22.);
-/// The trace reaches this share of the tick spacing either side of the hand, and never more than
-/// `TRACE_SPREAD` degrees.
+const HUB_CLEAR: (f64, f64) = (88., 22.);
+/// The trace's bright core reaches this share of the tick spacing either side of the hand, and
+/// never more than `TRACE_SPREAD` degrees, so it stays one light and never a highlighter.
 const TRACE_SHARE: f64 = 0.55;
-const TRACE_SPREAD: f64 = 34.;
+const TRACE_SPREAD: f64 = 16.;
+/// Under the core, a low fade of at most `SHOULDER_LEVEL` reaches the same share of the spacing,
+/// at least `SHOULDER` and at most `SHOULDER_MAX` degrees either side, so the light reads as
+/// light at any count.
+const SHOULDER: f64 = 12.;
+const SHOULDER_MAX: f64 = 34.;
+const SHOULDER_LEVEL: f64 = 0.3;
 /// The trace's tail reaches as far behind the hand as the hand turns in this many seconds, and
 /// never more than `TAIL_MAX` degrees.
 const TAIL_SECONDS: f64 = 0.045;
 const TAIL_MAX: f64 = 40.;
-/// Stroke widths: the ring, a tick, the chosen tick and the hand.
+/// Stroke widths: the ring, a tick, the chosen tick, the hand, the trace's core and its halo.
 const RING_WIDTH: f32 = 1.;
-const TICK_WIDTH: f32 = 1.5;
-const CHOSEN_WIDTH: f32 = 2.5;
+const TICK_WIDTH: f64 = 1.5;
+const CHOSEN_WIDTH: f64 = 2.5;
 const HAND_WIDTH: f32 = 1.75;
+const CORE_WIDTH: f32 = 2.;
+const HALO_WIDTH: f32 = 10.;
 
 /// Names keep clear of this radius around the centre.
 pub fn halo_radius(dial: f64) -> f64 {
@@ -89,6 +107,16 @@ fn round(width: f32) -> gsk::Stroke {
     let stroke = gsk::Stroke::new(width);
     stroke.set_line_cap(gsk::LineCap::Round);
     stroke
+}
+fn mix(a: RGBA, b: RGBA, t: f64) -> RGBA {
+    let t = t.clamp(0., 1.) as f32;
+    let m = |x: f32, y: f32| x + (y - x) * t;
+    RGBA::new(
+        m(a.red(), b.red()),
+        m(a.green(), b.green()),
+        m(a.blue(), b.blue()),
+        m(a.alpha(), b.alpha()),
+    )
 }
 
 /// A straight line along a bearing between two radii.
@@ -139,88 +167,92 @@ pub fn ring(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, drawn: f64, from
     snapshot.append_stroke(&path, &round(RING_WIDTH), &p.ink.alpha(0.24));
 }
 
-/// One tick per session, except the chosen one: a line inside the ring, in the warning colour
-/// when blocked, with a dot when working, hollow for draft only and a faint point when gone. Each
-/// fades in by `appear` and lifts by `lift`, longer, wider and brighter, while its name is hovered
-/// or focused.
-pub fn ticks(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, appear: &[f64], lift: &[f64]) {
+/// One tick per session, a line inside the ring in the warning colour when blocked, with a dot
+/// when working, hollow for draft only and a faint point when gone. Each fades in by `shown`,
+/// lifts by `lift` while its name is hovered or focused, and grows by `chosen` into the chosen
+/// tick: longer, wider and in the light's colour, `warn` of the way to amber. The tick that
+/// stops being chosen shrinks back the same way, so the two trade places smoothly.
+pub fn ticks(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, levels: &[Tick], warn: f64) {
     let r = face.dial;
-    for (index, (angle, kind)) in face.marks.iter().enumerate() {
-        let shown = appear.get(index).copied().unwrap_or(1.) as f32;
-        if face.chosen == Some(index) || shown <= 0. {
+    let lit = p.light(warn).alpha(1.);
+    // The most chosen tick is drawn last, above its neighbours.
+    let mut order: Vec<usize> = (0..face.marks.len()).collect();
+    order.sort_by(|a, b| {
+        let level = |i: &usize| levels.get(*i).map_or(0., |t| t.chosen);
+        level(a).total_cmp(&level(b))
+    });
+    for index in order {
+        let (angle, kind) = face.marks[index];
+        let Tick {
+            shown,
+            lift,
+            chosen,
+        } = levels.get(index).copied().unwrap_or(Tick {
+            shown: 1.,
+            ..Tick::default()
+        });
+        if shown <= 0. {
             continue;
         }
-        let lifted = lift.get(index).copied().unwrap_or(0.);
-        let ink = p.ink.alpha((0.72 + 0.28 * lifted as f32) * shown);
-        let width = TICK_WIDTH + 0.5 * lifted as f32;
-        let length = TICK + 4. * lifted;
+        let lift = lift * (1. - chosen);
+        let length = TICK + (CHOSEN_TICK - TICK) * chosen + 4. * lift;
+        let width = (TICK_WIDTH + (CHOSEN_WIDTH - TICK_WIDTH) * chosen + 0.5 * lift) as f32;
+        let ink = p.ink.alpha((0.72 + 0.28 * lift) as f32);
+        let fade = |color: RGBA| {
+            RGBA::new(
+                color.red(),
+                color.green(),
+                color.blue(),
+                color.alpha() * shown as f32,
+            )
+        };
         match kind {
-            Kind::Gone => dot(
-                snapshot,
-                point(*angle, r - TICK / 2.),
-                1.5,
-                &p.ink.alpha(0.4 * shown),
-            ),
+            Kind::Gone => {
+                dot(
+                    snapshot,
+                    point(angle, r - TICK / 2.),
+                    1.5,
+                    &fade(p.ink.alpha((0.4 * (1. - chosen)) as f32)),
+                );
+                if chosen > 0. {
+                    let (x, y) = point(angle, r - TICK / 2.);
+                    let ring = gsk::PathBuilder::new();
+                    ring.add_circle(&at(x, y), (2. + 2. * chosen) as f32);
+                    let color = fade(RGBA::new(lit.red(), lit.green(), lit.blue(), chosen as f32));
+                    snapshot.append_stroke(&ring.to_path(), &gsk::Stroke::new(1.5), &color);
+                }
+            }
             Kind::Draft => {
                 snapshot.save();
-                snapshot.rotate(*angle as f32);
+                snapshot.rotate(angle as f32);
+                let half = 3. + 0.5 * chosen;
                 let outline = gsk::PathBuilder::new();
-                outline.add_rect(&rect(-3., -r, 6., length));
-                snapshot.append_stroke(&outline.to_path(), &gsk::Stroke::new(1.), &ink);
+                outline.add_rect(&rect(-half, -r, 2. * half, length));
+                let stroke = gsk::Stroke::new((1. + 0.5 * chosen) as f32);
+                snapshot.append_stroke(&outline.to_path(), &stroke, &fade(mix(ink, lit, chosen)));
                 snapshot.restore();
             }
             Kind::Blocked => snapshot.append_stroke(
-                &radial(*angle, r - length, r),
+                &radial(angle, r - length, r),
                 &round(width),
-                &p.warning.alpha(0.95 * shown),
+                &fade(mix(p.warning.alpha(0.95), lit, chosen)),
             ),
             Kind::Ready | Kind::Working => {
-                snapshot.append_stroke(&radial(*angle, r - length, r), &round(width), &ink);
-                if *kind == Kind::Working {
+                snapshot.append_stroke(
+                    &radial(angle, r - length, r),
+                    &round(width),
+                    &fade(mix(ink, lit, chosen)),
+                );
+                if kind == Kind::Working {
                     dot(
                         snapshot,
-                        point(*angle, r - TICK - 7.),
+                        point(angle, r - length - 7.),
                         2.,
-                        &p.working.alpha(0.95 * shown),
+                        &fade(p.working.alpha(0.95)),
                     );
                 }
             }
         }
-    }
-}
-
-/// The chosen tick: longer, wider and in the light's colour, `warn` of the way to amber. A gone
-/// choice keeps a small ring where its tick was.
-pub fn chosen_tick(
-    snapshot: &gtk::Snapshot,
-    p: &Palette,
-    face: &Face,
-    angle: f64,
-    kind: Kind,
-    warn: f64,
-) {
-    let lit = p.light(warn).alpha(1.);
-    let r = face.dial;
-    match kind {
-        Kind::Gone => {
-            let (x, y) = point(angle, r - TICK / 2.);
-            let ring = gsk::PathBuilder::new();
-            ring.add_circle(&at(x, y), 4.);
-            snapshot.append_stroke(&ring.to_path(), &gsk::Stroke::new(1.5), &lit);
-        }
-        Kind::Draft => {
-            snapshot.save();
-            snapshot.rotate(angle as f32);
-            let outline = gsk::PathBuilder::new();
-            outline.add_rect(&rect(-3.5, -r, 7., CHOSEN_TICK));
-            snapshot.append_stroke(&outline.to_path(), &gsk::Stroke::new(1.5), &lit);
-            snapshot.restore();
-        }
-        _ => snapshot.append_stroke(
-            &radial(angle, r - CHOSEN_TICK, r),
-            &round(CHOSEN_WIDTH),
-            &lit,
-        ),
     }
 }
 
@@ -232,22 +264,29 @@ fn hand_start(angle: f64) -> f64 {
 }
 
 /// The hand: a thin line from the hub text to just short of the chosen tick, the precise pointer.
+/// It is in the light's colour on a dark wash and neutral ink on a light one, where a coloured
+/// hand would read as a second light; either way it eases to amber by `warn`.
 pub fn hand(snapshot: &gtk::Snapshot, p: &Palette, face: &Face, angle: f64, warn: f64) {
     let from = hand_start(angle);
     let to = face.dial - CHOSEN_TICK - HAND_GAP;
     if to <= from {
         return;
     }
+    let color = if p.light_theme {
+        p.warning.over(p.ink, warn.clamp(0., 1.) as f32)
+    } else {
+        p.light(warn)
+    };
     snapshot.append_stroke(
         &radial(angle, from, to),
         &round(HAND_WIDTH),
-        &p.light(warn).alpha(1.),
+        &color.alpha(1.),
     );
 }
 
-/// How far the trace reaches on each side of the hand, in degrees: a little over half the
-/// spacing of the ticks, so it is almost dark halfway to a neighbour and out well before it, and
-/// at most `TRACE_SPREAD` when there are only a few.
+/// How far the trace's bright core reaches on each side of the hand, in degrees: a little over
+/// half the spacing of the ticks, so it is almost dark halfway to a neighbour and out well before
+/// it, and at most `TRACE_SPREAD` when there are only a few.
 pub fn trace_spread(count: usize) -> f64 {
     (TRACE_SHARE * 360. / count.max(1) as f64).min(TRACE_SPREAD)
 }
@@ -258,27 +297,41 @@ pub fn trace_tail(speed: f64) -> f64 {
     (speed.abs() * TAIL_SECONDS).min(TAIL_MAX)
 }
 
-/// How bright the trace is `offset` degrees from the hand (clockwise positive) when it reaches
-/// `ahead` degrees on the side the hand turns toward and `behind` on the other: a smooth bump
-/// ahead and a longer, softer fall behind.
-pub fn trace_level(offset: f64, ahead: f64, behind: f64, clockwise: bool) -> f64 {
-    let (toward, away) = if clockwise {
-        (offset, -offset)
-    } else {
-        (-offset, offset)
-    };
-    if toward >= 0. {
-        let t = (1. - toward / ahead).clamp(0., 1.);
-        t * t * (3. - 2. * t)
-    } else {
-        (1. - away / behind).clamp(0., 1.).powf(1.6)
-    }
+/// How far the trace's low shoulder reaches on each side of the hand, in degrees.
+pub fn shoulder_reach(count: usize) -> f64 {
+    (TRACE_SHARE * 360. / count.max(1) as f64).clamp(SHOULDER, SHOULDER_MAX)
 }
 
-/// The light: a trace along the ring, brightest at the hand's bearing, fading smoothly to nothing
-/// `trace_spread` degrees ahead and trailing a tail behind while the hand turns. On a dark wash a
-/// fine bright line lies over a soft halo; on a light one it is a crisp arc. `strength` dims it
-/// while the hand travels and brightens it as it settles; `warn` turns it amber.
+/// A smooth fall from 1 at `distance` 0 to 0 at `reach`.
+fn fall(distance: f64, reach: f64) -> f64 {
+    let t = (1. - distance / reach).clamp(0., 1.);
+    t * t * (3. - 2. * t)
+}
+
+/// How bright the trace is `offset` degrees from the hand, clockwise positive, with a core that
+/// reaches `spread` degrees, a shoulder that reaches `shoulder` and a tail of `tail` degrees
+/// behind a hand turning `clockwise` or not. The core stays at full for its inner third and falls
+/// smoothly to nothing; the shoulder under it is never brighter than `SHOULDER_LEVEL`; behind the
+/// hand both stretch by the tail.
+pub fn trace_level(offset: f64, spread: f64, shoulder: f64, tail: f64, clockwise: bool) -> f64 {
+    let behind = if clockwise { offset < 0. } else { offset > 0. };
+    let distance = offset.abs();
+    let stretch = if behind { tail } else { 0. };
+    let flat = spread / 3.;
+    let core = if distance <= flat {
+        1.
+    } else {
+        fall(distance - flat, spread - flat + stretch)
+    };
+    let low = SHOULDER_LEVEL * fall(distance, shoulder.max(spread) + stretch);
+    core.max(low)
+}
+
+/// The light: a trace along the ring at the hand's bearing. On a dark wash a near-white core lies
+/// over a soft halo in the light's colour; on a light wash a saturated accent core lies over a
+/// faint bloom of the accent, so it reads as coloured light on paper. While the hand turns a tail
+/// trails behind it. `strength` dims it in travel and brightens it as the hand settles; `warn`
+/// turns it amber.
 pub fn trace(
     snapshot: &gtk::Snapshot,
     p: &Palette,
@@ -291,15 +344,16 @@ pub fn trace(
     if strength <= 0.01 {
         return;
     }
-    let lit = p.light(warn);
-    let ahead = trace_spread(face.marks.len());
-    let behind = ahead + trace_tail(speed);
+    let spread = trace_spread(face.marks.len());
+    let shoulder = shoulder_reach(face.marks.len());
+    let tail = trace_tail(speed);
     let clockwise = speed >= 0.;
+    let reach = shoulder.max(spread);
     // The arc runs counterclockwise-most first, as a conic gradient does.
     let (before, after) = if clockwise {
-        (behind, ahead)
+        (reach + tail, reach)
     } else {
-        (ahead, behind)
+        (reach, reach + tail)
     };
     let span = before + after;
     // Everything the trace draws, its halo included, lies within the box around its arc; keeping
@@ -307,7 +361,7 @@ pub fn trace(
     let (mut left, mut top, mut right, mut bottom) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
     for k in 0..=32 {
         let bearing = hand - before + span * f64::from(k) / 32.;
-        for radius in [face.dial - 6., face.dial + 6.] {
+        for radius in [face.dial - 8., face.dial + 8.] {
             let (x, y) = point(bearing, radius);
             (left, top) = (left.min(x), top.min(y));
             (right, bottom) = (right.max(x), bottom.max(y));
@@ -320,15 +374,15 @@ pub fn trace(
         right - left + 2. * margin,
         bottom - top + 2. * margin,
     ));
-    let arc = |s: &gtk::Snapshot, width: f32, alpha: f64| {
+    let arc = |s: &gtk::Snapshot, width: f32, color: Rgb, alpha: f64| {
         s.push_mask(gsk::MaskMode::Alpha);
         s.append_stroke(&circle(face.dial), &gsk::Stroke::new(width), &RGBA::BLACK);
         s.pop();
-        let stops: Vec<gsk::ColorStop> = (0..=24)
+        let stops: Vec<gsk::ColorStop> = (0..=32)
             .map(|k| {
-                let along = span * f64::from(k) / 24.;
-                let level = trace_level(along - before, ahead, behind, clockwise);
-                stop(along / 360., lit.alpha((alpha * strength * level) as f32))
+                let along = span * f64::from(k) / 32.;
+                let level = trace_level(along - before, spread, shoulder, tail, clockwise);
+                stop(along / 360., color.alpha((alpha * strength * level) as f32))
             })
             .chain([stop(1., clear())])
             .collect();
@@ -341,15 +395,15 @@ pub fn trace(
         );
         s.pop();
     };
-    if p.light_theme {
-        // A halo of a dark accent on a light wash reads as a smudge, not light: a crisp arc only.
-        arc(snapshot, 2.5, 0.75);
+    let (halo, halo_alpha) = if p.light_theme {
+        (p.accent(warn), 0.25)
     } else {
-        snapshot.push_blur(5.);
-        arc(snapshot, 6., 0.85);
-        snapshot.pop();
-        arc(snapshot, 1.75, 1.);
-    }
+        (p.light(warn), 0.55)
+    };
+    snapshot.push_blur(5.);
+    arc(snapshot, HALO_WIDTH, halo, halo_alpha);
+    snapshot.pop();
+    arc(snapshot, CORE_WIDTH, p.core(warn), 1.);
     snapshot.pop();
 }
 
@@ -379,39 +433,43 @@ mod tests {
         assert_eq!(trace_tail(0.), 0.);
         assert!(trace_tail(400.) > 10. && trace_tail(-400.) == trace_tail(400.));
         assert_eq!(trace_tail(1e6), TAIL_MAX);
-        // Turning clockwise, the light ahead ends at the spread and the tail lingers behind it.
-        let (ahead, behind) = (10., 30.);
-        assert_eq!(trace_level(0., ahead, behind, true), 1.);
-        assert_eq!(trace_level(10., ahead, behind, true), 0.);
-        assert!(trace_level(-15., ahead, behind, true) > 0.);
-        assert_eq!(trace_level(-30., ahead, behind, true), 0.);
+        // Turning clockwise, light lingers behind the hand further than ahead of it.
+        let (spread, shoulder, tail) = (10., SHOULDER, 20.);
+        assert_eq!(trace_level(0., spread, shoulder, tail, true), 1.);
+        assert_eq!(trace_level(SHOULDER, spread, shoulder, tail, true), 0.);
+        assert!(trace_level(-SHOULDER, spread, shoulder, tail, true) > 0.);
         // Turning back, the tail is on the other side.
-        assert!(trace_level(15., ahead, behind, false) > 0.);
-        assert_eq!(trace_level(-10., ahead, behind, false), 0.);
+        assert!(trace_level(SHOULDER, spread, shoulder, tail, false) > 0.);
+        assert_eq!(trace_level(-SHOULDER, spread, shoulder, tail, false), 0.);
     }
 
     #[test]
-    fn the_trace_lights_the_chosen_tick_and_never_a_neighbour() {
+    fn the_trace_is_bright_on_the_chosen_tick_and_low_at_a_neighbour() {
         for count in 1..=26 {
             let spacing = 360. / count as f64;
-            let spread = trace_spread(count);
-            // Out well before the next tick, and almost dark halfway there.
+            let (spread, shoulder) = (trace_spread(count), shoulder_reach(count));
+            assert!(spread <= TRACE_SPREAD && shoulder >= SHOULDER);
+            // Full brightness around the chosen tick.
+            assert_eq!(trace_level(spread / 4., spread, shoulder, 0., true), 1.);
+            // No more than a low glow on a neighbour.
+            let neighbour = trace_level(spacing, spread, shoulder, 0., true);
             assert!(
-                spread <= 0.55 * spacing + 1e-9,
-                "{count}: {spread}° of {spacing}°"
+                neighbour <= SHOULDER_LEVEL,
+                "{count}: {neighbour} at a neighbour"
             );
-            let t = (1. - (spacing / 2.) / spread).max(0.);
-            let halfway = t * t * (3. - 2. * t);
-            assert!(
-                halfway < 0.05,
-                "{count}: {halfway} of the light left halfway"
-            );
-            assert!(spread <= TRACE_SPREAD);
         }
-        // Few sessions keep a long sweep of light; twenty keep it to the chosen tick.
-        assert_eq!(trace_spread(1), TRACE_SPREAD);
-        assert_eq!(trace_spread(3), TRACE_SPREAD);
-        assert!((trace_spread(6) - 33.).abs() < 1e-9);
+        // A light that reads as light at any count: the low fade spans at least 24°.
+        assert!(
+            trace_level(
+                SHOULDER * 0.8,
+                trace_spread(26),
+                shoulder_reach(26),
+                0.,
+                true
+            ) > 0.
+        );
+        // With few sessions the bright core stays short and only the low fade sweeps wide.
+        assert!(trace_level(20., trace_spread(1), shoulder_reach(1), 0., true) <= SHOULDER_LEVEL);
         assert!((trace_spread(20) - 9.9).abs() < 1e-9);
     }
 }
