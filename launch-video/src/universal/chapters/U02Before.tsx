@@ -64,7 +64,8 @@ const Wire: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
 
 const Row: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
   const row = BEFORE[i];
-  const enter = ramp(frame, i, 10 + i, easeOut);
+  // The first rows are already arriving on the chapter's first frame.
+  const enter = ramp(frame, i - 5, 8 + i, easeOut);
   const live = row.outcome === "SEND";
   const at = live ? k(1) + i * 3 + 10 : k(2) + (i - 2) * 7;
   const tag = ramp(frame, at, at + 6);
@@ -112,8 +113,8 @@ const Row: React.FC<{ i: number; frame: number }> = ({ i, frame }) => {
 };
 
 const Diagram: React.FC<{ frame: number }> = ({ frame }) => {
-  const enter = ramp(frame, 0, 8, easeOut);
-  const head = ramp(frame, 2, 12, easeOut);
+  const enter = ramp(frame, -4, 6, easeOut);
+  const head = ramp(frame, 0, 10, easeOut);
   const glitch = frame >= GLITCH ? ramp(frame, GLITCH, GLITCH + 14, easeIn) : 0;
   // Horizontal slices tear sideways as the old routing falls apart.
   const slices = 9;

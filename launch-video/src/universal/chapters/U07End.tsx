@@ -80,11 +80,11 @@ const Explosion: React.FC<{ frame: number }> = ({ frame }) => {
 const Hit: React.FC<{ frame: number }> = ({ frame }) => {
   if (frame > 6) return null;
   // A clean white hit for two frames, then straight back to black with a red afterglow.
-  const white = frame <= 1 ? 0.85 : ramp(frame, 1, 4, easeOut, 0.85, 0);
+  const white = frame <= 1 ? 1 : ramp(frame, 1, 4, easeOut, 0.85, 0);
   const red = frame < 2 ? 0.2 * ramp(frame, 0, 2) : ramp(frame, 2, 6, easeOut, 0.2, 0);
   return (
     <>
-      <AbsoluteFill style={{ background: "#fff", opacity: white, mixBlendMode: "screen" }} />
+      <AbsoluteFill style={{ background: frame <= 1 ? "#F5F5F5" : "#fff", opacity: white, mixBlendMode: frame <= 1 ? "normal" : "screen" }} />
       <AbsoluteFill style={{ background: C.red, opacity: red, mixBlendMode: "screen" }} />
     </>
   );
@@ -192,10 +192,11 @@ export const U07Logo: React.FC<{ ambient?: boolean }> = ({ ambient = true }) => 
   const punch = frame < 14 ? 1 + 0.06 * (1 - Easing.out(Easing.exp)(frame / 14)) : 1;
   return (
     <AbsoluteFill style={{ transform: frame < 14 ? `translate(${sx}px, ${sy}px) scale(${punch})` : undefined }}>
-      <Hit frame={frame} />
       <Explosion frame={frame} />
       <FormingMark frame={frame} ambient={ambient} />
       <Word frame={frame} />
+      {/* The hit sits on top: two frames of clean white, then it clears over the burst. */}
+      <Hit frame={frame} />
     </AbsoluteFill>
   );
 };

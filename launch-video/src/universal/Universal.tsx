@@ -79,7 +79,7 @@ export const MluvaShowreelUniversal: React.FC<{ audio?: boolean }> = ({ audio = 
       })}
       <Hud
         quiet={ramp(frame, CHAPTERS[6].from + 2, CHAPTERS[6].from + 18, easeInOut)}
-        onLight={frame >= beatFrame(51) && frame < beatFrame(52)}
+        onLight={(frame >= beatFrame(51) && frame < beatFrame(52)) || (frame >= beatFrame(56) && frame < beatFrame(56) + 2)}
       />
       <Grain />
       {audio ? <Soundtrack /> : null}

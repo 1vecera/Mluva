@@ -14,11 +14,11 @@ const CUT0 = k(4);
 export const CUTS = Array.from({ length: 5 }, (_, i) => beatFrame(48 + i) - B0);
 const BREAK = k(8);
 
-// The re-drop: the queued dictation lands in Claude Code ("Portal test") at take 22.10 s and its
-// reply at 22.58 s; Mluva reports it delivered from 22.42 s. Real speed.
+// The re-drop: the queued dictation lands in Claude Code ("Portal test") at take 22.10 s, on the
+// beat, and its reply at 22.58 s; Mluva reports it delivered from 22.42 s. Real speed.
 const CLAUDE: Shot[] = [
-  { beat: 0, from: 22.05, rate: 1, framing: "claude", push: 0.06, label: "CLAUDE CODE · QUEUED IN ITS OWN INBOX" },
-  { beat: 2, from: 22.983, rate: 1, framing: "status", push: 0.05, label: "DELIVERED · TAKEN INTO A TURN" },
+  { beat: 0, from: 22.1, rate: 1, framing: "claude", push: 0.09, label: "CLAUDE CODE · QUEUED IN ITS OWN INBOX" },
+  { beat: 2, from: 23.033, rate: 1, framing: "status", push: 0.05, label: "DELIVERED · TAKEN INTO A TURN" },
 ];
 
 // `iris` opens the cut from the centre instead of popping it, for the white card.
