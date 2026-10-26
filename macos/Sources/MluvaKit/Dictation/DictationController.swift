@@ -8,7 +8,8 @@ public enum Destination: Sendable {
     case target(CapturedTarget?)
     /// The menu or pill button: copy only, because clicking Mluva moved focus.
     case manual
-    /// A guarded agent session, after the two-second cancel window. Never copied or pasted.
+    /// An agent session, through its own transport after the two-second cancel window. Never
+    /// copied or pasted.
     case agent(AgentSession)
     /// An editable Mluva transcript only: no copy, paste or send (draft-only sessions).
     case document(AgentSession?)
@@ -17,7 +18,7 @@ public enum Destination: Sendable {
         switch self {
         case .target(let target): target.map { "Paste into \($0.applicationName)" } ?? "Copy to clipboard"
         case .manual: "Copy to clipboard"
-        case .agent(let session): "Send to \(session.display_name)"
+        case .agent(let session): "\(session.verb) to \(session.display_name)"
         case .document(let session): session.map { "Draft for \($0.display_name)" } ?? "Mluva draft"
         }
     }
@@ -328,7 +329,7 @@ public final class DictationController {
         case .manual:
             receipt = await TextDelivery.deliver(delivered, to: nil, allowInsertion: false)
         case .agent(let agent):
-            receipt.guidance = "Sending to \(agent.display_name) in two seconds."
+            receipt.guidance = "\(agent.verb) to \(agent.display_name) in two seconds."
         case .document:
             receipt.guidance = "Saved as an editable draft. Nothing was copied or sent."
         }

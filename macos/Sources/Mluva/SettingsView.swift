@@ -202,17 +202,21 @@ private struct AgentSettings: View {
     var body: some View {
         Form {
             Section {
-                LabeledContent("Claude Code sessions") {
-                    Text("Found from Claude Code's own session list").foregroundStyle(.secondary)
+                LabeledContent("Sessions") {
+                    Text("Claude Code's own session list, live Codex threads and a new Claude chat")
+                        .foregroundStyle(.secondary)
                 }
                 LabeledContent("Herdr") {
                     Text(model.agents.herdrReachable ? (model.agents.herdrGuarded ? "Connected · can send" : "Connected · this version can't send") : "Not running")
                         .foregroundStyle(.secondary)
                 }
+                if !model.agents.summary.isEmpty {
+                    Text(model.agents.summary).font(.mono(10.5)).foregroundStyle(.secondary)
+                }
             } header: {
                 Text("Discovery")
             } footer: {
-                Text("Sending needs Herdr with the guarded prompt integration. Other sessions are draft only: Mluva records an editable transcript and never types into them.")
+                Text("Herdr's guarded prompt sends. Claude Code's own inbox queues a message for its session, Codex sends to an idle thread, and a new Claude chat opens with the text for you to send. Anything else is draft only: Mluva records an editable transcript and never types into it.")
                     .font(.mono(10.5)).foregroundStyle(.secondary)
             }
             Section("Sessions") {
@@ -221,10 +225,11 @@ private struct AgentSettings: View {
                 }
                 ForEach(model.agents.sessions) { session in
                     HStack {
-                        Circle().fill(AgentStatusPresentation.color(session.recipient.status.rawValue)).frame(width: 7, height: 7)
+                        Circle().fill(AgentStatusPresentation.color(session.target.status.rawValue)).frame(width: 7, height: 7)
                         VStack(alignment: .leading) {
                             Text(session.display_name)
-                            Text(session.draft_only ? "\(session.project) · draft only" : session.project)
+                            Text([session.kind, session.project, session.draft_only ? "draft only" : session.verb.lowercased()]
+                                .filter { !$0.isEmpty }.joined(separator: " · "))
                                 .font(.mono(10.5)).foregroundStyle(.secondary)
                         }
                         Spacer()

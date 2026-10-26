@@ -48,11 +48,12 @@ struct AudioTests {
 struct WheelTests {
     func session(_ name: String, pane: String = "", guarded: Bool = false, pid: UInt32 = 1) -> AgentSession {
         AgentSession(
-            recipient: Recipient(
-                socket: guarded ? "/tmp/h.sock" : "", server_epoch: "", pane_id: pane, guard: guarded ? "g" : "",
-                name: name, title: "", kind: "claude", project: "/synthetic/\(name)", status: .idle,
+            target: AgentTarget(
+                socket: guarded ? "/tmp/h.sock" : "", pane_id: pane, guard: guarded ? "g" : "",
+                name: name, kind: "claude", project: "/synthetic/\(name)", status: .idle,
                 session_id: "s-\(name)-\(pane)-\(pid)", pid: pid),
-            display_name: name, draft_only: !guarded, draft_hint: "", can_receive: guarded, spoken_status: "")
+            display_name: name, delivery: guarded ? "send" : "draft_only", verb: guarded ? "Send" : "Draft only",
+            draft_only: !guarded, draft_hint: "", can_receive: guarded, spoken_status: "")
     }
 
     @Test func theFirstSessionSitsAtOneOClockAndLettersStartOnTheHomeRow() {
@@ -99,14 +100,26 @@ struct WheelTests {
         #expect(layout.slots[2].disambiguator == nil)
     }
 
+    /// The core's identity rules: a session is its product, session ID and process, whatever
+    /// route reaches it now; Herdr's guard decides only without a session on both sides.
     @Test func aReplacementInTheSamePaneIsNotTheRememberedSession() {
-        var remembered = session("cos", pane: "w1:p1", guarded: true).recipient
-        var replacement = remembered
-        replacement.guard = "another"
-        #expect(!remembered.sameInstance(as: replacement))
-        remembered.guard = ""
-        replacement = remembered
-        replacement.pid = 99
-        #expect(!remembered.sameInstance(as: replacement))
+        let remembered = session("cos", pane: "w1:p1", guarded: true).target
+        var unguarded = remembered
+        unguarded.guard = ""
+        #expect(remembered.sameInstance(as: unguarded), "Herdr's guard going away keeps the choice")
+        var restarted = remembered
+        restarted.pid = 99
+        #expect(!remembered.sameInstance(as: restarted))
+        var reused = remembered
+        (reused.started, restarted.started) = ("Mon Oct 26 11:10:03 2026", "Mon Oct 26 11:10:04 2026")
+        restarted.pid = remembered.pid
+        #expect(!reused.sameInstance(as: restarted), "a reused PID is another process")
+        var pane = remembered
+        pane.session_id = ""
+        var replaced = pane
+        replaced.guard = "another"
+        #expect(!pane.sameInstance(as: replaced), "without sessions, Herdr's guard decides")
+        let chat = AgentTarget(name: "claude-new-chat", kind: "claude_desktop", status: .idle, app: "claude_new_chat")
+        #expect(chat.sameInstance(as: chat) && !chat.sameInstance(as: remembered))
     }
 }

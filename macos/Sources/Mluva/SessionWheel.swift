@@ -66,7 +66,7 @@ struct SessionWheelView: View {
     private var selected: AgentSession? { agents.selected }
 
     private func isSelected(_ slot: WheelLayout.Slot) -> Bool {
-        selected.map { $0.recipient.sameInstance(as: slot.session.recipient) } ?? false
+        selected.map { $0.target.sameInstance(as: slot.session.target) } ?? false
     }
 
     private func plate(_ slot: WheelLayout.Slot) -> some View {
@@ -82,7 +82,7 @@ struct SessionWheelView: View {
                         .font(.mono(12.5, chosen ? .bold : .medium))
                         .lineLimit(1)
                     HStack(spacing: 5) {
-                        StatusMark(status: session.recipient.status, draftOnly: session.draft_only, size: 7)
+                        StatusMark(status: session.target.status, draftOnly: session.draft_only, size: 7)
                         Text(subtitle(slot))
                             .font(.mono(10))
                             .foregroundStyle(Ink.chalkDim)
@@ -106,14 +106,16 @@ struct SessionWheelView: View {
 
     private func subtitle(_ slot: WheelLayout.Slot) -> String {
         let session = slot.session
-        var parts = [session.draft_only ? "draft only" : session.recipient.status.word]
+        var parts = [session.draft_only ? "draft only" : session.target.status.word]
+        // Only a route weaker than a plain send is named.
+        if !session.draft_only && session.delivery != "send" { parts.append(session.verb.lowercased()) }
         if !session.project.isEmpty { parts.append(session.project) }
         if let handle = slot.disambiguator { parts.append(handle) }
         return parts.joined(separator: " · ")
     }
 
     private func statusText(_ session: AgentSession) -> String {
-        session.draft_only ? session.draft_hint : session.recipient.status.word
+        session.draft_only ? session.draft_hint : session.target.status.word
     }
 
     @ViewBuilder private var centerDisc: some View {
@@ -126,8 +128,9 @@ struct SessionWheelView: View {
                     .lineLimit(2)
                     .minimumScaleFactor(0.75)
                 HStack(spacing: 5) {
-                    StatusMark(status: selected.recipient.status, draftOnly: selected.draft_only, size: 7)
-                    Text([selected.draft_only ? "draft only" : selected.recipient.status.word, selected.recipient.kind]
+                    StatusMark(status: selected.target.status, draftOnly: selected.draft_only, size: 7)
+                    Text([selected.draft_only ? "draft only" : selected.target.status.word,
+                          selected.draft_only ? "" : selected.verb.lowercased(), selected.kind]
                         .filter { !$0.isEmpty }.joined(separator: " · "))
                         .font(.mono(10.5))
                         .foregroundStyle(Ink.chalkDim)

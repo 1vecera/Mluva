@@ -17,6 +17,8 @@ struct CoreBridgeTests {
             "config_dir": .string(paths.config.path), "data_dir": .string(paths.data.path),
             "herdr_config_home": .string(paths.herdrConfigHome.path),
             "claude_config_dir": .string(root.appending(path: "claude").path),
+            // This Mac's own Codex threads and Claude app stay out of the test.
+            "codex": false, "apps": false,
         ])
     }
 

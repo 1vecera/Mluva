@@ -37,28 +37,68 @@ enum Evidence {
         "Check why the build cache grows every night and add a cleanup step if it is ours.",
     ]
 
-    static func session(_ name: String, project: String, kind: String = "claude", status: AgentStatus = .idle,
-                        guarded: Bool, pane: String = "", pid: UInt32) -> AgentSession {
-        let recipient = Recipient(
-            socket: guarded || !pane.isEmpty ? "/Users/you/.config/herdr/herdr.sock" : "", server_epoch: guarded ? "e1" : "",
-            pane_id: pane, guard: guarded ? "g-\(pid)" : "", name: name, title: name, kind: kind,
-            project: "/Users/you/code/\(project)", status: status, session_id: "s-\(pid)", pid: pid)
-        let draftOnly = !guarded
+    /// How a synthetic session is reached, as the shared target model would find it.
+    enum Reach {
+        /// A Herdr pane Herdr vouches for: Send.
+        case herdr(String)
+        /// A Claude Code session outside Herdr with its own inbox: Queue.
+        case inbox
+        /// A live Codex thread outside Herdr: Send if idle.
+        case codexThread
+        /// A new Claude desktop chat: Prefill.
+        case newChat
+        /// Nothing reaches it.
+        case none
+    }
+
+    static func session(_ name: String, project: String, status: AgentStatus = .idle, reach: Reach,
+                        pid: UInt32) -> AgentSession {
+        var target = AgentTarget(
+            name: name, title: name, kind: "claude", project: project.isEmpty ? "" : "/Users/you/code/\(project)",
+            status: status, session_id: "s-\(pid)", pid: pid)
+        var (kind, place, delivery, verb, hint) = ("Claude Code", "terminal", "send", "Send", String?.none)
+        switch reach {
+        case .herdr(let pane):
+            target.socket = "/Users/you/.config/herdr/herdr.sock"
+            target.server_epoch = "e1"
+            target.pane_id = pane
+            target.guard = String(repeating: "a", count: 64)
+            place = "Herdr \(pane)"
+        case .inbox:
+            (delivery, verb, hint) = ("queue", "Queue", "Arrives as a message from another Claude session")
+        case .codexThread:
+            target.kind = "codex"
+            kind = "Codex CLI"
+            hint = "Sends if the thread is idle; otherwise your draft is kept"
+        case .newChat:
+            target = AgentTarget(name: "claude-new-chat", title: name, kind: "claude_desktop", status: .idle, app: "claude_new_chat")
+            (kind, place, delivery, verb, hint) = ("Claude Desktop", "app", "prefill", "Prefill", "Opens Claude with it in a new chat; you send it there")
+        case .none:
+            delivery = "draft_only"
+            verb = "Draft only"
+        }
+        let draftOnly = delivery == "draft_only"
         return AgentSession(
-            recipient: recipient, display_name: name, draft_only: draftOnly,
-            draft_hint: recipient.socket.isEmpty ? "Draft only: it runs outside Herdr" : "Draft only: Herdr can't send to it now",
-            can_receive: guarded && status != .blocked, spoken_status: "")
+            target: target, display_name: name, kind: kind, place: place, delivery: delivery, verb: verb,
+            delivery_hint: hint, draft_only: draftOnly, draft_hint: "Draft only: this session has no inbox",
+            can_receive: !draftOnly && (status != .blocked || delivery == "queue"), spoken_status: "")
     }
 
     static let sessions: [AgentSession] = [
-        session("Release notes", project: "mluva", guarded: true, pane: "w1:p1", pid: 4101),
-        session("Fix flaky upload test", project: "mluva", status: .working, guarded: true, pane: "w1:p2", pid: 4102),
-        session("Pricing page copy", project: "site", kind: "codex", guarded: true, pane: "w2:p1", pid: 4103),
-        session("Migrate settings schema", project: "core", status: .blocked, guarded: true, pane: "w2:p2", pid: 4104),
-        session("Onboarding review", project: "mluva", guarded: false, pid: 4105),
-        session("Weekly report", project: "notes", guarded: false, pid: 4106),
-        session("Icon experiments", project: "brand", status: .working, guarded: false, pid: 4107),
+        session("Release notes", project: "mluva", reach: .herdr("w1:p1"), pid: 4101),
+        session("Fix flaky upload test", project: "mluva", status: .working, reach: .herdr("w1:p2"), pid: 4102),
+        session("Pricing page copy", project: "site", reach: .codexThread, pid: 4103),
+        session("Migrate settings schema", project: "core", status: .blocked, reach: .inbox, pid: 4104),
+        session("Onboarding review", project: "mluva", reach: .none, pid: 4105),
+        session("Weekly report", project: "notes", reach: .inbox, pid: 4106),
+        session("New chat", project: "", reach: .newChat, pid: 0),
     ]
+
+    /// A route state for the evidence pill, as the core would report it.
+    static func route(_ phase: String, for session: AgentSession, deadline: UInt64? = nil, text: String) -> RouteState {
+        RouteState(phase: phase, id: "a1", deadline_ms: deadline, target: session.target, display_name: session.display_name,
+                   delivery: session.delivery, delivery_hint: session.delivery_hint, text: text)
+    }
 }
 
 @MainActor
@@ -119,16 +159,16 @@ private struct Script {
                                 level: 0.45, destination: target, startedAt: Date().addingTimeInterval(-14))
         try await Task.sleep(for: .seconds(1.2))
         if let window = pillWindow() { save(capture(window, margin: 8), "pill-recording-\(suffix)") }
-        let session = Evidence.sessions[0]
+        let session = Evidence.sessions[5]
         let deadline = UInt64(Date().addingTimeInterval(1.3).timeIntervalSince1970 * 1_000)
-        model.agents.present(sessions: Evidence.sessions, selected: session.recipient, route: RouteState(
-            phase: "grace", id: "a1", reason: nil, deadline_ms: deadline, recipient: session.recipient,
-            text: "Summarize what changed since the last release and draft the notes.", history_id: nil))
+        model.agents.present(sessions: Evidence.sessions, selected: session.target, route: Evidence.route(
+            "grace", for: session, deadline: deadline,
+            text: "Summarize what changed since the last release and draft the notes."))
         model.dictation.present(.finished("Sending"), destination: .agent(session),
                                 lastText: "Summarize what changed since the last release and draft the notes.")
         try await Task.sleep(for: .seconds(0.9))
         if let window = pillWindow() { save(capture(window, margin: 8), "pill-agent-countdown-\(suffix)") }
-        model.agents.present(sessions: Evidence.sessions, selected: session.recipient, route: nil)
+        model.agents.present(sessions: Evidence.sessions, selected: session.target, route: nil)
         model.dictation.present(.finished("Pasted into TextEdit."), destination: .manual,
                                 lastText: Evidence.dictations[0], notice: "Pasted into TextEdit.")
         try await Task.sleep(for: .seconds(0.9))
@@ -138,13 +178,13 @@ private struct Script {
     }
 
     private func wheel(_ suffix: String) async throws {
-        model.agents.present(sessions: Evidence.sessions, selected: Evidence.sessions[0].recipient, route: nil)
+        model.agents.present(sessions: Evidence.sessions, selected: Evidence.sessions[0].target, route: nil)
         model.openWheel()
         model.agents.stopPolling()
-        model.agents.present(sessions: Evidence.sessions, selected: Evidence.sessions[0].recipient, route: nil)
+        model.agents.present(sessions: Evidence.sessions, selected: Evidence.sessions[0].target, route: nil)
         try await Task.sleep(for: .seconds(1.2))
         save(captureScreen(), "wheel-\(suffix)")
-        model.agents.present(sessions: Evidence.sessions, selected: Evidence.sessions[4].recipient, route: nil)
+        model.agents.present(sessions: Evidence.sessions, selected: Evidence.sessions[4].target, route: nil)
         try await Task.sleep(for: .seconds(0.8))
         save(captureScreen(), "wheel-draft-only-\(suffix)")
         model.closeWheel()
@@ -300,11 +340,11 @@ private struct Script {
         try await Task.sleep(for: .seconds(1.6))
         model.dictation.present(.idle)
         try await Task.sleep(for: .seconds(0.6))
-        model.agents.present(sessions: Evidence.sessions, selected: Evidence.sessions[0].recipient, route: nil)
+        model.agents.present(sessions: Evidence.sessions, selected: Evidence.sessions[0].target, route: nil)
         model.openWheel()
         model.agents.stopPolling()
         for index in [0, 2, 4, 1] {
-            model.agents.present(sessions: Evidence.sessions, selected: Evidence.sessions[index].recipient, route: nil)
+            model.agents.present(sessions: Evidence.sessions, selected: Evidence.sessions[index].target, route: nil)
             try await Task.sleep(for: .seconds(0.9))
         }
         model.closeWheel()

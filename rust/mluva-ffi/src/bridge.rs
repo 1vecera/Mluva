@@ -2,9 +2,9 @@
 //!
 //! The file layout under the shell's configuration and data directories matches the Linux
 //! application's XDG layout, so settings, personalization and History use one format.
-use crate::annotate;
+use crate::{agents, annotate};
 use mluva_core::{
-    agent_voice::{DraftReason, Recipient, RoutePhase, SendOutcome, VoiceRoute, VoiceSettings},
+    agent_voice::{Submission, Target, VoiceRoute, VoiceSettings},
     annotations::{AnnotationSettings, AnnotationStore},
     config::AppConfig,
     conversation::ConversationStore,
@@ -14,10 +14,12 @@ use mluva_core::{
 };
 use mluva_providers::{
     Secret,
-    claude_sessions::{self, ClaudeRegistry},
+    agent_targets::{self, Sources},
+    claude_sessions::ClaudeRegistry,
+    codex::threads::CodexThreads,
     credentials::validate_speech_key,
     elevenlabs::{ElevenLabsClient, SCRIBE_ENDPOINT},
-    herdr,
+    herdr::{self, CodexNames},
     realtime::{
         ElevenLabsRealtimeClient, RealtimeOptions, RealtimeSession, SCRIBE_REALTIME_ENDPOINT,
     },
@@ -64,10 +66,25 @@ pub struct Bridge {
     runtime: tokio::runtime::Runtime,
     emit: Emitter,
     stores: Mutex<Option<Stores>>,
-    registry: Arc<Mutex<Option<ClaudeRegistry>>>,
     realtime: Arc<Mutex<HashMap<String, Arc<RealtimeSession>>>>,
+    /// Where agent discovery looks.
+    reach: Mutex<Reach>,
+    /// The targets of the latest discovery pass, with what their transports need.
+    targets: Arc<Mutex<Vec<Target>>>,
     route: Arc<Mutex<VoiceRoute>>,
     closed: CancellationToken,
+}
+
+/// The sources agent discovery reads beyond Herdr.
+struct Reach {
+    /// Claude Code's own session registry.
+    claude: Option<Arc<Mutex<ClaudeRegistry>>>,
+    /// Live Codex threads; `None` when the shell leaves Codex out.
+    codex: Option<Arc<tokio::sync::Mutex<CodexThreads>>>,
+    /// Codex's session index, which names Codex threads in Herdr panes and outside them.
+    codex_names: Option<Arc<Mutex<CodexNames>>>,
+    /// Desktop app surfaces, such as a new Claude chat.
+    apps: bool,
 }
 
 fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
@@ -99,31 +116,6 @@ fn private_directory(path: &Path) -> Result<(), String> {
     fs::set_permissions(path, fs::Permissions::from_mode(0o700)).map_err(text)
 }
 
-fn phase(phase: &RoutePhase) -> Value {
-    let reason = |reason: &DraftReason| format!("{reason:?}").to_lowercase();
-    match phase {
-        RoutePhase::Recording => json!({"phase": "recording"}),
-        RoutePhase::Finalizing => json!({"phase": "finalizing"}),
-        RoutePhase::Grace { deadline_ms } => json!({"phase": "grace", "deadline_ms": deadline_ms}),
-        RoutePhase::Draft(why) => json!({"phase": "draft", "reason": reason(why)}),
-        RoutePhase::Submitting => json!({"phase": "submitting"}),
-        RoutePhase::Sent => json!({"phase": "sent"}),
-        RoutePhase::Unconfirmed => json!({"phase": "unconfirmed"}),
-    }
-}
-
-fn draft_reason(name: &str) -> Result<DraftReason, String> {
-    Ok(match name {
-        "kept" => DraftReason::Kept,
-        "edited" => DraftReason::Edited,
-        "recipient_changed" => DraftReason::RecipientChanged,
-        "unavailable" => DraftReason::Unavailable,
-        "cancelled" => DraftReason::Cancelled,
-        "interrupted" => DraftReason::Interrupted,
-        _ => return Err("Unknown reason for keeping a draft.".into()),
-    })
-}
-
 impl Bridge {
     pub fn new(emit: Emitter) -> Self {
         let runtime = tokio::runtime::Builder::new_multi_thread()
@@ -136,8 +128,15 @@ impl Bridge {
             runtime,
             emit,
             stores: Mutex::new(None),
-            registry: Arc::new(Mutex::new(ClaudeRegistry::from_environment())),
             realtime: Arc::default(),
+            reach: Mutex::new(Reach {
+                claude: ClaudeRegistry::from_environment().map(|r| Arc::new(Mutex::new(r))),
+                codex: Some(Arc::default()),
+                codex_names: herdr::codex_index_path()
+                    .map(|index| Arc::new(Mutex::new(CodexNames::new(index)))),
+                apps: true,
+            }),
+            targets: Arc::default(),
             route: Arc::new(Mutex::new(VoiceRoute::default())),
             closed: CancellationToken::new(),
         }
@@ -174,37 +173,40 @@ impl Bridge {
                 Ok(Value::Null)
             }
             "agents.discover" => self.discover(params),
-            "route.begin" => {
-                let recipient: Recipient = param(params, "recipient")?;
-                lock(&self.route)
-                    .begin(recipient, param(params, "now_ms")?)
-                    .map(Value::from)
-                    .map_err(text)
-            }
+            "route.begin" => self.route_begin(params),
             "route.release" => Ok(json!(lock(&self.route).release(param(params, "now_ms")?))),
-            "route.recognized" => Ok(json!(lock(&self.route).recognized(
-                &param::<String>(params, "id")?,
-                &param::<String>(params, "text")?,
-                optional(params, "history_id")?,
-                param(params, "now_ms")?,
-            ))),
-            "route.disarm" => Ok(json!(lock(&self.route).disarm(draft_reason(&param::<
-                String,
-            >(
-                params, "reason"
-            )?)?))),
-            "route.abandon" => {
-                lock(&self.route)
-                    .abandon_capture(draft_reason(&param::<String>(params, "reason")?)?);
-                Ok(Value::Null)
+            "route.recognized" => {
+                let recognized = lock(&self.route).recognized(
+                    &param::<String>(params, "id")?,
+                    &param::<String>(params, "text")?,
+                    optional(params, "history_id")?,
+                    param(params, "now_ms")?,
+                );
+                self.settle();
+                Ok(json!(recognized))
             }
-            "route.observe" => {
-                let recipients: Vec<Recipient> = param(params, "recipients")?;
-                lock(&self.route).observe(&recipients);
-                Ok(self.route_state())
+            "route.disarm" => {
+                let reason = agents::draft_reason(&param::<String>(params, "reason")?)?;
+                let disarmed = lock(&self.route).disarm(reason);
+                self.settle();
+                Ok(json!(disarmed))
+            }
+            "route.abandon" => {
+                let reason = agents::draft_reason(&param::<String>(params, "reason")?)?;
+                lock(&self.route).abandon_capture(reason);
+                self.settle();
+                Ok(Value::Null)
             }
             "route.state" => Ok(self.route_state()),
             "route.tick" => self.route_tick(param(params, "now_ms")?),
+            // A second press during the cancel window sends at once, to the same target.
+            "route.send_now" => {
+                let submission = lock(&self.route).send_now(param(params, "now_ms")?);
+                if let Some(submission) = submission {
+                    self.deliver(submission);
+                }
+                Ok(self.route_state())
+            }
             _ => self.with_stores(method, params),
         }
     }
@@ -217,9 +219,23 @@ impl Bridge {
         };
         private_directory(&paths.config)?;
         private_directory(&paths.data)?;
-        // Tests and diagnostics may name Claude Code's directory; otherwise its own default.
-        if let Some(claude) = optional::<PathBuf>(params, "claude_config_dir")? {
-            *lock(&self.registry) = Some(ClaudeRegistry::new(claude, std::process::id()));
+        // Tests and diagnostics may name Claude Code's directory, otherwise its own default,
+        // and may leave out Codex threads or app surfaces.
+        {
+            let mut reach = lock(&self.reach);
+            if let Some(claude) = optional::<PathBuf>(params, "claude_config_dir")? {
+                reach.claude = Some(Arc::new(Mutex::new(ClaudeRegistry::new(
+                    claude,
+                    std::process::id(),
+                ))));
+            }
+            if optional::<bool>(params, "codex")? == Some(false) {
+                reach.codex = None;
+                reach.codex_names = None;
+            }
+            if let Some(apps) = optional::<bool>(params, "apps")? {
+                reach.apps = apps;
+            }
         }
         let history = HistoryStore::new(paths.data.join("history.sqlite3"));
         history.initialize().map_err(text)?;
@@ -546,90 +562,145 @@ impl Bridge {
         session.is_some_and(|session| session.submit_audio(frames).unwrap_or(false))
     }
 
-    /// Herdr's panes in order, then Claude Code sessions Herdr does not show.
+    /// Every session Mluva can see, in the shared order: Herdr's panes, then Claude Code
+    /// sessions and Codex threads Herdr does not show, then app surfaces. The pending attempt
+    /// follows its session through the pass.
     fn discover(&self, params: &Value) -> Outcome {
         let explicit: Option<String> = optional(params, "socket")?;
         let home = lock(&self.stores)
             .as_ref()
             .map(|stores| stores.paths.herdr_config_home.clone())
             .ok_or("Mluva's local stores are not open.")?;
-        let registry = self.registry.clone();
+        let sources = {
+            let reach = lock(&self.reach);
+            Sources {
+                herdr: herdr::socket_candidates(&home, explicit.as_deref()),
+                claude: reach.claude.clone(),
+                codex: reach.codex.clone(),
+                codex_names: reach.codex_names.clone(),
+                apps: reach.apps,
+            }
+        };
+        let (targets, route, history) = (self.targets.clone(), self.route.clone(), self.history());
+        let cancel = self.closed.child_token();
         self.task(async move {
-            let paths = herdr::socket_candidates(&home, explicit.as_deref());
-            let mut recipients = vec![];
-            let (mut reached, mut guarded, mut errors) = (false, false, vec![]);
-            for path in paths.into_iter().take(16) {
-                match herdr::discover(&path).await {
-                    Ok(found) => {
-                        reached = true;
-                        guarded |= found.guarded;
-                        recipients.extend(found.recipients);
-                    }
-                    Err(error) => errors.push(error.to_string()),
+            let found = agent_targets::discover(sources, &cancel)
+                .await
+                .ok_or("Mluva is closing.")?;
+            {
+                let mut route = lock(&route);
+                route.observe(&found.targets);
+                if let (Some(history), Some(attempt)) = (&history, &route.attempt) {
+                    agents::record_outcome(history, attempt);
                 }
             }
-            let sessions = tokio::task::spawn_blocking(move || {
-                lock(&registry)
-                    .as_mut()
-                    .map(ClaudeRegistry::sessions)
-                    .unwrap_or_default()
-            })
-            .await
-            .unwrap_or_default();
-            let recipients = claude_sessions::merge(recipients, &sessions);
-            let described: Vec<Value> = recipients
-                .iter()
-                .map(|r| {
-                    json!({"recipient": r, "display_name": r.display_name(),
-                        "draft_only": r.draft_only(), "draft_hint": r.draft_hint(),
-                        "can_receive": r.can_receive(), "spoken_status": r.spoken_status()})
-                })
-                .collect();
+            let described: Vec<Value> = found.targets.iter().map(agents::describe).collect();
+            let summary = found.summary();
+            *lock(&targets) = found.targets;
             Ok(
-                json!({"sessions": described, "herdr": reached, "guarded": guarded,
-                "errors": errors}),
+                json!({"sessions": described, "herdr": found.herdr, "guarded": found.guarded,
+                "summary": summary, "errors": found.errors}),
             )
         })
     }
 
+    /// Begin recording for the target the shell was shown, as the latest pass found it now.
+    fn route_begin(&self, params: &Value) -> Outcome {
+        let chosen: Target = param(params, "target")?;
+        let current = lock(&self.targets)
+            .iter()
+            .find(|target| target.same_instance(&chosen))
+            .cloned()
+            .ok_or("That session is no longer running. Choose it again on the wheel.")?;
+        lock(&self.route)
+            .begin(current, param(params, "now_ms")?)
+            .map(Value::from)
+            .map_err(text)
+    }
+
     fn route_state(&self) -> Value {
-        let route = lock(&self.route);
-        match &route.attempt {
-            None => Value::Null,
-            Some(attempt) => {
-                let mut state = phase(&attempt.phase);
-                state["id"] = json!(attempt.id);
-                state["recipient"] = json!(attempt.recipient);
-                state["text"] = json!(attempt.text);
-                state["history_id"] = json!(attempt.history_id);
-                state
-            }
+        lock(&self.route)
+            .attempt
+            .as_ref()
+            .map_or(Value::Null, agents::attempt)
+    }
+
+    /// History, when the stores are open.
+    fn history(&self) -> Option<HistoryStore> {
+        lock(&self.stores)
+            .as_ref()
+            .map(|stores| stores.history.clone())
+    }
+
+    /// Record what became of the current attempt's text in its History row.
+    fn settle(&self) {
+        if let (Some(history), Some(attempt)) = (self.history(), &lock(&self.route).attempt) {
+            agents::record_outcome(&history, attempt);
         }
     }
 
-    /// Submit once the cancel window has passed; the outcome arrives as a `route` event.
+    /// Deliver once the cancel window has passed; the outcome arrives as a `route` event.
     fn route_tick(&self, now_ms: u64) -> Outcome {
         let submission = lock(&self.route).take_submission(now_ms);
-        if let Some(submission) = submission {
-            let route = self.route.clone();
-            let emit = self.emit.clone();
-            let cancel = self.closed.child_token();
-            self.runtime.spawn(async move {
-                let outcome = herdr::submit(&submission, &cancel).await;
-                let received = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .map_or(now_ms, |d| d.as_millis() as u64);
-                lock(&route).delivered(&submission.id, outcome, received);
-                let outcome = match outcome {
-                    SendOutcome::Accepted => "sent",
-                    SendOutcome::Rejected => "rejected",
-                    SendOutcome::Unconfirmed => "unconfirmed",
-                };
-                emit(json!({"type": "route", "id": submission.id, "outcome": outcome}));
-            });
+        match submission {
+            Some(submission) => self.deliver(submission),
+            // A window that ran out unseen keeps the draft.
+            None => self.settle(),
         }
         Ok(self.route_state())
     }
+
+    /// Deliver a message whose automatic-send permission was already consumed, through the
+    /// target's own transport. A queued message is followed until the agent takes it.
+    fn deliver(&self, submission: Submission) {
+        let (route, emit, history) = (self.route.clone(), self.emit.clone(), self.history());
+        let cancel = self.closed.child_token();
+        // The row this message belongs to, so a later "taken" reaches it even after another
+        // dictation has started.
+        let row = lock(&self.route)
+            .attempt
+            .as_ref()
+            .filter(|attempt| attempt.id == submission.id)
+            .and_then(|attempt| attempt.history_id.clone());
+        let settle = move |route: &Mutex<VoiceRoute>, taken_elsewhere: bool| {
+            let Some(history) = &history else {
+                return;
+            };
+            match (&lock(route).attempt, &row) {
+                (Some(attempt), _) if !taken_elsewhere => agents::record_outcome(history, attempt),
+                (_, Some(row)) if taken_elsewhere => agents::record_taken(history, row),
+                _ => {}
+            }
+        };
+        self.runtime.spawn(async move {
+            let receipt = agent_targets::deliver(&submission, &cancel).await;
+            lock(&route).delivered(&submission.id, receipt.outcome, now_ms());
+            settle(&route, false);
+            emit(json!({"type": "route", "id": submission.id,
+                "outcome": agents::outcome_name(receipt.outcome)}));
+            let Some(taken) = receipt.taken else {
+                return;
+            };
+            let seen = tokio::select! {
+                _ = cancel.cancelled() => false,
+                seen = taken => seen,
+            };
+            if !seen {
+                return;
+            }
+            let current = lock(&route).taken(&submission.id);
+            settle(&route, !current);
+            emit(json!({"type": "route", "id": submission.id, "outcome": "taken"}));
+        });
+    }
+}
+
+fn now_ms() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |since| {
+            u64::try_from(since.as_millis()).unwrap_or(u64::MAX)
+        })
 }
 
 impl Drop for Bridge {

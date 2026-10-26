@@ -34,7 +34,7 @@ public struct WheelLayout: Sendable, Equatable {
         self.pageCount = pageCount
         slots = visible.enumerated().map { offset, session in
             let duplicate = (counts[session.display_name] ?? 0) > 1
-            let handle = session.recipient.pane_id.isEmpty ? session.recipient.name : session.recipient.pane_id
+            let handle = session.target.pane_id.isEmpty ? session.target.name : session.target.pane_id
             return Slot(
                 index: page * Self.pageSize + offset,
                 letter: Self.letters[offset],

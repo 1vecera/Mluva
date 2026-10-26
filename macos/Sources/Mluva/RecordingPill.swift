@@ -10,6 +10,7 @@ struct RecordingPillView: View {
     private var route: RouteState? { model.agents.route }
     private var key: String { model.config?.global_recording_key ?? "F9" }
     private var draftKey: String { model.agents.settings?.draft_key ?? "F7" }
+    private var agentKey: String { model.agents.settings?.hold_key ?? "F12" }
 
     var body: some View {
         VStack(spacing: 8) {
@@ -71,6 +72,7 @@ struct RecordingPillView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityElement(children: .combine)
                 actions
+                    .fixedSize()
                     .padding(.trailing, 10)
             }
             .padding(.vertical, 9)
@@ -97,6 +99,8 @@ struct RecordingPillView: View {
     @ViewBuilder private var actions: some View {
         HStack(spacing: 10) {
             if route?.phase == "grace" {
+                KeyAction(key: agentKey, label: "now", lit: true) { model.agents.sendNow() }
+                    .accessibilityLabel("\(verb.capitalized) now")
                 KeyAction(key: draftKey, label: "keep draft") { model.agents.disarm("kept") }
                 PlainAction(label: "cancel") { model.agents.disarm("cancelled") }
                     .accessibilityLabel("Cancel sending")
@@ -113,9 +117,9 @@ struct RecordingPillView: View {
     }
 
     private var mood: LightMood {
-        if route?.phase == "unconfirmed" { return .attention }
+        if route?.phase == "unconfirmed" || route?.phase == "held" { return .attention }
         if route?.phase == "grace" || route?.phase == "submitting" { return .finishing }
-        if route?.phase == "sent" { return .done }
+        if route?.phase == "delivered" { return .done }
         switch dictation.phase {
         case .recording: return .listening
         case .preparing, .finalizing: return .finishing
@@ -127,9 +131,10 @@ struct RecordingPillView: View {
 
     private var stateWord: String {
         switch route?.phase {
-        case "grace": return "send"
-        case "submitting": return "sending"
-        case "sent": return "sent"
+        case "grace": return verb
+        case "submitting": return route?.delivery == "prefill" ? "opening" : route?.delivery == "queue" ? "queueing" : "sending"
+        case "delivered": return deliveredWord
+        case "held": return "held"
         case "unconfirmed": return "check"
         case "draft": return "draft"
         default: break
@@ -146,7 +151,7 @@ struct RecordingPillView: View {
     }
 
     private var stateColor: Color {
-        if route?.phase == "unconfirmed" { return Ink.amber }
+        if route?.phase == "unconfirmed" || route?.phase == "held" { return Ink.amber }
         if case .failed = dictation.phase { return Ink.amber }
         return dictation.phase == .recording || route?.phase == "grace" ? .mluva : Ink.chalk
     }
@@ -159,12 +164,30 @@ struct RecordingPillView: View {
         return "copied"
     }
 
-    private var agentName: String { route?.recipient.title.isEmpty == false ? route!.recipient.title : (route?.recipient.name ?? "the agent") }
+    private var agentName: String { route?.display_name ?? "the agent" }
+
+    /// The route's own word for what it does: send, queue or open.
+    private var verb: String {
+        switch route?.delivery {
+        case "queue": "queue"
+        case "prefill": "open"
+        default: "send"
+        }
+    }
+
+    private var deliveredWord: String {
+        if route?.taken == true { return "taken" }
+        switch route?.delivery {
+        case "queue": return "queued"
+        case "prefill": return "opened"
+        default: return "sent"
+        }
+    }
 
     private var headline: String {
         switch route?.phase {
-        case "grace", "submitting": return "→ \(agentName)"
-        case "sent": return "→ \(agentName)"
+        case "grace", "submitting", "delivered": return "→ \(agentName)"
+        case "held": return "Held in \(agentName)"
         case "unconfirmed": return "Delivery unconfirmed"
         default: break
         }
@@ -189,10 +212,12 @@ struct RecordingPillView: View {
 
     private var detail: String {
         switch route?.phase {
-        case "grace": return "Sends when the line runs out."
-        case "submitting": return "Writing into the session."
-        case "sent": return "Herdr confirmed the message reached the session."
-        case "unconfirmed": return "Some text may have arrived. Check the session; Mluva won't resend."
+        case "grace": return route?.delivery_hint.map { "\($0)." } ?? "Sends when the line runs out."
+        case "submitting": return route?.delivery == "prefill" ? "Opening Claude." : "Handing it to the session."
+        case "delivered": return deliveredDetail
+        case "held": return "The session holds it until you approve it there. Mluva won't resend."
+        case "unconfirmed":
+            return "Some text may have arrived. Check \(route?.place_to_check ?? "the session"); Mluva won't resend."
         case "draft": return draftReason
         default: break
         }
@@ -213,8 +238,22 @@ struct RecordingPillView: View {
         switch dictation.destination {
         case .target(let target): target == nil ? "Copied when you stop" : "Pasted when you stop"
         case .manual: "Copied when you stop"
-        case .agent: "Sent after a two-second cancel window"
+        case .agent(let session):
+            switch session.delivery {
+            case "queue": "Queued after a two-second cancel window"
+            case "prefill": "Opened in Claude after a two-second cancel window"
+            default: "Sent after a two-second cancel window"
+            }
         case .document: "An editable draft; nothing is sent"
+        }
+    }
+
+    private var deliveredDetail: String {
+        switch route?.delivery {
+        case "queue" where route?.taken == true: "\(agentName) took it into a turn."
+        case "queue": "\(agentName) queued it. When it runs is up to the agent."
+        case "prefill": "It's in Claude's composer. Nothing is sent until you press Return."
+        default: "\(agentName) accepted it. Completion is not confirmed."
         }
     }
 
@@ -224,6 +263,8 @@ struct RecordingPillView: View {
         case "cancelled": "Sending was cancelled. The text is in History."
         case "unavailable": "The session became unavailable. Choose another and send."
         case "rejected": "The session refused it. Nothing was written there."
+        case "busy": "The thread was busy, so nothing was sent. The text is in History."
+        case "too_long": "Too long for this session. The text is in History."
         case "empty": "Nothing was recognized."
         default: "The text is kept in History."
         }
@@ -241,7 +282,7 @@ private struct KeyAction: View {
         Button(action: action) {
             HStack(spacing: 6) {
                 Keycap(key, lit: lit)
-                Text(label).font(.mono(11))
+                Text(label).font(.mono(11)).lineLimit(1).fixedSize()
             }
             .contentShape(.rect)
         }

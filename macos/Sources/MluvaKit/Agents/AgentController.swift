@@ -1,18 +1,23 @@
 import Foundation
 import Observation
 
-/// Agent sessions and the guarded send route. Discovery reads Claude Code's own session
-/// registry and, when present, Herdr; only Herdr's guarded prompt can send.
+/// Agent sessions and the route a dictation takes to one. The core's shared target model
+/// discovers them (Herdr when it runs, Claude Code's own registry, live Codex threads and a new
+/// Claude chat) and delivers through each target's own transport: Herdr's guarded prompt,
+/// Claude Code's inbox queue, Codex's send-if-idle queue or a prefilled Claude chat.
 @MainActor
 @Observable
 public final class AgentController {
     public private(set) var sessions: [AgentSession] = []
     public private(set) var herdrReachable = false
     public private(set) var herdrGuarded = false
+    /// The core's line for what discovery found.
+    public private(set) var summary = ""
     public private(set) var settings: VoiceSettings?
     public private(set) var settingsError: String?
     public private(set) var route: RouteState?
-    /// The last send outcome the core reported: `sent`, `rejected` or `unconfirmed`.
+    /// The last delivery outcome the core reported: `accepted`, `taken`, `held`, `busy`,
+    /// `rejected` or `unconfirmed`.
     public private(set) var lastOutcome: String?
 
     private let core: CoreBridge
@@ -52,13 +57,13 @@ public final class AgentController {
     /// The remembered session if it is still present; a replacement never takes its place.
     public var selected: AgentSession? {
         guard let remembered = settings?.selected else { return nil }
-        return sessions.first { $0.recipient.sameInstance(as: remembered) }
+        return sessions.first { $0.target.sameInstance(as: remembered) }
     }
 
     public func select(_ session: AgentSession) {
         guard var next = settings else { return }
-        next.selected = session.recipient
-        if session.recipient.guard.isEmpty == false { next.enabled = true }
+        next.selected = session.target
+        if !session.draft_only { next.enabled = true }
         try? save(next)
     }
 
@@ -72,8 +77,8 @@ public final class AgentController {
         if found.sessions != sessions { sessions = found.sessions }
         herdrReachable = found.herdr
         herdrGuarded = found.guarded
-        let recipients = try? JSONValue(encoding: found.sessions.map(\.recipient))
-        _ = try? core.call("route.observe", ["recipients": recipients ?? []])
+        summary = found.summary
+        // The core moved a pending attempt to what reaches its session now.
         updateRoute()
     }
 
@@ -93,13 +98,14 @@ public final class AgentController {
         polling = nil
     }
 
-    // MARK: Guarded route
+    // MARK: Route
 
     public static func now() -> UInt64 { UInt64(Date().timeIntervalSince1970 * 1_000) }
 
-    /// Begin an agent capture for a session that can receive. Draft-only sessions throw.
+    /// Begin an agent capture for a session that can receive, as the latest discovery found it.
+    /// Draft-only and vanished sessions throw.
     public func begin(_ session: AgentSession) throws -> String {
-        let id = try core.call("route.begin", ["recipient": try JSONValue(encoding: session.recipient), "now_ms": .init(Self.now())])
+        let id = try core.call("route.begin", ["target": try JSONValue(encoding: session.target), "now_ms": .init(Self.now())])
         updateRoute()
         startTicking()
         return id.string ?? ""
@@ -115,6 +121,11 @@ public final class AgentController {
             "id": .string(id), "text": .string(text), "history_id": .init(historyID), "now_ms": .init(Self.now()),
         ])
         updateRoute()
+    }
+
+    /// A second press during the cancel window: deliver now, to the same target.
+    public func sendNow() {
+        route = try? core.call("route.send_now", ["now_ms": .init(Self.now())]).decode(RouteState.self)
     }
 
     /// Keep the text as a draft: Cancel, Keep draft, editing, or a changed recipient.
@@ -136,7 +147,7 @@ public final class AgentController {
                 guard let self else { return }
                 let state = try? self.core.call("route.tick", ["now_ms": .init(Self.now())])
                 self.route = try? state?.decode(RouteState.self)
-                if let phase = self.route?.phase, ["draft", "sent", "unconfirmed"].contains(phase) { return }
+                if let phase = self.route?.phase, ["draft", "delivered", "held", "unconfirmed"].contains(phase) { return }
                 try? await Task.sleep(for: .milliseconds(100))
             }
         }
@@ -152,7 +163,7 @@ public final class AgentController {
 extension AgentController {
     /// Show synthetic sessions and route state for screenshots; discovery and Herdr are not used.
     @_spi(Evidence)
-    public func present(sessions: [AgentSession], selected: Recipient?, route: RouteState?) {
+    public func present(sessions: [AgentSession], selected: AgentTarget?, route: RouteState?) {
         self.sessions = sessions
         if var settings { settings.selected = selected; self.settings = settings }
         self.route = route

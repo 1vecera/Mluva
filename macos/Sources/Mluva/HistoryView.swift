@@ -101,6 +101,16 @@ private struct HistoryRow: View {
         case "paste-unconfirmed": "pasted · unconfirmed"
         case "copied": "copied"
         case "failed": "needs attention"
+        // What became of an agent dictation, in the Linux app's words.
+        case "sent": "sent"
+        case "queued": "queued"
+        case "delivered": "taken by the agent"
+        case "prefilled": "in claude"
+        case "held": "held for approval"
+        case "unconfirmed": "sent · unconfirmed"
+        case "busy": "draft · thread busy"
+        case "cancelled": "cancelled"
+        case "recipient-unavailable": "draft · session gone"
         default: "draft"
         }
     }

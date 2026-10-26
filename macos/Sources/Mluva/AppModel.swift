@@ -41,10 +41,17 @@ final class AppModel {
         dictation = DictationController(paths: paths, agents: agents)
         annotation = AnnotationController()
         do {
-            try CoreBridge.shared.call("open", [
+            var open: [String: JSONValue] = [
                 "config_dir": .string(paths.config.path), "data_dir": .string(paths.data.path),
                 "herdr_config_home": .string(paths.herdrConfigHome.path),
-            ])
+            ]
+            if ProcessInfo.processInfo.environment["MLUVA_EVIDENCE"] != nil {
+                // Evidence reads none of this Mac's own agent sessions.
+                open["claude_config_dir"] = .string(paths.data.appending(path: "evidence-claude").path)
+                open["codex"] = false
+                open["apps"] = false
+            }
+            try CoreBridge.shared.call("open", .object(open))
         } catch {
             startupError = error.localizedDescription
         }
@@ -163,6 +170,9 @@ final class AppModel {
         case .agent:
             if dictation.phase == .recording || dictation.phase == .preparing {
                 Task { await dictation.toggle(.manual) }
+            } else if agents.route?.phase == "grace" {
+                // A second press during the cancel window delivers at once.
+                agents.sendNow()
             } else if wheelOpen {
                 recordForSelection()
             } else {
