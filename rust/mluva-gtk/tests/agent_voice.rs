@@ -1,7 +1,7 @@
 //! Full desktop graph with private PCM, HTTP and Herdr peers. No host input or audio.
 use adw::prelude::*;
 use mluva_core::{
-    agent_voice::{RoutePhase, VoiceSettings},
+    agent_voice::{DraftReason, RoutePhase, VoiceSettings},
     config::{AppConfig, AppPaths},
 };
 use mluva_gtk::{
@@ -194,7 +194,8 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     )
     .unwrap();
     let text = "Synthetic message: verify the selected agent only.";
-    let responses: Vec<_> = (0..11).map(|_| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":text, "language_code":"eng"}})).collect();
+    // The twelfth capture recognises nothing: an agent route must keep it, not drop it.
+    let responses: Vec<_> = (0..13).map(|n| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":if n == 11 { "" } else { text }, "language_code":"eng"}})).collect();
     let mut speech = http::Peer::new(&responses);
     let paths = AppPaths {
         config: root.join("config/mluva"),
@@ -684,7 +685,25 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .success()
     );
     wheel_key("Right");
+    until(|| owner.agent_voice.wheel.page.get() == 1);
+    // A refresh that cannot read Herdr while the wheel is open is a failed read, not an empty
+    // list: the wheel keeps its thirty sessions and its page.
+    let lists = |audit: &Path| {
+        fs::read_to_string(audit)
+            .unwrap_or_default()
+            .matches("agent.guarded_list")
+            .count()
+    };
+    let before = lists(&audit);
+    data["mode"] = json!("list-down");
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| lists(&audit) > before);
+    settle(300);
     assert_eq!(owner.agent_voice.wheel.page.get(), 1);
+    assert_eq!(owner.agent_voice.wheel.entries.borrow().len(), 30);
+    data["mode"] = Value::Null;
+    state(&peer_state, &data);
     wheel_key("a");
     assert_eq!(
         owner.agent_voice.settings().selected.unwrap().pane_id,
@@ -730,7 +749,16 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         until(|| owner.capture.phase().is_none());
     };
     // Full capture uses the selected provider, no clipboard delivery, and one guarded send.
+    // The live text is on the capture page whenever a route recording starts, wherever the
+    // window was left, and without Mluva taking the keyboard from the agent.
+    owner.shell.navigate("history");
+    let was_active = owner.shell.window.is_active();
     record();
+    assert_eq!(
+        owner.shell.stack.visible_child_name().as_deref(),
+        Some("capture")
+    );
+    assert_eq!(owner.shell.window.is_active(), was_active);
     // Normal main-thread work must not be confused with losing a held shortcut.
     thread::sleep(Duration::from_millis(1250));
     drain();
@@ -769,6 +797,9 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     assert_eq!(sent(&audit)[0]["params"]["target"], "w1:p1");
     let attempt = owner.agent_voice.route.borrow().attempt.clone().unwrap();
     assert!(attempt.submitted_ms.unwrap() - attempt.final_ms.unwrap() >= 2000);
+    // The History row learns that the message went out.
+    let outcome = |id: &Option<String>| services.history.find(id.as_ref().unwrap()).unwrap();
+    assert_eq!(outcome(&attempt.history_id).delivery_outcome, "sent");
     assert_eq!(services.config().transcription_provider, "litellm");
     // Keep draft during recording; editing and saving do not alter immutable recognition.
     record();
@@ -807,6 +838,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         .unwrap();
     let entry = services.history.find(&history_id).unwrap();
     assert_eq!(entry.raw_text, text);
+    assert_eq!(entry.delivery_outcome, "draft-kept");
     assert_eq!(
         services.conversations.source_text(&entry, false).unwrap(),
         "Edited synthetic request."
@@ -958,6 +990,11 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             == RoutePhase::Unconfirmed
     });
     assert!(!owner.agent_voice.view.send_draft.is_sensitive());
+    let unconfirmed = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert_eq!(
+        outcome(&unconfirmed.history_id).delivery_outcome,
+        "unconfirmed"
+    );
     screenshot(&owner, &root, "agent-unconfirmed-laptop.png", 1100);
     settle(2300);
     assert_eq!(sent(&audit).len(), 4);
@@ -976,9 +1013,62 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .phase,
         RoutePhase::Grace { .. }
     ));
+    let cancelled = owner.agent_voice.route.borrow().attempt.clone().unwrap();
     owner.agent_voice.view.cancel.emit_clicked();
     settle(2200);
     assert_eq!(sent(&audit).len(), 4);
+    assert_eq!(outcome(&cancelled.history_id).delivery_outcome, "cancelled");
+    // A second F12 while the countdown runs sends at once, once, to the same target. It
+    // neither opens the wheel nor turns the pending send into a draft.
+    data.as_object_mut().unwrap().remove("mode");
+    state(&peer_state, &data);
+    record();
+    finish();
+    let pending = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert!(matches!(pending.phase, RoutePhase::Grace { .. }));
+    owner.agent_voice.shortcut();
+    assert!(!owner.agent_voice.wheel.window.is_visible());
+    until(|| {
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .unwrap()
+            .phase
+            == RoutePhase::Sent
+    });
+    let now_sent = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert_eq!(now_sent.id, pending.id);
+    assert!(
+        now_sent.submitted_ms.unwrap() - now_sent.final_ms.unwrap() < 2000,
+        "the second press must not wait for the countdown"
+    );
+    assert_eq!(sent(&audit).len(), 5);
+    assert_eq!(sent(&audit)[4]["params"]["text"], text);
+    assert_eq!(sent(&audit)[4]["params"]["target"], "w1:p1");
+    settle(2300);
+    assert_eq!(
+        sent(&audit).len(),
+        5,
+        "the countdown must not send it again"
+    );
+    assert_eq!(outcome(&now_sent.history_id).delivery_outcome, "sent");
+    // A recording that recognises nothing is kept in History with its audio, and says so.
+    record();
+    finish();
+    let empty = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert_eq!(empty.phase, RoutePhase::Draft(DraftReason::Empty));
+    let empty_row = outcome(&empty.history_id);
+    assert_eq!(empty_row.delivery_outcome, "no-speech");
+    assert!(empty_row.raw_text.trim().is_empty());
+    assert!(
+        Path::new(empty_row.retained_audio_path.as_deref().unwrap()).exists(),
+        "the recording must survive to be recognised again"
+    );
+    settle(2300);
+    assert_eq!(sent(&audit).len(), 5);
     // Incognito uses the same explicit recipient but never creates local History.
     let saved = services.history.recent(100).unwrap().len();
     owner.settings.capture.incognito.set_active(true);
@@ -999,12 +1089,44 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     );
     assert_eq!(services.history.recent(100).unwrap().len(), saved);
     settle(2200);
-    assert_eq!(sent(&audit).len(), 4);
+    assert_eq!(sent(&audit).len(), 5);
     // Cancellation during capture does not finalize or submit its audio.
     record();
     owner.agent_voice.view.cancel.emit_clicked();
     until(|| owner.capture.phase().is_none());
-    assert_eq!(sent(&audit).len(), 4);
+    assert_eq!(sent(&audit).len(), 5);
+    // The route leaves a trace of every step, with no text, session title or credential, and
+    // Incognito leaves none.
+    let events = services.diagnostics.recent(1_000).unwrap();
+    let route: Vec<_> = events.iter().filter(|e| e.mode == "agent-voice").collect();
+    for stage in [
+        "route-wheel-opened",
+        "route-wheel-closed",
+        "route-capture-started",
+        "route-capture-stopped",
+        "route-countdown-started",
+        "route-send-accepted",
+        "route-send-unconfirmed",
+        "route-draft-kept",
+        "route-draft-edited",
+        "route-draft-cancelled",
+        "route-draft-recipient-changed",
+        "route-draft-empty",
+    ] {
+        assert!(route.iter().any(|e| e.stage == stage), "missing {stage}");
+    }
+    let traced = serde_json::to_string(&route).unwrap();
+    for private in [text, "Chief of staff", "Research notes", "SYNTHETIC_KEY"] {
+        assert!(!traced.contains(private), "{private}");
+    }
+    assert_eq!(
+        route
+            .iter()
+            .filter(|e| e.stage == "route-send-accepted")
+            .count(),
+        4,
+        "four accepted sends; the incognito attempt is not traced"
+    );
     let clipboard = gtk::gdk::Display::default().unwrap().clipboard();
     assert_eq!(
         glib::MainContext::default()
@@ -1016,7 +1138,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     let ended = owner.shutdown();
     glib::MainContext::default().block_on(ended).unwrap();
     let observed = speech.finish();
-    assert_eq!(observed.len(), 11);
+    assert_eq!(observed.len(), 13);
     assert!(wire(&audit).iter().all(|r| {
         [
             "agent.guarded_list",
@@ -1026,5 +1148,5 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         ]
         .contains(&r["method"].as_str().unwrap())
     }));
-    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":13,"recognized":11,"session_wheel":true,"draft_only_sessions_no_delivery":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":4,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
+    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":15,"recognized":13,"session_wheel":true,"draft_only_sessions_no_delivery":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":5,"second_press_sends_once":true,"empty_recognition_kept":true,"history_learns_outcome":true,"route_traced_without_text":true,"live_page_on_start":true,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
 }

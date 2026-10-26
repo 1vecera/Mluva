@@ -154,6 +154,61 @@ fn cancellation_and_draft_actions_win_before_network_dispatch() {
 }
 
 #[test]
+fn a_second_press_in_the_cancel_window_sends_once_to_the_same_target() {
+    let mut route = VoiceRoute::default();
+    let id = route.begin(recipient(), 0).unwrap();
+    route.release(100);
+    route.recognized(&id, "send me now", Some("history-1".into()), 200);
+    assert!(matches!(
+        route.attempt.as_ref().unwrap().phase,
+        RoutePhase::Grace { .. }
+    ));
+    // A new recording never replaces a message that is still waiting to send.
+    assert!(route.begin(recipient(), 300).is_err());
+    let submission = route
+        .send_now(400)
+        .expect("the second press ends the countdown");
+    assert_eq!(
+        (submission.id.as_str(), submission.text.as_str()),
+        (id.as_str(), "send me now")
+    );
+    assert_eq!(submission.recipient, recipient());
+    assert_eq!(
+        route.attempt.as_ref().unwrap().phase,
+        RoutePhase::Submitting
+    );
+    // Once taken, neither another press nor the countdown deadline can send it again.
+    assert!(route.send_now(500).is_none());
+    assert!(route.take_submission(2_200).is_none());
+    assert!(route.delivered(&id, SendOutcome::Accepted, 600));
+    assert_eq!(route.attempt.as_ref().unwrap().phase, RoutePhase::Sent);
+    assert!(route.send_now(700).is_none());
+}
+
+#[test]
+fn a_press_outside_the_cancel_window_never_sends_or_replays() {
+    let mut route = VoiceRoute::default();
+    assert!(route.send_now(0).is_none());
+    let id = route.begin(recipient(), 0).unwrap();
+    assert!(route.send_now(10).is_none(), "recording");
+    route.release(100);
+    assert!(route.send_now(150).is_none(), "finalizing");
+    route.recognized(&id, "kept", None, 200);
+    assert!(route.disarm(DraftReason::Edited));
+    assert!(route.send_now(300).is_none(), "a draft stays a draft");
+    for outcome in [SendOutcome::Unconfirmed, SendOutcome::Rejected] {
+        let mut route = VoiceRoute::default();
+        let id = route.begin(recipient(), 0).unwrap();
+        route.release(100);
+        route.recognized(&id, "once", None, 200);
+        assert!(route.send_now(250).is_some());
+        assert!(route.delivered(&id, outcome, 300));
+        assert!(route.send_now(400).is_none());
+        assert!(route.take_submission(2_200).is_none());
+    }
+}
+
+#[test]
 fn identity_changes_never_retarget_and_timeouts_never_replay() {
     for change in 0..5 {
         let mut route = VoiceRoute::default();

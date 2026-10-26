@@ -270,6 +270,18 @@ pub struct Attempt {
     disarmed: Option<DraftReason>,
 }
 
+impl Attempt {
+    fn start_submission(&mut self, now_ms: u64) -> Submission {
+        self.phase = RoutePhase::Submitting;
+        self.submitted_ms = Some(now_ms);
+        Submission {
+            id: self.id.clone(),
+            recipient: self.recipient.clone(),
+            text: self.text.clone(),
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Submission {
     pub id: String,
@@ -298,6 +310,14 @@ impl VoiceRoute {
             )
         }) {
             return Err("Finish the current recording or delivery first.");
+        }
+        // A pending send is never replaced unseen: it is sent or cancelled first.
+        if self
+            .attempt
+            .as_ref()
+            .is_some_and(|a| matches!(a.phase, RoutePhase::Grace { .. }))
+        {
+            return Err("A message is about to send. Press again to send it now, or cancel it.");
         }
         if !recipient.can_receive() {
             return Err(
@@ -428,13 +448,15 @@ impl VoiceRoute {
             a.phase = RoutePhase::Draft(DraftReason::Interrupted);
             return None;
         }
-        a.phase = RoutePhase::Submitting;
-        a.submitted_ms = Some(now_ms);
-        Some(Submission {
-            id: a.id.clone(),
-            recipient: a.recipient.clone(),
-            text: a.text.clone(),
-        })
+        Some(a.start_submission(now_ms))
+    }
+
+    /// Ends the cancel window early: the pending send goes now, to the same guarded
+    /// recipient and text. Outside the window nothing is consumed, so an uncertain or
+    /// submitted message is never replayed.
+    pub fn send_now(&mut self, now_ms: u64) -> Option<Submission> {
+        let a = self.attempt.as_mut()?;
+        matches!(a.phase, RoutePhase::Grace { .. }).then(|| a.start_submission(now_ms))
     }
 
     pub fn delivered(&mut self, id: &str, outcome: SendOutcome, now_ms: u64) -> bool {

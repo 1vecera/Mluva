@@ -3,9 +3,11 @@
 //! Run inside the off-screen desktop helper with `light`, `dark` or `nord`, then the output
 //! directory and optionally `overlay`. The wheel sizes itself to the helper's screen, so set
 //! its screen to the display being judged. X11 has no layer-shell, so `overlay` applies the
-//! overlay styling to a screen-sized window; its captures keep the scrim's transparency for
-//! compositing over a desktop image. Every session name, pane, socket, process and session
-//! ID is a fixture.
+//! overlay styling to a screen-sized window. The room is opaque, so a capture needs no desktop
+//! behind it. Every session name, pane, socket, process and session ID is a fixture.
+//!
+//! Besides the captures the gallery audits the wheel and exits with a failure if a name leaves
+//! the screen, two names overlap, or a status or a different choice moves any name.
 
 use std::path::{Path, PathBuf};
 
@@ -178,8 +180,54 @@ fn show(entries: &[Recipient], selected: Option<usize>, page: usize) -> SessionW
     wheel.page.set(page);
     wheel.window.present();
     wheel.update(entries, selected.map(|i| entries[i].clone()), "F12", "F9");
-    settle(30);
+    // The hand sweeps in on a spring; wait for it and the fade to come to rest.
+    settle(100);
     wheel
+}
+
+/// Every shown name's box in window coordinates.
+fn name_boxes(wheel: &SessionWheel) -> Vec<gtk::graphene::Rect> {
+    wheel
+        .choices
+        .iter()
+        .filter(|choice| choice.is_visible())
+        .map(|choice| {
+            choice
+                .compute_bounds(&wheel.window)
+                .expect("name inside the window")
+        })
+        .collect()
+}
+
+/// Every name is on screen and no two overlap. Returns what is wrong, if anything.
+fn audit(wheel: &SessionWheel, label: &str) -> Vec<String> {
+    let (width, height) = (wheel.window.width() as f32, wheel.window.height() as f32);
+    let boxes = name_boxes(wheel);
+    let mut problems = vec![];
+    for (index, one) in boxes.iter().enumerate() {
+        if one.x() < 0.
+            || one.y() < 0.
+            || one.x() + one.width() > width
+            || one.y() + one.height() > height
+        {
+            problems.push(format!(
+                "{label}: name {index} leaves the {width}x{height} screen"
+            ));
+        }
+        for (other, two) in boxes.iter().enumerate().skip(index + 1) {
+            if one
+                .intersection(two)
+                .is_some_and(|common| common.width() > 0.5 && common.height() > 0.5)
+            {
+                problems.push(format!(
+                    "{label}: names {index} and {other} overlap: ({},{} {}x{}) ({},{} {}x{}); placed {:?} {:?}",
+                    one.x(), one.y(), one.width(), one.height(), two.x(), two.y(), two.width(), two.height(),
+                    wheel.placements()[index], wheel.placements()[other]
+                ));
+            }
+        }
+    }
+    problems
 }
 
 fn main() -> glib::ExitCode {
@@ -216,11 +264,15 @@ fn main() -> glib::ExitCode {
     unnamed[1].title.clear();
     unnamed[3].title.clear();
     unnamed[3].name = unnamed[3].pane_id.clone();
+    // Twenty with the last one found outside Herdr, as the design prototype shows it.
+    let mut twenty_draft = sessions(20);
+    twenty_draft[19] = unmanaged(19, AgentStatus::Idle);
     let scenarios: Vec<(&str, Vec<Recipient>, Option<usize>, usize)> = vec![
         ("one", sessions(1), Some(0), 0),
         ("three", sessions(3), Some(1), 0),
         ("six", sessions(6), Some(0), 0),
         ("twenty", sessions(20), Some(7), 0),
+        ("twenty-draft", twenty_draft, Some(7), 0),
         ("twenty-blocked", sessions(20), Some(10), 0),
         ("missing-selected", missing, Some(3), 0),
         ("unnamed-fallback", unnamed, Some(0), 0),
@@ -233,47 +285,76 @@ fn main() -> glib::ExitCode {
         ("native-only", native_only(), None, 0),
         ("native-only-draft-selected", native_only(), Some(2), 0),
     ];
+    let mut problems = vec![];
     for (name, entries, selected, page) in scenarios {
         let wheel = show(&entries, selected, page);
+        problems.extend(audit(&wheel, name));
         capture(&wheel.window, &output.join(format!("{palette}-{name}.png")));
         wheel.window.destroy();
         settle(2);
     }
-    // Keyboard focus on the hub, on a choice and on Cancel, with pointer hover on another choice.
+    // A refresh that changes a status, or a different choice, moves no name.
+    let mut entries = sessions(20);
+    let wheel = show(&entries, Some(7), 0);
+    let before = (wheel.placements(), name_boxes(&wheel));
+    entries[3].status = AgentStatus::Blocked;
+    entries[5].status = AgentStatus::Idle;
+    entries[9].status = AgentStatus::Working;
+    wheel.update(&entries, Some(entries[12].clone()), "F12", "F9");
+    settle(100);
+    let after = (wheel.placements(), name_boxes(&wheel));
+    if before != after {
+        problems.push("a status refresh or a new choice moved a name".into());
+    }
+    println!(
+        "layout independent of status and choice: {}",
+        before == after
+    );
+    wheel.window.destroy();
+    settle(2);
+    if !problems.is_empty() {
+        for problem in &problems {
+            eprintln!("{problem}");
+        }
+        return glib::ExitCode::FAILURE;
+    }
+    // Pointer hover on a choice, then keyboard focus on a choice, on Record and on Cancel.
     let entries = sessions(6);
     let wheel = show(&entries, Some(0), 0);
     wheel.choices[3].set_state_flags(gtk::StateFlags::PRELIGHT, false);
-    wheel.window.set_focus_visible(true);
-    wheel.record.grab_focus();
-    settle(10);
-    capture(
-        &wheel.window,
-        &output.join(format!("{palette}-hover-focus.png")),
-    );
+    settle(20);
+    capture(&wheel.window, &output.join(format!("{palette}-hover.png")));
     wheel.choices[3].unset_state_flags(gtk::StateFlags::PRELIGHT);
+    wheel.window.set_focus_visible(true);
     wheel.choices[4].grab_focus();
-    settle(10);
+    settle(20);
     capture(
         &wheel.window,
         &output.join(format!("{palette}-focus-choice.png")),
     );
+    wheel.record.grab_focus();
+    settle(20);
+    capture(
+        &wheel.window,
+        &output.join(format!("{palette}-focus-record.png")),
+    );
     wheel.cancel.grab_focus();
-    settle(10);
+    settle(20);
     capture(
         &wheel.window,
         &output.join(format!("{palette}-focus-cancel.png")),
     );
     wheel.window.destroy();
     settle(2);
-    // The arc swings to a new choice; capture it in flight and at rest.
+    // The hand swings to a new choice with the light trailing it; capture it in flight and at rest.
     let wheel = show(&entries, Some(0), 0);
     wheel.update(&entries, Some(entries[4].clone()), "F12", "F9");
-    settle(5);
+    settle(4);
     capture(
         &wheel.window,
         &output.join(format!("{palette}-swing-mid.png")),
     );
-    settle(20);
+    settle(100);
     capture(
         &wheel.window,
         &output.join(format!("{palette}-swing-end.png")),

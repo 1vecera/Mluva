@@ -355,7 +355,7 @@ impl ApplicationDesktop {
                 }
                 _ => {}
             }
-        } else {
+        } else if !self.agent_voice.send_now() {
             self.agent_press();
         }
     }
@@ -473,6 +473,7 @@ impl ApplicationDesktop {
                 .map(|id| format!("mluva-web:{id}"))
                 .or(application),
             defer_delivery: continuation.is_some() || agent_voice || transcript_only,
+            keep_empty_recognition: agent_voice || transcript_only,
             preview_enabled: true,
         };
         let ready = self
@@ -524,10 +525,54 @@ impl ApplicationDesktop {
         }
         Ok(images)
     }
+    /// Traces and surfaces a recording of the F12 route: agent or wheel transcript.
+    fn route_capture_phase(&self, phase: CapturePhase) {
+        if phase == CapturePhase::Recording && self.route_capture.borrow().is_none() {
+            let started = self.current.borrow().as_ref().and_then(|context| {
+                let route = if context.agent_attempt.is_some() {
+                    mluva_core::diagnostics::RouteKind::GuardedAgent
+                } else if context.transcript_only {
+                    mluva_core::diagnostics::RouteKind::Transcript
+                } else {
+                    return None;
+                };
+                let session = context
+                    .agent_attempt
+                    .clone()
+                    .unwrap_or_else(|| context.session.identifier.clone());
+                Some((session, route, context.options.incognito))
+            });
+            if let Some((session, route, incognito)) = started {
+                // The live text appears on the capture page. The window is neither
+                // presented nor focused, so the agent keeps the keyboard.
+                self.shell.navigate("capture");
+                if !incognito {
+                    self.agent_voice.trace(
+                        &session,
+                        mluva_core::diagnostics::RouteEvent::CaptureStarted,
+                        route,
+                        0,
+                    );
+                }
+                self.route_capture
+                    .replace(Some((session, route, std::time::Instant::now())));
+            }
+        } else if phase != CapturePhase::Recording
+            && let Some((session, route, since)) = self.route_capture.borrow_mut().take()
+        {
+            self.agent_voice.trace(
+                &session,
+                mluva_core::diagnostics::RouteEvent::CaptureStopped,
+                route,
+                since.elapsed().as_millis() as u64,
+            );
+        }
+    }
     pub(super) fn capture_phase(self: &Rc<Self>, phase: CapturePhase) {
         if self.closed.get() {
             return;
         }
+        self.route_capture_phase(phase);
         match phase {
             CapturePhase::Preparing
             | CapturePhase::Recording
@@ -639,6 +684,11 @@ impl ApplicationDesktop {
             self.shell.navigate("capture");
             self.shell.present();
             match shown {
+                Ok(()) if mluva_core::text::trim(&result.transcription.text).is_empty() => self
+                    .publish_terminal(
+                        "ready",
+                        "No speech was recognised. Nothing was sent or copied.",
+                    ),
                 Ok(()) => self.publish_terminal(
                     "ready",
                     "Transcript kept in Mluva. Nothing was sent or copied.",

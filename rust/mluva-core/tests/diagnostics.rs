@@ -137,3 +137,71 @@ fn compatible_ledger_is_bounded_and_exports_only_reviewed_metadata() {
         );
     }
 }
+
+#[test]
+fn route_events_hold_only_the_step_the_route_and_its_timing() {
+    use mluva_core::diagnostics::{RouteEvent, RouteKind};
+    let directory = tempfile::tempdir().unwrap();
+    let store = DiagnosticsStore::new(directory.path().join("diagnostics.sqlite3"), 100).unwrap();
+    store.initialize().unwrap();
+    let session = "6f1f9c3a-0000-4000-8000-000000000001";
+    store
+        .record_route(
+            session,
+            RouteEvent::CountdownStarted,
+            RouteKind::GuardedAgent,
+            0.25,
+        )
+        .unwrap();
+    store
+        .record_route(
+            session,
+            RouteEvent::DraftCancelled,
+            RouteKind::GuardedAgent,
+            1.5,
+        )
+        .unwrap();
+    assert!(
+        store
+            .record_route(
+                "not a session",
+                RouteEvent::WheelOpened,
+                RouteKind::Wheel,
+                0.0
+            )
+            .is_err()
+    );
+    let events = store.recent(10).unwrap();
+    let described: Vec<_> = events
+        .iter()
+        .rev()
+        .map(|e| {
+            (
+                e.mode.as_str(),
+                e.stage.as_str(),
+                e.provider.as_str(),
+                e.outcome.as_str(),
+                e.duration_ms,
+            )
+        })
+        .collect();
+    assert_eq!(
+        described,
+        [
+            (
+                "agent-voice",
+                "route-countdown-started",
+                "guarded-agent",
+                "completed",
+                250
+            ),
+            (
+                "agent-voice",
+                "route-draft-cancelled",
+                "guarded-agent",
+                "cancelled",
+                1_500
+            ),
+        ]
+    );
+}

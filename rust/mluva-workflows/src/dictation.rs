@@ -61,6 +61,10 @@ pub struct Completion<'a> {
     pub delivery_target: Option<&'a dyn DeliveryTarget>,
     pub transcript_preparation: Option<TranscriptPreparationSnapshot>,
     pub defer_delivery: bool,
+    /// Keep a capture that recognised no speech as a History row with its audio, so it can
+    /// be recognised again. Only for routes where the person expects the text to arrive
+    /// somewhere (an agent or an editable transcript); ordinary dictation drops it.
+    pub keep_empty_recognition: bool,
     pub images: Vec<ImageInput>,
     pub appendix: Option<DeliveryAppendix>,
 }
@@ -79,6 +83,7 @@ impl Default for Completion<'_> {
             delivery_target: None,
             transcript_preparation: None,
             defer_delivery: false,
+            keep_empty_recognition: false,
             images: vec![],
             appendix: None,
         }
@@ -310,16 +315,49 @@ impl DictationWorkflow {
             recognition_seconds,
         );
         if text::trim(&transcription.text).is_empty() {
-            let retain = !request.incognito && request.audio_retention_policy.should_retain(true);
-            if !retain {
+            // Recovery audio exists only when the policy keeps unsuccessful captures:
+            // `Never` and Incognito keep neither the audio nor a row that could not be retried.
+            let keep_row = request.keep_empty_recognition
+                && !request.incognito
+                && request.audio_retention_policy.should_retain(false);
+            let retain = !request.incognito
+                && request
+                    .audio_retention_policy
+                    .should_retain(!request.keep_empty_recognition);
+            let mut entry = None;
+            let mut retained_audio_path = retain.then(|| audio_path.to_owned());
+            let mut guidance = "No speech detected. Ready when you are.".to_owned();
+            let recognition_route = progress.recognition_route.clone().unwrap();
+            let recognition_fallback_reason = progress.recognition_fallback_reason.clone();
+            if keep_row {
+                match self.history.add(history_input(
+                    &request,
+                    &self.config,
+                    Some(&transcription),
+                    "",
+                    "no-speech",
+                    retained_audio_path.as_deref(),
+                    progress,
+                )) {
+                    Ok(saved) => {
+                        entry = Some(saved);
+                        guidance = "No speech was recognised. The recording is kept in History to try again.".into();
+                    }
+                    Err(error) => {
+                        retained_audio_path = None;
+                        guidance.push_str(&format!(" Local history could not be saved: {error}"));
+                    }
+                }
+            }
+            if retained_audio_path.is_none() {
                 remove_audio(audio_path)?;
             }
             return Ok(WorkflowResult {
                 transcription,
                 output_text: String::new(),
-                delivery: ready("No speech detected. Ready when you are."),
-                history_entry: None,
-                retained_audio_path: retain.then(|| audio_path.into()),
+                delivery: ready(&guidance),
+                history_entry: entry,
+                retained_audio_path,
                 incognito: request.incognito,
                 mode: "dictation".into(),
                 recognition_ms,
@@ -327,8 +365,8 @@ impl DictationWorkflow {
                 delivery_ms: 0,
                 session_identifier: session,
                 recognition_fallback: used_fallback,
-                recognition_route: progress.recognition_route.unwrap(),
-                recognition_fallback_reason: progress.recognition_fallback_reason,
+                recognition_route,
+                recognition_fallback_reason,
                 delivery_appendix: None,
             });
         }
