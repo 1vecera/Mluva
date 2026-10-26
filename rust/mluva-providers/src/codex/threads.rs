@@ -58,7 +58,7 @@ pub fn live_threads(home: &Path, holders: &HashMap<(u64, u64), u32>) -> Vec<Live
             if !metadata.file_type().is_file() || metadata.uid() != uid {
                 return None;
             }
-            let holder = *holders.get(&(metadata.dev(), metadata.ino()))?;
+            let holder = agent_platform::flock_holder(holders, &item.path(), &metadata)?;
             Some(LiveThread {
                 id: id.to_owned(),
                 lock: item.path(),

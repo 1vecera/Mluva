@@ -259,8 +259,8 @@ fn held_by(lock: &Path, holder: u32) -> bool {
     std::fs::symlink_metadata(lock).is_ok_and(|metadata| {
         metadata.file_type().is_file()
             && metadata.uid() == agent_platform::effective_uid()
-            && agent_platform::flock_holders().get(&(metadata.dev(), metadata.ino()))
-                == Some(&holder)
+            && agent_platform::flock_holder(&agent_platform::flock_holders(), lock, &metadata)
+                == Some(holder)
     })
 }
 

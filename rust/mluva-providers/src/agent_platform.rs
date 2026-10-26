@@ -104,6 +104,70 @@ pub fn flock_holders() -> HashMap<(u64, u64), u32> {
     HashMap::new()
 }
 
+/// The process holding an exclusive `flock` on the file at `path`, given its metadata and the
+/// holders from [`flock_holders`]. The kernel names a lock's file by its mount's device, which
+/// on btrfs differs from the per-subvolume device `stat` reports, so both are tried.
+pub fn flock_holder(
+    holders: &HashMap<(u64, u64), u32>,
+    path: &Path,
+    metadata: &std::fs::Metadata,
+) -> Option<u32> {
+    use std::os::unix::fs::MetadataExt;
+    let inode = metadata.ino();
+    holders.get(&(metadata.dev(), inode)).copied().or_else(|| {
+        let device = mount_device(path.parent()?)?;
+        holders.get(&(device, inode)).copied()
+    })
+}
+
+/// The device of the mount holding `directory`, from `/proc/self/mountinfo`; Linux only.
+pub fn mount_device(directory: &Path) -> Option<u64> {
+    let directory = std::fs::canonicalize(directory).ok()?;
+    let mounts = std::fs::read_to_string("/proc/self/mountinfo").ok()?;
+    mount_device_in(&mounts, &directory)
+}
+
+/// The device of the deepest mount point containing `path` in a `mountinfo` table.
+pub(crate) fn mount_device_in(mounts: &str, path: &Path) -> Option<u64> {
+    mounts
+        .lines()
+        .filter_map(|line| {
+            let mut fields = line.split(' ');
+            let device = fields.nth(2)?;
+            let point = unescape_mount(fields.nth(1)?);
+            path.starts_with(&point).then_some((point, device))
+        })
+        .max_by_key(|(point, _)| point.as_os_str().len())
+        .and_then(|(_, device)| {
+            let (major, minor) = device.split_once(':')?;
+            Some(libc::makedev(major.parse().ok()?, minor.parse().ok()?))
+        })
+}
+
+/// `mountinfo` writes spaces and other separators in paths as octal escapes such as `\040`.
+fn unescape_mount(field: &str) -> PathBuf {
+    use std::os::unix::ffi::OsStringExt;
+    let bytes = field.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut at = 0;
+    while at < bytes.len() {
+        let octal = bytes.get(at + 1..at + 4).filter(|digits| {
+            bytes[at] == b'\\' && digits.iter().all(|d| (b'0'..=b'7').contains(d))
+        });
+        match octal {
+            Some(digits) => {
+                out.push(digits.iter().fold(0u8, |n, d| n * 8 + (d - b'0')));
+                at += 4;
+            }
+            None => {
+                out.push(bytes[at]);
+                at += 1;
+            }
+        }
+    }
+    PathBuf::from(OsString::from_vec(out))
+}
+
 /// Parse `/proc/locks` lines such as `15: FLOCK  ADVISORY  WRITE 954587 00:1e:39635243 0 EOF`
 /// into (device, inode) → PID, for exclusive `flock` locks only. Blocked waiters (`->`) are not
 /// holders.
@@ -287,6 +351,26 @@ mod tests {
     }
 
     #[test]
+    fn a_file_is_on_its_deepest_mount() {
+        let mounts = "26 33 0:24 / /proc rw - proc proc rw\n\
+                      33 2 0:30 /@ / rw shared:1 - btrfs /dev/mapper/root rw\n\
+                      64 33 0:30 /@home /home rw shared:197 - btrfs /dev/mapper/root rw\n\
+                      90 64 0:77 / /home/u/My\\040Drive rw - tmpfs tmpfs rw\n";
+        assert_eq!(
+            mount_device_in(mounts, Path::new("/home/u/.codex/thread-writer-locks")),
+            Some(libc::makedev(0, 30))
+        );
+        assert_eq!(
+            mount_device_in(mounts, Path::new("/home/u/My Drive/x")),
+            Some(libc::makedev(0, 77))
+        );
+        assert_eq!(
+            mount_device_in(mounts, Path::new("/proc/locks")),
+            Some(libc::makedev(0, 24))
+        );
+    }
+
+    #[test]
     fn a_held_lock_in_this_process_is_found_through_the_kernel() {
         use std::os::unix::{fs::MetadataExt, io::AsRawFd};
         let temp = tempfile::tempdir().unwrap();
@@ -304,6 +388,18 @@ mod tests {
         assert!(
             !flock_holders().contains_key(&key),
             "released with the file"
+        );
+        // Wherever the file lives, btrfs subvolumes included, its holder is found.
+        let here = std::env::current_dir().unwrap();
+        let directory = tempfile::tempdir_in(&here).unwrap();
+        let path = directory.path().join("thread.lock");
+        let file = std::fs::File::create(&path).unwrap();
+        // SAFETY: a valid open descriptor and a lock operation.
+        assert_eq!(unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX) }, 0);
+        let metadata = std::fs::symlink_metadata(&path).unwrap();
+        assert_eq!(
+            flock_holder(&flock_holders(), &path, &metadata),
+            Some(std::process::id())
         );
     }
 

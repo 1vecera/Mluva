@@ -199,6 +199,37 @@ fn inbox_session(id: &str, title: &str, wire: &Path) -> InboxSession {
     until(|| entry.exists());
     InboxSession(pid, entry)
 }
+/// A synthetic Codex daemon with one live thread in the private home's `~/.codex`, run by the
+/// Codex fixture peer outside this test's process tree. `mode` says whether the thread is idle.
+struct CodexDaemon(u32);
+impl Drop for CodexDaemon {
+    fn drop(&mut self) {
+        // SAFETY: signals only the orphaned fixture peer this helper started.
+        unsafe { libc::kill(self.0 as i32, libc::SIGKILL) };
+    }
+}
+fn codex_daemon(thread: &str, title: &str, mode: &Path, wire: &Path) -> CodexDaemon {
+    let home = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".codex");
+    let runtime = PathBuf::from(std::env::var_os("XDG_RUNTIME_DIR").unwrap());
+    let target = PathBuf::from(std::env::var_os("CARGO_TARGET_DIR").unwrap()).join("debug");
+    let output = Command::new("sh")
+        .args(["-c", r#""$0" "$@" >/dev/null 2>&1 & echo $!"#])
+        .arg(target.join("codex-app-server-fixture-peer"))
+        .arg(&home)
+        .arg(&runtime)
+        .args([thread, title, "/synthetic/codex"])
+        .arg(mode)
+        .arg(wire)
+        .output()
+        .unwrap();
+    let pid: u32 = String::from_utf8(output.stdout)
+        .unwrap()
+        .trim()
+        .parse()
+        .unwrap();
+    until(|| home.join("app-server-daemon/daemon.pid").exists());
+    CodexDaemon(pid)
+}
 /// The dropdown position of the first session whose row contains `text`.
 fn row_containing(owner: &ApplicationDesktop, text: &str) -> Option<u32> {
     let model = owner.agent_voice.view.recipients.model()?;
@@ -237,7 +268,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     .unwrap();
     let text = "Synthetic message: verify the selected agent only.";
     // The twelfth capture recognises nothing: an agent route must keep it, not drop it.
-    let responses: Vec<_> = (0..14).map(|n| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":if n == 11 { "" } else { text }, "language_code":"eng"}})).collect();
+    let responses: Vec<_> = (0..16).map(|n| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":if n == 11 { "" } else { text }, "language_code":"eng"}})).collect();
     let mut speech = http::Peer::new(&responses);
     let paths = AppPaths {
         config: root.join("config/mluva"),
@@ -1171,6 +1202,100 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     assert_eq!(frames().len(), 1, "a queued message is never written again");
     assert_eq!(sent(&audit).len(), 5);
     drop(inbox);
+    // A live Codex thread outside Herdr, through a running Codex daemon: sent if it is idle,
+    // confirmed by its own turn; when busy, withdrawn with the draft kept and Send draft offered.
+    let codex_mode = root.join("codex-mode");
+    let codex_wire = root.join("codex-wire.jsonl");
+    fs::write(&codex_mode, "idle").unwrap();
+    let codex = codex_daemon(
+        "01900000-0000-7000-8000-00000000a001",
+        "Codex release notes",
+        &codex_mode,
+        &codex_wire,
+    );
+    owner.agent_voice.refresh();
+    until(|| row_containing(&owner, "Codex release notes").is_some());
+    let row = row_containing(&owner, "Codex release notes").unwrap();
+    owner.agent_voice.view.recipients.set_selected(row);
+    let codex_row = owner
+        .agent_voice
+        .view
+        .recipients
+        .model()
+        .unwrap()
+        .item(row)
+        .and_downcast::<gtk::StringObject>()
+        .unwrap()
+        .string();
+    assert!(codex_row.contains("Codex CLI") && codex_row.ends_with("· Send"));
+    let adds = || -> Vec<Value> {
+        fs::read_to_string(&codex_wire)
+            .unwrap_or_default()
+            .lines()
+            .map(|line| serde_json::from_str::<Value>(line).unwrap())
+            .filter(|m| m["method"] == "thread/queue/add")
+            .collect()
+    };
+    record();
+    finish();
+    until(|| {
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .unwrap()
+            .phase
+            == RoutePhase::Delivered
+    });
+    let codex_sent = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert_eq!(outcome(&codex_sent.history_id).delivery_outcome, "sent");
+    assert_eq!(adds().len(), 1);
+    assert_eq!(adds()[0]["params"]["input"][0]["text"], text);
+    fs::write(&codex_mode, "busy").unwrap();
+    record();
+    finish();
+    until(|| {
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .unwrap()
+            .phase
+            == RoutePhase::Draft(DraftReason::Busy)
+    });
+    let busy = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert_eq!(outcome(&busy.history_id).delivery_outcome, "busy");
+    assert_eq!(adds().len(), 2, "one add per attempt, never repeated");
+    assert!(
+        fs::read_to_string(&codex_wire)
+            .unwrap()
+            .contains("thread/queue/delete"),
+        "a message the thread did not take is withdrawn"
+    );
+    assert!(owner.agent_voice.view.send_draft.is_sensitive());
+    assert!(
+        owner
+            .agent_voice
+            .view
+            .status
+            .label()
+            .contains("was busy or not open")
+    );
+    let codex_methods = fs::read_to_string(&codex_wire).unwrap();
+    for never in [
+        "thread/resume",
+        "thread/start",
+        "turn/",
+        "thread/queue/start",
+    ] {
+        assert!(!codex_methods.contains(never), "{never}");
+    }
+    drop(codex);
+    assert_eq!(sent(&audit).len(), 5);
     owner.agent_voice.view.recipients.set_selected(1);
     // Incognito uses the same explicit recipient but never creates local History.
     let saved = services.history.recent(100).unwrap().len();
@@ -1215,6 +1340,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         "route-draft-cancelled",
         "route-draft-recipient-changed",
         "route-draft-empty",
+        "route-draft-busy",
     ] {
         assert!(route.iter().any(|e| e.stage == stage), "missing {stage}");
     }
@@ -1224,6 +1350,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         "Chief of staff",
         "Research notes",
         "Queued notes",
+        "Codex release notes",
         "SYNTHETIC_KEY",
     ] {
         assert!(!traced.contains(private), "{private}");
@@ -1241,9 +1368,10 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             "guarded-agent",
             "guarded-agent",
             "guarded-agent",
+            "guarded-agent",
             "queued-agent"
         ],
-        "four sends and one queued message; the incognito attempt is not traced"
+        "four Herdr sends, one Codex send and one queued message; the incognito attempt is not traced"
     );
     assert!(
         route
@@ -1261,7 +1389,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     let ended = owner.shutdown();
     glib::MainContext::default().block_on(ended).unwrap();
     let observed = speech.finish();
-    assert_eq!(observed.len(), 14);
+    assert_eq!(observed.len(), 16);
     assert!(wire(&audit).iter().all(|r| {
         [
             "agent.guarded_list",
@@ -1271,5 +1399,5 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         ]
         .contains(&r["method"].as_str().unwrap())
     }));
-    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":16,"recognized":14,"queued_through_inbox":1,"session_wheel":true,"draft_only_sessions_no_delivery":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":5,"second_press_sends_once":true,"empty_recognition_kept":true,"history_learns_outcome":true,"route_traced_without_text":true,"live_page_on_start":true,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
+    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":18,"recognized":16,"queued_through_inbox":1,"codex_sent_if_idle":1,"codex_busy_draft_kept":1,"session_wheel":true,"draft_only_sessions_no_delivery":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":5,"second_press_sends_once":true,"empty_recognition_kept":true,"history_learns_outcome":true,"route_traced_without_text":true,"live_page_on_start":true,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
 }

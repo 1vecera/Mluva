@@ -48,6 +48,12 @@ test = false
 doc = false
 
 [[bin]]
+name = "codex-app-server-fixture-peer"
+path = "tests/support/codex_app_server_peer.rs"
+test = false
+doc = false
+
+[[bin]]
 name = "asset-fixture-peer"
 path = "tests/support/asset_peer.rs"
 test = false
