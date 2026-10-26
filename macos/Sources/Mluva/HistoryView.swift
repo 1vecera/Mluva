@@ -112,6 +112,7 @@ private struct HistoryDetail: View {
     @State private var showOriginal = false
     @State private var confirmDelete = false
     @State private var pending: Task<Void, Never>?
+    @State private var bundles: [Annotation.Bundle] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -137,6 +138,11 @@ private struct HistoryDetail: View {
                 .scrollContentBackground(.hidden)
                 .padding(.horizontal, 19)
                 .onChange(of: text) { scheduleSave() }
+            if !bundles.isEmpty {
+                AnnotationStrip(bundles: bundles)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 10)
+            }
             DisclosureGroup("Original recognition", isExpanded: $showOriginal) {
                 Text(entry.raw_text)
                     .font(.callout)
@@ -169,10 +175,15 @@ private struct HistoryDetail: View {
         }
         .onAppear {
             text = (try? CoreBridge.shared.call("history.source", ["id": .string(entry.identifier)]).string) ?? entry.delivered_text
-            title = entry.title ?? ""
+            // The automatic title reads as a title, not a placeholder; it is kept automatic until edited.
+            title = entry.title ?? entry.displayTitle
             saved = true
+            bundles = model.annotation.bundles(for: entry.identifier)
         }
-        .onDisappear { flush() }
+        .onDisappear {
+            flush()
+            saveTitle()
+        }
     }
 
     private func scheduleSave() {
@@ -201,7 +212,10 @@ private struct HistoryDetail: View {
     }
 
     private func saveTitle() {
-        _ = try? CoreBridge.shared.call("history.title", ["id": .string(entry.identifier), "title": .string(title)])
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Unchanged, or emptied back to automatic when it already is: nothing to save.
+        guard trimmed != (entry.title ?? entry.displayTitle), !(trimmed.isEmpty && entry.title == nil) else { return }
+        _ = try? CoreBridge.shared.call("history.title", ["id": .string(entry.identifier), "title": .string(trimmed)])
         changed()
     }
 
@@ -219,6 +233,68 @@ private struct HistoryDetail: View {
         ]).string {
             try? FileManager.default.removeItem(at: url)
             try? FileManager.default.copyItem(at: URL(fileURLWithPath: path), to: url)
+        }
+    }
+}
+
+/// A conversation's screen annotation: its keyframes in order, each opening in Preview.
+private struct AnnotationStrip: View {
+    let bundles: [Annotation.Bundle]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label("Screen annotation", systemImage: "pencil.tip.crop.circle")
+                    .font(.callout.weight(.medium))
+                Text(count).font(.callout).foregroundStyle(.secondary)
+                Spacer()
+                Button("Show in Finder") {
+                    NSWorkspace.shared.activateFileViewerSelecting(bundles.map { URL(fileURLWithPath: $0.contact_sheet) })
+                }
+                .buttonStyle(.link)
+            }
+            ScrollView(.horizontal) {
+                HStack(spacing: 10) {
+                    ForEach(bundles.flatMap(\.keyframes), id: \.self) { path in
+                        Button {
+                            NSWorkspace.shared.open(URL(fileURLWithPath: path))
+                        } label: {
+                            Thumbnail(path: path)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Open keyframe \(URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent)")
+                    }
+                }
+            }
+            .scrollIndicators(.never)
+        }
+    }
+
+    private var count: String {
+        let frames = bundles.reduce(0) { $0 + $1.keyframes.count }
+        return frames == 1 ? "1 keyframe" : "\(frames) keyframes"
+    }
+}
+
+private struct Thumbnail: View {
+    let path: String
+    @State private var image: NSImage?
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(nsImage: image).resizable().aspectRatio(contentMode: .fit)
+            } else {
+                Rectangle().fill(.quaternary)
+            }
+        }
+        .frame(height: 112)
+        .frame(maxWidth: 200)
+        .clipShape(.rect(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.separator))
+        .task(id: path) {
+            let url = URL(fileURLWithPath: path)
+            image = await Task.detached { NSImage(contentsOf: url) }.value
         }
     }
 }

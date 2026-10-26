@@ -37,6 +37,14 @@ public enum DictationPhase: Equatable, Sendable {
     public var isActive: Bool { self == .preparing || self == .recording || self == .finalizing }
 }
 
+/// How a recording ended, for what it owns besides its text.
+public enum CaptureEnd: Equatable, Sendable {
+    /// Its text reached History under this conversation, or could not be saved (nil).
+    case saved(String?)
+    /// Cancelled, failed or silent: nothing it made is kept.
+    case discarded
+}
+
 /// One recording at a time, from the shortcut to History and delivery.
 @MainActor
 @Observable
@@ -53,11 +61,15 @@ public final class DictationController {
     /// A fallback or delivery explanation worth showing.
     public private(set) var notice: String?
     public private(set) var incognito = false
+    /// The current recording's identifier, owning what it makes until History does.
+    public private(set) var captureID: String?
 
     /// Text appended to the delivered message, such as a screen annotation summary.
     public var appendix: (@MainActor (TranscriptionResult) async -> String?)?
     /// Called when a recording starts or ends, for overlays such as screen annotation.
     public var onRecordingChange: (@MainActor (Bool) -> Void)?
+    /// Called once per recording that started, when its outcome is known.
+    public var onCaptureEnd: (@MainActor (String, CaptureEnd) -> Void)?
 
     private let core: CoreBridge
     private let paths: AppPaths
@@ -131,6 +143,7 @@ public final class DictationController {
         notice = nil
         level = 0
         phase = .preparing
+        captureID = UUID().uuidString.lowercased()
         do {
             let config = try core.call("config.load")["config"]?.decode(AppConfig.self)
             guard let config else { throw BridgeError("Mluva's settings could not be read.") }
@@ -224,6 +237,7 @@ public final class DictationController {
         if destination.isAgent { agents.abandon("cancelled") }
         session = nil
         if phase.isActive { onRecordingChange?(false) }
+        end(.discarded)
         phase = .idle
         committed = ""
         volatile = ""
@@ -296,6 +310,7 @@ public final class DictationController {
         if raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             if !keepAudio, let url = session.wav?.url { try? FileManager.default.removeItem(at: url) }
             if let routeID = session.routeID { agents.recognized(id: routeID, text: "", historyID: nil) }
+            end(.discarded)
             phase = .noSpeech
             self.session = nil
             return
@@ -335,6 +350,7 @@ public final class DictationController {
         if let routeID = session.routeID {
             agents.recognized(id: routeID, text: delivered, historyID: entry?.identifier)
         }
+        end(.saved(entry?.identifier))
         lastEntry = entry
         lastText = processed
         committed = processed
@@ -357,8 +373,15 @@ public final class DictationController {
             if session.routeID != nil { agents.abandon("interrupted") }
         }
         if phase == .recording { onRecordingChange?(false) }
+        end(.discarded)
         session = nil
         phase = .failed(message)
+    }
+
+    private func end(_ outcome: CaptureEnd) {
+        guard let captureID else { return }
+        self.captureID = nil
+        onCaptureEnd?(captureID, outcome)
     }
 }
 

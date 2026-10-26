@@ -83,6 +83,7 @@ private struct Script {
             try await history(suffix)
         }
         NSApp.appearance = NSAppearance(named: .aqua)
+        try await annotation()
         try await settings()
         try await welcome()
         try await recording()
@@ -163,14 +164,93 @@ private struct Script {
     }
 
     private func settings() async throws {
+        model.settingsTab = .general
         model.openSettingsAction?()
         try await Task.sleep(for: .seconds(1.5))
         if let window = visibleWindows().first(where: { $0.title.contains("General") || $0.identifier?.rawValue.contains("Settings") == true }) {
             window.makeKeyAndOrderFront(nil)
             try await Task.sleep(for: .seconds(0.5))
             save(capture(window, margin: 30), "settings")
+            model.settingsTab = .annotation
+            try await Task.sleep(for: .seconds(0.8))
+            save(capture(window, margin: 30), "settings-annotation")
             window.close()
         }
+        model.settingsTab = .general
+    }
+
+    /// Ink over a real Mluva window, then the same marks through the shared planner, the
+    /// native renderer and the store, shown in History beside their dictation.
+    private func annotation() async throws {
+        guard let screen = NSScreen.main, let (name, _) = AnnotationController.mainScreen() else { return }
+        let said = "Make the Export button red and move it next to Copy. This list should start with today."
+        let input = HistoryInput(raw: said.lowercased(), delivered: said, language: "eng", outcome: "pasted", application: "com.apple.TextEdit")
+        let entry = try CoreBridge.shared.call("history.add", ["input": try JSONValue(encoding: input)], as: HistoryEntry.self)
+        model.refreshHistory()
+        model.openWindow?("history", entry.identifier)
+        try await Task.sleep(for: .seconds(1.5))
+        guard let window = visibleWindows().first(where: { $0.title == "History" }) else { return }
+        window.makeKeyAndOrderFront(nil)
+        try await Task.sleep(for: .seconds(0.6))
+        // The clean view under the ink: Mluva's own windows over the wallpaper.
+        guard let clean = Self.createImage?(quartzRect(screen.frame), 1 << 0, 0, 0)?.takeRetainedValue() else { return }
+
+        // Screen-local logical points, origin top left.
+        let frame = window.frame
+        let top = screen.frame.maxY - frame.maxY
+        let left = frame.minX - screen.frame.minX
+        func ellipse(cx: Double, cy: Double, rx: Double, ry: Double, t: UInt64) -> [Annotation.Point] {
+            (0...36).map { step in
+                let angle = Double(step) / 36 * 2.1 * .pi - 0.3
+                return .init(x: cx + rx * cos(angle), y: cy + ry * sin(angle), t: t + UInt64(step) * 20)
+            }
+        }
+        let toolbar = ellipse(cx: left + frame.width - 92, cy: top + 26, rx: 92, ry: 26, t: 1_800)
+        let underline = (0...20).map { step in
+            Annotation.Point(x: left + 26 + Double(step) * 10, y: top + 112, t: 4_200 + UInt64(step) * 20)
+        }
+        let strokes: [Annotation.Stroke] = [
+            .init(t0: 1_800, t1: 2_520, screen: name, pin: nil, points: toolbar),
+            .init(t0: 4_200, t1: 4_600, screen: name, pin: nil, points: underline),
+        ]
+        model.annotation.presentInk(strokes)
+        try await Task.sleep(for: .seconds(0.6))
+        save(captureScreen(screen), "annotation-ink")
+        model.annotation.dismissInk()
+
+        guard let (_, screenModel) = AnnotationController.mainScreen() else { return }
+        var marked = Annotation.Capture()
+        marked.duration_ms = 7_000
+        marked.screens = [screenModel]
+        marked.strokes = strokes
+        let boxes = [Annotation.WindowBox(rect: [left, top, left + frame.width, top + frame.height], active: true)]
+        marked.frames = [0, 1_800, 4_200].enumerated().map { index, t in
+            Annotation.Frame(t: t, screen: name, reason: index == 0 ? .start : .mark, path: "memory:\(index)",
+                             width: clean.width, height: clean.height, windows: boxes)
+        }
+        let owner = "evidence-\(entry.identifier)"
+        if let summary = try await model.annotation.writeBundle(owner: owner, capture: marked, images: [clean, clean, clean], text: said) {
+            try summary.write(to: directory.appending(path: "annotation-summary.md"), atomically: true, encoding: .utf8)
+        }
+        model.annotation.bind(owner: owner, conversation: entry.identifier)
+        if let bundle = model.annotation.bundles(for: entry.identifier).first {
+            for (index, path) in bundle.keyframes.enumerated() {
+                let target = directory.appending(path: "annotation-keyframe-\(index + 1).png")
+                try? FileManager.default.removeItem(at: target)
+                try? FileManager.default.copyItem(at: URL(fileURLWithPath: path), to: target)
+            }
+        }
+        window.close()
+        try await Task.sleep(for: .seconds(0.5))
+        model.openWindow?("history", entry.identifier)
+        try await Task.sleep(for: .seconds(1.5))
+        if let window = visibleWindows().first(where: { $0.title == "History" }) {
+            window.makeKeyAndOrderFront(nil)
+            try await Task.sleep(for: .seconds(0.8))
+            save(capture(window, margin: 30), "history-annotation")
+            window.close()
+        }
+        try await Task.sleep(for: .seconds(0.5))
     }
 
     private func welcome() async throws {

@@ -6,17 +6,23 @@ struct SettingsView: View {
     let model: AppModel
 
     var body: some View {
-        TabView {
-            Tab("General", systemImage: "gearshape") { GeneralSettings(model: model) }
-            Tab("Speech", systemImage: "waveform") { SpeechSettings(model: model) }
-            Tab("Shortcuts", systemImage: "keyboard") { ShortcutSettings(model: model) }
-            Tab("Agents", systemImage: "terminal") { AgentSettings(model: model) }
-            Tab("Vocabulary", systemImage: "character.book.closed") { VocabularySettings() }
-            Tab("Privacy", systemImage: "hand.raised") { PermissionSettings(model: model) }
+        @Bindable var model = model
+        TabView(selection: $model.settingsTab) {
+            Tab("General", systemImage: "gearshape", value: SettingsTab.general) { GeneralSettings(model: model) }
+            Tab("Speech", systemImage: "waveform", value: .speech) { SpeechSettings(model: model) }
+            Tab("Shortcuts", systemImage: "keyboard", value: .shortcuts) { ShortcutSettings(model: model) }
+            Tab("Agents", systemImage: "terminal", value: .agents) { AgentSettings(model: model) }
+            Tab("Annotation", systemImage: "pencil.tip.crop.circle", value: .annotation) { AnnotationSettings(model: model) }
+            Tab("Vocabulary", systemImage: "character.book.closed", value: .vocabulary) { VocabularySettings() }
+            Tab("Privacy", systemImage: "hand.raised", value: .privacy) { PermissionSettings(model: model) }
         }
         .frame(width: 560)
         .frame(minHeight: 460)
     }
+}
+
+enum SettingsTab: Hashable {
+    case general, speech, shortcuts, agents, annotation, vocabulary, privacy
 }
 
 /// Edits one field of the shared config and saves it immediately.
@@ -170,8 +176,8 @@ private struct ShortcutSettings: View {
         .formStyle(.grouped)
     }
 
-    private func keyPicker(_ title: String, selection: String, set: @escaping (String) -> Void) -> some View {
-        Picker(title, selection: Binding(get: { selection }, set: set)) {
+    private func keyPicker(_ title: String, selection: String, set: @escaping @MainActor (String) -> Void) -> some View {
+        Picker(title, selection: Binding(get: { selection }, set: { value in MainActor.assumeIsolated { set(value) } })) {
             ForEach(FunctionKey.names, id: \.self) { Text($0).tag($0) }
         }
     }
@@ -294,6 +300,37 @@ private struct VocabularySettings: View {
         if let loaded = try? CoreBridge.shared.call("personalization.state", as: PersonalizationState.self) {
             state = loaded
         }
+    }
+}
+
+private struct AnnotationSettings: View {
+    let model: AppModel
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle(isOn: Binding(get: { model.annotation.enabled }, set: { model.annotation.setEnabled($0) })) {
+                    Text("Annotate the screen while dictating")
+                    Text("While recording, hold Shift and move to draw; Shift-click drops a numbered pin. Marked recordings deliver keyframes and a short summary with the text.")
+                }
+                if let error = model.annotation.settingsError {
+                    Text(error).font(.callout).foregroundStyle(.orange)
+                }
+            } footer: {
+                Text("Changes apply to the next recording. Off in Incognito. Raw screen captures stay in memory; only the marked keyframes are saved, beside the dictation in History.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section("Needs") {
+                PermissionRow(permission: .screenRecording, permissions: model.permissions)
+            }
+            Section("While recording") {
+                LabeledContent("Draw", value: "Hold Shift and move the pointer")
+                LabeledContent("Pin", value: "Shift-click")
+                LabeledContent("Left out of captures", value: "Mluva's ink, pill and wheel")
+            }
+        }
+        .formStyle(.grouped)
+        .onAppear { model.permissions.refresh() }
     }
 }
 

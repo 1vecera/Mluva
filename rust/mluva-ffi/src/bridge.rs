@@ -158,6 +158,11 @@ impl Bridge {
                 &param::<String>(params, "text")?,
                 optional::<String>(params, "appendix")?.as_deref(),
             ))),
+            // Whether a periodic sample shows a new view, by the planner's own measure.
+            "annotate.diff" => Ok(json!(mluva_annotate::keyframes::screen_diff(
+                &param::<Vec<f32>>(params, "a")?,
+                &param::<Vec<f32>>(params, "b")?,
+            ))),
             "scribe.transcribe" => self.transcribe(params),
             "realtime.start" => self.realtime_start(params),
             "realtime.finish" => self.realtime_finish(params),

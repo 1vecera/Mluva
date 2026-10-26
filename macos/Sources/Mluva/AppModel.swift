@@ -31,6 +31,7 @@ final class AppModel {
     @ObservationIgnored var openSettingsAction: (() -> Void)?
     /// Evidence runs show the ready state without a key or microphone grant.
     var evidenceReady = false
+    var settingsTab = SettingsTab.general
     let isEvidence = Evidence.directory != nil
 
     init(paths: AppPaths = AppModel.defaultPaths()) {
@@ -38,7 +39,7 @@ final class AppModel {
         let agents = AgentController()
         self.agents = agents
         dictation = DictationController(paths: paths, agents: agents)
-        annotation = AnnotationController(paths: paths)
+        annotation = AnnotationController()
         do {
             try CoreBridge.shared.call("open", [
                 "config_dir": .string(paths.config.path), "data_dir": .string(paths.data.path),
@@ -48,13 +49,29 @@ final class AppModel {
             startupError = error.localizedDescription
         }
         reloadConfig()
+        annotation.load()
         agents.loadSettings()
         adoptMacAgentKey()
         dictation.onRecordingChange = { [weak self] recording in
-            self?.annotation.recordingChanged(recording, incognito: self?.dictation.incognito ?? false)
+            guard let self, let owner = self.dictation.captureID else { return }
+            if recording {
+                // Words shown in the live preview, so speech without provider timing still aligns.
+                self.annotation.start(owner: owner, startedAt: self.dictation.startedAt ?? Date(), incognito: self.dictation.incognito) { [weak self] in
+                    self?.dictation.previewText.split(whereSeparator: \.isWhitespace).count ?? 0
+                }
+            } else {
+                self.annotation.stop()
+            }
         }
         dictation.appendix = { [weak self] result in
-            await self?.annotation.finish(transcript: result)
+            guard let self, let owner = self.dictation.captureID else { return nil }
+            return await self.annotation.finish(owner: owner, transcript: result)
+        }
+        dictation.onCaptureEnd = { [weak self] owner, outcome in
+            switch outcome {
+            case .saved(let conversation): self?.annotation.bind(owner: owner, conversation: conversation)
+            case .discarded: self?.annotation.discard(owner: owner)
+            }
         }
         agents.recordingKey = { [weak self] in self?.config?.global_recording_key ?? "F9" }
         hotkeys.onPress = { [weak self] action in self?.handle(action) }

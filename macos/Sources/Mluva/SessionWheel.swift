@@ -96,7 +96,7 @@ struct SessionWheelView: View {
         .buttonStyle(.plain)
         .glassEffect(chosen ? .regular.tint(.mluva.opacity(0.55)).interactive() : .regular.interactive(), in: .capsule)
         .glassEffectID(slot.id, in: glass)
-        .accessibilityLabel("\(session.display_name), \(statusText(session)), key \(slot.letter)")
+        .accessibilityLabel("\(session.display_name), \(statusText(session)), key \(String(slot.letter))")
         .accessibilityAddTraits(chosen ? .isSelected : [])
     }
 

@@ -168,9 +168,12 @@ struct RecordingPillView: View {
         default: break
         }
         switch dictation.phase {
-        case .preparing, .recording: return dictation.destination.label
+        case .preparing: return dictation.destination.label
+        case .recording:
+            if let notice = model.annotation.notice { return "\(dictation.destination.label) · \(notice)" }
+            return model.annotation.active ? "\(dictation.destination.label) · Shift draws on the screen" : dictation.destination.label
         case .finalizing: return "Recognizing what you said"
-        case .finished(let guidance): return dictation.notice ?? guidance
+        case .finished(let guidance): return dictation.notice ?? model.annotation.notice ?? guidance
         case .noSpeech: return "Nothing was copied or saved."
         case .failed(let message): return message
         case .idle: return "Press F9 to dictate"
@@ -218,7 +221,7 @@ private struct TranscriptCard: View {
     private var styled: Text {
         guard live, committedCount < text.count else { return Text(text) }
         let split = text.index(text.startIndex, offsetBy: committedCount)
-        return Text(text[..<split]) + Text(text[split...]).foregroundStyle(.secondary)
+        return Text("\(Text(text[..<split]))\(Text(text[split...]).foregroundStyle(.secondary))")
     }
 }
 
