@@ -1579,6 +1579,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "mluva-ffi"
+version = "2.4.0"
+dependencies = [
+ "mluva-annotate",
+ "mluva-core",
+ "mluva-providers",
+ "mluva-workflows",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tokio-util",
+ "uuid",
+]
+
+[[package]]
 name = "mluva-gtk"
 version = "2.4.0"
 dependencies = [
@@ -1695,7 +1711,6 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "libc",
- "mluva-annotate",
  "mluva-audio",
  "mluva-core",
  "mluva-providers",
