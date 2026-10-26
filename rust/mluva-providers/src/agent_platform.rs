@@ -112,12 +112,23 @@ pub fn flock_holder(
     path: &Path,
     metadata: &std::fs::Metadata,
 ) -> Option<u32> {
+    let mount = path.parent().and_then(mount_device);
+    flock_holder_on(holders, mount, metadata)
+}
+
+/// As [`flock_holder`], with the mount's device already known, for many files in one
+/// directory.
+pub fn flock_holder_on(
+    holders: &HashMap<(u64, u64), u32>,
+    mount: Option<u64>,
+    metadata: &std::fs::Metadata,
+) -> Option<u32> {
     use std::os::unix::fs::MetadataExt;
     let inode = metadata.ino();
-    holders.get(&(metadata.dev(), inode)).copied().or_else(|| {
-        let device = mount_device(path.parent()?)?;
-        holders.get(&(device, inode)).copied()
-    })
+    holders
+        .get(&(metadata.dev(), inode))
+        .or_else(|| holders.get(&(mount?, inode)))
+        .copied()
 }
 
 /// The device of the mount holding `directory`, from `/proc/self/mountinfo`; Linux only.

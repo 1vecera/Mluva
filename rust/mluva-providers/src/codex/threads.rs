@@ -44,6 +44,7 @@ pub fn live_threads(home: &Path, holders: &HashMap<(u64, u64), u32>) -> Vec<Live
         return vec![];
     };
     let uid = agent_platform::effective_uid();
+    let mount = agent_platform::mount_device(&directory);
     let mut live: Vec<LiveThread> = listing
         .take(MAX_LOCK_ENTRIES)
         .flatten()
@@ -58,7 +59,7 @@ pub fn live_threads(home: &Path, holders: &HashMap<(u64, u64), u32>) -> Vec<Live
             if !metadata.file_type().is_file() || metadata.uid() != uid {
                 return None;
             }
-            let holder = agent_platform::flock_holder(holders, &item.path(), &metadata)?;
+            let holder = agent_platform::flock_holder_on(holders, mount, &metadata)?;
             Some(LiveThread {
                 id: id.to_owned(),
                 lock: item.path(),
