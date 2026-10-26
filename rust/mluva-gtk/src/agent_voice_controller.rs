@@ -14,7 +14,8 @@ use mluva_providers::{
     agent_targets::{self, Sources},
     claude_sessions::ClaudeRegistry,
     codex::threads::CodexThreads,
-    herdr, spoken_reply,
+    herdr::{self, CodexNames},
+    spoken_reply,
 };
 use mluva_workflows::services::ApplicationServices;
 use std::{
@@ -59,6 +60,8 @@ pub struct AgentVoiceController {
     registry: Option<Arc<Mutex<ClaudeRegistry>>>,
     /// Live Codex threads, remembered across discovery passes.
     codex: Arc<tokio::sync::Mutex<CodexThreads>>,
+    /// Codex's session index, read incrementally across passes.
+    codex_names: Option<Arc<Mutex<CodexNames>>>,
     editor: RefCell<Option<crate::markdown_view::MarkdownTextView>>,
     /// The screen annotation summary of the recording whose draft is in the editor.
     draft_appendix: RefCell<Option<String>>,
@@ -132,6 +135,8 @@ impl AgentVoiceController {
             targets: RefCell::new(vec![]),
             registry: ClaudeRegistry::from_environment().map(|r| Arc::new(Mutex::new(r))),
             codex: Arc::default(),
+            codex_names: herdr::codex_index_path()
+                .map(|index| Arc::new(Mutex::new(CodexNames::new(index)))),
             editor: RefCell::new(None),
             draft_appendix: RefCell::new(None),
             voice_error: RefCell::new(None),
@@ -395,6 +400,7 @@ impl AgentVoiceController {
             ),
             claude: self.registry.clone(),
             codex: Some(self.codex.clone()),
+            codex_names: self.codex_names.clone(),
             apps: true,
         }
     }
@@ -632,9 +638,27 @@ impl AgentVoiceController {
     fn submit(self: &Rc<Self>, submission: Submission) {
         let weak = Rc::downgrade(self);
         let cancel = self.closed.clone();
+        // The row this message belongs to, so a later "taken" reaches it even after another
+        // dictation has started.
+        let history = self
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .filter(|a| a.id == submission.id)
+            .and_then(|a| a.history_id.clone());
+        let runtime = self.runtime.clone();
         self.runtime.spawn(async move {
-            let receipt = agent_targets::deliver(&submission, &cancel).await;
-            let outcome = receipt.outcome;
+            // Delivery, its sockets and files run on the background runtime, never on GTK's.
+            let delivering = {
+                let submission = submission.clone();
+                let cancel = cancel.clone();
+                runtime.spawn_background(async move {
+                    let receipt = agent_targets::deliver(&submission, &cancel).await;
+                    (receipt.outcome, receipt.taken)
+                })
+            };
+            let (outcome, taken) = delivering.await.unwrap_or((SendOutcome::Unconfirmed, None));
             {
                 let Some(owner) = weak.upgrade().filter(|o| !o.closed.is_cancelled()) else {
                     return;
@@ -652,13 +676,27 @@ impl AgentVoiceController {
                 }
                 owner.render();
             }
-            // A queued message: History learns when the agent takes it, if that is seen.
-            if let Some(taken) = receipt.taken
-                && taken.await
-                && let Some(owner) = weak.upgrade().filter(|o| !o.closed.is_cancelled())
-                && owner.route.borrow_mut().taken(&submission.id)
-            {
+            // A queued message: History learns when the agent takes it, if that is seen, whatever
+            // attempt is current by then. The watch ends once it settles or Mluva closes.
+            let Some(taken) = taken else {
+                return;
+            };
+            if !runtime.spawn_background(taken).await.unwrap_or(false) {
+                return;
+            }
+            let Some(owner) = weak.upgrade().filter(|o| !o.closed.is_cancelled()) else {
+                return;
+            };
+            if owner.route.borrow_mut().taken(&submission.id) {
                 owner.render();
+            } else if let Some(history) = history {
+                owner.trace(
+                    &submission.id,
+                    RouteEvent::QueueTaken,
+                    RouteKind::Agent(Delivery::Queue),
+                    0,
+                );
+                owner.record_outcome(&history, "delivered");
             }
         });
     }
@@ -818,8 +856,16 @@ impl AgentVoiceController {
         let sources = self.sources(self.settings.borrow().socket.as_deref());
         let weak = Rc::downgrade(self);
         let cancel = self.closed.clone();
+        let runtime = self.runtime.clone();
         self.runtime.spawn(async move {
-            let Some(found) = agent_targets::discover(sources, &cancel).await else {
+            // Discovery reads files and sockets: on the background runtime, never on GTK's.
+            let discovering = runtime
+                .spawn_background(async move { agent_targets::discover(sources, &cancel).await });
+            let Some(found) = discovering.await.ok().flatten() else {
+                // Cancelled as Mluva closes, or failed: the next tick may look again.
+                if let Some(owner) = weak.upgrade() {
+                    owner.polling.set(false);
+                }
                 return;
             };
             if let Some(owner) = weak.upgrade() {

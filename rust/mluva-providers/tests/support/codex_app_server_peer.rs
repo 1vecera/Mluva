@@ -8,6 +8,10 @@
 //! the app-server JSON-RPC Mluva uses over WebSocket. MODE_FILE says how the thread treats a
 //! queued message: `idle` takes it as a turn, anything else leaves it queued. Every message
 //! received is appended to WIRE. Only synthetic text ever reaches it.
+//!
+//! Started as `codex-app-server-fixture-peer app-server --listen unix://PATH`, it stands in for
+//! the server Mluva starts as its own helper instead: it listens on PATH, has no thread loaded
+//! and answers the handshake and reads.
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{Value, json};
 use std::{
@@ -41,9 +45,56 @@ fn append(path: &Path, line: &Value) {
     file.write_all(format!("{line}\n").as_bytes()).unwrap();
 }
 
+/// The helper Mluva starts: a server with no threads of its own.
+async fn helper(listen: &str) {
+    let path = listen.strip_prefix("unix://").expect("unix://PATH");
+    let listener = UnixListener::bind(path).unwrap();
+    fs::set_permissions(path, fs::Permissions::from_mode(0o600)).unwrap();
+    while let Ok((stream, _)) = listener.accept().await {
+        tokio::spawn(async move {
+            let Ok(mut socket) = tokio_tungstenite::accept_async(stream).await else {
+                return;
+            };
+            while let Some(Ok(Message::Text(text))) = socket.next().await {
+                let Ok(message) = serde_json::from_str::<Value>(&text) else {
+                    continue;
+                };
+                let (Some(method), Some(id)) = (
+                    message.get("method").and_then(Value::as_str),
+                    message.get("id").cloned(),
+                ) else {
+                    continue;
+                };
+                let result = match method {
+                    "initialize" => {
+                        json!({"userAgent": "fixture/0.160.1", "codexHome": "/synthetic"})
+                    }
+                    "thread/loaded/list" => json!({"data": [], "nextCursor": null}),
+                    _ => json!({}),
+                };
+                let response = json!({"id": id, "result": result});
+                if socket
+                    .send(Message::Text(response.to_string().into()))
+                    .await
+                    .is_err()
+                {
+                    return;
+                }
+            }
+        });
+    }
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if let [command, flag, listen] = args.as_slice()
+        && command == "app-server"
+        && flag == "--listen"
+    {
+        helper(listen).await;
+        return;
+    }
     let [home, runtime, thread, title, cwd, mode, wire] = args.as_slice() else {
         eprintln!(
             "usage: codex-app-server-fixture-peer CODEX_HOME RUNTIME THREAD TITLE CWD MODE WIRE"

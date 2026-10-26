@@ -43,8 +43,13 @@ impl AgentVoiceController {
     }
 
     async fn cli_discover(&self, socket: Option<&str>) -> (Vec<Target>, Vec<String>) {
-        agent_targets::discover(self.sources(socket), &self.closed)
+        let sources = self.sources(socket);
+        let cancel = self.closed.clone();
+        self.runtime
+            .spawn_background(async move { agent_targets::discover(sources, &cancel).await })
             .await
+            .ok()
+            .flatten()
             .map(|found| (found.targets, found.errors))
             .unwrap_or_default()
     }

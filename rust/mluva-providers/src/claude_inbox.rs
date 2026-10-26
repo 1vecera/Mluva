@@ -21,7 +21,7 @@
 //! logged.
 use crate::{
     agent_platform,
-    agent_targets::Receipt,
+    agent_targets::{Receipt, admissible},
     claude_sessions::{self, MAX_SOCKET_PATH},
 };
 use mluva_core::agent_voice::{
@@ -86,11 +86,7 @@ async fn submit_within(
     else {
         return SendOutcome::Rejected.into();
     };
-    if !target.can_receive()
-        || submission.text.trim().is_empty()
-        || submission.text.len() > MAX_MESSAGE_BYTES
-        || cancel.is_cancelled()
-    {
+    if !admissible(submission, cancel) {
         return SendOutcome::Rejected.into();
     }
     // Everything is checked again now; anything that changed refuses rather than retargets.
@@ -236,6 +232,7 @@ enum Evidence {
 }
 
 /// The new end of one session's transcript, read for this message's receipt.
+#[derive(Default)]
 struct Transcript {
     config: PathBuf,
     cwd: String,
@@ -275,7 +272,7 @@ impl Transcript {
     async fn receipt(&mut self, cancel: &CancellationToken, window: Duration) -> Option<Evidence> {
         let deadline = tokio::time::Instant::now() + window;
         loop {
-            if let Some(evidence) = self.read() {
+            if let Some(evidence) = self.read_blocking().await {
                 return Some(evidence);
             }
             if tokio::time::Instant::now() >= deadline {
@@ -292,7 +289,7 @@ impl Transcript {
     async fn taken(&mut self, cancel: &CancellationToken, limit: Duration) -> bool {
         let deadline = tokio::time::Instant::now() + limit;
         while tokio::time::Instant::now() < deadline {
-            if self.read() == Some(Evidence::Taken) {
+            if self.read_blocking().await == Some(Evidence::Taken) {
                 return true;
             }
             tokio::select! {
@@ -301,6 +298,19 @@ impl Transcript {
             }
         }
         false
+    }
+
+    /// [`Self::read`] on a blocking thread, away from whatever thread awaits the delivery.
+    async fn read_blocking(&mut self) -> Option<Evidence> {
+        let mut moved = std::mem::take(self);
+        let (moved, evidence) = tokio::task::spawn_blocking(move || {
+            let evidence = moved.read();
+            (moved, evidence)
+        })
+        .await
+        .ok()?;
+        *self = moved;
+        evidence
     }
 
     /// Read what was appended since the last read; the strongest evidence in it.

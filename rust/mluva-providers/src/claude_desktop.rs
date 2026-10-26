@@ -9,7 +9,7 @@
 //! Claude Desktop keeps is refused, never cut.
 use crate::{
     agent_platform::{self, Opened, Opener},
-    agent_targets::Receipt,
+    agent_targets::{Receipt, admissible},
 };
 use mluva_core::agent_voice::{
     AgentKind, AgentStatus, AppLink, Route, SendOutcome, Submission, Target,
@@ -74,13 +74,11 @@ async fn submit_with(
     let route = submission.target.route();
     let link = format!("{NEW_CHAT_LINK}{}", encode(&submission.text));
     if route != Route::ClaudeNewChat
-        || !submission.target.can_receive()
-        || submission.text.trim().is_empty()
+        || !admissible(submission, cancel)
         || route
             .max_chars()
             .is_some_and(|max| submission.text.chars().count() > max)
         || link.len() > MAX_LINK_BYTES
-        || cancel.is_cancelled()
     {
         return SendOutcome::Rejected.into();
     }

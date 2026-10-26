@@ -48,6 +48,9 @@ pub struct ClaudeSession {
     pub cwd: String,
     /// Milliseconds since the epoch, as Claude Code records it.
     pub started_at: u64,
+    /// The process's start time as the kernel counts it, which the registry recorded and
+    /// `/proc` confirmed.
+    pub proc_start: String,
     pub status: AgentStatus,
     /// The person's own name for the session (`-n`, `/rename`).
     pub user_name: Option<String>,
@@ -310,12 +313,13 @@ pub(crate) fn read_entry(
     let name = clean("name");
     let user_named = text("nameSource") == Some("user");
     Some(Ok((
-        start,
+        start.clone(),
         ClaudeSession {
             pid,
             session_id: session_id.into(),
             cwd: text("cwd").map(|cwd| label(cwd, 4_096)).unwrap_or_default(),
             started_at: entry.get("startedAt").and_then(Value::as_u64).unwrap_or(0),
+            proc_start: start,
             status: status(text("status"), text("waitingFor")),
             user_name: name.clone().filter(|_| user_named),
             derived_name: name.filter(|_| !user_named),
@@ -504,6 +508,7 @@ pub fn merge(herdr: Vec<Target>, sessions: &[ClaudeSession]) -> Vec<Target> {
                 if let Some(session) = session {
                     joined.insert(session.session_id.as_str());
                     target.pid = session.pid;
+                    target.started.clone_from(&session.proc_start);
                     // Without Herdr's guard, the session's own inbox can still queue to it.
                     target.inbox.clone_from(&session.inbox);
                     if target.project.is_empty() {
@@ -536,6 +541,7 @@ pub fn merge(herdr: Vec<Target>, sessions: &[ClaudeSession]) -> Vec<Target> {
             status: session.status,
             session_id: session.session_id.clone(),
             pid: session.pid,
+            started: session.proc_start.clone(),
             inbox: session.inbox.clone(),
             host: session.host.clone(),
             ..Target::default()
@@ -949,6 +955,7 @@ mod tests {
             session_id: id.into(),
             cwd: "/synthetic/native".into(),
             started_at,
+            proc_start: String::new(),
             status: AgentStatus::Working,
             user_name: None,
             derived_name: Some(format!("native-{pid}")),

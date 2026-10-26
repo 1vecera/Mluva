@@ -278,6 +278,8 @@ pub enum Host {
     Background,
     /// Hosted by an application rather than a terminal, such as an editor or the Agent SDK.
     App,
+    /// Held open by Codex's shared app-server daemon, for a TUI attached to it.
+    Daemon,
 }
 
 /// A running agent session, wherever it runs.
@@ -297,6 +299,9 @@ pub struct Target {
     pub session_id: String,
     /// The agent process, when known; 0 otherwise.
     pub pid: u32,
+    /// That process's start time as the kernel counts it, so a reused PID is told apart; empty
+    /// when unknown.
+    pub started: String,
     /// The Herdr pane the session runs in, when Herdr lists it.
     pub herdr: Option<HerdrPane>,
     /// Claude Code's inbox for the session, when its registry names one. Never saved.
@@ -377,25 +382,36 @@ impl Target {
         }
     }
 
-    /// Guarded Herdr identities match only exactly: server, pane and the guard for the agent
-    /// process. Any other session matches by its native session and process, so neither a
-    /// resumed session in a new process nor a new session in the same pane takes over a
-    /// remembered choice, while the same session seen with or without Herdr stays chosen.
+    /// The same running session, whatever route reaches it now. A session is its product, its
+    /// own session or thread ID and its process (PID, and start time when both sides know it),
+    /// so Herdr's guard appearing or going away keeps the choice, while a restarted, resumed or
+    /// cleared session, or a new session in the same pane, never takes it over. Without a native
+    /// session on both sides, such as a choice saved before sessions were known, Herdr's own
+    /// identity decides: its guard when Herdr vouches for both, else the pane when neither has a
+    /// session. A link to an app surface is that surface.
     pub fn same_instance(&self, other: &Self) -> bool {
         if self.app.is_some() || other.app.is_some() {
             return self.app == other.app && self.kind == other.kind;
         }
-        match (self.guarded_pane(), other.guarded_pane()) {
-            (Some(a), Some(b)) => a.same_pane(b) && a.guard == b.guard,
-            (None, None) if !self.session_id.is_empty() || !other.session_id.is_empty() => {
-                self.session_id == other.session_id && self.pid == other.pid
+        match (self.session_id.is_empty(), other.session_id.is_empty()) {
+            (false, false) => {
+                self.kind == other.kind
+                    && self.session_id == other.session_id
+                    && self.pid == other.pid
+                    && (self.started.is_empty()
+                        || other.started.is_empty()
+                        || self.started == other.started)
             }
-            // A metadata-only Herdr pane without a native session: its pane, as before.
-            (None, None) => match (&self.herdr, &other.herdr) {
-                (Some(a), Some(b)) => a.same_pane(b),
+            (no_session, other_no_session) => match (self.guarded_pane(), other.guarded_pane()) {
+                (Some(a), Some(b)) => a.same_pane(b) && a.guard == b.guard,
+                (None, None) if no_session && other_no_session => {
+                    match (&self.herdr, &other.herdr) {
+                        (Some(a), Some(b)) => a.same_pane(b),
+                        _ => false,
+                    }
+                }
                 _ => false,
             },
-            _ => false,
         }
     }
 
@@ -442,6 +458,7 @@ impl Target {
             Host::Tmux(pane) => format!("tmux {pane}"),
             Host::Background => "background".into(),
             Host::App => "app".into(),
+            Host::Daemon => "Codex daemon".into(),
         }
     }
 
@@ -545,6 +562,8 @@ struct TargetRecord {
     status: AgentStatus,
     session_id: String,
     pid: u32,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    started: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     app: Option<AppLink>,
 }
@@ -566,6 +585,7 @@ impl From<TargetRecord> for Target {
             status: record.status,
             session_id: record.session_id,
             pid: record.pid,
+            started: record.started,
             inbox: None,
             host: Host::default(),
             app: record.app,
@@ -590,6 +610,7 @@ impl From<Target> for TargetRecord {
             status: target.status,
             session_id: target.session_id,
             pid: target.pid,
+            started: target.started,
             app: target.app,
         }
     }

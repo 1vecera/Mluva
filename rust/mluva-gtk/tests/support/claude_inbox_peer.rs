@@ -1,6 +1,9 @@
 //! A synthetic Claude Code session with an inbox, for the private application test.
 //!
-//! Usage: claude-inbox-fixture-peer CONFIG SOCKET_DIR SESSION_ID CWD TITLE WIRE
+//! Usage: claude-inbox-fixture-peer CONFIG SOCKET_DIR SESSION_ID CWD TITLE WIRE [MODE_FILE]
+//!
+//! When MODE_FILE says `working`, the session admits a message at once but takes it into its
+//! turn only four seconds later, as a busy session does at its next tool boundary.
 //!
 //! It registers itself in CONFIG's session registry as Claude Code 2.1.310 does, under its own
 //! PID and start time, binds its inbox at SOCKET_DIR/<pid>.sock and writes a transcript with a
@@ -31,6 +34,10 @@ fn append(path: &Path, line: &Value) {
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    let (args, mode) = match args.as_slice() {
+        [rest @ .., mode] if rest.len() == 6 => (rest.to_vec(), Some(mode.clone())),
+        _ => (args.clone(), None),
+    };
     let [config, sockets, session, cwd, title, wire] = args.as_slice() else {
         eprintln!("usage: claude-inbox-fixture-peer CONFIG SOCKET_DIR SESSION_ID CWD TITLE WIRE");
         std::process::exit(2);
@@ -90,9 +97,19 @@ fn main() {
             &transcript,
             &json!({"type": "queue-operation", "operation": "enqueue", "sessionId": session, "content": content}),
         );
-        append(
-            &transcript,
-            &json!({"type": "user", "uuid": frame["uuid"], "isMeta": true, "origin": {"kind": "peer"}, "sessionId": session}),
-        );
+        let taken = json!({"type": "user", "uuid": frame["uuid"], "isMeta": true, "origin": {"kind": "peer"}, "sessionId": session});
+        let working = mode
+            .as_deref()
+            .and_then(|mode| fs::read_to_string(mode).ok())
+            .is_some_and(|mode| mode.trim() == "working");
+        if working {
+            let transcript = transcript.clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_secs(4));
+                append(&transcript, &taken);
+            });
+        } else {
+            append(&transcript, &taken);
+        }
     }
 }

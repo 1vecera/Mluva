@@ -113,22 +113,38 @@ pub fn flock_holder(
     metadata: &std::fs::Metadata,
 ) -> Option<u32> {
     let mount = path.parent().and_then(mount_device);
-    flock_holder_on(holders, mount, metadata)
+    flock_holder_on(holders, mount, path, metadata)
 }
 
 /// As [`flock_holder`], with the mount's device already known, for many files in one
-/// directory.
+/// directory. A match through the mount's device names only an inode on that filesystem, which
+/// another subvolume can share, so the holder must also have the file itself open.
 pub fn flock_holder_on(
     holders: &HashMap<(u64, u64), u32>,
     mount: Option<u64>,
+    path: &Path,
     metadata: &std::fs::Metadata,
 ) -> Option<u32> {
     use std::os::unix::fs::MetadataExt;
     let inode = metadata.ino();
-    holders
-        .get(&(metadata.dev(), inode))
-        .or_else(|| holders.get(&(mount?, inode)))
-        .copied()
+    if let Some(holder) = holders.get(&(metadata.dev(), inode)) {
+        return Some(*holder);
+    }
+    let holder = *holders.get(&(mount?, inode))?;
+    holds_open(holder, path).then_some(holder)
+}
+
+/// Whether a process has the file at `path` open, from its descriptors in `/proc`.
+fn holds_open(pid: u32, path: &Path) -> bool {
+    let Ok(path) = std::fs::canonicalize(path) else {
+        return false;
+    };
+    std::fs::read_dir(format!("/proc/{pid}/fd")).is_ok_and(|descriptors| {
+        descriptors
+            .take(65_536)
+            .flatten()
+            .any(|fd| std::fs::read_link(fd.path()).is_ok_and(|target| target == path))
+    })
 }
 
 /// The device of the mount holding `directory`, from `/proc/self/mountinfo`; Linux only.
@@ -289,6 +305,9 @@ pub async fn scheme_handler(scheme: &str) -> Option<String> {
     (output.status.success() && handler.ends_with(".desktop")).then_some(handler)
 }
 
+/// How long an opener may take to report failure before it counts as having launched.
+const OPENER_GRACE: Duration = Duration::from_millis(1_500);
+
 /// How a link is handed to the desktop: the first opener that exists is used.
 #[derive(Clone, Debug)]
 pub struct Opener {
@@ -318,7 +337,9 @@ impl Opener {
         Self { candidates }
     }
 
-    /// Open the link once. An opener that started is never followed by another.
+    /// Open the link once. An opener that started is never followed by another. Some openers
+    /// stay running for as long as the application they started (`xdg-open` on Hyprland), so one
+    /// still running after a moment has launched its handler; it is reaped in the background.
     pub async fn open(&self, link: &str) -> Opened {
         for candidate in &self.candidates {
             let Some((program, arguments)) = candidate.split_first() else {
@@ -334,9 +355,15 @@ impl Opener {
             let Ok(mut child) = command.spawn() else {
                 continue;
             };
-            return match tokio::time::timeout(Duration::from_secs(10), child.wait()).await {
+            return match tokio::time::timeout(OPENER_GRACE, child.wait()).await {
                 Ok(Ok(status)) if status.success() => Opened::Handed,
-                _ => Opened::Uncertain,
+                Ok(_) => Opened::Uncertain,
+                Err(_) => {
+                    tokio::spawn(async move {
+                        let _ = child.wait().await;
+                    });
+                    Opened::Handed
+                }
             };
         }
         Opened::NotStarted
@@ -448,6 +475,18 @@ mod tests {
             opener("0").open("claude://claude.ai/new?q=a%20b").await,
             Opened::Handed
         );
+        // An opener that stays with the application it launched counts as handed, at once.
+        let staying = Opener {
+            candidates: vec![vec![
+                "sh".into(),
+                "-c".into(),
+                "sleep 30".into(),
+                "opener".into(),
+            ]],
+        };
+        let started = std::time::Instant::now();
+        assert_eq!(staying.open("claude://x").await, Opened::Handed);
+        assert!(started.elapsed() < Duration::from_secs(3));
         assert_eq!(
             opener("4").open("claude://claude.ai/new?q=c").await,
             Opened::Uncertain

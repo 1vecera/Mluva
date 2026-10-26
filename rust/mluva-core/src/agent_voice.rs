@@ -323,16 +323,34 @@ impl VoiceRoute {
         }
     }
 
+    /// Follow the fixed recipient through a fresh discovery pass. While its message is still
+    /// pending, the route is taken from the latest sighting of the same session, so delivery
+    /// uses whatever reaches it now: Herdr's guarded prompt when Herdr vouches for it, else its
+    /// own inbox or queue. The name it was chosen by stays. A session gone, replaced or unable
+    /// to take a message keeps the draft.
     pub fn observe(&mut self, targets: &[Target]) {
-        if self.attempt.as_ref().is_some_and(|a| {
+        let Some(a) = self.attempt.as_mut().filter(|a| {
             matches!(
                 a.phase,
                 RoutePhase::Recording | RoutePhase::Finalizing | RoutePhase::Grace { .. }
-            ) && !targets
-                .iter()
-                .any(|t| a.target.same_instance(t) && t.can_receive())
-        }) {
-            self.disarm(DraftReason::Unavailable);
+            )
+        }) else {
+            return;
+        };
+        match targets
+            .iter()
+            .find(|t| a.target.same_instance(t) && t.can_receive())
+        {
+            Some(fresh) => {
+                a.target = Target {
+                    name: std::mem::take(&mut a.target.name),
+                    title: std::mem::take(&mut a.target.title),
+                    ..fresh.clone()
+                };
+            }
+            None => {
+                self.disarm(DraftReason::Unavailable);
+            }
         }
     }
 

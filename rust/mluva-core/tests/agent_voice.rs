@@ -78,12 +78,13 @@ fn draft_only_sessions_match_by_native_session_and_process_and_never_send() {
     };
     assert!(!native.same_instance(&resumed));
     assert!(!in_herdr.same_instance(&replaced));
-    // A guarded identity never matches an unguarded one, even for the same session.
+    // Herdr's guard coming or going does not change which session it is.
     let guarded = Target {
         herdr: herdr_pane("w1:p4", &"g".repeat(64)),
         ..in_herdr.clone()
     };
-    assert!(!guarded.same_instance(&in_herdr) && !in_herdr.same_instance(&guarded));
+    assert!(guarded.same_instance(&in_herdr) && in_herdr.same_instance(&guarded));
+    // A sighting without the native session falls back to Herdr's guarded identity.
     assert!(guarded.same_instance(&Target {
         session_id: String::new(),
         pid: 0,
@@ -376,4 +377,67 @@ fn text_longer_than_the_route_carries_stays_a_draft_rather_than_being_cut() {
             "{length}"
         );
     }
+}
+
+/// A Claude Code session in Herdr, guarded, with its own inbox as well.
+fn guarded_with_inbox(guard: &str, status: AgentStatus) -> Target {
+    Target {
+        herdr: herdr_pane("w1:p4", guard),
+        inbox: Some(ClaudeInbox {
+            entry: "/run/user/fixture/claude/sessions/4100.json".into(),
+            socket: "/run/user/fixture/cc-socks/4100.sock".into(),
+            proc_start: "123456".into(),
+        }),
+        started: "123456".into(),
+        status,
+        ..draft_only()
+    }
+}
+
+#[test]
+fn a_pending_message_follows_its_session_across_herdrs_guard_and_uses_the_route_of_the_moment() {
+    let mut route = VoiceRoute::default();
+    let chosen = guarded_with_inbox(&"g".repeat(64), AgentStatus::Idle);
+    let id = route.begin(chosen.clone(), 0).unwrap();
+    // The session waits on a prompt: Herdr withdraws its guard, and is renamed meanwhile.
+    let waiting = Target {
+        title: "Renamed meanwhile".into(),
+        ..guarded_with_inbox("", AgentStatus::Blocked)
+    };
+    route.observe(std::slice::from_ref(&waiting));
+    let attempt = route.attempt.as_ref().unwrap();
+    assert_eq!(
+        attempt.phase,
+        RoutePhase::Recording,
+        "not turned into a draft"
+    );
+    assert_eq!(attempt.target.route(), Route::ClaudeInbox);
+    assert_eq!(
+        attempt.target.display_name(),
+        "Synthetic notes",
+        "the chosen name stays"
+    );
+    route.release(100);
+    route.recognized(&id, "follow me", None, 200);
+    // Guarded again before the countdown ends: Herdr's prompt sends it.
+    route.observe(&[guarded_with_inbox(&"h".repeat(64), AgentStatus::Idle)]);
+    let submission = route.take_submission(2_200).unwrap();
+    assert_eq!(submission.target.route(), Route::Herdr);
+    assert_eq!(
+        submission.target.herdr.as_ref().unwrap().guard,
+        "h".repeat(64)
+    );
+    // A different process in the same pane never takes the message.
+    let mut route = VoiceRoute::default();
+    let id = route.begin(chosen, 0).unwrap();
+    route.release(100);
+    route.recognized(&id, "never elsewhere", None, 200);
+    route.observe(&[Target {
+        pid: 4_999,
+        ..guarded_with_inbox(&"g".repeat(64), AgentStatus::Idle)
+    }]);
+    assert_eq!(
+        route.attempt.as_ref().unwrap().phase,
+        RoutePhase::Draft(DraftReason::Unavailable)
+    );
 }

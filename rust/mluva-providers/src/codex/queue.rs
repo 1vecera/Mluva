@@ -18,14 +18,13 @@ use super::{
     rpc::{AppServer, RpcError},
     server::Servers,
 };
-use crate::{agent_platform, agent_targets::Receipt};
-use mluva_core::agent_voice::{MAX_MESSAGE_BYTES, Route, SendOutcome, Submission};
-use serde_json::{Value, json};
-use std::{
-    os::unix::fs::MetadataExt,
-    path::Path,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+use crate::{
+    agent_platform,
+    agent_targets::{Receipt, admissible},
 };
+use mluva_core::agent_voice::{Route, SendOutcome, Submission};
+use serde_json::{Value, json};
+use std::{os::unix::fs::MetadataExt, path::Path, time::Duration};
 use tokio_util::sync::CancellationToken;
 
 /// How often an app server checks Codex's shared queue store for items another process added:
@@ -42,6 +41,10 @@ const CROSS_PROCESS_WINDOW: Duration = Duration::from_secs(EXTERNAL_QUEUE_CHECK_
 const POLL: Duration = Duration::from_millis(250);
 /// A dispatched message's turn is recorded at once; a few reads allow for a slow write.
 const CONFIRM_READS: usize = 6;
+/// The turns read to find this message: the newest few, as summaries, which carry each user
+/// message with its client ID (verified against Codex 0.160.1).
+const TURN_ITEMS_VIEW: &str = "summary";
+const TURNS_READ: u32 = 10;
 
 struct Limits {
     /// How long to wait when the connected server has the thread loaded.
@@ -80,14 +83,11 @@ async fn submit_via(
     else {
         return SendOutcome::Rejected;
     };
-    if !target.can_receive()
-        || submission.text.trim().is_empty()
-        || submission.text.len() > MAX_MESSAGE_BYTES
-        || cancel.is_cancelled()
-        || !held_by(Path::new(&thread.lock), thread.holder)
-    {
+    if !admissible(submission, cancel) || !held_by(Path::new(&thread.lock), thread.holder) {
         return SendOutcome::Rejected;
     }
+    // Closing waits for this delivery, a withdrawal included, before it stops Mluva's server.
+    let _in_flight = servers.delivering();
     let Some((mut server, _)) = servers.connect().await else {
         return SendOutcome::Rejected;
     };
@@ -106,7 +106,7 @@ async fn submit_via(
     } else {
         limits.cross_process
     };
-    let client = uuid_v7();
+    let client = uuid::Uuid::now_v7().to_string();
     let added = server
         .call(
             "thread/queue/add",
@@ -129,7 +129,7 @@ async fn submit_via(
                 .map(str::to_owned);
         }
         // Refused, such as an unknown thread or a full queue: nothing was stored.
-        Err(RpcError::Server { .. }) => return SendOutcome::Rejected,
+        Err(RpcError::Server { .. } | RpcError::Refused) => return SendOutcome::Rejected,
         Err(RpcError::Transport) => {}
     }
     if sending.item.is_none() {
@@ -230,7 +230,8 @@ impl Sending<'_> {
         let turns = self
             .ask(
                 "thread/turns/list",
-                json!({"threadId": self.thread, "limit": 10}),
+                json!({"threadId": self.thread, "limit": TURNS_READ,
+                    "itemsView": TURN_ITEMS_VIEW}),
             )
             .await?;
         Some(
@@ -283,7 +284,7 @@ impl Sending<'_> {
     async fn ask(&mut self, method: &str, params: Value) -> Option<Value> {
         match self.server.call(method, params.clone()).await {
             Ok(result) => Some(result),
-            Err(RpcError::Server { .. }) => None,
+            Err(RpcError::Server { .. } | RpcError::Refused) => None,
             Err(RpcError::Transport) => {
                 self.server = self.servers.connect().await?.0;
                 self.server.call(method, params).await.ok()
@@ -300,19 +301,6 @@ fn held_by(lock: &Path, holder: u32) -> bool {
             && agent_platform::flock_holder(&agent_platform::flock_holders(), lock, &metadata)
                 == Some(holder)
     })
-}
-
-/// A fresh time-ordered UUID (version 7) for the message's client ID.
-fn uuid_v7() -> String {
-    let milliseconds = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis() as u64;
-    let mut bytes = *uuid::Uuid::new_v4().as_bytes();
-    bytes[..6].copy_from_slice(&milliseconds.to_be_bytes()[2..]);
-    bytes[6] = (bytes[6] & 0x0f) | 0x70;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-    uuid::Uuid::from_bytes(bytes).to_string()
 }
 
 #[cfg(test)]
@@ -568,8 +556,9 @@ mod tests {
             .unwrap_or(3);
         let servers = Servers::new(home, Some(runtime), agent_platform::codex_executable());
         let mut threads = crate::codex::threads::CodexThreads::default();
+        let names = crate::herdr::codex_thread_names(&servers.home().join("session_index.jsonl"));
         let target = threads
-            .discover(&servers)
+            .discover(&servers, &names)
             .await
             .into_iter()
             .next()
@@ -595,6 +584,27 @@ mod tests {
             // Let the loopback turn finish before the next message.
             tokio::time::sleep(Duration::from_secs(2)).await;
         }
+        // Which turn views carry each user message's client ID.
+        let (mut server, _) = servers.connect().await.unwrap();
+        for view in ["summary", "full", "notLoaded"] {
+            let turns = server
+                .call(
+                    "thread/turns/list",
+                    json!({"threadId": target.session_id, "limit": TURNS_READ, "itemsView": view}),
+                )
+                .await
+                .unwrap();
+            let with_client: usize = turns["data"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter_map(|turn| turn["items"].as_array())
+                .flatten()
+                .filter(|item| item["type"] == "userMessage" && item["clientId"].is_string())
+                .count();
+            println!("itemsView {view}: {with_client} user messages with a client ID");
+        }
+        drop(server);
         servers.shutdown().await;
     }
 

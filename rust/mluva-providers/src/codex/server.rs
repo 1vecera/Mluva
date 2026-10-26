@@ -3,36 +3,45 @@
 //! Every app server on the same `CODEX_HOME` shares Codex's queue store, so any of them can
 //! queue a message for a thread another process owns. Mluva uses the shared daemon's control
 //! socket when the daemon runs and answers. Otherwise it starts its own `codex app-server`,
-//! listening only on a socket in Mluva's private runtime directory, as a child process: no
-//! installed service and never a managed daemon. It is started when needed, stopped after
-//! being idle and when Mluva exits, and offered to no other client, so it hosts nobody's
-//! threads.
+//! listening only on a socket in Mluva's private runtime directory, as a child process in its
+//! own process group: no installed service and never a managed daemon. It is started when
+//! needed, stopped by its own watchdog after ten idle minutes and when Mluva closes, and offered
+//! to no other client, so it hosts nobody's threads. A launcher such as `npm`'s `codex`, which
+//! runs the real server as its own child, is accepted: the server must descend from the process
+//! Mluva started, and stopping the group stops both.
 //!
-//! An app server writes `config.toml` only when asked to: starting a thread with full access
-//! records the project as trusted, and the configuration methods write what they are given.
-//! Mluva never calls those. As a guard all the same, the configuration is fingerprinted before
-//! the helper starts and after each use; if it changed, Mluva stops the helper and does not
-//! start it again for the rest of its run.
-use super::rpc::AppServer;
+//! An app server writes `config.toml` only when a thread is started with full access (it then
+//! records the project as trusted) or when asked to change configuration. Mluva's client can
+//! send none of those methods ([`super::rpc::ALLOWED_METHODS`]). Codex itself rewrites the file
+//! for its own reasons, so a change is no signal; the one change attributable to the helper,
+//! a trust entry for its own working directory, is reported if it ever appears.
+use super::rpc::{AppServer, Peer};
 use crate::{agent_platform, claude_sessions, process_lifetime};
 use serde_json::Value;
-use sha2::{Digest, Sha256};
 use std::{
     io::Read,
     os::unix::fs::{FileTypeExt, MetadataExt, PermissionsExt},
     path::{Path, PathBuf},
     sync::{
-        OnceLock,
-        atomic::{AtomicBool, Ordering},
+        Arc, OnceLock,
+        atomic::{AtomicBool, AtomicUsize, Ordering},
     },
     time::{Duration, Instant},
 };
-use tokio::{process::Command, sync::Mutex};
+use tokio::{
+    process::Command,
+    sync::{Mutex, Notify},
+};
 
 /// A helper nobody used for this long is stopped.
 const HELPER_IDLE: Duration = Duration::from_secs(10 * 60);
+/// How often the helper's watchdog looks, at most.
+const IDLE_CHECK: Duration = Duration::from_secs(60);
 /// How long a starting helper may take to answer.
 const HELPER_START: Duration = Duration::from_secs(15);
+/// How long closing waits for deliveries in flight, such as a withdrawal, before stopping the
+/// helper.
+const SHUTDOWN_DRAIN: Duration = Duration::from_secs(5);
 const MAX_PID_FILE: u64 = 16 * 1_024;
 const MAX_CONFIG: u64 = 16 * 1_048_576;
 
@@ -51,9 +60,13 @@ pub struct Servers {
     /// Mluva's private runtime directory for the helper's socket and working directory.
     runtime: Option<PathBuf>,
     codex: Option<PathBuf>,
-    helper: Mutex<Option<Helper>>,
-    /// The helper changed Codex's configuration once; it is not started again.
-    disabled: AtomicBool,
+    helper: Arc<Mutex<Option<Helper>>>,
+    idle: Duration,
+    /// Mluva is closing: no helper starts any more.
+    closing: AtomicBool,
+    /// Deliveries in flight, which closing lets finish.
+    deliveries: AtomicUsize,
+    drained: Notify,
     /// A test's own app server, served by the test process, standing in for the daemon.
     #[cfg(test)]
     fixed: Option<PathBuf>,
@@ -61,10 +74,22 @@ pub struct Servers {
 
 struct Helper {
     child: tokio::process::Child,
+    /// The process Mluva started, which leads its own process group.
     pid: u32,
     rendezvous: PathBuf,
     used: Instant,
-    config: Option<[u8; 32]>,
+    /// Whether Codex already trusted the helper's working directory before it started.
+    trusted_before: bool,
+}
+
+/// A delivery in flight; closing waits for it.
+pub struct InFlight<'a>(&'a Servers);
+
+impl Drop for InFlight<'_> {
+    fn drop(&mut self) {
+        self.0.deliveries.fetch_sub(1, Ordering::AcqRel);
+        self.0.drained.notify_waiters();
+    }
 }
 
 impl Servers {
@@ -73,11 +98,20 @@ impl Servers {
             home,
             runtime,
             codex,
-            helper: Mutex::new(None),
-            disabled: AtomicBool::new(false),
+            helper: Arc::new(Mutex::new(None)),
+            idle: HELPER_IDLE,
+            closing: AtomicBool::new(false),
+            deliveries: AtomicUsize::new(0),
+            drained: Notify::new(),
             #[cfg(test)]
             fixed: None,
         }
+    }
+
+    /// The same servers, with the helper stopped after `idle` unused.
+    pub fn with_idle(mut self, idle: Duration) -> Self {
+        self.idle = idle;
+        self
     }
 
     /// Servers whose daemon is a test's own app server at `socket`.
@@ -111,27 +145,35 @@ impl Servers {
     /// An initialized connection: the daemon when it answers, else the helper, started if
     /// needed. `None` when neither is available.
     pub async fn connect(&self) -> Option<(AppServer, Owner)> {
+        self.connect_as(true).await
+    }
+
+    /// As [`Self::connect`]; the helper is used, and started, only when `helper` allows. The
+    /// daemon is tried once.
+    pub async fn connect_as(&self, helper: bool) -> Option<(AppServer, Owner)> {
         if let Some(server) = self.connect_daemon().await {
             return Some((server, Owner::Daemon));
+        }
+        if !helper {
+            return None;
         }
         self.helper().await.map(|server| (server, Owner::Helper))
     }
 
     /// The daemon alone, when it runs and answers; it never starts anything.
-    pub async fn connect_daemon(&self) -> Option<AppServer> {
+    async fn connect_daemon(&self) -> Option<AppServer> {
         #[cfg(test)]
         if let Some(socket) = &self.fixed {
-            return AppServer::connect(socket, Some(std::process::id()))
+            return AppServer::connect(socket, Peer::Process(std::process::id()))
                 .await
                 .ok();
         }
         let (socket, pid) = self.daemon()?;
-        AppServer::connect(&socket, Some(pid)).await.ok()
+        AppServer::connect(&socket, Peer::Process(pid)).await.ok()
     }
 
-    /// The daemon's socket and process, when its PID file names a live process from this boot
-    /// and its control socket is private to this account.
-    fn daemon(&self) -> Option<(PathBuf, u32)> {
+    /// The daemon's process, when its PID file names a live process from this boot.
+    pub fn daemon_pid(&self) -> Option<u32> {
         let directory = self.home.join("app-server-daemon");
         let file = ["daemon.pid", "app-server.pid"]
             .iter()
@@ -148,20 +190,24 @@ impl Servers {
         let identity = record.get("processIdentity")?;
         // A PID file left from before a reboot, or a PID now used by another process, is no
         // daemon.
-        if identity.get("bootId")?.as_str()? != agent_platform::boot_id()?
-            || identity.get("startTicks")?.as_u64()?.to_string()
-                != agent_platform::process_start(pid)?
-        {
-            return None;
-        }
+        (identity.get("bootId")?.as_str()? == agent_platform::boot_id()?
+            && identity.get("startTicks")?.as_u64()?.to_string()
+                == agent_platform::process_start(pid)?)
+        .then_some(pid)
+    }
+
+    /// The daemon's socket and process, when it runs and its control socket is private to this
+    /// account.
+    fn daemon(&self) -> Option<(PathBuf, u32)> {
+        let pid = self.daemon_pid()?;
         let socket =
             rendezvous_target(&self.home.join("app-server-control/app-server-control.sock"))?;
         Some((socket, pid))
     }
 
-    /// Mluva's own helper, started if it is not running.
+    /// Mluva's own helper, started if it is not running and Mluva is not closing.
     async fn helper(&self) -> Option<AppServer> {
-        if self.disabled.load(Ordering::Relaxed) {
+        if self.closing.load(Ordering::Acquire) {
             return None;
         }
         let mut helper = self.helper.lock().await;
@@ -169,14 +215,21 @@ impl Servers {
             let alive = matches!(running.child.try_wait(), Ok(None));
             if alive && let Some(socket) = rendezvous_target(&running.rendezvous) {
                 running.used = Instant::now();
-                if let Ok(server) = AppServer::connect(&socket, Some(running.pid)).await {
+                if let Ok(server) = AppServer::connect(&socket, Peer::Within(running.pid)).await {
                     return Some(server);
                 }
             }
-            *helper = None;
+            if let Some(stale) = helper.take() {
+                stop(stale, &self.home).await;
+            }
+        }
+        if self.closing.load(Ordering::Acquire) {
+            return None;
         }
         let (started, server) = self.start().await?;
         *helper = Some(started);
+        drop(helper);
+        tokio::spawn(watchdog(self.helper.clone(), self.idle, self.home.clone()));
         Some(server)
     }
 
@@ -189,7 +242,7 @@ impl Servers {
             return None;
         }
         let rendezvous = runtime.join("codex-app-server.sock");
-        let config = fingerprint(&self.home.join("config.toml"));
+        let trusted_before = trusts_directory(&self.home, runtime);
         let mut command = Command::new(codex);
         command
             .arg("app-server")
@@ -201,6 +254,8 @@ impl Servers {
             .stdin(std::process::Stdio::null())
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
+            // Its own group, so a launcher and the server it runs stop together.
+            .process_group(0)
             .kill_on_drop(true);
         process_lifetime::kill_with_parent(&mut command);
         let mut child = command.spawn().ok()?;
@@ -208,11 +263,12 @@ impl Servers {
         let deadline = Instant::now() + HELPER_START;
         let server = loop {
             if let Some(socket) = rendezvous_target(&rendezvous)
-                && let Ok(server) = AppServer::connect(&socket, Some(pid)).await
+                && let Ok(server) = AppServer::connect(&socket, Peer::Within(pid)).await
             {
                 break server;
             }
             if Instant::now() >= deadline || !matches!(child.try_wait(), Ok(None)) {
+                kill_group(pid);
                 let _ = child.kill().await;
                 return None;
             }
@@ -223,50 +279,34 @@ impl Servers {
             pid,
             rendezvous,
             used: Instant::now(),
-            config,
+            trusted_before,
         };
-        if !self.unchanged(&helper) {
-            self.stop_changed(helper).await;
-            return None;
-        }
+        report_trust(&helper, &self.home);
         Some((helper, server))
     }
 
-    /// Whether Codex's configuration is as it was before the helper started.
-    fn unchanged(&self, helper: &Helper) -> bool {
-        fingerprint(&self.home.join("config.toml")) == helper.config
+    /// Count a delivery in flight until the returned guard is dropped.
+    pub fn delivering(&self) -> InFlight<'_> {
+        self.deliveries.fetch_add(1, Ordering::AcqRel);
+        InFlight(self)
     }
 
-    async fn stop_changed(&self, mut helper: Helper) {
-        let _ = helper.child.kill().await;
-        self.disabled.store(true, Ordering::Relaxed);
-        // Only the fact: no path, value or content.
-        eprintln!(
-            "Codex's configuration changed while Mluva's Codex app server ran; Mluva stopped it."
-        );
-    }
-
-    /// After a use: stop the helper if the configuration changed, or if it sat idle too long.
-    pub async fn tidy(&self) {
-        let mut helper = self.helper.lock().await;
-        let Some(running) = helper.as_ref() else {
-            return;
-        };
-        if !self.unchanged(running) {
-            if let Some(changed) = helper.take() {
-                self.stop_changed(changed).await;
-            }
-        } else if running.used.elapsed() > HELPER_IDLE
-            && let Some(mut idle) = helper.take()
-        {
-            let _ = idle.child.kill().await;
-        }
-    }
-
-    /// Stop the helper now, as Mluva closes.
+    /// Mluva is closing: start no helper, let deliveries in flight finish (a Codex message being
+    /// withdrawn included), within a bound, then stop the helper.
     pub async fn shutdown(&self) {
-        if let Some(mut helper) = self.helper.lock().await.take() {
-            let _ = helper.child.kill().await;
+        self.closing.store(true, Ordering::Release);
+        let deadline = tokio::time::Instant::now() + SHUTDOWN_DRAIN;
+        loop {
+            let drained = self.drained.notified();
+            if self.deliveries.load(Ordering::Acquire) == 0 {
+                break;
+            }
+            if tokio::time::timeout_at(deadline, drained).await.is_err() {
+                break;
+            }
+        }
+        if let Some(helper) = self.helper.lock().await.take() {
+            stop(helper, &self.home).await;
         }
     }
 
@@ -278,6 +318,76 @@ impl Servers {
             .as_mut()
             .is_some_and(|helper| matches!(helper.child.try_wait(), Ok(None)))
     }
+
+    /// The helper's process, while it runs; for tests and diagnostics.
+    pub async fn helper_pid(&self) -> Option<u32> {
+        self.helper.lock().await.as_ref().map(|helper| helper.pid)
+    }
+}
+
+/// Stop the helper once nobody has used it for `idle`, whatever else Mluva is doing.
+async fn watchdog(slot: Arc<Mutex<Option<Helper>>>, idle: Duration, home: PathBuf) {
+    loop {
+        tokio::time::sleep(idle.min(IDLE_CHECK).max(Duration::from_millis(10))).await;
+        let mut helper = slot.lock().await;
+        let Some(running) = helper.as_mut() else {
+            return;
+        };
+        let exited = !matches!(running.child.try_wait(), Ok(None));
+        if exited || running.used.elapsed() >= idle {
+            if let Some(stopped) = helper.take() {
+                stop(stopped, &home).await;
+            }
+            return;
+        }
+    }
+}
+
+/// Stop the helper's whole process group: politely, then for good.
+async fn stop(mut helper: Helper, home: &Path) {
+    report_trust(&helper, home);
+    // SAFETY: signals only the process group Mluva created for its helper.
+    unsafe { libc::killpg(helper.pid as libc::pid_t, libc::SIGTERM) };
+    if tokio::time::timeout(Duration::from_secs(1), helper.child.wait())
+        .await
+        .is_err()
+    {
+        kill_group(helper.pid);
+        let _ = helper.child.kill().await;
+    }
+    kill_group(helper.pid);
+}
+
+fn kill_group(pid: u32) {
+    // SAFETY: signals only the process group Mluva created for its helper.
+    unsafe { libc::killpg(pid as libc::pid_t, libc::SIGKILL) };
+}
+
+/// Report, as a fact only, a trust entry for the helper's own working directory that was not
+/// there before it started: the one configuration change attributable to the helper.
+fn report_trust(helper: &Helper, home: &Path) {
+    let Some(directory) = helper.rendezvous.parent() else {
+        return;
+    };
+    if !helper.trusted_before && trusts_directory(home, directory) {
+        eprintln!("Codex recorded Mluva's Codex app server directory as a trusted project.");
+    }
+}
+
+/// Whether Codex's configuration has a `[projects."<directory>"]` entry.
+fn trusts_directory(home: &Path, directory: &Path) -> bool {
+    let Ok(file) = std::fs::File::open(home.join("config.toml")) else {
+        return false;
+    };
+    let mut text = String::new();
+    if file.take(MAX_CONFIG).read_to_string(&mut text).is_err() {
+        return false;
+    }
+    let directory = directory.to_string_lossy();
+    text.lines().any(|line| {
+        let line = line.trim();
+        line.starts_with("[projects.") && line.contains(directory.as_ref())
+    })
 }
 
 /// The socket a Codex rendezvous path leads to: itself when it is a socket, else the symlink's
@@ -310,14 +420,6 @@ pub(crate) fn rendezvous_target(path: &Path) -> Option<PathBuf> {
         && file.file_type().is_socket()
         && file.uid() == uid)
         .then_some(socket)
-}
-
-/// A digest of Codex's configuration, or `None` when there is none.
-fn fingerprint(path: &Path) -> Option<[u8; 32]> {
-    let file = std::fs::File::open(path).ok()?;
-    let mut bytes = Vec::new();
-    file.take(MAX_CONFIG).read_to_end(&mut bytes).ok()?;
-    Some(Sha256::digest(&bytes).into())
 }
 
 #[cfg(test)]
@@ -423,6 +525,7 @@ trusted_hash = "0000000000000000000000000000000000000000000000000000000000000000
         let servers = Servers::new(home.clone(), Some(runtime), Some(codex));
         let (mut server, owner) = servers.connect().await.expect("helper answers");
         assert_eq!(owner, Owner::Helper);
+        let helper = servers.helper_pid().await.unwrap();
         let unknown = "01900000-0000-7000-8000-00000000dead";
         for (method, params) in [
             ("thread/loaded/list", serde_json::json!({})),
@@ -438,12 +541,13 @@ trusted_hash = "0000000000000000000000000000000000000000000000000000000000000000
             let _ = server.call(method, params).await;
         }
         drop(server);
-        servers.tidy().await;
-        assert!(servers.helper_running().await, "the guard saw no change");
+        assert!(servers.helper_running().await);
         servers.shutdown().await;
         assert_eq!(
             std::fs::read_to_string(home.join("config.toml")).unwrap(),
             config
         );
+        // The whole group is gone.
+        assert!(!std::path::Path::new(&format!("/proc/{helper}")).exists());
     }
 }

@@ -6,10 +6,10 @@
 //! alone means nothing. The holder comes from the kernel's lock table, never from taking the
 //! lock or resuming the thread. Each live thread is read once from an app server to leave out
 //! Codex's ephemeral helpers and sub-agents; its name comes from Codex's session index, and its
-//! state from the server that owns it, when Mluva is connected to that one.
+//! state from the daemon when the daemon has it loaded. File reads run on a blocking thread.
 use super::server::{Owner, Servers};
 use crate::{agent_platform, claude_sessions, herdr};
-use mluva_core::agent_voice::{AgentKind, AgentStatus, CodexThread, Target};
+use mluva_core::agent_voice::{AgentKind, AgentStatus, CodexThread, Host, Target};
 use serde_json::{Value, json};
 use std::{
     collections::HashMap,
@@ -34,7 +34,8 @@ pub struct LiveThread {
     pub since: SystemTime,
 }
 
-/// Threads whose lock is held now, oldest first.
+/// Threads whose lock is held now, oldest first. Helpers and sub-agents are among them until
+/// discovery reads what they are.
 pub fn live_threads(home: &Path, holders: &HashMap<(u64, u64), u32>) -> Vec<LiveThread> {
     let directory = home.join("thread-writer-locks");
     if !claude_sessions::private_directory(&directory) {
@@ -59,7 +60,7 @@ pub fn live_threads(home: &Path, holders: &HashMap<(u64, u64), u32>) -> Vec<Live
             if !metadata.file_type().is_file() || metadata.uid() != uid {
                 return None;
             }
-            let holder = agent_platform::flock_holder_on(holders, mount, &metadata)?;
+            let holder = agent_platform::flock_holder_on(holders, mount, &item.path(), &metadata)?;
             Some(LiveThread {
                 id: id.to_owned(),
                 lock: item.path(),
@@ -69,7 +70,6 @@ pub fn live_threads(home: &Path, holders: &HashMap<(u64, u64), u32>) -> Vec<Live
         })
         .collect();
     live.sort_by(|a, b| a.since.cmp(&b.since).then_with(|| a.id.cmp(&b.id)));
-    live.truncate(MAX_LIVE);
     live
 }
 
@@ -98,40 +98,57 @@ pub struct CodexThreads {
 }
 
 impl CodexThreads {
-    /// Every live thread a person started, as a target Codex's queue reaches.
-    pub async fn discover(&mut self, servers: &Servers) -> Vec<Target> {
-        let live = live_threads(servers.home(), &agent_platform::flock_holders());
+    /// Every live thread a person started, as a target Codex's queue reaches: the newest
+    /// [`MAX_LIVE`] of them, in the order they were opened. `names` are the session index's
+    /// names, read once per pass by the caller.
+    pub async fn discover(
+        &mut self,
+        servers: &Servers,
+        names: &HashMap<String, String>,
+    ) -> Vec<Target> {
+        let home = servers.home().to_path_buf();
+        let live = tokio::task::spawn_blocking(move || {
+            live_threads(&home, &agent_platform::flock_holders())
+        })
+        .await
+        .unwrap_or_default();
         self.known
             .retain(|id, _| live.iter().any(|thread| &thread.id == id));
         if live.is_empty() {
-            servers.tidy().await;
             return vec![];
         }
+        // Newest first, so a crowded pass learns about recently opened threads first.
         let unread: Vec<String> = live
             .iter()
+            .rev()
             .filter(|thread| !self.known.contains_key(&thread.id))
             .take(MAX_READS)
             .map(|thread| thread.id.clone())
             .collect();
         let mut states = HashMap::new();
-        // The daemon may own threads and so know their state; Mluva's helper owns none, so it
-        // is asked only about threads not read yet.
-        let connection = match servers.connect_daemon().await {
-            Some(daemon) => Some((daemon, Owner::Daemon)),
-            None if !unread.is_empty() => servers.connect().await,
-            None => None,
-        };
-        if let Some((mut server, owner)) = connection {
-            let ask: Vec<&String> = match owner {
-                Owner::Daemon => live
+        // One connection: the daemon when it runs, else Mluva's helper only to read new threads.
+        if let Some((mut server, owner)) = servers.connect_as(!unread.is_empty()).await {
+            // The daemon knows the state of the threads it has loaded; nobody else's.
+            let loaded: Vec<String> = match owner {
+                Owner::Daemon => server
+                    .call("thread/loaded/list", json!({}))
+                    .await
+                    .ok()
+                    .and_then(|loaded| loaded.get("data").and_then(Value::as_array).cloned())
+                    .unwrap_or_default()
                     .iter()
-                    .map(|thread| &thread.id)
-                    .filter(|id| {
-                        unread.contains(id) || self.known.get(*id).is_some_and(Option::is_some)
-                    })
+                    .filter_map(|id| id.as_str().map(str::to_owned))
                     .collect(),
-                Owner::Helper => unread.iter().collect(),
+                Owner::Helper => vec![],
             };
+            let ask: Vec<&String> = live
+                .iter()
+                .map(|thread| &thread.id)
+                .filter(|id| {
+                    unread.contains(id)
+                        || (loaded.contains(id) && self.known.get(*id).is_some_and(Option::is_some))
+                })
+                .collect();
             for id in ask {
                 let Ok(read) = server
                     .call(
@@ -150,22 +167,37 @@ impl CodexThreads {
                     states.insert(id.clone(), status);
                 }
             }
-            drop(server);
-            servers.tidy().await;
         }
-        let names = herdr::codex_thread_names(&servers.home().join("session_index.jsonl"));
-        live.into_iter()
+        let daemon = servers.daemon_pid();
+        let kept: Vec<Target> = live
+            .into_iter()
             .filter_map(|thread| {
                 let meta = self.known.get(&thread.id)?.clone()?;
                 let name = names.get(&thread.id).cloned().or(meta.name);
+                let host = host(thread.holder, daemon);
                 Some(target(
                     &thread,
                     name,
                     meta.cwd,
                     states.get(&thread.id).copied(),
+                    host,
                 ))
             })
-            .collect()
+            .collect();
+        let skip = kept.len().saturating_sub(MAX_LIVE);
+        kept.into_iter().skip(skip).collect()
+    }
+}
+
+/// Where a thread runs, from the process holding it: Codex Desktop's bundled server, the shared
+/// daemon for an attached TUI, else a TUI in a terminal.
+fn host(holder: u32, daemon: Option<u32>) -> Host {
+    if agent_platform::bundled_app_server(holder) {
+        Host::App
+    } else if daemon == Some(holder) {
+        Host::Daemon
+    } else {
+        Host::Terminal
     }
 }
 
@@ -223,20 +255,25 @@ fn target(
     name: Option<String>,
     cwd: String,
     status: Option<AgentStatus>,
+    host: Host,
 ) -> Target {
-    let kind = if agent_platform::bundled_app_server(thread.holder) {
+    let kind = if host == Host::App {
         AgentKind::CodexDesktop
     } else {
         AgentKind::CodexCli
     };
     Target {
         kind,
-        name: format!("codex-{}", &thread.id[..8]),
+        // A thread ID's first digits are its creation time and shared by threads opened close
+        // together; its last digits are random.
+        name: format!("codex-{}", &thread.id[thread.id.len() - 8..]),
+        host,
         title: name.unwrap_or_default(),
         project: cwd,
         status: status.unwrap_or(AgentStatus::Unknown),
         session_id: thread.id.clone(),
         pid: thread.holder,
+        started: agent_platform::process_start(thread.holder).unwrap_or_default(),
         codex: Some(CodexThread {
             lock: thread.lock.to_string_lossy().into_owned(),
             holder: thread.holder,
@@ -258,6 +295,7 @@ pub fn merge(mut targets: Vec<Target>, threads: Vec<Target>) -> Vec<Target> {
         match pane {
             Some(pane) => {
                 pane.pid = thread.pid;
+                pane.started = thread.started;
                 pane.kind = thread.kind;
                 pane.codex = thread.codex;
                 if thread.status != AgentStatus::Unknown {
@@ -399,7 +437,13 @@ mod tests {
                 holder,
                 since: SystemTime::UNIX_EPOCH,
             };
-            target(&thread, Some("Other".into()), "/synthetic".into(), status)
+            target(
+                &thread,
+                Some("Other".into()),
+                "/synthetic".into(),
+                status,
+                Host::Terminal,
+            )
         };
         let merged = merge(
             vec![pane.clone()],
@@ -420,7 +464,7 @@ mod tests {
         assert!(merged[0].herdr.is_some(), "the pane keeps its place");
         assert_eq!(
             (merged[1].session_id.as_str(), merged[1].name.as_str()),
-            (B, "codex-01900000")
+            (B, "codex-0000a002")
         );
         assert_eq!(merged[1].status, AgentStatus::Idle);
         // The same thread later held by another process is a different choice.
@@ -462,7 +506,8 @@ mod discovery_tests {
         let peer = Peer::start(Scenario::Idle);
         let servers = Servers::fixed(temp.path().into(), peer.socket.clone());
         let mut threads = CodexThreads::default();
-        let found = threads.discover(&servers).await;
+        let names = herdr::codex_thread_names(&temp.path().join("session_index.jsonl"));
+        let found = threads.discover(&servers, &names).await;
         assert_eq!(found.len(), 1, "the title helper is left out");
         let target = &found[0];
         assert_eq!(target.session_id, THREAD);
@@ -481,7 +526,7 @@ mod discovery_tests {
                 .count()
         };
         assert_eq!(reads(), 2);
-        threads.discover(&servers).await;
+        threads.discover(&servers, &names).await;
         assert_eq!(
             reads(),
             3,
@@ -489,7 +534,7 @@ mod discovery_tests {
         );
         // A closed thread leaves the wheel.
         drop(held);
-        assert!(threads.discover(&servers).await.is_empty());
+        assert!(threads.discover(&servers, &names).await.is_empty());
         assert_eq!(peer.answers_to_server(), 0);
     }
 }

@@ -130,21 +130,37 @@ fn only_a_guarded_herdr_pane_routes_and_herdr_never_answers_a_waiting_prompt() {
 
 #[test]
 fn a_replaced_or_restarted_session_never_matches_a_remembered_choice() {
-    let chosen = guarded();
+    let chosen = Target {
+        pid: 4_200,
+        started: "123456".into(),
+        ..guarded()
+    };
     let same = Target {
         title: "Renamed thread".into(),
         status: AgentStatus::Working,
-        ..guarded()
+        ..chosen.clone()
     };
     assert!(chosen.same_instance(&same), "renaming keeps the choice");
-    for change in 0..4 {
-        let mut other = guarded();
+    // Herdr's guard, server or pane changing around the same process keeps the session: the
+    // route is picked again at delivery.
+    for change in 0..3 {
+        let mut other = chosen.clone();
         let pane = other.herdr.as_mut().unwrap();
         match change {
-            0 => pane.guard = "b".repeat(64),
-            1 => pane.server_epoch = "restarted".into(),
-            2 => pane.pane_id = "w1:p3".into(),
-            _ => pane.socket = "/run/user/fixture/other.sock".into(),
+            0 => pane.guard.clear(),
+            1 => pane.guard = "b".repeat(64),
+            _ => pane.server_epoch = "restarted".into(),
+        }
+        assert!(chosen.same_instance(&other), "change {change}");
+    }
+    // Another session, process, process start or product never matches.
+    for change in 0..4 {
+        let mut other = chosen.clone();
+        match change {
+            0 => other.session_id = "0199a1b2-c3d4-7e5f-8a9b-0c1d2effffff".into(),
+            1 => other.pid = 4_300,
+            2 => other.started = "999999".into(),
+            _ => other.kind = AgentKind::CodexDesktop,
         }
         assert!(!chosen.same_instance(&other), "change {change}");
     }
@@ -154,21 +170,52 @@ fn a_replaced_or_restarted_session_never_matches_a_remembered_choice() {
         ..outside()
     };
     assert!(!outside().same_instance(&resumed));
-    // A pane with no native session is matched by pane; a session never matches a bare pane.
-    let bare = |pane: &str| Target {
+    // Without native sessions, Herdr's identity: the guard for guarded panes, else the pane.
+    let bare = |pane: &str, guard: &str| Target {
         herdr: Some(HerdrPane {
             socket: "/run/user/fixture/herdr.sock".into(),
             server_epoch: "epoch".into(),
             pane_id: pane.into(),
-            guard: String::new(),
+            guard: guard.into(),
         }),
         name: pane.into(),
         kind: AgentKind::CodexCli,
         ..Target::default()
     };
-    assert!(bare("w2:p1").same_instance(&bare("w2:p1")));
-    assert!(!bare("w2:p1").same_instance(&bare("w2:p2")));
-    assert!(!bare("w2:p1").same_instance(&outside()));
+    assert!(bare("w2:p1", "").same_instance(&bare("w2:p1", "")));
+    assert!(!bare("w2:p1", "").same_instance(&bare("w2:p2", "")));
+    assert!(bare("w2:p1", &"a".repeat(64)).same_instance(&bare("w2:p1", &"a".repeat(64))));
+    assert!(!bare("w2:p1", &"a".repeat(64)).same_instance(&bare("w2:p1", &"b".repeat(64))));
+    assert!(!bare("w2:p1", "").same_instance(&bare("w2:p1", &"a".repeat(64))));
+    assert!(!bare("w2:p1", "").same_instance(&outside()));
+}
+
+#[test]
+fn a_session_keeps_one_identity_while_herdrs_guard_comes_and_goes() {
+    let mut session = Target {
+        kind: AgentKind::ClaudeCode,
+        pid: 4_100,
+        started: "123456".into(),
+        inbox: Some(ClaudeInbox {
+            entry: "/run/user/fixture/claude/sessions/4100.json".into(),
+            socket: "/run/user/fixture/cc-socks/4100.sock".into(),
+            proc_start: "123456".into(),
+        }),
+        ..guarded()
+    };
+    let chosen = session.clone();
+    assert_eq!(session.route(), Route::Herdr);
+    // Waiting for the person: Herdr withdraws its guard, the inbox still queues to it.
+    session.status = AgentStatus::Blocked;
+    session.herdr.as_mut().unwrap().guard.clear();
+    assert!(chosen.same_instance(&session));
+    assert_eq!(session.route(), Route::ClaudeInbox);
+    assert!(session.can_receive());
+    // Ready again, guarded again: still the same choice, sent through Herdr.
+    session.status = AgentStatus::Idle;
+    session.herdr.as_mut().unwrap().guard = "c".repeat(64);
+    assert!(chosen.same_instance(&session));
+    assert_eq!(session.route(), Route::Herdr);
 }
 
 #[test]

@@ -13,9 +13,9 @@ use crate::{
     claude_desktop, claude_inbox,
     claude_sessions::{self, ClaudeRegistry},
     codex::{self, server::Servers, threads::CodexThreads},
-    herdr,
+    herdr::{self, CodexNames},
 };
-use mluva_core::agent_voice::{Route, SendOutcome, Submission, Target};
+use mluva_core::agent_voice::{MAX_MESSAGE_BYTES, Route, SendOutcome, Submission, Target};
 use std::{
     future::Future,
     path::PathBuf,
@@ -36,6 +36,9 @@ pub struct Sources {
     pub claude: Option<Arc<Mutex<ClaudeRegistry>>>,
     /// Live Codex threads, found through their writer locks and an app server.
     pub codex: Option<Arc<tokio::sync::Mutex<CodexThreads>>>,
+    /// Codex's session index, which names Codex threads in Herdr panes and outside them; read
+    /// once per pass, and then only what was appended.
+    pub codex_names: Option<Arc<Mutex<CodexNames>>>,
     /// Offer desktop app surfaces, such as a new Claude chat, when their app is installed.
     pub apps: bool,
 }
@@ -74,10 +77,21 @@ impl Found {
 /// Discover every session the sources can see. Herdr is only ever asked to list, and the
 /// registry is read on a blocking thread. `None` when cancelled.
 pub async fn discover(sources: Sources, cancel: &CancellationToken) -> Option<Found> {
+    let names = match sources.codex_names.clone() {
+        Some(index) => tokio::task::spawn_blocking(move || {
+            index
+                .lock()
+                .map(|mut index| index.refresh().clone())
+                .unwrap_or_default()
+        })
+        .await
+        .unwrap_or_default(),
+        None => Default::default(),
+    };
     let herdr = async {
         let mut found = Found::default();
         for path in sources.herdr.into_iter().take(MAX_HERDR_SERVERS) {
-            match herdr::discover(&path).await {
+            match herdr::discover_named(&path, &names).await {
                 Ok(discovery) => {
                     found.herdr = true;
                     found.guarded |= discovery.guarded;
@@ -105,7 +119,7 @@ pub async fn discover(sources: Sources, cancel: &CancellationToken) -> Option<Fo
         let (Some(threads), Some(servers)) = (sources.codex, Servers::system()) else {
             return vec![];
         };
-        threads.lock().await.discover(servers).await
+        threads.lock().await.discover(servers, &names).await
     };
     let apps = async { sources.apps && claude_desktop::installed().await };
     let (mut found, sessions, threads, desktop) = tokio::select! {
@@ -241,10 +255,20 @@ pub fn transport(route: Route) -> Option<&'static dyn Transport> {
     TRANSPORTS.iter().copied().find(|t| t.route() == route)
 }
 
+/// What every route requires before anything is written: a present session its route may
+/// deliver to now, text that is neither empty nor too long, and no cancellation. Each transport
+/// asks this again, so none can be reached without it.
+pub(crate) fn admissible(submission: &Submission, cancel: &CancellationToken) -> bool {
+    submission.target.can_receive()
+        && !submission.text.trim().is_empty()
+        && submission.text.len() <= MAX_MESSAGE_BYTES
+        && !cancel.is_cancelled()
+}
+
 /// Deliver once through the target's own transport. A target no transport reaches is rejected
 /// without connecting anywhere.
 pub async fn deliver(submission: &Submission, cancel: &CancellationToken) -> Receipt {
-    match transport(submission.target.route()) {
+    match transport(submission.target.route()).filter(|_| admissible(submission, cancel)) {
         Some(transport) => transport.deliver(submission, cancel).await,
         None => SendOutcome::Rejected.into(),
     }

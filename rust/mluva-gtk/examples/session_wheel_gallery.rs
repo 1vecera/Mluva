@@ -137,7 +137,13 @@ fn codex_thread(index: usize, title: &str, kind: AgentKind, status: AgentStatus)
     let thread = format!("01900000-0000-7000-8000-0000000{index:05}");
     Target {
         kind,
-        name: format!("codex-{}", &thread[..8]),
+        name: format!("codex-{}", &thread[thread.len() - 8..]),
+        // Codex Desktop holds its threads in its own bundled server.
+        host: if kind == AgentKind::CodexDesktop {
+            Host::App
+        } else {
+            Host::Terminal
+        },
         title: title.into(),
         project: "/fixture/project".into(),
         status,
