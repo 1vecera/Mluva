@@ -47,10 +47,10 @@ if (process.argv[2] === "delivery") {
   const timeline = readFileSync(join(dir, "timeline.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
   const agents = JSON.parse(readFileSync(join(dir, "agents-list.json"), "utf8")).recipients.map((r) => ({ title: r.title, kind: r.kind, route: r.route, delivery: r.delivery }));
   const probe = execFileSync("ffprobe", ["-v", "error", "-show_entries", "stream=width,height", "-of", "csv=p=0", mkv]).toString().trim().split(",").map(Number);
-  writeFileSync(
-    "src/universal/delivery-take.json",
-    JSON.stringify({ screen: probe, times: used.map((f) => Math.round((f.t - t0) * 1000) / 1000), timeline, agents, md5: { frames: staged.length, matching: staged.length - mismatches } }, null, 1) + "\n",
-  );
+  const record = { screen: probe, times: used.map((f) => Math.round((f.t - t0) * 1000) / 1000), timeline, agents, md5: { frames: staged.length, matching: staged.length - mismatches } };
+  // One key per line keeps the 1300 frame times out of the diff's way.
+  const body = Object.entries(record).map(([k, v]) => ` ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(",\n");
+  writeFileSync("src/universal/delivery-take.json", `{\n${body}\n}\n`);
   console.log(`staged ${used.length} delivery frames (${from}–${to} s); RGB MD5 match ${staged.length - mismatches}/${used.length}`);
   process.exit(0);
 }
