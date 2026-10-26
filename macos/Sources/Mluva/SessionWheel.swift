@@ -5,6 +5,8 @@ import SwiftUI
 struct SessionWheelView: View {
     let model: AppModel
     @Namespace private var glass
+    /// Measured capsule sizes by session; estimates stand in until a capsule is measured.
+    @State private var sizes: [String: CGSize] = [:]
 
     private var agents: AgentController { model.agents }
     private var layout: WheelLayout { WheelLayout(sessions: agents.sessions, page: model.wheelPage) }
@@ -14,8 +16,8 @@ struct SessionWheelView: View {
     var body: some View {
         GeometryReader { proxy in
             let size = proxy.size
-            let widest = (layout.slots.map { Double(label(for: $0).count) * 8.4 }.max() ?? 120) + 72
-            let radius = layout.radius(itemWidth: widest, centerRadius: 118, limit: Double(min(size.width, size.height)) / 2 - 60)
+            let itemSizes = layout.slots.map { sizes[$0.id] ?? CGSize(width: Double(label(for: $0).count) * 8 + 76, height: 48) }
+            let offsets = layout.offsets(itemSizes: itemSizes, centerRadius: 118, limit: Double(min(size.width, size.height)) / 2)
             ZStack {
                 Color.black.opacity(0.35)
                     .ignoresSafeArea()
@@ -28,11 +30,11 @@ struct SessionWheelView: View {
                             .frame(width: 236, height: 236)
                             .glassEffect(.regular, in: .circle)
                             .glassEffectID("center", in: glass)
-                        ForEach(layout.slots) { slot in
+                        ForEach(Array(layout.slots.enumerated()), id: \.element.id) { index, slot in
                             item(slot)
-                                .offset(
-                                    x: radius * sin(slot.angle * .pi / 180),
-                                    y: -radius * cos(slot.angle * .pi / 180))
+                                .onGeometryChange(for: CGSize.self) { $0.size } action: { sizes[slot.id] = $0 }
+                                .offset(x: offsets.indices.contains(index) ? offsets[index].x : 0,
+                                        y: offsets.indices.contains(index) ? offsets[index].y : 0)
                         }
                     }
                 }

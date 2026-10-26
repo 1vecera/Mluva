@@ -27,6 +27,7 @@ struct JellyLight: View {
     var size: CGFloat = 28
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private static let canvasScale = 1.6
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1 / 60, paused: reduceMotion || mood == .idle || mood == .done)) { context in
@@ -35,6 +36,8 @@ struct JellyLight: View {
                 draw(in: &canvas, area: area, time: reduceMotion ? 0 : t)
             }
         }
+        // The shadow's blur needs clear canvas around the jelly, or it ends in a hard square.
+        .frame(width: size * Self.canvasScale, height: size * Self.canvasScale)
         .frame(width: size, height: size)
         .overlay {
             if mood == .done {
@@ -62,7 +65,7 @@ struct JellyLight: View {
         let center = CGPoint(x: area.width / 2, y: area.height / 2)
         let breath = 0.5 + 0.5 * sin(t * 2 * .pi / 3.4)
         let voice = mood == .listening ? Double(min(1, level)) : 0
-        let base = Double(min(area.width, area.height)) / 2 * 0.80
+        let base = Double(min(area.width, area.height)) / Self.canvasScale / 2 * 0.80
         let radius: Double = switch mood {
         case .listening: base * (0.90 + 0.05 * breath + 0.10 * voice)
         case .finishing: base * (0.86 + 0.03 * breath)

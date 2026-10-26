@@ -320,7 +320,7 @@ private struct AnnotationSettings: View {
                 Text("Changes apply to the next recording. Off in Incognito. Raw screen captures stay in memory; only the marked keyframes are saved, beside the dictation in History.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Section("Needs") {
+            Section("Permission") {
                 PermissionRow(permission: .screenRecording, permissions: model.permissions)
             }
             Section("While recording") {

@@ -1,3 +1,4 @@
+import CoreGraphics
 @preconcurrency import AVFoundation
 import Foundation
 import Testing
@@ -60,6 +61,25 @@ struct WheelTests {
         #expect(layout.slots[0].angle == 30)
         #expect(layout.slots[1].angle > layout.slots[0].angle)
         #expect(layout.slot(for: "s")?.session.display_name == "b")
+    }
+
+    @Test func capsulesHugTheCentreWithoutTouchingEachOtherOrTheDisc() {
+        for count in [1, 3, 7, 12, 26] {
+            let layout = WheelLayout(sessions: (0..<count).map { session("session \($0)", pid: UInt32($0)) })
+            let sizes = layout.slots.map { CGSize(width: 150 + Double($0.index % 3) * 60, height: 44) }
+            let centres = layout.offsets(itemSizes: sizes, centerRadius: 118, limit: 2_000)
+            let rects = zip(centres, sizes).map { CGRect(x: $0.x - $1.width / 2, y: $0.y - $1.height / 2, width: $1.width, height: $1.height) }
+            for (i, rect) in rects.enumerated() {
+                // The nearest point of the capsule stays outside the disc.
+                let nearest = CGPoint(x: min(max(0, rect.minX), rect.maxX), y: min(max(0, rect.minY), rect.maxY))
+                #expect(hypot(nearest.x, nearest.y) >= 118, "slot \(i) of \(count) overlaps the centre")
+                for other in rects[(i + 1)...] where rect.intersects(other) {
+                    Issue.record("slots overlap in a ring of \(count): \(rect) and \(other)")
+                }
+            }
+            // A small ring stays compact: the first capsule sits close to the disc.
+            if count <= 7 { #expect(hypot(centres[0].x, centres[0].y) < 300) }
+        }
     }
 
     @Test func moreThanTwentySixSessionsPage() {

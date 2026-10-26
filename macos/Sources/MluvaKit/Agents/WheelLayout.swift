@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 
 /// The F12 session wheel's arrangement: up to 26 sessions per page, the first at one o'clock
@@ -49,14 +50,33 @@ public struct WheelLayout: Sendable, Equatable {
         return slots.first { $0.letter == key }
     }
 
-    /// Ring radius that keeps every capsule clear of the centre disc and of its neighbours,
-    /// within the screen.
-    public func radius(itemWidth: Double, centerRadius: Double, limit: Double) -> Double {
-        let count = Double(max(slots.count, 6))
-        // Clear of the centre even for a capsule lying sideways at three or nine o'clock.
-        let clearOfCenter = centerRadius + itemWidth / 2 + 28
-        // Neighbours a chord apart; capsules are wide but short, so most of the width suffices.
-        let clearOfNeighbours = (itemWidth * 0.7 + 24) / (2 * sin(.pi / count))
-        return min(max(clearOfCenter, clearOfNeighbours), limit)
+    /// Where each slot's capsule centre sits relative to the wheel's centre, y down: one ring,
+    /// as small as keeps every capsule clear of the centre disc and of every other capsule.
+    public func offsets(itemSizes: [CGSize], centerRadius: Double, gap: Double = 18, limit: Double) -> [CGPoint] {
+        guard itemSizes.count == slots.count, !slots.isEmpty else { return [] }
+        // A capsule's centre must be this far out for its nearest edge to clear the disc.
+        let clear = zip(slots, itemSizes).map { slot, size in
+            let radians = slot.angle * .pi / 180
+            return centerRadius + gap + abs(sin(radians)) * size.width / 2 + abs(cos(radians)) * size.height / 2
+        }
+        func place(_ radius: Double) -> [CGRect] {
+            zip(slots, itemSizes).map { slot, size in
+                let radians = slot.angle * .pi / 180
+                return CGRect(
+                    x: radius * sin(radians) - size.width / 2, y: -radius * cos(radians) - size.height / 2,
+                    width: size.width, height: size.height)
+            }
+        }
+        // At most 26 capsules, so checking every pair is cheap.
+        func crowded(_ rects: [CGRect]) -> Bool {
+            rects.indices.contains { i in rects[(i + 1)...].contains { rects[i].insetBy(dx: -5, dy: -5).intersects($0) } }
+        }
+        var radius = clear.max() ?? centerRadius
+        var rects = place(radius)
+        while radius < limit, crowded(rects) {
+            radius += 4
+            rects = place(radius)
+        }
+        return rects.map { CGPoint(x: $0.midX, y: $0.midY) }
     }
 }

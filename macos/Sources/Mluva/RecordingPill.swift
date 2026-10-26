@@ -161,7 +161,7 @@ struct RecordingPillView: View {
 
     private var detail: String {
         switch route?.phase {
-        case "grace": return "Edit, Keep draft or Cancel to stop it."
+        case "grace": return "Keep draft or cancel to stop it."
         case "sent": return "Herdr confirmed the message reached the session."
         case "unconfirmed": return "Some text may have arrived. Check the session; Mluva won't resend."
         case "draft": return draftReason
