@@ -4,6 +4,9 @@ import { MluvaShowreel } from "./showreel/Showreel";
 import { HIGHLIGHT_DURATION, MluvaRustHighlight } from "./highlight/Highlight";
 import { LockupCheck, LockupCheckMode } from "./showreel/LockupCheck";
 import { DURATION, FPS, HEIGHT, WIDTH } from "./showreel/timing";
+import { MluvaShowreelUniversal } from "./universal/Universal";
+import { DURATION as UNIVERSAL_DURATION } from "./universal/timing";
+import { UniversalLockupCheck, UniversalLockupCheckMode } from "./universal/LockupCheck";
 
 const metadata: CalculateMetadataFunction<IntroProps> = async () => {
   const response = await fetch(staticFile("live/edit.json"));
@@ -31,6 +34,23 @@ export const Root: React.FC = () => (
       id="MluvaShowreel"
       component={MluvaShowreel}
       durationInFrames={DURATION}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+    />
+    <Composition
+      id="MluvaShowreelUniversal"
+      component={MluvaShowreelUniversal}
+      durationInFrames={UNIVERSAL_DURATION}
+      fps={FPS}
+      width={WIDTH}
+      height={HEIGHT}
+    />
+    <Composition
+      id="UniversalLockupCheck"
+      component={UniversalLockupCheck}
+      defaultProps={{ mode: "svg" as UniversalLockupCheckMode }}
+      durationInFrames={1}
       fps={FPS}
       width={WIDTH}
       height={HEIGHT}

@@ -1,0 +1,135 @@
+{
+  "screen": [
+    3840,
+    2160
+  ],
+  "scale": 2,
+  "frames": 341,
+  "timeline": [
+    {
+      "frame": 48,
+      "event": "open",
+      "selected": 0
+    },
+    {
+      "frame": 76,
+      "event": "select",
+      "selected": 2
+    },
+    {
+      "frame": 104,
+      "event": "select",
+      "selected": 4
+    },
+    {
+      "frame": 132,
+      "event": "select",
+      "selected": 8
+    },
+    {
+      "frame": 161,
+      "event": "select",
+      "selected": 1
+    },
+    {
+      "frame": 189,
+      "event": "select",
+      "selected": 5
+    },
+    {
+      "frame": 217,
+      "event": "select",
+      "selected": 3
+    },
+    {
+      "frame": 245,
+      "event": "select",
+      "selected": 6
+    }
+  ],
+  "crop": {
+    "x": 620,
+    "y": 200,
+    "w": 2360,
+    "h": 1630
+  },
+  "panel_scale": 0.5,
+  "fixtures": [
+    {
+      "name": "Cold start profile",
+      "kind": "Claude Code",
+      "place": "in Herdr",
+      "route": "herdr",
+      "caption": "SEND",
+      "line": "SUBMITTED · WITH HERDR'S RECEIPT"
+    },
+    {
+      "name": "api-tests",
+      "kind": "Codex CLI",
+      "place": "in Herdr",
+      "route": "herdr",
+      "caption": "SEND",
+      "line": "SUBMITTED · WITH HERDR'S RECEIPT"
+    },
+    {
+      "name": "Portal test",
+      "kind": "Claude Code",
+      "place": "in tmux",
+      "route": "claude_inbox",
+      "caption": "QUEUE",
+      "line": "TAKEN WHEN THE AGENT IS READY"
+    },
+    {
+      "name": "Onboarding copy",
+      "kind": "Claude Code",
+      "place": "in a terminal",
+      "route": "claude_inbox",
+      "caption": "QUEUE",
+      "line": "TAKEN WHEN THE AGENT IS READY"
+    },
+    {
+      "name": "Inbox triage",
+      "kind": "Claude Desktop",
+      "place": "a Code session",
+      "route": "claude_inbox",
+      "caption": "QUEUE",
+      "line": "TAKEN WHEN THE AGENT IS READY"
+    },
+    {
+      "name": "Parakeet benchmark",
+      "kind": "Claude Code",
+      "place": "in a terminal",
+      "route": "none",
+      "caption": "DRAFT ONLY",
+      "line": "AN EDITABLE DRAFT IN MLUVA"
+    },
+    {
+      "name": "Release notes",
+      "kind": "Codex CLI",
+      "place": "in a terminal",
+      "route": "codex_queue",
+      "caption": "SEND · IF IDLE",
+      "line": "ITS NEXT TURN · BUSY: DRAFT KEPT"
+    },
+    {
+      "name": "Widget breathing",
+      "kind": "Codex Desktop",
+      "place": "desktop app",
+      "route": "codex_queue",
+      "caption": "SEND · IF IDLE",
+      "line": "ITS NEXT TURN · BUSY: DRAFT KEPT"
+    },
+    {
+      "name": "New chat",
+      "kind": "Claude Desktop",
+      "place": "a new chat",
+      "route": "claude_new_chat",
+      "caption": "PREFILL",
+      "line": "A NEW CHAT · YOU PRESS SEND"
+    }
+  ],
+  "md5": {
+    "frames": 341,
+    "matching": 341
+  }
+}
