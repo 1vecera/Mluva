@@ -129,7 +129,7 @@ elif [[ "$mode" == browser-targets ]]; then
 else
     cargo build --locked -p mluva-core --bin phone-fixture-peer -p mluva-gtk --example private_input \
         -p mluva-audio --bin mluva-audio-cleanup --bin audio-fixture-peer \
-        -p mluva-providers --bin credential-fixture-peer
+        -p mluva-providers --bin credential-fixture-peer --bin codex-app-server-fixture-peer
 fi
 if [[ "$mode" == browser-application ]]; then
     cargo build --locked -p mluva-gtk --example firefox_text_peer --example atspi_read_audit

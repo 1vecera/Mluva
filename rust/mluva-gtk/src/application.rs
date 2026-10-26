@@ -57,6 +57,14 @@ pub struct ApplicationDesktop {
     pub account: Rc<crate::account_controller::AccountController>,
     pub agent_voice: Rc<crate::agent_voice_controller::AgentVoiceController>,
     capture_audio_waiting: Cell<bool>,
+    /// The F12-route recording in progress: its diagnostic session, route and start.
+    route_capture: RefCell<
+        Option<(
+            String,
+            mluva_core::diagnostics::RouteKind,
+            std::time::Instant,
+        )>,
+    >,
     pub shell: Rc<ApplicationShell>,
     pub settings: Rc<ApplicationSettings>,
     pub capture: Rc<CaptureController>,
@@ -354,6 +362,7 @@ impl ApplicationDesktop {
         let owner = Rc::new(Self {
             agent_voice,
             capture_audio_waiting: Cell::new(false),
+            route_capture: RefCell::new(None),
             account,
             shell,
             settings,

@@ -1,0 +1,29 @@
+diff --git i/dev/run-isolated-browser.sh w/dev/run-isolated-browser.sh
+index 5458ad8..a7349ed 100644
+--- i/dev/run-isolated-browser.sh
++++ w/dev/run-isolated-browser.sh
+@@ -60,7 +60,7 @@ exec env -i \
+     MLUVA_HOST_NET_NS="$MLUVA_TASK_HOST_NET_NS" \
+     OFFSCREEN_ENABLE_ATSPI=1 OFFSCREEN_DISPLAY_NUMBER="${OFFSCREEN_DISPLAY_NUMBER:-174}" \
+     OFFSCREEN_SCREEN_SPEC="${OFFSCREEN_SCREEN_SPEC:-1280x900x24}" \
+-    XDG_CURRENT_DESKTOP=offscreen GDK_SCALE=1 GDK_DPI_SCALE=1 GSK_RENDERER=cairo \
++    XDG_CURRENT_DESKTOP=offscreen GDK_SCALE="${OFFSCREEN_GDK_SCALE:-1}" GDK_DPI_SCALE=1 GSK_RENDERER=cairo \
+     GTK_A11Y=atspi ATSPI_DISABLE_P2P=1 GDK_DEBUG=no-portals GTK_USE_PORTAL=0 ADW_DISABLE_PORTAL=1 MOZ_ENABLE_WAYLAND=0 \
+     __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
+     __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
+diff --git i/dev/verify.sh w/dev/verify.sh
+index 1a838cb..56ebb12 100755
+--- i/dev/verify.sh
++++ w/dev/verify.sh
+@@ -83,9 +83,9 @@ done
+ set +e
+ env -i PATH="$PATH" HOME="$HOME" LC_ALL=C.UTF-8 \
+     LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}" XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" \
+-    OFFSCREEN_DISPLAY_NUMBER="${OFFSCREEN_DISPLAY_NUMBER:-284}" \
++    OFFSCREEN_DISPLAY_NUMBER="${OFFSCREEN_DISPLAY_NUMBER:-284}" OFFSCREEN_SCREEN_SPEC="${OFFSCREEN_SCREEN_SPEC:-1280x900x24}" OFFSCREEN_GDK_SCALE="${OFFSCREEN_GDK_SCALE:-1}" \
+     bwrap --die-with-parent --unshare-pid --unshare-net --ro-bind / / \
+-        --tmpfs /home --tmpfs /root --ro-bind "$root" "$root" --bind "$evidence" "$evidence" \
++        --tmpfs /home --tmpfs /root --ro-bind "$root" "$root" --ro-bind "$binaries" "$binaries" --bind "$evidence" "$evidence" \
+         --dev /dev --tmpfs /run --tmpfs /tmp --proc /proc -- \
+     bash "$root/dev/run-isolated-browser.sh" "$evidence" -- \
+     "$binaries/examples/mluva_verify" run "$mode" "$root" "$binaries" "$@" \

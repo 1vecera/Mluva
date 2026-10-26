@@ -56,6 +56,8 @@ pub struct CaptureOptions {
     pub audio_retention: AudioRetentionPolicy,
     pub application_identifier: Option<String>,
     pub defer_delivery: bool,
+    /// Keep an empty recognition as a History row with recovery audio; see `Completion`.
+    pub keep_empty_recognition: bool,
     /// Preview recognition while capturing; never deliver volatile text.
     pub preview_enabled: bool,
 }
@@ -67,6 +69,7 @@ impl Default for CaptureOptions {
             audio_retention: AudioRetentionPolicy::Failures,
             application_identifier: None,
             defer_delivery: false,
+            keep_empty_recognition: false,
             preview_enabled: true,
         }
     }
@@ -763,6 +766,7 @@ impl CaptureSession {
                 delivery_target: target,
                 transcript_preparation: Some(self.preparation.clone()),
                 defer_delivery: self.options.defer_delivery,
+                keep_empty_recognition: self.options.keep_empty_recognition,
                 images,
                 appendix,
             },

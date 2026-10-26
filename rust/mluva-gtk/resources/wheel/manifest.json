@@ -1,0 +1,108 @@
+{
+  "image_px": [
+    2048,
+    2048
+  ],
+  "center_px": [
+    1024,
+    1024
+  ],
+  "px_per_cm": 405.17,
+  "radii_px": {
+    "case_outer": 940.0,
+    "bezel_inner": 802.2,
+    "gasket_inner": 753.6,
+    "dial": 753.6,
+    "chapter_ring_inner": 705.0,
+    "minute_track_inner_long": 682.7,
+    "minute_track_inner_short": 715.1,
+    "minute_track_outer": 743.5,
+    "index_inner": 583.4,
+    "index_outer": 688.8,
+    "index_mid": 636.1,
+    "hand_length": 567.2,
+    "hand_tail": 137.8,
+    "cap": 48.6
+  },
+  "index": {
+    "length_px": 105.3,
+    "width_px": 46.6,
+    "lume_channel_width_px": 9.7,
+    "lume_channel_inner_px": 595.6,
+    "lume_channel_outer_px": 676.6,
+    "angles_deg_clockwise_from_12": [
+      30,
+      48,
+      66,
+      84,
+      102,
+      120,
+      138,
+      156,
+      174,
+      192,
+      210,
+      228,
+      246,
+      264,
+      282,
+      300,
+      318,
+      336,
+      354,
+      372
+    ],
+    "chosen_index": 7
+  },
+  "atlas": {
+    "cell_px": [
+      128,
+      128
+    ],
+    "grid_cols_rows": [
+      6,
+      4
+    ],
+    "angle_step_deg": 15,
+    "order": "row-major, cell k = angle 15*k deg clockwise from 12",
+    "files": [
+      "index-atlas.png",
+      "index-hollow-atlas.png"
+    ],
+    "light": "fixed upper-left in screen space; do not rotate the cells, pick/blend the nearest two angles"
+  },
+  "layers": {
+    "case.png": "straight alpha, dial area transparent, baked contact shadow",
+    "dial.png": "straight alpha",
+    "dial-luma.png": "greyscale, straight alpha",
+    "sheen.png": "greyscale on black, screen blend, points at 12; rotate clockwise to the session angle",
+    "hand*.png": "point at 12, pivot at centre",
+    "hand-facet-*.png / hand-lume.png / hand-shadow.png": "white RGB, mask in alpha",
+    "cap.png": "straight alpha",
+    "crystal.png": "PREMULTIPLIED alpha, draw over everything"
+  },
+  "dial_luma_gain": 4.3176,
+  "dial_mean_luma_original": 0.1158,
+  "hand_shadow_suggested_offset_px_screen": [
+    14,
+    24
+  ],
+  "hand_shadow_suggested_opacity": 0.6,
+  "colors": {
+    "dial_navy_rendered": "#12202c",
+    "dial_navy_nord": [
+      "#2e3440",
+      "#3b4252",
+      "#222730",
+      "#191c23"
+    ],
+    "dial_base_material": "#2f3a4d",
+    "steel": "#c4ccd8",
+    "lume_blue": "#8eb0d6",
+    "lume_blue_nominal": "#81a1c1",
+    "lume_amber": "#ebcb8b",
+    "lume_dot": "#bfeaf5",
+    "neutral_lume": "#d8dee9"
+  },
+  "view_transform": "AgX baked; layers are display-referred sRGB"
+}

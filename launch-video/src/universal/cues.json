@@ -1,0 +1,354 @@
+{
+ "fps": 60,
+ "duration_frames": 1800,
+ "score": {
+  "file": "score.wav",
+  "gain_db": 0,
+  "fade_out_from_frame": 1764
+ },
+ "sfx_peaks_s": {
+  "impact": 0.0,
+  "impact-long": 0.0,
+  "whoosh": 0.03,
+  "whoosh-soft": 0.04,
+  "glitch": 0.14,
+  "tick": 0.02,
+  "riser": 1.6,
+  "key": 0.12,
+  "flap": 0.21,
+  "flash": 0.0,
+  "jelly": 0.04,
+  "blips": 0.09
+ },
+ "cues": [
+  {
+   "frame": 57,
+   "sfx": "whoosh-soft",
+   "gain_db": -14,
+   "note": "the light stretches into SPEAK"
+  },
+  {
+   "frame": 58,
+   "sfx": "tick",
+   "gain_db": -11
+  },
+  {
+   "frame": 114,
+   "sfx": "glitch",
+   "gain_db": -16,
+   "note": "ANY AGENT"
+  },
+  {
+   "frame": 170,
+   "sfx": "glitch",
+   "gain_db": -16,
+   "note": "DELIVERED"
+  },
+  {
+   "frame": 219,
+   "sfx": "whoosh-soft",
+   "gain_db": -15,
+   "note": "collapse to the seed line"
+  },
+  {
+   "frame": 226,
+   "sfx": "whoosh",
+   "gain_db": -17,
+   "note": "the old routing enters"
+  },
+  {
+   "frame": 264,
+   "sfx": "tick",
+   "gain_db": -13,
+   "note": "Herdr: SEND"
+  },
+  {
+   "frame": 267,
+   "sfx": "tick",
+   "gain_db": -14
+  },
+  {
+   "frame": 282,
+   "sfx": "blips",
+   "gain_db": -23,
+   "note": "draft only / not listed"
+  },
+  {
+   "frame": 289,
+   "sfx": "blips",
+   "gain_db": -23
+  },
+  {
+   "frame": 296,
+   "sfx": "blips",
+   "gain_db": -23
+  },
+  {
+   "frame": 303,
+   "sfx": "blips",
+   "gain_db": -23
+  },
+  {
+   "frame": 339,
+   "sfx": "glitch",
+   "gain_db": -10,
+   "note": "the old routing tears"
+  },
+  {
+   "frame": 340,
+   "sfx": "whoosh",
+   "gain_db": -13
+  },
+  {
+   "frame": 395,
+   "sfx": "key",
+   "gain_db": -8,
+   "note": "FROM SCRATCH"
+  },
+  {
+   "frame": 444,
+   "sfx": "whoosh-soft",
+   "gain_db": -16,
+   "note": "collapse into the model"
+  },
+  {
+   "frame": 451,
+   "sfx": "tick",
+   "gain_db": -13,
+   "note": "model fields"
+  },
+  {
+   "frame": 479,
+   "sfx": "tick",
+   "gain_db": -13
+  },
+  {
+   "frame": 507,
+   "sfx": "tick",
+   "gain_db": -13
+  },
+  {
+   "frame": 535,
+   "sfx": "tick",
+   "gain_db": -13
+  },
+  {
+   "frame": 564,
+   "sfx": "blips",
+   "gain_db": -21,
+   "note": "routes light up"
+  },
+  {
+   "frame": 566,
+   "sfx": "whoosh-soft",
+   "gain_db": -23
+  },
+  {
+   "frame": 592,
+   "sfx": "blips",
+   "gain_db": -21
+  },
+  {
+   "frame": 594,
+   "sfx": "whoosh-soft",
+   "gain_db": -23
+  },
+  {
+   "frame": 620,
+   "sfx": "blips",
+   "gain_db": -21
+  },
+  {
+   "frame": 622,
+   "sfx": "whoosh-soft",
+   "gain_db": -23
+  },
+  {
+   "frame": 648,
+   "sfx": "blips",
+   "gain_db": -21
+  },
+  {
+   "frame": 650,
+   "sfx": "whoosh-soft",
+   "gain_db": -23
+  },
+  {
+   "frame": 676,
+   "sfx": "key",
+   "gain_db": -6,
+   "note": "F12 opens the wheel"
+  },
+  {
+   "frame": 704,
+   "sfx": "tick",
+   "gain_db": -15,
+   "note": "the hand moves on the beat"
+  },
+  {
+   "frame": 732,
+   "sfx": "tick",
+   "gain_db": -15
+  },
+  {
+   "frame": 760,
+   "sfx": "tick",
+   "gain_db": -15
+  },
+  {
+   "frame": 789,
+   "sfx": "tick",
+   "gain_db": -15
+  },
+  {
+   "frame": 817,
+   "sfx": "tick",
+   "gain_db": -15
+  },
+  {
+   "frame": 845,
+   "sfx": "tick",
+   "gain_db": -15
+  },
+  {
+   "frame": 873,
+   "sfx": "tick",
+   "gain_db": -15
+  },
+  {
+   "frame": 901,
+   "sfx": "riser",
+   "gain_db": -12,
+   "note": "riser peaks into the drop (kept under the score's own hit)"
+  },
+  {
+   "frame": 901,
+   "sfx": "impact",
+   "gain_db": -9,
+   "note": "drop: F12 records (kept under the score's own hit)"
+  },
+  {
+   "frame": 901,
+   "sfx": "flash",
+   "gain_db": -16,
+   "note": "(kept under the score's own hit)"
+  },
+  {
+   "frame": 929,
+   "sfx": "whoosh-soft",
+   "gain_db": -18,
+   "note": "push into Mluva"
+  },
+  {
+   "frame": 985,
+   "sfx": "blips",
+   "gain_db": -19,
+   "note": "transcribed"
+  },
+  {
+   "frame": 1014,
+   "sfx": "whoosh-soft",
+   "gain_db": -18,
+   "note": "to the countdown"
+  },
+  {
+   "frame": 1078,
+   "sfx": "tick",
+   "gain_db": -10,
+   "note": "Codex takes it"
+  },
+  {
+   "frame": 1088,
+   "sfx": "key",
+   "gain_db": -11,
+   "note": "Sent"
+  },
+  {
+   "frame": 1182,
+   "sfx": "whoosh-soft",
+   "gain_db": -19,
+   "note": "pull out"
+  },
+  {
+   "frame": 1239,
+   "sfx": "impact",
+   "gain_db": -10,
+   "note": "re-drop: Claude Code takes the queued message (kept under the score's own hit)"
+  },
+  {
+   "frame": 1242,
+   "sfx": "blips",
+   "gain_db": -18
+  },
+  {
+   "frame": 1295,
+   "sfx": "tick",
+   "gain_db": -11,
+   "note": "Delivered"
+  },
+  {
+   "frame": 1351,
+   "sfx": "whoosh",
+   "gain_db": -13,
+   "note": "four cuts on the beat"
+  },
+  {
+   "frame": 1379,
+   "sfx": "glitch",
+   "gain_db": -14
+  },
+  {
+   "frame": 1407,
+   "sfx": "whoosh-soft",
+   "gain_db": -12
+  },
+  {
+   "frame": 1435,
+   "sfx": "flash",
+   "gain_db": -12,
+   "note": "ANY AGENT"
+  },
+  {
+   "frame": 1464,
+   "sfx": "whoosh-soft",
+   "gain_db": -14,
+   "note": "ONE KEY"
+  },
+  {
+   "frame": 1562,
+   "sfx": "key",
+   "gain_db": -5,
+   "note": "F12 pressed into the impact"
+  },
+  {
+   "frame": 1576,
+   "sfx": "impact-long",
+   "gain_db": -8,
+   "note": "final impact: the mark (kept under the score's own hit)"
+  },
+  {
+   "frame": 1576,
+   "sfx": "flash",
+   "gain_db": -15,
+   "note": "(kept under the score's own hit)"
+  },
+  {
+   "frame": 1582,
+   "sfx": "jelly",
+   "gain_db": -10,
+   "note": "the glossy mark settles"
+  },
+  {
+   "frame": 1616,
+   "sfx": "whoosh-soft",
+   "gain_db": -17,
+   "note": "lockup slide"
+  },
+  {
+   "frame": 1652,
+   "sfx": "tick",
+   "gain_db": -16,
+   "note": "end card lines"
+  }
+ ]
+}

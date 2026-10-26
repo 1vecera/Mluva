@@ -1,6 +1,6 @@
 # Dictation workspace
 
-Mluva turns speech into text and delivers it to the selected destination. F9 starts and stops ordinary dictation. When the original target is still valid, delivery pastes automatically; otherwise the complete text remains on the clipboard. App and widget buttons start copy-only capture. F8 holds recording for the selected Herdr agent, then offers the existing two-second cancel window before sending. The target is frozen at capture start; uncertainty never triggers an automatic resend.
+Mluva turns speech into text and delivers it to the selected destination. F9 starts and stops ordinary dictation. When the original target is still valid, delivery pastes automatically; otherwise the complete text remains on the clipboard. App and widget buttons start copy-only capture. F8 records for the selected agent session, then offers the existing two-second cancel window before delivering. The target is frozen at capture start; uncertainty never triggers an automatic resend.
 
 The workspace has one editor. Live recognition follows new text smoothly while respecting deliberate scrolling and the system's reduced-motion preference. Copy is always present. Working text and title edits save automatically after a short typing pause; the status shows saving, saved or retrying. Copy uses the current contents immediately. Ctrl+S flushes pending edits and Ctrl+Shift+C copies. Continue recording appends speech to the current conversation while preserving its original and earlier recordings.
 

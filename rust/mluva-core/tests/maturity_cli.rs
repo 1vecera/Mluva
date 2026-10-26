@@ -49,7 +49,7 @@ fn generated_matrix_describes_current_features_and_checks_never_overwrite_edits(
     assert!(written.stdout.is_empty() && written.stderr.is_empty());
     // Preserve the released registry while adding the explicitly experimental native feature.
     let generated = fs::read_to_string(&output).unwrap();
-    let added = "| Hold to talk to Herdr agents |";
+    let added = "| Talk to Claude Code and Codex agents |";
     assert!(
         generated
             .split("## Experimental")

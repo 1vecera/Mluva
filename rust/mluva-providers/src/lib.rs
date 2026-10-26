@@ -1,9 +1,14 @@
 //! Provider sessions freeze route choices and never return provisional or cancelled text.
 
 pub mod account;
+pub mod agent_platform;
+pub mod agent_targets;
 pub mod batch_preview;
 pub mod catalog;
+pub mod claude_desktop;
+pub mod claude_inbox;
 pub mod claude_sessions;
+pub mod codex;
 pub mod compatible;
 pub mod credentials;
 pub mod elevenlabs;
@@ -21,6 +26,8 @@ pub mod qwen;
 pub mod realtime;
 pub mod speech;
 pub mod spoken_reply;
+#[cfg(test)]
+mod test_sockets;
 mod transport;
 
 use serde::{Deserialize, Serialize};

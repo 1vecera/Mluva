@@ -150,12 +150,12 @@ impl PortalSession {
         if let Some(agent) = &self.callbacks.agent {
             bindings.push((
                 AGENT_HOLD,
-                "Start or stop dictation to the selected Herdr agent".into(),
+                "Start or stop dictation to the selected agent session".into(),
                 agent.hold_key.as_str(),
             ));
             bindings.push((
                 AGENT_DRAFT,
-                "Keep the Herdr message as a draft without sending".into(),
+                "Keep the agent message as a draft without sending".into(),
                 agent.draft_key.as_str(),
             ));
         }

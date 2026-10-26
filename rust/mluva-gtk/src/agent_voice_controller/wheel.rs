@@ -6,6 +6,11 @@ impl AgentVoiceController {
         (self.callbacks.select)();
     }
     pub fn open_wheel(self: &Rc<Self>, parent: &adw::ApplicationWindow) {
+        // The key pressed while a message waits in its cancel window sends it; it never
+        // opens the wheel, and never turns the pending send into a draft.
+        if self.send_now() {
+            return;
+        }
         if !self.settings.borrow().enabled || (self.callbacks.capture_busy)() {
             return;
         }
@@ -17,12 +22,7 @@ impl AgentVoiceController {
             .borrow()
             .selected
             .is_none()
-            .then(|| {
-                self.recipients
-                    .borrow()
-                    .iter()
-                    .position(Recipient::can_receive)
-            })
+            .then(|| self.targets.borrow().iter().position(Target::can_receive))
             .flatten();
         if let Some(index) = initial {
             self.view.recipients.set_selected(index as u32 + 1);
@@ -33,10 +33,10 @@ impl AgentVoiceController {
                 .selected
                 .as_ref()
                 .and_then(|s| {
-                    self.recipients
+                    self.targets
                         .borrow()
                         .iter()
-                        .position(|r| r.same_instance(s))
+                        .position(|t| t.same_instance(s))
                 })
                 .unwrap_or(0)
                 / KEYS.len(),
@@ -67,10 +67,10 @@ impl AgentVoiceController {
             .cloned();
         if let Some(target) = target {
             let index = self
-                .recipients
+                .targets
                 .borrow()
                 .iter()
-                .position(|r| r.same_instance(&target));
+                .position(|t| t.same_instance(&target));
             if let Some(index) = index {
                 self.view.recipients.set_selected(index as u32 + 1);
             }
@@ -109,7 +109,7 @@ impl AgentVoiceController {
             .recording_trigger
             .unwrap_or_else(|| self.services.config().global_recording_key);
         self.wheel.update(
-            &self.recipients.borrow(),
+            &self.targets.borrow(),
             self.selected(),
             &agent_key,
             &transcript_key,
@@ -157,7 +157,7 @@ impl AgentVoiceController {
             }
         });
         if self.wheel.overlay {
-            // Clicking the scrim, anywhere outside a control, dismisses the overlay.
+            // Clicking the room, anywhere outside a control, dismisses the overlay.
             let click = gtk::GestureClick::new();
             let weak = Rc::downgrade(self);
             click.connect_released(move |_, _, x, y| {
@@ -165,18 +165,40 @@ impl AgentVoiceController {
                     return;
                 };
                 let window = &owner.wheel.window;
-                let on_control = window
-                    .pick(x, y, gtk::PickFlags::DEFAULT)
-                    .is_some_and(|widget| {
-                        widget.is::<gtk::Button>()
-                            || widget.ancestor(gtk::Button::static_type()).is_some()
-                    });
+                // A name, the legend and the dial are controls; the rest of the room dismisses.
+                let on_control = owner.wheel.on_control(x, y)
+                    || window
+                        .pick(x, y, gtk::PickFlags::DEFAULT)
+                        .is_some_and(|widget| {
+                            widget.is::<gtk::Button>()
+                                || widget.ancestor(gtk::Button::static_type()).is_some()
+                        });
                 if !on_control {
                     window.set_visible(false);
                 }
             });
             self.wheel.window.add_controller(click);
         }
+        let weak = Rc::downgrade(self);
+        self.wheel.window.connect_show(move |_| {
+            if let Some(owner) = weak.upgrade() {
+                let session = uuid::Uuid::new_v4().to_string();
+                owner.trace(&session, RouteEvent::WheelOpened, RouteKind::Wheel, 0);
+                owner
+                    .wheel_session
+                    .replace(Some((session, std::time::Instant::now())));
+            }
+        });
+        let weak = Rc::downgrade(self);
+        self.wheel.window.connect_hide(move |_| {
+            if let Some(owner) = weak.upgrade() {
+                let opened = owner.wheel_session.borrow_mut().take();
+                if let Some((session, since)) = opened {
+                    let open_ms = since.elapsed().as_millis() as u64;
+                    owner.trace(&session, RouteEvent::WheelClosed, RouteKind::Wheel, open_ms);
+                }
+            }
+        });
         let keys = gtk::EventControllerKey::new();
         keys.set_propagation_phase(gtk::PropagationPhase::Capture);
         let held = Rc::new(Cell::new(false));

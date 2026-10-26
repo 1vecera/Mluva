@@ -3,14 +3,18 @@
 //! Run inside the off-screen desktop helper with `light`, `dark` or `nord`, then the output
 //! directory and optionally `overlay`. The wheel sizes itself to the helper's screen, so set
 //! its screen to the display being judged. X11 has no layer-shell, so `overlay` applies the
-//! overlay styling to a screen-sized window; its captures keep the scrim's transparency for
-//! compositing over a desktop image. Every session name, pane, socket, process and session
-//! ID is a fixture.
+//! overlay styling to a screen-sized window. The room is opaque, so a capture needs no desktop
+//! behind it. Every session name, pane, socket, process and session ID is a fixture.
+//!
+//! Besides the captures the gallery audits the wheel and exits with a failure if a name leaves
+//! the screen, two names overlap, or a status or a different choice moves any name.
 
 use std::path::{Path, PathBuf};
 
 use adw::prelude::*;
-use mluva_core::agent_voice::{AgentStatus, Recipient};
+use mluva_core::agent_voice::{
+    AgentKind, AgentStatus, AppLink, ClaudeInbox, CodexThread, HerdrPane, Host, Target,
+};
 use mluva_gtk::agent_session_wheel::SessionWheel;
 use mluva_gtk::theme::ThemeController;
 
@@ -51,26 +55,36 @@ const TITLES: [&str; 30] = [
     "Theme tokens",
 ];
 
-fn session(index: usize, status: AgentStatus) -> Recipient {
-    Recipient {
+fn pane(index: usize, guard: &str) -> Option<HerdrPane> {
+    Some(HerdrPane {
         socket: "/run/user/fixture/herdr.sock".into(),
         server_epoch: "fixture".into(),
         pane_id: format!("w{}:p{}", index / 8 + 1, index % 8 + 1),
-        guard: "g".repeat(64),
+        guard: guard.into(),
+    })
+}
+
+fn session(index: usize, status: AgentStatus) -> Target {
+    Target {
+        herdr: pane(index, &"g".repeat(64)),
         name: format!("agent-{}", index + 1),
         title: TITLES[index].into(),
-        kind: if index % 3 == 1 { "claude" } else { "codex" }.into(),
+        kind: if index % 3 == 1 {
+            AgentKind::ClaudeCode
+        } else {
+            AgentKind::CodexCli
+        },
         project: "/fixture/project".into(),
         status,
-        ..Recipient::default()
+        ..Target::default()
     }
 }
 
 /// A Claude Code session Herdr lists but cannot send to, such as one typed into a pane.
-fn unmanaged(index: usize, status: AgentStatus) -> Recipient {
-    Recipient {
-        guard: String::new(),
-        kind: "claude".into(),
+fn unmanaged(index: usize, status: AgentStatus) -> Target {
+    Target {
+        herdr: pane(index, ""),
+        kind: AgentKind::ClaudeCode,
         session_id: format!("fixture-session-{index}"),
         pid: 40_000 + index as u32,
         ..session(index, status)
@@ -78,25 +92,22 @@ fn unmanaged(index: usize, status: AgentStatus) -> Recipient {
 }
 
 /// A Claude Code session found only in its own registry: no Herdr pane or socket.
-fn native(index: usize, title: &str, status: AgentStatus) -> Recipient {
-    Recipient {
-        socket: String::new(),
-        server_epoch: String::new(),
-        pane_id: String::new(),
-        guard: String::new(),
+fn native(index: usize, title: &str, status: AgentStatus) -> Target {
+    Target {
+        herdr: None,
         name: format!("project-{:02x}", 0x3a + index),
         title: title.into(),
-        kind: "claude".into(),
+        kind: AgentKind::ClaudeCode,
         project: "/fixture/project".into(),
         status,
         session_id: format!("fixture-native-{index}"),
         pid: 50_000 + index as u32,
-        ..Recipient::default()
+        ..Target::default()
     }
 }
 
 /// Herdr-guarded, Herdr-unmanaged and registry-only sessions together, in that order.
-fn mixed() -> Vec<Recipient> {
+fn mixed() -> Vec<Target> {
     vec![
         session(0, AgentStatus::Idle),
         session(1, AgentStatus::Working),
@@ -108,8 +119,115 @@ fn mixed() -> Vec<Recipient> {
     ]
 }
 
+/// A Claude Code session with its own inbox, found in Claude Code's registry.
+fn inboxed(index: usize, title: &str, status: AgentStatus, host: Host) -> Target {
+    Target {
+        inbox: Some(ClaudeInbox {
+            entry: format!("/fixture/claude/sessions/{}.json", 50_000 + index),
+            socket: format!("/run/user/fixture/cc-socks/{}.sock", 50_000 + index),
+            proc_start: "123456".into(),
+        }),
+        host,
+        ..native(index, title, status)
+    }
+}
+
+/// A live Codex thread outside Herdr, held open by a TUI or by Codex Desktop's server.
+fn codex_thread(index: usize, title: &str, kind: AgentKind, status: AgentStatus) -> Target {
+    let thread = format!("01900000-0000-7000-8000-0000000{index:05}");
+    Target {
+        kind,
+        name: format!("codex-{}", &thread[thread.len() - 8..]),
+        // Codex Desktop holds its threads in its own bundled server.
+        host: if kind == AgentKind::CodexDesktop {
+            Host::App
+        } else {
+            Host::Terminal
+        },
+        title: title.into(),
+        project: "/fixture/project".into(),
+        status,
+        session_id: thread.clone(),
+        pid: 60_000 + index as u32,
+        codex: Some(CodexThread {
+            lock: format!("/fixture/codex/thread-writer-locks/{thread}.lock"),
+            holder: 60_000 + index as u32,
+        }),
+        ..Target::default()
+    }
+}
+
+/// Every kind of target and every delivery level on one wheel, in discovery order: Herdr's
+/// panes, Claude Code sessions outside Herdr, live Codex threads, then a new Claude chat.
+fn universal() -> Vec<Target> {
+    let mut codex_pane = session(2, AgentStatus::Working);
+    codex_pane.title = "Release checklist".into();
+    let mut claude_pane = session(1, AgentStatus::Idle);
+    claude_pane.title = "Shortcut portal fix".into();
+    let mut unguarded_codex = unmanaged(4, AgentStatus::Idle);
+    unguarded_codex.kind = AgentKind::CodexCli;
+    unguarded_codex.title = "Onboarding copy".into();
+    unguarded_codex.session_id.clear();
+    unguarded_codex.pid = 0;
+    vec![
+        claude_pane,
+        codex_pane,
+        unguarded_codex,
+        inboxed(
+            0,
+            "Cold start profile",
+            AgentStatus::Idle,
+            Host::Tmux("work:@3.%7".into()),
+        ),
+        inboxed(1, "Přehled zkoušek", AgentStatus::Blocked, Host::Terminal),
+        inboxed(2, "Migration notes", AgentStatus::Working, Host::Background),
+        Target {
+            kind: AgentKind::ClaudeDesktop,
+            ..inboxed(3, "Inbox triage 🙂", AgentStatus::Idle, Host::App)
+        },
+        native(4, "Parakeet benchmark", AgentStatus::Idle),
+        codex_thread(
+            5,
+            "Narration port",
+            AgentKind::CodexCli,
+            AgentStatus::Unknown,
+        ),
+        codex_thread(
+            6,
+            "Widget breathing",
+            AgentKind::CodexDesktop,
+            AgentStatus::Idle,
+        ),
+        Target {
+            kind: AgentKind::ClaudeDesktop,
+            name: "claude-new-chat".into(),
+            title: "New chat".into(),
+            status: AgentStatus::Idle,
+            app: Some(AppLink::ClaudeNewChat),
+            ..Target::default()
+        },
+    ]
+}
+
+/// One capture's fixture inputs: each target as the wheel received it.
+fn describe(entries: &[Target], selected: Option<usize>, page: usize) -> serde_json::Value {
+    serde_json::json!({
+        "page": page,
+        "chosen": selected,
+        "targets": entries.iter().map(|t| serde_json::json!({
+            "name": t.display_name(),
+            "kind": t.kind.label(),
+            "place": t.place(),
+            "status": t.status,
+            "route": t.route().as_str(),
+            "delivery": t.delivery(),
+            "receives_now": t.can_receive(),
+        })).collect::<Vec<_>>(),
+    })
+}
+
 /// Herdr is absent: Claude Code's registry alone, two sessions sharing a title.
-fn native_only() -> Vec<Recipient> {
+fn native_only() -> Vec<Target> {
     vec![
         native(0, "Release checklist", AgentStatus::Idle),
         native(1, "Shortcut portal fix", AgentStatus::Working),
@@ -119,7 +237,7 @@ fn native_only() -> Vec<Recipient> {
     ]
 }
 
-fn sessions(count: usize) -> Vec<Recipient> {
+fn sessions(count: usize) -> Vec<Target> {
     (0..count)
         .map(|i| {
             let status = match i {
@@ -160,7 +278,7 @@ fn capture(window: &adw::Window, path: &Path) {
     println!("{} {width}x{height}", path.display());
 }
 
-fn show(entries: &[Recipient], selected: Option<usize>, page: usize) -> SessionWheel {
+fn show(entries: &[Target], selected: Option<usize>, page: usize) -> SessionWheel {
     let wheel = SessionWheel::new();
     if std::env::args().nth(3).as_deref() == Some("overlay") {
         let screen = gtk::gdk::Display::default()
@@ -178,8 +296,54 @@ fn show(entries: &[Recipient], selected: Option<usize>, page: usize) -> SessionW
     wheel.page.set(page);
     wheel.window.present();
     wheel.update(entries, selected.map(|i| entries[i].clone()), "F12", "F9");
-    settle(30);
+    // The hand sweeps in on a spring; wait for it and the fade to come to rest.
+    settle(100);
     wheel
+}
+
+/// Every shown name's box in window coordinates.
+fn name_boxes(wheel: &SessionWheel) -> Vec<gtk::graphene::Rect> {
+    wheel
+        .choices
+        .iter()
+        .filter(|choice| choice.is_visible())
+        .map(|choice| {
+            choice
+                .compute_bounds(&wheel.window)
+                .expect("name inside the window")
+        })
+        .collect()
+}
+
+/// Every name is on screen and no two overlap. Returns what is wrong, if anything.
+fn audit(wheel: &SessionWheel, label: &str) -> Vec<String> {
+    let (width, height) = (wheel.window.width() as f32, wheel.window.height() as f32);
+    let boxes = name_boxes(wheel);
+    let mut problems = vec![];
+    for (index, one) in boxes.iter().enumerate() {
+        if one.x() < 0.
+            || one.y() < 0.
+            || one.x() + one.width() > width
+            || one.y() + one.height() > height
+        {
+            problems.push(format!(
+                "{label}: name {index} leaves the {width}x{height} screen"
+            ));
+        }
+        for (other, two) in boxes.iter().enumerate().skip(index + 1) {
+            if one
+                .intersection(two)
+                .is_some_and(|common| common.width() > 0.5 && common.height() > 0.5)
+            {
+                problems.push(format!(
+                    "{label}: names {index} and {other} overlap: ({},{} {}x{}) ({},{} {}x{}); placed {:?} {:?}",
+                    one.x(), one.y(), one.width(), one.height(), two.x(), two.y(), two.width(), two.height(),
+                    wheel.placements()[index], wheel.placements()[other]
+                ));
+            }
+        }
+    }
+    problems
 }
 
 fn main() -> glib::ExitCode {
@@ -210,17 +374,21 @@ fn main() -> glib::ExitCode {
     let thirty = sessions(30);
     let mut missing = sessions(3);
     let mut gone = session(7, AgentStatus::Unknown);
-    gone.socket = "/run/user/fixture/other.sock".into();
+    gone.herdr.as_mut().unwrap().socket = "/run/user/fixture/other.sock".into();
     missing.push(gone);
     let mut unnamed = sessions(4);
     unnamed[1].title.clear();
     unnamed[3].title.clear();
-    unnamed[3].name = unnamed[3].pane_id.clone();
-    let scenarios: Vec<(&str, Vec<Recipient>, Option<usize>, usize)> = vec![
+    unnamed[3].name = unnamed[3].locator();
+    // Twenty with the last one found outside Herdr, as the design prototype shows it.
+    let mut twenty_draft = sessions(20);
+    twenty_draft[19] = unmanaged(19, AgentStatus::Idle);
+    let scenarios: Vec<(&str, Vec<Target>, Option<usize>, usize)> = vec![
         ("one", sessions(1), Some(0), 0),
         ("three", sessions(3), Some(1), 0),
         ("six", sessions(6), Some(0), 0),
         ("twenty", sessions(20), Some(7), 0),
+        ("twenty-draft", twenty_draft, Some(7), 0),
         ("twenty-blocked", sessions(20), Some(10), 0),
         ("missing-selected", missing, Some(3), 0),
         ("unnamed-fallback", unnamed, Some(0), 0),
@@ -232,48 +400,94 @@ fn main() -> glib::ExitCode {
         ("mixed-draft-selected", mixed(), Some(2), 0),
         ("native-only", native_only(), None, 0),
         ("native-only-draft-selected", native_only(), Some(2), 0),
+        // Every kind and delivery level together, each level chosen in turn.
+        ("universal-send-herdr", universal(), Some(0), 0),
+        ("universal-queue-tmux", universal(), Some(3), 0),
+        ("universal-queue-waiting", universal(), Some(4), 0),
+        ("universal-queue-desktop", universal(), Some(6), 0),
+        ("universal-draft-only", universal(), Some(7), 0),
+        ("universal-send-codex", universal(), Some(8), 0),
+        ("universal-send-codex-desktop", universal(), Some(9), 0),
+        ("universal-prefill-new-chat", universal(), Some(10), 0),
     ];
+    let mut problems = vec![];
+    let mut index = serde_json::Map::new();
     for (name, entries, selected, page) in scenarios {
         let wheel = show(&entries, selected, page);
-        capture(&wheel.window, &output.join(format!("{palette}-{name}.png")));
+        problems.extend(audit(&wheel, name));
+        let file = format!("{palette}-{name}.png");
+        capture(&wheel.window, &output.join(&file));
+        index.insert(file, describe(&entries, selected, page));
         wheel.window.destroy();
         settle(2);
     }
-    // Keyboard focus on the hub, on a choice and on Cancel, with pointer hover on another choice.
+    // A refresh that changes a status, or a different choice, moves no name.
+    let mut entries = sessions(20);
+    let wheel = show(&entries, Some(7), 0);
+    let before = (wheel.placements(), name_boxes(&wheel));
+    entries[3].status = AgentStatus::Blocked;
+    entries[5].status = AgentStatus::Idle;
+    entries[9].status = AgentStatus::Working;
+    wheel.update(&entries, Some(entries[12].clone()), "F12", "F9");
+    settle(100);
+    let after = (wheel.placements(), name_boxes(&wheel));
+    if before != after {
+        problems.push("a status refresh or a new choice moved a name".into());
+    }
+    println!(
+        "layout independent of status and choice: {}",
+        before == after
+    );
+    wheel.window.destroy();
+    settle(2);
+    std::fs::write(
+        output.join(format!("{palette}-index.json")),
+        serde_json::to_vec_pretty(&index).unwrap(),
+    )
+    .unwrap();
+    if !problems.is_empty() {
+        for problem in &problems {
+            eprintln!("{problem}");
+        }
+        return glib::ExitCode::FAILURE;
+    }
+    // Pointer hover on a choice, then keyboard focus on a choice, on Record and on Cancel.
     let entries = sessions(6);
     let wheel = show(&entries, Some(0), 0);
     wheel.choices[3].set_state_flags(gtk::StateFlags::PRELIGHT, false);
-    wheel.window.set_focus_visible(true);
-    wheel.record.grab_focus();
-    settle(10);
-    capture(
-        &wheel.window,
-        &output.join(format!("{palette}-hover-focus.png")),
-    );
+    settle(20);
+    capture(&wheel.window, &output.join(format!("{palette}-hover.png")));
     wheel.choices[3].unset_state_flags(gtk::StateFlags::PRELIGHT);
+    wheel.window.set_focus_visible(true);
     wheel.choices[4].grab_focus();
-    settle(10);
+    settle(20);
     capture(
         &wheel.window,
         &output.join(format!("{palette}-focus-choice.png")),
     );
+    wheel.record.grab_focus();
+    settle(20);
+    capture(
+        &wheel.window,
+        &output.join(format!("{palette}-focus-record.png")),
+    );
     wheel.cancel.grab_focus();
-    settle(10);
+    settle(20);
     capture(
         &wheel.window,
         &output.join(format!("{palette}-focus-cancel.png")),
     );
     wheel.window.destroy();
     settle(2);
-    // The arc swings to a new choice; capture it in flight and at rest.
+    // The hand swings to a new choice with the light trailing it; capture it in flight and at rest.
     let wheel = show(&entries, Some(0), 0);
     wheel.update(&entries, Some(entries[4].clone()), "F12", "F9");
-    settle(5);
+    settle(4);
     capture(
         &wheel.window,
         &output.join(format!("{palette}-swing-mid.png")),
     );
-    settle(20);
+    settle(100);
     capture(
         &wheel.window,
         &output.join(format!("{palette}-swing-end.png")),

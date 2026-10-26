@@ -23,7 +23,10 @@ fn main() {
             .set_read_timeout(Some(std::time::Duration::from_secs(2)))
             .unwrap();
         let mut line = String::new();
-        BufReader::new(&mut stream).read_line(&mut line).unwrap();
+        // A client that connects and goes quiet is skipped, not fatal to the peer.
+        if BufReader::new(&mut stream).read_line(&mut line).is_err() || line.is_empty() {
+            continue;
+        }
         let request: Value = serde_json::from_str(&line).unwrap();
         fs::OpenOptions::new()
             .append(true)
@@ -34,6 +37,15 @@ fn main() {
             .unwrap();
         let state: Value = serde_json::from_slice(&fs::read(&state).unwrap()).unwrap();
         let params = &request["params"];
+        // "list-down" answers no list request, as a Herdr server that cannot be read.
+        if state["mode"] == "list-down"
+            && matches!(
+                request["method"].as_str(),
+                Some("agent.guarded_list" | "agent.list")
+            )
+        {
+            continue;
+        }
         let result = match request["method"].as_str().unwrap() {
             "agent.guarded_list" => {
                 json!({"server_epoch": "synthetic-server", "agents": state["agents"]})

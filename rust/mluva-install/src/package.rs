@@ -132,6 +132,11 @@ fn assets(source: &Path, target: &Path) -> Result<()> {
         ) {
             continue;
         }
+        // The session wheel's baked layers and their Blender source are compiled into the
+        // binary with include_bytes, so the bundle does not carry a second copy.
+        if item.file_name() == "wheel" && source.ends_with("resources") {
+            continue;
+        }
         let from = item.path();
         let to = target.join(item.file_name());
         if item.file_type()?.is_dir() {

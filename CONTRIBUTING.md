@@ -27,6 +27,7 @@ GTK callbacks stay on the main thread; provider/audio work runs outside it. The 
 | Configuration, personalization, History, conversations, retention | `rust/mluva-core/src` |
 | PCM/WAV, private audio, PipeWire and crash cleanup | `rust/mluva-audio/src` |
 | Speech connections, credentials, local model downloads and previews | `rust/mluva-providers/src` |
+| Agent targets: the model (identity, product, state, route, delivery level) / discovery and transports for Herdr, Claude Code's inbox, Codex's queue and Claude Desktop, behind one platform seam | `rust/mluva-core/src/agent_target.rs` / `rust/mluva-providers/src/agent_targets.rs`, `agent_platform.rs`, `herdr.rs`, `claude_sessions.rs`, `claude_inbox.rs`, `claude_desktop.rs`, `codex/` |
 | Native model execution and recognition worker | `rust/mluva-asr/src` |
 | Recording, delivery, meetings, screenshots and narration | `rust/mluva-workflows/src` |
 | Screen annotation marks, keyframes, clause timing and bundle rendering | `rust/mluva-annotate/src` |
@@ -59,7 +60,7 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | Changed boundary | Private integration check |
 | --- | --- |
 | Native account login, shared text and web continuity | `make linux-account-test`; `cd hosted && npm test && npm run test:browser` |
-| Herdr recipient, toggle dictation, cancellation and draft recovery | `make linux-agent-voice-test linux-shortcut-test`; `bash linux/tests/run_agent_end_to_end.sh /absolute/patched/herdr` exercises the complete native journey; [native agent integration](docs/verification/herdr-voice/README.md) |
+| Agent targets and routes, toggle dictation, cancellation and draft recovery | `make linux-agent-voice-test linux-shortcut-test` (Herdr, Claude Code inbox and Codex queue peers); `dev/verify.sh session "$PWD/tmp/verify-routing" -- bash "$PWD/linux/tests/support/herdr_cli.sh"` for the routing CLI; `bash linux/tests/run_agent_end_to_end.sh /absolute/patched/herdr` exercises the complete native journey; [native agent integration](docs/verification/herdr-voice/README.md), [universal routing](docs/verification/universal-targets/README.md) |
 | Phone microphone, native widget lifecycle and chunk delivery | `bash linux/tests/run_application_smoke.sh phone` |
 | Full recording/application and desktop actions | `make linux-application-test` |
 | Conversation editing, navigation and scrolling | `make linux-conversation-test` |

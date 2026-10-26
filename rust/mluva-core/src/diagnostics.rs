@@ -84,6 +84,101 @@ impl DiagnosticOutcome {
     }
 }
 
+/// Which path an agent-voice event belongs to; stored in the provider column.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RouteKind {
+    /// Mluva's own session wheel.
+    Wheel,
+    /// A recording for an agent, at the delivery level its target offered.
+    Agent(crate::agent_target::Delivery),
+    /// A recording kept as an editable transcript, never sent.
+    Transcript,
+}
+/// One step of the F12 route. Events carry no text, titles or credentials.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RouteEvent {
+    WheelOpened,
+    WheelClosed,
+    CaptureStarted,
+    CaptureStopped,
+    CountdownStarted,
+    SendAccepted,
+    SendRejected,
+    SendUnconfirmed,
+    /// The session holds the message until the person approves it there.
+    SendHeld,
+    /// A queued message the agent took into a turn.
+    QueueTaken,
+    DraftKept,
+    DraftEdited,
+    DraftRecipientChanged,
+    DraftUnavailable,
+    DraftCancelled,
+    DraftInterrupted,
+    DraftEmpty,
+    DraftTooLong,
+    /// The session was busy or not open; the message was withdrawn unsent.
+    DraftBusy,
+}
+impl RouteKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Wheel => "wheel",
+            Self::Agent(delivery) => match delivery {
+                crate::agent_target::Delivery::Send => "guarded-agent",
+                crate::agent_target::Delivery::Queue => "queued-agent",
+                crate::agent_target::Delivery::Prefill => "prefilled-agent",
+                crate::agent_target::Delivery::DraftOnly => "transcript",
+            },
+            Self::Transcript => "transcript",
+        }
+    }
+}
+impl RouteEvent {
+    /// The stage column value: the step itself, prefixed so it never collides with
+    /// the dictation stages.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::WheelOpened => "route-wheel-opened",
+            Self::WheelClosed => "route-wheel-closed",
+            Self::CaptureStarted => "route-capture-started",
+            Self::CaptureStopped => "route-capture-stopped",
+            Self::CountdownStarted => "route-countdown-started",
+            Self::SendAccepted => "route-send-accepted",
+            Self::SendRejected => "route-send-rejected",
+            Self::SendUnconfirmed => "route-send-unconfirmed",
+            Self::SendHeld => "route-send-held",
+            Self::QueueTaken => "route-queue-taken",
+            Self::DraftKept => "route-draft-kept",
+            Self::DraftEdited => "route-draft-edited",
+            Self::DraftRecipientChanged => "route-draft-recipient-changed",
+            Self::DraftUnavailable => "route-draft-unavailable",
+            Self::DraftCancelled => "route-draft-cancelled",
+            Self::DraftInterrupted => "route-draft-interrupted",
+            Self::DraftEmpty => "route-draft-empty",
+            Self::DraftTooLong => "route-draft-too-long",
+            Self::DraftBusy => "route-draft-busy",
+        }
+    }
+    fn outcome(self) -> DiagnosticOutcome {
+        match self {
+            Self::SendRejected | Self::SendUnconfirmed | Self::DraftUnavailable => {
+                DiagnosticOutcome::Failed
+            }
+            Self::DraftCancelled => DiagnosticOutcome::Cancelled,
+            Self::DraftKept
+            | Self::DraftEdited
+            | Self::DraftRecipientChanged
+            | Self::DraftInterrupted
+            | Self::DraftEmpty
+            | Self::DraftTooLong
+            | Self::DraftBusy
+            | Self::SendHeld => DiagnosticOutcome::Deferred,
+            _ => DiagnosticOutcome::Completed,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DiagnosticEvent {
     pub created_at: String,
@@ -137,9 +232,53 @@ impl DiagnosticsStore {
         outcome: DiagnosticOutcome,
         duration_seconds: f64,
     ) -> StoreResult<()> {
+        self.insert(
+            session_identifier,
+            mode,
+            stage.as_str(),
+            provider.as_str(),
+            outcome.as_str(),
+            duration_seconds,
+        )
+    }
+    /// Records one step of the F12 route (mode `agent-voice`): the route, the step's
+    /// outcome and its timing, nothing else.
+    pub fn record_route(
+        &self,
+        session_identifier: &str,
+        event: RouteEvent,
+        route: RouteKind,
+        duration_seconds: f64,
+    ) -> StoreResult<()> {
+        self.insert(
+            session_identifier,
+            "agent-voice",
+            event.as_str(),
+            route.as_str(),
+            event.outcome().as_str(),
+            duration_seconds,
+        )
+    }
+    fn insert(
+        &self,
+        session_identifier: &str,
+        mode: &str,
+        stage: &str,
+        provider: &str,
+        outcome: &str,
+        duration_seconds: f64,
+    ) -> StoreResult<()> {
         Uuid::parse_str(session_identifier)
             .map_err(|_| invalid("Invalid diagnostic session identifier"))?;
-        if !["dictation", "command", "scratchpad", "meeting"].contains(&mode) {
+        if ![
+            "dictation",
+            "command",
+            "scratchpad",
+            "meeting",
+            "agent-voice",
+        ]
+        .contains(&mode)
+        {
             return Err(invalid(format!("Unsupported diagnostic mode: {mode}")));
         }
         if !duration_seconds.is_finite() || !(0.0..=86_400.0).contains(&duration_seconds) {
@@ -151,7 +290,7 @@ impl DiagnosticsStore {
         let transaction = connection.transaction()?;
         transaction.execute(
             "INSERT INTO diagnostic_events (created_at, session_identifier, mode, stage, provider, outcome, duration_ms) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            params![timestamp(), session_identifier, mode, stage.as_str(), provider.as_str(), outcome.as_str(), (duration_seconds * 1_000.0).round_ties_even() as i64],
+            params![timestamp(), session_identifier, mode, stage, provider, outcome, (duration_seconds * 1_000.0).round_ties_even() as i64],
         )?;
         transaction.execute(
             "DELETE FROM diagnostic_events WHERE sequence NOT IN (SELECT sequence FROM diagnostic_events ORDER BY sequence DESC LIMIT ?)",
