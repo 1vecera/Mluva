@@ -87,7 +87,7 @@
       {
         "name": "Widget breathing",
         "kind": "Codex Desktop",
-        "place": "terminal",
+        "place": "app",
         "status": "idle",
         "route": "codex_queue",
         "delivery": "send",
@@ -192,7 +192,7 @@
       {
         "name": "Widget breathing",
         "kind": "Codex Desktop",
-        "place": "terminal",
+        "place": "app",
         "status": "idle",
         "route": "codex_queue",
         "delivery": "send",
@@ -297,7 +297,7 @@
       {
         "name": "Widget breathing",
         "kind": "Codex Desktop",
-        "place": "terminal",
+        "place": "app",
         "status": "idle",
         "route": "codex_queue",
         "delivery": "send",
@@ -402,7 +402,7 @@
       {
         "name": "Widget breathing",
         "kind": "Codex Desktop",
-        "place": "terminal",
+        "place": "app",
         "status": "idle",
         "route": "codex_queue",
         "delivery": "send",
@@ -507,7 +507,7 @@
       {
         "name": "Widget breathing",
         "kind": "Codex Desktop",
-        "place": "terminal",
+        "place": "app",
         "status": "idle",
         "route": "codex_queue",
         "delivery": "send",
@@ -612,7 +612,7 @@
       {
         "name": "Widget breathing",
         "kind": "Codex Desktop",
-        "place": "terminal",
+        "place": "app",
         "status": "idle",
         "route": "codex_queue",
         "delivery": "send",
@@ -717,7 +717,7 @@
       {
         "name": "Widget breathing",
         "kind": "Codex Desktop",
-        "place": "terminal",
+        "place": "app",
         "status": "idle",
         "route": "codex_queue",
         "delivery": "send",
@@ -822,7 +822,7 @@
       {
         "name": "Widget breathing",
         "kind": "Codex Desktop",
-        "place": "terminal",
+        "place": "app",
         "status": "idle",
         "route": "codex_queue",
         "delivery": "send",
