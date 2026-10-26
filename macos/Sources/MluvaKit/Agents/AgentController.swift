@@ -20,9 +20,10 @@ public final class AgentController {
     private var ticking: Task<Void, Never>?
     private var events: ListenerToken?
     private var refreshing = false
-    private let recordingKey: () -> String
+    /// The dictation key, which agent keys must not reuse.
+    public var recordingKey: () -> String
 
-    public init(core: CoreBridge = .shared, recordingKey: @escaping () -> String) {
+    public init(core: CoreBridge = .shared, recordingKey: @escaping () -> String = { "F9" }) {
         self.core = core
         self.recordingKey = recordingKey
         events = core.listen { [weak self] event in
@@ -143,5 +144,17 @@ public final class AgentController {
 
     private func updateRoute() {
         route = try? core.call("route.state").decode(RouteState.self)
+    }
+}
+
+// MARK: Evidence
+
+extension AgentController {
+    /// Show synthetic sessions and route state for screenshots; discovery and Herdr are not used.
+    @_spi(Evidence)
+    public func present(sessions: [AgentSession], selected: Recipient?, route: RouteState?) {
+        self.sessions = sessions
+        if var settings { settings.selected = selected; self.settings = settings }
+        self.route = route
     }
 }

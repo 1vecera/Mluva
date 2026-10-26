@@ -361,3 +361,25 @@ public final class DictationController {
         phase = .failed(message)
     }
 }
+
+// MARK: Evidence
+
+extension DictationController {
+    /// Show a synthetic state for screenshots and recordings; no audio or provider is used.
+    @_spi(Evidence)
+    public func present(
+        _ phase: DictationPhase, committed: String = "", volatile: String = "", level: Float = 0,
+        destination: Destination = .manual, startedAt: Date? = nil, lastText: String = "", notice: String? = nil
+    ) {
+        self.destination = destination
+        self.committed = committed
+        self.volatile = volatile
+        self.level = level
+        self.startedAt = startedAt
+        self.lastText = lastText
+        self.notice = notice
+        let wasRecording = self.phase == .recording
+        self.phase = phase
+        if wasRecording != (phase == .recording) { onRecordingChange?(phase == .recording) }
+    }
+}

@@ -130,6 +130,23 @@ public struct Recipient: Codable, Equatable, Sendable, Hashable {
     public var session_id: String
     public var pid: UInt32
 
+    public init(
+        socket: String, server_epoch: String, pane_id: String, guard: String, name: String, title: String,
+        kind: String, project: String, status: AgentStatus, session_id: String, pid: UInt32
+    ) {
+        self.socket = socket
+        self.server_epoch = server_epoch
+        self.pane_id = pane_id
+        self.guard = `guard`
+        self.name = name
+        self.title = title
+        self.kind = kind
+        self.project = project
+        self.status = status
+        self.session_id = session_id
+        self.pid = pid
+    }
+
     /// The core's `same_instance`: guarded identity, else native session and process.
     public func sameInstance(as other: Recipient) -> Bool {
         if `guard`.isEmpty != other.guard.isEmpty { return false }
@@ -150,6 +167,18 @@ public struct AgentSession: Codable, Equatable, Sendable, Identifiable {
     public var draft_hint: String
     public var can_receive: Bool
     public var spoken_status: String
+
+    public init(
+        recipient: Recipient, display_name: String, draft_only: Bool, draft_hint: String,
+        can_receive: Bool, spoken_status: String
+    ) {
+        self.recipient = recipient
+        self.display_name = display_name
+        self.draft_only = draft_only
+        self.draft_hint = draft_hint
+        self.can_receive = can_receive
+        self.spoken_status = spoken_status
+    }
 
     public var id: String { "\(recipient.socket)|\(recipient.pane_id)|\(recipient.session_id)|\(recipient.pid)" }
 
@@ -196,6 +225,11 @@ public struct Snippet: Codable, Equatable, Sendable, Identifiable {
 public struct PersonalizationState: Codable, Equatable, Sendable {
     public var dictionary: [DictionaryReplacement]
     public var snippets: [Snippet]
+
+    public init(dictionary: [DictionaryReplacement] = [], snippets: [Snippet] = []) {
+        self.dictionary = dictionary
+        self.snippets = snippets
+    }
 }
 
 public struct VocabularySuggestion: Codable, Equatable, Sendable, Identifiable {
@@ -215,4 +249,17 @@ public struct RouteState: Codable, Equatable, Sendable {
     public var recipient: Recipient
     public var text: String
     public var history_id: String?
+
+    public init(
+        phase: String, id: String, reason: String?, deadline_ms: UInt64?, recipient: Recipient,
+        text: String, history_id: String?
+    ) {
+        self.phase = phase
+        self.id = id
+        self.reason = reason
+        self.deadline_ms = deadline_ms
+        self.recipient = recipient
+        self.text = text
+        self.history_id = history_id
+    }
 }

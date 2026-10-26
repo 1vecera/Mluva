@@ -49,11 +49,14 @@ public struct WheelLayout: Sendable, Equatable {
         return slots.first { $0.letter == key }
     }
 
-    /// Ring radius that keeps every label clear of its neighbours, within the screen.
-    public func radius(longestLabel: Double, limit: Double) -> Double {
+    /// Ring radius that keeps every capsule clear of the centre disc and of its neighbours,
+    /// within the screen.
+    public func radius(itemWidth: Double, centerRadius: Double, limit: Double) -> Double {
         let count = Double(max(slots.count, 6))
-        // Neighbouring labels sit roughly a chord apart; give each its width at most.
-        let needed = (longestLabel * 0.62 + 44) / (2 * sin(.pi / count))
-        return min(max(150, needed), limit)
+        // Clear of the centre even for a capsule lying sideways at three or nine o'clock.
+        let clearOfCenter = centerRadius + itemWidth / 2 + 28
+        // Neighbours a chord apart; capsules are wide but short, so most of the width suffices.
+        let clearOfNeighbours = (itemWidth * 0.7 + 24) / (2 * sin(.pi / count))
+        return min(max(clearOfCenter, clearOfNeighbours), limit)
     }
 }

@@ -1,0 +1,224 @@
+import MluvaKit
+import SwiftUI
+
+/// Saved dictations: search, edit with autosave, and the original recognition kept apart.
+struct HistoryView: View {
+    let model: AppModel
+    @Binding var selection: String?
+    @State private var query = ""
+    @State private var results: [HistoryEntry] = []
+
+    var body: some View {
+        NavigationSplitView {
+            List(selection: $selection) {
+                ForEach(groups, id: \.title) { group in
+                    Section(group.title) {
+                        ForEach(group.entries) { entry in
+                            HistoryRow(entry: entry).tag(entry.identifier)
+                        }
+                    }
+                }
+            }
+            .searchable(text: $query, placement: .sidebar, prompt: "Search dictations")
+            .navigationSplitViewColumnWidth(min: 240, ideal: 280)
+            .overlay {
+                if results.isEmpty {
+                    ContentUnavailableView(
+                        query.isEmpty ? "No dictations yet" : "No matches",
+                        systemImage: query.isEmpty ? "waveform" : "magnifyingglass",
+                        description: Text(query.isEmpty ? "Press \(model.config?.global_recording_key ?? "F9") anywhere to dictate." : "Try other words."))
+                }
+            }
+        } detail: {
+            if let selection, let entry = results.first(where: { $0.identifier == selection }) ?? find(selection) {
+                HistoryDetail(model: model, entry: entry) { reload() }
+                    .id(entry.identifier)
+            } else {
+                ContentUnavailableView("Choose a dictation", systemImage: "text.bubble", description: Text("Its text opens here for editing."))
+            }
+        }
+        .navigationTitle("History")
+        .onAppear(perform: reload)
+        .onChange(of: query) { reload() }
+        .onChange(of: model.recent) { reload() }
+    }
+
+    private func find(_ id: String) -> HistoryEntry? {
+        try? CoreBridge.shared.call("history.find", ["id": .string(id)], as: HistoryEntry.self)
+    }
+
+    private func reload() {
+        if query.trimmingCharacters(in: .whitespaces).isEmpty {
+            results = (try? CoreBridge.shared.call("history.recent", ["limit": 500], as: [HistoryEntry].self)) ?? []
+        } else {
+            results = (try? CoreBridge.shared.call("history.search", ["query": .string(query), "limit": 200], as: [HistoryEntry].self)) ?? []
+        }
+    }
+
+    private var groups: [(title: String, entries: [HistoryEntry])] {
+        let calendar = Calendar.current
+        var order: [String] = []
+        var grouped: [String: [HistoryEntry]] = [:]
+        for entry in results {
+            let date = entry.createdAt ?? .distantPast
+            let title = calendar.isDateInToday(date) ? "Today"
+                : calendar.isDateInYesterday(date) ? "Yesterday"
+                : date.formatted(.dateTime.weekday(.wide).day().month(.wide))
+            if grouped[title] == nil { order.append(title) }
+            grouped[title, default: []].append(entry)
+        }
+        return order.map { ($0, grouped[$0]!) }
+    }
+}
+
+private struct HistoryRow: View {
+    let entry: HistoryEntry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(entry.displayTitle).lineLimit(1)
+            HStack(spacing: 6) {
+                if let date = entry.createdAt {
+                    Text(date, format: .dateTime.hour().minute())
+                }
+                Text(outcome)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 2)
+    }
+
+    private var outcome: String {
+        switch entry.delivery_outcome {
+        case "pasted": "Pasted"
+        case "paste-unconfirmed": "Pasted, unconfirmed"
+        case "copied": "Copied"
+        case "failed": "Needs attention"
+        default: "Draft"
+        }
+    }
+}
+
+private struct HistoryDetail: View {
+    let model: AppModel
+    let entry: HistoryEntry
+    let changed: () -> Void
+
+    @State private var text = ""
+    @State private var title = ""
+    @State private var saved = true
+    @State private var saveError: String?
+    @State private var showOriginal = false
+    @State private var confirmDelete = false
+    @State private var pending: Task<Void, Never>?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            TextField("Title", text: $title, prompt: Text(entry.displayTitle))
+                .textFieldStyle(.plain)
+                .font(.title2.weight(.semibold))
+                .padding(.horizontal, 24)
+                .padding(.top, 18)
+                .onSubmit(saveTitle)
+            HStack(spacing: 8) {
+                if let date = entry.createdAt { Text(date, format: .dateTime.weekday().day().month().hour().minute()) }
+                Text("·")
+                Text(saveError ?? (saved ? "Saved" : "Saving…"))
+                    .foregroundStyle(saveError == nil ? Color.secondary : Color.orange)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 6)
+            TextEditor(text: $text)
+                .font(.body)
+                .lineSpacing(4)
+                .scrollContentBackground(.hidden)
+                .padding(.horizontal, 19)
+                .onChange(of: text) { scheduleSave() }
+            DisclosureGroup("Original recognition", isExpanded: $showOriginal) {
+                Text(entry.raw_text)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 6)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 14)
+        }
+        .toolbar {
+            ToolbarItemGroup {
+                Button("Copy", systemImage: "doc.on.doc") { TextDelivery.copy(text) }
+                    .help("Copy the edited text")
+                Button("Export", systemImage: "square.and.arrow.up") { export() }
+                    .help("Save as Markdown")
+                Button("Delete", systemImage: "trash", role: .destructive) { confirmDelete = true }
+                    .help("Delete this dictation")
+            }
+        }
+        .confirmationDialog("Delete this dictation?", isPresented: $confirmDelete) {
+            Button("Delete", role: .destructive) {
+                _ = try? CoreBridge.shared.call("history.delete", ["id": .string(entry.identifier)])
+                model.refreshHistory()
+                changed()
+            }
+        } message: {
+            Text("Its text, original recognition and any retained audio are removed.")
+        }
+        .onAppear {
+            text = (try? CoreBridge.shared.call("history.source", ["id": .string(entry.identifier)]).string) ?? entry.delivered_text
+            title = entry.title ?? ""
+            saved = true
+        }
+        .onDisappear { flush() }
+    }
+
+    private func scheduleSave() {
+        saved = false
+        pending?.cancel()
+        pending = Task {
+            try? await Task.sleep(for: .milliseconds(600))
+            guard !Task.isCancelled else { return }
+            flush()
+        }
+    }
+
+    private func flush() {
+        guard !saved else { return }
+        do {
+            try CoreBridge.shared.call("history.save_text", ["id": .string(entry.identifier), "text": .string(text)])
+            saved = true
+            saveError = nil
+        } catch {
+            saveError = "Not saved yet: \(error.localizedDescription) Retrying."
+            pending = Task {
+                try? await Task.sleep(for: .seconds(2))
+                flush()
+            }
+        }
+    }
+
+    private func saveTitle() {
+        _ = try? CoreBridge.shared.call("history.title", ["id": .string(entry.identifier), "title": .string(title)])
+        changed()
+    }
+
+    private func export() {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = "\(entry.displayTitle).md"
+        panel.canCreateDirectories = true
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        flush()
+        let directory = FileManager.default.temporaryDirectory.appending(path: "mluva-export-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        if let path = try? CoreBridge.shared.call("history.export", [
+            "id": .string(entry.identifier), "directory": .string(directory.path), "format": "markdown",
+        ]).string {
+            try? FileManager.default.removeItem(at: url)
+            try? FileManager.default.copyItem(at: URL(fileURLWithPath: path), to: url)
+        }
+    }
+}
