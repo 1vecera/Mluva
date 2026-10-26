@@ -13,7 +13,6 @@ use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::fs;
-use std::os::fd::{AsRawFd, FromRawFd};
 use std::os::unix::fs::{DirBuilderExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
@@ -647,8 +646,10 @@ impl Drop for QwenSpeechClient {
 
 // Keep the released private pathname without persisting its authentication bytes.
 // When the owner dies, its descriptor disappears and the alias becomes unreadable.
+#[cfg(target_os = "linux")]
 fn anonymous_key(path: &Path, token: &str) -> std::io::Result<fs::File> {
     use std::io::{Seek, Write};
+    use std::os::fd::{AsRawFd, FromRawFd};
     let descriptor = unsafe {
         libc::memfd_create(
             c"mluva-qwen-key".as_ptr(),
@@ -671,6 +672,12 @@ fn anonymous_key(path: &Path, token: &str) -> std::io::Result<fs::File> {
         path,
     )?;
     Ok(key)
+}
+
+/// Sealed anonymous files exist only on Linux, where the managed Qwen runtime ships.
+#[cfg(not(target_os = "linux"))]
+fn anonymous_key(_path: &Path, _token: &str) -> std::io::Result<fs::File> {
+    Err(std::io::Error::from(std::io::ErrorKind::Unsupported))
 }
 
 fn runtime_command(executable: &Path) -> Result<Command> {
