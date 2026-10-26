@@ -25,7 +25,7 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 
 One dictation mode, one editor. Smooth following is always enabled and respects reduced motion and intentional scrolling away from the end. **Ctrl+P** finds actions. Polish, rewriting, prompts, generated titles, Notes and Command capture modes have been removed. Existing saved replies remain readable and exportable; unfinished Notes recover into local History.
 
-Choose ElevenLabs Scribe, one of the three managed local models, or a compatible speech API. Login never changes the selected speech provider. Contextual editing belongs in the receiving agent. The separate Meeting recorder remains available. See [feature status](docs/feature-maturity.md) and [Herdr setup](docs/herdr-voice.md).
+Choose ElevenLabs Scribe, one of the three managed local models, or a compatible speech API. Login never changes the selected speech provider. Contextual editing belongs in the receiving agent. The separate Meeting recorder remains available. See [feature status](docs/feature-maturity.md) and [talking to Claude Code and Codex agents](docs/agent-routing.md).
 
 ## Install
 

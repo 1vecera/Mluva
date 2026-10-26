@@ -900,6 +900,40 @@ mod tests {
         );
     }
 
+    /// Mluva's own transport, as shipped, against one real Claude Code session started only for
+    /// this check and named by `MLUVA_REAL_CLAUDE_SESSION`; no other session is touched.
+    /// `MLUVA_REAL_CLAUDE_EXPECT` is the outcome to expect: `Taken`, `Accepted` or `Rejected`.
+    #[tokio::test]
+    #[ignore = "delivers one message to a disposable real Claude Code session"]
+    async fn a_disposable_real_session_takes_one_message() {
+        let session = std::env::var("MLUVA_REAL_CLAUDE_SESSION").expect("session ID");
+        let expect = std::env::var("MLUVA_REAL_CLAUDE_EXPECT").unwrap_or_else(|_| "Taken".into());
+        let chosen = std::env::var("MLUVA_REAL_CLAUDE_CHOSEN").ok();
+        let sessions = ClaudeRegistry::from_environment().unwrap().sessions();
+        let live = merge(vec![], &sessions);
+        // A choice made earlier may name a session that has since been cleared or resumed.
+        let id = chosen.as_deref().unwrap_or(&session);
+        let target = live
+            .iter()
+            .find(|t| t.session_id == session)
+            .cloned()
+            .map(|mut t| {
+                t.session_id = id.into();
+                t
+            })
+            .expect("the disposable session is live");
+        assert_eq!(target.route(), Route::ClaudeInbox);
+        let text = "Reply with the single word MLUVAQUEUED";
+        let receipt = submit(&submission(target, text), &CancellationToken::new()).await;
+        println!("outcome: {:?}", receipt.outcome);
+        assert_eq!(format!("{:?}", receipt.outcome), expect);
+        if let Some(taken) = receipt.taken {
+            let seen = tokio::time::timeout(Duration::from_secs(120), taken).await;
+            println!("taken later: {seen:?}");
+            assert_eq!(seen, Ok(true));
+        }
+    }
+
     #[test]
     fn evidence_matches_this_message_only_and_skips_content_lines() {
         let id = "9a9a9a9a-0000-4000-8000-000000000001";

@@ -12,7 +12,9 @@
 use std::path::{Path, PathBuf};
 
 use adw::prelude::*;
-use mluva_core::agent_voice::{AgentKind, AgentStatus, HerdrPane, Target};
+use mluva_core::agent_voice::{
+    AgentKind, AgentStatus, AppLink, ClaudeInbox, CodexThread, HerdrPane, Host, Target,
+};
 use mluva_gtk::agent_session_wheel::SessionWheel;
 use mluva_gtk::theme::ThemeController;
 
@@ -115,6 +117,107 @@ fn mixed() -> Vec<Target> {
         native(0, "Cold start profile", AgentStatus::Idle),
         native(1, "", AgentStatus::Working),
     ]
+}
+
+/// A Claude Code session with its own inbox, found in Claude Code's registry.
+fn inboxed(index: usize, title: &str, status: AgentStatus, host: Host) -> Target {
+    Target {
+        inbox: Some(ClaudeInbox {
+            entry: format!("/fixture/claude/sessions/{}.json", 50_000 + index),
+            socket: format!("/run/user/fixture/cc-socks/{}.sock", 50_000 + index),
+            proc_start: "123456".into(),
+        }),
+        host,
+        ..native(index, title, status)
+    }
+}
+
+/// A live Codex thread outside Herdr, held open by a TUI or by Codex Desktop's server.
+fn codex_thread(index: usize, title: &str, kind: AgentKind, status: AgentStatus) -> Target {
+    let thread = format!("01900000-0000-7000-8000-0000000{index:05}");
+    Target {
+        kind,
+        name: format!("codex-{}", &thread[..8]),
+        title: title.into(),
+        project: "/fixture/project".into(),
+        status,
+        session_id: thread.clone(),
+        pid: 60_000 + index as u32,
+        codex: Some(CodexThread {
+            lock: format!("/fixture/codex/thread-writer-locks/{thread}.lock"),
+            holder: 60_000 + index as u32,
+        }),
+        ..Target::default()
+    }
+}
+
+/// Every kind of target and every delivery level on one wheel, in discovery order: Herdr's
+/// panes, Claude Code sessions outside Herdr, live Codex threads, then a new Claude chat.
+fn universal() -> Vec<Target> {
+    let mut codex_pane = session(2, AgentStatus::Working);
+    codex_pane.title = "Release checklist".into();
+    let mut claude_pane = session(1, AgentStatus::Idle);
+    claude_pane.title = "Shortcut portal fix".into();
+    let mut unguarded_codex = unmanaged(4, AgentStatus::Idle);
+    unguarded_codex.kind = AgentKind::CodexCli;
+    unguarded_codex.title = "Onboarding copy".into();
+    unguarded_codex.session_id.clear();
+    unguarded_codex.pid = 0;
+    vec![
+        claude_pane,
+        codex_pane,
+        unguarded_codex,
+        inboxed(
+            0,
+            "Cold start profile",
+            AgentStatus::Idle,
+            Host::Tmux("work:@3.%7".into()),
+        ),
+        inboxed(1, "Přehled zkoušek", AgentStatus::Blocked, Host::Terminal),
+        inboxed(2, "Migration notes", AgentStatus::Working, Host::Background),
+        Target {
+            kind: AgentKind::ClaudeDesktop,
+            ..inboxed(3, "Inbox triage 🙂", AgentStatus::Idle, Host::App)
+        },
+        native(4, "Parakeet benchmark", AgentStatus::Idle),
+        codex_thread(
+            5,
+            "Narration port",
+            AgentKind::CodexCli,
+            AgentStatus::Unknown,
+        ),
+        codex_thread(
+            6,
+            "Widget breathing",
+            AgentKind::CodexDesktop,
+            AgentStatus::Idle,
+        ),
+        Target {
+            kind: AgentKind::ClaudeDesktop,
+            name: "claude-new-chat".into(),
+            title: "New chat".into(),
+            status: AgentStatus::Idle,
+            app: Some(AppLink::ClaudeNewChat),
+            ..Target::default()
+        },
+    ]
+}
+
+/// One capture's fixture inputs: each target as the wheel received it.
+fn describe(entries: &[Target], selected: Option<usize>, page: usize) -> serde_json::Value {
+    serde_json::json!({
+        "page": page,
+        "chosen": selected,
+        "targets": entries.iter().map(|t| serde_json::json!({
+            "name": t.display_name(),
+            "kind": t.kind.label(),
+            "place": t.place(),
+            "status": t.status,
+            "route": t.route().as_str(),
+            "delivery": t.delivery(),
+            "receives_now": t.can_receive(),
+        })).collect::<Vec<_>>(),
+    })
 }
 
 /// Herdr is absent: Claude Code's registry alone, two sessions sharing a title.
@@ -291,12 +394,24 @@ fn main() -> glib::ExitCode {
         ("mixed-draft-selected", mixed(), Some(2), 0),
         ("native-only", native_only(), None, 0),
         ("native-only-draft-selected", native_only(), Some(2), 0),
+        // Every kind and delivery level together, each level chosen in turn.
+        ("universal-send-herdr", universal(), Some(0), 0),
+        ("universal-queue-tmux", universal(), Some(3), 0),
+        ("universal-queue-waiting", universal(), Some(4), 0),
+        ("universal-queue-desktop", universal(), Some(6), 0),
+        ("universal-draft-only", universal(), Some(7), 0),
+        ("universal-send-codex", universal(), Some(8), 0),
+        ("universal-send-codex-desktop", universal(), Some(9), 0),
+        ("universal-prefill-new-chat", universal(), Some(10), 0),
     ];
     let mut problems = vec![];
+    let mut index = serde_json::Map::new();
     for (name, entries, selected, page) in scenarios {
         let wheel = show(&entries, selected, page);
         problems.extend(audit(&wheel, name));
-        capture(&wheel.window, &output.join(format!("{palette}-{name}.png")));
+        let file = format!("{palette}-{name}.png");
+        capture(&wheel.window, &output.join(&file));
+        index.insert(file, describe(&entries, selected, page));
         wheel.window.destroy();
         settle(2);
     }
@@ -319,6 +434,11 @@ fn main() -> glib::ExitCode {
     );
     wheel.window.destroy();
     settle(2);
+    std::fs::write(
+        output.join(format!("{palette}-index.json")),
+        serde_json::to_vec_pretty(&index).unwrap(),
+    )
+    .unwrap();
     if !problems.is_empty() {
         for problem in &problems {
             eprintln!("{problem}");

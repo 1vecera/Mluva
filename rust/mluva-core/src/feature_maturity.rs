@@ -22,8 +22,8 @@ pub struct Capability {
 pub const CAPABILITIES: &[Capability] = &[
     Capability {
         identifier: "herdr_voice",
-        title: "Hold to talk to Herdr agents",
-        summary: "Opt-in local routing needs the guarded Herdr integration; physical hold/release and optional ElevenLabs v4 Turbo voice acceptance remain pending.",
+        title: "Talk to Claude Code and Codex agents",
+        summary: "Opt-in local routing sends through Herdr's guarded prompt, queues to Claude Code sessions through their own inbox, sends to idle Codex threads through Codex's queue and prefills a new Claude Desktop chat; Claude Desktop and Codex Desktop delivery, macOS, physical keys and optional ElevenLabs v4 Turbo voice acceptance remain pending.",
         maturity: Maturity::Experimental,
     },
     Capability {
