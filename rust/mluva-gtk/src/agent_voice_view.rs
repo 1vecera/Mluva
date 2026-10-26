@@ -89,7 +89,7 @@ impl AgentVoiceView {
             }
         });
         recipients.set_factory(Some(&factory));
-        let refresh = icon("view-refresh-symbolic", "Refresh local Herdr agents");
+        let refresh = icon("view-refresh-symbolic", "Refresh local agent sessions");
         row.append(&recipients);
         row.append(&refresh);
         widget.append(&row);
