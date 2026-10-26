@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-26T16:30:00+01:00",
+  "title": "Design System: Mluva for macOS",
+  "extensions": {
+    "colorMeta": {
+      "redline": {"role": "primary", "displayName": "Redline"},
+      "graphite": {"role": "neutral", "displayName": "Graphite glass ground"},
+      "chalk": {"role": "neutral", "displayName": "Chalk"},
+      "amber": {"role": "state", "displayName": "Needs attention"}
+    },
+    "motion": [
+      {"name": "jelly-breath", "value": "3.4s sine cycle", "purpose": "The signal lamp while recording; still under Reduce Motion."},
+      {"name": "level-trace", "value": "one sample per level change, 56 samples", "purpose": "The pill's live trace."},
+      {"name": "state-change", "value": "smooth 0.25s", "purpose": "Pill and sheet transitions."}
+    ]
+  },
+  "components": [],
+  "narrative": {
+    "northStar": "The glass drafting instrument",
+    "rules": [
+      {"name": "The Redline Rule", "body": "Red marks only what is live, chosen or drawn by the person.", "section": "colors"},
+      {"name": "The Lowercase Voice Rule", "body": "Mluva's own labels and actions are lowercase.", "section": "typography"}
+    ]
+  }
+}
