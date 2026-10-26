@@ -36,7 +36,7 @@ pub struct LiveThread {
 
 /// Threads whose lock is held now, oldest first. Helpers and sub-agents are among them until
 /// discovery reads what they are.
-pub fn live_threads(home: &Path, holders: &HashMap<(u64, u64), u32>) -> Vec<LiveThread> {
+pub fn live_threads(home: &Path, holders: &agent_platform::FlockHolders) -> Vec<LiveThread> {
     let directory = home.join("thread-writer-locks");
     if !claude_sessions::private_directory(&directory) {
         return vec![];
@@ -532,9 +532,16 @@ mod discovery_tests {
             3,
             "the daemon is asked only for the kept thread's state"
         );
-        // A closed thread leaves the wheel.
+        // A closed thread leaves the wheel, once a child forked meanwhile by another test thread
+        // has let go of the inherited lock descriptor.
         drop(held);
-        assert!(threads.discover(&servers, &names).await.is_empty());
+        let released = std::time::Instant::now() + std::time::Duration::from_secs(2);
+        let mut found = threads.discover(&servers, &names).await;
+        while !found.is_empty() && std::time::Instant::now() < released {
+            tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+            found = threads.discover(&servers, &names).await;
+        }
+        assert!(found.is_empty());
         assert_eq!(peer.answers_to_server(), 0);
     }
 }

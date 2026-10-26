@@ -88,10 +88,15 @@ pub fn peer_process(stream: &tokio::net::UnixStream) -> Option<(u32, u32)> {
     Some((peer.uid(), u32::try_from(peer.pid()?).ok()?))
 }
 
-/// Holders of exclusive `flock` locks, by the locked file's device and inode, from
-/// `/proc/locks` on Linux. A lock file left behind by a process that exited has no holder.
+/// Processes holding exclusive `flock` locks, by the locked file's device and inode as the
+/// kernel names them. On btrfs every subvolume shares one device there and inode numbers repeat
+/// across subvolumes, so one key can name several files, each with its own holder.
+pub type FlockHolders = HashMap<(u64, u64), Vec<u32>>;
+
+/// Holders of exclusive `flock` locks from `/proc/locks` on Linux. A lock file left behind by a
+/// process that exited has no holder.
 #[cfg(target_os = "linux")]
-pub fn flock_holders() -> HashMap<(u64, u64), u32> {
+pub fn flock_holders() -> FlockHolders {
     std::fs::read_to_string("/proc/locks")
         .map(|locks| parse_flock_holders(&locks))
         .unwrap_or_default()
@@ -100,7 +105,7 @@ pub fn flock_holders() -> HashMap<(u64, u64), u32> {
 /// macOS has no `/proc/locks`; finding a lock's holder there needs another method, such as
 /// `lsof`, which has not been verified.
 #[cfg(not(target_os = "linux"))]
-pub fn flock_holders() -> HashMap<(u64, u64), u32> {
+pub fn flock_holders() -> FlockHolders {
     HashMap::new()
 }
 
@@ -108,7 +113,7 @@ pub fn flock_holders() -> HashMap<(u64, u64), u32> {
 /// holders from [`flock_holders`]. The kernel names a lock's file by its mount's device, which
 /// on btrfs differs from the per-subvolume device `stat` reports, so both are tried.
 pub fn flock_holder(
-    holders: &HashMap<(u64, u64), u32>,
+    holders: &FlockHolders,
     path: &Path,
     metadata: &std::fs::Metadata,
 ) -> Option<u32> {
@@ -118,20 +123,27 @@ pub fn flock_holder(
 
 /// As [`flock_holder`], with the mount's device already known, for many files in one
 /// directory. A match through the mount's device names only an inode on that filesystem, which
-/// another subvolume can share, so the holder must also have the file itself open.
+/// files in other subvolumes can share, so the holder is the one that has this file open.
 pub fn flock_holder_on(
-    holders: &HashMap<(u64, u64), u32>,
+    holders: &FlockHolders,
     mount: Option<u64>,
     path: &Path,
     metadata: &std::fs::Metadata,
 ) -> Option<u32> {
     use std::os::unix::fs::MetadataExt;
     let inode = metadata.ino();
-    if let Some(holder) = holders.get(&(metadata.dev(), inode)) {
-        return Some(*holder);
+    match holders.get(&(metadata.dev(), inode)).map(Vec::as_slice) {
+        Some([holder]) => return Some(*holder),
+        Some(several) if !several.is_empty() => {
+            return several.iter().copied().find(|pid| holds_open(*pid, path));
+        }
+        _ => {}
     }
-    let holder = *holders.get(&(mount?, inode))?;
-    holds_open(holder, path).then_some(holder)
+    holders
+        .get(&(mount?, inode))?
+        .iter()
+        .copied()
+        .find(|pid| holds_open(*pid, path))
 }
 
 /// Whether a process has the file at `path` open, from its descriptors in `/proc`.
@@ -198,7 +210,7 @@ fn unescape_mount(field: &str) -> PathBuf {
 /// Parse `/proc/locks` lines such as `15: FLOCK  ADVISORY  WRITE 954587 00:1e:39635243 0 EOF`
 /// into (device, inode) → PID, for exclusive `flock` locks only. Blocked waiters (`->`) are not
 /// holders.
-pub(crate) fn parse_flock_holders(locks: &str) -> HashMap<(u64, u64), u32> {
+pub(crate) fn parse_flock_holders(locks: &str) -> FlockHolders {
     let mut holders = HashMap::new();
     for line in locks.lines().take(65_536) {
         let fields: Vec<&str> = line.split_whitespace().collect();
@@ -222,7 +234,10 @@ pub(crate) fn parse_flock_holders(locks: &str) -> HashMap<(u64, u64), u32> {
         ) else {
             continue;
         };
-        holders.insert((libc::makedev(major, minor), inode), pid);
+        holders
+            .entry((libc::makedev(major, minor), inode))
+            .or_insert_with(Vec::new)
+            .push(pid);
     }
     holders
 }
@@ -384,8 +399,37 @@ mod tests {
                      garbage line\n";
         let holders = parse_flock_holders(locks);
         assert_eq!(holders.len(), 2);
-        assert_eq!(holders[&(libc::makedev(0, 0x1e), 39_635_243)], 954_587);
-        assert_eq!(holders[&(libc::makedev(0xfd, 1), 77)], 400);
+        assert_eq!(holders[&(libc::makedev(0, 0x1e), 39_635_243)], [954_587]);
+        assert_eq!(holders[&(libc::makedev(0xfd, 1), 77)], [400]);
+        // Two btrfs subvolumes, one device in the kernel's table, the same inode: both kept.
+        let shared = parse_flock_holders(
+            "1: FLOCK  ADVISORY  WRITE 10 00:1e:77 0 EOF\n2: FLOCK  ADVISORY  WRITE 20 00:1e:77 0 EOF\n",
+        );
+        assert_eq!(shared[&(libc::makedev(0, 0x1e), 77)], [10, 20]);
+    }
+
+    #[test]
+    fn of_several_holders_of_one_inode_the_one_with_this_file_open_holds_it() {
+        use std::os::unix::fs::MetadataExt;
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("thread.lock");
+        let _open = std::fs::File::create(&path).unwrap();
+        let metadata = std::fs::symlink_metadata(&path).unwrap();
+        // A device the file is not on, as the kernel names a btrfs subvolume's files.
+        let mount = libc::makedev(0, 0x7ff);
+        assert_ne!(metadata.dev(), mount);
+        let own = std::process::id();
+        // Process 1 holds another file with the same inode elsewhere; it never has this one open.
+        let holders: FlockHolders = [((mount, metadata.ino()), vec![1, own])].into();
+        assert_eq!(
+            flock_holder_on(&holders, Some(mount), &path, &metadata),
+            Some(own)
+        );
+        let elsewhere: FlockHolders = [((mount, metadata.ino()), vec![1])].into();
+        assert_eq!(
+            flock_holder_on(&elsewhere, Some(mount), &path, &metadata),
+            None
+        );
     }
 
     #[test]
@@ -432,6 +476,12 @@ mod tests {
                 directory.display()
             );
             drop(file);
+            // A child another test thread forks inherits the descriptor until it execs, so the
+            // lock can outlive the file here by a moment.
+            let released = std::time::Instant::now() + Duration::from_secs(2);
+            while holder().is_some() && std::time::Instant::now() < released {
+                std::thread::sleep(Duration::from_millis(10));
+            }
             assert_eq!(holder(), None, "released with the file");
         }
     }
