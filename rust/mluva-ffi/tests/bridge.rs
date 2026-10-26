@@ -218,3 +218,79 @@ fn a_guarded_send_waits_out_the_cancel_window_and_editing_keeps_a_draft() {
     assert_eq!(state["reason"], "edited");
     assert_eq!(state["text"], "ship it");
 }
+
+#[test]
+fn a_marked_recording_becomes_a_bundle_the_shell_draws_and_its_conversation_owns() {
+    let fixture = Fixture::open();
+    assert_eq!(
+        fixture.call("annotate.settings", json!({})),
+        json!({"enabled": true})
+    );
+    let frames = fixture._root.path().join("frames");
+    std::fs::create_dir(&frames).unwrap();
+    let frame = |t: u64, reason: &str| {
+        json!({"t": t, "screen": "Built-in", "reason": reason,
+            "path": frames.join(format!("{t}.png")), "width": 1440, "height": 900})
+    };
+    let request = json!({
+        "owner": "capture-1",
+        "capture": {
+            "duration_ms": 6_000,
+            "screens": [{"name": "Built-in", "x": 0, "y": 0, "width": 1440, "height": 900, "scale": 2.0}],
+            "strokes": [{"t0": 2_000, "t1": 2_600, "screen": "Built-in", "points": [
+                {"x": 400.0, "y": 300.0, "t": 2_000}, {"x": 520.0, "y": 300.0, "t": 2_300},
+                {"x": 640.0, "y": 304.0, "t": 2_600}]}],
+            "frames": [frame(0, "start"), frame(2_600, "mark")],
+            "events": [],
+        },
+        "lumas": [vec![0.2_f32; 64 * 36], vec![0.8_f32; 64 * 36]],
+        "text": "This button should be red.",
+        "words": [],
+    });
+    // Nothing is written before the shell's images exist.
+    let planned = fixture.call("annotate.plan", request.clone());
+    let keyframes = planned["keyframes"].as_array().unwrap();
+    assert!(!keyframes.is_empty());
+    let identifier = planned["identifier"].as_str().unwrap().to_owned();
+    assert!(
+        fixture
+            .bridge
+            .call("annotate.finish", &json!({"identifier": identifier}))
+            .is_err()
+    );
+    assert!(
+        fixture
+            .bridge
+            .call("annotate.finish", &json!({"identifier": identifier}))
+            .is_err()
+    );
+
+    let planned = fixture.call("annotate.plan", request);
+    let identifier = planned["identifier"].as_str().unwrap().to_owned();
+    for keyframe in planned["keyframes"].as_array().unwrap() {
+        assert_eq!(keyframe["crop"].as_array().unwrap().len(), 4);
+        std::fs::write(keyframe["file"].as_str().unwrap(), b"\x89PNG\r\n\x1a\n").unwrap();
+    }
+    std::fs::write(
+        planned["contact_sheet"].as_str().unwrap(),
+        b"\x89PNG\r\n\x1a\n",
+    )
+    .unwrap();
+    let finished = fixture.call("annotate.finish", json!({"identifier": identifier}));
+    let summary = finished["summary"].as_str().unwrap();
+    assert!(summary.contains("01.png"), "{summary}");
+
+    let entry = fixture.call(
+        "history.add",
+        json!({"input": {"raw_text": "This button should be red.", "delivered_text": "This button should be red.",
+            "language_code": "en", "delivery_outcome": "copied"}}),
+    );
+    let conversation = entry["identifier"].as_str().unwrap();
+    fixture.call(
+        "annotate.bind",
+        json!({"owner": "capture-1", "conversation": conversation}),
+    );
+    let bundles = fixture.call("annotate.recent", json!({"id": conversation}));
+    assert_eq!(bundles.as_array().unwrap().len(), 1);
+    assert_eq!(bundles[0]["identifier"], identifier);
+}

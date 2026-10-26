@@ -4,6 +4,7 @@
 //! JSON response, `{"ok": …}` or `{"error": "…"}`. Long work runs on an owned Tokio runtime
 //! and reports through the single event handler. Credentials arrive per call, are held only
 //! as `Secret` and never appear in a response or event.
+mod annotate;
 mod bridge;
 
 pub use bridge::{Bridge, Emitter};

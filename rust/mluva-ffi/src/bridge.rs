@@ -2,8 +2,10 @@
 //!
 //! The file layout under the shell's configuration and data directories matches the Linux
 //! application's XDG layout, so settings, personalization and History use one format.
+use crate::annotate;
 use mluva_core::{
     agent_voice::{DraftReason, Recipient, RoutePhase, SendOutcome, VoiceRoute, VoiceSettings},
+    annotations::{AnnotationSettings, AnnotationStore},
     config::AppConfig,
     conversation::ConversationStore,
     history::{HistoryInput, HistoryStore},
@@ -53,6 +55,9 @@ struct Stores {
     history: HistoryStore,
     conversations: ConversationStore,
     personalization: PersonalizationStore,
+    annotations: AnnotationStore,
+    /// Bundles planned and waiting for the shell's images, by identifier.
+    pending: HashMap<String, annotate::Pending>,
 }
 
 pub struct Bridge {
@@ -216,11 +221,16 @@ impl Bridge {
         let conversations = ConversationStore::new(history.clone());
         conversations.initialize().map_err(text)?;
         let personalization = PersonalizationStore::new(paths.config.join("personalization.json"));
+        let config = AppConfig::load(&paths.config.join("config.json")).unwrap_or_default();
+        annotate::recover(&history, &config)?;
+        let annotations = AnnotationStore::new(&history.database.path);
         *lock(&self.stores) = Some(Stores {
             paths,
             history,
             conversations,
             personalization,
+            annotations,
+            pending: HashMap::new(),
         });
         Ok(Value::Null)
     }
@@ -387,6 +397,49 @@ impl Bridge {
                 .dismiss_vocabulary_suggestion(&param::<String>(params, "id")?)
                 .map(|()| Value::Null)
                 .map_err(text),
+            "annotate.settings" => {
+                AnnotationSettings::load(&annotate::settings_path(&stores.paths.config))
+                    .map(|settings| json!(settings))
+                    .map_err(text)
+            }
+            "annotate.save_settings" => AnnotationSettings {
+                enabled: param(params, "enabled")?,
+            }
+            .save(&annotate::settings_path(&stores.paths.config))
+            .map(|()| Value::Null)
+            .map_err(text),
+            "annotate.plan" => annotate::plan(
+                &stores.annotations,
+                &mut stores.pending,
+                serde_json::from_value(params.clone())
+                    .map_err(|_| "The request needs a valid screen annotation.".to_owned())?,
+            ),
+            "annotate.finish" => annotate::finish(
+                &stores.annotations,
+                &mut stores.pending,
+                &param::<String>(params, "identifier")?,
+            ),
+            "annotate.discard" => annotate::discard(
+                &stores.annotations,
+                &mut stores.pending,
+                &param::<String>(params, "identifier")?,
+            ),
+            "annotate.bind" => stores
+                .annotations
+                .bind_capture(
+                    &param::<String>(params, "owner")?,
+                    &param::<String>(params, "conversation")?,
+                )
+                .map(|()| Value::Null)
+                .map_err(text),
+            "annotate.discard_owner" => stores
+                .annotations
+                .delete_owner(&param::<String>(params, "owner")?, true)
+                .map(|()| Value::Null)
+                .map_err(text),
+            "annotate.recent" => {
+                annotate::recent(&stores.annotations, &param::<String>(params, "id")?)
+            }
             "dictation.freeze" => {
                 let config = AppConfig::load(&config_path).unwrap_or_default();
                 freeze_transcript_preparation(
