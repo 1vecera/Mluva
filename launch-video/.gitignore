@@ -9,5 +9,7 @@ public/audio/
 public/showreel/
 # The universal showreel's staged captures and score (showreel/stage-universal.mjs).
 public/universal/
+# Agent binaries copied in for the delivery take (showreel/README.md).
+showreel/capture/tools/
 # The generated highlight score (ElevenLabs Music) stays local with the other staged media.
 public/highlight/

@@ -1,16 +1,6 @@
 // Every claim the reel makes about routing, in one place. It must match what the target model
 // ships (rust/mluva-core/src/agent_target.rs): a level is named only where a route delivers it.
 
-export type Level = "SEND" | "QUEUE" | "PREFILL" | "DRAFT ONLY";
-
-// The four delivery levels, strongest first, as the target model defines them.
-export const LEVELS: { verb: Level; line: string }[] = [
-  { verb: "SEND", line: "SUBMITTED · WITH HERDR'S RECEIPT" },
-  { verb: "QUEUE", line: "TAKEN WHEN THE AGENT IS READY" },
-  { verb: "PREFILL", line: "IN A NEW CHAT · YOU PRESS SEND" },
-  { verb: "DRAFT ONLY", line: "KEPT AS AN EDITABLE DRAFT IN MLUVA" },
-];
-
 // Before the target model: Herdr's guarded prompt was the only way Mluva sent.
 export const BEFORE: { kind: string; where: string; outcome: "SEND" | "DRAFT ONLY" | "NOT LISTED" }[] = [
   { kind: "CLAUDE CODE", where: "HERDR", outcome: "SEND" },
@@ -20,9 +10,6 @@ export const BEFORE: { kind: string; where: string; outcome: "SEND" | "DRAFT ONL
   { kind: "CLAUDE DESKTOP", where: "CHAT", outcome: "NOT LISTED" },
   { kind: "CODEX DESKTOP", where: "APP", outcome: "NOT LISTED" },
 ];
-
-// The transports behind the one model.
-export const ROUTES = ["HERDR GUARDED PROMPT", "CLAUDE CODE INBOX", "CODEX QUEUE", "CLAUDE DESKTOP LINK"];
 
 // The model's fields, filled one per beat.
 export const FIELDS: { key: string; values: string[] }[] = [

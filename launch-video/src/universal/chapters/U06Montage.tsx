@@ -11,7 +11,7 @@ const k = (beat: number) => beatFrame(44 + beat) - B0;
 const LENGTH = k(12);
 // Bar 13: four cuts, one per beat. Bar 14 is the score's break before the final impact.
 const CUT0 = k(4);
-export const CUTS = Array.from({ length: 5 }, (_, i) => beatFrame(48 + i) - B0);
+const CUTS = Array.from({ length: 5 }, (_, i) => beatFrame(48 + i) - B0);
 const BREAK = k(8);
 
 // The re-drop: the queued dictation lands in Claude Code ("Portal test") at take 22.10 s, on the

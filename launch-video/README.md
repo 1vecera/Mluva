@@ -30,7 +30,7 @@ The result is `out/mluva-intro-live-master.mp4`. Remotion renders silent picture
 
 ## Showreel
 
-The same project renders `MluvaShowreel`, a 15-second motion-design reel built from real widget captures and the brand files. [Its README](showreel/README.md) covers capture, staging, render and mastering.
+The same project renders `MluvaShowreel`, a 15-second motion-design reel built from real widget captures and the brand files, and `MluvaShowreelUniversal`, its 30-second follow-up about delivering dictation to any agent, built from real captures of the session wheel and of Mluva delivering to disposable Codex and Claude Code sessions. [Their README](showreel/README.md) covers capture, staging, render and mastering.
 
 ## Sources and review
 
