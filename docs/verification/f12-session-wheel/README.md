@@ -48,7 +48,7 @@ Every movement is paint and transform only: no name's allocation moves and nothi
 - **Chosen tick.** The new choice's tick grows and the old one's shrinks back together, each easing over about 0.2 s (time constant 60 ms).
 - **Light.** The trace's tail reaches as far behind the hand as it turns in 45 ms, at most 40°. While the hand turns faster than 60° a second the light dims to 75% (time constant 40 ms) and it brightens back as the hand settles (time constant 80 ms): the soft landing.
 - **Amber.** A choice that is or becomes blocked or missing eases the light, the hand and the chosen tick to amber (time constant 80 ms), not a flash.
-- **Hover and focus.** The tick of the name under the pointer or keyboard focus lifts, 4 px longer, wider and brighter (time constant 50 ms).
+- **Hover and focus.** The tick of the name under the pointer or keyboard focus lifts, 4 px longer, wider and brighter (time constant 50 ms). Focus's reverse-video key cell eases in and out over 180 ms, and its underline fades in with the lift; it leaves at once when focus moves on.
 - **Paging.** The new page's ticks and names turn 8° into place, clockwise for the next page and back for the previous, and fade in over 180 ms.
 - **Names and text.** A name brightens or dims through a 180 ms colour transition on the same ease-out; the chosen name keeps its weight, since a change of weight cannot ease, and is carried by brightness and its key's colour. The hub and the status line cross-fade over 160 ms at a fixed size, so new text never moves them. Record eases its dimming the same way.
 

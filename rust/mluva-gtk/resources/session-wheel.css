@@ -33,7 +33,7 @@ window.ml-session-wheel.csd:backdrop, window.ml-session-wheel.solid-csd:backdrop
   transition: color 180ms cubic-bezier(0.23, 1, 0.32, 1); }
 /* The key is the letter you type, so it is the brightest glyph in each name. */
 .ml-session-wheel .ml-wheel-key { font-size: 14px; font-weight: 700; color: @vs_ink; min-width: 15px;
-  transition: color 180ms cubic-bezier(0.23, 1, 0.32, 1); }
+  transition: color 180ms cubic-bezier(0.23, 1, 0.32, 1), background-color 180ms cubic-bezier(0.23, 1, 0.32, 1); }
 
 /* Hover and keyboard focus: the name brightens and its key takes the light's colour. */
 .ml-session-wheel button.ml-wheel-slot:hover .ml-wheel-name, .ml-session-wheel button.ml-wheel-slot:focus-visible .ml-wheel-name { color: @vs_ink; }

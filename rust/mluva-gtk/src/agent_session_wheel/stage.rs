@@ -593,15 +593,21 @@ mod imp {
             .collect();
             // Every line of text, with how much it shows and how far its paint has moved.
             let mut lines: Vec<(Line, f64, (f64, f64))> = vec![];
-            for (child, shown, offset) in &names {
+            // How far each line's underline has faded in: a name's follows its tick's eased lift,
+            // which keyboard focus raises; the legend's is whole.
+            let mut underlines: Vec<f64> = vec![];
+            for (index, (child, shown, offset)) in names.iter().enumerate() {
                 if *shown > 0. && child.is_drawable() {
+                    let lift = motion.lift.get(index).copied().unwrap_or(1.);
                     text_lines(&stage, child, &mut |line| {
-                        lines.push((line, *shown, *offset))
+                        lines.push((line, *shown, *offset));
+                        underlines.push(lift);
                     });
                 }
             }
             for child in &others {
                 text_lines(&stage, child, &mut |line| {
+                    underlines.push(1.);
                     lines.push((line, wash, (0., 0.)))
                 });
             }
@@ -632,7 +638,7 @@ mod imp {
             snapshot.pop();
             // Keyboard focus underlines the focused name or legend entry in the light's colour.
             let underline = palette.lit.alpha(1.);
-            for (line, shown, (dx, dy)) in &lines {
+            for ((line, shown, (dx, dy)), level) in lines.iter().zip(&underlines) {
                 if line.focused {
                     let r = &line.rect;
                     snapshot.append_color(
@@ -640,7 +646,7 @@ mod imp {
                             underline.red(),
                             underline.green(),
                             underline.blue(),
-                            *shown as f32,
+                            (shown * level) as f32,
                         ),
                         &graphene::Rect::new(
                             (f64::from(r.x()) + dx) as f32,
