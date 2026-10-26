@@ -19,7 +19,6 @@ mod dial;
 mod palette;
 mod stage;
 
-pub use dial::Light;
 use dial::{Face, Kind, halo_radius};
 use stage::{Area, Hit, Scene, Stage};
 
@@ -116,14 +115,15 @@ fn layout(sizes: &[(f64, f64)], dial: f64) -> Vec<Placement> {
             let (px, py) = dial::point(angle, reach);
             let (width, height) = sizes[i];
             // The box hangs off its anchor on the side away from the dial: wholly to the right
-            // on the right, wholly to the left on the left, centred at the poles, and wholly
-            // above or below near the top and bottom.
-            let sideways = (angle.to_radians().sin() * 2.6).clamp(-1., 1.);
+            // on the right and wholly to the left on the left, even beside the poles, so every
+            // key sits at its own tick's bearing; and wholly above or below near the top and
+            // bottom.
+            let right = angle < 180.;
             let upright = (angle.to_radians().cos() * 2.6).clamp(-1., 1.);
             Placement {
                 angle,
-                right: angle < 180.,
-                x: px - (1. - sideways) / 2. * width,
+                right,
+                x: if right { px } else { px - width },
                 y: py - (1. + upright) / 2. * height,
                 width,
                 height,
@@ -308,15 +308,28 @@ fn natural_size(widget: &impl IsA<gtk::Widget>) -> (f64, f64) {
     (f64::from(width), f64::from(height))
 }
 
-/// One session's name: its uppercase key beside the full title, with a state caption below.
+/// One session's name: its uppercase key beside the full title, with any tag and state caption
+/// flowing after the title's last word.
 struct Slot {
     button: gtk::Button,
     body: gtk::Box,
     key: gtk::Label,
-    text: gtk::Box,
     name: gtk::Label,
-    caption: gtk::Label,
+    /// The title and tag as markup, dimmed for a session Record cannot reach.
+    title: RefCell<String>,
+    /// The caption as markup, if any.
+    caption: RefCell<Option<String>>,
     chosen: Cell<bool>,
+}
+
+/// A caption in markup: small and quiet, or in the warning colour. A no-break space keeps
+/// `draft only` one unbreakable word.
+fn caption_markup(text: &str, warning: Option<&str>) -> String {
+    let text = glib::markup_escape_text(&text.replace(' ', "\u{a0}"));
+    match warning {
+        Some(colour) => format!("<span size=\"small\" foreground=\"{colour}\">{text}</span>"),
+        None => format!("<span size=\"small\" alpha=\"80%\">{text}</span>"),
+    }
 }
 
 /// Type attributes for a name or its key. The chosen name is bold; setting this as Pango
@@ -341,19 +354,14 @@ impl Slot {
             .attributes(&type_attributes(false))
             .css_classes(["ml-wheel-name"])
             .build();
-        // The caption line always exists, as wide as the longest caption, so a status change
-        // never changes the size of the name.
-        let caption = label("\u{a0}", &["ml-wheel-caption"]);
-        caption.set_width_chars(CAPTION_CHARS);
-        let text = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        text.set_valign(gtk::Align::Baseline);
-        text.set_baseline_child(0);
-        text.append(&name);
-        text.append(&caption);
+        name.set_valign(gtk::Align::Baseline);
+        // The name takes the room reserved for the longest caption, so the key stays at the
+        // dial's end of the box whatever caption follows the name.
+        name.set_hexpand(true);
         let body = gtk::Box::new(gtk::Orientation::Horizontal, 9);
         body.set_baseline_position(gtk::BaselinePosition::Top);
         body.append(&key);
-        body.append(&text);
+        body.append(&name);
         let button = gtk::Button::builder()
             .child(&body)
             .css_classes(["ml-wheel-slot"])
@@ -363,9 +371,9 @@ impl Slot {
             button,
             body,
             key,
-            text,
             name,
-            caption,
+            title: RefCell::new(String::new()),
+            caption: RefCell::new(None),
             chosen: Cell::new(false),
         }
     }
@@ -374,12 +382,22 @@ impl Slot {
         self.name.set_attributes(Some(&type_attributes(chosen)));
         self.key.set_attributes(Some(&type_attributes(chosen)));
     }
+    /// The name's markup with `caption` after the title, if any. The caption joins the last line
+    /// of the title and never moves a word of it, because lines break greedily.
+    fn render(&self, caption: Option<&str>) {
+        let title = self.title.borrow();
+        self.name.set_markup(&match caption {
+            Some(caption) => format!("{title}  {caption}"),
+            None => title.clone(),
+        });
+    }
     fn show(
         &self,
         letter: char,
         entry: &Target,
         selected: bool,
         sharing: Option<&HashSet<AgentKind>>,
+        warning: &str,
     ) {
         let availability = Availability::of(entry);
         let name = entry.display_name();
@@ -388,18 +406,26 @@ impl Slot {
         // delivery level other than a plain send.
         let place = entry.locator();
         let tag = tag(entry, sharing).filter(|tag| tag != name);
-        let title = glib::markup_escape_text(name);
-        self.name.set_markup(&match &tag {
-            Some(tag) => format!(
+        let mut title = glib::markup_escape_text(name).to_string();
+        // A session Record cannot reach rests dimmer, unless it is the choice.
+        if availability.warns() && !selected {
+            title = format!("<span alpha=\"62%\">{title}</span>");
+        }
+        if let Some(tag) = &tag {
+            title = format!(
                 "{title}  <span size=\"small\" alpha=\"70%\">{}</span>",
                 glib::markup_escape_text(tag)
-            ),
-            None => title.to_string(),
-        });
+            );
+        }
+        self.title.replace(title);
+        // A caption is amber when the session needs the person, as its tick is.
+        let amber = availability.warns() || availability.kind() == Kind::Blocked;
+        self.caption.replace(
+            note.as_deref()
+                .map(|note| caption_markup(note, amber.then_some(warning))),
+        );
+        self.render(self.caption.borrow().as_deref());
         self.key.set_label(&letter.to_ascii_uppercase().to_string());
-        self.caption.set_label(note.as_deref().unwrap_or("\u{a0}"));
-        toggle_class(&self.caption, "ml-wheel-warning", availability.warns());
-        toggle_class(&self.button, "ml-wheel-dim", availability.warns());
         toggle_class(&self.button, "ml-wheel-warn", availability.warns());
         toggle_class(&self.button, "ml-wheel-selected", selected);
         self.chosen.set(selected);
@@ -420,33 +446,31 @@ impl Slot {
     /// Keys face the dial; names read away from it.
     fn face(&self, right: bool) {
         if right {
-            self.body.reorder_child_after(&self.text, Some(&self.key));
+            self.body.reorder_child_after(&self.name, Some(&self.key));
         } else {
-            self.body.reorder_child_after(&self.key, Some(&self.text));
+            self.body.reorder_child_after(&self.key, Some(&self.name));
         }
         let (xalign, justify) = if right {
             (0., gtk::Justification::Left)
         } else {
             (1., gtk::Justification::Right)
         };
-        for label in [&self.name, &self.caption] {
-            label.set_xalign(xalign);
-            label.set_justify(justify);
-        }
-        self.text.set_halign(if right {
-            gtk::Align::Start
-        } else {
-            gtk::Align::End
-        });
+        self.name.set_xalign(xalign);
+        self.name.set_justify(justify);
     }
-    /// The size this name takes at a measure, in its widest (chosen) type, so that choosing
-    /// another session never changes any size.
+    /// The size this name takes at a measure, in its widest (chosen) type and with the longest
+    /// caption, so that neither a new choice nor a status change ever changes any size.
     fn measured(&self, measure: i32) -> (f64, f64) {
         self.typeset(true);
+        self.render(Some(&caption_markup(
+            &"x".repeat(CAPTION_CHARS as usize),
+            None,
+        )));
         self.name.set_max_width_chars(measure);
         self.button.set_size_request(-1, -1);
         let size = natural_size(&self.button);
         self.typeset(self.chosen.get());
+        self.render(self.caption.borrow().as_deref());
         size
     }
 }
@@ -501,15 +525,22 @@ impl DialText {
                 ("choose a session".to_owned(), String::new())
             }
             Some(target) => match Availability::of(target) {
+                // Record is withdrawn; the status line says why and what to do.
                 Availability::Blocked => {
                     warn = true;
                     lead = false;
-                    ("blocked".to_owned(), String::new())
+                    (
+                        "blocked".to_owned(),
+                        "Answer its prompt where it runs, or choose another session".to_owned(),
+                    )
                 }
                 Availability::Unavailable => {
                     warn = true;
                     lead = false;
-                    ("gone".to_owned(), String::new())
+                    (
+                        "gone".to_owned(),
+                        "Mluva can't find it now; choose another session".to_owned(),
+                    )
                 }
                 // The hub already says draft only; the status line says why.
                 Availability::Draft => ("draft only".to_owned(), sentence(target.draft_hint())),
@@ -695,12 +726,14 @@ impl SessionWheel {
         self.window.connect_map(move |_| stage.open());
     }
 
-    /// Hovering a name brightens its tick on the dial.
+    /// Hovering a name, or focusing it from the keyboard, brightens its tick on the dial.
     fn wire_hover(&self) {
         for (index, choice) in self.choices.iter().enumerate() {
             let stage = self.stage.clone();
             choice.connect_state_flags_changed(move |button, _| {
-                let hovered = button.state_flags().contains(gtk::StateFlags::PRELIGHT);
+                let flags = button.state_flags();
+                let hovered = flags.contains(gtk::StateFlags::PRELIGHT)
+                    || flags.contains(gtk::StateFlags::FOCUS_VISIBLE);
                 if hovered {
                     stage.set_hover(Some(index));
                 } else if stage.hover() == Some(index) {
@@ -769,11 +802,6 @@ impl SessionWheel {
         self.placements.borrow().clone()
     }
 
-    /// How the light falls on the choice.
-    pub fn set_light(&self, light: Light) {
-        self.stage.set_light(light);
-    }
-
     pub fn update(
         &self,
         entries: &[Target],
@@ -792,7 +820,10 @@ impl SessionWheel {
             return;
         }
         self.rendered_room.set(room);
-        let same_page = self.rendered_page.get() == self.page.get();
+        // Text halos take the wash's colour: near white on a light theme, near black otherwise.
+        toggle_class(&self.window, "ml-wheel-on-light", self.stage.light_theme());
+        let previous_page = self.rendered_page.get();
+        let same_page = previous_page == self.page.get();
         self.rendered_page.set(self.page.get());
         self.rendered_keys
             .replace((agent_key.to_owned(), transcript_key.to_owned()));
@@ -834,6 +865,7 @@ impl SessionWheel {
         let chosen = position
             .filter(|_| other_page.is_none())
             .map(|i| i % KEYS.len());
+        let warning = self.stage.warning_hex();
         for (index, slot) in self.slots.iter().enumerate() {
             match shown.get(index) {
                 Some(entry) => slot.show(
@@ -844,6 +876,7 @@ impl SessionWheel {
                         .get(entry.display_name())
                         .filter(|(count, _)| *count > 1)
                         .map(|(_, kinds)| kinds),
+                    &warning,
                 ),
                 None => slot.button.set_visible(false),
             }
@@ -855,6 +888,16 @@ impl SessionWheel {
         let swing = self.window.is_mapped() && same_page && previous_marks == shown.len();
         self.stage
             .aim(chosen.map(|index| clock_angle(index, shown.len())), swing);
+        // Paging turns the dial a few degrees instead of swapping it.
+        if self.window.is_mapped() && previous_page != usize::MAX && !same_page {
+            self.stage.turn(self.page.get() > previous_page);
+        }
+    }
+
+    /// Advance the wheel's motion by `seconds` on a stepped clock instead of the frame clock, so
+    /// review captures can render it frame by frame. True once everything has settled.
+    pub fn step_motion(&self, seconds: f64) -> bool {
+        self.stage.step(seconds)
     }
 
     fn stage_marks(&self) -> usize {

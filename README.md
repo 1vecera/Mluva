@@ -23,13 +23,13 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 | Something on screen | Attach a region screenshot with F10 and annotate it in the optional Tensaku editor. Images stay local. |
 | A problem to point at | Turn on [screen annotation](docs/screen-annotation.md) (Experimental, Hyprland). While dictating, hold Shift and move to draw, or Shift-click to pin; the agent receives keyframes matched to what you said. |
 
-### Choose the agent on a watch face
+### Choose the agent on a dial
 
-![The F12 session wheel: a sundial watch whose light falls on the chosen agent session](docs/assets/sundial-watch.jpg)
+![The F12 session wheel: twenty agent sessions as ticks on a thin ring over a busy desktop, a light trace on the ring at the chosen one](docs/assets/session-wheel.jpg)
 
-Press F12 and every agent session appears as an index on a watch dial, Herdr's panes first from one o'clock and then sessions outside Herdr, each with its full name and its letter. Press the letter to choose a session; the hand swings to it, the light falls on it and the dial says what F12 will do: send, queue, prefill or keep a draft. Press F12 again to dictate to it, or Esc to leave. The watch follows your Omarchy theme.
+Press F12 and every agent session appears as a tick on a thin dial over your desktop, Herdr's panes first from one o'clock and then sessions outside Herdr, each with its full name and its letter. Press the letter to choose a session; the hand swings to it with a light along the ring and the centre says what then happens to your words: send, queue, prefill or keep a draft. Press F12 again to dictate to it, or Esc to leave. The dial follows your Omarchy theme.
 
-<sub>A Blender render of the wheel's design; Mluva draws the wheel from the same baked art.</sub>
+<sub>Twenty synthetic sessions over a synthetic desktop, from Mluva's own renderer.</sub>
 
 One dictation mode, one editor. Smooth following is always enabled and respects reduced motion and intentional scrolling away from the end. **Ctrl+P** finds actions. Polish, rewriting, prompts, generated titles, Notes and Command capture modes have been removed. Existing saved replies remain readable and exportable; unfinished Notes recover into local History.
 

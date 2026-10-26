@@ -3,6 +3,9 @@
    names, the hub and the legend are real widgets styled here, all in JetBrains Mono. Hover and
    keyboard focus brighten text and light a key, never a box or a ring. Lit is the accent mixed
    toward the ink, as the stage mixes it; a blocked or missing choice uses the warning. */
+/* The stage's wash: the canvas deepened away from the ink, as the stage mixes it. */
+@define-color ml_wheel_wash mix(@vs_canvas, black, 0.6);
+@define-color ml_wheel_wash_light mix(@vs_canvas, white, 0.6);
 /* The window adds no ground of its own: the stage's wash is the only one. */
 window.ml-session-wheel, window.ml-session-wheel.background { background: none; color: @vs_ink; }
 /* One frame: Hyprland draws the window border, so the toolkit adds no outline, shadow or inset of
@@ -11,7 +14,12 @@ window.ml-session-wheel, window.ml-session-wheel.csd, window.ml-session-wheel.so
 window.ml-session-wheel.csd:backdrop, window.ml-session-wheel.solid-csd:backdrop {
   border: none; border-radius: 0; outline: none; box-shadow: none; margin: 0; padding: 0; }
 
-.ml-session-wheel label { font-family: "JetBrains Mono", monospace; font-size: 14px; }
+/* Every glyph carries a tight halo in the wash's colour, so text keeps its contrast over a bright
+   page behind the see-through wash; it darkens only behind the letters, never a panel. */
+.ml-session-wheel label { font-family: "JetBrains Mono", monospace; font-size: 14px;
+  text-shadow: 0 0 2px @ml_wheel_wash, 0 0 8px alpha(@ml_wheel_wash, 0.95); }
+.ml-session-wheel.ml-wheel-on-light label {
+  text-shadow: 0 0 2px @ml_wheel_wash_light, 0 0 8px alpha(@ml_wheel_wash_light, 0.95); }
 
 /* A name is a flat button: no fill, no border, no ring. */
 .ml-session-wheel button.ml-wheel-slot, .ml-session-wheel button.ml-wheel-legend, .ml-session-wheel .ml-wheel-pager button {
@@ -24,13 +32,10 @@ window.ml-session-wheel.csd:backdrop, window.ml-session-wheel.solid-csd:backdrop
 .ml-session-wheel .ml-wheel-pager button:active, .ml-session-wheel .ml-wheel-pager button:focus {
   background: none; box-shadow: none; outline: none; }
 
-.ml-session-wheel .ml-wheel-name { font-size: 14px; line-height: 1.3; color: alpha(@vs_ink, 0.84);
+.ml-session-wheel .ml-wheel-name { font-size: 14px; line-height: 1.3; color: alpha(@vs_ink, 0.92);
   transition: color 160ms ease-out; }
-.ml-session-wheel .ml-wheel-key { font-size: 14px; font-weight: 700; color: alpha(@vs_ink, 0.64);
+.ml-session-wheel .ml-wheel-key { font-size: 14px; font-weight: 700; color: alpha(@vs_ink, 0.7);
   transition: color 160ms ease-out; }
-.ml-session-wheel .ml-wheel-caption { font-size: 12px; margin-top: 1px; color: alpha(@vs_ink, 0.6); }
-.ml-session-wheel .ml-wheel-caption.ml-wheel-warning { color: @vs_warning; }
-.ml-session-wheel .ml-wheel-dim .ml-wheel-name { opacity: 0.62; }
 
 /* Hover and keyboard focus: the name brightens and its key takes the light's colour. */
 .ml-session-wheel button.ml-wheel-slot:hover .ml-wheel-name, .ml-session-wheel button.ml-wheel-slot:focus-visible .ml-wheel-name { color: @vs_ink; }
@@ -39,21 +44,25 @@ window.ml-session-wheel.csd:backdrop, window.ml-session-wheel.solid-csd:backdrop
 .ml-session-wheel button.ml-wheel-slot.ml-wheel-warn:hover .ml-wheel-key, .ml-session-wheel button.ml-wheel-slot.ml-wheel-warn:focus-visible .ml-wheel-key {
   color: mix(@vs_warning, @vs_ink, 0.15); }
 .ml-session-wheel button.ml-wheel-slot:active .ml-wheel-name { color: @vs_ink; }
+/* Keyboard focus also underlines the name in the light's colour, like a terminal cursor, so it
+   reads apart from the choice, whose key shares that colour. */
+.ml-session-wheel button.ml-wheel-slot:focus-visible .ml-wheel-name,
+.ml-session-wheel button.ml-wheel-legend:focus-visible .ml-wheel-legend-text {
+  text-decoration-line: underline; text-decoration-color: mix(@vs_action, @vs_ink, 0.28); }
 
 /* The chosen name is bold (set as type attributes) in full ink, its key in the light's colour. */
 .ml-session-wheel .ml-wheel-selected .ml-wheel-name { color: @vs_ink; }
 .ml-session-wheel .ml-wheel-selected .ml-wheel-key { color: mix(@vs_action, @vs_ink, 0.28); }
 .ml-session-wheel .ml-wheel-selected.ml-wheel-warn .ml-wheel-key { color: mix(@vs_warning, @vs_ink, 0.15); }
-.ml-session-wheel .ml-wheel-selected.ml-wheel-dim .ml-wheel-name { opacity: 1; }
 
 /* The hub: what happens to the words, after a quiet arrow; a warning word when Record is withdrawn. */
-.ml-session-wheel .ml-wheel-dial-lead { font-size: 15px; color: alpha(@vs_ink, 0.45); }
-.ml-session-wheel .ml-wheel-dial-action { font-size: 15px; color: @vs_ink; }
+.ml-session-wheel .ml-wheel-dial-lead { font-size: 16px; color: alpha(@vs_ink, 0.5); }
+.ml-session-wheel .ml-wheel-dial-action { font-size: 16px; font-weight: 500; color: @vs_ink; }
 .ml-session-wheel .ml-wheel-dial-warn .ml-wheel-dial-action { color: @vs_warning; }
 .ml-session-wheel .ml-wheel-dial-muted .ml-wheel-dial-action { color: alpha(@vs_ink, 0.6); }
 
 /* The status line: one quiet line above the legend. */
-.ml-session-wheel .ml-wheel-hint { font-size: 12.5px; color: alpha(@vs_ink, 0.6); }
+.ml-session-wheel .ml-wheel-hint { font-size: 13px; color: alpha(@vs_ink, 0.78); }
 
 /* The legend: the keys, then what they do. Record dims while it is withdrawn. */
 .ml-session-wheel .ml-wheel-legend-key { font-size: 13px; font-weight: 700; color: @vs_ink; transition: color 160ms ease-out; }

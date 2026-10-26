@@ -1,90 +1,31 @@
 {
-  "date": "2026-10-23",
+  "date": "2026-10-26",
   "native_gate": {
-    "passed": 232,
+    "passed": 311,
     "failed": 0,
-    "ignored": 69,
+    "ignored": 72,
     "clippy": "both strict configurations clean",
     "fmt": "clean",
     "feature_maturity": "consistent"
   },
   "application": {
-    "captures": 15,
-    "recognized": 13,
-    "session_wheel": true,
-    "wheel_keyboard_order_reorder_loss": true,
-    "wheel_paging_sessions": 30,
-    "wheel_fits_private_screen_sessions": [
-      0,
-      1,
-      2,
-      3,
-      6,
-      20
-    ],
-    "claude_title_named_in_app": true,
-    "herdr_name_kept_for_routing": true,
-    "alternate_transcript_no_delivery": true,
+    "captures": 20,
+    "recognized": 18,
+    "queued_through_inbox": 2,
     "guarded_submissions": 5,
-    "cancelled_or_disarmed_captures": 8,
-    "edited_draft_send": true,
-    "editing_rearmed_draft_cancels": true,
-    "settings_opt_in_persisted": true,
-    "receipt_reconciliation": true,
-    "recognition_immutable": true,
-    "incognito_not_saved": true,
-    "clipboard_unchanged": true,
-    "selected_provider_unchanged": true,
+    "codex_sent_if_idle": 1,
+    "codex_busy_draft_kept": 1,
+    "session_wheel": true,
+    "draft_only_sessions_no_delivery": true,
+    "wheel_keyboard_order_reorder_loss": true,
+    "alternate_transcript_no_delivery": true,
     "second_press_sends_once": true,
     "empty_recognition_kept": true,
     "history_learns_outcome": true,
-    "gtk_warnings": "the four known narrow-editor allocation warnings; none from the wheel",
-    "interrupted_countdown_notice": "History is promised only when a row exists (unit test); not exercised through the real application"
+    "gtk_warnings": "the four known narrow-editor allocation warnings; none from the wheel"
   },
-  "shortcut_portal": {
-    "passed": true
-  },
-  "end_to_end": {
-    "passed": true,
-    "pipeline": [
-      "private global shortcut activation",
-      "actual PCM capture",
-      "native Stop and send button",
-      "speech protocol peer",
-      "Mluva guarded submission",
-      "actual Herdr server",
-      "actual Codex",
-      "actual Claude Code",
-      "loopback Responses inference"
-    ],
-    "native_messages": 1,
-    "key_release_keeps_recording": true,
-    "first_f12_only_selects": true,
-    "second_f12_starts_recording": true,
-    "receipt": "accepted",
-    "session_names": [
-      {
-        "agent": "codex",
-        "terminal_title": "project",
-        "mluva_title": "",
-        "shown": "Herdr name (no thread name yet)"
-      },
-      {
-        "agent": "claude",
-        "terminal_title": "Claude Code",
-        "mluva_title": "",
-        "shown": "Herdr name (no session title yet)"
-      }
-    ],
-    "inference": "synthetic private loopback; no external provider"
-  },
-  "live_metadata_read_only": {
-    "sessions": 6,
-    "resolved_to_agent_title": 6,
-    "codex_matched_session_index": 3,
-    "claude_matched_effective_title": 3,
-    "names_recorded": false
-  },
+  "shortcut_portal": "not rerun: the change touches neither the shortcuts nor the Hyprland Lua",
+  "end_to_end": "not rerun; the previous record passed it with the window path",
   "naming": {
     "claude_code": "terminal title (custom or generated session title); product title 'Claude Code' means none yet",
     "codex": "thread_name in $CODEX_HOME/session_index.jsonl for the Herdr-reported session ID; latest entry wins",
@@ -98,109 +39,131 @@
     "order": "Herdr workspace, tab, pane layout",
     "sessions_per_page": 26,
     "keys": "asdfghjklqwertyuiopzxcvbnm",
-    "names": "each on its index's bearing, hanging off a point just beyond the case (1.247 dials); pushed apart toward their pole",
-    "dial_radius_px": {
-      "1": 170,
-      "6": 244,
-      "20": 318,
-      "26": 318,
+    "names": "each wholly to its side of a point 24 px beyond the ring on its tick's bearing, key beside the tick; pushed apart toward their pole",
+    "ring_radius_px": {
+      "1": 150,
+      "6": 214,
+      "20": 289.6,
+      "26": 289.6,
       "smaller_screens": "shrinks until every name fits"
     },
-    "window_fallback_natural_size": {
-      "6": [
-        1044,
-        753
-      ],
-      "20": [
-        1408,
-        1039
-      ]
-    },
-    "geometry_depends_on": "count and names only; every name is measured in its chosen type with a fixed-width caption line",
+    "geometry_depends_on": "count and names only; every name is measured bold with the longest caption after it",
+    "captions": "inline after the name's last word",
     "leader_lines": false,
     "key_caps": false,
     "boxes": false,
     "focus_rings": false,
     "key_display": "uppercase; input is case-insensitive"
   },
-  "visual_review": {
+  "look": {
+    "wash": "theme canvas, 60% toward black (white on a light theme), flat, 72% opaque on the overlay, opaque in a window",
+    "desktop_contrast_through_wash": 0.28,
+    "text_halo": "two text shadows in the wash colour, 2 px and 8 px",
+    "type": "JetBrains Mono throughout",
+    "light": "trace along the ring at the hand's bearing; reach 0.55 of tick spacing, at most 34°; comet tail up to 40°; amber when blocked or missing",
+    "hub": [
+      "→ send",
+      "→ queue",
+      "→ prefill",
+      "→ draft only",
+      "blocked",
+      "gone",
+      "choose a session",
+      "no sessions"
+    ],
+    "legend": "F12 record · F9 transcript only · Esc cancel"
+  },
+  "motion": {
+    "opening_seconds": 0.3,
+    "wash_in": 0.12,
+    "ring_sweep": 0.22,
+    "tick_in": 0.05,
+    "name_in": 0.08,
+    "name_settle_px": 10,
+    "hand_spring": "overshoot 7% of the hop within 0.5–3°, damping ratio from it, peak at 0.11 s + 0.8 ms per degree",
+    "hops": {
+      "18": {
+        "overshoot_degrees": 1.1,
+        "still_ms": 183
+      },
+      "170": {
+        "overshoot_degrees": 2.5,
+        "still_ms": 383
+      }
+    },
+    "retarget": "keeps place and speed; spring retuned for the rest of the way",
+    "light_time_constants_seconds": {
+      "rise": 0.1,
+      "dip": 0.04
+    },
+    "amber_time_constant_seconds": 0.09,
+    "hover_lift_time_constant_seconds": 0.05,
+    "page_turn": {
+      "seconds": 0.18,
+      "degrees": 8
+    },
+    "animations_disabled": "everything placed at rest",
+    "frame_cost_cairo_full_window_ms": {
+      "open-6": {
+        "median": 7.9,
+        "p95": 8.6,
+        "max": 9.3
+      },
+      "open-20": {
+        "median": 11.1,
+        "p95": 13.5,
+        "max": 19.3
+      },
+      "short-hop": {
+        "median": 11.2,
+        "p95": 12.6,
+        "max": 14.1
+      },
+      "across": {
+        "median": 11.6,
+        "p95": 14.4,
+        "max": 15.1
+      },
+      "retarget": {
+        "median": 12.0,
+        "p95": 14.3,
+        "max": 14.4
+      },
+      "blocked": {
+        "median": 12.3,
+        "p95": 15.9,
+        "max": 16.9
+      },
+      "open-30": {
+        "median": 12.9,
+        "p95": 13.9,
+        "max": 14.7
+      },
+      "page-turn": {
+        "median": 4.4,
+        "p95": 5.0,
+        "max": 5.0
+      }
+    }
+  },
+  "gallery": {
+    "captures_per_palette": 30,
     "palettes": [
-      "Omarchy Nord",
-      "default light",
-      "default dark"
+      "nord",
+      "dark",
+      "light"
     ],
-    "screens": [
-      "1920x1200",
-      "2560x1440"
+    "window_fallback": [
+      "nord",
+      "light"
     ],
-    "gallery_states_per_palette": 22,
-    "independent_finish_review": "not run on the watch; the earlier review judged the previous design",
-    "declined": [
-      "screen-filling type scale (native controls keep a constant size)",
-      "PRODUCT.md (product contract remains authority)",
-      "scrim via Hyprland rule (desktop-config ownership; raised separately)"
-    ],
-    "audit": "the gallery fails if a name leaves the screen, two names overlap, or three status changes plus a new choice on twenty sessions move any name; it passed",
-    "direction": "Daniel picked the sundial-watch prototype from ten directions and asked for it to be pushed further"
+    "layout_independent_of_status_and_choice": true,
+    "keys_fixed_across_status_and_choice": true
   },
-  "overlay": {
-    "mechanism": "wlr-layer-shell overlay layer via linked gtk4-layer-shell (Omarchy base package)",
-    "fallback": "frameless dialog on X11 or compositors without layer-shell",
-    "dismiss": [
-      "Escape",
-      "click outside a control"
-    ],
-    "live_check": {
-      "compositor": "Hyprland 0.56.2",
-      "namespace": "mluva-session-wheel",
-      "layer": "overlay",
-      "size": [
-        2560,
-        1440
-      ],
-      "output": "focused external monitor",
-      "observer_confirmed_visible_and_correct": true,
-      "screenshot_taken": false,
-      "global_shortcut_exercised": false,
-      "unexplained": "hyprctl layers stopped listing the surface about 2-3 s into each run while it stayed visible",
-      "note": "recorded for the previous wheel; the watch has not been shown on the live compositor"
-    },
-    "room": "opaque ground from the theme canvas, a faint accent lift, a soft vignette and a one-level dither; the case casts a large soft shadow to the lower right",
-    "hyprland_rule": "managed Lua adds a no_anim layer rule for mluva-session-wheel, kept as one handle across reloads (a live rule is reused, a switched-off one re-enabled, a dropped one recreated); lua test passes"
-  },
-  "rendering": {
-    "toolkit": "GtkSnapshot compositing Blender-baked layers: case, tinted dial luminance, 24-view index atlases, hand, facet masks, cap, crystal; live sheen, beam and pool, lume bloom and hand",
-    "assets": "rust/mluva-gtk/resources/wheel, about 2.5 MB of PNG compiled in with include_bytes",
-    "cached": [
-      "case",
-      "dial",
-      "indices and dim lume",
-      "cap",
-      "crystal"
-    ],
-    "per_frame": [
-      "sheen",
-      "beam and pool",
-      "chosen lume bloom",
-      "hand, facets and shadow"
-    ],
-    "proportions": {
-      "case_outer_over_dial": 1.247,
-      "index_mid_over_dial": 0.844
-    },
-    "motion": {
-      "hand_spring": {
-        "stiffness": 260,
-        "damping": 20
-      },
-      "light_spring": {
-        "stiffness": 120,
-        "damping": 19
-      },
-      "open_fade_ms": 160,
-      "open_sweep_from_degrees": -40,
-      "reduced_motion": "placed at rest"
-    },
-    "renderer_checked": "private desktop default (cairo); 3840x2400 at scale 2 rendered the same logical wheel"
+  "binary_bytes": {
+    "before": 22081848,
+    "after": 19616952,
+    "saved": 2464896,
+    "note": "release mluva binary; the baked wheel art was compiled in before"
   }
 }

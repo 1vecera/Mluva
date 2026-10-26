@@ -4,12 +4,16 @@
 //! directory and optionally `overlay`. The wheel sizes itself to the helper's screen, so set
 //! its screen to the display being judged. X11 has no layer-shell, so `overlay` applies the
 //! overlay styling to a screen-sized window. An overlay is see-through, so its captures keep
-//! their alpha: composite them over a desktop to judge them. A last argument of `glow`, `trace`
-//! or `wedge` picks how the light falls on the choice. Every session name, pane, socket,
+//! their alpha: composite them over a desktop to judge them. Every session name, pane, socket,
 //! process and session ID is a fixture.
 //!
 //! Besides the captures the gallery audits the wheel and exits with a failure if a name leaves
-//! the screen, two names overlap, or a status or a different choice moves any name.
+//! the screen, two names overlap, or a status or a different choice moves any name or key.
+//!
+//! A last argument of `motion` renders the wheel's motion instead, frame by frame on a stepped
+//! 60 fps clock: opening with 6 and with 20 sessions, a short hop, a hop across the dial, a new
+//! choice mid-swing, a blocked choice and a page turn at 30 sessions. It writes the frames to
+//! `motion/` and how long each took to snapshot and render to `motion-timings.json`.
 
 use std::path::{Path, PathBuf};
 
@@ -17,7 +21,7 @@ use adw::prelude::*;
 use mluva_core::agent_voice::{
     AgentKind, AgentStatus, AppLink, ClaudeInbox, CodexThread, HerdrPane, Host, Target,
 };
-use mluva_gtk::agent_session_wheel::{Light, SessionWheel};
+use mluva_gtk::agent_session_wheel::SessionWheel;
 use mluva_gtk::theme::ThemeController;
 
 const NORD: &str = "mode = \"dark\"\naccent = \"#81a1c1\"\nselection = \"#434c5e\"\nmuted = \"#4c566a\"\nbackground = \"#2e3440\"\nforeground = \"#d8dee9\"\nred = \"#bf616a\"\nyellow = \"#ebcb8b\"\ngreen = \"#a3be8c\"\n";
@@ -280,17 +284,9 @@ fn capture(window: &adw::Window, path: &Path) {
     println!("{} {width}x{height}", path.display());
 }
 
-fn light() -> Light {
-    match std::env::args().nth(4).as_deref() {
-        Some("trace") => Light::Trace,
-        Some("wedge") => Light::Wedge,
-        _ => Light::Glow,
-    }
-}
-
-fn show(entries: &[Target], selected: Option<usize>, page: usize) -> SessionWheel {
+/// A wheel for the gallery, styled as the overlay when asked, not yet shown.
+fn wheel() -> SessionWheel {
     let wheel = SessionWheel::new();
-    wheel.set_light(light());
     if std::env::args().nth(3).as_deref() == Some("overlay") {
         let screen = gtk::gdk::Display::default()
             .and_then(|display| display.monitors().item(0))
@@ -304,6 +300,11 @@ fn show(entries: &[Target], selected: Option<usize>, page: usize) -> SessionWhee
             .window
             .set_default_size(screen.width(), screen.height());
     }
+    wheel
+}
+
+fn show(entries: &[Target], selected: Option<usize>, page: usize) -> SessionWheel {
+    let wheel = wheel();
     wheel.page.set(page);
     wheel.window.present();
     wheel.update(entries, selected.map(|i| entries[i].clone()), "F12", "F9");
@@ -324,6 +325,26 @@ fn name_boxes(wheel: &SessionWheel) -> Vec<gtk::graphene::Rect> {
                 .expect("name inside the window")
         })
         .collect()
+}
+
+/// Every shown name's key letter, in window coordinates: it must stay beside its tick whatever
+/// caption follows the name.
+fn key_boxes(wheel: &SessionWheel) -> Vec<gtk::graphene::Rect> {
+    let mut keys = vec![];
+    for choice in wheel.choices.iter().filter(|choice| choice.is_visible()) {
+        let mut child = choice.first_child().and_then(|body| body.first_child());
+        while let Some(widget) = child {
+            if widget.has_css_class("ml-wheel-key") {
+                keys.push(
+                    widget
+                        .compute_bounds(&wheel.window)
+                        .expect("key inside the window"),
+                );
+            }
+            child = widget.next_sibling();
+        }
+    }
+    keys
 }
 
 /// Every name is on screen and no two overlap. Returns what is wrong, if anything.
@@ -357,6 +378,126 @@ fn audit(wheel: &SessionWheel, label: &str) -> Vec<String> {
     problems
 }
 
+/// Render one frame: the seconds the snapshot and render took, and the frame written as PNG.
+fn frame(window: &adw::Window, path: &Path) -> f64 {
+    let (width, height) = (window.width(), window.height());
+    let started = std::time::Instant::now();
+    let paintable = gtk::WidgetPaintable::new(Some(window));
+    let snapshot = gtk::Snapshot::new();
+    paintable.snapshot(&snapshot, f64::from(width), f64::from(height));
+    let node = snapshot.to_node().expect("rendered wheel");
+    let renderer = window
+        .native()
+        .and_then(|n| n.renderer())
+        .expect("renderer");
+    let bounds = gtk::graphene::Rect::new(0., 0., width as f32, height as f32);
+    let texture = renderer.render_texture(&node, Some(&bounds));
+    let seconds = started.elapsed().as_secs_f64();
+    texture.save_to_png(path).expect("write frame");
+    seconds
+}
+
+/// The motion reel: each scene stepped at 60 fps, every frame rendered and timed.
+fn motion(output: &Path) -> glib::ExitCode {
+    const STEP: f64 = 1. / 60.;
+    let frames = output.join("motion");
+    std::fs::create_dir_all(&frames).unwrap();
+    let mut index = 0;
+    let mut timings: Vec<(String, f64)> = vec![];
+    let mut play = |wheel: &SessionWheel, scene: &str, count: usize| {
+        for _ in 0..count {
+            wheel.step_motion(STEP);
+            // Let the frame clock paint the step; the stepped clock alone moves the dial.
+            settle(1);
+            let seconds = frame(&wheel.window, &frames.join(format!("{index:05}.png")));
+            timings.push((scene.to_owned(), seconds));
+            index += 1;
+        }
+    };
+    // Open a wheel as the application does: filled before it maps, then shown.
+    let open = |entries: &[Target], selected: usize| {
+        let wheel = wheel();
+        wheel.step_motion(0.);
+        wheel.update(entries, Some(entries[selected].clone()), "F12", "F9");
+        wheel.window.present();
+        // Wait until it is mapped and laid out; the stepped clock holds the motion at its start.
+        for _ in 0..300 {
+            settle(1);
+            if wheel.window.is_mapped() && wheel.window.width() > 0 {
+                break;
+            }
+        }
+        settle(100);
+        wheel
+    };
+    let choose = |wheel: &SessionWheel, entries: &[Target], selected: usize| {
+        wheel.update(entries, Some(entries[selected].clone()), "F12", "F9");
+        glib::MainContext::default().iteration(false);
+    };
+
+    let six = sessions(6);
+    let wheel = open(&six, 0);
+    play(&wheel, "open-6", 45);
+    wheel.window.destroy();
+    settle(2);
+
+    let twenty = sessions(20);
+    let wheel = open(&twenty, 7);
+    play(&wheel, "open-20", 45);
+    choose(&wheel, &twenty, 8);
+    play(&wheel, "short-hop", 30);
+    choose(&wheel, &twenty, 17);
+    play(&wheel, "across", 40);
+    choose(&wheel, &twenty, 3);
+    play(&wheel, "retarget", 5);
+    choose(&wheel, &twenty, 1);
+    play(&wheel, "retarget", 35);
+    choose(&wheel, &twenty, 10);
+    play(&wheel, "blocked", 45);
+    wheel.window.destroy();
+    settle(2);
+
+    let thirty = sessions(30);
+    let wheel = open(&thirty, 2);
+    play(&wheel, "open-30", 36);
+    wheel.page.set(1);
+    choose(&wheel, &thirty, 2);
+    play(&wheel, "page-turn", 30);
+    wheel.window.destroy();
+
+    let mut scenes: Vec<serde_json::Value> = vec![];
+    let mut names: Vec<&str> = timings.iter().map(|(scene, _)| scene.as_str()).collect();
+    names.dedup();
+    for name in names {
+        let mut ms: Vec<f64> = timings
+            .iter()
+            .filter(|(scene, _)| scene == name)
+            .map(|(_, seconds)| seconds * 1000.)
+            .collect();
+        ms.sort_by(f64::total_cmp);
+        scenes.push(serde_json::json!({
+            "scene": name,
+            "frames": ms.len(),
+            "median_ms": ms[ms.len() / 2],
+            "p95_ms": ms[(ms.len() * 95 / 100).min(ms.len() - 1)],
+            "max_ms": ms[ms.len() - 1],
+        }));
+    }
+    std::fs::write(
+        output.join("motion-timings.json"),
+        serde_json::to_vec_pretty(&serde_json::json!({
+            "fps": 60,
+            "frames": index,
+            "measures": "snapshot of the whole window and render to a texture with the active GSK renderer, per frame",
+            "scenes": scenes,
+        }))
+        .unwrap(),
+    )
+    .unwrap();
+    println!("motion frames: {index}");
+    glib::ExitCode::SUCCESS
+}
+
 fn main() -> glib::ExitCode {
     let Some(root) = std::env::var_os("OFFSCREEN_SESSION_ROOT").map(PathBuf::from) else {
         eprintln!("Run this gallery inside the private off-screen desktop helper.");
@@ -381,6 +522,9 @@ fn main() -> glib::ExitCode {
         &PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/fonts"),
     )
     .expect("bundled fonts");
+    if std::env::args().nth(4).as_deref() == Some("motion") {
+        return motion(&output);
+    }
 
     let thirty = sessions(30);
     let mut missing = sessions(3);
@@ -432,18 +576,18 @@ fn main() -> glib::ExitCode {
         wheel.window.destroy();
         settle(2);
     }
-    // A refresh that changes a status, or a different choice, moves no name.
+    // A refresh that changes a status, or a different choice, moves no name and no key.
     let mut entries = sessions(20);
     let wheel = show(&entries, Some(7), 0);
-    let before = (wheel.placements(), name_boxes(&wheel));
+    let before = (wheel.placements(), name_boxes(&wheel), key_boxes(&wheel));
     entries[3].status = AgentStatus::Blocked;
     entries[5].status = AgentStatus::Idle;
     entries[9].status = AgentStatus::Working;
     wheel.update(&entries, Some(entries[12].clone()), "F12", "F9");
     settle(100);
-    let after = (wheel.placements(), name_boxes(&wheel));
+    let after = (wheel.placements(), name_boxes(&wheel), key_boxes(&wheel));
     if before != after {
-        problems.push("a status refresh or a new choice moved a name".into());
+        problems.push("a status refresh or a new choice moved a name or a key".into());
     }
     println!(
         "layout independent of status and choice: {}",

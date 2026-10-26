@@ -1,9 +1,14 @@
 //! The dial's colours: the active theme's tokens and a few mixes of them.
 //!
-//! Every colour is a role of the theme, never a fixed hex value. The wash is the theme's canvas,
-//! so a light theme gets a light wash with dark lines and a dark theme the reverse.
+//! Every colour is a role of the theme, never a fixed hex value. The wash is the theme's canvas
+//! deepened away from its ink, like a terminal's background: near black on a dark theme and near
+//! white on a light one, so names keep their contrast while more of the desktop shows through.
 
 use gtk::gdk::RGBA;
+
+/// How much of the canvas stays in the wash; the rest is black on a dark theme, white on a
+/// light one.
+const WASH_CANVAS: f32 = 0.4;
 
 /// A colour without alpha, mixed in sRGB.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -24,6 +29,16 @@ impl Rgb {
     }
     pub fn alpha(self, alpha: f32) -> RGBA {
         RGBA::new(self.0, self.1, self.2, alpha)
+    }
+    /// `#rrggbb`, for Pango markup.
+    pub fn hex(self) -> String {
+        let byte = |c: f32| (c.clamp(0., 1.) * 255.).round() as u8;
+        format!(
+            "#{:02x}{:02x}{:02x}",
+            byte(self.0),
+            byte(self.1),
+            byte(self.2)
+        )
     }
     /// Perceived brightness, enough to tell a light theme from a dark one.
     pub fn luma(self) -> f32 {
@@ -57,7 +72,9 @@ impl Tokens {
 }
 
 pub struct Palette {
-    /// The flat wash between the desktop and the dial: the theme's canvas.
+    /// The canvas is lighter than the ink.
+    pub light_theme: bool,
+    /// The flat wash between the desktop and the dial: the theme's canvas, deepened.
     pub wash: Rgb,
     /// Lines at rest: the ring and the ticks.
     pub ink: Rgb,
@@ -70,8 +87,15 @@ pub struct Palette {
 
 impl Palette {
     pub fn new(t: Tokens) -> Self {
+        let light_theme = t.canvas.luma() > t.ink.luma();
+        let deep = if light_theme {
+            Rgb(1., 1., 1.)
+        } else {
+            Rgb(0., 0., 0.)
+        };
         Self {
-            wash: t.canvas,
+            light_theme,
+            wash: t.canvas.over(deep, WASH_CANVAS),
             ink: t.ink,
             lit: t.action.over(t.ink, 0.72),
             warn_lit: t.warning.over(t.ink, 0.85),
@@ -79,9 +103,9 @@ impl Palette {
             working: t.success,
         }
     }
-    /// The light for the current choice.
-    pub fn light(&self, warn: bool) -> Rgb {
-        if warn { self.warn_lit } else { self.lit }
+    /// The light for the current choice, `warn` of the way from its own colour to amber.
+    pub fn light(&self, warn: f64) -> Rgb {
+        self.warn_lit.over(self.lit, warn.clamp(0., 1.) as f32)
     }
 }
 
@@ -90,20 +114,29 @@ mod tests {
     use super::*;
 
     #[test]
+    fn colours_print_as_markup_hex() {
+        assert_eq!(Tokens::NORD.warning.hex(), "#ebcb8b");
+    }
+
+    #[test]
     fn mixes_weight_the_first_colour() {
         let mixed = Rgb(1., 0., 0.).over(Rgb(0., 0., 1.), 0.25);
         assert_eq!(mixed, Rgb(0.25, 0., 0.75));
     }
 
     #[test]
-    fn the_wash_follows_the_canvas_and_the_lines_its_ink() {
+    fn the_wash_deepens_the_canvas_away_from_the_ink() {
         let light = Palette::new(Tokens {
             canvas: Rgb(0.97, 0.98, 0.97),
             ink: Rgb(0.1, 0.2, 0.18),
             ..Tokens::NORD
         });
+        assert!(light.light_theme && light.wash.luma() >= Tokens::NORD.canvas.luma());
         assert!(light.wash.luma() > light.ink.luma());
         let nord = Palette::new(Tokens::NORD);
+        assert!(!nord.light_theme);
+        // Nord's wash is its canvas at 40%: #12151a, a terminal's near black.
+        assert!(nord.wash.luma() < 0.4 * Tokens::NORD.canvas.luma() + 1e-6);
         assert!(nord.wash.luma() < nord.ink.luma());
     }
 }
