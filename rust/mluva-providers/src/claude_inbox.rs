@@ -416,6 +416,9 @@ mod tests {
     /// entry names an inbox socket a test peer listens on.
     struct Fixture {
         _temp: tempfile::TempDir,
+        /// Sockets live in a short directory under `/tmp`, as Claude Code's do under
+        /// `$XDG_RUNTIME_DIR`, whatever `TMPDIR` is.
+        _sockets: tempfile::TempDir,
         config: PathBuf,
         socket: PathBuf,
         transcript: PathBuf,
@@ -424,8 +427,9 @@ mod tests {
     impl Fixture {
         fn new() -> Self {
             let temp = tempfile::tempdir().unwrap();
+            let sockets = crate::test_sockets::socket_dir();
             let config = temp.path().join("claude");
-            let socks = temp.path().join("cc-socks");
+            let socks = sockets.path().join("cc-socks");
             for directory in [
                 config.join("sessions"),
                 config.join("projects"),
@@ -441,6 +445,7 @@ mod tests {
             let fixture = Self {
                 transcript: projects.join(format!("{SESSION}.jsonl")),
                 _temp: temp,
+                _sockets: sockets,
                 config,
                 socket,
             };
@@ -513,9 +518,16 @@ mod tests {
 
     /// Accept one connection and return the frame it carried.
     async fn frame_from(listener: &UnixListener) -> Value {
-        let (mut stream, _) = listener.accept().await.unwrap();
+        let mut stream =
+            crate::test_sockets::accept_within(listener, "Mluva never wrote to the inbox").await;
         let mut bytes = vec![];
-        stream.read_to_end(&mut bytes).await.unwrap();
+        tokio::time::timeout(
+            crate::test_sockets::CONNECTION_WAIT,
+            stream.read_to_end(&mut bytes),
+        )
+        .await
+        .expect("the frame ends with a half-close")
+        .unwrap();
         assert_eq!(bytes.last(), Some(&b'\n'), "one whole line");
         serde_json::from_slice(&bytes).unwrap()
     }
@@ -810,9 +822,17 @@ mod tests {
         let target = fixture.target();
         assert_eq!(target.pid, parent);
         let peer = tokio::spawn(async move {
-            let (mut stream, _) = listener.accept().await.unwrap();
+            // Mluva connects, finds the wrong process answering and closes without writing.
+            let mut stream =
+                crate::test_sockets::accept_within(&listener, "Mluva never connected").await;
             let mut bytes = vec![];
-            stream.read_to_end(&mut bytes).await.unwrap();
+            tokio::time::timeout(
+                crate::test_sockets::CONNECTION_WAIT,
+                stream.read_to_end(&mut bytes),
+            )
+            .await
+            .expect("Mluva closes the connection")
+            .unwrap();
             assert!(bytes.is_empty(), "nothing was written to the wrong process");
         });
         assert_eq!(
@@ -820,6 +840,46 @@ mod tests {
             SendOutcome::Rejected
         );
         peer.await.unwrap();
+    }
+
+    /// Claude Code keeps inbox paths within 103 bytes; one longer, though a socket can be bound
+    /// there, is never trusted: discovery offers no inbox and a delivery naming it is refused
+    /// without connecting.
+    #[tokio::test]
+    async fn an_inbox_path_over_the_limit_is_refused_without_connecting() {
+        let fixture = Fixture::new();
+        let mut forced = fixture.target();
+        let short = crate::test_sockets::socket_dir();
+        let socket_name = format!("{}.sock", std::process::id());
+        let pad = 105 - short.path().as_os_str().len() - 2 - socket_name.len();
+        let deep = short.path().join("p".repeat(pad));
+        fs::create_dir(&deep).unwrap();
+        fs::set_permissions(&deep, fs::Permissions::from_mode(0o700)).unwrap();
+        let socket = deep.join(socket_name);
+        assert_eq!(socket.as_os_str().len(), 105);
+        let listener = UnixListener::bind(&socket).unwrap();
+        fs::set_permissions(&socket, fs::Permissions::from_mode(0o600)).unwrap();
+        fixture.entry(json!({"messagingSocketPath": socket.to_string_lossy()}));
+        let found = fixture.target();
+        assert!(found.inbox.is_none() && found.draft_only());
+        // Even a target that names it is refused, however it came by the path.
+        forced.inbox.as_mut().unwrap().socket = socket.to_string_lossy().into_owned();
+        let limits = Limits {
+            directories: vec![deep.clone()],
+            ..fixture.limits(400)
+        };
+        assert!(!trusted_socket(&socket, &limits.directories));
+        assert_eq!(
+            submit_within(
+                &submission(forced, "Too long a path"),
+                &CancellationToken::new(),
+                &limits
+            )
+            .await
+            .outcome,
+            SendOutcome::Rejected
+        );
+        no_more_connections(&listener).await;
     }
 
     #[tokio::test]

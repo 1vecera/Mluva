@@ -428,7 +428,7 @@ mod tests {
 
     #[test]
     fn only_a_private_socket_or_a_link_into_this_accounts_daemon_directory_is_trusted() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_sockets::socket_dir();
         let uid = agent_platform::effective_uid();
         let daemon = temp.path().join(format!("codex-daemon-{uid}"));
         std::fs::create_dir(&daemon).unwrap();

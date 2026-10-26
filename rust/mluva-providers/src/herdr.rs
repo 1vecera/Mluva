@@ -488,14 +488,14 @@ mod tests {
     use std::os::unix::fs::PermissionsExt;
     use tokio::net::UnixListener;
     fn peer() -> (tempfile::TempDir, PathBuf, UnixListener) {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_sockets::socket_dir();
         let path = temp.path().join("herdr.sock");
         let listener = UnixListener::bind(&path).unwrap();
         std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600)).unwrap();
         (temp, path, listener)
     }
     async fn receive(listener: &UnixListener) -> (UnixStream, Value) {
-        let (stream, _) = listener.accept().await.unwrap();
+        let stream = crate::test_sockets::accept_within(listener, "Mluva never asked Herdr").await;
         let mut reader = BufReader::new(stream);
         let mut line = String::new();
         reader.read_line(&mut line).await.unwrap();

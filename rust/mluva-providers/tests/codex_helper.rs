@@ -13,6 +13,9 @@ use std::{
 /// that starts the real server as its own child and waits for it.
 struct Fixture {
     temp: tempfile::TempDir,
+    /// The helper's runtime directory holds its socket: short and private, under `/tmp`, as
+    /// `$XDG_RUNTIME_DIR` is, whatever `TMPDIR` is.
+    runtime: tempfile::TempDir,
     launcher: PathBuf,
 }
 
@@ -30,12 +33,20 @@ impl Fixture {
         )
         .unwrap();
         std::fs::set_permissions(&launcher, std::fs::Permissions::from_mode(0o700)).unwrap();
-        Self { temp, launcher }
+        let runtime = tempfile::Builder::new()
+            .prefix("mluva-")
+            .tempdir_in("/tmp")
+            .unwrap();
+        Self {
+            temp,
+            runtime,
+            launcher,
+        }
     }
     fn servers(&self, idle: Duration) -> Servers {
         Servers::new(
             self.temp.path().join("codex-home"),
-            Some(self.temp.path().join("runtime")),
+            Some(self.runtime.path().join("codex")),
             Some(self.launcher.clone()),
         )
         .with_idle(idle)

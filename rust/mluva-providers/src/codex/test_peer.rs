@@ -62,7 +62,7 @@ pub struct Peer {
 
 impl Peer {
     pub fn start(scenario: Scenario) -> Self {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_sockets::socket_dir();
         let socket = temp.path().join("app-server.sock");
         let listener = UnixListener::bind(&socket).unwrap();
         let state = Arc::new(Mutex::new(State::default()));

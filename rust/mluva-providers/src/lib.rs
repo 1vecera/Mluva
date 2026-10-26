@@ -26,6 +26,8 @@ pub mod qwen;
 pub mod realtime;
 pub mod speech;
 pub mod spoken_reply;
+#[cfg(test)]
+mod test_sockets;
 mod transport;
 
 use serde::{Deserialize, Serialize};
