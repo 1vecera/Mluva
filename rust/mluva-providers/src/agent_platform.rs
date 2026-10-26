@@ -383,35 +383,30 @@ mod tests {
 
     #[test]
     fn a_held_lock_in_this_process_is_found_through_the_kernel() {
-        use std::os::unix::{fs::MetadataExt, io::AsRawFd};
-        let temp = tempfile::tempdir().unwrap();
-        let path = temp.path().join("thread.lock");
-        let file = std::fs::File::create(&path).unwrap();
-        let key = {
-            let metadata = file.metadata().unwrap();
-            (metadata.dev(), metadata.ino())
-        };
-        assert!(!flock_holders().contains_key(&key), "not held yet");
-        // SAFETY: a valid open descriptor and a lock operation.
-        assert_eq!(unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX) }, 0);
-        assert_eq!(flock_holders().get(&key), Some(&std::process::id()));
-        drop(file);
-        assert!(
-            !flock_holders().contains_key(&key),
-            "released with the file"
-        );
-        // Wherever the file lives, btrfs subvolumes included, its holder is found.
-        let here = std::env::current_dir().unwrap();
-        let directory = tempfile::tempdir_in(&here).unwrap();
-        let path = directory.path().join("thread.lock");
-        let file = std::fs::File::create(&path).unwrap();
-        // SAFETY: a valid open descriptor and a lock operation.
-        assert_eq!(unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX) }, 0);
-        let metadata = std::fs::symlink_metadata(&path).unwrap();
-        assert_eq!(
-            flock_holder(&flock_holders(), &path, &metadata),
-            Some(std::process::id())
-        );
+        use std::os::unix::io::AsRawFd;
+        // A temporary directory, and this package's own, which may be a btrfs subvolume whose
+        // `stat` device differs from the one in the kernel's lock table.
+        let package = tempfile::tempdir_in(std::env::current_dir().unwrap()).unwrap();
+        let temporary = tempfile::tempdir().unwrap();
+        for directory in [temporary.path(), package.path()] {
+            let path = directory.join("thread.lock");
+            let file = std::fs::File::create(&path).unwrap();
+            let holder = || {
+                let metadata = std::fs::symlink_metadata(&path).unwrap();
+                flock_holder(&flock_holders(), &path, &metadata)
+            };
+            assert_eq!(holder(), None, "not held yet");
+            // SAFETY: a valid open descriptor and a lock operation.
+            assert_eq!(unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX) }, 0);
+            assert_eq!(
+                holder(),
+                Some(std::process::id()),
+                "{}",
+                directory.display()
+            );
+            drop(file);
+            assert_eq!(holder(), None, "released with the file");
+        }
     }
 
     #[test]
