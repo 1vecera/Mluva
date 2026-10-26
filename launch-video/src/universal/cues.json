@@ -1,0 +1,22 @@
+{
+  "fps": 60,
+  "duration_frames": 1800,
+  "score": { "file": "score.wav", "gain_db": 0 },
+  "sfx_peaks_s": {
+    "impact": 0.0,
+    "impact-long": 0.0,
+    "whoosh": 0.03,
+    "whoosh-soft": 0.04,
+    "glitch": 0.14,
+    "tick": 0.02,
+    "riser": 1.6,
+    "key": 0.12,
+    "flap": 0.21,
+    "flash": 0.0,
+    "jelly": 0.04,
+    "blips": 0.09
+  },
+  "cues": [
+    { "frame": 1576, "sfx": "impact", "gain_db": -3, "note": "final impact: the logo" }
+  ]
+}
