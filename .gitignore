@@ -8,3 +8,5 @@ __pycache__/
 .agents/skills/
 .ai/
 target/
+macos/.build/
+macos/.rust/

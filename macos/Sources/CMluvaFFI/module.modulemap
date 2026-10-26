@@ -1,0 +1,5 @@
+module CMluvaFFI [system] {
+    header "shim.h"
+    link "mluva_ffi"
+    export *
+}
