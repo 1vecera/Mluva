@@ -107,7 +107,7 @@ fn only_a_guarded_herdr_pane_routes_and_herdr_never_answers_a_waiting_prompt() {
     unguarded.herdr.as_mut().unwrap().guard.clear();
     for (target, hint) in [
         (unguarded, "Draft only: Herdr can't send to it now"),
-        (outside(), "Draft only: it runs outside Herdr"),
+        (outside(), "Draft only: this session has no inbox"),
     ] {
         assert_eq!(target.route(), Route::DraftOnly);
         assert_eq!(target.delivery(), Delivery::DraftOnly);
@@ -193,7 +193,20 @@ fn places_and_locators_tell_sessions_apart_without_herdr_fields_leaking() {
     assert_eq!(guarded().place(), "Herdr w1:p2");
     assert_eq!(guarded().place_to_check(), "Herdr");
     assert_eq!(outside().locator(), "notes-3f");
-    assert_eq!(outside().place(), "outside Herdr");
+    assert_eq!(outside().place(), "terminal");
+    let in_tmux = Target {
+        host: Host::Tmux("work:@3.%7".into()),
+        ..outside()
+    };
+    assert_eq!(
+        (in_tmux.locator().as_str(), in_tmux.place().as_str()),
+        ("work:@3.%7", "tmux work:@3.%7")
+    );
+    let background = Target {
+        host: Host::Background,
+        ..outside()
+    };
+    assert_eq!(background.place(), "background");
     let untitled = Target {
         title: String::new(),
         ..outside()
@@ -205,7 +218,7 @@ fn places_and_locators_tell_sessions_apart_without_herdr_fields_leaking() {
     );
     assert_eq!(
         outside().whereabouts(),
-        "Claude Code · notes-3f · outside Herdr · notes"
+        "Claude Code · notes-3f · terminal · notes"
     );
 }
 
@@ -236,4 +249,66 @@ fn the_saved_shape_stays_flat_and_loads_choices_from_before_targets() {
         serde_json::from_value::<Target>(newer).unwrap().kind,
         AgentKind::CodexDesktop
     );
+}
+
+fn inbox() -> Option<ClaudeInbox> {
+    Some(ClaudeInbox {
+        entry: "/run/user/fixture/claude/sessions/4100.json".into(),
+        socket: "/run/user/fixture/cc-socks/4100.sock".into(),
+        proc_start: "123456".into(),
+    })
+}
+
+#[test]
+fn claude_codes_own_inbox_queues_when_herdr_cannot_send_and_never_outranks_it() {
+    let queued = Target {
+        inbox: inbox(),
+        ..outside()
+    };
+    assert_eq!(
+        (queued.route(), queued.delivery(), queued.can_receive()),
+        (Route::ClaudeInbox, Delivery::Queue, true)
+    );
+    assert_eq!(
+        queued.delivery_hint(),
+        Some("Arrives as a message from another Claude session")
+    );
+    assert_eq!(queued.place_to_check(), "the session");
+    // A working session queues the message behind its turn; a waiting one is left to the person.
+    for (status, receives) in [
+        (AgentStatus::Working, true),
+        (AgentStatus::Blocked, false),
+        (AgentStatus::Unknown, false),
+    ] {
+        let target = Target {
+            status,
+            ..queued.clone()
+        };
+        assert_eq!(target.can_receive(), receives, "{status:?}");
+    }
+    // An unguarded Herdr pane with an inbox queues; Herdr's guard upgrades it to Send.
+    let mut in_herdr = guarded();
+    in_herdr.kind = AgentKind::ClaudeCode;
+    in_herdr.inbox = inbox();
+    assert_eq!(in_herdr.route(), Route::Herdr);
+    in_herdr.herdr.as_mut().unwrap().guard.clear();
+    assert_eq!(in_herdr.route(), Route::ClaudeInbox);
+    // A Claude desktop Code session runs Claude Code and queues the same way; an inbox on
+    // anything else is not a Claude Code inbox.
+    let desktop = Target {
+        kind: AgentKind::ClaudeDesktop,
+        ..queued.clone()
+    };
+    assert_eq!(desktop.route(), Route::ClaudeInbox);
+    let codex = Target {
+        kind: AgentKind::CodexCli,
+        ..queued.clone()
+    };
+    assert_eq!(codex.route(), Route::DraftOnly);
+    assert_eq!(codex.draft_hint(), "Draft only: nothing can reach it");
+    // The inbox and host are found afresh by discovery and never saved.
+    let saved = serde_json::to_value(&queued).unwrap();
+    assert!(saved.get("inbox").is_none() && saved.get("host").is_none());
+    let loaded: Target = serde_json::from_value(saved).unwrap();
+    assert!(loaded.inbox.is_none() && loaded.same_instance(&queued));
 }

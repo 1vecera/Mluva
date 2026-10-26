@@ -10,6 +10,7 @@
 //! writing, refuses rather than retargets a replaced one, never writes again after an uncertain
 //! write, and reads no terminal content, clipboard or focus.
 use crate::{
+    claude_inbox,
     claude_sessions::{self, ClaudeRegistry},
     herdr,
 };
@@ -136,8 +137,24 @@ impl Transport for HerdrTransport {
     }
 }
 
+/// Claude Code's own per-session inbox, at Queue level.
+pub struct ClaudeInboxTransport;
+
+impl Transport for ClaudeInboxTransport {
+    fn route(&self) -> Route {
+        Route::ClaudeInbox
+    }
+    fn deliver<'a>(
+        &'a self,
+        submission: &'a Submission,
+        cancel: &'a CancellationToken,
+    ) -> Delivering<'a> {
+        Box::pin(claude_inbox::submit(submission, cancel))
+    }
+}
+
 /// Every transport this build carries.
-const TRANSPORTS: &[&dyn Transport] = &[&HerdrTransport];
+const TRANSPORTS: &[&dyn Transport] = &[&HerdrTransport, &ClaudeInboxTransport];
 
 /// The transport for a route; `None` for draft-only targets and routes this build lacks.
 pub fn transport(route: Route) -> Option<&'static dyn Transport> {
@@ -177,7 +194,7 @@ mod tests {
 
     #[test]
     fn every_route_with_a_delivery_level_has_exactly_one_transport() {
-        for route in [Route::DraftOnly, Route::Herdr] {
+        for route in [Route::DraftOnly, Route::Herdr, Route::ClaudeInbox] {
             let carried = TRANSPORTS.iter().filter(|t| t.route() == route).count();
             let expected =
                 usize::from(route.delivery() != mluva_core::agent_voice::Delivery::DraftOnly);

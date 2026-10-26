@@ -8,9 +8,10 @@
 //! Claude Code documents `claude agents --json` as its interface; the registry files it
 //! reads are not a documented format. Mluva reads them tolerantly so a 2-second poll needs no
 //! process start: unknown fields and values are ignored, and a field of an unexpected type is
-//! treated as absent.
+//! treated as absent. An entry that names an inbox socket (`messagingSocketPath` with
+//! `peerProtocol` 1) makes its session reachable through [`crate::claude_inbox`].
 use crate::herdr::label;
-use mluva_core::agent_voice::{AgentKind, AgentStatus, Target};
+use mluva_core::agent_voice::{AgentKind, AgentStatus, ClaudeInbox, Host, Target};
 use serde::Deserialize;
 use serde_json::Value;
 use std::{
@@ -35,6 +36,8 @@ const MAX_APPEND_BYTES: u64 = 1_048_576;
 const MAX_SLUG_CHARS: usize = 200;
 /// Title and agent-setting records are short; any longer line is conversation content.
 const MAX_RECORD_BYTES: usize = 4_096;
+/// A Unix socket path's limit, which Claude Code also observes.
+pub(crate) const MAX_SOCKET_PATH: usize = 103;
 
 /// One live interactive Claude Code session from its own registry.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -55,6 +58,12 @@ pub struct ClaudeSession {
     pub custom_title: Option<String>,
     /// The latest `ai-title` record: Claude Code's generated session title.
     pub ai_title: Option<String>,
+    /// The session's inbox, when its entry names one Mluva speaks the protocol of.
+    pub inbox: Option<ClaudeInbox>,
+    /// Where the session runs: a terminal, a tmux pane, the background or an application.
+    pub host: Host,
+    /// A Code session of the Claude desktop app, which runs its own bundled Claude Code.
+    pub desktop: bool,
 }
 
 impl ClaudeSession {
@@ -150,9 +159,7 @@ impl ClaudeRegistry {
         let Ok(listing) = fs::read_dir(&directory) else {
             return vec![];
         };
-        let namespace = fs::read_link("/proc/self/ns/pid")
-            .ok()
-            .map(|link| link.to_string_lossy().into_owned());
+        let namespace = own_namespace();
         let mut seen = HashMap::new();
         for item in listing.take(MAX_DIRECTORY_ENTRIES).flatten() {
             if seen.len() >= MAX_SESSIONS {
@@ -207,20 +214,27 @@ impl ClaudeRegistry {
 }
 
 /// A directory owned by this account, not a symlink and not writable by others.
-fn private_directory(path: &Path) -> bool {
+pub(crate) fn private_directory(path: &Path) -> bool {
     fs::symlink_metadata(path).is_ok_and(|m| {
         m.file_type().is_dir() && m.uid() == effective_uid() && m.mode() & 0o022 == 0
     })
 }
 
-fn effective_uid() -> u32 {
+pub(crate) fn effective_uid() -> u32 {
     // SAFETY: geteuid has no arguments or memory preconditions.
     unsafe { libc::geteuid() }
 }
 
+/// This process's PID namespace, which registry entries must share.
+pub(crate) fn own_namespace() -> Option<String> {
+    fs::read_link("/proc/self/ns/pid")
+        .ok()
+        .map(|link| link.to_string_lossy().into_owned())
+}
+
 /// Open a regular file owned by this account without following a final symlink and
 /// without blocking on a FIFO.
-fn open_private(path: &Path) -> Option<(fs::File, fs::Metadata)> {
+pub(crate) fn open_private(path: &Path) -> Option<(fs::File, fs::Metadata)> {
     let file = fs::OpenOptions::new()
         .read(true)
         .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK)
@@ -234,7 +248,7 @@ fn open_private(path: &Path) -> Option<(fs::File, fs::Metadata)> {
 }
 
 /// `None` rejects the entry; `Err` means it could not be read whole just now.
-fn read_entry(
+pub(crate) fn read_entry(
     path: &Path,
     pid: u32,
     namespace: Option<&str>,
@@ -263,13 +277,42 @@ fn read_entry(
         (Some(_), None) => false,
     };
     let session_id = text("sessionId").filter(|id| valid_session_id(id))?;
+    // Interactive sessions in any terminal or application, and background sessions.
+    let background = match text("kind") {
+        Some("interactive") => false,
+        Some("bg") => true,
+        _ => return None,
+    };
     if entry.get("pid").and_then(Value::as_u64) != Some(u64::from(pid))
-        || text("kind") != Some("interactive")
         || entry.get("spare").and_then(Value::as_bool) == Some(true)
         || !domain_matches
     {
         return None;
     }
+    // Only the inbox protocol Mluva speaks; the transport checks the path before using it.
+    let inbox = text("messagingSocketPath")
+        .filter(|socket| {
+            entry.get("peerProtocol").and_then(Value::as_u64) == Some(1)
+                && socket.starts_with('/')
+                && socket.len() <= MAX_SOCKET_PATH
+                && !socket.chars().any(char::is_control)
+        })
+        .map(|socket| ClaudeInbox {
+            entry: path.to_string_lossy().into_owned(),
+            socket: socket.into(),
+            proc_start: start.clone(),
+        });
+    let tmux = text("tmux")
+        .map(|pane| label(pane.trim(), 128))
+        .filter(|pane| !pane.is_empty());
+    let entrypoint = text("entrypoint");
+    let desktop = entrypoint.is_some_and(|e| e.starts_with("claude-desktop"));
+    let host = match (background, tmux, entrypoint) {
+        (true, ..) => Host::Background,
+        (false, Some(pane), _) => Host::Tmux(pane),
+        (false, None, None | Some("cli")) => Host::Terminal,
+        (false, None, Some(_)) => Host::App,
+    };
     let clean = |key: &str| {
         text(key)
             .map(|value| label(value.trim(), MAX_TITLE_CHARS))
@@ -290,6 +333,9 @@ fn read_entry(
             agent_type: clean("agent"),
             custom_title: None,
             ai_title: None,
+            inbox,
+            host,
+            desktop,
         },
     )))
 }
@@ -324,17 +370,17 @@ fn stat_fields(pid: u32) -> Option<Vec<String>> {
 }
 
 /// Field 22, the start time, which `procStart` records to detect PID reuse.
-fn process_start(pid: u32) -> Option<String> {
+pub(crate) fn process_start(pid: u32) -> Option<String> {
     stat_fields(pid)?.into_iter().nth(19)
 }
 
-fn parent(pid: u32) -> Option<u32> {
+pub(crate) fn parent(pid: u32) -> Option<u32> {
     stat_fields(pid)?.get(1)?.parse().ok()
 }
 
 /// Claude Code names a project's transcript directory after its path, with every UTF-16
 /// unit other than an ASCII letter or digit replaced by `-`.
-fn slug(cwd: &str) -> String {
+pub(crate) fn slug(cwd: &str) -> String {
     cwd.chars()
         .flat_map(|c| {
             let unit = if c.is_ascii_alphanumeric() { c } else { '-' };
@@ -350,7 +396,7 @@ fn slug(cwd: &str) -> String {
         .collect()
 }
 
-fn transcript_path(config: &Path, cwd: &str, session_id: &str) -> Option<PathBuf> {
+pub(crate) fn transcript_path(config: &Path, cwd: &str, session_id: &str) -> Option<PathBuf> {
     let projects = config.join("projects");
     let file = format!("{session_id}.jsonl");
     let slug = slug(cwd);
@@ -485,6 +531,8 @@ pub fn merge(herdr: Vec<Target>, sessions: &[ClaudeSession]) -> Vec<Target> {
                 if let Some(session) = session {
                     joined.insert(session.session_id.as_str());
                     target.pid = session.pid;
+                    // Without Herdr's guard, the session's own inbox can still queue to it.
+                    target.inbox.clone_from(&session.inbox);
                     if target.project.is_empty() {
                         target.project.clone_from(&session.cwd);
                     }
@@ -506,11 +554,17 @@ pub fn merge(herdr: Vec<Target>, sessions: &[ClaudeSession]) -> Vec<Target> {
                 .clone()
                 .unwrap_or_else(|| format!("claude-{}", session.pid)),
             title: session.own_title().unwrap_or_default().into(),
-            kind: AgentKind::ClaudeCode,
+            kind: if session.desktop {
+                AgentKind::ClaudeDesktop
+            } else {
+                AgentKind::ClaudeCode
+            },
             project: session.cwd.clone(),
             status: session.status,
             session_id: session.session_id.clone(),
             pid: session.pid,
+            inbox: session.inbox.clone(),
+            host: session.host.clone(),
             ..Target::default()
         }
     }));
@@ -641,7 +695,7 @@ mod tests {
         let other = child.id();
         fixture.write(
             &format!("{other}.json"),
-            &fixture.entry(other, "background", json!({"kind": "bg"})),
+            &fixture.entry(other, "unknown-kind", json!({"kind": "daemon"})),
         );
         // The key file is a FIFO with a waiting writer: any open of it releases the writer.
         let key = fixture
@@ -707,6 +761,24 @@ mod tests {
             (found.len(), found[1].user_name.as_deref(), found[1].status),
             (2, Some("Second"), AgentStatus::Blocked)
         );
+        // A background session (`claude --bg`) is offered too, as running in the background;
+        // a tmux pane and an application host are told apart from a plain terminal.
+        for (extra, host) in [
+            (json!({"kind": "bg", "jobId": "a1b2c3d4"}), Host::Background),
+            (
+                json!({"tmux": "work:@3.%7"}),
+                Host::Tmux("work:@3.%7".into()),
+            ),
+            (json!({"entrypoint": "sdk-ts"}), Host::App),
+            (json!({"entrypoint": "claude-desktop"}), Host::App),
+            (json!({"entrypoint": "cli"}), Host::Terminal),
+        ] {
+            let mut extra = extra;
+            extra["startedAt"] = json!(5_000);
+            rewrite(extra);
+            let found = registry.sessions();
+            assert_eq!((found.len(), &found[1].host), (2, &host));
+        }
         // A file caught mid-rewrite keeps that exact process; its exit removes it.
         fs::write(
             fixture
@@ -910,6 +982,9 @@ mod tests {
             agent_type: None,
             custom_title: None,
             ai_title: None,
+            inbox: None,
+            host: Host::Terminal,
+            desktop: false,
         }
     }
 

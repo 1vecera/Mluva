@@ -37,10 +37,11 @@ fn draft_only() -> Target {
 }
 
 #[test]
-fn draft_hint_says_whether_the_session_is_outside_herdr() {
+fn draft_hint_says_why_nothing_reaches_the_session() {
+    // Outside Herdr, a Claude Code session without an inbox (older, `--bare`, `--restricted`).
     assert_eq!(
         draft_only().draft_hint(),
-        "Draft only: it runs outside Herdr"
+        "Draft only: this session has no inbox"
     );
     // A Claude Code session typed into a Herdr pane can be guarded; without a guard yet,
     // the hint must not tell the user to restart it from Herdr.

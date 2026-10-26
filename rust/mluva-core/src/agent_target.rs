@@ -20,7 +20,7 @@ pub enum AgentKind {
     /// Claude Code in a terminal, a multiplexer pane or Herdr.
     #[serde(rename = "claude", alias = "claude_code")]
     ClaudeCode,
-    /// The Claude desktop app's composer.
+    /// A Code session of the Claude desktop app, which runs its own Claude Code.
     #[serde(rename = "claude_desktop")]
     ClaudeDesktop,
     /// The Codex command-line agent in a terminal, a multiplexer pane or Herdr.
@@ -66,6 +66,11 @@ impl AgentKind {
     }
     pub fn is_claude_code(self) -> bool {
         self == Self::ClaudeCode
+    }
+    /// A Claude Code process, in a terminal or as a Code session of the Claude desktop app,
+    /// which runs its own bundled Claude Code.
+    pub fn runs_claude_code(self) -> bool {
+        matches!(self, Self::ClaudeCode | Self::ClaudeDesktop)
     }
     /// A desktop app rather than a terminal session.
     pub fn is_desktop(self) -> bool {
@@ -142,6 +147,10 @@ pub enum Route {
     /// Herdr's guarded prompt: the server re-checks its guard for the exact agent process and
     /// pane before writing, and returns a receipt for the operation.
     Herdr,
+    /// Claude Code's own per-session inbox for cross-session messages. The session admits the
+    /// message to its prompt queue and takes it between tool calls or as a new turn; the agent
+    /// sees it as a message from another Claude session, not as typed by the person.
+    ClaudeInbox,
 }
 
 impl Route {
@@ -149,6 +158,7 @@ impl Route {
         match self {
             Self::DraftOnly => "none",
             Self::Herdr => "herdr",
+            Self::ClaudeInbox => "claude_inbox",
         }
     }
     /// The level this transport has been verified to deliver at.
@@ -156,14 +166,17 @@ impl Route {
         match self {
             Self::DraftOnly => Delivery::DraftOnly,
             Self::Herdr => Delivery::Send,
+            Self::ClaudeInbox => Delivery::Queue,
         }
     }
     /// Whether the transport may deliver to a session in this state. Herdr writes into a
-    /// working agent's composer without stopping it, but never answers a waiting prompt.
+    /// working agent's composer without stopping it, and the inbox queues behind a running
+    /// turn. A session waiting for the person is left to them: the inbox would only queue
+    /// behind the prompt, and a dictated "yes" must never look like an answer to it.
     fn accepts(self, status: AgentStatus) -> bool {
         match self {
             Self::DraftOnly => false,
-            Self::Herdr => matches!(
+            Self::Herdr | Self::ClaudeInbox => matches!(
                 status,
                 AgentStatus::Idle | AgentStatus::Done | AgentStatus::Working
             ),
@@ -191,6 +204,32 @@ impl HerdrPane {
     }
 }
 
+/// A Claude Code session's inbox socket, as its registry entry named it when discovered. The
+/// transport re-reads that entry and checks the connected process before it writes.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct ClaudeInbox {
+    /// The session's registry entry, `<config>/sessions/<pid>.json`.
+    pub entry: String,
+    /// The inbox socket the entry names.
+    pub socket: String,
+    /// The process start time the entry recorded, which `/proc` confirmed at discovery.
+    pub proc_start: String,
+}
+
+/// Where a session outside Herdr runs, as its agent reports it.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub enum Host {
+    /// A terminal Mluva cannot name.
+    #[default]
+    Terminal,
+    /// A tmux pane, as `<session>:@<window>.%<pane>`.
+    Tmux(String),
+    /// A background session with no terminal (`claude --bg`).
+    Background,
+    /// Hosted by an application rather than a terminal, such as an editor or the Agent SDK.
+    App,
+}
+
 /// A running agent session, wherever it runs.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(from = "TargetRecord", into = "TargetRecord")]
@@ -210,16 +249,24 @@ pub struct Target {
     pub pid: u32,
     /// The Herdr pane the session runs in, when Herdr lists it.
     pub herdr: Option<HerdrPane>,
+    /// Claude Code's inbox for the session, when its registry names one. Never saved.
+    pub inbox: Option<ClaudeInbox>,
+    /// Where the session runs when Herdr does not show it. Never saved.
+    pub host: Host,
     /// A remembered choice that discovery no longer reports. Never saved.
     pub missing: bool,
 }
 
 impl Target {
-    /// The transport that would carry a dictation, whatever the session is doing now.
+    /// The strongest transport that would carry a dictation, whatever the session is doing
+    /// now: Herdr's guarded prompt, else Claude Code's inbox.
     pub fn route(&self) -> Route {
-        match self.guarded_pane() {
-            Some(_) => Route::Herdr,
-            None => Route::DraftOnly,
+        if self.guarded_pane().is_some() {
+            Route::Herdr
+        } else if self.inbox.is_some() && self.kind.runs_claude_code() {
+            Route::ClaudeInbox
+        } else {
+            Route::DraftOnly
         }
     }
 
@@ -246,10 +293,14 @@ impl Target {
 
     /// Why a draft-only session cannot be delivered to.
     pub fn draft_hint(&self) -> &'static str {
-        match &self.herdr {
+        if self.herdr.is_some() {
             // Herdr withholds a guard until it confirms the session and sees it ready.
-            Some(_) => "Draft only: Herdr can't send to it now",
-            None => "Draft only: it runs outside Herdr",
+            "Draft only: Herdr can't send to it now"
+        } else if self.kind.runs_claude_code() {
+            // Older, `--bare` and `--restricted` sessions open no inbox.
+            "Draft only: this session has no inbox"
+        } else {
+            "Draft only: nothing can reach it"
         }
     }
 
@@ -258,6 +309,7 @@ impl Target {
     pub fn delivery_hint(&self) -> Option<&'static str> {
         match self.route() {
             Route::DraftOnly | Route::Herdr => None,
+            Route::ClaudeInbox => Some("Arrives as a message from another Claude session"),
         }
     }
 
@@ -294,11 +346,13 @@ impl Target {
         }
     }
 
-    /// What tells this session apart from another with the same name: its Herdr pane, else the
-    /// agent's own handle, else its process.
+    /// What tells this session apart from another with the same name: its Herdr or tmux pane,
+    /// else the agent's own handle, else its process.
     pub fn locator(&self) -> String {
         if let Some(pane) = &self.herdr {
             pane.pane_id.clone()
+        } else if let Host::Tmux(pane) = &self.host {
+            pane.clone()
         } else if self.name != self.display_name() {
             self.name.clone()
         } else if self.pid != 0 {
@@ -308,11 +362,16 @@ impl Target {
         }
     }
 
-    /// Where the session runs, in a few words: `Herdr w1:p2`, `outside Herdr`.
+    /// Where the session runs, in a few words: `Herdr w1:p2`, `tmux work:@3.%7`, `terminal`.
     pub fn place(&self) -> String {
-        match &self.herdr {
-            Some(pane) => format!("Herdr {}", pane.pane_id),
-            None => "outside Herdr".into(),
+        if let Some(pane) = &self.herdr {
+            return format!("Herdr {}", pane.pane_id);
+        }
+        match &self.host {
+            Host::Terminal => "terminal".into(),
+            Host::Tmux(pane) => format!("tmux {pane}"),
+            Host::Background => "background".into(),
+            Host::App => "app".into(),
         }
     }
 
@@ -320,7 +379,7 @@ impl Target {
     pub fn place_to_check(&self) -> &'static str {
         match self.route() {
             Route::Herdr => "Herdr",
-            Route::DraftOnly => "the session",
+            Route::ClaudeInbox | Route::DraftOnly => "the session",
         }
     }
 
@@ -433,6 +492,8 @@ impl From<TargetRecord> for Target {
             status: record.status,
             session_id: record.session_id,
             pid: record.pid,
+            inbox: None,
+            host: Host::default(),
             missing: false,
         }
     }

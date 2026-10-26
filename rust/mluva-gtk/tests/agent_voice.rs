@@ -167,6 +167,48 @@ fn native_session(root: &Path, id: &str, title: &str) -> NativeSession {
     .unwrap();
     NativeSession(pid, entry)
 }
+/// A synthetic Claude Code session outside Herdr and outside this test's process tree, with its
+/// own inbox, registered in the private home's registry by the inbox fixture peer.
+struct InboxSession(u32, PathBuf);
+impl Drop for InboxSession {
+    fn drop(&mut self) {
+        // SAFETY: signals only the orphaned fixture peer this helper started.
+        unsafe { libc::kill(self.0 as i32, libc::SIGKILL) };
+        let _ = fs::remove_file(&self.1);
+    }
+}
+fn inbox_session(id: &str, title: &str, wire: &Path) -> InboxSession {
+    let config = PathBuf::from(std::env::var_os("HOME").unwrap()).join(".claude");
+    let sockets = PathBuf::from(std::env::var_os("XDG_RUNTIME_DIR").unwrap()).join("cc-socks");
+    // The shell exits at once, so the peer is no descendant of this process (Mluva's own).
+    let output = Command::new("sh")
+        .args(["-c", r#""$0" "$@" >/dev/null 2>&1 & echo $!"#])
+        .arg(env!("CARGO_BIN_EXE_claude-inbox-fixture-peer"))
+        .arg(&config)
+        .arg(&sockets)
+        .args([id, "/synthetic/inbox", title])
+        .arg(wire)
+        .output()
+        .unwrap();
+    let pid: u32 = String::from_utf8(output.stdout)
+        .unwrap()
+        .trim()
+        .parse()
+        .unwrap();
+    let entry = config.join(format!("sessions/{pid}.json"));
+    until(|| entry.exists());
+    InboxSession(pid, entry)
+}
+/// The dropdown position of the first session whose row contains `text`.
+fn row_containing(owner: &ApplicationDesktop, text: &str) -> Option<u32> {
+    let model = owner.agent_voice.view.recipients.model()?;
+    (0..model.n_items()).find(|i| {
+        model
+            .item(*i)
+            .and_downcast::<gtk::StringObject>()
+            .is_some_and(|row| row.string().contains(text))
+    })
+}
 #[test]
 #[ignore = "requires private GTK, network, devices and fixture peers"]
 fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_application() {
@@ -195,7 +237,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     .unwrap();
     let text = "Synthetic message: verify the selected agent only.";
     // The twelfth capture recognises nothing: an agent route must keep it, not drop it.
-    let responses: Vec<_> = (0..13).map(|n| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":if n == 11 { "" } else { text }, "language_code":"eng"}})).collect();
+    let responses: Vec<_> = (0..14).map(|n| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":if n == 11 { "" } else { text }, "language_code":"eng"}})).collect();
     let mut speech = http::Peer::new(&responses);
     let paths = AppPaths {
         config: root.join("config/mluva"),
@@ -1074,6 +1116,60 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     );
     settle(2300);
     assert_eq!(sent(&audit).len(), 5);
+    // A Claude Code session outside Herdr with its own inbox: the recording is queued through
+    // it once, after the same countdown, and nothing reaches Herdr.
+    let inbox_wire = root.join("claude-inbox-wire.jsonl");
+    let inbox = inbox_session("inbox-session", "Queued notes", &inbox_wire);
+    owner.agent_voice.refresh();
+    until(|| row_containing(&owner, "Queued notes").is_some());
+    let row = row_containing(&owner, "Queued notes").unwrap();
+    assert!(
+        owner
+            .agent_voice
+            .view
+            .recipients
+            .model()
+            .unwrap()
+            .item(row)
+            .and_downcast::<gtk::StringObject>()
+            .unwrap()
+            .string()
+            .ends_with("· Queue")
+    );
+    owner.agent_voice.view.recipients.set_selected(row);
+    record();
+    finish();
+    until(|| {
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .unwrap()
+            .phase
+            == RoutePhase::Delivered
+    });
+    let queued = owner.agent_voice.route.borrow().attempt.clone().unwrap();
+    assert_eq!(queued.target.session_id, "inbox-session");
+    assert!(queued.submitted_ms.unwrap() - queued.final_ms.unwrap() >= 2000);
+    assert_eq!(outcome(&queued.history_id).delivery_outcome, "queued");
+    let frames = || -> Vec<Value> {
+        fs::read_to_string(&inbox_wire)
+            .unwrap_or_default()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect()
+    };
+    assert_eq!(frames().len(), 1);
+    assert_eq!(frames()[0]["session_id"], "inbox-session");
+    assert_eq!(frames()[0]["message"]["content"], text);
+    assert_eq!(frames()[0]["uuid"], queued.id.as_str());
+    settle(2300);
+    assert_eq!(frames().len(), 1, "a queued message is never written again");
+    assert_eq!(sent(&audit).len(), 5);
+    drop(inbox);
+    owner.agent_voice.view.recipients.set_selected(1);
     // Incognito uses the same explicit recipient but never creates local History.
     let saved = services.history.recent(100).unwrap().len();
     owner.settings.capture.incognito.set_active(true);
@@ -1121,16 +1217,31 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         assert!(route.iter().any(|e| e.stage == stage), "missing {stage}");
     }
     let traced = serde_json::to_string(&route).unwrap();
-    for private in [text, "Chief of staff", "Research notes", "SYNTHETIC_KEY"] {
+    for private in [
+        text,
+        "Chief of staff",
+        "Research notes",
+        "Queued notes",
+        "SYNTHETIC_KEY",
+    ] {
         assert!(!traced.contains(private), "{private}");
     }
+    let mut accepted: Vec<_> = route
+        .iter()
+        .filter(|e| e.stage == "route-send-accepted")
+        .map(|e| e.provider.as_str())
+        .collect();
+    accepted.sort_unstable();
     assert_eq!(
-        route
-            .iter()
-            .filter(|e| e.stage == "route-send-accepted")
-            .count(),
-        4,
-        "four accepted sends; the incognito attempt is not traced"
+        accepted,
+        [
+            "guarded-agent",
+            "guarded-agent",
+            "guarded-agent",
+            "guarded-agent",
+            "queued-agent"
+        ],
+        "four sends and one queued message; the incognito attempt is not traced"
     );
     let clipboard = gtk::gdk::Display::default().unwrap().clipboard();
     assert_eq!(
@@ -1143,7 +1254,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     let ended = owner.shutdown();
     glib::MainContext::default().block_on(ended).unwrap();
     let observed = speech.finish();
-    assert_eq!(observed.len(), 13);
+    assert_eq!(observed.len(), 14);
     assert!(wire(&audit).iter().all(|r| {
         [
             "agent.guarded_list",
@@ -1153,5 +1264,5 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         ]
         .contains(&r["method"].as_str().unwrap())
     }));
-    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":15,"recognized":13,"session_wheel":true,"draft_only_sessions_no_delivery":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":5,"second_press_sends_once":true,"empty_recognition_kept":true,"history_learns_outcome":true,"route_traced_without_text":true,"live_page_on_start":true,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
+    fs::write(root.join("voice-result.json"), serde_json::to_vec_pretty(&json!({"captures":16,"recognized":14,"queued_through_inbox":1,"session_wheel":true,"draft_only_sessions_no_delivery":true,"wheel_keyboard_order_reorder_loss":true,"alternate_transcript_no_delivery":true,"guarded_submissions":5,"second_press_sends_once":true,"empty_recognition_kept":true,"history_learns_outcome":true,"route_traced_without_text":true,"live_page_on_start":true,"cancelled_or_disarmed_captures":8,"edited_draft_send":true,"editing_rearmed_draft_cancels":true,"settings_opt_in_persisted":true,"receipt_reconciliation":true,"recognition_immutable":true,"incognito_not_saved":true,"clipboard_unchanged":true,"selected_provider_unchanged":true,"timing_sample_size":1,"release_to_final_ms":attempt.final_ms.unwrap()-attempt.released_ms.unwrap(),"intentional_grace_ms":attempt.submitted_ms.unwrap()-attempt.final_ms.unwrap(),"submit_to_receipt_ms":attempt.received_ms.unwrap()-attempt.submitted_ms.unwrap()})).unwrap()).unwrap();
 }

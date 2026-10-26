@@ -9,7 +9,9 @@ pub const CANCEL_WINDOW_MS: u64 = 2_000;
 pub const MAX_RECORDING_MS: u64 = 5 * 60 * 1_000;
 pub const MAX_MESSAGE_BYTES: usize = 32_768;
 
-pub use crate::agent_target::{AgentKind, AgentStatus, Delivery, HerdrPane, Route, Target};
+pub use crate::agent_target::{
+    AgentKind, AgentStatus, ClaudeInbox, Delivery, HerdrPane, Host, Route, Target,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]

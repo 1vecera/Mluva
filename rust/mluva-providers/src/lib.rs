@@ -4,6 +4,7 @@ pub mod account;
 pub mod agent_targets;
 pub mod batch_preview;
 pub mod catalog;
+pub mod claude_inbox;
 pub mod claude_sessions;
 pub mod compatible;
 pub mod credentials;

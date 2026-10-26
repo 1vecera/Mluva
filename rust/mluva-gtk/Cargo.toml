@@ -64,3 +64,10 @@ path = "tests/support/herdr_voice_peer.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "claude-inbox-fixture-peer"
+path = "tests/support/claude_inbox_peer.rs"
+test = false
+doc = false
+bench = false
