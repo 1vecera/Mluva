@@ -17,7 +17,7 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 | Start with… | Next step |
 | --- | --- |
 | A rough idea | Dictate with F9. Words appear while you speak; final text is copied and delivered to the captured target when supported. |
-| A task for an agent | Choose a named Herdr session. Press **Dictate to agent** or its shortcut to start, then press again to stop and send. A two-second cancel window precedes guarded delivery. |
+| A task for an agent | Choose a Claude Code or Codex session, in Herdr, tmux, any terminal or the desktop apps. Press **Dictate to agent** or its shortcut to start, then press again to stop. After a two-second cancel window Mluva sends, queues or prefills it, as the wheel says. |
 | A draft worth keeping | Edit the transcript and save with **Ctrl+S**. Copy and Save stay visible; original recognition remains separate. |
 | Work to return to | Search history, rename, continue a recording, merge or delete conversations, and export Markdown or JSON. |
 | Something on screen | Attach a region screenshot with F10 and annotate it in the optional Tensaku editor. Images stay local. |
@@ -27,7 +27,7 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 
 ![The F12 session wheel: a sundial watch whose light falls on the chosen agent session](docs/assets/sundial-watch.jpg)
 
-Press F12 and every agent session appears as an index on a watch dial, in Herdr pane order from one o'clock, each with its full name and its letter. Press the letter to choose a session; the hand swings to it and the light falls on it. Press F12 again to dictate to it, or Esc to leave. The watch follows your Omarchy theme.
+Press F12 and every agent session appears as an index on a watch dial, Herdr's panes first from one o'clock and then sessions outside Herdr, each with its full name and its letter. Press the letter to choose a session; the hand swings to it, the light falls on it and the dial says what F12 will do: send, queue, prefill or keep a draft. Press F12 again to dictate to it, or Esc to leave. The watch follows your Omarchy theme.
 
 <sub>A Blender render of the wheel's design; Mluva draws the wheel from the same baked art.</sub>
 
