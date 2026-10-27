@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Weekly sync</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #000000; color: #e8e8e8; font: 17px/1.55 "Adwaita Sans", "Inter", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 72px 32px; }
+  .crumb { font: 13px "JetBrains Mono", monospace; color: #7a7a7a; letter-spacing: .02em; }
+  h1 { font-size: 34px; font-weight: 600; margin: 10px 0 6px; letter-spacing: -.01em; }
+  .meta { color: #7a7a7a; font-size: 14px; margin-bottom: 36px; }
+  .note { border-left: 2px solid #2a2a2a; padding: 2px 0 2px 18px; margin: 0 0 22px; }
+  .note b { display: block; font-weight: 600; font-size: 15px; color: #cfcfcf; margin-bottom: 2px; }
+  .note p { margin: 0; color: #b4b4b4; }
+  label { display: block; font: 13px "JetBrains Mono", monospace; color: #7a7a7a; margin: 40px 0 10px; letter-spacing: .02em; }
+  textarea { box-sizing: border-box; width: 100%; height: 150px; resize: none; background: #0d0d0d; color: #f2f2f2;
+             border: 1px solid #2c2c2c; border-radius: 8px; padding: 16px 18px; font: inherit; caret-color: #f2f2f2; outline: none; }
+  textarea:focus { border-color: #5a5a5a; }
+</style>
+<main>
+  <div class="crumb">TEAM / MEETINGS</div>
+  <h1>Weekly sync</h1>
+  <div class="meta">Tuesday · 4 notes</div>
+  <div class="note"><b>Launch</b><p>Storyboard v1 is ready for review. Captures are being re-filmed from main.</p></div>
+  <div class="note"><b>Docs</b><p>Provider guide needs the new local models before Friday.</p></div>
+  <div class="note"><b>Review</b><p>Launch review slot still open: Wednesday or Thursday?</p></div>
+  <label for="reply">YOUR REPLY</label>
+  <textarea id="reply" aria-label="Your reply" autofocus></textarea>
+</main>
+<script>document.getElementById("reply").focus();</script>

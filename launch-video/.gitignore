@@ -13,3 +13,5 @@ public/universal/
 showreel/capture/tools/
 # The generated highlight score (ElevenLabs Music) stays local with the other staged media.
 public/highlight/
+# Agent binaries copied in for the launch film delivery take (launch/README.md).
+launch/capture/tools/

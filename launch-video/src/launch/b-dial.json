@@ -1,0 +1,385 @@
+{
+  "shot": "B · The dial",
+  "storyboard": "0:14–0:24 · One dial",
+  "take": "~/Videos/Mluva/launch-2026-media/takes/b-dial.mkv",
+  "take_sha256": "5cbaccbc756a158f773b6e1359bd59b570805bfeea00d191ba20a054254d75ed",
+  "resolution": [
+    3840,
+    2160
+  ],
+  "fps": 60,
+  "frames": 486,
+  "duration_seconds": 8.1,
+  "codec": "FFV1 level 3, bgr0 (lossless RGB)",
+  "capture": "~/Videos/Mluva/launch-2026-media/runs/b-dial/wheel-take.mkv",
+  "capture_codec": "ffv1",
+  "transcode_frames_identical": null,
+  "staged_png": "~/Videos/Mluva/launch-2026-media/staged/b-dial",
+  "staged_rgb_md5": "486/486 frames match the take (pass)",
+  "contact_sheet": "~/Videos/Mluva/launch-2026-media/contact/b-dial.png",
+  "source": {
+    "commit": "9838bc89e863e4fbab78c35d4bf2ed9473804b08",
+    "build": "cargo build --locked --release; binaries identified by SHA-256",
+    "binaries_sha256": {
+      "mluva": "e4f27f114765b5e8ed4f22990c4737548c034fb2a50cd49bc97c505b62f6a97f",
+      "mluva-shell": "cb6e80f6d1efc33df3d643e1c7c3fa7df5f12d2c10d3f1af3506445b79ea58cc",
+      "global-shortcut-fixture-peer": "abb7a515a15b6efc464bcedab1f3e40dc0cc4aa79807bb537b71224bf42a9d1e",
+      "audio-fixture-peer": "d0dd4a16cc3b21d8e394ead0c1eb86c30bd3c980509f9a43426710161de89628",
+      "mluva-audio-cleanup": "4e5c8b4dddd95478568e7b1358dc7ddd4be41d26930d8d4c66ce1f8a0df06466",
+      "examples/mluva_verify": "1f9ecbed0562f350f516376937907147a4dbfaa588751b94ec46af374a6ecd5e",
+      "examples/launch_wheel_take": "9f7687b4202565e97e12592236ce69e4b3e9d740ddc2ac06b5e391c6cfb39590"
+    },
+    "harness": "launch-video/showreel/capture/harness.patch applied to dev/ for screen size, GDK scale and the binaries bind only; no app source changed"
+  },
+  "where": "launch-video/launch/capture/wheel_take.sh: private headless sway 1.12 (wlroots 0.20, pixman renderer) at 3840x2160, scale 2, in bwrap with private HOME, D-Bus, PID and network namespaces; no input device or GPU",
+  "theme": "vantablack",
+  "real": [
+    "The production SessionWheel from mluva-gtk at main, opened as a wlr-layer-shell overlay exactly as on Hyprland, composited by the compositor over the windows behind it",
+    "Three Ghostty windows (Omarchy's Ghostty settings, Vantablack colours) running Neovim, git and bash"
+  ],
+  "scripted": [
+    "Sessions: eight fixture targets (launch_wheel_take.rs); no Herdr, agent or registry is running",
+    "Choices: the driver calls SessionWheel::update with each new choice, the method the app calls when a key selects a session",
+    "Clock: SessionWheel::step_motion advances the wheel's own motion exactly 1/60 s per frame; grim grabs the composited output after each paint",
+    "Desktop content: an invented project 'tidepool' (fixtures/schedule.rs, commits.txt, test-run.txt)"
+  ],
+  "fixtures": [
+    {
+      "name": "Cold start profile",
+      "kind": "Claude Code",
+      "place": "Herdr w1:p1",
+      "route": "herdr",
+      "delivery": "Send"
+    },
+    {
+      "name": "api-tests",
+      "kind": "Codex CLI",
+      "place": "Herdr w1:p2",
+      "route": "herdr",
+      "delivery": "Send"
+    },
+    {
+      "name": "Portal test",
+      "kind": "Claude Code",
+      "place": "tmux work:@0.%1",
+      "route": "claude_inbox",
+      "delivery": "Queue"
+    },
+    {
+      "name": "Onboarding copy",
+      "kind": "Claude Code",
+      "place": "terminal",
+      "route": "claude_inbox",
+      "delivery": "Queue"
+    },
+    {
+      "name": "Inbox triage",
+      "kind": "Claude Desktop",
+      "place": "app",
+      "route": "claude_inbox",
+      "delivery": "Queue"
+    },
+    {
+      "name": "Release notes",
+      "kind": "Codex CLI",
+      "place": "tmux work:@0.%0",
+      "route": "codex_queue",
+      "delivery": "Send"
+    },
+    {
+      "name": "Widget breathing",
+      "kind": "Codex Desktop",
+      "place": "app",
+      "route": "codex_queue",
+      "delivery": "Send"
+    },
+    {
+      "name": "New chat",
+      "kind": "Claude Desktop",
+      "place": "app",
+      "route": "claude_new_chat",
+      "delivery": "Prefill"
+    }
+  ],
+  "timeline": {
+    "clock": "frames",
+    "lead_frames_without_wheel": 36,
+    "events": [
+      {
+        "frame": 36,
+        "event": "open",
+        "selected": 0,
+        "name": "Cold start profile",
+        "kind": "Claude Code",
+        "place": "Herdr w1:p1"
+      },
+      {
+        "frame": 144,
+        "event": "select",
+        "selected": 4,
+        "name": "Inbox triage",
+        "kind": "Claude Desktop",
+        "place": "app"
+      },
+      {
+        "frame": 240,
+        "event": "select",
+        "selected": 2,
+        "name": "Portal test",
+        "kind": "Claude Code",
+        "place": "tmux work:@0.%1"
+      },
+      {
+        "frame": 336,
+        "event": "select",
+        "selected": 5,
+        "name": "Release notes",
+        "kind": "Codex CLI",
+        "place": "tmux work:@0.%0"
+      }
+    ]
+  },
+  "frame_checks": {
+    "source_png_vs_take": "486/486 grim PNG frames have the same RGB MD5 as the FFV1 take",
+    "motion": "every frame in motion differs from the one before; identical runs are the lead (desktop only) and the dial at rest between moves"
+  },
+  "dial_check": {
+    "rule": "every selection's hand at rest equals clock_angle(index, count) = 30 + 360·index/count, clockwise from twelve; names run clockwise from one o'clock",
+    "from_the_wheel": [
+      {
+        "selected": 0,
+        "name": "Cold start profile",
+        "kind": "Claude Code",
+        "place": "Herdr w1:p1",
+        "from_frame": 36,
+        "rest_frame": 143,
+        "hand_bearing_at_rest": 30.0,
+        "hand_bearing_mod_360": 30.0,
+        "clock_angle": 30.0,
+        "match": true
+      },
+      {
+        "selected": 4,
+        "name": "Inbox triage",
+        "kind": "Claude Desktop",
+        "place": "app",
+        "from_frame": 144,
+        "rest_frame": 239,
+        "hand_bearing_at_rest": -150.0,
+        "hand_bearing_mod_360": 210.0,
+        "clock_angle": 210.0,
+        "match": true
+      },
+      {
+        "selected": 2,
+        "name": "Portal test",
+        "kind": "Claude Code",
+        "place": "tmux work:@0.%1",
+        "from_frame": 240,
+        "rest_frame": 335,
+        "hand_bearing_at_rest": -240.0,
+        "hand_bearing_mod_360": 120.0,
+        "clock_angle": 120.0,
+        "match": true
+      },
+      {
+        "selected": 5,
+        "name": "Release notes",
+        "kind": "Codex CLI",
+        "place": "tmux work:@0.%0",
+        "from_frame": 336,
+        "rest_frame": 485,
+        "hand_bearing_at_rest": -105.0,
+        "hand_bearing_mod_360": 255.0,
+        "clock_angle": 255.0,
+        "match": true
+      }
+    ],
+    "from_the_pixels": [
+      {
+        "label": "opened on Cold start profile (Claude Code, Herdr)",
+        "selected": 0,
+        "count": 8,
+        "clock_angle": 30.0,
+        "hand_bearing_at_rest": [
+          30.0,
+          30.0,
+          30.0
+        ],
+        "hand_error_degrees": 0.0,
+        "hand_steady": true,
+        "tick_bearings": [
+          30.0,
+          75.0,
+          120.0,
+          165.0,
+          210.0,
+          255.0,
+          300.0,
+          345.0
+        ],
+        "expected_tick_bearings": [
+          30.0,
+          75.0,
+          120.0,
+          165.0,
+          210.0,
+          255.0,
+          300.0,
+          345.0
+        ],
+        "ticks_match": true,
+        "frames": [
+          120,
+          125,
+          130
+        ],
+        "ring_centre_px": [
+          1919.3,
+          975.9
+        ],
+        "ring_radius_px": 449.3
+      },
+      {
+        "label": "Inbox triage (Claude Desktop)",
+        "selected": 4,
+        "count": 8,
+        "clock_angle": 210.0,
+        "hand_bearing_at_rest": [
+          210.0,
+          210.0,
+          210.0
+        ],
+        "hand_error_degrees": 0.0,
+        "hand_steady": true,
+        "tick_bearings": [
+          30.0,
+          75.0,
+          120.0,
+          165.0,
+          210.0,
+          255.0,
+          300.0,
+          345.0
+        ],
+        "expected_tick_bearings": [
+          30.0,
+          75.0,
+          120.0,
+          165.0,
+          210.0,
+          255.0,
+          300.0,
+          345.0
+        ],
+        "ticks_match": true,
+        "frames": [
+          225,
+          230,
+          235
+        ],
+        "ring_centre_px": [
+          1919.6,
+          975.3
+        ],
+        "ring_radius_px": 449.4
+      },
+      {
+        "label": "Portal test (Claude Code, tmux)",
+        "selected": 2,
+        "count": 8,
+        "clock_angle": 120.0,
+        "hand_bearing_at_rest": [
+          120.0,
+          120.0,
+          120.0
+        ],
+        "hand_error_degrees": 0.0,
+        "hand_steady": true,
+        "tick_bearings": [
+          30.0,
+          75.0,
+          120.0,
+          165.0,
+          210.0,
+          255.0,
+          300.0,
+          345.0
+        ],
+        "expected_tick_bearings": [
+          30.0,
+          75.0,
+          120.0,
+          165.0,
+          210.0,
+          255.0,
+          300.0,
+          345.0
+        ],
+        "ticks_match": true,
+        "frames": [
+          320,
+          325,
+          330
+        ],
+        "ring_centre_px": [
+          1919.6,
+          975.7
+        ],
+        "ring_radius_px": 449.6
+      },
+      {
+        "label": "Release notes (Codex, tmux)",
+        "selected": 5,
+        "count": 8,
+        "clock_angle": 255.0,
+        "hand_bearing_at_rest": [
+          254.9,
+          254.9,
+          254.9
+        ],
+        "hand_error_degrees": 0.1,
+        "hand_steady": true,
+        "tick_bearings": [
+          30.0,
+          75.0,
+          120.0,
+          165.0,
+          210.0,
+          255.0,
+          300.0,
+          345.0
+        ],
+        "expected_tick_bearings": [
+          30.0,
+          75.0,
+          120.0,
+          165.0,
+          210.0,
+          255.0,
+          300.0,
+          345.0
+        ],
+        "ticks_match": true,
+        "frames": [
+          450,
+          455,
+          460
+        ],
+        "ring_centre_px": [
+          1919.7,
+          975.5
+        ],
+        "ring_radius_px": 449.5
+      }
+    ],
+    "pixel_method": "launch-video/launch/capture/dial_check.py with the take's frame 15 (desktop without the wheel) subtracted: ring by RANSAC circle fit, hand as the brightest ray between hub text and ring, ticks as narrow marks just inside the ring",
+    "names_clockwise_from_one_oclock": true,
+    "names": "Inspected in frames 120, 225, 320 and 450 (dial-evidence/b-frame-*.png): A Cold start profile 30°, S api-tests 75°, D Portal test 120°, F Onboarding copy 165°, G Inbox triage 210°, H Release notes 255°, J Widget breathing 300°, K New chat 345°, each on its measured tick",
+    "evidence": "~/Videos/Mluva/launch-2026-media/dial-evidence/"
+  },
+  "notes": [
+    "The compositor is sway, not Hyprland: same layer-shell protocol; Hyprland's own blur and animations are not shown.",
+    "Opening: the ring draws itself clockwise from one o'clock in about 0.3 s, names arriving as it passes them; the hand starts at one o'clock."
+  ]
+}

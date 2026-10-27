@@ -1,0 +1,14 @@
+Start the harbour planner with a tide table reader
+Read readings as UTC durations from midnight
+Add berth draught limits
+Find tide windows by linear interpolation
+Merge windows that touch
+Keep a clearance under the keel
+Show windows in the planner view
+Sort berths by the next open window
+Warn when a window closes before arrival
+Cache tables per harbour and day
+Name the clearance constant
+Handle a table with a single reading
+Test windows across midnight
+Fix a crossing that fell outside its readings

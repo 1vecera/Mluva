@@ -1,0 +1,71 @@
+{
+  "shot": "D · Point at it (Experimental)",
+  "storyboard": "0:35–0:44 · Point at it",
+  "status": "not filmed",
+  "why": [
+    "Screen annotation needs Wayland: a layer-shell overlay, and on Hyprland its Shift bindings. The X11 desktop that records A and C in real time cannot run it; Mluva itself says so there ('Screen annotation needs a Wayland desktop; this recording continues without it.').",
+    "No lossless 60 fps recorder exists here for a Wayland desktop. wf-recorder is not installed; gpu-screen-recorder needs a GPU or portal capture and encodes lossily; grim manages a few frames a second at 4K, enough for B's stepped clock but not for a real-time take. Building a compositor or recorder from downloaded source was not approved for this run.",
+    "The Hyprland VM from the annotation checks (tmp/hyprland-vm in the main checkout) still has its disk, but not its SSH key, and its Mluva is a debug build of 189f948, before #120 and #122. Re-provisioning it and filming through QMP screendumps would not give 60 fps either."
+  ],
+  "to_film_it": "Install wf-recorder (a system package), then record docs/verification/screen-annotations/offscreen/run.sh's journey inside launch-video/launch/capture/sway_session.sh at 3840x2160, scale 2; or provision the Hyprland VM again with main's build and record inside the guest.",
+  "real_evidence_frames": [
+    {
+      "path": "docs/verification/screen-annotations/evidence/02-drawing-circle.png",
+      "size": "1280x720",
+      "build": "1002c33 (debug), headless sway",
+      "shows": "live ink circling the misplaced Save button on the synthetic settings page"
+    },
+    {
+      "path": "docs/verification/screen-annotations/evidence/03-pin.png",
+      "size": "1280x720",
+      "build": "1002c33",
+      "shows": "a pin on the error banner"
+    },
+    {
+      "path": "docs/verification/screen-annotations/evidence/04-agent-received.png",
+      "size": "1280x720",
+      "build": "1002c33",
+      "shows": "the stub agent printing the guarded prompt with the keyframe summary"
+    },
+    {
+      "path": "docs/verification/screen-annotations/evidence/bundle/sheet.png",
+      "size": "1600x1012",
+      "build": "1002c33",
+      "shows": "the bundle's contact sheet of three keyframes with badges"
+    },
+    {
+      "path": "docs/verification/screen-annotations/hyprland-vm/evidence/f9/03-drawing-circle.png",
+      "size": "1920x1080",
+      "build": "189f948 (debug), Hyprland 0.56.2 in the VM",
+      "shows": "drawing with Shift held over a floating window"
+    },
+    {
+      "path": "docs/verification/screen-annotations/hyprland-vm/evidence/f9/04-pin-on-text.png",
+      "size": "1920x1080",
+      "build": "189f948",
+      "shows": "a Shift-click pin on text"
+    },
+    {
+      "path": "docs/verification/screen-annotations/hyprland-vm/evidence/f9/05-delivered-text-field.png",
+      "size": "1920x1080",
+      "build": "189f948",
+      "shows": "F9 Stop inserting the transcript and summary into the probe's field"
+    },
+    {
+      "path": "docs/verification/screen-annotations/hyprland-vm/evidence/agent/07-agent-received.png",
+      "size": "1920x1080",
+      "build": "189f948",
+      "shows": "the agent receiving transcript plus keyframe summary"
+    },
+    {
+      "path": "docs/verification/screen-annotations/hyprland-vm/evidence/f9/bundle/contact-sheet.png",
+      "size": "1600x1012",
+      "build": "189f948",
+      "shows": "keyframes cropped to whole windows, with badges"
+    }
+  ],
+  "do_not_use": [
+    "docs/verification/screen-annotations/hyprland-vm/evidence/agent/06-agent-wheel.png shows the wheel before #122, not the dial on main"
+  ],
+  "caveat": "All of these are stills from builds before main, at 1280x720 or 1920x1080, not 60 fps takes. Since 1002c33, main changed the annotation code in one commit (a20568f, keyframe planning without Cairo); the stills predate the dial (#122) and the routing release (#120)."
+}

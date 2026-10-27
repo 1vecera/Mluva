@@ -1,0 +1,249 @@
+{
+  "shot": "C · Delivered",
+  "storyboard": "0:24–0:35 · Delivered",
+  "take": "~/Videos/Mluva/launch-2026-media/takes/c-delivered.mkv",
+  "take_sha256": "b398b5fc266a5bea68af29191e44da601f76dcd129c22af4b10a562721af8a84",
+  "resolution": [
+    3840,
+    2160
+  ],
+  "fps": 60,
+  "frames": 1711,
+  "duration_seconds": 28.517,
+  "codec": "FFV1 level 3, bgr0 (lossless RGB)",
+  "capture": "~/Videos/Mluva/launch-2026-media/runs/c-delivered/delivery-capture.mkv",
+  "capture_codec": "ffvhuff",
+  "transcode_frames_identical": true,
+  "staged_png": "~/Videos/Mluva/launch-2026-media/staged/c-delivered",
+  "staged_rgb_md5": "1711/1711 frames match the take (pass)",
+  "contact_sheet": "~/Videos/Mluva/launch-2026-media/contact/c-delivered.png",
+  "source": {
+    "commit": "9838bc89e863e4fbab78c35d4bf2ed9473804b08",
+    "build": "cargo build --locked --release; binaries identified by SHA-256",
+    "binaries_sha256": {
+      "mluva": "e4f27f114765b5e8ed4f22990c4737548c034fb2a50cd49bc97c505b62f6a97f",
+      "mluva-shell": "cb6e80f6d1efc33df3d643e1c7c3fa7df5f12d2c10d3f1af3506445b79ea58cc",
+      "global-shortcut-fixture-peer": "abb7a515a15b6efc464bcedab1f3e40dc0cc4aa79807bb537b71224bf42a9d1e",
+      "audio-fixture-peer": "d0dd4a16cc3b21d8e394ead0c1eb86c30bd3c980509f9a43426710161de89628",
+      "mluva-audio-cleanup": "4e5c8b4dddd95478568e7b1358dc7ddd4be41d26930d8d4c66ce1f8a0df06466",
+      "examples/mluva_verify": "1f9ecbed0562f350f516376937907147a4dbfaa588751b94ec46af374a6ecd5e",
+      "examples/launch_wheel_take": "9f7687b4202565e97e12592236ce69e4b3e9d740ddc2ac06b5e391c6cfb39590"
+    },
+    "harness": "launch-video/showreel/capture/harness.patch applied to dev/ for screen size, GDK scale and the binaries bind only; no app source changed"
+  },
+  "where": "dev/verify.sh session: private Xvfb 3840x2160 at GDK scale 2, Openbox without decorations, private HOME, D-Bus, PID and network namespaces (loopback only); from the universal showreel's delivery take",
+  "theme": "Omarchy Vantablack",
+  "real": [
+    "The production mluva binary: agent key F12 opens the wheel, F12 records, F12 stops; the two-second cancel window; Codex's queue route and Claude Code's inbox route; its status lines",
+    "Codex CLI 0.160.1 TUI attached to its own daemon, thread named 'Release notes' by Codex's own /rename",
+    "Claude Code 2.1.311 ('claude -n \"Portal test\"'), in tmux in Ghostty"
+  ],
+  "scripted": [
+    "F12 presses through the repository's shortcut portal fixture; PCM fixture as microphone",
+    "Dictations: launch-video/launch/capture/speech.py",
+    "Model replies: launch-video/launch/capture/models.py (loopback, model name 'loopback-model'; no account or network)",
+    "Claude Code is made busy first: 'Run the portal tests and tell me what fails.' typed into it with tmux send-keys, answered by the loopback model over 10 s, so the dictation arrives mid-turn and Claude Code queues it"
+  ],
+  "fixtures": {
+    "sessions_in_wheel_order": [
+      {
+        "index": 0,
+        "title": "Portal test",
+        "route": "claude_inbox"
+      },
+      {
+        "index": 1,
+        "title": "Release notes",
+        "route": "codex_queue"
+      }
+    ],
+    "dictations": [
+      "Add a changelog entry for the agent routing release, then run the tests.",
+      "Check why the shortcut portal test is flaky on a cold start."
+    ]
+  },
+  "timeline": {
+    "clock": "seconds from the capture's start (wall clock, within about 0.1 s of frame 0)",
+    "events": [
+      {
+        "t": 1.65,
+        "event": "codex-selected"
+      },
+      {
+        "t": 2.477,
+        "event": "codex-f12-open"
+      },
+      {
+        "t": 3.723,
+        "event": "codex-f12-record"
+      },
+      {
+        "t": 3.787,
+        "event": "codex-capturing"
+      },
+      {
+        "t": 6.53,
+        "event": "codex-f12-stop"
+      },
+      {
+        "t": 6.964,
+        "event": "codex-status-countdown"
+      },
+      {
+        "t": 8.904,
+        "event": "codex-status-sending"
+      },
+      {
+        "t": 9.168,
+        "event": "codex-status-sent"
+      },
+      {
+        "t": 13.172,
+        "event": "codex-done"
+      },
+      {
+        "t": 13.485,
+        "event": "claude-busy-request"
+      },
+      {
+        "t": 14.399,
+        "event": "claude-selected"
+      },
+      {
+        "t": 15.212,
+        "event": "claude-f12-open"
+      },
+      {
+        "t": 16.431,
+        "event": "claude-f12-record"
+      },
+      {
+        "t": 16.486,
+        "event": "claude-capturing"
+      },
+      {
+        "t": 19.205,
+        "event": "claude-f12-stop"
+      },
+      {
+        "t": 19.579,
+        "event": "claude-status-countdown"
+      },
+      {
+        "t": 21.588,
+        "event": "claude-status-queued"
+      },
+      {
+        "t": 24.176,
+        "event": "claude-status-delivered"
+      },
+      {
+        "t": 28.182,
+        "event": "claude-done"
+      }
+    ]
+  },
+  "status_sequence": {
+    "codex": [
+      "Sending to Release notes in N s (countdown)",
+      "Handing your message to Release notes through Codex… a thread open in another app or terminal can take about 10 seconds to pick it up.",
+      "Sent to Release notes · agent completion is separate"
+    ],
+    "claude_code": [
+      "Queueing for Portal test in N s (countdown)",
+      "Submitting to Portal test… Cancel can no longer recall this message.",
+      "Queued for Portal test · it takes the message when it is ready",
+      "Delivered to Portal test · it took the message into a turn"
+    ]
+  },
+  "frame_checks": {
+    "real_time_capture": {
+      "dropped_frames": 2,
+      "duplicated_frames": 0
+    },
+    "drops": [
+      {
+        "by_frame": 21,
+        "dropped_total": 2
+      }
+    ]
+  },
+  "dial_check": {
+    "rule": "every selection's hand at rest equals clock_angle(index, count); names run clockwise from one o'clock",
+    "selections": [
+      {
+        "label": "codex journey: F12 opens the wheel on Release notes",
+        "selected": 1,
+        "count": 2,
+        "clock_angle": 210.0,
+        "hand_bearing_at_rest": [
+          209.9,
+          209.9,
+          209.9
+        ],
+        "hand_error_degrees": 0.1,
+        "hand_steady": true,
+        "tick_bearings": [
+          30.0,
+          210.0
+        ],
+        "expected_tick_bearings": [
+          30.0,
+          210.0
+        ],
+        "ticks_match": true,
+        "frames": [
+          192,
+          197,
+          202
+        ],
+        "ring_centre_px": [
+          959.2,
+          975.9
+        ],
+        "ring_radius_px": 364.2
+      },
+      {
+        "label": "claude journey: F12 opens the wheel on Portal test",
+        "selected": 0,
+        "count": 2,
+        "clock_angle": 30.0,
+        "hand_bearing_at_rest": [
+          29.9,
+          29.9,
+          29.9
+        ],
+        "hand_error_degrees": 0.1,
+        "hand_steady": true,
+        "tick_bearings": [
+          30.0,
+          210.0
+        ],
+        "expected_tick_bearings": [
+          30.0,
+          210.0
+        ],
+        "ticks_match": true,
+        "frames": [
+          948,
+          953,
+          958
+        ],
+        "ring_centre_px": [
+          959.5,
+          975.5
+        ],
+        "ring_radius_px": 364.0
+      }
+    ],
+    "pixel_method": "launch-video/launch/capture/dial_check.py on the left half (Mluva's window) of the rest frames before each record press",
+    "names_clockwise_from_one_oclock": true,
+    "names": "Inspected in frames 192 and 948 (dial-evidence/c-frame-*.png): A Portal test at the 30° tick, S Release notes at the 210° tick, as agents-list.json orders them"
+  },
+  "notes": [
+    "On X11 there is no layer-shell, so the wheel opens over Mluva's own window instead of as the full-screen overlay; take B shows the overlay.",
+    "Mluva's window says 'Screen annotation needs a Wayland desktop; this recording continues without it.' while recording: true of this X11 desktop, not of Omarchy. Crop it or keep it small.",
+    "Codex shows its own start-up tip (it names GPT-6.1 Sol) and '1 warning'; Claude Code warns that 'loopback-model' isn't recognized and shows its auto-mode notice. All are the agents' own text.",
+    "Claude Code wraps the delivered dictation in its own 'Another Claude session sent a message' notice."
+  ]
+}

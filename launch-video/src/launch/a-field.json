@@ -1,0 +1,128 @@
+{
+  "shot": "A · F9 into a field",
+  "storyboard": "0:04–0:14 · F9, any field",
+  "take": "~/Videos/Mluva/launch-2026-media/takes/a-field.mkv",
+  "take_sha256": "11563204d41f53eae5a0ce4dd67ce405a29f4ad9b776445c4ad60972549f8a09",
+  "resolution": [
+    3840,
+    2160
+  ],
+  "fps": 60,
+  "frames": 961,
+  "duration_seconds": 16.017,
+  "codec": "FFV1 level 3, bgr0 (lossless RGB)",
+  "capture": "~/Videos/Mluva/launch-2026-media/runs/a-field/field-capture.mkv",
+  "capture_codec": "ffvhuff",
+  "transcode_frames_identical": true,
+  "staged_png": "~/Videos/Mluva/launch-2026-media/staged/a-field",
+  "staged_rgb_md5": "961/961 frames match the take (pass)",
+  "contact_sheet": "~/Videos/Mluva/launch-2026-media/contact/a-field.png",
+  "source": {
+    "commit": "9838bc89e863e4fbab78c35d4bf2ed9473804b08",
+    "build": "cargo build --locked --release; binaries identified by SHA-256",
+    "binaries_sha256": {
+      "mluva": "e4f27f114765b5e8ed4f22990c4737548c034fb2a50cd49bc97c505b62f6a97f",
+      "mluva-shell": "cb6e80f6d1efc33df3d643e1c7c3fa7df5f12d2c10d3f1af3506445b79ea58cc",
+      "global-shortcut-fixture-peer": "abb7a515a15b6efc464bcedab1f3e40dc0cc4aa79807bb537b71224bf42a9d1e",
+      "audio-fixture-peer": "d0dd4a16cc3b21d8e394ead0c1eb86c30bd3c980509f9a43426710161de89628",
+      "mluva-audio-cleanup": "4e5c8b4dddd95478568e7b1358dc7ddd4be41d26930d8d4c66ce1f8a0df06466",
+      "examples/mluva_verify": "1f9ecbed0562f350f516376937907147a4dbfaa588751b94ec46af374a6ecd5e",
+      "examples/launch_wheel_take": "9f7687b4202565e97e12592236ce69e4b3e9d740ddc2ac06b5e391c6cfb39590"
+    },
+    "harness": "launch-video/showreel/capture/harness.patch applied to dev/ for screen size, GDK scale and the binaries bind only; no app source changed"
+  },
+  "where": "dev/verify.sh session: private Xvfb 3840x2160 at GDK scale 2 (Qt scale 2, Firefox devPixelsPerPx 2), Openbox without decorations, private HOME, D-Bus, AT-SPI bus, PID and network namespaces (loopback only)",
+  "theme": "Omarchy Vantablack (installed theme's colors.toml)",
+  "real": [
+    "The production mluva binary: F9 through its global-shortcut path (toggle-recording-f9), capture, the compatible provider's 3 s batch previews and final upload, History, target capture at Start and delivery at Stop",
+    "The production Omarchy widget (linux/quickshell/mluva.dictation with Omarchy's own Commons and Ui modules) in Quickshell, fed by the real mluva-shell bridge: recording light, timer, 'Waiting for speech…', live words, then hidden on Stop",
+    "Delivery: Mluva captured Firefox's focused 'Your reply' field over AT-SPI at Start, revalidated it at Stop and sent its guarded keyboard paste (xdotool ctrl+v, the X11 helper Mluva chooses); History records delivery_outcome 'pasted'",
+    "Firefox (system build) rendering the page"
+  ],
+  "scripted": [
+    "F9 presses: the shortcut portal is the repository's fixture peer; Activated/Deactivated signals for toggle-recording-f9",
+    "Microphone: the repository's PCM fixture (quiet synthetic audio, real-time pace)",
+    "Words: launch-video/launch/capture/speech_field.py returns the words whose scripted time falls in each 3 s preview chunk, and the whole sentence for the final upload",
+    "The page: launch-video/launch/capture/fixtures/notes.html (invented notes; Firefox chrome hidden with userChrome.css)",
+    "Two clicks with xdotool on the private display before recording (the page, then the field), so the field's focus event reaches Mluva after Firefox's accessibility tree is live",
+    "org.a11y.Bus on the session bus: launch-video/launch/capture/a11y_status.py stands in for at-spi-bus-launcher's front, as rust/mluva-gtk/examples/firefox_text_peer.rs does"
+  ],
+  "fixtures": {
+    "sentence": "Thanks for the notes. Let's move the launch review to Thursday at ten, and I'll bring the new storyboard.",
+    "speech_requests": [
+      {
+        "kind": "preview",
+        "audio_seconds": 3.0,
+        "text": "Thanks for the notes. Let's move the"
+      },
+      {
+        "kind": "preview",
+        "audio_seconds": 3.0,
+        "text": "launch review to Thursday at ten, and I'll"
+      },
+      {
+        "kind": "preview",
+        "audio_seconds": 3.0,
+        "text": "bring the new storyboard."
+      },
+      {
+        "kind": "final",
+        "audio_seconds": 9.6,
+        "text": "Thanks for the notes. Let's move the launch review to Thursday at ten, and I'll bring the new storyboard."
+      }
+    ],
+    "history": {
+      "raw": "Thanks for the notes. Let's move the launch review to Thursday at ten, and I'll bring the new storyboard.",
+      "delivered": "Thanks for the notes. Let's move the launch review to Thursday at ten, and I'll bring the new storyboard.",
+      "delivery_outcome": "pasted"
+    }
+  },
+  "timeline": {
+    "clock": "seconds from the capture's start (wall clock, within about 0.1 s of frame 0)",
+    "events": [
+      {
+        "t": 0.002,
+        "event": "recording-started"
+      },
+      {
+        "t": 2.517,
+        "event": "f9-start"
+      },
+      {
+        "t": 12.084,
+        "event": "f9-stop"
+      },
+      {
+        "t": 12.39,
+        "event": "delivery-pasted"
+      },
+      {
+        "t": 15.894,
+        "event": "tail-end"
+      }
+    ],
+    "visible": {
+      "method": "frames whose RGB MD5 differs from the frame before, then inspected",
+      "widget_first_paint_frames": [
+        149,
+        150
+      ],
+      "recording_widget_frames": "151-721 (light, timer, live words; three word chunks)",
+      "transcribing_from_frame": 722,
+      "text_in_field_frame": 737,
+      "caret_blink_only_after": 737
+    }
+  },
+  "frame_checks": {
+    "real_time_capture": {
+      "dropped_frames": 0,
+      "duplicated_frames": 0
+    },
+    "drops": []
+  },
+  "notes": [
+    "Live words arrive in three 3 s chunks: the compatible provider's batch preview at its shortest chunk. ElevenLabs Scribe realtime streams word by word; it was not used.",
+    "X11 has no compositor here, so the widget's translucent surface is not blended with the page. The page background is pure black (#000), over which a blended and an unblended surface give the same pixels.",
+    "The text arrives by Mluva's keyboard paste, not direct insertion: Mluva deliberately pastes into Firefox fields."
+  ]
+}

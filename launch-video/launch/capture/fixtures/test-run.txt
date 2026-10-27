@@ -1,0 +1,17 @@
+   Compiling tidepool v0.4.0 (/home/take/tidepool)
+    Finished `release` profile [optimized] target(s) in 3.41s
+     Running unittests src/lib.rs (target/release/deps/tidepool-3f1c9a7e2b4d6e08)
+
+running 9 tests
+test schedule::tests::a_dry_table_has_no_window ... ok
+test schedule::tests::a_single_reading_is_no_window ... ok
+test schedule::tests::clearance_is_kept_under_the_keel ... ok
+test schedule::tests::crossings_interpolate_between_readings ... ok
+test schedule::tests::deep_water_is_one_long_window ... ok
+test schedule::tests::touching_windows_merge ... ok
+test schedule::tests::windows_cross_midnight ... ok
+test schedule::tests::windows_open_on_the_flood_and_close_on_the_ebb ... ok
+test schedule::tests::a_crossing_never_leaves_its_readings ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
