@@ -20,15 +20,17 @@ const FOOTER_GAP: f64 = 16.;
 /// an opaque ground instead.
 const WASH: f32 = 0.72;
 /// Under every label the overlay clears the desktop, as a terminal overwrites the cells it prints
-/// in, in two layers of the wash's colour. Close behind the glyphs, out to `GLYPH_REACH` pixels
-/// and softened over `GLYPH_SOFT`, it clears at the full strength, so desktop text never runs
-/// through a letter. Around them a faint cell reaches `CELL_PAD` beyond the text sideways and up
-/// and down and feathers out over `FEATHER` pixels: it quiets desktop text between the letters
-/// and lines yet stays so light that over empty ground it cannot be told from the wash, so it is
-/// never a panel. Each strength is `(glyphs, cell)`; a light wash over a dark desktop lifts the
-/// ground the most, so the light theme clears more gently.
+/// in, in two layers of the wash's colour. Close behind the glyphs and pager arrows, out to
+/// `GLYPH_REACH` pixels and softened over `GLYPH_SOFT`, it clears at the full strength, so desktop
+/// text never runs through a letter. Around them a faint cell reaches `CELL_PAD` beyond the text
+/// sideways and up and down and feathers out over `FEATHER` pixels: it quiets desktop text between
+/// the letters and lines, yet over empty ground it differs from the wash by about one step of
+/// lightness (CIE L*), too little to read as a panel. Each strength is `(glyphs, cell)`. A light
+/// wash over a dark desktop moves furthest from the ground, about seven times as far as a dark
+/// wash, while desktop text through it shows lighter than the ground and the labels darker; so the
+/// light theme clears more gently and its labels still win.
 const CLEAR_DARK: (f32, f32) = (0.9, 0.3);
-const CLEAR_LIGHT: (f32, f32) = (0.6, 0.1);
+const CLEAR_LIGHT: (f32, f32) = (0.6, 0.05);
 const GLYPH_REACH: f32 = 1.5;
 const GLYPH_SOFT: f64 = 2.;
 const CELL_PAD: (f64, f64) = (8., 4.);
@@ -415,7 +417,7 @@ mod imp {
                     .collect(),
                 glyphs: glyphs
                     .iter()
-                    .map(|(layout, at, shown)| (layout.text(), [at.x(), at.y(), *shown]))
+                    .map(|(ink, at, shown)| (ink.text(), [at.x(), at.y(), *shown]))
                     .collect(),
                 paint: [
                     color.red(),
@@ -703,14 +705,32 @@ pub(super) struct CellKey {
 /// covers.
 type BakedCells = (CellKey, gdk::Texture, graphene::Rect);
 
+/// What the stage paints for a label or an image: a label's whole layout, or a named icon such
+/// as a pager arrow with its name and its side in pixels.
+#[derive(Clone)]
+enum Ink {
+    Text(gtk::pango::Layout),
+    Icon(glib::GString, gdk::Paintable, f32),
+}
+
+impl Ink {
+    /// What it shows, so a bake can tell when it changes.
+    fn text(&self) -> glib::GString {
+        match self {
+            Self::Text(layout) => layout.text(),
+            Self::Icon(name, ..) => name.clone(),
+        }
+    }
+}
+
 /// One laid-out line of a label, in the stage's coordinates: its logical box, its baseline,
 /// whether it is the text of a name or legend entry that has keyboard focus, and on the first
-/// line of each label, the label's layout with where its origin sits.
+/// line of each label or for an image, what is painted there with where its origin sits.
 struct Line {
     rect: graphene::Rect,
     baseline: f64,
     focused: bool,
-    layout: Option<(gtk::pango::Layout, graphene::Point)>,
+    ink: Option<(Ink, graphene::Point)>,
 }
 
 /// Every line of text in `widget` and the widgets below it, as the stage will paint it, with
@@ -737,7 +757,7 @@ fn text_lines(stage: &Stage, widget: &gtk::Widget, found: &mut dyn FnMut(Line)) 
         let (ox, oy) = label.layout_offsets();
         let mut whole = label
             .compute_point(stage, &graphene::Point::new(ox as f32, oy as f32))
-            .map(|origin| (layout.clone(), origin));
+            .map(|origin| (Ink::Text(layout.clone()), origin));
         let scale = f64::from(gtk::pango::SCALE);
         let mut iter = layout.iter();
         loop {
@@ -758,7 +778,7 @@ fn text_lines(stage: &Stage, widget: &gtk::Widget, found: &mut dyn FnMut(Line)) 
                     ),
                     baseline: baseline + lift,
                     focused,
-                    layout: whole.take(),
+                    ink: whole.take(),
                 });
             }
             if !iter.next_line() {
@@ -767,13 +787,35 @@ fn text_lines(stage: &Stage, widget: &gtk::Widget, found: &mut dyn FnMut(Line)) 
         }
         return;
     }
-    if widget.is::<gtk::Image>() {
+    if let Some(image) = widget.downcast_ref::<gtk::Image>() {
         if let Some(bounds) = widget.compute_bounds(stage) {
+            // The icon as GTK draws it: at its pixel size, centred in the image's box.
+            let ink = image.icon_name().map(|name| {
+                let side = match image.pixel_size() {
+                    side if side > 0 => side,
+                    _ if image.icon_size() == gtk::IconSize::Large => 32,
+                    _ => 16,
+                };
+                let paintable = gtk::IconTheme::for_display(&image.display()).lookup_icon(
+                    &name,
+                    &[],
+                    side,
+                    image.scale_factor(),
+                    gtk::TextDirection::None,
+                    gtk::IconLookupFlags::empty(),
+                );
+                let side = side as f32;
+                let origin = graphene::Point::new(
+                    bounds.x() + (bounds.width() - side) / 2.,
+                    bounds.y() + (bounds.height() - side) / 2.,
+                );
+                (Ink::Icon(name, paintable.upcast(), side), origin)
+            });
             found(Line {
                 rect: bounds,
                 baseline: f64::from(bounds.y() + bounds.height()),
                 focused: false,
-                layout: None,
+                ink,
             });
         }
         return;
@@ -826,33 +868,32 @@ fn cell_boxes(
     bounds.map(|bounds| (boxes, bounds))
 }
 
-/// Each shown label's layout with where its paint sits and how much it shows.
-fn glyph_runs(
-    lines: &[(Line, f64, (f64, f64))],
-) -> Vec<(gtk::pango::Layout, graphene::Point, f32)> {
+/// What each shown label or image paints, with where its paint sits and how much it shows.
+fn glyph_runs(lines: &[(Line, f64, (f64, f64))]) -> Vec<(Ink, graphene::Point, f32)> {
     lines
         .iter()
         .filter(|(_, shown, _)| *shown > 0.)
         .filter_map(|(line, shown, (dx, dy))| {
-            let (layout, origin) = line.layout.as_ref()?;
+            let (ink, origin) = line.ink.as_ref()?;
             let at = graphene::Point::new(
                 (f64::from(origin.x()) + dx) as f32,
                 (f64::from(origin.y()) + dy) as f32,
             );
-            Some((layout.clone(), at, *shown as f32))
+            Some((ink.clone(), at, *shown as f32))
         })
         .collect()
 }
 
 /// Paint the cleared cells: one mask, so layers that meet or overlap never darken twice, filled
 /// with `color` over `bounds`. The mask holds the faint feathered cells and, over them, every
-/// label's glyphs spread a little in each direction and softened, at the full strength.
+/// label's glyphs and every image spread a little in each direction and softened, at the full
+/// strength.
 fn paint_cells(
     snapshot: &gtk::Snapshot,
     color: gtk::gdk::RGBA,
     (glyph_strength, cell_strength): (f32, f32),
     boxes: &[(graphene::Rect, f32)],
-    glyphs: &[(gtk::pango::Layout, graphene::Point, f32)],
+    glyphs: &[(Ink, graphene::Point, f32)],
     bounds: &graphene::Rect,
 ) {
     snapshot.push_mask(gtk::gsk::MaskMode::Alpha);
@@ -874,9 +915,9 @@ fn paint_cells(
     }
     snapshot.push_blur(GLYPH_SOFT);
     let black = gtk::gdk::RGBA::new(0., 0., 0., 1.);
-    for (layout, at, shown) in glyphs {
-        // The glyphs and eight copies around them, as one shape at the label's strength.
+    for (ink, at, shown) in glyphs {
         snapshot.push_opacity(f64::from(shown * glyph_strength));
+        // The glyphs or the icon and eight copies around them, as one shape at the strength.
         for step in 0..9 {
             let (dx, dy) = if step == 0 {
                 (0., 0.)
@@ -886,7 +927,12 @@ fn paint_cells(
             };
             snapshot.save();
             snapshot.translate(&graphene::Point::new(at.x() + dx, at.y() + dy));
-            snapshot.append_layout(layout, &black);
+            match ink {
+                Ink::Text(layout) => snapshot.append_layout(layout, &black),
+                Ink::Icon(_, paintable, side) => {
+                    paintable.snapshot(snapshot, f64::from(*side), f64::from(*side))
+                }
+            }
             snapshot.restore();
         }
         snapshot.pop();
@@ -1096,7 +1142,8 @@ impl Stage {
     }
 
     /// Turn the hand to `angle`, or put it away when nothing is chosen. A swing springs from
-    /// wherever the hand is, at its present speed; anything else places it at once.
+    /// wherever the hand is, keeping its speed toward the new tick and dropping any away from it;
+    /// anything else places it at once.
     pub fn aim(&self, angle: Option<f64>, swing: bool) {
         let swing = swing && (self.animated() || self.imp().manual.get());
         self.imp().motion.borrow_mut().aim(angle, swing);
@@ -1263,29 +1310,21 @@ mod tests {
     }
 
     #[test]
-    fn a_new_choice_mid_swing_bends_the_swing_and_never_passes_the_new_tick() {
-        // A tick just ahead of a hand already rushing toward it, a tick short of the first one,
-        // and a tick further on: the swing bends and never passes the new tick.
-        for (frames, to) in [(1, 60.), (2, 120.), (3, 250.)] {
-            let (_, past) = retarget(frames, to);
-            assert!(past <= 1e-9, "{frames} frames, {to}°: passes it by {past}°");
-        }
-    }
-
-    #[test]
-    fn after_a_new_choice_the_hand_never_moves_further_from_its_tick() {
-        // The hand has just passed the new tick, has passed it long ago, or heads the other way
-        // round entirely: it turns where it is and closes on the tick.
-        // Ahead, and further on, it keeps its speed and stops on the tick.
+    fn after_a_new_choice_the_hand_never_moves_further_from_its_tick_nor_passes_it() {
         for (frames, to) in [
+            // Ahead of the hand swinging from 30° to 200°: just in front of it, halfway to the
+            // first tick and a degree short of it.
+            (1, 60.),
+            (2, 120.),
+            (5, 199.),
+            // Behind it: just swept past, swept past long ago, back beyond where the swing
+            // started, and passed mid-swing.
             (2, 60.),
             (6, 60.),
             (4, 20.),
             (8, 100.),
-            (1, 60.),
-            (2, 120.),
+            // Further on, beyond the first tick.
             (3, 250.),
-            (5, 199.),
         ] {
             let (grows, past) = retarget(frames, to);
             assert!(

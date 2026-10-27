@@ -484,7 +484,8 @@ fn motion(output: &Path) -> glib::ExitCode {
     std::fs::create_dir_all(&frames).unwrap();
     let mut index = 0;
     let mut timings: Vec<(String, f64)> = vec![];
-    // Every frame's scene and the hand's bearing, for a plot of the hand against time.
+    // Every frame's scene, the hand's bearing and how long the frame took, for a plot of the
+    // hand against time and to find slow frames.
     let mut hands: Vec<serde_json::Value> = vec![];
     let mut play = |wheel: &SessionWheel, scene: &str, count: usize| {
         for _ in 0..count {
@@ -493,7 +494,12 @@ fn motion(output: &Path) -> glib::ExitCode {
             settle(1);
             let seconds = frame(&wheel.window, &frames.join(format!("{index:05}.png")));
             timings.push((scene.to_owned(), seconds));
-            hands.push(serde_json::json!({"frame": index, "scene": scene, "hand": hand}));
+            hands.push(serde_json::json!({
+                "frame": index,
+                "scene": scene,
+                "hand": hand,
+                "ms": seconds * 1000.,
+            }));
             index += 1;
         }
     };

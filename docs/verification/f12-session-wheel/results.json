@@ -1,7 +1,7 @@
 {
-  "date": "2026-10-26",
+  "date": "2026-10-27",
   "native_gate": {
-    "passed": 311,
+    "passed": 314,
     "failed": 0,
     "ignored": 72,
     "clippy": "both strict configurations clean",
@@ -23,7 +23,7 @@
     "empty_recognition_kept": true,
     "history_learns_outcome": true,
     "gtk_warnings": "the four known narrow-editor allocation warnings; none from the wheel",
-    "run": "phase three code, isolated private desktop"
+    "run": "final code, isolated private desktop"
   },
   "shortcut_portal": "not rerun: the change touches neither the shortcuts nor the Hyprland Lua",
   "end_to_end": "not rerun; the previous record passed it with the window path",
@@ -85,10 +85,28 @@
       "no sessions"
     ],
     "legend": "F12 record · F9 transcript only · Esc cancel",
-    "cleared_cells": "the wash's colour at 0.9 under every line of text, about a cell beyond it sideways and 4 px above and below, feathered over 8 px",
+    "cleared_cells": "two layers of the wash's colour under every label: the glyphs and pager arrows, spread 1.5 px and softened over 2 px, at 0.9 (0.6 on a light theme); around them a cell about a cell beyond the text sideways and 4 px above and below, feathered over 20 px, at 0.3 (0.05 on a light theme)",
     "trace_core_contrast_over_washed_page": "5.4:1 at its brightest (3.4:1 before)",
     "keys": "full ink, two cells before the name; names at 85% ink; the chosen name full ink, no change of weight",
-    "focus": "reverse-video key cell, 2 px underline 3 px below the baseline, tick lifted"
+    "focus": "reverse-video key cell, 2 px underline 3 px below the baseline, tick lifted",
+    "cleared_cells_sweep": {
+      "measure": "CIE L* step between the cell and the plain wash over the empty synthetic editor, at 100%, twenty sessions",
+      "nord": {
+        "phase_3_box_0.9": "-1.8 to -4.4",
+        "cell_0.5": "-1.9 to -2.3",
+        "cell_0.3_chosen": "-1.2 to -1.5",
+        "cell_0.15": "-0.6 to -0.9",
+        "glyphs_only": "about 0"
+      },
+      "light": {
+        "phase_3_box_0.9": "+6.4 to +18.0",
+        "cell_0.2": "+2.6 to +4.1",
+        "cell_0.1": "+1.2 to +2.0",
+        "cell_0.05_chosen": "+0.6 to +0.8",
+        "glyphs_only": "about 0"
+      },
+      "desktop_contrast_beside_a_label": "1 - cell strength of its washed contrast: 70% on a dark theme, 95% on a light one"
+    }
   },
   "motion": {
     "opening_seconds": 0.3,
@@ -99,7 +117,7 @@
     "name_settle_px": 8,
     "ease_out": "cubic-bezier(0.23, 1, 0.32, 1), solved exactly",
     "hand_spring": "critically damped, exact step; natural frequency 36 rad/s for a neighbour to 26 rad/s across the dial; never passes its tick",
-    "retarget": "keeps place and speed; spring retuned for the rest of the way and held firmer if the hand would otherwise pass the new tick",
+    "retarget": "keeps place and the speed toward the new tick, with the spring retuned for the rest of the way and held firmer if the hand would otherwise pass the new tick; speed away from the new tick is dropped, so the hand never moves further from it",
     "chosen_tick_time_constant_seconds": 0.06,
     "light_time_constants_seconds": {
       "rise": 0.08,
@@ -115,55 +133,56 @@
     "colour_transition_ms": 180,
     "animations_disabled": "everything placed at rest",
     "choice_update_ms": [
-      0.65,
-      0.68,
-      0.56,
-      0.43,
-      0.79,
-      2.23
+      0.35,
+      0.35,
+      0.31,
+      0.42,
+      0.47,
+      2.88
     ],
     "frame_cost_cairo_full_window_ms": {
       "open-6": {
-        "median": 8.7,
-        "p95": 9.5,
-        "max": 10.2
+        "median": 9.0,
+        "p95": 14.3,
+        "max": 20.7
       },
       "open-20": {
-        "median": 10.1,
-        "p95": 12.1,
-        "max": 14.7
+        "median": 9.1,
+        "p95": 12.8,
+        "max": 18.9
       },
       "short-hop": {
-        "median": 9.3,
-        "p95": 10.5,
-        "max": 10.7
+        "median": 8.0,
+        "p95": 9.8,
+        "max": 12.2
       },
       "across": {
-        "median": 11.1,
-        "p95": 15.0,
-        "max": 16.1
+        "median": 9.4,
+        "p95": 14.2,
+        "max": 21.2
       },
       "retarget": {
-        "median": 11.4,
-        "p95": 15.9,
-        "max": 16.8
+        "median": 9.6,
+        "p95": 13.9,
+        "max": 16.4
       },
       "blocked": {
-        "median": 10.7,
-        "p95": 14.6,
-        "max": 15.9
+        "median": 9.7,
+        "p95": 14.2,
+        "max": 16.6
       },
       "open-30": {
-        "median": 11.3,
-        "p95": 12.7,
-        "max": 13.3
+        "median": 10.1,
+        "p95": 13.8,
+        "max": 15.1
       },
       "page-turn": {
-        "median": 4.3,
-        "p95": 5.3,
-        "max": 5.5
+        "median": 3.2,
+        "p95": 4.5,
+        "max": 6.8
       }
-    }
+    },
+    "frame_cost_note": "three reel runs pooled, machine under load (load average about 8 on 20 threads); 7 of 933 frames over 16.7 ms, scattered"
   },
   "gallery": {
     "captures_per_palette": 30,
