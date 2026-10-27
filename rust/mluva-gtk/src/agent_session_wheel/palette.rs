@@ -1,17 +1,18 @@
-//! The watch's colours: the active theme's tokens plus derived mixes for the darker grounds.
+//! The dial's colours: the active theme's tokens and a few mixes of them.
 //!
-//! Every colour is a role of the theme, never a fixed hex value. A theme whose canvas is lighter
-//! than its ink (the default light palette) swaps the two for the watch itself, so the steel is
-//! always the light metal and the dial the dark ground, while the room around it and the names on
-//! it keep following the theme's canvas and ink.
+//! Every colour is a role of the theme, never a fixed hex value. The wash is the theme's canvas
+//! deepened away from its ink, like a terminal's background: near black on a dark theme and near
+//! white on a light one, so names keep their contrast while more of the desktop shows through.
 
 use gtk::gdk::RGBA;
+
+/// How much of the canvas stays in the wash; the rest is black on a dark theme, white on a
+/// light one.
+const WASH_CANVAS: f32 = 0.4;
 
 /// A colour without alpha, mixed in sRGB.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Rgb(pub f32, pub f32, pub f32);
-
-pub const BLACK: Rgb = Rgb(0., 0., 0.);
 
 impl Rgb {
     pub fn of(color: RGBA) -> Self {
@@ -26,17 +27,18 @@ impl Rgb {
             mix(self.2, other.2),
         )
     }
-    /// Push each channel away from the grey of the same brightness by `factor`.
-    pub fn saturate(self, factor: f32) -> Self {
-        let grey = (self.0 + self.1 + self.2) / 3.;
-        let push = |c: f32| (grey + (c - grey) * factor).clamp(0., 1.);
-        Self(push(self.0), push(self.1), push(self.2))
-    }
     pub fn alpha(self, alpha: f32) -> RGBA {
         RGBA::new(self.0, self.1, self.2, alpha)
     }
-    pub fn solid(self) -> RGBA {
-        self.alpha(1.)
+    /// `#rrggbb`, for Pango markup.
+    pub fn hex(self) -> String {
+        let byte = |c: f32| (c.clamp(0., 1.) * 255.).round() as u8;
+        format!(
+            "#{:02x}{:02x}{:02x}",
+            byte(self.0),
+            byte(self.1),
+            byte(self.2)
+        )
     }
     /// Perceived brightness, enough to tell a light theme from a dark one.
     pub fn luma(self) -> f32 {
@@ -70,54 +72,55 @@ impl Tokens {
 }
 
 pub struct Palette {
+    /// The canvas is lighter than the ink.
     pub light_theme: bool,
-    /// The opaque ground, and the faint lift around the watch.
-    pub room: Rgb,
-    pub room_lift: Rgb,
-    /// Steel highlights and the dark metal under the crystal.
-    pub steel: Rgb,
-    pub metal: Rgb,
-    pub dark: Rgb,
-    pub darker: Rgb,
+    /// The flat wash between the desktop and the dial: the theme's canvas, deepened.
+    pub wash: Rgb,
+    /// Lines at rest: the ring and the ticks.
+    pub ink: Rgb,
     /// The light's colour, and its colour for a blocked or missing choice.
     pub lit: Rgb,
     pub warn_lit: Rgb,
+    /// The theme's own accent, saturated, for the light on a light wash.
+    pub accent: Rgb,
     pub warning: Rgb,
     pub working: Rgb,
-    /// The dial's tint: its luminance map is multiplied by this, a navy on Nord.
-    pub dial_tint: Rgb,
 }
 
 impl Palette {
     pub fn new(t: Tokens) -> Self {
         let light_theme = t.canvas.luma() > t.ink.luma();
-        let (steel, metal) = if light_theme {
-            (t.canvas, t.ink)
+        let deep = if light_theme {
+            Rgb(1., 1., 1.)
         } else {
-            (t.ink, t.canvas)
-        };
-        let dark = metal.over(BLACK, 0.74);
-        let darker = metal.over(BLACK, 0.54);
-        let room_base = if light_theme {
-            t.canvas.over(t.ink, 0.93)
-        } else {
-            darker
+            Rgb(0., 0., 0.)
         };
         Self {
             light_theme,
-            room: room_base,
-            room_lift: room_base.over(t.action, 0.86),
-            steel,
-            metal,
-            dark,
-            darker,
-            lit: t.action.over(steel, 0.7),
-            warn_lit: t.warning.over(steel, 0.8),
+            wash: t.canvas.over(deep, WASH_CANVAS),
+            ink: t.ink,
+            lit: t.action.over(t.ink, 0.72),
+            warn_lit: t.warning.over(t.ink, 0.85),
+            accent: t.action,
             warning: t.warning,
-            working: t.success.over(steel, 0.7),
-            // Nord's navy is the accent at a fifth of its brightness, twice as saturated, with a little
-            // of the darker ground.
-            dial_tint: t.action.over(BLACK, 0.2).saturate(2.).over(darker, 0.85),
+            working: t.success,
+        }
+    }
+    /// The light for the current choice, `warn` of the way from its own colour to amber.
+    pub fn light(&self, warn: f64) -> Rgb {
+        self.warn_lit.over(self.lit, warn.clamp(0., 1.) as f32)
+    }
+    /// The saturated accent, `warn` of the way to amber.
+    pub fn accent(&self, warn: f64) -> Rgb {
+        self.warning.over(self.accent, warn.clamp(0., 1.) as f32)
+    }
+    /// The trace's bright core: near white with a tint of the light on a dark wash, so it reads as
+    /// light over a bright page too; the saturated accent on a light wash.
+    pub fn core(&self, warn: f64) -> Rgb {
+        if self.light_theme {
+            self.accent(warn)
+        } else {
+            self.light(warn).over(Rgb(1., 1., 1.), 0.45)
         }
     }
 }
@@ -127,33 +130,29 @@ mod tests {
     use super::*;
 
     #[test]
+    fn colours_print_as_markup_hex() {
+        assert_eq!(Tokens::NORD.warning.hex(), "#ebcb8b");
+    }
+
+    #[test]
     fn mixes_weight_the_first_colour() {
         let mixed = Rgb(1., 0., 0.).over(Rgb(0., 0., 1.), 0.25);
         assert_eq!(mixed, Rgb(0.25, 0., 0.75));
     }
 
     #[test]
-    fn nords_dial_tint_lands_on_the_renders_navy() {
-        // The render's dial averages #11202c.
-        let tint = Palette::new(Tokens::NORD).dial_tint;
-        for (got, want) in [(tint.0, 17.), (tint.1, 32.), (tint.2, 44.)] {
-            assert!((got * 255. - want).abs() < 12., "{got} vs {want}");
-        }
-    }
-
-    #[test]
-    fn a_light_theme_keeps_light_steel_and_a_dark_dial() {
+    fn the_wash_deepens_the_canvas_away_from_the_ink() {
         let light = Palette::new(Tokens {
             canvas: Rgb(0.97, 0.98, 0.97),
             ink: Rgb(0.1, 0.2, 0.18),
             ..Tokens::NORD
         });
-        assert!(light.steel.luma() > light.metal.luma());
-        assert!(light.dark.luma() < light.steel.luma());
-        // The room follows the canvas, so a light desktop keeps a light room.
-        assert!(light.room.luma() > 0.8);
+        assert!(light.light_theme && light.wash.luma() >= Tokens::NORD.canvas.luma());
+        assert!(light.wash.luma() > light.ink.luma());
         let nord = Palette::new(Tokens::NORD);
-        assert!(nord.steel.luma() > nord.metal.luma());
-        assert!(nord.room.luma() < 0.15);
+        assert!(!nord.light_theme);
+        // Nord's wash is its canvas at 40%: #12151a, a terminal's near black.
+        assert!(nord.wash.luma() < 0.4 * Tokens::NORD.canvas.luma() + 1e-6);
+        assert!(nord.wash.luma() < nord.ink.luma());
     }
 }
