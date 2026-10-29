@@ -74,9 +74,6 @@ fn page(services: &ApplicationServices, resources: &DocumentResources) -> Rc<Cap
             delete: Rc::new(|_| true),
             merge: Rc::new(|_, _| true),
             continue_recording: Rc::new(|_| {}),
-            capture_screenshot: Some(Rc::new(|| {})),
-            edit_screenshot: Rc::new(|_| {}),
-            remove_screenshot: Rc::new(|_| {}),
         },
         resources.clone(),
     )
@@ -129,7 +126,6 @@ fn released_application_capture_factory() {
     let binaries = NativeBinaries {
         asr_worker: target.join("mluva-asr-worker"),
         audio_cleanup: target.join("mluva-audio-cleanup"),
-        screenshot_editor: target.join("mluva-screenshot-editor"),
     };
     gtk::init().unwrap();
     adw::init().unwrap();
@@ -242,11 +238,8 @@ fn released_application_capture_factory() {
                     })
                 }),
                 CaptureControllerCallbacks {
-                    wait_for_images: Rc::new(|_| Box::pin(async { Ok(()) })),
-                    prepare_result: Rc::new(|_, _| {}),
                     appendix: Rc::new(|_| None),
                     refresh_history: Rc::new(|_| {}),
-                    images: Rc::new(|_| Ok(vec![])),
                     completed: Rc::new(move |completion| {
                         *captured.borrow_mut() = Some(result(completion.result))
                     }),

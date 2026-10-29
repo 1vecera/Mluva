@@ -10,7 +10,6 @@ use mluva_core::{
     diagnostics::{DiagnosticOutcome, DiagnosticProvider, DiagnosticStage, DiagnosticsStore},
     history::{HistoryEntry, HistoryInput, HistoryStore, RECOGNITION_FALLBACKS, RetryRecognition},
     personalization::{PersonalizationStore, snippet_variables},
-    screenshots::{ImageInput, validate_images},
     text,
     transcript::normalize_spoken_structure,
 };
@@ -65,7 +64,6 @@ pub struct Completion<'a> {
     /// be recognised again. Only for routes where the person expects the text to arrive
     /// somewhere (an agent or an editable transcript); ordinary dictation drops it.
     pub keep_empty_recognition: bool,
-    pub images: Vec<ImageInput>,
     pub appendix: Option<DeliveryAppendix>,
 }
 impl Default for Completion<'_> {
@@ -84,7 +82,6 @@ impl Default for Completion<'_> {
             transcript_preparation: None,
             defer_delivery: false,
             keep_empty_recognition: false,
-            images: vec![],
             appendix: None,
         }
     }
@@ -208,10 +205,6 @@ impl DictationWorkflow {
         audio_path: &Path,
         mut request: Completion<'_>,
     ) -> WorkflowOutcome<WorkflowResult> {
-        validate_images(&request.images)?;
-        if request.incognito && !request.images.is_empty() {
-            return Err(invalid("Screenshots are unavailable in Incognito."));
-        }
         let session = request
             .session_identifier
             .as_deref()

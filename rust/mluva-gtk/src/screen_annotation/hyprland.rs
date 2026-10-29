@@ -1,5 +1,6 @@
 //! Hyprland's side of annotation: two temporary bindings that exist only while a recording is
 //! annotated, and read-only IPC for pointer, outputs, the active window and focus events.
+use mluva_core::annotations::AnnotationModifier;
 use serde_json::Value;
 use std::{
     future::Future,
@@ -21,18 +22,17 @@ pub fn valid_token(token: &str) -> bool {
     (16..=64).contains(&token.len()) && token.bytes().all(|b| b.is_ascii_hexdigit())
 }
 
-/// `Shift_L` reports both press and release only with `ignore_mods`, and keeps typing capitals
-/// with `non_consuming`. It is `transparent` because Hyprland otherwise shadows a binding whose
-/// key is still held once another key is released, so typing a capital or a Shift-click would
-/// lose the release and leave ink on. Shift-click is consumed so the click never selects text in
-/// the app. Bindings left by an earlier session that could not clean up are removed first.
-pub fn add_script(token: &str) -> String {
+/// The key reports press and release only with `ignore_mods`; `non_consuming` preserves normal
+/// typing. `transparent` prevents another key release from hiding its release. The modified click
+/// is consumed so it cannot select text in the app. Leftover owned bindings are removed first.
+pub fn add_script(token: &str, modifier: AnnotationModifier) -> String {
     assert!(valid_token(token));
+    let (key, name, _) = binding(modifier);
     format!(
         "{REMOVE_ALL}\
 _G.mluva_annotation = {{ [\"{token}\"] = {{\n\
-  hl.bind(\"Shift_L\", hl.dsp.global(\"{APP}:{INK}\"), {{ non_consuming = true, ignore_mods = true, transparent = true, description = \"{DESCRIPTION}{INK}\" }}),\n\
-  hl.bind(\"SHIFT + mouse:272\", hl.dsp.global(\"{APP}:{PIN}\"), {{ description = \"{DESCRIPTION}{PIN}\" }}),\n\
+  hl.bind(\"{key}\", hl.dsp.global(\"{APP}:{INK}\"), {{ non_consuming = true, ignore_mods = true, transparent = true, description = \"{DESCRIPTION}{INK}\" }}),\n\
+  hl.bind(\"{name} + mouse:272\", hl.dsp.global(\"{APP}:{PIN}\"), {{ description = \"{DESCRIPTION}{PIN}\" }}),\n\
 }} }}\n"
     )
 }
@@ -87,14 +87,25 @@ fn ours(binding: &Value, id: &str) -> bool {
     binding["description"].as_str() == Some(&format!("{DESCRIPTION}{id}"))
 }
 
-/// The two keys must be free of other bindings: plain `Shift_L`, and Shift with the left button.
-fn conflicting(binds: &[Value]) -> bool {
+/// Map each supported modifier to its Hyprland key name, chord name and modifier mask.
+fn binding(modifier: AnnotationModifier) -> (&'static str, &'static str, u64) {
+    match modifier {
+        AnnotationModifier::Shift => ("Shift_L", "SHIFT", 1),
+        AnnotationModifier::Control => ("Control_L", "CTRL", 4),
+        AnnotationModifier::Alt => ("Alt_L", "ALT", 8),
+        AnnotationModifier::Super => ("Super_L", "SUPER", 64),
+    }
+}
+
+/// The modifier on its own and its left-click chord must both be free.
+fn conflicting(binds: &[Value], modifier: AnnotationModifier) -> bool {
+    let (modifier_key, _, modifier_mask) = binding(modifier);
     binds.iter().any(|bound| {
         let key = bound["key"].as_str().unwrap_or("");
         let mask = bound["modmask"].as_u64();
-        let shift = key.eq_ignore_ascii_case("shift_l") && mask == Some(0);
-        let click = key.eq_ignore_ascii_case("mouse:272") && mask == Some(1);
-        (shift || click) && !ours(bound, INK) && !ours(bound, PIN)
+        let held = key.eq_ignore_ascii_case(modifier_key) && mask == Some(0);
+        let click = key.eq_ignore_ascii_case("mouse:272") && mask == Some(modifier_mask);
+        (held || click) && !ours(bound, INK) && !ours(bound, PIN)
     })
 }
 
@@ -123,19 +134,23 @@ async fn binds(hyprctl: &impl Hyprctl) -> Result<Vec<Value>, String> {
 
 /// Add both bindings and confirm Hyprland holds them. Once the bindings have been sent, every
 /// failure removes them again, including a timeout after Hyprland already applied them.
-pub async fn bind(token: &str) -> Result<(), String> {
+pub async fn bind(token: &str, modifier: AnnotationModifier) -> Result<(), String> {
     if !available() {
         return Err("Screen annotation needs Hyprland.".into());
     }
-    bind_with(&System, token).await
+    bind_with(&System, token, modifier).await
 }
 
-pub async fn bind_with(hyprctl: &impl Hyprctl, token: &str) -> Result<(), String> {
-    if conflicting(&binds(hyprctl).await?) {
-        return Err("Shift or Shift-click already has a Hyprland binding, so screen annotation stays off for this recording.".into());
+pub async fn bind_with(
+    hyprctl: &impl Hyprctl,
+    token: &str,
+    modifier: AnnotationModifier,
+) -> Result<(), String> {
+    if conflicting(&binds(hyprctl).await?, modifier) {
+        return Err("The selected key or its click shortcut already has a Hyprland binding, so screen annotation stays off for this recording.".into());
     }
     let applied = async {
-        let response = hyprctl.run(eval(&add_script(token))).await?;
+        let response = hyprctl.run(eval(&add_script(token, modifier))).await?;
         if response.trim() != "ok" {
             return Err("Hyprland could not add the annotation bindings.".to_owned());
         }
@@ -430,11 +445,19 @@ mod tests {
         let ours = r#"[{"key":"Shift_L","modmask":0,"description":"Mluva annotation: annotate-ink"},{"key":"mouse:272","modmask":1,"description":"Mluva annotation: annotate-pin"}]"#;
         // The eval times out after Hyprland may already have applied it.
         let timeout = Fake::new(&[Ok("[]"), Err("Hyprland did not answer in time.")]);
-        assert!(bind_with(&timeout, TOKEN).await.is_err());
+        assert!(
+            bind_with(&timeout, TOKEN, AnnotationModifier::Shift)
+                .await
+                .is_err()
+        );
         assert!(timeout.unbound(TOKEN));
         // The verifying query fails.
         let unverified = Fake::new(&[Ok("[]"), Ok("ok"), Err("Could not contact Hyprland.")]);
-        assert!(bind_with(&unverified, TOKEN).await.is_err());
+        assert!(
+            bind_with(&unverified, TOKEN, AnnotationModifier::Shift)
+                .await
+                .is_err()
+        );
         assert!(unverified.unbound(TOKEN));
         // Hyprland answers but holds only one binding.
         let partial = Fake::new(&[
@@ -442,17 +465,29 @@ mod tests {
             Ok("ok"),
             Ok(r#"[{"key":"Shift_L","modmask":0,"description":"Mluva annotation: annotate-ink"}]"#),
         ]);
-        assert!(bind_with(&partial, TOKEN).await.is_err());
+        assert!(
+            bind_with(&partial, TOKEN, AnnotationModifier::Shift)
+                .await
+                .is_err()
+        );
         assert!(partial.unbound(TOKEN));
         // A conflict is refused before anything is sent.
         let conflict = Fake::new(&[Ok(
             r#"[{"key":"mouse:272","modmask":1,"description":"Select"}]"#,
         )]);
-        assert!(bind_with(&conflict, TOKEN).await.is_err());
+        assert!(
+            bind_with(&conflict, TOKEN, AnnotationModifier::Shift)
+                .await
+                .is_err()
+        );
         assert_eq!(conflict.calls.borrow().len(), 1);
         // Success leaves the bindings in place.
         let bound = Fake::new(&[Ok("[]"), Ok("ok"), Ok(ours)]);
-        assert!(bind_with(&bound, TOKEN).await.is_ok());
+        assert!(
+            bind_with(&bound, TOKEN, AnnotationModifier::Shift)
+                .await
+                .is_ok()
+        );
         assert!(!bound.unbound(TOKEN));
     }
 
@@ -491,7 +526,7 @@ mod tests {
 
     #[test]
     fn bindings_add_and_remove_only_owned_handles() {
-        let script = add_script(TOKEN);
+        let script = add_script(TOKEN, AnnotationModifier::Shift);
         assert!(script.contains("hl.bind(\"Shift_L\", hl.dsp.global(\"com.mluva.Linux:annotate-ink\"), { non_consuming = true, ignore_mods = true"));
         assert!(script.contains(
             "hl.bind(\"SHIFT + mouse:272\", hl.dsp.global(\"com.mluva.Linux:annotate-pin\")"
@@ -505,7 +540,7 @@ mod tests {
     fn the_shift_release_survives_a_capital_or_a_shift_click() {
         // Without `transparent`, Hyprland 0.56 shadows the held Shift_L binding when the letter or
         // button is released, and the Shift release never reaches Mluva.
-        let script = add_script(TOKEN);
+        let script = add_script(TOKEN, AnnotationModifier::Shift);
         let ink = script
             .lines()
             .find(|line| line.contains("annotate-ink"))
@@ -526,10 +561,10 @@ mod tests {
             "local active = {}; local n = 0; hl = { dsp = { global = function(id) return id end }, bind = function(key, target) n = n + 1; local id = n; active[id] = key .. '=' .. target; return { remove = function() active[id] = nil end } end };\n\
              local function count() local c = 0; for _ in pairs(active) do c = c + 1 end; return c end\n",
         );
-        lua.push_str(&add_script(TOKEN));
+        lua.push_str(&add_script(TOKEN, AnnotationModifier::Shift));
         lua.push_str("assert(count() == 2)\n");
         // A crash left the first session's bindings; the next session replaces them.
-        lua.push_str(&add_script(next));
+        lua.push_str(&add_script(next, AnnotationModifier::Shift));
         lua.push_str("assert(count() == 2)\n");
         // The first session's late cleanup must not touch the next session.
         lua.push_str(&remove_script(TOKEN));
@@ -552,17 +587,22 @@ mod tests {
 
     #[test]
     fn existing_shift_bindings_block_annotation_but_ours_do_not() {
-        assert!(conflicting(&[
-            json!({"key":"Shift_L","modmask":0,"description":"Other"})
-        ]));
-        assert!(conflicting(&[
-            json!({"key":"mouse:272","modmask":1,"description":""})
-        ]));
-        assert!(!conflicting(&[
-            json!({"key":"Shift_L","modmask":4,"description":"Other"}),
-            json!({"key":"mouse:272","modmask":64,"description":"Move window"}),
-            json!({"key":"Shift_L","modmask":0,"description":"Mluva annotation: annotate-ink"}),
-        ]));
+        assert!(conflicting(
+            &[json!({"key":"Shift_L","modmask":0,"description":"Other"})],
+            AnnotationModifier::Shift
+        ));
+        assert!(conflicting(
+            &[json!({"key":"mouse:272","modmask":1,"description":""})],
+            AnnotationModifier::Shift
+        ));
+        assert!(!conflicting(
+            &[
+                json!({"key":"Shift_L","modmask":4,"description":"Other"}),
+                json!({"key":"mouse:272","modmask":64,"description":"Move window"}),
+                json!({"key":"Shift_L","modmask":0,"description":"Mluva annotation: annotate-ink"}),
+            ],
+            AnnotationModifier::Shift
+        ));
     }
 
     #[test]

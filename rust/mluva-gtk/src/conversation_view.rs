@@ -4,14 +4,12 @@ use crate::document_layout::{DocumentResources, TailFollower, document_scroll, m
 use crate::markdown_view::MarkdownTextView;
 use crate::mermaid::MermaidPreview;
 use crate::recording_light::RecordingLight;
-use crate::screenshot_shelf::ScreenshotShelf;
 use adw::prelude::*;
 use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
 use mluva_core::config::AppConfig;
 use mluva_core::conversation::{ConversationStore, MERGE_MODEL, Rewrite};
 use mluva_core::database::{StoreError, StoreResult};
 use mluva_core::history::HistoryEntry;
-use mluva_core::screenshots::ScreenshotStore;
 use mluva_core::{text, titles::fallback_title};
 use std::cell::RefCell;
 use std::collections::BTreeMap;
@@ -41,9 +39,6 @@ pub struct ConversationCallbacks {
     pub delete: SingleAction,
     pub merge: NamedAction,
     pub continue_recording: TextAction,
-    pub capture_screenshot: Option<Action>,
-    pub edit_screenshot: TextAction,
-    pub remove_screenshot: TextAction,
 }
 
 pub fn history_timestamp(value: &str, format: &str) -> StoreResult<String> {
@@ -79,8 +74,6 @@ struct WorkspaceState {
     pending_title: Option<(String, String)>,
     live_active: bool,
     viewing_live: bool,
-    live_capture: Option<String>,
-    live_conversation: Option<String>,
     edit_drafts: BTreeMap<EditKey, String>,
     editors: BTreeMap<EditKey, MarkdownTextView>,
     documents: Vec<MarkdownTextView>,
@@ -117,8 +110,6 @@ pub struct ConversationWorkspace {
     pub live_text: MarkdownTextView,
     pub live_scroll: gtk::ScrolledWindow,
     pub live_follower: Rc<TailFollower>,
-    pub screenshot_shelf: ScreenshotShelf,
-    pub screenshot_buttons: [gtk::Button; 2],
     pub copy_path: gtk::Button,
     pub notice: gtk::Label,
     pub store: ConversationStore,
@@ -126,7 +117,6 @@ pub struct ConversationWorkspace {
     resources: DocumentResources,
     config: RefCell<AppConfig>,
     state: RefCell<WorkspaceState>,
-    screenshot_store: ScreenshotStore,
     autosave: RefCell<Option<glib::SourceId>>,
 }
 
@@ -239,25 +229,11 @@ impl ConversationWorkspace {
         heading.append(&continue_button);
         let copy_path = gtk::Button::builder()
             .label("Copy as path")
-            .tooltip_text("Copy the Markdown file path, with dictation and linked screenshots")
+            .tooltip_text("Copy the path to this conversation's Markdown file")
             .build();
+        copy_path.update_property(&[gtk::accessible::Property::Label("Copy as path")]);
         heading.append(&copy_path);
-        let screenshot_buttons = std::array::from_fn(|_| {
-            let button = gtk::Button::builder()
-                .icon_name("camera-photo-symbolic")
-                .tooltip_text("Add screenshot · F10 · Experimental")
-                .build();
-            button.update_property(&[gtk::accessible::Property::Label("Add screenshot")]);
-            button.set_sensitive(callbacks.capture_screenshot.is_some());
-            button
-        });
-        heading.append(&screenshot_buttons[0]);
         content.append(&heading);
-        let screenshot_shelf = ScreenshotShelf::new(
-            callbacks.edit_screenshot.clone(),
-            callbacks.remove_screenshot.clone(),
-        );
-        content.append(&screenshot_shelf.widget);
         let messages = gtk::Box::new(gtk::Orientation::Vertical, 16);
         margins(&messages, 16);
         messages.set_margin_top(0);
@@ -280,7 +256,6 @@ impl ConversationWorkspace {
             .css_classes(["caption"])
             .build();
         live_header.append(&live_title);
-        live_header.append(&screenshot_buttons[1]);
         content.append(&live_header);
         let live_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
@@ -316,7 +291,6 @@ impl ConversationWorkspace {
         notice.set_margin_top(0);
         notice.set_margin_bottom(0);
         content.append(&notice);
-        let screenshot_store = ScreenshotStore::new(&store.history.database.path);
         let workspace = Rc::new(Self {
             widget,
             split,
@@ -342,8 +316,6 @@ impl ConversationWorkspace {
             live_text,
             live_scroll,
             live_follower,
-            screenshot_shelf,
-            screenshot_buttons,
             copy_path,
             notice,
             store,
@@ -354,7 +326,6 @@ impl ConversationWorkspace {
                 search_limit: 80,
                 ..WorkspaceState::default()
             }),
-            screenshot_store,
             autosave: RefCell::new(None),
         });
         workspace.connect(&new_conversation, &archive, &title_cancel);
@@ -407,20 +378,12 @@ impl ConversationWorkspace {
                 match w.store.export_markdown(&entry.identifier) {
                     Ok(path) => {
                         (w.callbacks.copy)(&path.to_string_lossy());
-                        w.notice
-                            .set_label("Markdown path copied, with dictation and linked images.");
+                        w.notice.set_label("Markdown path copied.");
                     }
                     Err(error) => w.report::<()>(Err(error)),
                 }
             }
         });
-        for button in &self.screenshot_buttons {
-            clicked!(button, |w: &Rc<Self>| {
-                if let Some(capture) = &w.callbacks.capture_screenshot {
-                    capture();
-                }
-            });
-        }
         let weak = Rc::downgrade(self);
         self.title_entry.connect_changed(move |_| {
             if let Some(w) = weak.upgrade() {
@@ -502,8 +465,10 @@ impl ConversationWorkspace {
         if compact {
             self.continue_button
                 .set_icon_name("audio-input-microphone-symbolic");
+            self.copy_path.set_icon_name("edit-copy-symbolic");
         } else {
             self.continue_button.set_label("Continue recording");
+            self.copy_path.set_label("Copy as path");
         }
         self.live_header.set_spacing(if compact { 4 } else { 8 });
     }
@@ -788,7 +753,6 @@ impl ConversationWorkspace {
             s.previews.clear();
             s.entry = entry.clone();
         }
-        self.refresh_screenshots();
         self.conversation_title.set_label("New conversation");
         self.conversation_title.set_tooltip_text(None);
         while let Some(child) = self.messages.first_child() {
@@ -1283,11 +1247,6 @@ impl ConversationWorkspace {
     fn update_actions(&self) {
         let s = self.state.borrow();
         let has_entry = s.entry.is_some();
-        for button in &self.screenshot_buttons {
-            button.set_sensitive(
-                self.callbacks.capture_screenshot.is_some() && !s.private && !s.busy,
-            );
-        }
         self.title_button.set_sensitive(has_entry && !s.private);
         self.title_entry.set_sensitive(!s.private);
         self.copy_path
@@ -1326,48 +1285,10 @@ impl ConversationWorkspace {
             self.schedule_autosave(500);
         }
         if private {
-            self.screenshot_shelf.show_images(&[]);
             self.close_title_editor();
         }
         self.update_actions();
     }
-    pub fn set_screenshot_context(&self, capture: Option<String>, conversation: Option<String>) {
-        let mut s = self.state.borrow_mut();
-        s.live_capture = capture;
-        s.live_conversation = conversation;
-        drop(s);
-        self.refresh_screenshots();
-    }
-    pub fn refresh_screenshots(&self) {
-        let s = self.state.borrow();
-        let mut images = Vec::new();
-        if !s.private {
-            if s.viewing_live
-                && let Some(capture) = &s.live_capture
-            {
-                if let Some(conversation) = &s.live_conversation {
-                    images.extend(
-                        self.screenshot_store
-                            .recent(conversation, false)
-                            .unwrap_or_default(),
-                    );
-                }
-                images.extend(
-                    self.screenshot_store
-                        .recent(capture, true)
-                        .unwrap_or_default(),
-                );
-            } else if let Some(entry) = &s.entry {
-                images = self
-                    .screenshot_store
-                    .recent(&entry.identifier, false)
-                    .unwrap_or_default();
-            }
-        }
-        drop(s);
-        self.screenshot_shelf.show_images(&images);
-    }
-
     pub fn set_live(self: &Rc<Self>, phase: &str, text: &str, recording: bool) {
         let starting = !self.state.borrow().live_active;
         self.state.borrow_mut().live_active = true;
@@ -1396,7 +1317,6 @@ impl ConversationWorkspace {
     }
     fn set_live_visibility(&self, visible: bool) {
         self.state.borrow_mut().viewing_live = visible;
-        self.refresh_screenshots();
         self.live_box.set_visible(visible);
         self.live_header.set_visible(visible);
         self.scroll.set_visible(!visible);

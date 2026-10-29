@@ -252,7 +252,7 @@ fn released_history_recovery_and_owned_shutdown() {
             .unwrap();
         let entry = services.history.find(ID).unwrap();
         if case["images"] == true {
-            services.screenshots.add(ID,&STANDARD.decode("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmCC").unwrap(),false,None).unwrap();
+            mluva_core::screenshots::ScreenshotStore::new(&services.history.database.path).add(ID,&STANDARD.decode("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGOQS7nzoUkOAAoRAu8yvJYrAAAAAElFTkSuQmCC").unwrap(),false,None).unwrap();
         }
         let (capture, prefs) = capture_graph::graph(services.clone(), resources.clone());
         let events = Rc::new(RefCell::new(Vec::<Value>::new()));
@@ -278,13 +278,6 @@ fn released_history_recovery_and_owned_shutdown() {
                 idle: {
                     let events = events.clone();
                     Rc::new(move || events.borrow_mut().push(json!(["idle"])))
-                },
-                close_screenshot: {
-                    let events = events.clone();
-                    Rc::new(move |id| {
-                        events.borrow_mut().push(json!(["close-image", id]));
-                        Ok(())
-                    })
                 },
                 copy: Rc::new(|_| {}),
             },

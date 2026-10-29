@@ -174,9 +174,6 @@ fn page(
             delete: Rc::new(|_| true),
             merge: Rc::new(|_, _| true),
             continue_recording: Rc::new(|_| {}),
-            capture_screenshot: Some(Rc::new(|| {})),
-            edit_screenshot: Rc::new(|_| {}),
-            remove_screenshot: Rc::new(|_| {}),
         },
         resources.clone(),
     )
@@ -465,11 +462,8 @@ fn actual_capture_transactions_match_released_states_and_leave_no_audio_children
                 })
             }),
             CaptureControllerCallbacks {
-                wait_for_images: Rc::new(|_| Box::pin(async { Ok(()) })),
-                prepare_result: Rc::new(|_, _| {}),
                 appendix: Rc::new(|_| None),
                 refresh_history: Rc::new(|_| {}),
-                images: Rc::new(|_| Ok(vec![])),
                 completed: Rc::new(move |capture| {
                     assert_eq!(thread::current().id(), owner);
                     *completed.borrow_mut() = result(capture.result);

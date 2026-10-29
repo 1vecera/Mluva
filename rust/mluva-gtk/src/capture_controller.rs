@@ -7,7 +7,6 @@ use crate::{
 use gtk::prelude::*;
 use mluva_core::{
     delivery::{DeliveryOptions, DeliveryReceipt, deliver_text},
-    screenshots::ImageInput,
     text,
 };
 use mluva_workflows::{
@@ -17,13 +16,7 @@ use mluva_workflows::{
         with_appendix,
     },
 };
-use std::{
-    cell::{Cell, RefCell},
-    future::Future,
-    pin::Pin,
-    rc::Rc,
-    time::Duration,
-};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 
 #[derive(Clone, Debug)]
 pub enum CaptureOrigin {
@@ -41,10 +34,6 @@ pub struct CaptureLaunch {
 }
 
 pub type PrepareCapture = Rc<dyn Fn(CaptureOrigin) -> WorkflowOutcome<CaptureLaunch>>;
-pub type CaptureImages = Rc<dyn Fn(&str) -> WorkflowOutcome<Vec<ImageInput>>>;
-pub type WaitForCaptureImages =
-    Rc<dyn Fn(&str) -> Pin<Box<dyn Future<Output = WorkflowOutcome<()>>>>>;
-pub type PrepareCaptureResult = Rc<dyn Fn(&CaptureSession, &mut WorkflowOutcome<WorkflowResult>)>;
 /// Text delivered after the dictation, such as a screen annotation summary, decided at Stop.
 pub type CaptureAppendix = Rc<dyn Fn(&CaptureSession) -> Option<DeliveryAppendix>>;
 
@@ -61,12 +50,8 @@ pub struct CaptureFailure {
     pub delivery_target: Option<Rc<dyn DeliveryTarget>>,
 }
 
-/// The remaining application services own continuation, screenshot picker
-/// waiting and retained-target caches. They receive one terminal result here.
+/// Application services own continuation and retained-target caches.
 pub struct CaptureControllerCallbacks {
-    pub images: CaptureImages,
-    pub wait_for_images: WaitForCaptureImages,
-    pub prepare_result: PrepareCaptureResult,
     pub appendix: CaptureAppendix,
     /// Reconcile saved history before selecting the completed conversation.
     pub refresh_history: Rc<dyn Fn(&mut WorkflowResult)>,
@@ -294,9 +279,6 @@ impl CaptureController {
         }));
         self.continuation.replace(continuation.clone());
         self.page.workspace.set_private(session.options.incognito);
-        self.page
-            .workspace
-            .set_screenshot_context(Some(session.identifier.clone()), continuation.clone());
         self.page.set_view_state(CaptureViewState {
             preparing: true,
             ..view
@@ -448,21 +430,11 @@ impl CaptureController {
         });
         self.page.workspace.set_live_status("Processing…", false);
         (self.callbacks.phase_changed)(CapturePhase::Processing);
-        let waiting = (self.callbacks.wait_for_images)(&session.identifier);
         let appendix = (self.callbacks.appendix)(&session);
-        let snapshot = self.callbacks.images.clone();
         let weak = Rc::downgrade(self);
         self.runtime.spawn(async move {
-            let visual_warning = Cell::new(false);
-            let images = async {
-                waiting.await?;
-                Ok(snapshot(&session.identifier).unwrap_or_else(|_| {
-                    visual_warning.set(true);
-                    vec![]
-                }))
-            };
             let mut result = session
-                .complete_with_appendix(target.as_deref(), images, appendix)
+                .complete_with_appendix(target.as_deref(), appendix)
                 .await;
             let Some(controller) = weak
                 .upgrade()
@@ -470,25 +442,54 @@ impl CaptureController {
             else {
                 return;
             };
-            (controller.callbacks.prepare_result)(&session, &mut result);
             let viewing_live = controller.page.workspace.is_viewing_live();
             let continuation = controller.continuation.borrow().clone();
-            if let Some(identifier) = continuation.as_deref() && let Ok(result) = &mut result && let Some(segment) = result.history_entry.as_ref().filter(|_|!result.incognito) {
+            if let Some(identifier) = continuation.as_deref()
+                && let Ok(result) = &mut result
+                && let Some(segment) = result.history_entry.as_ref().filter(|_| !result.incognito)
+            {
                 let appended = (|| {
-                    if !controller.page.workspace.save_conversation_edits(identifier) {return Err(mluva_core::database::StoreError::Invalid("Could not save the existing document.".into()));}
-                    let output = controller.page.workspace.store.append_recording(identifier, segment)?;
+                    if !controller
+                        .page
+                        .workspace
+                        .save_conversation_edits(identifier)
+                    {
+                        return Err(mluva_core::database::StoreError::Invalid(
+                            "Could not save the existing document.".into(),
+                        ));
+                    }
+                    let output = controller
+                        .page
+                        .workspace
+                        .store
+                        .append_recording(identifier, segment)?;
                     let entry = controller.page.workspace.store.history.find(identifier)?;
-                    Ok::<_,mluva_core::database::StoreError>((output,entry))
+                    Ok::<_, mluva_core::database::StoreError>((output, entry))
                 })();
-                let receipt = |guidance: &str|DeliveryReceipt {copied:false,pasted:false,guidance:guidance.into(),paste_dispatched:false,paste_confirmed:None};
+                let receipt = |guidance: &str| DeliveryReceipt {
+                    copied: false,
+                    pasted: false,
+                    guidance: guidance.into(),
+                    paste_dispatched: false,
+                    paste_confirmed: None,
+                };
                 match appended {
-                    Ok((output,entry)) => {
-                        result.delivery = deliver_text(&with_appendix(&output, result.delivery_appendix.as_deref()),false,DeliveryOptions::default()).unwrap_or_else(|_|receipt("Recording appended. Automatic copy failed; use Copy."));
+                    Ok((output, entry)) => {
+                        result.delivery = deliver_text(
+                            &with_appendix(&output, result.delivery_appendix.as_deref()),
+                            false,
+                            DeliveryOptions::default(),
+                        )
+                        .unwrap_or_else(|_| {
+                            receipt("Recording appended. Automatic copy failed; use Copy.")
+                        });
                         result.output_text = output;
                         result.history_entry = Some(entry);
                     }
                     Err(_) => {
-                        result.delivery = receipt("Could not append. This recording remains separately in History.");
+                        result.delivery = receipt(
+                            "Could not append. This recording remains separately in History.",
+                        );
                         controller.continuation.borrow_mut().take();
                         controller.continuation_source.borrow_mut().clear();
                     }
@@ -497,25 +498,39 @@ impl CaptureController {
             controller.release(&session.identifier);
             match result {
                 Ok(mut result) => {
-                    if visual_warning.get() {
-                        result.delivery.guidance.push_str(" Screenshot was not ready. Save it in the editor to keep it with this dictation.");
-                    }
                     (controller.callbacks.refresh_history)(&mut result);
-                    if !text::trim(&result.transcription.text).is_empty() || result.history_entry.is_some() {
+                    if !text::trim(&result.transcription.text).is_empty()
+                        || result.history_entry.is_some()
+                    {
                         let displayed = if let Some(entry) = result.history_entry.clone() {
                             controller.page.workspace.refresh_history().and_then(|()| {
                                 if viewing_live {
-                                    let replies = controller.page.workspace.store.replies(&entry.identifier)?;
-                                    controller.page.workspace.show_conversation(Some(entry), &replies, false)
+                                    let replies = controller
+                                        .page
+                                        .workspace
+                                        .store
+                                        .replies(&entry.identifier)?;
+                                    controller.page.workspace.show_conversation(
+                                        Some(entry),
+                                        &replies,
+                                        false,
+                                    )
                                 } else {
                                     Ok(())
                                 }
                             })
                         } else {
-                            controller.page.workspace.show_transient(&result.transcription.text, &result.output_text)
+                            controller
+                                .page
+                                .workspace
+                                .show_transient(&result.transcription.text, &result.output_text)
                         };
                         if let Err(error) = displayed {
-                            controller.page.workspace.notice.set_label(&error.to_string());
+                            controller
+                                .page
+                                .workspace
+                                .notice
+                                .set_label(&error.to_string());
                         }
                     }
                     controller.page.set_status(&result.delivery.guidance);
@@ -527,21 +542,43 @@ impl CaptureController {
                     });
                 }
                 Err(error) => {
-                    controller.page.set_status("Capture failed. Open History to recover retained audio.");
+                    controller
+                        .page
+                        .set_status("Capture failed. Open History to recover retained audio.");
                     if let WorkflowError::Failure(failure) = &error {
                         let recovery = if let Some(path) = &failure.retained_audio_path {
                             format!("The recording was retained at {}.", path.display())
                         } else {
                             "The recording was erased.".into()
                         };
-                        controller.page.set_error(&format!("Mluva could not complete: {}. {recovery}", failure.message));
+                        controller.page.set_error(&format!(
+                            "Mluva could not complete: {}. {recovery}",
+                            failure.message
+                        ));
                         if let Some(entry) = failure.history_entry.clone() {
-                            if let Err(error) = controller.page.workspace.show_conversation(Some(entry), &[], false).and_then(|()| controller.page.workspace.refresh_history()) {
-                                controller.page.workspace.notice.set_label(&error.to_string());
+                            if let Err(error) = controller
+                                .page
+                                .workspace
+                                .show_conversation(Some(entry), &[], false)
+                                .and_then(|()| controller.page.workspace.refresh_history())
+                            {
+                                controller
+                                    .page
+                                    .workspace
+                                    .notice
+                                    .set_label(&error.to_string());
                             }
                         } else if !failure.output_text.is_empty()
-                            && let Err(error) = controller.page.workspace.show_transient(&failure.output_text, &failure.output_text) {
-                            controller.page.workspace.notice.set_label(&error.to_string());
+                            && let Err(error) = controller
+                                .page
+                                .workspace
+                                .show_transient(&failure.output_text, &failure.output_text)
+                        {
+                            controller
+                                .page
+                                .workspace
+                                .notice
+                                .set_label(&error.to_string());
                         }
                     } else {
                         controller.page.set_error(&error.to_string());
@@ -663,7 +700,6 @@ impl CaptureController {
         self.continuation.borrow_mut().take();
         self.continuation_source.borrow_mut().clear();
         self.page.workspace.finish_live();
-        self.page.workspace.set_screenshot_context(None, None);
         self.page.set_view_state(CaptureViewState::default());
     }
 }

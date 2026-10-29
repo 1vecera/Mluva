@@ -20,7 +20,6 @@ case "$mode" in
     history) suites=(history_controller) ;;
     capture) suites=(capture_lifecycle capture_factory) ;;
     meeting) suites=(meeting_controller) ;;
-    screenshots) suites=(application_screenshots) ;;
     text-targets) suites=(text_target recording_target) ;;
     browser-targets) suites=(browser_target); browser_case="${2:-}"; browser_engine="${3:-firefox}"; browser_activation="${4:-enabled}" ;;
     browser-application) suites=(application_shortcuts); browser_case=default; browser_engine="${3:-firefox}" ;;
@@ -91,11 +90,6 @@ if "$inside"; then
         export MLUVA_ACCOUNT_ORIGIN=http://127.0.0.1:48824
     fi
 
-    if [[ "$mode" == screenshots ]]; then
-        export MLUVA_SCREENSHOT_FIXTURE_ROOT="$OFFSCREEN_SESSION_ROOT/application-screenshot-case"
-        export PATH="$MLUVA_SCREENSHOT_FIXTURE_ROOT/tools:$PATH"
-    fi
-
     exec cargo test --locked -p mluva-gtk "${test_arguments[@]}" -- \
         --ignored --test-threads=1 --nocapture
 fi
@@ -134,13 +128,9 @@ fi
 if [[ "$mode" == browser-application ]]; then
     cargo build --locked -p mluva-gtk --example firefox_text_peer --example atspi_read_audit
 fi
-if [[ "$mode" == screenshots ]]; then
-    cargo build --locked -p mluva-workflows --bin screenshot-picker-fixture-peer --bin mluva-narrate \
-        -p mluva-shell --bin mluva-shell -p mluva-gtk --example screenshot_editor_peer
-fi
 if [[ "$mode" == capture ]]; then
     cargo build --locked -p mluva-providers --bin qwen-fixture-peer --bin local-asr-fixture-peer \
-        -p mluva-asr --bin mluva-asr-worker -p mluva-install --bin mluva-screenshot-editor
+        -p mluva-asr --bin mluva-asr-worker
 fi
 cargo test --locked -p mluva-gtk "${test_arguments[@]}" --no-run
 mkdir -p tmp/application

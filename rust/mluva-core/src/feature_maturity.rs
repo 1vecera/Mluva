@@ -27,15 +27,9 @@ pub const CAPABILITIES: &[Capability] = &[
         maturity: Maturity::Experimental,
     },
     Capability {
-        identifier: "screenshot_context",
-        title: "Screenshot context and narrated annotations",
-        summary: "Omarchy region capture, agent attachments and spoken Tensaku text boxes passed isolated checks; physical-key and microphone acceptance remain pending.",
-        maturity: Maturity::Experimental,
-    },
-    Capability {
         identifier: "screen_annotations",
         title: "Annotate the screen while dictating",
-        summary: "Opt-in Hyprland Shift ink and pins deliver keyframes with the transcript; overlay, capture and agent delivery passed an isolated headless sway run, while Hyprland bindings, the live portal and physical input await acceptance.",
+        summary: "Hyprland ink and pins use a configurable drawing key and deliver keyframes with the transcript; the configurable key and physical input await acceptance.",
         maturity: Maturity::Experimental,
     },
     Capability {

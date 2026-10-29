@@ -1,11 +1,5 @@
 [
   {
-    "identifier": "screenshot_context",
-    "title": "Screenshot context and narrated annotations",
-    "summary": "Omarchy region capture, visual AI context and spoken Tensaku text boxes passed isolated checks; physical-key and microphone acceptance remain pending.",
-    "maturity": "experimental"
-  },
-  {
     "identifier": "dictation",
     "title": "Recording and transcription",
     "summary": "F9 and the visible record control start, stop, and finalize ordinary dictation.",

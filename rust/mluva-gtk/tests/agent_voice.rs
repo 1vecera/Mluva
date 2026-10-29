@@ -343,7 +343,6 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         NativeBinaries {
             asr_worker: target.join("mluva-asr-worker"),
             audio_cleanup: target.join("mluva-audio-cleanup"),
-            screenshot_editor: target.join("mluva-screenshot-editor"),
         },
         ApplicationPlatform {
             compact_recording: Rc::new(|_| {}),

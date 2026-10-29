@@ -107,10 +107,6 @@ linux-recording-overlay-status:
 linux-recording-overlay-remove:
 	bash linux/configure-recording-overlay.sh remove
 
-.PHONY: linux-screenshot-test
-linux-screenshot-test:
-	bash linux/tests/run_application_smoke.sh screenshots
-
 .PHONY: linux-account-test
 linux-account-test:
 	bash linux/tests/run_application_smoke.sh account

@@ -54,8 +54,8 @@ if [[ "$widget_only" == true ]]; then
     exit 0
 fi
 cargo build --locked --release --workspace --target-dir "$target_dir" \
-    --bin mluva --bin mluva-shell --bin mluva-narrate --bin mluva-asr-worker \
-    --bin mluva-audio-cleanup --bin mluva-install-widget --bin mluva-screenshot-editor \
+    --bin mluva --bin mluva-shell --bin mluva-asr-worker \
+    --bin mluva-audio-cleanup --bin mluva-install-widget \
     --bin mluva-uninstall --bin mluva-install --bin mluva-package
 # Cargo selects the executable directory, including a configured build target.
 # The builder uses its own siblings, never stale files in a guessed cache path.

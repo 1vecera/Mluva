@@ -1,9 +1,8 @@
 //! One annotated recording: overlays, temporary bindings, clean frames and focus events on the
 //! recording clock, handed over as a frozen `Capture` when recording stops.
 //!
-//! Nothing is grabbed beyond one start frame until the first ink or pin, so a recording without
-//! marks costs one frame on Hyprland and none elsewhere. Raw frames live only in a memory-backed
-//! runtime directory, bounded in count and bytes.
+//! Frames are grabbed only for ink or pins. Raw frames live only in a memory-backed runtime
+//! directory, bounded in count and bytes.
 use super::{
     hyprland,
     overlay::{Motion, Overlay},
@@ -11,10 +10,10 @@ use super::{
 use crate::async_runtime::DesktopRuntime;
 use gtk::{gdk, prelude::*};
 use mluva_annotate::{
-    keyframes::screen_diff,
     model::{Capture, Frame, FrameReason, Screen, ScreenEvent, Stroke, StrokePoint, WindowBox},
     render,
 };
+use mluva_core::annotations::AnnotationModifier;
 use std::{
     cell::{Cell, RefCell},
     os::unix::fs::{MetadataExt, PermissionsExt},
@@ -25,13 +24,6 @@ use std::{
 };
 use tokio::io::AsyncBufReadExt;
 
-/// Once drawing has started, a sample is taken this often and kept only if the screen changed.
-const SAMPLE_EVERY: Duration = Duration::from_secs(2);
-const SAMPLE_NOVELTY: f32 = 0.02;
-/// A window or workspace change is captured once it has settled and no ink is on screen.
-const SETTLE: Duration = Duration::from_millis(700);
-const INK_RETRY: Duration = Duration::from_millis(500);
-const INK_RETRIES: u8 = 6;
 /// Raw frames kept at most, by count and by bytes. They live in memory, so the bound is firm.
 const MAX_FRAMES: usize = 120;
 const MAX_FRAME_BYTES: u64 = 192 * 1024 * 1024;
@@ -71,8 +63,6 @@ struct State {
     in_flight: usize,
     bytes: u64,
     stopped_at: Option<u64>,
-    /// The first ink or pin started change sampling.
-    armed: bool,
     /// `collect` has handed the frames to the bundle writer; nothing may change them now.
     sealed: bool,
 }
@@ -83,6 +73,7 @@ pub struct AnnotationSession {
     runtime: Rc<DesktopRuntime>,
     clock: Clock,
     token: String,
+    modifier: AnnotationModifier,
     frames: tempfile::TempDir,
     cleanup: PathBuf,
     overlays: RefCell<Vec<Rc<Overlay>>>,
@@ -93,8 +84,6 @@ pub struct AnnotationSession {
     /// Bindings were sent to Hyprland and must be removed at Stop.
     binding: Cell<bool>,
     idle: Rc<tokio::sync::Notify>,
-    sampler: RefCell<Option<glib::SourceId>>,
-    settle: RefCell<Option<glib::SourceId>>,
     events: RefCell<Option<glib::JoinHandle<()>>>,
     watchdog: RefCell<Option<tokio::process::ChildStdin>>,
     message: Rc<dyn Fn(&str)>,
@@ -134,6 +123,7 @@ impl AnnotationSession {
         owner: &str,
         runtime_directory: &Path,
         cleanup: &Path,
+        modifier: AnnotationModifier,
         clock: Clock,
         message: Rc<dyn Fn(&str)>,
     ) -> Result<Rc<Self>, String> {
@@ -165,6 +155,7 @@ impl AnnotationSession {
             runtime,
             clock,
             token: glib::uuid_string_random().replace('-', ""),
+            modifier,
             frames,
             cleanup: cleanup.into(),
             overlays: RefCell::new(vec![]),
@@ -173,8 +164,6 @@ impl AnnotationSession {
             ready: Cell::new(false),
             binding: Cell::new(false),
             idle: Rc::new(tokio::sync::Notify::new()),
-            sampler: RefCell::new(None),
-            settle: RefCell::new(None),
             events: RefCell::new(None),
             watchdog: RefCell::new(None),
             message,
@@ -230,15 +219,14 @@ impl AnnotationSession {
         if self.desktop == Desktop::Hyprland {
             // From here on the bindings may exist in Hyprland, so Stop always removes them.
             self.binding.set(true);
-            hyprland::bind(&self.token).await?;
+            hyprland::bind(&self.token, self.modifier).await?;
             if self.closed.get() {
                 return Ok(());
             }
             self.watch_focus();
             self.ready.set(true);
-            self.sample(FrameReason::Start, 0);
         } else {
-            // Nothing binds Shift here; the first annotation action arms the session.
+            // Nothing binds the drawing key here; application actions drive the overlay.
             self.ready.set(true);
         }
         Ok(())
@@ -299,22 +287,6 @@ impl AnnotationSession {
         (self.clock)()
     }
 
-    /// Start change sampling at the first ink or pin.
-    fn arm(self: &Rc<Self>) {
-        if std::mem::replace(&mut self.state.borrow_mut().armed, true) {
-            return;
-        }
-        let weak = Rc::downgrade(self);
-        let source = glib::timeout_add_local(SAMPLE_EVERY, move || {
-            let Some(owner) = weak.upgrade().filter(|owner| !owner.closed.get()) else {
-                return glib::ControlFlow::Break;
-            };
-            owner.sample(FrameReason::Sample, 0);
-            glib::ControlFlow::Continue
-        });
-        self.sampler.replace(Some(source));
-    }
-
     /// Shift went down or up.
     pub fn ink(self: &Rc<Self>, down: bool) {
         if self.closed.get() || !self.ready.get() {
@@ -333,7 +305,6 @@ impl AnnotationSession {
                 state.pressed_stroke = None;
                 state.presses
             };
-            self.arm();
             for overlay in &overlays {
                 overlay.hide_ink();
                 overlay.set_drawing(true);
@@ -413,12 +384,7 @@ impl AnnotationSession {
             }
             // This stroke's ink stays hidden until the clean frame under it has been taken.
             let shown = overlay.clone();
-            self.capture(
-                screen,
-                FrameReason::Mark,
-                t,
-                Box::new(move || shown.reveal(line)),
-            );
+            self.capture(screen, t, Box::new(move || shown.reveal(line)));
         }
         overlay.point(x, y);
     }
@@ -481,7 +447,6 @@ impl AnnotationSession {
         let Some(t) = self.now() else {
             return;
         };
-        self.arm();
         self.state.borrow_mut().pending_pins += 1;
         let weak = Rc::downgrade(self);
         let desktop = self.desktop;
@@ -539,7 +504,6 @@ impl AnnotationSession {
             let overlay = owner.overlay(&output.name);
             owner.capture(
                 &output.name,
-                FrameReason::Mark,
                 t,
                 Box::new(move || {
                     if let Some(overlay) = overlay {
@@ -568,39 +532,15 @@ impl AnnotationSession {
         }
     }
 
-    /// Make room under the frame bounds, evicting the oldest change sample. False when only
-    /// mark, window and start frames remain and the bound is reached.
-    fn room(state: &mut State) -> bool {
-        while state.capture.frames.len() + state.in_flight >= MAX_FRAMES
-            || state.bytes >= MAX_FRAME_BYTES
-        {
-            let Some(index) = state
-                .capture
-                .frames
-                .iter()
-                .position(|frame| frame.reason == FrameReason::Sample)
-            else {
-                return false;
-            };
-            let dropped = state.capture.frames.remove(index);
-            state.bytes = state
-                .bytes
-                .saturating_sub(std::fs::metadata(&dropped.path).map_or(0, |m| m.len()));
-            let _ = std::fs::remove_file(dropped.path);
-        }
-        true
+    /// Keep raw mark frames within the recording's resource bounds.
+    fn room(state: &State) -> bool {
+        state.capture.frames.len() + state.in_flight < MAX_FRAMES && state.bytes < MAX_FRAME_BYTES
     }
 
-    fn capture(
-        self: &Rc<Self>,
-        screen: &str,
-        reason: FrameReason,
-        t: u64,
-        done: Box<dyn FnOnce()>,
-    ) {
+    fn capture(self: &Rc<Self>, screen: &str, t: u64, done: Box<dyn FnOnce()>) {
         let path = {
             let mut state = self.state.borrow_mut();
-            if state.sealed || !Self::room(&mut state) {
+            if state.sealed || !Self::room(&state) {
                 // A stroke without its own frame uses the latest one before it.
                 drop(state);
                 done();
@@ -638,7 +578,7 @@ impl AnnotationSession {
             };
             done();
             match weak.upgrade() {
-                Some(owner) => owner.captured(screen, reason, t, path, decoded, windows),
+                Some(owner) => owner.captured(screen, t, path, decoded, windows),
                 None => {
                     let _ = std::fs::remove_file(&path);
                 }
@@ -649,7 +589,6 @@ impl AnnotationSession {
     fn captured(
         &self,
         screen: String,
-        reason: FrameReason,
         t: u64,
         path: PathBuf,
         decoded: Option<(u32, u32, Vec<f32>)>,
@@ -665,18 +604,6 @@ impl AnnotationSession {
             let _ = std::fs::remove_file(&path);
             return;
         };
-        // An unchanged screen reuses the clean frame already taken; strokes find it by time.
-        if state
-            .capture
-            .frames
-            .iter()
-            .rev()
-            .find(|frame| frame.screen == screen)
-            .is_some_and(|last| screen_diff(&last.luma, &luma) < SAMPLE_NOVELTY)
-        {
-            let _ = std::fs::remove_file(&path);
-            return;
-        }
         let output = state.outputs.iter().find(|o| o.name == screen).cloned();
         let windows = output
             .map(|o| {
@@ -702,68 +629,12 @@ impl AnnotationSession {
         state.capture.frames.push(Frame {
             t,
             screen,
-            reason,
+            reason: FrameReason::Mark,
             path,
             width,
             height,
             luma,
             windows,
-        });
-    }
-
-    fn ink_visible(&self) -> bool {
-        self.state.borrow().ink.is_some()
-            || self.overlays.borrow().iter().any(|o| o.has_visible_ink())
-    }
-
-    /// Capture the focused output. Change samples skip a moment with ink on screen or a grab
-    /// running; window changes wait for the ink to fade.
-    fn sample(self: &Rc<Self>, reason: FrameReason, attempt: u8) {
-        if reason != FrameReason::Start && self.ink_visible() {
-            if reason == FrameReason::Window && attempt < INK_RETRIES {
-                let weak = Rc::downgrade(self);
-                glib::timeout_add_local_once(INK_RETRY, move || {
-                    if let Some(owner) = weak.upgrade().filter(|owner| !owner.closed.get()) {
-                        owner.sample(reason, attempt + 1);
-                    }
-                });
-            }
-            return;
-        }
-        if reason == FrameReason::Sample && self.state.borrow().in_flight > 0 {
-            return;
-        }
-        let weak = Rc::downgrade(self);
-        let desktop = self.desktop;
-        self.runtime.spawn(async move {
-            let outputs = match desktop {
-                Desktop::Hyprland => hyprland::outputs().await,
-                Desktop::Layer => vec![],
-            };
-            let Some(owner) = weak.upgrade().filter(|owner| !owner.closed.get()) else {
-                return;
-            };
-            // Ink may have appeared while the outputs were read.
-            if reason != FrameReason::Start && owner.ink_visible() {
-                return;
-            }
-            let outputs = if outputs.is_empty() {
-                owner.state.borrow().outputs.clone()
-            } else {
-                outputs
-            };
-            let Some(focused) = outputs
-                .iter()
-                .find(|output| output.focused)
-                .or(outputs.first())
-                .map(|output| output.name.clone())
-            else {
-                return;
-            };
-            owner.state.borrow_mut().outputs = outputs;
-            if let Some(t) = owner.now() {
-                owner.capture(&focused, reason, t, Box::new(|| {}));
-            }
         });
     }
 
@@ -786,23 +657,6 @@ impl AnnotationSession {
                 if owner.state.borrow().capture.events.len() < 500 {
                     owner.state.borrow_mut().capture.events.push(event);
                 }
-                // Before the first mark a change costs nothing: no frame is taken.
-                if !owner.state.borrow().armed {
-                    continue;
-                }
-                if let Some(previous) = owner.settle.borrow_mut().take() {
-                    previous.remove();
-                }
-                let settled = Rc::downgrade(&owner);
-                let source = glib::timeout_add_local_once(SETTLE, move || {
-                    if let Some(owner) = settled.upgrade() {
-                        owner.settle.borrow_mut().take();
-                        if !owner.closed.get() {
-                            owner.sample(FrameReason::Window, 0);
-                        }
-                    }
-                });
-                owner.settle.replace(Some(source));
             }
         });
         self.events.replace(Some(task));
@@ -813,12 +667,6 @@ impl AnnotationSession {
     pub fn stop(&self) {
         if self.closed.replace(true) {
             return;
-        }
-        if let Some(source) = self.sampler.borrow_mut().take() {
-            source.remove();
-        }
-        if let Some(source) = self.settle.borrow_mut().take() {
-            source.remove();
         }
         if let Some(task) = self.events.borrow_mut().take() {
             task.abort();
@@ -1113,19 +961,16 @@ mod tests {
     }
 
     #[test]
-    fn the_frame_bound_evicts_samples_first_and_never_mark_frames() {
+    fn the_frame_bound_preserves_mark_frames() {
         let directory = tempfile::tempdir().unwrap();
         let mut state = State::default();
-        for (i, reason) in [FrameReason::Mark, FrameReason::Sample, FrameReason::Sample]
-            .into_iter()
-            .enumerate()
-        {
+        for i in 0..3 {
             let path = directory.path().join(format!("{i}.jpg"));
             std::fs::write(&path, vec![0; 10]).unwrap();
             state.capture.frames.push(Frame {
                 t: i as u64,
                 screen: "DP-1".into(),
-                reason,
+                reason: FrameReason::Mark,
                 path,
                 width: 1,
                 height: 1,
@@ -1135,21 +980,12 @@ mod tests {
             state.bytes += 10;
         }
         state.in_flight = MAX_FRAMES - 3;
-        assert!(AnnotationSession::room(&mut state));
-        assert_eq!(state.capture.frames.len(), 2);
-        assert_eq!(state.bytes, 20);
-        assert!(!directory.path().join("1.jpg").exists());
-        state.in_flight = MAX_FRAMES;
-        assert!(!AnnotationSession::room(&mut state));
-        assert_eq!(
-            state
-                .capture
-                .frames
-                .iter()
-                .map(|f| f.reason)
-                .collect::<Vec<_>>(),
-            [FrameReason::Mark]
-        );
+        assert!(!AnnotationSession::room(&state));
+        state.in_flight -= 1;
+        assert!(AnnotationSession::room(&state));
+        state.bytes = MAX_FRAME_BYTES;
+        assert!(!AnnotationSession::room(&state));
+        assert_eq!(state.capture.frames.len(), 3);
         assert!(directory.path().join("0.jpg").exists());
     }
 }

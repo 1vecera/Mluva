@@ -1,4 +1,4 @@
-//! Draw on the screen while dictating on Hyprland: hold Shift and move to ink, Shift-click to
+//! Draw on the screen while dictating on Hyprland: hold the drawing key and move to ink, click to
 //! pin. Marked recordings deliver keyframes and a short summary with the transcript.
 pub mod hyprland;
 mod overlay;

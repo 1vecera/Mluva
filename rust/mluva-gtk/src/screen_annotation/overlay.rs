@@ -38,9 +38,6 @@ impl Painting {
         self.pulses
             .retain(|(_, _, started)| now.duration_since(*started) < PULSE);
     }
-    fn visible(&self) -> bool {
-        self.lines.iter().any(|line| !line.held) || !self.pulses.is_empty()
-    }
 }
 
 /// Pointer motion over one screen, monitor-local logical pixels.
@@ -227,12 +224,6 @@ impl Overlay {
             .lines
             .retain(|line| line.released.is_none());
         self.area.queue_draw();
-    }
-
-    pub fn has_visible_ink(&self) -> bool {
-        let mut painting = self.painting.borrow_mut();
-        painting.expire(Instant::now());
-        painting.visible()
     }
 
     /// Start a hidden line; `reveal` with the returned id shows it.

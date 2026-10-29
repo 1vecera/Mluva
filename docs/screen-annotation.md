@@ -1,14 +1,16 @@
 # Annotate the screen while dictating
 
-Show an agent a problem on screen while you describe it. While Mluva records, hold Shift and move the pointer to draw; Shift-click drops a numbered pin. When you stop, the destination receives your transcript followed by a short summary: one line per keyframe with what you were saying at that moment and the absolute path of an annotated image. Claude Code and Codex can open those paths directly.
+Show an agent a problem on screen while you describe it. While Mluva records, hold the drawing key and move the pointer to draw; click while holding it to place a numbered pin. The key defaults to Shift and can be changed in Settings. When you stop, the destination receives your transcript followed by a short summary: one line per keyframe with what you were saying at that moment and the absolute path of an annotated image. Claude Code and Codex can open those paths directly.
 
-This is Experimental and Hyprland-only for automatic Shift handling. It is on by default.
+This is Experimental and Hyprland-only for automatic drawing-key handling on Linux. It is on by default.
 
 ## Turn it off or on
 
-Open **Settings → Capture → Screen annotation** and switch **Annotate the screen while dictating**. The choice saves automatically to `screen-annotations.json` beside Mluva's other settings and applies to the next recording. Ordinary dictation (F9) and agent dictation (the agent key, the session wheel and `mluva herdr record`) both support it. Phone recordings do not.
+Open **Settings → Capture → Screen annotation** and switch **Annotate the screen while dictating**. Choose Shift, Control, Alt or Super in **Drawing key**. The choices save automatically to `screen-annotations.json` beside Mluva's other settings and apply to the next recording. Ordinary dictation (F9) and agent dictation (the agent key, the session wheel and `mluva herdr record`) both support it. Phone recordings do not.
 
 ## Draw while you talk
+
+With the default Shift key:
 
 | Gesture | Result |
 | --- | --- |
@@ -16,20 +18,20 @@ Open **Settings → Capture → Screen annotation** and switch **Annotate the sc
 | Shift-click | A numbered pin where the pointer is. The click does not reach the application. |
 | Anything else | Clicks, scrolling and typing reach your applications as usual. Shift still types capitals. |
 
-Mluva adds the two Hyprland bindings, Shift on its own and Shift with the left button, only while an annotated recording runs, and only after the desktop's shortcut portal has approved Mluva's ink and pin actions for this run. Without that approval, for example when global shortcuts are disabled or the portal is missing or still waiting, annotation stays off for the recording and says why, so Shift-click keeps working everywhere. If Shift or Shift-click already has another Hyprland binding, annotation also stays off and says why.
+Mluva adds two Hyprland bindings, the selected key on its own and with the left button, only while an annotated recording runs, and only after the desktop's shortcut portal has approved Mluva's ink and pin actions for this run. Without that approval, for example when global shortcuts are disabled or the portal is missing or still waiting, annotation stays off for the recording and says why. If the chosen key or its click shortcut already has another Hyprland binding, annotation also stays off and says why.
 
 Mluva removes its bindings when recording stops, is cancelled or fails, and when it quits. If any step of adding them fails, it removes them again at once. A small watchdog removes them if Mluva crashes. A cgroup kill, such as `systemctl --user stop`, systemd-oomd or `pkill mluva`, also takes the watchdog: then the next start of Mluva with annotation on, or turning the setting off, removes the bindings and the raw frames left behind.
 
-Stopping works exactly as before. A recording without marks behaves exactly as before: it takes one frame when recording starts on Hyprland and nothing else, adds nothing to the delivered text and waits for nothing at Stop. Screen sampling, and window-change frames, begin only with the first ink or pin. Accidental pointer drift while typing a capital is not treated as a mark. If no speech is recognized, the recording completes quietly as before and its marks are discarded.
+Mluva captures a screen image when you begin drawing or place a pin. It does not capture a screen image at recording start, on a timer or after a window change. A recording without marks adds nothing to the delivered text and waits for nothing at Stop. Small pointer drift while typing a capital is discarded. If no speech is recognized, the recording completes quietly and its marks are discarded.
 
 ## What the agent receives
 
-When you stop, Mluva chooses 6–12 keyframes, or fewer when the recording has fewer distinct moments. Every mark or pin gesture gets its own keyframe; strokes drawn in quick succession share one. The remaining keyframes come from settled screen and window changes and from spoken cues such as "now", "here", "look", "tady" and "podívej", each only when it shows something new. Each keyframe shows whole windows, never text cut mid-word: a marked keyframe is cropped to the window under the marks with a small margin, widened to keep every mark, and other keyframes to the window that had focus. Where Mluva has no window geometry, the whole screen is kept. The ink is composited onto a clean frame, with a `#N M:SS` badge above it. A contact sheet shows all keyframes in time order.
+When you stop, Mluva sends keyframes of the marked areas, matched to what you said. Strokes drawn in quick succession can share a keyframe; the bundle contains at most 12. Each keyframe is cropped to the window under the marks with a small margin, widened to keep the marks, so text is not cut mid-word. Where Mluva has no window geometry, the whole screen is kept. The ink is composited onto a clean frame, with a `#N M:SS` badge above it. A contact sheet shows the keyframes in time order.
 
 ```text
 Fix the settings page. Look at this Save button, it sits outside the card.
 
-[Screen annotation · 0:17 · 3 keyframes · contact sheet /home/you/.local/share/mluva/annotations/3f9c2a1b/sheet.png]
+[Screen annotation · 0:17 · 2 keyframes · contact sheet /home/you/.local/share/mluva/annotations/3f9c2a1b/sheet.png]
 - #1 (0:04) [circled] “Look at this Save button, it sits outside the card.” /home/you/.local/share/mluva/annotations/3f9c2a1b/01.png
 - #2 (0:10) [underlined] “And this sync folder label runs past the right edge.” /home/you/.local/share/mluva/annotations/3f9c2a1b/02.png
 ```
@@ -46,6 +48,6 @@ Incognito never annotates: recording continues without the overlay or bindings.
 
 ## Limits
 
-Only Hyprland gets automatic Shift handling, pointer position for pins, window geometry for crops and focus-change keyframes. On another layer-shell desktop the overlay and frame capture work, driven by Mluva's `annotation-ink-down`, `annotation-ink-up` and `annotation-pin` application actions; nothing binds them for you. GNOME and X11 sessions record without annotation.
+Only Hyprland gets automatic drawing-key handling, pointer position for pins and window geometry for crops. On another layer-shell desktop the overlay and frame capture work, driven by Mluva's `annotation-ink-down`, `annotation-ink-up` and `annotation-pin` application actions; nothing binds them for you. GNOME and X11 sessions record without annotation.
 
-After you release Shift, the first click without moving the pointer is absorbed by the transparent overlay; move the pointer slightly first. A stroke begun in the same instant as pressing Shift starts about 50 ms of motion late; a brief pause before moving avoids that. Each frame grab may briefly show Hyprland's screen-sharing indicator in bars that follow screencast events. The [verification record](verification/screen-annotations/README.md) lists what has and has not been exercised.
+After you release the drawing key, the first click without moving the pointer is absorbed by the transparent overlay; move the pointer slightly first. A stroke begun in the same instant as pressing the key starts about 50 ms of motion late; a brief pause before moving avoids that. Each frame grab may briefly show Hyprland's screen-sharing indicator in bars that follow screencast events. The [verification record](verification/screen-annotations/README.md) lists what has and has not been exercised.

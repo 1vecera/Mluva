@@ -7,8 +7,8 @@
 //! sparse frames it captured while recording.
 use crate::{
     model::{
-        BASE_KEYFRAMES, Capture, Frame, Keyframe, KeyframeReason, MAX_KEYFRAMES, Mark, ScreenEvent,
-        Timing, Transcript, keyframe_budget,
+        BASE_KEYFRAMES, Capture, Frame, FrameReason, Keyframe, KeyframeReason, MAX_KEYFRAMES, Mark,
+        ScreenEvent, Timing, Transcript, keyframe_budget,
     },
     sketch::marks_of,
     timing::said_per_keyframe,
@@ -349,6 +349,11 @@ pub fn select(capture: &Capture, transcript: &Transcript) -> (Vec<Mark>, Vec<Key
         marks: Vec::new(),
         event: "the screen at the start".into(),
     });
+    // New recordings contain only frames taken for marks; do not invent unmarked moments from
+    // them. Older captures with background samples keep their historical planning behavior.
+    if frames.iter().all(|frame| frame.reason == FrameReason::Mark) {
+        candidates.retain(|candidate| !candidate.marks.is_empty());
+    }
     candidates.sort_by(|a, b| {
         a.marks
             .is_empty()

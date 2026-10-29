@@ -119,8 +119,21 @@ impl Transaction {
     }
 
     pub fn retire(&mut self, path: &Path) -> Result<()> {
-        checkpoint()?;
         let expected = Snapshot::read(path)?;
+        self.retire_snapshot(path, &expected)
+    }
+
+    /// Retire only the original managed symlink, restoring it on rollback.
+    pub fn retire_owned_link(&mut self, path: &Path, target: &Path) -> Result<()> {
+        let expected = Snapshot::read(path)?;
+        if fs::read_link(path).is_ok_and(|value| value == target) {
+            self.retire_snapshot(path, &expected)?;
+        }
+        Ok(())
+    }
+
+    fn retire_snapshot(&mut self, path: &Path, expected: &Snapshot) -> Result<()> {
+        checkpoint()?;
         if expected.0.is_empty() {
             return Ok(());
         }

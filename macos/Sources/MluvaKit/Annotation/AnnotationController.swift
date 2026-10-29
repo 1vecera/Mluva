@@ -1,24 +1,42 @@
 import AppKit
 import Observation
 
-/// Screen annotation while dictating: hold Shift and move to draw, Shift-click to drop a
+public enum AnnotationModifier: String, CaseIterable, Identifiable {
+    case shift, control, alt, superKey = "super"
+
+    public var id: String { rawValue }
+    public var label: String {
+        switch self {
+        case .shift: "Shift"
+        case .control: "Control"
+        case .alt: "Option"
+        case .superKey: "Command"
+        }
+    }
+    var flags: NSEvent.ModifierFlags {
+        switch self {
+        case .shift: .shift
+        case .control: .control
+        case .alt: .option
+        case .superKey: .command
+        }
+    }
+}
+
+/// Screen annotation while dictating: hold the chosen key and move to draw, click to drop a
 /// numbered pin. A marked recording becomes a private bundle of keyframes whose summary follows
-/// the dictation; one without marks costs a single frame and adds nothing.
+/// the dictation; screen images are captured only while drawing or pinning.
 @MainActor
 @Observable
 public final class AnnotationController {
     public private(set) var enabled = true
+    public private(set) var modifier = AnnotationModifier.shift
     /// Drawing is possible for the current recording.
     public private(set) var active = false
     /// Why annotation is unavailable for this recording, or what went wrong with its bundle.
     public private(set) var notice: String?
     public private(set) var settingsError: String?
 
-    /// Once drawing has started, a sample is taken this often and kept only if the screen changed.
-    static let sampleEvery: Duration = .seconds(2)
-    static let sampleNovelty: Float = 0.02
-    /// A focus change is captured once it has settled.
-    static let settle: Duration = .milliseconds(700)
     /// Raw frames kept at most, by count and by bytes. They live in memory.
     static let maxFrames = 120
     static let maxFrameBytes = 192 * 1024 * 1024
@@ -36,6 +54,7 @@ public final class AnnotationController {
         let owner: String
         let started: Date
         let screens: [AnnotatedScreen]
+        let modifier: AnnotationModifier
         var capture = Annotation.Capture()
         var held: [HeldFrame] = []
         var bytes = 0
@@ -44,18 +63,16 @@ public final class AnnotationController {
         var ink: (stroke: Int?, screen: AnnotatedScreen, origin: CGPoint)?
         var pins: UInt32 = 0
         var inFlight = 0
-        var armed = false
         var closed = false
         var ticker: Timer?
-        var sampler: Task<Void, Never>?
-        var settle: Task<Void, Never>?
         var observers: [NSObjectProtocol] = []
         var preview: () -> Int
 
-        init(owner: String, started: Date, screens: [AnnotatedScreen], preview: @escaping () -> Int) {
+        init(owner: String, started: Date, screens: [AnnotatedScreen], modifier: AnnotationModifier, preview: @escaping () -> Int) {
             self.owner = owner
             self.started = started
             self.screens = screens
+            self.modifier = modifier
             self.preview = preview
             capture.screens = screens.map(\.model)
         }
@@ -70,7 +87,9 @@ public final class AnnotationController {
     /// Read the opt-in once the stores are open.
     public func load() {
         do {
-            enabled = try core.call("annotate.settings")["enabled"]?.bool ?? true
+            let settings = try core.call("annotate.settings")
+            enabled = settings["enabled"]?.bool ?? true
+            modifier = (settings["modifier"]?.string).flatMap { AnnotationModifier(rawValue: $0) } ?? .shift
             settingsError = nil
         } catch {
             enabled = false
@@ -84,6 +103,16 @@ public final class AnnotationController {
             enabled = value
             settingsError = nil
             if !value { session.map(stop) }
+        } catch {
+            settingsError = "\(error)"
+        }
+    }
+
+    public func setModifier(_ value: AnnotationModifier) {
+        do {
+            try core.call("annotate.save_settings", ["modifier": .string(value.rawValue)])
+            modifier = value
+            settingsError = nil
         } catch {
             settingsError = "\(error)"
         }
@@ -105,7 +134,7 @@ public final class AnnotationController {
             notice = "Screen annotation needs Screen Recording access. Recording continues without it."
             return
         }
-        let session = Session(owner: owner, started: startedAt, screens: AnnotatedScreen.all(), preview: preview)
+        let session = Session(owner: owner, started: startedAt, screens: AnnotatedScreen.all(), modifier: modifier, preview: preview)
         self.session = session
         session.overlays = session.screens.map { screen in
             InkOverlay(screen: screen) { [weak self] point in self?.pin(at: point, on: screen) }
@@ -128,7 +157,6 @@ public final class AnnotationController {
             },
         ]
         active = true
-        if let screen = pointerScreen(session) { grab(screen, reason: .start) }
     }
 
     /// End drawing at once: overlays, timers and observers go; grabs in flight still finish.
@@ -140,8 +168,6 @@ public final class AnnotationController {
         session.closed = true
         session.capture.duration_ms = session.now
         session.ticker?.invalidate()
-        session.sampler?.cancel()
-        session.settle?.cancel()
         session.observers.forEach(NSWorkspace.shared.notificationCenter.removeObserver)
         session.overlays.forEach { $0.close() }
         session.overlays = []
@@ -219,14 +245,14 @@ public final class AnnotationController {
         session.overlays.first { $0.screen.name == screen.name }
     }
 
-    /// Shift alone, read from the system without any permission, drives the ink.
+    /// The selected modifier, read from the system without any permission, drives the ink.
     private func tick() {
         guard let session, !session.closed else { return }
         let flags = NSEvent.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting([.capsLock, .numericPad, .function])
-        let shift = flags == .shift
-        session.overlays.forEach { $0.holding = shift; $0.tick() }
+        let drawing = flags == session.modifier.flags
+        session.overlays.forEach { $0.holding = drawing; $0.tick() }
         recordPreview(session)
-        guard shift, let screen = pointerScreen(session) else {
+        guard drawing, let screen = pointerScreen(session) else {
             if let ink = session.ink { endStroke(session, ink) }
             return
         }
@@ -244,7 +270,7 @@ public final class AnnotationController {
             session.capture.strokes[index].t1 = t
             overlay(session, screen)?.extend(index, to: point)
         } else if hypot(point.x - ink.origin.x, point.y - ink.origin.y) >= 2 {
-            // The stroke begins once the pointer moves, from where Shift went down.
+            // The stroke begins once the pointer moves, from where the drawing key went down.
             let index = session.capture.strokes.count
             session.capture.strokes.append(.init(
                 t0: t, t1: t, screen: screen.name, pin: nil,
@@ -253,8 +279,7 @@ public final class AnnotationController {
             session.ink = ink
             overlay(session, screen)?.begin(index, at: ink.origin)
             overlay(session, screen)?.extend(index, to: point)
-            grab(screen, reason: .mark)
-            arm(session)
+            grab(screen)
         }
     }
 
@@ -279,27 +304,13 @@ public final class AnnotationController {
         let t = session.now
         session.capture.strokes.append(.init(t0: t, t1: t, screen: screen.name, pin: session.pins, points: [.init(x: point.x, y: point.y, t: t)]))
         overlay(session, screen)?.pulse(at: point)
-        grab(screen, reason: .mark)
-        arm(session)
+        grab(screen)
     }
 
     private func recordPreview(_ session: Session) {
         let words = UInt64(session.preview())
         guard words > 0, session.capture.preview.last?.last != words else { return }
         session.capture.preview.append([session.now, words])
-    }
-
-    /// Start change sampling at the first ink or pin.
-    private func arm(_ session: Session) {
-        guard !session.armed else { return }
-        session.armed = true
-        session.sampler = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: Self.sampleEvery)
-                guard let self, let session = self.session, !session.closed else { return }
-                if session.inFlight == 0, let screen = self.pointerScreen(session) { self.grab(screen, reason: .sample) }
-            }
-        }
     }
 
     private func focusChanged(_ event: Annotation.Event) {
@@ -309,20 +320,11 @@ public final class AnnotationController {
         case .window(_, let name): session.capture.events.append(.window(t: t, name: name))
         case .workspace(_, let name): session.capture.events.append(.workspace(t: t, name: name))
         }
-        // Before the first mark a change costs nothing: no frame is taken.
-        guard session.armed else { return }
-        session.settle?.cancel()
-        session.settle = Task { [weak self] in
-            try? await Task.sleep(for: Self.settle)
-            guard !Task.isCancelled, let self, let session = self.session, !session.closed,
-                  let screen = self.pointerScreen(session) else { return }
-            self.grab(screen, reason: .window)
-        }
     }
 
-    /// Capture `screen` without Mluva's windows. A sample is kept only when the view changed.
-    private func grab(_ screen: AnnotatedScreen, reason: Annotation.FrameReason) {
-        guard let session, !session.closed || reason == .mark else { return }
+    /// Capture a marked screen without Mluva's windows.
+    private func grab(_ screen: AnnotatedScreen) {
+        guard let session, !session.closed else { return }
         let t = session.now
         let windows = ScreenFrames.windows(on: screen)
         session.inFlight += 1
@@ -340,25 +342,14 @@ public final class AnnotationController {
             session.inFlight -= 1
             guard let self, let held else { return }
             self.keep(held, in: session, frame: .init(
-                t: t, screen: screen.name, reason: reason, path: "memory:\(t)-\(session.held.count)",
+                t: t, screen: screen.name, reason: .mark, path: "memory:\(t)-\(session.held.count)",
                 width: size.0, height: size.1, windows: windows))
         }
     }
 
     private func keep(_ held: HeldFrame, in session: Session, frame: Annotation.Frame) {
-        if frame.reason == .sample,
-           let previous = session.capture.frames.indices.last(where: { session.capture.frames[$0].screen == frame.screen }) {
-            let diff = (try? core.call("annotate.diff", [
-                "a": try JSONValue(encoding: session.held[previous].luma), "b": try JSONValue(encoding: held.luma),
-            ]).number) ?? 1
-            guard Float(diff) > Self.sampleNovelty else { return }
-        }
-        // Make room by evicting the oldest change sample; marks, window and start frames stay.
-        while session.capture.frames.count >= Self.maxFrames || session.bytes + held.data.count > Self.maxFrameBytes {
-            guard let oldest = session.capture.frames.firstIndex(where: { $0.reason == .sample }) else { return }
-            session.capture.frames.remove(at: oldest)
-            session.bytes -= session.held.remove(at: oldest).data.count
-        }
+        guard session.capture.frames.count < Self.maxFrames,
+              session.bytes + held.data.count <= Self.maxFrameBytes else { return }
         session.capture.frames.append(frame)
         session.held.append(held)
         session.bytes += held.data.count

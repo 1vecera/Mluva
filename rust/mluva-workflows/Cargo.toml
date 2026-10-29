@@ -41,17 +41,3 @@ path = "../mluva-audio/src/bin/cleanup.rs"
 test = false
 doc = false
 bench = false
-
-[[bin]]
-name = "screenshot-picker-fixture-peer"
-path = "tests/support/screenshot_picker_peer.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
-name = "screenshot-capture-fixture-driver"
-path = "tests/support/screenshot_capture_driver.rs"
-test = false
-doc = false
-bench = false

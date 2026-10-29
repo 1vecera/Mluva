@@ -85,7 +85,6 @@ pub struct ApplicationServices {
     pub personalization: Rc<RefCell<PersonalizationStore>>,
     pub history: HistoryStore,
     pub conversations: ConversationStore,
-    pub screenshots: ScreenshotStore,
     pub meetings: Arc<Mutex<MeetingStore>>,
     pub recovery_message: String,
     pub diagnostics: DiagnosticsStore,
@@ -180,7 +179,6 @@ impl ApplicationServices {
             personalization: Rc::new(RefCell::new(personalization)),
             history,
             conversations,
-            screenshots,
             meetings: Arc::new(Mutex::new(meetings)),
             recovery_message,
             diagnostics,
@@ -351,7 +349,6 @@ impl ApplicationServices {
 pub struct NativeBinaries {
     pub asr_worker: PathBuf,
     pub audio_cleanup: PathBuf,
-    pub screenshot_editor: PathBuf,
 }
 impl NativeBinaries {
     pub fn beside_application() -> std::io::Result<Self> {
@@ -362,7 +359,6 @@ impl NativeBinaries {
         Ok(Self {
             asr_worker: directory.join("mluva-asr-worker"),
             audio_cleanup: directory.join("mluva-audio-cleanup"),
-            screenshot_editor: directory.join("mluva-screenshot-editor"),
         })
     }
 }

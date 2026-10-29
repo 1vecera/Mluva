@@ -318,7 +318,12 @@ private struct AnnotationSettings: View {
             Section {
                 Toggle(isOn: Binding(get: { model.annotation.enabled }, set: { model.annotation.setEnabled($0) })) {
                     Text("Annotate the screen while dictating")
-                    Text("While recording, hold Shift and move to draw; Shift-click drops a numbered pin. Marked recordings deliver keyframes and a short summary with the text.")
+                    Text("While recording, hold the drawing key and move to draw; click while holding it to place a pin.")
+                }
+                Picker("Drawing key", selection: Binding(get: { model.annotation.modifier }, set: { model.annotation.setModifier($0) })) {
+                    ForEach(AnnotationModifier.allCases) { key in
+                        Text(key.label).tag(key)
+                    }
                 }
                 if let error = model.annotation.settingsError {
                     Text(error).font(.mono(11)).foregroundStyle(Ink.amber)
@@ -331,8 +336,8 @@ private struct AnnotationSettings: View {
                 PermissionRow(permission: .screenRecording, permissions: model.permissions)
             }
             Section("While recording") {
-                LabeledContent("Draw", value: "Hold Shift and move the pointer")
-                LabeledContent("Pin", value: "Shift-click")
+                LabeledContent("Draw", value: "Hold \(model.annotation.modifier.label) and move the pointer")
+                LabeledContent("Pin", value: "\(model.annotation.modifier.label)-click")
                 LabeledContent("Left out of captures", value: "Mluva's ink, pill and wheel")
             }
         }

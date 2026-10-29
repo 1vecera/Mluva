@@ -423,12 +423,17 @@ impl Bridge {
                     .map(|settings| json!(settings))
                     .map_err(text)
             }
-            "annotate.save_settings" => AnnotationSettings {
-                enabled: param(params, "enabled")?,
+            "annotate.save_settings" => {
+                let path = annotate::settings_path(&stores.paths.config);
+                let mut settings = AnnotationSettings::load(&path).map_err(text)?;
+                if params.get("enabled").is_some() {
+                    settings.enabled = param(params, "enabled")?;
+                }
+                if params.get("modifier").is_some() {
+                    settings.modifier = param(params, "modifier")?;
+                }
+                settings.save(&path).map(|()| Value::Null).map_err(text)
             }
-            .save(&annotate::settings_path(&stores.paths.config))
-            .map(|()| Value::Null)
-            .map_err(text),
             "annotate.plan" => annotate::plan(
                 &stores.annotations,
                 &mut stores.pending,
