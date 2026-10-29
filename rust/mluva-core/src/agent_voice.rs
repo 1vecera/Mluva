@@ -46,8 +46,8 @@ impl VoiceSettings {
             if !(1..=24).any(|n| *key == format!("F{n}")) {
                 return Err("Choose a function key from F1 through F24.");
             }
-            if key == recording_key || key == "F10" {
-                return Err("Choose a key other than dictation or screenshot capture.");
+            if key == recording_key {
+                return Err("Choose a key other than the dictation shortcut.");
             }
         }
         if self.hold_key == self.draft_key {

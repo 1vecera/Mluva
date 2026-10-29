@@ -156,7 +156,8 @@ fn validate_bundle(root: &Path, extracted: bool) -> Result<()> {
     }
     let (mut files, mut links) = (BTreeMap::new(), BTreeMap::new());
     inventory(root, root, &mut files, &mut links, extracted)?;
-    let expected_links = json!({"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall"});
+    let expected_links =
+        json!({"mluva-shell":"bin/mluva-shell","uninstall.sh":"bin/mluva-uninstall"});
     if receipt["sha256"] != json!(files)
         || receipt["links"] != json!(links)
         || receipt["links"] != expected_links
@@ -166,11 +167,9 @@ fn validate_bundle(root: &Path, extracted: bool) -> Result<()> {
     for name in [
         "mluva",
         "mluva-shell",
-        "mluva-narrate",
         "mluva-asr-worker",
         "mluva-audio-cleanup",
         "mluva-install-widget",
-        "mluva-screenshot-editor",
         "mluva-uninstall",
         "mluva-install",
     ] {

@@ -35,11 +35,6 @@ path = "src/package.rs"
 required-features = ["application"]
 
 [[bin]]
-name = "mluva-screenshot-editor"
-path = "src/editor.rs"
-required-features = ["application"]
-
-[[bin]]
 name = "mluva-uninstall"
 path = "src/uninstall.rs"
 required-features = ["application"]
@@ -71,10 +66,6 @@ required-features = ["application"]
 
 [[test]]
 name = "uninstall"
-required-features = ["application"]
-
-[[test]]
-name = "editor"
 required-features = ["application"]
 
 [[test]]

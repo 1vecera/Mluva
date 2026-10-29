@@ -232,7 +232,6 @@ fn native_account_and_three_device_continuity() {
         NativeBinaries {
             asr_worker: tools.join("asr-worker"),
             audio_cleanup: target.join("mluva-audio-cleanup"),
-            screenshot_editor: target.join("mluva-screenshot-editor"),
         },
         ApplicationPlatform {
             compact_recording: Rc::new(|_| {}),

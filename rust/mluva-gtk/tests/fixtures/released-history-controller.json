@@ -4015,10 +4015,6 @@
             "records": [],
             "events": [
               [
-                "close-image",
-                "generated"
-              ],
-              [
                 "deleted",
                 true
               ]

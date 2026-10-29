@@ -29,12 +29,10 @@ use tokio_util::sync::CancellationToken;
 
 type Message = Rc<dyn Fn(&str)>;
 pub type HistoryWorkflowFactory = Rc<dyn Fn() -> WorkflowOutcome<Rc<DictationWorkflow>>>;
-pub type CloseScreenshot = Rc<dyn Fn(&str) -> StoreResult<()>>;
 pub struct HistoryControllerCallbacks {
     pub activity: Rc<dyn Fn() -> PreferenceActivity>,
     pub changed: Rc<dyn Fn()>,
     pub idle: Rc<dyn Fn()>,
-    pub close_screenshot: CloseScreenshot,
     pub copy: Message,
 }
 struct Retry {
@@ -417,19 +415,6 @@ impl HistoryController {
             return false;
         }
         let result = (|| {
-            let mut identifiers = vec![entry.identifier.clone()];
-            identifiers.extend(
-                self.services
-                    .history
-                    .continuations(&entry.identifier)?
-                    .into_iter()
-                    .map(|entry| entry.identifier),
-            );
-            for id in identifiers {
-                for image in self.services.screenshots.recent(&id, false)? {
-                    (self.callbacks.close_screenshot)(&image.identifier)?;
-                }
-            }
             self.services.history.delete(&entry.identifier)?;
             Ok::<_, StoreError>(())
         })();

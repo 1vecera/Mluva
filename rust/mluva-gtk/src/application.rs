@@ -35,7 +35,6 @@ mod actions;
 mod annotations;
 mod lifecycle;
 mod phone;
-mod screenshots;
 mod shortcuts;
 
 /// Distribution-owned compositor/bootstrap operations outside the shared graph.
@@ -88,7 +87,6 @@ pub struct ApplicationDesktop {
     initialization_failed: Cell<bool>,
     startup_record_requested: Cell<bool>,
     current: RefCell<Option<CaptureContext>>,
-    screenshots: screenshots::ScreenshotOwners,
     annotations: annotations::AnnotationOwners,
     overlay: RefCell<Option<OverlayPublisher>>,
     overlay_timer: RefCell<Option<glib::SourceId>>,
@@ -133,9 +131,6 @@ impl ApplicationDesktop {
                 merge: bind!(link, |app, source, target| app
                     .merge_conversations(source, target)),
                 continue_recording: bind!(link, |app, id| app.continue_recording(id)),
-                capture_screenshot: Some(bind!(link, |app| app.request_screenshot())),
-                edit_screenshot: bind!(link, |app, id| app.edit_screenshot(id)),
-                remove_screenshot: bind!(link, |app, id| app.remove_screenshot(id)),
             },
             resources,
         )?;
@@ -183,14 +178,6 @@ impl ApplicationDesktop {
                     app.idle();
                     app.clear_overlay();
                 }),
-                close_screenshot: {
-                    let link = link.clone();
-                    Rc::new(move |id| {
-                        link.borrow()
-                            .upgrade()
-                            .map_or(Ok(()), |app| app.close_screenshot_editor(id))
-                    })
-                },
                 copy: bind!(link, |app, text| app.copy_text(text)),
             },
         )?;
@@ -224,42 +211,12 @@ impl ApplicationDesktop {
                 })
             },
             CaptureControllerCallbacks {
-                wait_for_images: {
-                    let link = link.clone();
-                    Rc::new(move |id| match link.borrow().upgrade() {
-                        Some(app) => app.wait_for_screenshot(id),
-                        None => Box::pin(async {
-                            Err(WorkflowError::Invalid("The application is closed.".into()))
-                        }),
-                    })
-                },
-                prepare_result: bind!(link, |app, session, result| app
-                    .prepare_screenshot_result(session, result)),
                 appendix: {
                     let link = link.clone();
                     Rc::new(move |session: &CaptureSession| {
                         link.borrow()
                             .upgrade()
                             .and_then(|app| app.annotation_appendix(&session.identifier))
-                    })
-                },
-                images: {
-                    let link = link.clone();
-                    Rc::new(move |id| {
-                        link.borrow()
-                            .upgrade()
-                            .ok_or_else(|| {
-                                WorkflowError::Invalid("The application is closed.".into())
-                            })
-                            .and_then(|app| {
-                                app.capture_images(
-                                    Some(id),
-                                    app.current
-                                        .borrow()
-                                        .as_ref()
-                                        .and_then(|current| current.continuation.as_deref()),
-                                )
-                            })
                     })
                 },
                 completed: bind!(link, |app, completion| app.capture_completed(completion)),
@@ -359,6 +316,13 @@ impl ApplicationDesktop {
                 linked(&link, |app| app.set_annotation_enabled(active));
             });
         }
+        {
+            let link = link.clone();
+            annotations.modifier.connect_selected_notify(move |row| {
+                let selected = row.selected();
+                linked(&link, |app| app.set_annotation_modifier(selected));
+            });
+        }
         let owner = Rc::new(Self {
             agent_voice,
             capture_audio_waiting: Cell::new(false),
@@ -387,7 +351,6 @@ impl ApplicationDesktop {
             initialization_failed: Cell::new(false),
             startup_record_requested: Cell::new(false),
             current: RefCell::new(None),
-            screenshots: screenshots::ScreenshotOwners::default(),
             annotations,
             overlay: RefCell::new(application.dbus_connection().and_then(|connection| {
                 let mut publisher = OverlayPublisher::new(connection);

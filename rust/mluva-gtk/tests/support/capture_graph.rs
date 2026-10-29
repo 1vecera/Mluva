@@ -37,9 +37,6 @@ pub fn graph_with_callbacks(
             delete: Rc::new(|_| false),
             merge: Rc::new(|_, _| false),
             continue_recording: Rc::new(|_| {}),
-            capture_screenshot: None,
-            edit_screenshot: Rc::new(|_| {}),
-            remove_screenshot: Rc::new(|_| {}),
         },
         resources,
     )

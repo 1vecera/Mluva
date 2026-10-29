@@ -24,7 +24,7 @@ public enum Annotation {
         }
     }
 
-    /// One Shift-held pointer path, or a Shift-click pin when `pin` is set.
+    /// One key-held pointer path, or a pin when `pin` is set.
     public struct Stroke: Codable, Equatable, Sendable {
         public var t0: UInt64
         public var t1: UInt64

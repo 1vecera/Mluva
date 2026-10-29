@@ -20,8 +20,7 @@ https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
 | A task for an agent | Choose a Claude Code or Codex session, in Herdr, tmux, any terminal or the desktop apps. Press **Dictate to agent** or its shortcut to start, then press again to stop. After a two-second cancel window Mluva sends, queues or prefills it, as the wheel says. |
 | A draft worth keeping | Edit the transcript and save with **Ctrl+S**. Copy and Save stay visible; original recognition remains separate. |
 | Work to return to | Search history, rename, continue a recording, merge or delete conversations, and export Markdown or JSON. |
-| Something on screen | Attach a region screenshot with F10 and annotate it in the optional Tensaku editor. Images stay local. |
-| A problem to point at | Turn on [screen annotation](docs/screen-annotation.md) (Experimental, Hyprland). While dictating, hold Shift and move to draw, or Shift-click to pin; the agent receives keyframes matched to what you said. |
+| A problem to point at | Use [screen annotation](docs/screen-annotation.md) (Experimental, Hyprland). While dictating, hold your chosen drawing key and move to draw, or click to pin; the agent receives keyframes matched to what you said. |
 
 ### Choose the agent on a dial
 
@@ -65,8 +64,6 @@ them. Tell me how to launch Mluva and approve its recording shortcuts.
 ```
 
 **Other install paths:** `bash install.sh --app-only` installs the native app without changing plugins. Fedora GNOME uses the same setup command, with the compatibility limits below. For a staged install or preinstalled dependencies, see the [Linux guide](linux/README.md#install-for-the-current-user).
-
-**Narrated screenshots:** the unchanged optional Tensaku editor is available from the [2.3.0 release](https://github.com/1vecera/Mluva/releases/tag/v2.3.0) for Omarchy x86_64. Verify and extract it, then run `bash linux/install-narrated-editor.sh --prebuilt-dir /absolute/path/to/mluva-2.3.0-tensaku-omarchy-x86_64` from the Mluva checkout or extracted source package. A source build remains available. Configure F10 as described in the [screenshot setup](docs/omarchy-integration.md#screenshot-context). Screenshot context is Experimental.
 
 **Upgrading:** quit Mluva, update the checkout with `git pull --ff-only`, and rerun `bash install.sh`. Existing plugin customizations are preserved; setup checks for conflicting changes before installing. If a later plugin operation fails, the native app remains installed and setup reports how to retry. Upgrades from 0.x migrate the old product identities and retain a private backup of settings, conversations, drafts and audio. See the [migration guide](docs/identity-migration.md) for customized installations.
 

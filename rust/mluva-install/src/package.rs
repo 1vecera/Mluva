@@ -16,11 +16,9 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const BINARIES: &[&str] = &[
     "mluva",
     "mluva-shell",
-    "mluva-narrate",
     "mluva-asr-worker",
     "mluva-audio-cleanup",
     "mluva-install-widget",
-    "mluva-screenshot-editor",
     "mluva-uninstall",
     "mluva-install",
 ];
@@ -276,14 +274,7 @@ fn package(source: &Path, binaries: &Path, output: &Path, compressed: bool) -> R
         .tempdir_in(&parent)?;
     let bundle = temporary.path().join("bundle");
     fs::create_dir(&bundle)?;
-    for relative in [
-        "bin",
-        "linux",
-        "linux/quickshell",
-        "linux/integrations",
-        "linux/integrations/tensaku",
-        "quickshell",
-    ] {
+    for relative in ["bin", "linux", "linux/quickshell", "quickshell"] {
         let directory = bundle.join(relative);
         fs::create_dir_all(&directory)?;
         fs::set_permissions(directory, fs::Permissions::from_mode(0o755))?;
@@ -323,23 +314,6 @@ fn package(source: &Path, binaries: &Path, output: &Path, compressed: bool) -> R
         }
         copy_file(&original, &bundle.join(name), 0o755)?;
     }
-    for name in ["install-narrated-editor.sh", "build-narrated-editor.sh"] {
-        copy_file(
-            &source.join("linux").join(name),
-            &bundle.join("linux").join(name),
-            0o755,
-        )?;
-    }
-    for name in [
-        "LICENSE",
-        "NOTICE",
-        "README.md",
-        "upstream-commit",
-        "narration.patch",
-    ] {
-        let relative = Path::new("linux/integrations/tensaku").join(name);
-        copy_file(&source.join(&relative), &bundle.join(&relative), 0o644)?;
-    }
     let result = Command::new(bundle.join("bin/mluva-install-widget"))
         .arg("--stage")
         .arg(bundle.join("quickshell/mluva.dictation"))
@@ -351,10 +325,7 @@ fn package(source: &Path, binaries: &Path, output: &Path, compressed: bool) -> R
     let widget_manifest = bundle.join("quickshell/mluva.dictation/manifest.json");
     regular(&widget_manifest)?;
     fs::set_permissions(widget_manifest, fs::Permissions::from_mode(0o644))?;
-    // Keep the historical editor/bridge paths used by existing managed links.
-    for name in ["mluva-shell", "mluva-narrate", "mluva-screenshot-editor"] {
-        symlink(PathBuf::from("bin").join(name), bundle.join(name))?;
-    }
+    symlink("bin/mluva-shell", bundle.join("mluva-shell"))?;
     symlink("bin/mluva-uninstall", bundle.join("uninstall.sh"))?;
     copy_file(
         &source.join("install.sh"),
@@ -382,7 +353,7 @@ fn package(source: &Path, binaries: &Path, output: &Path, compressed: bool) -> R
         &json!({
             "schema":1,"application":"com.mluva.Linux","implementation":"rust",
             "version":env!("CARGO_PKG_VERSION"),"sha256":content_hashes,
-            "links":{"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall"}
+            "links":{"mluva-shell":"bin/mluva-shell","uninstall.sh":"bin/mluva-uninstall"}
         }),
     )?;
     inventory.write_all(b"\n")?;

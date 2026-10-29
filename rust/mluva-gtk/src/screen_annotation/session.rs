@@ -15,6 +15,7 @@ use mluva_annotate::{
     model::{Capture, Frame, FrameReason, Screen, ScreenEvent, Stroke, StrokePoint, WindowBox},
     render,
 };
+use mluva_core::annotations::AnnotationModifier;
 use std::{
     cell::{Cell, RefCell},
     os::unix::fs::{MetadataExt, PermissionsExt},
@@ -83,6 +84,7 @@ pub struct AnnotationSession {
     runtime: Rc<DesktopRuntime>,
     clock: Clock,
     token: String,
+    modifier: AnnotationModifier,
     frames: tempfile::TempDir,
     cleanup: PathBuf,
     overlays: RefCell<Vec<Rc<Overlay>>>,
@@ -134,6 +136,7 @@ impl AnnotationSession {
         owner: &str,
         runtime_directory: &Path,
         cleanup: &Path,
+        modifier: AnnotationModifier,
         clock: Clock,
         message: Rc<dyn Fn(&str)>,
     ) -> Result<Rc<Self>, String> {
@@ -165,6 +168,7 @@ impl AnnotationSession {
             runtime,
             clock,
             token: glib::uuid_string_random().replace('-', ""),
+            modifier,
             frames,
             cleanup: cleanup.into(),
             overlays: RefCell::new(vec![]),
@@ -230,7 +234,7 @@ impl AnnotationSession {
         if self.desktop == Desktop::Hyprland {
             // From here on the bindings may exist in Hyprland, so Stop always removes them.
             self.binding.set(true);
-            hyprland::bind(&self.token).await?;
+            hyprland::bind(&self.token, self.modifier).await?;
             if self.closed.get() {
                 return Ok(());
             }

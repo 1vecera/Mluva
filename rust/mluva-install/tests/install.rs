@@ -156,11 +156,9 @@ fn fixture_bundle(root: &Path) -> PathBuf {
     for name in [
         "mluva",
         "mluva-shell",
-        "mluva-narrate",
         "mluva-asr-worker",
         "mluva-audio-cleanup",
         "mluva-install-widget",
-        "mluva-screenshot-editor",
         "mluva-uninstall",
         "mluva-install",
     ] {
@@ -188,7 +186,7 @@ fn fixture_bundle(root: &Path) -> PathBuf {
     ] {
         fs::copy(repository().join("linux").join(name), bundle.join(name)).unwrap();
     }
-    let links = json!({"mluva-shell":"bin/mluva-shell","mluva-narrate":"bin/mluva-narrate","mluva-screenshot-editor":"bin/mluva-screenshot-editor","uninstall.sh":"bin/mluva-uninstall"});
+    let links = json!({"mluva-shell":"bin/mluva-shell","uninstall.sh":"bin/mluva-uninstall"});
     for (name, target) in links.as_object().unwrap() {
         symlink(target.as_str().unwrap(), bundle.join(name)).unwrap();
     }

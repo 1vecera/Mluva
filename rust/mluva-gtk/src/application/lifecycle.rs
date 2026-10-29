@@ -3,7 +3,7 @@ use crate::{
     capture_controller::{CaptureCompletion, CaptureFailure, CaptureLaunch},
     overlay_state::OverlayState,
 };
-use mluva_core::{config::AudioRetentionPolicy, screenshots::ImageInput};
+use mluva_core::config::AudioRetentionPolicy;
 use mluva_workflows::{
     capture::CapturePhase,
     dictation::WorkflowResult,
@@ -220,9 +220,6 @@ impl ApplicationDesktop {
             InlineEffect::Privacy { persisted } => {
                 self.agent_voice.interrupt();
                 self.account.privacy(config.incognito_mode);
-                if config.incognito_mode {
-                    self.cancel_screenshot_picker();
-                }
                 self.workspace().set_private(config.incognito_mode);
                 self.meeting.sync_config(persisted);
             }
@@ -501,30 +498,6 @@ impl ApplicationDesktop {
             }),
         })
     }
-    pub(super) fn capture_images(
-        &self,
-        capture: Option<&str>,
-        conversation: Option<&str>,
-    ) -> WorkflowOutcome<Vec<ImageInput>> {
-        if self.services.config().incognito_mode
-            || self
-                .current
-                .borrow()
-                .as_ref()
-                .is_some_and(|current| current.options.incognito)
-        {
-            return Ok(vec![]);
-        }
-        let mut images = if let Some(id) = conversation {
-            self.services.screenshots.snapshot(id, false)?
-        } else {
-            vec![]
-        };
-        if let Some(id) = capture {
-            images.extend(self.services.screenshots.snapshot(id, true)?);
-        }
-        Ok(images)
-    }
     /// Traces and surfaces a recording of the F12 route: agent or wheel transcript.
     fn route_capture_phase(&self, phase: CapturePhase) {
         if phase == CapturePhase::Recording && self.route_capture.borrow().is_none() {
@@ -644,11 +617,6 @@ impl ApplicationDesktop {
             .history_entry
             .as_ref()
             .map(|entry| entry.identifier.clone());
-        self.finish_result_screenshots(
-            &completion.session.identifier,
-            id.as_deref(),
-            result.incognito,
-        );
         self.finish_annotations(&completion.session.identifier, id.as_deref());
         if let Some(context) = context.as_ref()
             && let Some(entry) = result.history_entry.as_ref()
@@ -739,7 +707,6 @@ impl ApplicationDesktop {
         }
         self.account.cancel_live(&failure.session_identifier);
         if failure.phase == CapturePhase::Preparing {
-            self.preserve_interrupted_screenshots(&failure.session_identifier);
             self.discard_annotation(&failure.session_identifier);
         }
         let context = self.current.borrow_mut().take();
@@ -748,13 +715,6 @@ impl ApplicationDesktop {
             _ => None,
         };
         if failure.phase != CapturePhase::Preparing {
-            self.finish_result_screenshots(
-                &failure.session_identifier,
-                entry.map(|entry| entry.identifier.as_str()),
-                context
-                    .as_ref()
-                    .is_some_and(|context| context.options.incognito),
-            );
             self.stop_annotation(&failure.session_identifier);
             self.finish_annotations(
                 &failure.session_identifier,
@@ -785,7 +745,6 @@ impl ApplicationDesktop {
                 .abandoned(mluva_core::agent_voice::DraftReason::Cancelled);
         }
         self.current.borrow_mut().take();
-        self.discard_screenshots(id);
         self.discard_annotation(id);
         self.account.cancel_live(id);
         self.idle();
@@ -997,12 +956,7 @@ impl ApplicationDesktop {
         self.agent_voice.close();
         self.capture_audio_waiting.set(false);
         self.close_phone_bridge();
-        self.close_screenshot_monitoring();
         self.close_annotation();
-        let capture_identifier = self.capture.session_identifier();
-        if let Some(identifier) = capture_identifier {
-            self.preserve_interrupted_screenshots(&identifier);
-        }
         self.initialization_pending.set(false);
         self.startup_record_requested.set(false);
         self.readiness_generation

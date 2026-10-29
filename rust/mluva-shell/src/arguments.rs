@@ -1,10 +1,9 @@
 //! The released bridge's deliberately small command line, including option abbreviations.
-pub const USAGE: &str = "usage: mluva-shell [-h] [--overlay]\n                   {watch,record,global-record,screenshot,cancel,latest,status}\n";
+pub const USAGE: &str = "usage: mluva-shell [-h] [--overlay]\n                   {watch,record,global-record,cancel,latest,status}\n";
 const ACTIONS: &[&str] = &[
     "watch",
     "record",
     "global-record",
-    "screenshot",
     "cancel",
     "latest",
     "status",
@@ -62,7 +61,7 @@ pub fn parse(arguments: impl Iterator<Item = String>) -> Result<Option<Arguments
                 }
                 if help {
                     print!(
-                        "{USAGE}\nDesktop status bridge with an opt-in volatile preview and existing session-bus\nactions.\n\npositional arguments:\n  {{watch,record,global-record,screenshot,cancel,latest,status}}\n\noptions:\n  -h, --help            show this help message and exit\n  --overlay             Include a volatile preview for the floating widget\n"
+                        "{USAGE}\nDesktop status bridge with an opt-in volatile preview and existing session-bus\nactions.\n\npositional arguments:\n  {{watch,record,global-record,cancel,latest,status}}\n\noptions:\n  -h, --help            show this help message and exit\n  --overlay             Include a volatile preview for the floating widget\n"
                     );
                     return Ok(None);
                 }

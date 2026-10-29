@@ -1,13 +1,36 @@
 import AppKit
 import Observation
 
-/// Screen annotation while dictating: hold Shift and move to draw, Shift-click to drop a
+public enum AnnotationModifier: String, CaseIterable, Identifiable {
+    case shift, control, alt, superKey = "super"
+
+    public var id: String { rawValue }
+    public var label: String {
+        switch self {
+        case .shift: "Shift"
+        case .control: "Control"
+        case .alt: "Option"
+        case .superKey: "Command"
+        }
+    }
+    var flags: NSEvent.ModifierFlags {
+        switch self {
+        case .shift: .shift
+        case .control: .control
+        case .alt: .option
+        case .superKey: .command
+        }
+    }
+}
+
+/// Screen annotation while dictating: hold the chosen key and move to draw, click to drop a
 /// numbered pin. A marked recording becomes a private bundle of keyframes whose summary follows
 /// the dictation; one without marks costs a single frame and adds nothing.
 @MainActor
 @Observable
 public final class AnnotationController {
     public private(set) var enabled = true
+    public private(set) var modifier = AnnotationModifier.shift
     /// Drawing is possible for the current recording.
     public private(set) var active = false
     /// Why annotation is unavailable for this recording, or what went wrong with its bundle.
@@ -36,6 +59,7 @@ public final class AnnotationController {
         let owner: String
         let started: Date
         let screens: [AnnotatedScreen]
+        let modifier: AnnotationModifier
         var capture = Annotation.Capture()
         var held: [HeldFrame] = []
         var bytes = 0
@@ -52,10 +76,11 @@ public final class AnnotationController {
         var observers: [NSObjectProtocol] = []
         var preview: () -> Int
 
-        init(owner: String, started: Date, screens: [AnnotatedScreen], preview: @escaping () -> Int) {
+        init(owner: String, started: Date, screens: [AnnotatedScreen], modifier: AnnotationModifier, preview: @escaping () -> Int) {
             self.owner = owner
             self.started = started
             self.screens = screens
+            self.modifier = modifier
             self.preview = preview
             capture.screens = screens.map(\.model)
         }
@@ -70,7 +95,9 @@ public final class AnnotationController {
     /// Read the opt-in once the stores are open.
     public func load() {
         do {
-            enabled = try core.call("annotate.settings")["enabled"]?.bool ?? true
+            let settings = try core.call("annotate.settings")
+            enabled = settings["enabled"]?.bool ?? true
+            modifier = (settings["modifier"]?.string).flatMap { AnnotationModifier(rawValue: $0) } ?? .shift
             settingsError = nil
         } catch {
             enabled = false
@@ -84,6 +111,16 @@ public final class AnnotationController {
             enabled = value
             settingsError = nil
             if !value { session.map(stop) }
+        } catch {
+            settingsError = "\(error)"
+        }
+    }
+
+    public func setModifier(_ value: AnnotationModifier) {
+        do {
+            try core.call("annotate.save_settings", ["modifier": .string(value.rawValue)])
+            modifier = value
+            settingsError = nil
         } catch {
             settingsError = "\(error)"
         }
@@ -105,7 +142,7 @@ public final class AnnotationController {
             notice = "Screen annotation needs Screen Recording access. Recording continues without it."
             return
         }
-        let session = Session(owner: owner, started: startedAt, screens: AnnotatedScreen.all(), preview: preview)
+        let session = Session(owner: owner, started: startedAt, screens: AnnotatedScreen.all(), modifier: modifier, preview: preview)
         self.session = session
         session.overlays = session.screens.map { screen in
             InkOverlay(screen: screen) { [weak self] point in self?.pin(at: point, on: screen) }
@@ -219,14 +256,14 @@ public final class AnnotationController {
         session.overlays.first { $0.screen.name == screen.name }
     }
 
-    /// Shift alone, read from the system without any permission, drives the ink.
+    /// The selected modifier, read from the system without any permission, drives the ink.
     private func tick() {
         guard let session, !session.closed else { return }
         let flags = NSEvent.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting([.capsLock, .numericPad, .function])
-        let shift = flags == .shift
-        session.overlays.forEach { $0.holding = shift; $0.tick() }
+        let drawing = flags == session.modifier.flags
+        session.overlays.forEach { $0.holding = drawing; $0.tick() }
         recordPreview(session)
-        guard shift, let screen = pointerScreen(session) else {
+        guard drawing, let screen = pointerScreen(session) else {
             if let ink = session.ink { endStroke(session, ink) }
             return
         }
@@ -244,7 +281,7 @@ public final class AnnotationController {
             session.capture.strokes[index].t1 = t
             overlay(session, screen)?.extend(index, to: point)
         } else if hypot(point.x - ink.origin.x, point.y - ink.origin.y) >= 2 {
-            // The stroke begins once the pointer moves, from where Shift went down.
+            // The stroke begins once the pointer moves, from where the drawing key went down.
             let index = session.capture.strokes.count
             session.capture.strokes.append(.init(
                 t0: t, t1: t, screen: screen.name, pin: nil,

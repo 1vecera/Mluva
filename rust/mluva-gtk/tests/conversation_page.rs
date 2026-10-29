@@ -70,9 +70,6 @@ fn one_editor_preserves_unsaved_edits_legacy_replies_and_live_navigation() {
             delete: Rc::new(|_| true),
             merge: Rc::new(|_, _| true),
             continue_recording: Rc::new(|_| {}),
-            capture_screenshot: None,
-            edit_screenshot: Rc::new(|_| {}),
-            remove_screenshot: Rc::new(|_| {}),
         },
         resources,
     )
@@ -239,7 +236,6 @@ fn exercise_scrolling(w: &Rc<ConversationWorkspace>) {
         "5202477edfe4b5d8bacfa5b2e9fd6eadd9624f7f"
     );
     w.finish_live();
-    w.set_screenshot_context(None, None);
     w.show_conversation(None, &[], false).unwrap();
     let mut cfg = mluva_core::config::AppConfig {
         ..Default::default()

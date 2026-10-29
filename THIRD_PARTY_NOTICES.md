@@ -18,10 +18,6 @@ GTK, Libadwaita, PyGObject, WebKitGTK, AT-SPI, PipeWire, `wl-copy`, and the XDG 
 
 Review this inventory whenever the lockfile changes. The resolved packages remain the authoritative source for their complete license and notice files.
 
-## Optional narrated screenshot editor
-
-The optional Tensaku 0.29.0 editor is distributed under MPL-2.0. Its upstream [license](linux/integrations/tensaku/LICENSE), [authorship notice](linux/integrations/tensaku/NOTICE), exact source pin and complete modification patch are included in the repository and editor release archive. The prebuilt archive also includes the resolved Rust dependency inventory and available upstream license/notice files. GTK, Libadwaita and the other native libraries remain distribution-managed dependencies. Keep these notices and the corresponding source patch when redistributing the editor.
-
 ## Adapted screen annotation logic
 
 Screen annotation's mark classification (`rust/mluva-annotate/src/sketch.rs`), clause alignment (`timing.rs`), spoken-cue, novelty and scoring rules (`keyframes.rs`) and keyframe budget, clock format and mark shapes (`model.rs`) are adapted from [Scrawl](https://github.com/kitlangton/scrawl) by Kit Langton, © 2026, under the MIT license, at commit [`f2ad4e8c`](https://github.com/kitlangton/scrawl/tree/f2ad4e8c75b6cc6171c38d85cd8755e4d9fe03fe). The ported files keep the notice in their headers; the full [license](rust/mluva-annotate/resources/scrawl-LICENSE) and [provenance](rust/mluva-annotate/resources/README.md) stay with the source, and native packages carry it as `third-party-licenses/scrawl/LICENSE`.

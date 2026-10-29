@@ -366,7 +366,7 @@ fn a_marked_recording_becomes_a_bundle_the_shell_draws_and_its_conversation_owns
     let fixture = Fixture::open();
     assert_eq!(
         fixture.call("annotate.settings", json!({})),
-        json!({"enabled": true})
+        json!({"enabled": true, "modifier": "shift"})
     );
     let frames = fixture._root.path().join("frames");
     std::fs::create_dir(&frames).unwrap();

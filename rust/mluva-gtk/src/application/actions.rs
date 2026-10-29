@@ -35,7 +35,6 @@ impl ApplicationDesktop {
                 };
                 self.toggle_recording(origin)
             }
-            ApplicationAction::Screenshot => self.request_screenshot(),
             ApplicationAction::Cancel => {
                 self.cancel();
             }
@@ -221,20 +220,6 @@ impl ApplicationDesktop {
         }
         self.personalization.refresh();
     }
-    pub(super) fn remove_screenshot(&self, id: &str) {
-        if self.closed.get() {
-            return;
-        }
-        if self
-            .close_screenshot_editor(id)
-            .and_then(|()| self.services.screenshots.delete(id))
-            .is_err()
-        {
-            self.shell.show_message("Could not remove the screenshot.");
-        }
-        self.workspace().refresh_screenshots();
-    }
-
     pub(super) fn export_diagnostics(&self) {
         match self.services.diagnostics.export(
             &self.services.paths.data.join("exports"),

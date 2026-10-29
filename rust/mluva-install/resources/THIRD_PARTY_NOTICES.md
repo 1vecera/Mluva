@@ -10,6 +10,5 @@ The native ONNX feature/decoder implementation and embedded preprocessing data d
 
 Screen annotation's mark classification, clause alignment, keyframe cue rules and keyframe budget are adapted from Scrawl by Kit Langton at commit `f2ad4e8c75b6cc6171c38d85cd8755e4d9fe03fe`, under MIT. Its original notice is `third-party-licenses/scrawl/LICENSE`; upstream is https://github.com/kitlangton/scrawl.
 
-The optional Tensaku editor remains a separately built/downloaded application. Its MPL-2.0 license, authorship notice, exact upstream source commit and complete narration patch are supplied under `linux/integrations/tensaku/`. Preserve the editor archive's additional dependency notices when distributing that editor.
 
 GTK, Libadwaita, AT-SPI, GLib, Cairo, Pango, SQLite, OpenSSL, Fontconfig, PipeWire and optional WebKitGTK are system libraries/components managed by the Linux distribution. They are not copied into this runtime package. Optional speech models, Qwen and ONNX/CUDA runtimes are separately downloaded artifacts with their own pinned origins and notices. Codex and cloud providers are separately supplied applications/services.

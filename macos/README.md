@@ -7,7 +7,7 @@ A native menu-bar app for macOS 26 with Liquid Glass, drawn in its own [drafting
 | Dictation | F9 starts and stops anywhere. ElevenLabs Scribe Realtime streams live words into the floating pill; if it fails, the whole recording is sent as one upload. Incognito keeps audio off disk and has no upload fallback. |
 | Delivery | The text is copied first, then pasted with ⌘V only into the exact field and window that had focus at the start, and never into a secure field. Without Accessibility it stays copied. |
 | Agents | F12 opens the session wheel with the shared [target model](../docs/agent-routing.md): Herdr's panes, Claude Code sessions from Claude Code's own session list, live Codex threads and a new Claude chat. A letter key or click chooses one; F12 again records for it. After a two-second cancel window, which F12 ends early, the text goes through the session's own transport: Herdr's guarded prompt sends, Claude Code's inbox queues, Codex sends to an idle thread and Claude opens a new chat with it. A session nothing reaches gets an editable draft. History records what became of it. |
-| Screen annotation | While recording, hold Shift and move to draw; Shift-click drops a numbered pin. Captures leave out Mluva's own windows, raw frames stay in memory, and marked recordings deliver keyframes and a summary with the text. Needs Screen Recording; off in Incognito. |
+| Screen annotation | While recording, hold the drawing key and move to draw; click while holding it to place a pin. Choose Shift, Control, Option or Command in Settings. Captures leave out Mluva's own windows, raw frames stay in memory, and marked recordings deliver keyframes and a summary with the text. Needs Screen Recording; off in Incognito. |
 | History | Search, edit with autosave, the original recognition kept apart, keyframes beside their dictation, Markdown export and delete. |
 | Settings | General, Speech (Keychain-stored ElevenLabs key), Shortcuts, Agents, Annotation, Vocabulary and Privacy, saved at once in the Linux file format. |
 
@@ -39,7 +39,7 @@ macos/scripts/build-app.sh release --universal     # .build/app/Mluva.app for Ap
 
 ## Permissions
 
-The microphone is the only requirement. Accessibility adds pasting into the captured field and Screen Recording adds screen annotation. Input Monitoring is not requested: the function-key shortcuts are Carbon hot keys, and the Shift that draws is read as modifier state. The Welcome window asks for the microphone and Accessibility; Settings → Privacy requests any of them and opens the right System Settings pane when one was denied.
+The microphone is the only requirement. Accessibility adds pasting into the captured field and Screen Recording adds screen annotation. Input Monitoring is not requested: the function-key shortcuts are Carbon hot keys, and the drawing key is read as modifier state. The Welcome window asks for the microphone and Accessibility; Settings → Privacy requests any of them and opens the right System Settings pane when one was denied.
 
 ## Evidence mode
 
@@ -50,6 +50,6 @@ The microphone is the only requirement. Accessibility adds pasting into the capt
 - Herdr releases without the guarded prompt API are discovered, but their panes are draft-only unless another transport reaches the session, as on Linux. The [guarded patch](../integrations/herdr/README.md) applies to Herdr 0.9.5 and builds and passes its guarded, schema, wire and PTY tests on macOS with Zig 0.16.0.
 - Mluva starts no Codex app server on the Mac; Codex threads are reached through Codex's own daemon when it runs, and are draft-only otherwise.
 - A Claude Code session in bypass-permissions mode holds inbox messages until you approve them there.
-- A Shift-click during recording pins instead of reaching the app underneath; that is how the overlay keeps pins out of other apps.
+- A click while holding the drawing key during recording pins instead of reaching the app underneath; that is how the overlay keeps pins out of other apps.
 - The build is signed ad hoc. Distribution to other Macs needs a Developer ID signature and notarization.
-- Local speech models, meetings, narrated screenshots and the hosted companion remain Linux-only.
+- Local speech models, meetings and the hosted companion remain Linux-only.

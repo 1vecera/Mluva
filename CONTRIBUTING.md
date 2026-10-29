@@ -29,7 +29,7 @@ GTK callbacks stay on the main thread; provider/audio work runs outside it. The 
 | Speech connections, credentials, local model downloads and previews | `rust/mluva-providers/src` |
 | Agent targets: the model (identity, product, state, route, delivery level) / discovery and transports for Herdr, Claude Code's inbox, Codex's queue and Claude Desktop, behind one platform seam | `rust/mluva-core/src/agent_target.rs` / `rust/mluva-providers/src/agent_targets.rs`, `agent_platform.rs`, `herdr.rs`, `claude_sessions.rs`, `claude_inbox.rs`, `claude_desktop.rs`, `codex/` |
 | Native model execution and recognition worker | `rust/mluva-asr/src` |
-| Recording, delivery, meetings, screenshots and narration | `rust/mluva-workflows/src` |
+| Recording, delivery and meetings | `rust/mluva-workflows/src` |
 | Screen annotation marks, keyframes, clause timing and bundle rendering | `rust/mluva-annotate/src` |
 | Screen annotation overlay, Hyprland bindings and frame capture | `rust/mluva-gtk/src/screen_annotation` |
 | GTK application, pages, settings, rendering and text-target tracking | `rust/mluva-gtk/src` |
@@ -67,7 +67,6 @@ The on-demand CI job runs the native gate; local success does not establish a ho
 | Provider preferences and held discovery | `make linux-provider-settings-test` |
 | Continuous settings, section navigation and preference deep links | `make linux-settings-test` (minimum, narrow and wide private sessions) |
 | First-run speech and appearance setup | `make linux-onboarding-test`; provider suite covers downloads/readiness |
-| Screenshot context and real editor narration | `make linux-screenshot-test` |
 | Screen annotation overlay, capture and delivery | `bash docs/verification/screen-annotations/offscreen/run.sh HARNESS tmp/<run>` in an isolated headless layer-shell compositor; Hyprland bindings, portal, pins and crops with `docs/verification/screen-annotations/hyprland-vm/harness/run-checks.sh` in the [real-Hyprland VM](docs/verification/screen-annotations/hyprland-vm/README.md) ([record](docs/verification/screen-annotations/README.md)) |
 | Exact-target paste / widget | `make linux-text-target-test` / `make linux-omarchy-test` |
 | Firefox paste and text-read privacy on bus/default transport | `make linux-browser-target-test` |

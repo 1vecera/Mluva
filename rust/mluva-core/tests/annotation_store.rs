@@ -279,9 +279,19 @@ fn the_setting_defaults_on_and_round_trips_privately() {
     assert!(AnnotationSettings::load(&path).unwrap().enabled);
     fs::write(&path, b"{}").unwrap();
     assert!(AnnotationSettings::load(&path).unwrap().enabled);
-    AnnotationSettings { enabled: false }.save(&path).unwrap();
+    AnnotationSettings {
+        enabled: false,
+        ..AnnotationSettings::default()
+    }
+    .save(&path)
+    .unwrap();
     assert!(!AnnotationSettings::load(&path).unwrap().enabled);
-    AnnotationSettings { enabled: true }.save(&path).unwrap();
+    AnnotationSettings {
+        enabled: true,
+        ..AnnotationSettings::default()
+    }
+    .save(&path)
+    .unwrap();
     assert!(AnnotationSettings::load(&path).unwrap().enabled);
     assert_eq!(
         fs::metadata(&path).unwrap().permissions().mode() & 0o777,

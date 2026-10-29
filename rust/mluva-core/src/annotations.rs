@@ -352,11 +352,26 @@ impl AnnotationStore {
 #[serde(default, deny_unknown_fields)]
 pub struct AnnotationSettings {
     pub enabled: bool,
+    pub modifier: AnnotationModifier,
+}
+
+/// Modifier held while drawing or placing a pin.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AnnotationModifier {
+    #[default]
+    Shift,
+    Control,
+    Alt,
+    Super,
 }
 
 impl Default for AnnotationSettings {
     fn default() -> Self {
-        Self { enabled: true }
+        Self {
+            enabled: true,
+            modifier: AnnotationModifier::Shift,
+        }
     }
 }
 

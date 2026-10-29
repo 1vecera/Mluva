@@ -22,8 +22,7 @@ Automatic paste is an explicit known limitation: it depends on the desktop and t
 | Feature | Current boundary |
 | --- | --- |
 | Talk to Claude Code and Codex agents | Opt-in local routing sends through Herdr's guarded prompt, queues to Claude Code sessions through their own inbox, sends to idle Codex threads through Codex's queue and prefills a new Claude Desktop chat; Claude Desktop and Codex Desktop delivery, macOS, physical keys and optional ElevenLabs v4 Turbo voice acceptance remain pending. |
-| Screenshot context and narrated annotations | Omarchy region capture, agent attachments and spoken Tensaku text boxes passed isolated checks; physical-key and microphone acceptance remain pending. |
-| Annotate the screen while dictating | Opt-in Hyprland Shift ink and pins deliver keyframes with the transcript; overlay, capture and agent delivery passed an isolated headless sway run, while Hyprland bindings, the live portal and physical input await acceptance. |
+| Annotate the screen while dictating | Hyprland ink and pins use a configurable drawing key and deliver keyframes with the transcript; the configurable key and physical input await acceptance. |
 | Speech provider choices | Compatible APIs and app-owned local models have controlled checks; cloud accounts need acceptance. |
 | Automatic paste | Automatic delivery uses the exact captured target. Unsupported, changed or unavailable targets fall back to the clipboard; the visible record button is copy-only. |
 | Spoken structure | Punctuation, paragraph, and scratch-that commands still need manual acceptance. |

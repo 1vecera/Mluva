@@ -1,7 +1,7 @@
 import AppKit
 
 /// One transparent panel over a screen. It never takes the keyboard, lets every click through
-/// until Shift is held, and shows ink that fades shortly after release. Screen capture leaves
+/// until the drawing key is held, and shows ink that fades shortly after release. Screen capture leaves
 /// it out, so keyframes stay clean while the ink is visible.
 @MainActor
 final class InkOverlay {
@@ -28,7 +28,7 @@ final class InkOverlay {
         panel.orderFrontRegardless()
     }
 
-    /// While Shift is held the overlay takes clicks, so a Shift-click pins instead of reaching
+    /// While the drawing key is held the overlay takes clicks, so a click pins instead of reaching
     /// the application underneath.
     var holding = false {
         didSet {

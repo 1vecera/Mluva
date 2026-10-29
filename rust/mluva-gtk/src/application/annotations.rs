@@ -6,7 +6,7 @@ use crate::screen_annotation::{
     session::{FRAMES_PREFIX, remove_stale_frames},
 };
 use mluva_annotate::{bundle, model::Word, timing};
-use mluva_core::annotations::{AnnotationSettings, AnnotationStore};
+use mluva_core::annotations::{AnnotationModifier, AnnotationSettings, AnnotationStore};
 use mluva_providers::TranscriptionResult;
 use mluva_workflows::{capture::CapturePhase, dictation::DeliveryAppendix};
 
@@ -16,6 +16,7 @@ pub(super) struct AnnotationOwners {
     /// This run's GlobalShortcuts session approved the ink and pin actions.
     pub portal: Cell<bool>,
     pub row: adw::SwitchRow,
+    pub modifier: adw::ComboRow,
     pub group: adw::PreferencesGroup,
 }
 impl AnnotationOwners {
@@ -27,7 +28,7 @@ impl AnnotationOwners {
             };
         let row = adw::SwitchRow::builder()
             .title("Annotate the screen while dictating")
-            .subtitle("Experimental. On Hyprland, while recording, hold Shift and move to draw; Shift-click drops a numbered pin. Marked recordings deliver keyframes and a short summary with the transcript. Off in Incognito.")
+            .subtitle("Experimental. On Hyprland, hold the selected key and move to draw; click while holding it to place a pin. Off in Incognito.")
             .active(settings.enabled)
             .build();
         let group = adw::PreferencesGroup::builder()
@@ -35,17 +36,39 @@ impl AnnotationOwners {
             .description("Changes save automatically and apply to the next recording.")
             .build();
         group.add(&row);
+        let modifier = adw::ComboRow::builder()
+            .title("Drawing key")
+            .subtitle("Hold this key to draw or place a pin")
+            .model(&gtk::StringList::new(&["Shift", "Control", "Alt", "Super"]))
+            .selected(modifier_index(settings.modifier))
+            .build();
+        group.add(&modifier);
         (
             Self {
                 settings: RefCell::new(settings),
                 session: RefCell::new(None),
                 portal: Cell::new(false),
                 row,
+                modifier,
                 group,
             },
             error,
         )
     }
+}
+
+const MODIFIERS: [AnnotationModifier; 4] = [
+    AnnotationModifier::Shift,
+    AnnotationModifier::Control,
+    AnnotationModifier::Alt,
+    AnnotationModifier::Super,
+];
+
+fn modifier_index(modifier: AnnotationModifier) -> u32 {
+    MODIFIERS
+        .iter()
+        .position(|value| *value == modifier)
+        .unwrap_or(0) as u32
 }
 
 fn words(transcription: &TranscriptionResult) -> Vec<Word> {
@@ -123,7 +146,8 @@ impl ApplicationDesktop {
         if self.annotation_enabled() == enabled {
             return;
         }
-        let updated = AnnotationSettings { enabled };
+        let mut updated = self.annotations.settings.borrow().clone();
+        updated.enabled = enabled;
         if let Err(message) =
             updated.save(&self.services.paths.config.join(AnnotationSettings::FILE))
         {
@@ -154,6 +178,28 @@ impl ApplicationDesktop {
         self.restart_shortcuts();
     }
 
+    pub(super) fn set_annotation_modifier(&self, selected: u32) {
+        let Some(modifier) = MODIFIERS.get(selected as usize).copied() else {
+            return;
+        };
+        let mut updated = self.annotations.settings.borrow().clone();
+        if updated.modifier == modifier {
+            return;
+        }
+        let previous = updated.modifier;
+        updated.modifier = modifier;
+        if let Err(message) =
+            updated.save(&self.services.paths.config.join(AnnotationSettings::FILE))
+        {
+            self.shell.show_message(message);
+            self.annotations
+                .modifier
+                .set_selected(modifier_index(previous));
+            return;
+        }
+        self.annotations.settings.replace(updated);
+    }
+
     /// Start annotating the current recording when it began capturing audio.
     pub(super) fn start_annotation(self: &Rc<Self>) {
         if !self.annotation_enabled() || self.annotations.session.borrow().is_some() {
@@ -179,7 +225,7 @@ impl ApplicationDesktop {
         }
         if !may_bind(hyprland::available(), self.annotations.portal.get()) {
             self.page().set_status(
-                "Screen annotation needs Mluva's desktop shortcuts to be approved, so Shift is not bound. Recording continues without it.",
+                "Screen annotation needs Mluva's desktop shortcuts to be approved. Recording continues without it.",
             );
             return;
         }
@@ -191,6 +237,7 @@ impl ApplicationDesktop {
             &owner,
             &self.services.paths.runtime,
             &self.binaries.asr_worker.with_file_name("mluva"),
+            self.annotations.settings.borrow().modifier,
             Rc::new(move || {
                 capture
                     .upgrade()

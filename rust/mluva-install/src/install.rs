@@ -22,8 +22,6 @@ const LINKS: &[(&str, &str)] = &[
     ("mluva-overlay", "configure-recording-overlay.sh"),
     ("mluva-uninstall", "uninstall.sh"),
     ("mluva-shell", "mluva-shell"),
-    ("mluva-narrate", "mluva-narrate"),
-    ("mluva-screenshot-editor", "mluva-screenshot-editor"),
 ];
 fn present(path: &Path) -> bool {
     path.symlink_metadata().is_ok()
@@ -327,6 +325,13 @@ fn prepare_payload(
         return Err(
             "Mluva started while preparing this upgrade. Close it before installation.".into(),
         );
+    }
+    for (name, target) in [
+        ("mluva-narrate", "mluva-narrate"),
+        ("mluva-screenshot-editor", "mluva-screenshot-editor"),
+        ("tensaku-edit", "mluva-screenshot-editor"),
+    ] {
+        transaction.retire_owned_link(&paths.bin.join(name), &paths.app.join(target))?;
     }
     for (path, snapshot) in &snapshots {
         transaction.publish(path, snapshot)?;

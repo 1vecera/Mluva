@@ -5,7 +5,6 @@ use mluva_core::{
     diagnostics::DiagnosticsStore,
     history::{HistoryEntry, HistoryStore},
     personalization::{DictionaryCaseBehavior, PersonalizationStore},
-    screenshots::ImageInput,
 };
 use mluva_providers::{
     Secret, credentials::CredentialStore, elevenlabs::ElevenLabsClient, local_asr::OnnxOptions,
@@ -83,15 +82,6 @@ fn completion(mut value: Value) -> Completion<'static> {
         transcript_preparation,
         defer_delivery
     );
-    if let Some(images) = value["images"].as_array() {
-        request.images = images
-            .iter()
-            .map(|image| ImageInput {
-                data: STANDARD.decode(image["data"].as_str().unwrap()).unwrap(),
-                captured_after_seconds: image["captured_after_seconds"].as_f64(),
-            })
-            .collect();
-    }
     request
 }
 fn entry(entry: Option<&HistoryEntry>) -> Value {

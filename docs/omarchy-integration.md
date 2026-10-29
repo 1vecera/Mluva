@@ -70,21 +70,6 @@ Create that file initially with the single line `-- Mluva managed portal binding
 
 `mluva-shell watch` emits only capture phase and elapsed seconds. The plugin opts into `watch --overlay`, which carries audio level, up to 4,096 characters of volatile text, its character offset, and recording appearance settings. The offset lets the widget keep the same wrapping as older words leave the bounded preview, including text containing emoji. Saved instructions, credentials, device names, and target application names are excluded. The production plugin does not log or persist this stream; do not redirect it into persistent logs.
 
-## Screenshot context
-
-Bind an unused function key to `mluva-shell screenshot`; F10 is the suggested choice. In the existing Omarchy Lua bindings file, use the same native binding API as F9:
-
-```lua
-hl.unbind("F10")
-o.bind("F10", "Mluva screenshot context", os.getenv("HOME") .. "/.local/bin/mluva-shell screenshot")
-```
-
-During a narration this invokes Omarchy's existing region selector and attaches its PNG to that recording, with its elapsed time. In a saved conversation it attaches to the selected conversation. Switching conversations while selecting does not change the frozen destination. Escape cancels; the capture does not replace the clipboard. Incognito does not accept screenshots.
-
-Mluva opens the attached image in the normal `tensaku-edit` editor. Its thumbnail refreshes after a save. Images remain local attachments; built-in AI rewriting has been removed. Removing an image, deleting its conversation and history pruning remove its managed file. Screenshot files live under the Mluva data directory and inherit the conversation's retention.
-
-Install the optional [Tensaku source extension](../linux/integrations/tensaku/README.md) to enable narrated text boxes in the current default editor. **Add narration** → choose an area → speak a fresh phrase → **Stop narration** inserts the complete text and saves the PNG. It uses Mluva's saved microphone, language and speech provider, with its deterministic text rules. A main narration can continue recording the same speech. Escape or closing the editor cancels the annotation; its temporary raw audio is erased. This action does not copy, paste or create an extra Mluva conversation. Incognito is checked again before uploading annotation audio.
-
 ## Verification
 
 Run `make linux-test linux-shortcut-test linux-application-test linux-omarchy-test`. The native widget check connects the production status publisher, shell bridge and QML in a private session. It exercises recording focus/geometry, scrolling and contraction, Unicode preview origins, light/dark colors, reduced motion and owner loss. It requires the installed Omarchy shell, Quickshell, Xvfb, xdotool, ImageMagick and FFmpeg. `MLUVA_PANEL_REPLAY=1 make linux-omarchy-test` selects the retained preview replay.

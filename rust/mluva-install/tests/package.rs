@@ -19,11 +19,9 @@ use std::{
 const PRODUCTION: &[&str] = &[
     "mluva",
     "mluva-shell",
-    "mluva-narrate",
     "mluva-asr-worker",
     "mluva-audio-cleanup",
     "mluva-install-widget",
-    "mluva-screenshot-editor",
     "mluva-uninstall",
     "mluva-install",
 ];
@@ -53,8 +51,6 @@ fn source(root: &Path, repository: &Path) -> PathBuf {
         "install.sh",
         "linux/configure-input-helper.sh",
         "linux/configure-recording-overlay.sh",
-        "linux/install-narrated-editor.sh",
-        "linux/build-narrated-editor.sh",
     ] {
         let target = source.join(file);
         fs::create_dir_all(target.parent().unwrap()).unwrap();
@@ -65,7 +61,6 @@ fn source(root: &Path, repository: &Path) -> PathBuf {
         "linux/quickshell",
         "linux/gnome-extension",
         "linux/resources",
-        "linux/integrations/tensaku",
     ] {
         copy_tree(&repository.join(directory), &source.join(directory));
     }
@@ -258,12 +253,10 @@ fn actual_native_bundle_is_complete_private_and_atomic() {
             "{name} is not the selected built binary"
         );
     }
-    for name in ["mluva-shell", "mluva-narrate", "mluva-screenshot-editor"] {
-        assert_eq!(
-            fs::read_link(output.join(name)).unwrap(),
-            Path::new("bin").join(name)
-        );
-    }
+    assert_eq!(
+        fs::read_link(output.join("mluva-shell")).unwrap(),
+        Path::new("bin/mluva-shell")
+    );
     let widget: Value = serde_json::from_slice(
         &fs::read(output.join("quickshell/mluva.dictation/manifest.json")).unwrap(),
     )

@@ -132,7 +132,6 @@ fn phone_starts_native_widget_audio_stop_history_and_copy_without_pc_microphone(
         NativeBinaries {
             asr_worker: target.join("mluva-asr-worker"),
             audio_cleanup: target.join("mluva-audio-cleanup"),
-            screenshot_editor: target.join("mluva-screenshot-editor"),
         },
         ApplicationPlatform {
             compact_recording: Rc::new(|_| {}),

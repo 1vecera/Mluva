@@ -62,7 +62,6 @@ fn all_settings_scroll_jump_focus_and_save_without_hiding_other_sections() {
         NativeBinaries {
             asr_worker: target.join("mluva-asr-worker"),
             audio_cleanup: target.join("mluva-audio-cleanup"),
-            screenshot_editor: target.join("mluva-screenshot-editor"),
         },
         ApplicationPlatform {
             compact_recording: Rc::new(|_| {}),
