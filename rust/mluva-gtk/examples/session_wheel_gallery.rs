@@ -163,6 +163,28 @@ fn codex_thread(index: usize, title: &str, kind: AgentKind, status: AgentStatus)
     }
 }
 
+/// A live Antigravity CLI session outside Herdr, held open by an agy process.
+fn antigravity_session(index: usize, title: &str, status: AgentStatus) -> Target {
+    let conv = format!("ee04a19a-0000-7000-8000-0000000{index:05}");
+    Target {
+        kind: AgentKind::AntigravityCli,
+        name: "agy".into(),
+        host: Host::Terminal,
+        title: title.into(),
+        project: "/fixture/project".into(),
+        status,
+        session_id: conv.clone(),
+        pid: 70_000 + index as u32,
+        antigravity: Some(mluva_core::agent_voice::AntigravitySession {
+            conversation_id: conv.clone(),
+            lock: format!("/fixture/antigravity/presence/{conv}.lock"),
+            holder: 70_000 + index as u32,
+            proc_start: "123456".into(),
+        }),
+        ..Target::default()
+    }
+}
+
 /// Every kind of target and every delivery level on one wheel, in discovery order: Herdr's
 /// panes, Claude Code sessions outside Herdr, live Codex threads, then a new Claude chat.
 fn universal() -> Vec<Target> {
@@ -212,6 +234,7 @@ fn universal() -> Vec<Target> {
             app: Some(AppLink::ClaudeNewChat),
             ..Target::default()
         },
+        antigravity_session(7, "Add Agy Support", AgentStatus::Working),
     ]
 }
 
@@ -661,6 +684,7 @@ fn main() -> glib::ExitCode {
         ("universal-send-codex", universal(), Some(8), 0),
         ("universal-send-codex-desktop", universal(), Some(9), 0),
         ("universal-prefill-new-chat", universal(), Some(10), 0),
+        ("universal-queue-antigravity", universal(), Some(11), 0),
     ];
     let mut problems = vec![];
     let mut index = serde_json::Map::new();

@@ -237,5 +237,37 @@ mod tests {
                 &json!("codex")
             )
         );
+        let agy = Target {
+            name: "agy".into(),
+            title: "Add Agy Support".into(),
+            kind: AgentKind::AntigravityCli,
+            status: AgentStatus::Idle,
+            session_id: "agy-conv-1".into(),
+            pid: 5_000,
+            antigravity: Some(mluva_core::agent_voice::AntigravitySession {
+                conversation_id: "agy-conv-1".into(),
+                lock: "/fake/agy.lock".into(),
+                holder: 5_000,
+                proc_start: "12345".into(),
+            }),
+            ..Target::default()
+        };
+        let value = summary(&agy);
+        assert_eq!(
+            (
+                &value["display_name"],
+                &value["route"],
+                &value["delivery"],
+                &value["available"],
+                &value["kind"]
+            ),
+            (
+                &json!("Add Agy Support"),
+                &json!("antigravity_queue"),
+                &json!("queue"),
+                &json!(true),
+                &json!("agy")
+            )
+        );
     }
 }

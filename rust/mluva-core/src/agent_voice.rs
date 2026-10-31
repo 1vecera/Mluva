@@ -10,8 +10,8 @@ pub const MAX_RECORDING_MS: u64 = 5 * 60 * 1_000;
 pub const MAX_MESSAGE_BYTES: usize = 32_768;
 
 pub use crate::agent_target::{
-    AgentKind, AgentStatus, AppLink, ClaudeInbox, CodexThread, Delivery, HerdrPane, Host, Route,
-    Target,
+    AgentKind, AgentStatus, AntigravitySession, AppLink, ClaudeInbox, CodexThread, Delivery,
+    HerdrPane, Host, Route, Target,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

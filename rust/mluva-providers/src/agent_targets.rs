@@ -39,6 +39,10 @@ pub struct Sources {
     /// Codex's session index, which names Codex threads in Herdr panes and outside them; read
     /// once per pass, and then only what was appended.
     pub codex_names: Option<Arc<Mutex<CodexNames>>>,
+    /// Live Antigravity CLI sessions.
+    pub antigravity: Option<Arc<tokio::sync::Mutex<crate::antigravity::AntigravitySessions>>>,
+    /// Antigravity conversation titles from `conversation_summaries.db`.
+    pub antigravity_titles: Option<Arc<Mutex<crate::antigravity::AntigravityTitles>>>,
     /// Offer desktop app surfaces, such as a new Claude chat, when their app is installed.
     pub apps: bool,
 }
@@ -61,7 +65,7 @@ impl Found {
     pub fn summary(&self) -> String {
         if self.targets.is_empty() {
             return self.errors.last().cloned().unwrap_or_else(|| {
-                "No sessions found. Start Claude Code or Codex, then refresh.".into()
+                "No sessions found. Start Claude Code, Codex, or Antigravity, then refresh.".into()
             });
         }
         if self.targets.iter().any(Target::has_transport) {
@@ -77,21 +81,25 @@ impl Found {
 /// Discover every session the sources can see. Herdr is only ever asked to list, and the
 /// registry is read on a blocking thread. `None` when cancelled.
 pub async fn discover(sources: Sources, cancel: &CancellationToken) -> Option<Found> {
-    let names = match sources.codex_names.clone() {
-        Some(index) => tokio::task::spawn_blocking(move || {
-            index
-                .lock()
-                .map(|mut index| index.refresh().clone())
-                .unwrap_or_default()
+    let (names, agy_titles) = {
+        let codex_names = sources.codex_names.clone();
+        let agy_titles_arc = sources.antigravity_titles.clone();
+        tokio::task::spawn_blocking(move || {
+            let names = codex_names
+                .and_then(|index| index.lock().ok().map(|mut i| i.refresh().clone()))
+                .unwrap_or_default();
+            let agy_titles = agy_titles_arc
+                .and_then(|titles| titles.lock().ok().map(|mut t| t.refresh().clone()))
+                .unwrap_or_default();
+            (names, agy_titles)
         })
         .await
-        .unwrap_or_default(),
-        None => Default::default(),
+        .unwrap_or_default()
     };
     let herdr = async {
         let mut found = Found::default();
         for path in sources.herdr.into_iter().take(MAX_HERDR_SERVERS) {
-            match herdr::discover_named(&path, &names).await {
+            match herdr::discover_named(&path, &names, &agy_titles).await {
                 Ok(discovery) => {
                     found.herdr = true;
                     found.guarded |= discovery.guarded;
@@ -121,13 +129,20 @@ pub async fn discover(sources: Sources, cancel: &CancellationToken) -> Option<Fo
         };
         threads.lock().await.discover(servers, &names).await
     };
+    let antigravity = async {
+        let Some(sessions) = sources.antigravity else {
+            return vec![];
+        };
+        sessions.lock().await.discover().await
+    };
     let apps = async { sources.apps && claude_desktop::installed().await };
-    let (mut found, sessions, threads, desktop) = tokio::select! {
+    let (mut found, sessions, threads, agy_sessions, desktop) = tokio::select! {
         _ = cancel.cancelled() => return None,
-        found = async { tokio::join!(herdr, claude, codex, apps) } => found,
+        found = async { tokio::join!(herdr, claude, codex, antigravity, apps) } => found,
     };
     found.targets = claude_sessions::merge(std::mem::take(&mut found.targets), &sessions);
     found.targets = codex::threads::merge(std::mem::take(&mut found.targets), threads);
+    found.targets = crate::antigravity::merge(std::mem::take(&mut found.targets), agy_sessions);
     if desktop {
         found.targets.push(claude_desktop::new_chat());
     }
@@ -235,12 +250,29 @@ impl Transport for CodexQueueTransport {
     }
 }
 
+/// Antigravity CLI's file-backed message store queue, at Queue level.
+pub struct AntigravityQueueTransport;
+
+impl Transport for AntigravityQueueTransport {
+    fn route(&self) -> Route {
+        Route::AntigravityQueue
+    }
+    fn deliver<'a>(
+        &'a self,
+        submission: &'a Submission,
+        cancel: &'a CancellationToken,
+    ) -> Delivering<'a> {
+        Box::pin(crate::antigravity::submit(submission, cancel))
+    }
+}
+
 /// Every transport this build carries.
 const TRANSPORTS: &[&dyn Transport] = &[
     &HerdrTransport,
     &ClaudeInboxTransport,
     &ClaudeNewChatTransport,
     &CodexQueueTransport,
+    &AntigravityQueueTransport,
 ];
 
 /// Stop anything a transport started for this process, such as Mluva's Codex app server.
@@ -304,6 +336,7 @@ mod tests {
             Route::ClaudeInbox,
             Route::ClaudeNewChat,
             Route::CodexQueue,
+            Route::AntigravityQueue,
         ] {
             let carried = TRANSPORTS.iter().filter(|t| t.route() == route).count();
             let expected =

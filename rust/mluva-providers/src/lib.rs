@@ -3,6 +3,7 @@
 pub mod account;
 pub mod agent_platform;
 pub mod agent_targets;
+pub mod antigravity;
 pub mod batch_preview;
 pub mod catalog;
 pub mod claude_desktop;
