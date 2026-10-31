@@ -455,7 +455,7 @@ index 00000000..7b74dcd6
 +            crate::detect::identify_agent_process_in_job(&crate::detect::foreground_job(shell)?)?;
 +        if !matches!(
 +            kind,
-+            crate::detect::Agent::Claude | crate::detect::Agent::Codex
++            crate::detect::Agent::Claude | crate::detect::Agent::Codex | crate::detect::Agent::Antigravity
 +        ) {
 +            return None;
 +        }
@@ -523,6 +523,19 @@ index 00000000..7b74dcd6
 +                            | crate::api::schema::AgentStatus::Done
 +                    )
 +                    && runtime.guarded_detection_ready(kind)
++            }
++            crate::detect::Agent::Antigravity => {
++                agent
++                    .agent
++                    .as_deref()
++                    .and_then(crate::detect::parse_agent_label)
++                    == Some(kind)
++                    && matches!(
++                        agent.agent_status,
++                        crate::api::schema::AgentStatus::Idle
++                            | crate::api::schema::AgentStatus::Working
++                            | crate::api::schema::AgentStatus::Done
++                    )
 +            }
 +            _ => false,
 +        }

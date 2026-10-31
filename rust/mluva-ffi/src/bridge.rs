@@ -83,6 +83,10 @@ struct Reach {
     codex: Option<Arc<tokio::sync::Mutex<CodexThreads>>>,
     /// Codex's session index, which names Codex threads in Herdr panes and outside them.
     codex_names: Option<Arc<Mutex<CodexNames>>>,
+    /// Live Antigravity CLI sessions.
+    antigravity: Option<Arc<tokio::sync::Mutex<mluva_providers::antigravity::AntigravitySessions>>>,
+    /// Antigravity conversation titles from `conversation_summaries.db`.
+    antigravity_titles: Option<Arc<Mutex<mluva_providers::antigravity::AntigravityTitles>>>,
     /// Desktop app surfaces, such as a new Claude chat.
     apps: bool,
 }
@@ -134,6 +138,12 @@ impl Bridge {
                 codex: Some(Arc::default()),
                 codex_names: herdr::codex_index_path()
                     .map(|index| Arc::new(Mutex::new(CodexNames::new(index)))),
+                antigravity: Some(Arc::default()),
+                antigravity_titles: Some(Arc::new(Mutex::new(
+                    mluva_providers::antigravity::AntigravityTitles::new(
+                        mluva_providers::antigravity::titles::antigravity_summaries_db_path(),
+                    ),
+                ))),
                 apps: true,
             }),
             targets: Arc::default(),
@@ -583,6 +593,8 @@ impl Bridge {
                 claude: reach.claude.clone(),
                 codex: reach.codex.clone(),
                 codex_names: reach.codex_names.clone(),
+                antigravity: reach.antigravity.clone(),
+                antigravity_titles: reach.antigravity_titles.clone(),
                 apps: reach.apps,
             }
         };

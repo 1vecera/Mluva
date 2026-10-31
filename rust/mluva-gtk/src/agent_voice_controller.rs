@@ -62,6 +62,10 @@ pub struct AgentVoiceController {
     codex: Arc<tokio::sync::Mutex<CodexThreads>>,
     /// Codex's session index, read incrementally across passes.
     codex_names: Option<Arc<Mutex<CodexNames>>>,
+    /// Live Antigravity CLI sessions.
+    antigravity: Arc<tokio::sync::Mutex<mluva_providers::antigravity::AntigravitySessions>>,
+    /// Antigravity conversation titles from conversation_summaries.db.
+    antigravity_titles: Arc<Mutex<mluva_providers::antigravity::AntigravityTitles>>,
     editor: RefCell<Option<crate::markdown_view::MarkdownTextView>>,
     /// The screen annotation summary of the recording whose draft is in the editor.
     draft_appendix: RefCell<Option<String>>,
@@ -137,6 +141,12 @@ impl AgentVoiceController {
             codex: Arc::default(),
             codex_names: herdr::codex_index_path()
                 .map(|index| Arc::new(Mutex::new(CodexNames::new(index)))),
+            antigravity: Arc::default(),
+            antigravity_titles: Arc::new(Mutex::new(
+                mluva_providers::antigravity::AntigravityTitles::new(
+                    mluva_providers::antigravity::titles::antigravity_summaries_db_path(),
+                ),
+            )),
             editor: RefCell::new(None),
             draft_appendix: RefCell::new(None),
             voice_error: RefCell::new(None),
@@ -401,6 +411,8 @@ impl AgentVoiceController {
             claude: self.registry.clone(),
             codex: Some(self.codex.clone()),
             codex_names: self.codex_names.clone(),
+            antigravity: Some(self.antigravity.clone()),
+            antigravity_titles: Some(self.antigravity_titles.clone()),
             apps: true,
         }
     }

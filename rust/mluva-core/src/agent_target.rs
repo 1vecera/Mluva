@@ -29,6 +29,14 @@ pub enum AgentKind {
     /// A thread in the Codex desktop app.
     #[serde(rename = "codex_desktop")]
     CodexDesktop,
+    /// Google Antigravity CLI in a terminal, a multiplexer pane or Herdr.
+    #[serde(
+        rename = "agy",
+        alias = "antigravity",
+        alias = "antigravity_cli",
+        alias = "antigravity-cli"
+    )]
+    AntigravityCli,
     /// A kind this version does not know, kept so a newer saved choice still loads.
     #[default]
     #[serde(other, rename = "unknown")]
@@ -43,6 +51,7 @@ impl AgentKind {
             Self::ClaudeDesktop => "Claude Desktop",
             Self::CodexCli => "Codex CLI",
             Self::CodexDesktop => "Codex Desktop",
+            Self::AntigravityCli => "Antigravity CLI",
             Self::Unknown => "Agent",
         }
     }
@@ -53,6 +62,7 @@ impl AgentKind {
             Self::ClaudeDesktop => "claude_desktop",
             Self::CodexCli => "codex",
             Self::CodexDesktop => "codex_desktop",
+            Self::AntigravityCli => "agy",
             Self::Unknown => "unknown",
         }
     }
@@ -61,11 +71,17 @@ impl AgentKind {
         match agent {
             "claude" | "claude_code" => Some(Self::ClaudeCode),
             "codex" => Some(Self::CodexCli),
+            "agy" | "antigravity" | "antigravity-cli" | "antigravity_cli" => {
+                Some(Self::AntigravityCli)
+            }
             _ => None,
         }
     }
     pub fn is_claude_code(self) -> bool {
         self == Self::ClaudeCode
+    }
+    pub fn is_antigravity(self) -> bool {
+        self == Self::AntigravityCli
     }
     /// A Claude Code process, in a terminal or as a Code session of the Claude desktop app,
     /// which runs its own bundled Claude Code.
@@ -162,6 +178,9 @@ pub enum Route {
     /// queued, confirmed as that thread's turn by its client ID, and withdrawn unsent if the
     /// thread does not take it at once.
     CodexQueue,
+    /// Antigravity CLI's own per-session queue for cross-session messages. The session admits
+    /// the message to its prompt queue and takes it as its next turn.
+    AntigravityQueue,
 }
 
 impl Route {
@@ -172,6 +191,7 @@ impl Route {
             Self::ClaudeInbox => "claude_inbox",
             Self::ClaudeNewChat => "claude_new_chat",
             Self::CodexQueue => "codex_queue",
+            Self::AntigravityQueue => "antigravity_queue",
         }
     }
     /// The level this transport has been verified to deliver at.
@@ -179,7 +199,7 @@ impl Route {
         match self {
             Self::DraftOnly => Delivery::DraftOnly,
             Self::Herdr => Delivery::Send,
-            Self::ClaudeInbox => Delivery::Queue,
+            Self::ClaudeInbox | Self::AntigravityQueue => Delivery::Queue,
             Self::ClaudeNewChat => Delivery::Prefill,
             Self::CodexQueue => Delivery::Send,
         }
@@ -195,7 +215,7 @@ impl Route {
                 status,
                 AgentStatus::Idle | AgentStatus::Done | AgentStatus::Working
             ),
-            Self::ClaudeInbox => matches!(
+            Self::ClaudeInbox | Self::AntigravityQueue => matches!(
                 status,
                 AgentStatus::Idle | AgentStatus::Done | AgentStatus::Working | AgentStatus::Blocked
             ),
@@ -212,7 +232,11 @@ impl Route {
         match self {
             // Claude Desktop cuts a link's prompt at this length.
             Self::ClaudeNewChat => Some(14_336),
-            Self::DraftOnly | Self::Herdr | Self::ClaudeInbox | Self::CodexQueue => None,
+            Self::DraftOnly
+            | Self::Herdr
+            | Self::ClaudeInbox
+            | Self::CodexQueue
+            | Self::AntigravityQueue => None,
         }
     }
 }
@@ -256,6 +280,21 @@ pub struct CodexThread {
     pub lock: String,
     /// The process holding it: a Codex TUI, the shared daemon or Codex Desktop's server.
     pub holder: u32,
+}
+
+/// A live Antigravity CLI session: the presence lock file whose exclusive hold makes it live,
+/// and its holder process.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AntigravitySession {
+    /// The conversation ID.
+    pub conversation_id: String,
+    /// Path to the presence lock file (`~/.gemini/antigravity-cli/presence/<conversation_id>.lock`).
+    pub lock: String,
+    /// The process holding it: an active `agy` process.
+    pub holder: u32,
+    /// The holder's start time as recorded by `/proc`, for identity re-checking.
+    #[serde(default)]
+    pub proc_start: String,
 }
 
 /// An application surface reached by link rather than a running session.
@@ -312,6 +351,8 @@ pub struct Target {
     pub app: Option<AppLink>,
     /// The live Codex thread, when its writer lock is held. Never saved.
     pub codex: Option<CodexThread>,
+    /// A live Antigravity CLI session, when its presence lock is held. Never saved.
+    pub antigravity: Option<AntigravitySession>,
     /// A remembered choice that discovery no longer reports. Never saved.
     pub missing: bool,
 }
@@ -326,6 +367,8 @@ impl Target {
             Route::ClaudeInbox
         } else if self.codex.is_some() && self.kind.is_codex() {
             Route::CodexQueue
+        } else if self.antigravity.is_some() && self.kind.is_antigravity() {
+            Route::AntigravityQueue
         } else if self.app == Some(AppLink::ClaudeNewChat) && self.kind == AgentKind::ClaudeDesktop
         {
             Route::ClaudeNewChat
@@ -363,6 +406,8 @@ impl Target {
         } else if self.kind.runs_claude_code() {
             // Older, `--bare` and `--restricted` sessions open no inbox.
             "Draft only: this session has no inbox"
+        } else if self.kind.is_antigravity() {
+            "Draft only: this session has no queue"
         } else {
             "Draft only: nothing can reach it"
         }
@@ -379,6 +424,10 @@ impl Target {
             Route::ClaudeInbox => Some("Arrives as a message from another Claude session"),
             Route::ClaudeNewChat => Some("Opens Claude with it in a new chat; you send it there"),
             Route::CodexQueue => Some("Sends if the thread is idle; otherwise your draft is kept"),
+            Route::AntigravityQueue if self.status == AgentStatus::Blocked => {
+                Some("Waits behind its prompt, as a message in Antigravity's queue")
+            }
+            Route::AntigravityQueue => Some("Arrives as a message in Antigravity's queue"),
         }
     }
 
@@ -468,7 +517,7 @@ impl Target {
             Route::Herdr => "Herdr",
             Route::ClaudeNewChat => "Claude",
             Route::CodexQueue => "the Codex thread",
-            Route::ClaudeInbox | Route::DraftOnly => "the session",
+            Route::ClaudeInbox | Route::AntigravityQueue | Route::DraftOnly => "the session",
         }
     }
 
@@ -590,6 +639,7 @@ impl From<TargetRecord> for Target {
             host: Host::default(),
             app: record.app,
             codex: None,
+            antigravity: None,
             missing: false,
         }
     }

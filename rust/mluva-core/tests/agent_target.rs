@@ -39,6 +39,7 @@ fn kinds_keep_herdrs_names_and_tolerate_ones_this_version_does_not_know() {
         (AgentKind::CodexCli, "codex"),
         (AgentKind::ClaudeDesktop, "claude_desktop"),
         (AgentKind::CodexDesktop, "codex_desktop"),
+        (AgentKind::AntigravityCli, "agy"),
     ] {
         assert_eq!(serde_json::to_value(kind).unwrap(), json!(name));
         assert_eq!(kind.as_str(), name);
@@ -52,11 +53,27 @@ fn kinds_keep_herdrs_names_and_tolerate_ones_this_version_does_not_know() {
         AgentKind::ClaudeCode
     );
     assert_eq!(
+        serde_json::from_value::<AgentKind>(json!("antigravity")).unwrap(),
+        AgentKind::AntigravityCli
+    );
+    assert_eq!(
+        serde_json::from_value::<AgentKind>(json!("antigravity_cli")).unwrap(),
+        AgentKind::AntigravityCli
+    );
+    assert_eq!(
+        serde_json::from_value::<AgentKind>(json!("antigravity-cli")).unwrap(),
+        AgentKind::AntigravityCli
+    );
+    assert_eq!(AgentKind::from_herdr("agy"), Some(AgentKind::AntigravityCli));
+    assert_eq!(AgentKind::from_herdr("antigravity"), Some(AgentKind::AntigravityCli));
+    assert_eq!(AgentKind::from_herdr("antigravity-cli"), Some(AgentKind::AntigravityCli));
+    assert_eq!(
         serde_json::from_value::<AgentKind>(json!("future_agent")).unwrap(),
         AgentKind::Unknown
     );
     assert_eq!(AgentKind::from_herdr("shell"), None);
     assert!(AgentKind::ClaudeDesktop.is_desktop() && !AgentKind::CodexCli.is_desktop());
+    assert!(!AgentKind::AntigravityCli.is_desktop() && AgentKind::AntigravityCli.is_antigravity());
 }
 
 #[test]
@@ -216,6 +233,40 @@ fn a_session_keeps_one_identity_while_herdrs_guard_comes_and_goes() {
     session.herdr.as_mut().unwrap().guard = "c".repeat(64);
     assert!(chosen.same_instance(&session));
     assert_eq!(session.route(), Route::Herdr);
+}
+
+#[test]
+fn antigravity_session_routes_to_queue_when_unguarded_and_herdr_when_guarded() {
+    let mut agy = Target {
+        kind: AgentKind::AntigravityCli,
+        name: "agy".into(),
+        title: "Add Agy Support".into(),
+        pid: 300_114,
+        started: "987654".into(),
+        session_id: "ee04a19a-5ba3-474e-9df2-ba3e0777a3a8".into(),
+        antigravity: Some(AntigravitySession {
+            conversation_id: "ee04a19a-5ba3-474e-9df2-ba3e0777a3a8".into(),
+            lock: "/path/to/ee04a19a-5ba3-474e-9df2-ba3e0777a3a8.lock".into(),
+            holder: 300_114,
+            proc_start: "987654".into(),
+        }),
+        ..guarded()
+    };
+    assert_eq!(agy.route(), Route::Herdr);
+    assert_eq!(agy.delivery(), Delivery::Send);
+
+    // When unguarded or outside Herdr:
+    agy.herdr.as_mut().unwrap().guard.clear();
+    assert_eq!(agy.route(), Route::AntigravityQueue);
+    assert_eq!(agy.delivery(), Delivery::Queue);
+    assert_eq!(agy.delivery_hint(), Some("Arrives as a message in Antigravity's queue"));
+    assert!(agy.can_receive());
+
+    // When blocked (e.g. at a prompt), Antigravity message queue still accepts:
+    agy.status = AgentStatus::Blocked;
+    assert_eq!(agy.route(), Route::AntigravityQueue);
+    assert!(agy.can_receive());
+    assert_eq!(agy.delivery_hint(), Some("Waits behind its prompt, as a message in Antigravity's queue"));
 }
 
 #[test]
