@@ -22,6 +22,7 @@ pub mod local_preview;
 pub mod models;
 pub mod multipart;
 pub mod onnx_runtime;
+pub mod opencode;
 mod process_lifetime;
 pub mod qwen;
 pub mod realtime;

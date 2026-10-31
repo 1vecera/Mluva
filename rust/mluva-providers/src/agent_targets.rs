@@ -43,6 +43,8 @@ pub struct Sources {
     pub antigravity: Option<Arc<tokio::sync::Mutex<crate::antigravity::AntigravitySessions>>>,
     /// Antigravity conversation titles from `conversation_summaries.db`.
     pub antigravity_titles: Option<Arc<Mutex<crate::antigravity::AntigravityTitles>>>,
+    /// OpenCode session titles from `opencode.db`.
+    pub opencode_titles: Option<Arc<Mutex<crate::opencode::OpenCodeTitles>>>,
     /// Offer desktop app surfaces, such as a new Claude chat, when their app is installed.
     pub apps: bool,
 }
@@ -65,7 +67,7 @@ impl Found {
     pub fn summary(&self) -> String {
         if self.targets.is_empty() {
             return self.errors.last().cloned().unwrap_or_else(|| {
-                "No sessions found. Start Claude Code, Codex, or Antigravity, then refresh.".into()
+                "No sessions found. Start Claude Code, Codex, Antigravity, or OpenCode, then refresh.".into()
             });
         }
         if self.targets.iter().any(Target::has_transport) {
@@ -81,9 +83,10 @@ impl Found {
 /// Discover every session the sources can see. Herdr is only ever asked to list, and the
 /// registry is read on a blocking thread. `None` when cancelled.
 pub async fn discover(sources: Sources, cancel: &CancellationToken) -> Option<Found> {
-    let (names, agy_titles) = {
+    let (names, agy_titles, opencode_titles) = {
         let codex_names = sources.codex_names.clone();
         let agy_titles_arc = sources.antigravity_titles.clone();
+        let opencode_titles_arc = sources.opencode_titles.clone();
         tokio::task::spawn_blocking(move || {
             let names = codex_names
                 .and_then(|index| index.lock().ok().map(|mut i| i.refresh().clone()))
@@ -91,7 +94,10 @@ pub async fn discover(sources: Sources, cancel: &CancellationToken) -> Option<Fo
             let agy_titles = agy_titles_arc
                 .and_then(|titles| titles.lock().ok().map(|mut t| t.refresh().clone()))
                 .unwrap_or_default();
-            (names, agy_titles)
+            let opencode_titles = opencode_titles_arc
+                .and_then(|titles| titles.lock().ok().map(|mut t| t.refresh().clone()))
+                .unwrap_or_default();
+            (names, agy_titles, opencode_titles)
         })
         .await
         .unwrap_or_default()
@@ -99,7 +105,7 @@ pub async fn discover(sources: Sources, cancel: &CancellationToken) -> Option<Fo
     let herdr = async {
         let mut found = Found::default();
         for path in sources.herdr.into_iter().take(MAX_HERDR_SERVERS) {
-            match herdr::discover_named(&path, &names, &agy_titles).await {
+            match herdr::discover_named(&path, &names, &agy_titles, &opencode_titles).await {
                 Ok(discovery) => {
                     found.herdr = true;
                     found.guarded |= discovery.guarded;

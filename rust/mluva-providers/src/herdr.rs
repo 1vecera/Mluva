@@ -34,8 +34,43 @@ pub fn socket_candidates(config_home: &Path, explicit: Option<&str>) -> Vec<Path
     if let Some(path) = explicit {
         return vec![PathBuf::from(path)];
     }
+    let mut paths = Vec::new();
+
+    if let Some(hc_socket) = std::env::var_os("HC_SOCKET").filter(|s| !s.is_empty()) {
+        paths.push(PathBuf::from(hc_socket));
+    }
+
+    let runtime_dir = std::env::var_os("XDG_RUNTIME_DIR")
+        .map(PathBuf::from)
+        .or_else(|| {
+            let uid = crate::agent_platform::effective_uid();
+            let path = PathBuf::from(format!("/run/user/{uid}"));
+            path.is_dir().then_some(path)
+        });
+    if let Some(runtime) = runtime_dir {
+        let core_dir = runtime.join("herdr-core");
+        let default_sock = core_dir.join("default.sock");
+        if default_sock.exists() {
+            paths.push(default_sock);
+        }
+        if let Ok(entries) = std::fs::read_dir(&core_dir) {
+            let mut session_socks: Vec<_> = entries
+                .flatten()
+                .filter(|entry| {
+                    let file_name = entry.file_name();
+                    let name = file_name.to_string_lossy();
+                    name.ends_with(".sock") && !name.contains(".holder.") && name != "default.sock"
+                })
+                .take(32)
+                .map(|entry| entry.path())
+                .collect();
+            session_socks.sort();
+            paths.extend(session_socks);
+        }
+    }
+
     let root = config_home.join("herdr");
-    let mut paths = vec![root.join("herdr.sock")];
+    paths.push(root.join("herdr.sock"));
     if let Ok(entries) = std::fs::read_dir(root.join("sessions")) {
         let mut sessions: Vec<_> = entries
             .flatten()
@@ -45,9 +80,10 @@ pub fn socket_candidates(config_home: &Path, explicit: Option<&str>) -> Vec<Path
         sessions.sort();
         paths.extend(sessions);
     }
+    let mut seen = std::collections::HashSet::new();
     paths
         .into_iter()
-        .filter(|path| secure_socket(path).is_ok())
+        .filter(|path| seen.insert(path.clone()) && secure_socket(path).is_ok())
         .collect()
 }
 
@@ -254,6 +290,7 @@ fn session_title(
     kind: AgentKind,
     codex_threads: &HashMap<String, String>,
     antigravity_titles: &HashMap<String, String>,
+    opencode_titles: &HashMap<String, String>,
 ) -> String {
     let title = if kind == AgentKind::CodexCli {
         // Codex composes its terminal title from configurable items (thread, project,
@@ -282,6 +319,24 @@ fn session_title(
                             && !t.eq_ignore_ascii_case("antigravity cli")
                     })
             })
+    } else if kind == AgentKind::OpenCode {
+        agent
+            .agent_session
+            .as_ref()
+            .filter(|s| s.kind == "id")
+            .and_then(|s| opencode_titles.get(&s.value))
+            .map(String::as_str)
+            .or_else(|| {
+                agent
+                    .terminal_title_stripped
+                    .as_deref()
+                    .filter(|title| {
+                        let t = title.trim();
+                        !t.eq_ignore_ascii_case("opencode")
+                            && !t.eq_ignore_ascii_case("open-code")
+                            && !t.eq_ignore_ascii_case("opencode2")
+                    })
+            })
     } else {
         // Claude Code titles the terminal with the session's custom or generated title;
         // Herdr strips its activity glyph. The product name means no title yet.
@@ -300,10 +355,17 @@ fn target(
     value: Value,
     codex_threads: &HashMap<String, String>,
     antigravity_titles: &HashMap<String, String>,
+    opencode_titles: &HashMap<String, String>,
 ) -> Option<Target> {
     let agent: Agent = serde_json::from_value(value).ok()?;
     let kind = AgentKind::from_herdr(agent.agent.as_deref()?)?;
-    let title = session_title(&agent, kind, codex_threads, antigravity_titles);
+    let title = session_title(
+        &agent,
+        kind,
+        codex_threads,
+        antigravity_titles,
+        opencode_titles,
+    );
     let session_id = agent
         .agent_session
         .as_ref()
@@ -348,13 +410,14 @@ async fn listed_agents(path: &Path) -> Result<Vec<Value>> {
         .ok_or_else(|| ProviderError::message(INCOMPATIBLE))
 }
 
-/// Discover with Codex thread names and Antigravity conversation titles already read.
+/// Discover with Codex thread names, Antigravity conversation titles, and OpenCode session titles already read.
 pub async fn discover_named(
     path: &Path,
     codex_threads: &HashMap<String, String>,
     antigravity_titles: &HashMap<String, String>,
+    opencode_titles: &HashMap<String, String>,
 ) -> Result<Discovery> {
-    discover_listed(path, codex_threads, antigravity_titles).await
+    discover_listed(path, codex_threads, antigravity_titles, opencode_titles).await
 }
 
 /// Discover with an explicit Codex thread index; tests pass a fixture.
@@ -365,22 +428,246 @@ pub async fn discover_named(
 /// sent to. The rest stay visible without a transport.
 pub async fn discover_with(path: &Path, codex_index: Option<&Path>) -> Result<Discovery> {
     let codex_threads = codex_index.map(codex_thread_names).unwrap_or_default();
-    discover_listed(path, &codex_threads, &HashMap::new()).await
+    discover_listed(path, &codex_threads, &HashMap::new(), &HashMap::new()).await
+}
+
+pub(crate) fn is_herdr_core_path(path: &Path) -> bool {
+    path.to_string_lossy().contains("herdr-core")
+}
+
+fn detect_herdr_core_agent(term: &Value) -> Option<AgentKind> {
+    if let Some(app) = term.pointer("/status/app").and_then(Value::as_str)
+        && let Some(kind) = AgentKind::from_herdr(app)
+    {
+        return Some(kind);
+    }
+    if let Some(fg) = term.get("foreground") {
+        if let Some(name) = fg.get("name").and_then(Value::as_str)
+            && let Some(kind) = AgentKind::from_herdr(name)
+        {
+            return Some(kind);
+        }
+        if let Some(argv) = fg.get("argv").and_then(Value::as_array)
+            && let Some(kind) = agent_kind_from_argv(argv)
+        {
+            return Some(kind);
+        }
+    }
+    if let Some(argv) = term.get("argv").and_then(Value::as_array)
+        && let Some(kind) = agent_kind_from_argv(argv)
+    {
+        return Some(kind);
+    }
+    if let Some(template) = term.get("template").and_then(Value::as_str)
+        && let Some(kind) = AgentKind::from_herdr(template)
+    {
+        return Some(kind);
+    }
+    if let Some(name) = term.get("name").and_then(Value::as_str)
+        && let Some(kind) = AgentKind::from_herdr(name)
+    {
+        return Some(kind);
+    }
+    None
+}
+
+fn agent_kind_from_argv(argv: &[Value]) -> Option<AgentKind> {
+    for arg in argv {
+        let Some(s) = arg.as_str() else { continue };
+        let basename = Path::new(s)
+            .file_name()
+            .and_then(|f| f.to_str())
+            .unwrap_or(s);
+        if let Some(kind) = AgentKind::from_herdr(basename) {
+            return Some(kind);
+        }
+    }
+    None
+}
+
+fn herdr_core_session_title(
+    term: &Value,
+    kind: AgentKind,
+    _codex_threads: &HashMap<String, String>,
+    _antigravity_titles: &HashMap<String, String>,
+    _opencode_titles: &HashMap<String, String>,
+) -> String {
+    if let Some(status_title) = term.pointer("/status/title").and_then(Value::as_str) {
+        let t = status_title.trim();
+        if !t.is_empty() {
+            return label(t, MAX_TITLE_CHARS);
+        }
+    }
+    if let Some(raw_title) = term.get("title").and_then(Value::as_str) {
+        let t = raw_title.trim();
+        let generic = match kind {
+            AgentKind::ClaudeCode => {
+                t.eq_ignore_ascii_case("claude code") || t.eq_ignore_ascii_case("claude")
+            }
+            AgentKind::CodexCli => t.eq_ignore_ascii_case("codex"),
+            AgentKind::AntigravityCli => {
+                t.eq_ignore_ascii_case("agy")
+                    || t.eq_ignore_ascii_case("antigravity")
+                    || t.eq_ignore_ascii_case("antigravity cli")
+            }
+            AgentKind::OpenCode => {
+                t.eq_ignore_ascii_case("opencode")
+                    || t.eq_ignore_ascii_case("open-code")
+                    || t.eq_ignore_ascii_case("opencode2")
+            }
+            _ => false,
+        };
+        let is_prompt = t.contains('@') && t.contains(':');
+        if !generic && !is_prompt && !t.is_empty() {
+            return label(t, MAX_TITLE_CHARS);
+        }
+    }
+    String::new()
+}
+
+fn herdr_core_target(
+    path: &Path,
+    epoch: &str,
+    term: &Value,
+    codex_threads: &HashMap<String, String>,
+    antigravity_titles: &HashMap<String, String>,
+    opencode_titles: &HashMap<String, String>,
+) -> Option<Target> {
+    let kind = detect_herdr_core_agent(term)?;
+    let address = term.get("address").and_then(Value::as_str)?;
+    let foreground = term.get("foreground");
+    let pid = foreground
+        .and_then(|f| f.get("pid"))
+        .and_then(Value::as_u64)
+        .or_else(|| term.get("pid").and_then(Value::as_u64))
+        .unwrap_or(0) as u32;
+    let project = foreground
+        .and_then(|f| f.get("cwd"))
+        .and_then(Value::as_str)
+        .or_else(|| term.get("cwd").and_then(Value::as_str))
+        .unwrap_or("");
+    let status = match term.pointer("/status/state").and_then(Value::as_str) {
+        Some("idle") => AgentStatus::Idle,
+        Some("working") => AgentStatus::Working,
+        Some("blocked") => AgentStatus::Blocked,
+        Some("done") => AgentStatus::Done,
+        _ => AgentStatus::Idle,
+    };
+    let title = herdr_core_session_title(
+        term,
+        kind,
+        codex_threads,
+        antigravity_titles,
+        opencode_titles,
+    );
+    let name = term
+        .get("name")
+        .and_then(Value::as_str)
+        .filter(|s| !s.trim().is_empty())
+        .or_else(|| term.pointer("/labels/where").and_then(Value::as_str))
+        .unwrap_or(address);
+
+    Some(Target {
+        herdr: Some(HerdrPane {
+            socket: path.to_string_lossy().into_owned(),
+            server_epoch: epoch.into(),
+            pane_id: address.to_string(),
+            guard: "core".into(),
+        }),
+        name: label(name, 80),
+        title,
+        kind,
+        project: label(project, 240),
+        status,
+        pid,
+        session_id: String::new(),
+        ..Target::default()
+    })
+}
+
+async fn discover_herdr_core(
+    path: &Path,
+    codex_threads: &HashMap<String, String>,
+    antigravity_titles: &HashMap<String, String>,
+    opencode_titles: &HashMap<String, String>,
+) -> Result<Discovery> {
+    let status_resp = rpc(path, "server.status", json!({})).await.ok();
+    let core_id = status_resp
+        .as_ref()
+        .and_then(|r| r.pointer("/result/core/id"))
+        .and_then(Value::as_str)
+        .unwrap_or("core");
+    let epoch = format!("core:{core_id}");
+
+    let list_resp = rpc(path, "terminal.list", json!({"all": false})).await?;
+    let terminals = list_resp
+        .pointer("/result/terminals")
+        .and_then(Value::as_array)
+        .ok_or_else(|| ProviderError::message("Herdr Core returned an invalid terminal list."))?;
+
+    let mut targets = Vec::new();
+    for term in terminals {
+        if term.get("state").and_then(Value::as_str) != Some("live") {
+            continue;
+        }
+        if let Some(target) = herdr_core_target(
+            path,
+            &epoch,
+            term,
+            codex_threads,
+            antigravity_titles,
+            opencode_titles,
+        ) {
+            targets.push(target);
+        }
+    }
+
+    Ok(Discovery {
+        targets,
+        guarded: true,
+    })
 }
 
 async fn discover_listed(
     path: &Path,
     codex_threads: &HashMap<String, String>,
     antigravity_titles: &HashMap<String, String>,
+    opencode_titles: &HashMap<String, String>,
 ) -> Result<Discovery> {
-    let response = rpc(path, "agent.guarded_list", json!({})).await?;
+    if is_herdr_core_path(path) {
+        return discover_herdr_core(path, codex_threads, antigravity_titles, opencode_titles).await;
+    }
+    let response = match rpc(path, "agent.guarded_list", json!({})).await {
+        Ok(resp) => resp,
+        Err(err) => {
+            if let Ok(core) =
+                discover_herdr_core(path, codex_threads, antigravity_titles, opencode_titles).await
+            {
+                return Ok(core);
+            }
+            return Err(err);
+        }
+    };
+    if response.pointer("/error/code").and_then(Value::as_i64) == Some(-32601) {
+        return discover_herdr_core(path, codex_threads, antigravity_titles, opencode_titles).await;
+    }
     let Some(result) = response.get("result") else {
         // Metadata-only compatibility view. There is intentionally no legacy send fallback.
         let agents = listed_agents(path).await?;
         return Ok(Discovery {
             targets: agents
                 .into_iter()
-                .filter_map(|agent| target(path, "", "", agent, codex_threads, antigravity_titles))
+                .filter_map(|agent| {
+                    target(
+                        path,
+                        "",
+                        "",
+                        agent,
+                        codex_threads,
+                        antigravity_titles,
+                        opencode_titles,
+                    )
+                })
                 .collect(),
             guarded: false,
         });
@@ -415,16 +702,42 @@ async fn discover_listed(
             // The guard belongs to the guarded snapshot, so its metadata is used with it.
             Some(index) => {
                 let (_, guard, agent) = guarded.remove(index);
-                target(path, epoch, &guard, agent, codex_threads, antigravity_titles)
+                target(
+                    path,
+                    epoch,
+                    &guard,
+                    agent,
+                    codex_threads,
+                    antigravity_titles,
+                    opencode_titles,
+                )
             }
-            None => target(path, epoch, "", agent, codex_threads, antigravity_titles),
+            None => target(
+                path,
+                epoch,
+                "",
+                agent,
+                codex_threads,
+                antigravity_titles,
+                opencode_titles,
+            ),
         });
     }
     // An agent guarded between the two reads keeps its guard, after the others.
     targets.extend(
         guarded
             .into_iter()
-            .filter_map(|(_, guard, agent)| target(path, epoch, &guard, agent, codex_threads, antigravity_titles)),
+            .filter_map(|(_, guard, agent)| {
+                target(
+                    path,
+                    epoch,
+                    &guard,
+                    agent,
+                    codex_threads,
+                    antigravity_titles,
+                    opencode_titles,
+                )
+            }),
     );
     Ok(Discovery {
         targets,
@@ -447,6 +760,36 @@ fn receipt(response: &Value, epoch: &str, submission: &Submission) -> Option<Sen
     }
 }
 
+async fn submit_herdr_core(
+    path: &Path,
+    pane: &HerdrPane,
+    submission: &Submission,
+    cancel: &CancellationToken,
+) -> SendOutcome {
+    let params = json!({
+        "terminal": pane.pane_id,
+        "text": submission.text,
+        "force": false,
+    });
+    let send = rpc(path, "terminal.send", params);
+    let response = tokio::select! {
+        _ = cancel.cancelled() => return SendOutcome::Unconfirmed,
+        res = send => match res {
+            Ok(v) => v,
+            Err(_) => return SendOutcome::Rejected,
+        }
+    };
+    if response.pointer("/result/turn").is_some() {
+        return SendOutcome::Accepted;
+    }
+    if let Some(kind) = response.pointer("/error/data/kind").and_then(Value::as_str)
+        && matches!(kind, "blocked" | "finished" | "not_found" | "status_mismatch")
+    {
+        return SendOutcome::Rejected;
+    }
+    SendOutcome::Rejected
+}
+
 /// Send once, then reconcile only by reading its receipt. Cancellation never triggers replay.
 ///
 /// Herdr re-checks the guard against the exact agent process and pane before it writes, so a
@@ -464,6 +807,9 @@ pub async fn submit(submission: &Submission, cancel: &CancellationToken) -> Send
         return SendOutcome::Rejected;
     }
     let path = Path::new(&pane.socket);
+    if pane.guard == "core" || pane.server_epoch.starts_with("core:") || is_herdr_core_path(path) {
+        return submit_herdr_core(path, pane, submission, cancel).await;
+    }
     let expires = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
@@ -732,7 +1078,7 @@ mod tests {
             )
             .await;
         });
-        let found = discover_named(&path, &HashMap::new(), &titles).await.unwrap();
+        let found = discover_named(&path, &HashMap::new(), &titles, &HashMap::new()).await.unwrap();
         peer.await.unwrap();
         assert_eq!(found.targets.len(), 1);
         let target = &found.targets[0];
@@ -740,6 +1086,49 @@ mod tests {
         assert_eq!(target.title, "Add Agy Support To Mluva F12");
         assert_eq!(target.display_name(), "Add Agy Support To Mluva F12");
         assert_eq!(target.session_id, "agy-conv-1");
+    }
+
+    #[tokio::test]
+    async fn opencode_session_titles_come_from_opencode_titles_in_herdr() {
+        let (_temp, path, listener) = peer();
+        let mut titles = HashMap::new();
+        titles.insert("ses_123456".into(), "Setup OpenCode In Mluva".into());
+
+        let agent = json!({
+            "guard": "b".repeat(64),
+            "agent": {
+                "pane_id": "w1:p2",
+                "agent": "opencode",
+                "name": "worker",
+                "agent_status": "idle",
+                "terminal_title_stripped": "opencode",
+                "agent_session": {
+                    "source": "herdr:opencode",
+                    "agent": "opencode",
+                    "kind": "id",
+                    "value": "ses_123456",
+                }
+            }
+        });
+        let agents = json!([agent]);
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "agent.guarded_list");
+            reply(
+                &mut stream,
+                &request,
+                json!({"server_epoch": "epoch", "agents": agents}),
+            )
+            .await;
+        });
+        let found = discover_named(&path, &HashMap::new(), &HashMap::new(), &titles).await.unwrap();
+        peer.await.unwrap();
+        assert_eq!(found.targets.len(), 1);
+        let target = &found.targets[0];
+        assert_eq!(target.kind, AgentKind::OpenCode);
+        assert_eq!(target.title, "Setup OpenCode In Mluva");
+        assert_eq!(target.display_name(), "Setup OpenCode In Mluva");
+        assert_eq!(target.session_id, "ses_123456");
     }
 
     /// Herdr guards only sessions it launched; one typed into a pane is in `agent.list` but
@@ -924,5 +1313,223 @@ mod tests {
         assert!(secure_socket(&alias).is_err());
         std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o666)).unwrap();
         assert!(secure_socket(&path).is_err());
+    }
+
+    fn core_peer() -> (tempfile::TempDir, PathBuf, UnixListener) {
+        let temp = crate::test_sockets::socket_dir();
+        let dir = temp.path().join("herdr-core");
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("default.sock");
+        let listener = UnixListener::bind(&path).unwrap();
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600)).unwrap();
+        (temp, path, listener)
+    }
+
+    #[tokio::test]
+    async fn herdr_core_discovery_identifies_all_agent_kinds_and_ignores_shell() {
+        let (_temp, path, listener) = core_peer();
+        let terminals = json!([
+            {
+                "address": "t1",
+                "argv": ["/bin/bash"],
+                "foreground": {"name": "bash", "argv": ["/bin/bash"], "pid": 100, "cwd": "/home"},
+                "state": "live",
+                "status": null,
+                "title": "user@box:~"
+            },
+            {
+                "address": "t2",
+                "argv": ["claude"],
+                "foreground": {"name": "claude", "argv": ["claude"], "pid": 101, "cwd": "/project/claude"},
+                "state": "live",
+                "status": {"state": "idle", "app": "claude", "title": "Claude Code"},
+                "title": "Claude Code"
+            },
+            {
+                "address": "t3",
+                "argv": ["codex"],
+                "foreground": {"name": "codex", "argv": ["codex"], "pid": 102, "cwd": "/project/codex"},
+                "state": "live",
+                "status": {"state": "working", "app": "codex"},
+                "title": "Codex"
+            },
+            {
+                "address": "t4",
+                "argv": ["agy"],
+                "foreground": {"name": "agy", "argv": ["agy"], "pid": 103, "cwd": "/project/agy"},
+                "state": "live",
+                "status": {"state": "idle", "app": "agy", "title": "Refactor engine"},
+                "title": "Refactor engine"
+            },
+            {
+                "address": "t5",
+                "argv": ["opencode"],
+                "foreground": {"name": "node", "argv": ["bun", "run", "opencode"], "pid": 104, "cwd": "/project/opencode"},
+                "state": "live",
+                "status": {"state": "idle", "app": "opencode"},
+                "title": "opencode"
+            }
+        ]);
+
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "server.status");
+            reply(&mut stream, &request, json!({"core": {"id": "c1", "name": "box"}})).await;
+            drop(stream);
+
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "terminal.list");
+            reply(&mut stream, &request, json!({"terminals": terminals})).await;
+        });
+
+        let found = discover(&path).await.unwrap();
+        peer.await.unwrap();
+
+        assert!(found.guarded);
+        assert_eq!(found.targets.len(), 4, "plain shell t1 must be ignored");
+
+        let t2 = &found.targets[0];
+        assert_eq!(t2.kind, AgentKind::ClaudeCode);
+        assert_eq!(t2.locator(), "t2");
+        assert_eq!(t2.route(), Route::Herdr);
+        assert!(t2.can_receive());
+
+        let t3 = &found.targets[1];
+        assert_eq!(t3.kind, AgentKind::CodexCli);
+        assert_eq!(t3.locator(), "t3");
+        assert_eq!(t3.route(), Route::Herdr);
+        assert_eq!(t3.status, AgentStatus::Working);
+        assert!(t3.can_receive());
+
+        let t4 = &found.targets[2];
+        assert_eq!(t4.kind, AgentKind::AntigravityCli);
+        assert_eq!(t4.locator(), "t4");
+        assert_eq!(t4.title, "Refactor engine");
+        assert_eq!(t4.route(), Route::Herdr);
+        assert!(t4.can_receive());
+
+        let t5 = &found.targets[3];
+        assert_eq!(t5.kind, AgentKind::OpenCode);
+        assert_eq!(t5.locator(), "t5");
+        assert_eq!(t5.route(), Route::Herdr);
+        assert!(t5.can_receive());
+    }
+
+    #[tokio::test]
+    async fn herdr_core_submit_calls_terminal_send_and_accepts_turn() {
+        let (_temp, path, listener) = core_peer();
+        let target = Target {
+            herdr: Some(HerdrPane {
+                socket: path.to_string_lossy().into(),
+                server_epoch: "core:c1".into(),
+                pane_id: "t2".into(),
+                guard: "core".into(),
+            }),
+            name: "t2".into(),
+            kind: AgentKind::OpenCode,
+            status: AgentStatus::Idle,
+            ..Target::default()
+        };
+        let sending = Submission {
+            id: uuid::Uuid::new_v4().to_string(),
+            text: "Hello OpenCode in Herdr Core".into(),
+            target,
+        };
+
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "terminal.send");
+            assert_eq!(request["params"]["terminal"], "t2");
+            assert_eq!(request["params"]["text"], "Hello OpenCode in Herdr Core");
+            assert_eq!(request["params"]["force"], false);
+            reply(&mut stream, &request, json!({"turn": 1, "started": true})).await;
+        });
+
+        let outcome = submit(&sending, &CancellationToken::new()).await;
+        peer.await.unwrap();
+        assert_eq!(outcome, SendOutcome::Accepted);
+    }
+
+    #[tokio::test]
+    async fn herdr_core_submit_refuses_when_blocked_or_finished() {
+        let (_temp, path, listener) = core_peer();
+        let target = Target {
+            herdr: Some(HerdrPane {
+                socket: path.to_string_lossy().into(),
+                server_epoch: "core:c1".into(),
+                pane_id: "t3".into(),
+                guard: "core".into(),
+            }),
+            name: "t3".into(),
+            kind: AgentKind::ClaudeCode,
+            status: AgentStatus::Idle,
+            ..Target::default()
+        };
+        let sending = Submission {
+            id: uuid::Uuid::new_v4().to_string(),
+            text: "Message into blocked terminal".into(),
+            target,
+        };
+
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "terminal.send");
+            stream
+                .write_all(
+                    format!(
+                        "{}\n",
+                        json!({"id": request["id"], "error": {"code": -32000, "data": {"kind": "blocked"}, "message": "blocked"}})
+                    )
+                    .as_bytes(),
+                )
+                .await
+                .unwrap();
+        });
+
+        let outcome = submit(&sending, &CancellationToken::new()).await;
+        peer.await.unwrap();
+        assert_eq!(outcome, SendOutcome::Rejected);
+    }
+
+    #[tokio::test]
+    async fn socket_candidates_finds_herdr_core_and_legacy_sockets() {
+        let temp = tempfile::tempdir().unwrap();
+        let config_home = temp.path().join("config");
+        let legacy_dir = config_home.join("herdr");
+        std::fs::create_dir_all(&legacy_dir).unwrap();
+        let legacy_sock = legacy_dir.join("herdr.sock");
+        let listener_legacy = UnixListener::bind(&legacy_sock).unwrap();
+        std::fs::set_permissions(&legacy_sock, std::fs::Permissions::from_mode(0o600)).unwrap();
+
+        let runtime = temp.path().join("runtime");
+        let core_dir = runtime.join("herdr-core");
+        std::fs::create_dir_all(&core_dir).unwrap();
+        let core_sock = core_dir.join("default.sock");
+        let listener_core = UnixListener::bind(&core_sock).unwrap();
+        std::fs::set_permissions(&core_sock, std::fs::Permissions::from_mode(0o600)).unwrap();
+
+        // An internal holder socket that must be ignored
+        let holder_sock = core_dir.join("default.holder.1234.sock");
+        let listener_holder = UnixListener::bind(&holder_sock).unwrap();
+        std::fs::set_permissions(&holder_sock, std::fs::Permissions::from_mode(0o600)).unwrap();
+
+        let prev_runtime = std::env::var_os("XDG_RUNTIME_DIR");
+        unsafe { std::env::set_var("XDG_RUNTIME_DIR", &runtime) };
+
+        let candidates = socket_candidates(&config_home, None);
+
+        if let Some(prev) = prev_runtime {
+            unsafe { std::env::set_var("XDG_RUNTIME_DIR", prev) };
+        } else {
+            unsafe { std::env::remove_var("XDG_RUNTIME_DIR") };
+        }
+
+        drop(listener_legacy);
+        drop(listener_core);
+        drop(listener_holder);
+
+        assert!(candidates.contains(&core_sock), "must find herdr-core default.sock");
+        assert!(candidates.contains(&legacy_sock), "must find legacy herdr.sock");
+        assert!(!candidates.contains(&holder_sock), "must ignore .holder. socket");
     }
 }

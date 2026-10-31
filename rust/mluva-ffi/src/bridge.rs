@@ -87,6 +87,8 @@ struct Reach {
     antigravity: Option<Arc<tokio::sync::Mutex<mluva_providers::antigravity::AntigravitySessions>>>,
     /// Antigravity conversation titles from `conversation_summaries.db`.
     antigravity_titles: Option<Arc<Mutex<mluva_providers::antigravity::AntigravityTitles>>>,
+    /// OpenCode session titles from `opencode.db`.
+    opencode_titles: Option<Arc<Mutex<mluva_providers::opencode::OpenCodeTitles>>>,
     /// Desktop app surfaces, such as a new Claude chat.
     apps: bool,
 }
@@ -142,6 +144,11 @@ impl Bridge {
                 antigravity_titles: Some(Arc::new(Mutex::new(
                     mluva_providers::antigravity::AntigravityTitles::new(
                         mluva_providers::antigravity::titles::antigravity_summaries_db_path(),
+                    ),
+                ))),
+                opencode_titles: Some(Arc::new(Mutex::new(
+                    mluva_providers::opencode::OpenCodeTitles::new(
+                        mluva_providers::opencode::opencode_db_path(),
                     ),
                 ))),
                 apps: true,
@@ -595,6 +602,7 @@ impl Bridge {
                 codex_names: reach.codex_names.clone(),
                 antigravity: reach.antigravity.clone(),
                 antigravity_titles: reach.antigravity_titles.clone(),
+                opencode_titles: reach.opencode_titles.clone(),
                 apps: reach.apps,
             }
         };

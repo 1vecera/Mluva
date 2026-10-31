@@ -66,6 +66,8 @@ pub struct AgentVoiceController {
     antigravity: Arc<tokio::sync::Mutex<mluva_providers::antigravity::AntigravitySessions>>,
     /// Antigravity conversation titles from conversation_summaries.db.
     antigravity_titles: Arc<Mutex<mluva_providers::antigravity::AntigravityTitles>>,
+    /// OpenCode session titles from opencode.db.
+    opencode_titles: Arc<Mutex<mluva_providers::opencode::OpenCodeTitles>>,
     editor: RefCell<Option<crate::markdown_view::MarkdownTextView>>,
     /// The screen annotation summary of the recording whose draft is in the editor.
     draft_appendix: RefCell<Option<String>>,
@@ -145,6 +147,11 @@ impl AgentVoiceController {
             antigravity_titles: Arc::new(Mutex::new(
                 mluva_providers::antigravity::AntigravityTitles::new(
                     mluva_providers::antigravity::titles::antigravity_summaries_db_path(),
+                ),
+            )),
+            opencode_titles: Arc::new(Mutex::new(
+                mluva_providers::opencode::OpenCodeTitles::new(
+                    mluva_providers::opencode::opencode_db_path(),
                 ),
             )),
             editor: RefCell::new(None),
@@ -413,6 +420,7 @@ impl AgentVoiceController {
             codex_names: self.codex_names.clone(),
             antigravity: Some(self.antigravity.clone()),
             antigravity_titles: Some(self.antigravity_titles.clone()),
+            opencode_titles: Some(self.opencode_titles.clone()),
             apps: true,
         }
     }

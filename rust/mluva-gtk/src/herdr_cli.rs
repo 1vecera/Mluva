@@ -269,5 +269,39 @@ mod tests {
                 &json!("agy")
             )
         );
+        let opencode = Target {
+            herdr: Some(HerdrPane {
+                socket: "/fake/socket".into(),
+                server_epoch: "epoch".into(),
+                pane_id: "w1:p3".into(),
+                guard: "c".repeat(64),
+            }),
+            name: "opencode".into(),
+            title: "Setup OpenCode".into(),
+            kind: AgentKind::OpenCode,
+            status: AgentStatus::Idle,
+            session_id: "ses_123456".into(),
+            pid: 6_000,
+            ..Target::default()
+        };
+        let value = summary(&opencode);
+        assert_eq!(
+            (
+                &value["display_name"],
+                &value["route"],
+                &value["delivery"],
+                &value["available"],
+                &value["pane"],
+                &value["kind"]
+            ),
+            (
+                &json!("Setup OpenCode"),
+                &json!("herdr"),
+                &json!("send"),
+                &json!(true),
+                &json!("w1:p3"),
+                &json!("opencode")
+            )
+        );
     }
 }
