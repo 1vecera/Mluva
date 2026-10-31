@@ -37,6 +37,9 @@ pub enum AgentKind {
         alias = "antigravity-cli"
     )]
     AntigravityCli,
+    /// OpenCode in a terminal, a multiplexer pane or Herdr.
+    #[serde(rename = "opencode", alias = "open-code", alias = "opencode2")]
+    OpenCode,
     /// A kind this version does not know, kept so a newer saved choice still loads.
     #[default]
     #[serde(other, rename = "unknown")]
@@ -52,6 +55,7 @@ impl AgentKind {
             Self::CodexCli => "Codex CLI",
             Self::CodexDesktop => "Codex Desktop",
             Self::AntigravityCli => "Antigravity CLI",
+            Self::OpenCode => "OpenCode",
             Self::Unknown => "Agent",
         }
     }
@@ -63,6 +67,7 @@ impl AgentKind {
             Self::CodexCli => "codex",
             Self::CodexDesktop => "codex_desktop",
             Self::AntigravityCli => "agy",
+            Self::OpenCode => "opencode",
             Self::Unknown => "unknown",
         }
     }
@@ -74,6 +79,7 @@ impl AgentKind {
             "agy" | "antigravity" | "antigravity-cli" | "antigravity_cli" => {
                 Some(Self::AntigravityCli)
             }
+            "opencode" | "open-code" | "opencode2" => Some(Self::OpenCode),
             _ => None,
         }
     }
@@ -82,6 +88,9 @@ impl AgentKind {
     }
     pub fn is_antigravity(self) -> bool {
         self == Self::AntigravityCli
+    }
+    pub fn is_opencode(self) -> bool {
+        self == Self::OpenCode
     }
     /// A Claude Code process, in a terminal or as a Code session of the Claude desktop app,
     /// which runs its own bundled Claude Code.
@@ -406,7 +415,7 @@ impl Target {
         } else if self.kind.runs_claude_code() {
             // Older, `--bare` and `--restricted` sessions open no inbox.
             "Draft only: this session has no inbox"
-        } else if self.kind.is_antigravity() {
+        } else if self.kind.is_antigravity() || self.kind.is_opencode() {
             "Draft only: this session has no queue"
         } else {
             "Draft only: nothing can reach it"

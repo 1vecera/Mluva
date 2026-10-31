@@ -254,6 +254,7 @@ fn session_title(
     kind: AgentKind,
     codex_threads: &HashMap<String, String>,
     antigravity_titles: &HashMap<String, String>,
+    opencode_titles: &HashMap<String, String>,
 ) -> String {
     let title = if kind == AgentKind::CodexCli {
         // Codex composes its terminal title from configurable items (thread, project,
@@ -282,6 +283,24 @@ fn session_title(
                             && !t.eq_ignore_ascii_case("antigravity cli")
                     })
             })
+    } else if kind == AgentKind::OpenCode {
+        agent
+            .agent_session
+            .as_ref()
+            .filter(|s| s.kind == "id")
+            .and_then(|s| opencode_titles.get(&s.value))
+            .map(String::as_str)
+            .or_else(|| {
+                agent
+                    .terminal_title_stripped
+                    .as_deref()
+                    .filter(|title| {
+                        let t = title.trim();
+                        !t.eq_ignore_ascii_case("opencode")
+                            && !t.eq_ignore_ascii_case("open-code")
+                            && !t.eq_ignore_ascii_case("opencode2")
+                    })
+            })
     } else {
         // Claude Code titles the terminal with the session's custom or generated title;
         // Herdr strips its activity glyph. The product name means no title yet.
@@ -300,10 +319,17 @@ fn target(
     value: Value,
     codex_threads: &HashMap<String, String>,
     antigravity_titles: &HashMap<String, String>,
+    opencode_titles: &HashMap<String, String>,
 ) -> Option<Target> {
     let agent: Agent = serde_json::from_value(value).ok()?;
     let kind = AgentKind::from_herdr(agent.agent.as_deref()?)?;
-    let title = session_title(&agent, kind, codex_threads, antigravity_titles);
+    let title = session_title(
+        &agent,
+        kind,
+        codex_threads,
+        antigravity_titles,
+        opencode_titles,
+    );
     let session_id = agent
         .agent_session
         .as_ref()
@@ -348,13 +374,14 @@ async fn listed_agents(path: &Path) -> Result<Vec<Value>> {
         .ok_or_else(|| ProviderError::message(INCOMPATIBLE))
 }
 
-/// Discover with Codex thread names and Antigravity conversation titles already read.
+/// Discover with Codex thread names, Antigravity conversation titles, and OpenCode session titles already read.
 pub async fn discover_named(
     path: &Path,
     codex_threads: &HashMap<String, String>,
     antigravity_titles: &HashMap<String, String>,
+    opencode_titles: &HashMap<String, String>,
 ) -> Result<Discovery> {
-    discover_listed(path, codex_threads, antigravity_titles).await
+    discover_listed(path, codex_threads, antigravity_titles, opencode_titles).await
 }
 
 /// Discover with an explicit Codex thread index; tests pass a fixture.
@@ -365,13 +392,14 @@ pub async fn discover_named(
 /// sent to. The rest stay visible without a transport.
 pub async fn discover_with(path: &Path, codex_index: Option<&Path>) -> Result<Discovery> {
     let codex_threads = codex_index.map(codex_thread_names).unwrap_or_default();
-    discover_listed(path, &codex_threads, &HashMap::new()).await
+    discover_listed(path, &codex_threads, &HashMap::new(), &HashMap::new()).await
 }
 
 async fn discover_listed(
     path: &Path,
     codex_threads: &HashMap<String, String>,
     antigravity_titles: &HashMap<String, String>,
+    opencode_titles: &HashMap<String, String>,
 ) -> Result<Discovery> {
     let response = rpc(path, "agent.guarded_list", json!({})).await?;
     let Some(result) = response.get("result") else {
@@ -380,7 +408,17 @@ async fn discover_listed(
         return Ok(Discovery {
             targets: agents
                 .into_iter()
-                .filter_map(|agent| target(path, "", "", agent, codex_threads, antigravity_titles))
+                .filter_map(|agent| {
+                    target(
+                        path,
+                        "",
+                        "",
+                        agent,
+                        codex_threads,
+                        antigravity_titles,
+                        opencode_titles,
+                    )
+                })
                 .collect(),
             guarded: false,
         });
@@ -415,16 +453,42 @@ async fn discover_listed(
             // The guard belongs to the guarded snapshot, so its metadata is used with it.
             Some(index) => {
                 let (_, guard, agent) = guarded.remove(index);
-                target(path, epoch, &guard, agent, codex_threads, antigravity_titles)
+                target(
+                    path,
+                    epoch,
+                    &guard,
+                    agent,
+                    codex_threads,
+                    antigravity_titles,
+                    opencode_titles,
+                )
             }
-            None => target(path, epoch, "", agent, codex_threads, antigravity_titles),
+            None => target(
+                path,
+                epoch,
+                "",
+                agent,
+                codex_threads,
+                antigravity_titles,
+                opencode_titles,
+            ),
         });
     }
     // An agent guarded between the two reads keeps its guard, after the others.
     targets.extend(
         guarded
             .into_iter()
-            .filter_map(|(_, guard, agent)| target(path, epoch, &guard, agent, codex_threads, antigravity_titles)),
+            .filter_map(|(_, guard, agent)| {
+                target(
+                    path,
+                    epoch,
+                    &guard,
+                    agent,
+                    codex_threads,
+                    antigravity_titles,
+                    opencode_titles,
+                )
+            }),
     );
     Ok(Discovery {
         targets,
@@ -732,7 +796,7 @@ mod tests {
             )
             .await;
         });
-        let found = discover_named(&path, &HashMap::new(), &titles).await.unwrap();
+        let found = discover_named(&path, &HashMap::new(), &titles, &HashMap::new()).await.unwrap();
         peer.await.unwrap();
         assert_eq!(found.targets.len(), 1);
         let target = &found.targets[0];
@@ -740,6 +804,49 @@ mod tests {
         assert_eq!(target.title, "Add Agy Support To Mluva F12");
         assert_eq!(target.display_name(), "Add Agy Support To Mluva F12");
         assert_eq!(target.session_id, "agy-conv-1");
+    }
+
+    #[tokio::test]
+    async fn opencode_session_titles_come_from_opencode_titles_in_herdr() {
+        let (_temp, path, listener) = peer();
+        let mut titles = HashMap::new();
+        titles.insert("ses_123456".into(), "Setup OpenCode In Mluva".into());
+
+        let agent = json!({
+            "guard": "b".repeat(64),
+            "agent": {
+                "pane_id": "w1:p2",
+                "agent": "opencode",
+                "name": "worker",
+                "agent_status": "idle",
+                "terminal_title_stripped": "opencode",
+                "agent_session": {
+                    "source": "herdr:opencode",
+                    "agent": "opencode",
+                    "kind": "id",
+                    "value": "ses_123456",
+                }
+            }
+        });
+        let agents = json!([agent]);
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "agent.guarded_list");
+            reply(
+                &mut stream,
+                &request,
+                json!({"server_epoch": "epoch", "agents": agents}),
+            )
+            .await;
+        });
+        let found = discover_named(&path, &HashMap::new(), &HashMap::new(), &titles).await.unwrap();
+        peer.await.unwrap();
+        assert_eq!(found.targets.len(), 1);
+        let target = &found.targets[0];
+        assert_eq!(target.kind, AgentKind::OpenCode);
+        assert_eq!(target.title, "Setup OpenCode In Mluva");
+        assert_eq!(target.display_name(), "Setup OpenCode In Mluva");
+        assert_eq!(target.session_id, "ses_123456");
     }
 
     /// Herdr guards only sessions it launched; one typed into a pane is in `agent.list` but

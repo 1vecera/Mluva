@@ -40,6 +40,7 @@ fn kinds_keep_herdrs_names_and_tolerate_ones_this_version_does_not_know() {
         (AgentKind::ClaudeDesktop, "claude_desktop"),
         (AgentKind::CodexDesktop, "codex_desktop"),
         (AgentKind::AntigravityCli, "agy"),
+        (AgentKind::OpenCode, "opencode"),
     ] {
         assert_eq!(serde_json::to_value(kind).unwrap(), json!(name));
         assert_eq!(kind.as_str(), name);
@@ -68,12 +69,24 @@ fn kinds_keep_herdrs_names_and_tolerate_ones_this_version_does_not_know() {
     assert_eq!(AgentKind::from_herdr("antigravity"), Some(AgentKind::AntigravityCli));
     assert_eq!(AgentKind::from_herdr("antigravity-cli"), Some(AgentKind::AntigravityCli));
     assert_eq!(
+        serde_json::from_value::<AgentKind>(json!("open-code")).unwrap(),
+        AgentKind::OpenCode
+    );
+    assert_eq!(
+        serde_json::from_value::<AgentKind>(json!("opencode2")).unwrap(),
+        AgentKind::OpenCode
+    );
+    assert_eq!(AgentKind::from_herdr("opencode"), Some(AgentKind::OpenCode));
+    assert_eq!(AgentKind::from_herdr("open-code"), Some(AgentKind::OpenCode));
+    assert_eq!(AgentKind::from_herdr("opencode2"), Some(AgentKind::OpenCode));
+    assert_eq!(
         serde_json::from_value::<AgentKind>(json!("future_agent")).unwrap(),
         AgentKind::Unknown
     );
     assert_eq!(AgentKind::from_herdr("shell"), None);
     assert!(AgentKind::ClaudeDesktop.is_desktop() && !AgentKind::CodexCli.is_desktop());
     assert!(!AgentKind::AntigravityCli.is_desktop() && AgentKind::AntigravityCli.is_antigravity());
+    assert!(!AgentKind::OpenCode.is_desktop() && AgentKind::OpenCode.is_opencode());
 }
 
 #[test]
@@ -267,6 +280,36 @@ fn antigravity_session_routes_to_queue_when_unguarded_and_herdr_when_guarded() {
     assert_eq!(agy.route(), Route::AntigravityQueue);
     assert!(agy.can_receive());
     assert_eq!(agy.delivery_hint(), Some("Waits behind its prompt, as a message in Antigravity's queue"));
+}
+
+#[test]
+fn opencode_session_routes_to_herdr_when_guarded_and_draft_only_when_unguarded() {
+    let mut opencode = Target {
+        kind: AgentKind::OpenCode,
+        name: "opencode".into(),
+        title: "Setup OpenCode".into(),
+        pid: 300_200,
+        started: "987655".into(),
+        session_id: "ses_0194a2b3c4d5".into(),
+        ..guarded()
+    };
+    assert_eq!(opencode.route(), Route::Herdr);
+    assert_eq!(opencode.delivery(), Delivery::Send);
+    assert!(opencode.can_receive());
+
+    // When unguarded in Herdr:
+    opencode.herdr.as_mut().unwrap().guard.clear();
+    assert_eq!(opencode.route(), Route::DraftOnly);
+    assert_eq!(opencode.delivery(), Delivery::DraftOnly);
+    assert_eq!(opencode.draft_hint(), "Draft only: Herdr can't send to it now");
+    assert!(!opencode.can_receive());
+
+    // When outside Herdr:
+    opencode.herdr = None;
+    assert_eq!(opencode.route(), Route::DraftOnly);
+    assert_eq!(opencode.delivery(), Delivery::DraftOnly);
+    assert_eq!(opencode.draft_hint(), "Draft only: this session has no queue");
+    assert!(!opencode.can_receive());
 }
 
 #[test]

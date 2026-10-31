@@ -197,9 +197,15 @@ fn universal() -> Vec<Target> {
     unguarded_codex.title = "Onboarding copy".into();
     unguarded_codex.session_id.clear();
     unguarded_codex.pid = 0;
+    let mut opencode_pane = session(3, AgentStatus::Idle);
+    opencode_pane.kind = AgentKind::OpenCode;
+    opencode_pane.name = "opencode".into();
+    opencode_pane.title = "Setup OpenCode".into();
+    opencode_pane.session_id = "ses_0194a2b3c4d5".into();
     vec![
         claude_pane,
         codex_pane,
+        opencode_pane,
         unguarded_codex,
         inboxed(
             0,
