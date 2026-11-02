@@ -1,0 +1,231 @@
+{
+ "name": "c-shift",
+ "start": 28.833,
+ "end": 41.687000000000005,
+ "lead": 0.2,
+ "before": [
+  "hyprctl dispatch \"hl.dsp.focus({ workspace = 3 })\"; sleep 0.9"
+ ],
+ "qmp_before": [
+  {
+   "type": "move",
+   "x": 620,
+   "y": 180
+  }
+ ],
+ "prelude": [
+  {
+   "after": 0.0,
+   "type": "key",
+   "keys": [
+    "f12"
+   ]
+  },
+  {
+   "after": 1.1,
+   "type": "key",
+   "keys": [
+    "d"
+   ]
+  },
+  {
+   "after": 1.9,
+   "type": "key",
+   "keys": [
+    "f12"
+   ]
+  }
+ ],
+ "script": {
+  "sessions": [
+   {
+    "partials": [
+     [
+      0.868,
+      "Move"
+     ],
+     [
+      1.336,
+      "Move this"
+     ],
+     [
+      1.804,
+      "Move this Save"
+     ],
+     [
+      2.272,
+      "Move this Save button"
+     ],
+     [
+      2.741,
+      "Move this Save button inside"
+     ],
+     [
+      3.209,
+      "Move this Save button inside the"
+     ],
+     [
+      3.677,
+      "Move this Save button inside the card,"
+     ],
+     [
+      4.145,
+      "Move this Save button inside the card, and"
+     ],
+     [
+      4.613,
+      "Move this Save button inside the card, and stop"
+     ],
+     [
+      5.081,
+      "Move this Save button inside the card, and stop the"
+     ],
+     [
+      5.549,
+      "Move this Save button inside the card, and stop the sync"
+     ],
+     [
+      6.018,
+      "Move this Save button inside the card, and stop the sync path"
+     ],
+     [
+      6.486,
+      "Move this Save button inside the card, and stop the sync path running"
+     ],
+     [
+      6.954,
+      "Move this Save button inside the card, and stop the sync path running past"
+     ],
+     [
+      7.422,
+      "Move this Save button inside the card, and stop the sync path running past the"
+     ],
+     [
+      7.89,
+      "Move this Save button inside the card, and stop the sync path running past the edge."
+     ]
+    ],
+    "final": "Move this Save button inside the card, and stop the sync path running past the edge.",
+    "final_delay": 1.2
+   }
+  ]
+ },
+ "events": [
+  {
+   "t": 31.232999999999997,
+   "type": "path",
+   "points": [
+    [
+     620,
+     180
+    ],
+    [
+     560,
+     300
+    ],
+    [
+     478,
+     398
+    ]
+   ],
+   "duration": 0.5,
+   "cue": "pointer towards Save"
+  },
+  {
+   "t": 31.762999999999998,
+   "type": "down",
+   "key": "shift",
+   "cue": "hold Shift, word 'Shift'"
+  },
+  {
+   "t": 32.532999999999994,
+   "type": "path",
+   "points": [
+    [
+     470,
+     400
+    ],
+    [
+     530,
+     392
+    ],
+    [
+     592,
+     412
+    ],
+    [
+     590,
+     448
+    ],
+    [
+     520,
+     472
+    ],
+    [
+     452,
+     458
+    ],
+    [
+     438,
+     424
+    ],
+    [
+     478,
+     398
+    ]
+   ],
+   "duration": 0.85,
+   "cue": "circle Save, word 'highlight'"
+  },
+  {
+   "t": 33.687,
+   "type": "path",
+   "points": [
+    [
+     478,
+     398
+    ],
+    [
+     380,
+     372
+    ],
+    [
+     300,
+     378
+    ],
+    [
+     300,
+     378
+    ],
+    [
+     400,
+     382
+    ],
+    [
+     510,
+     377
+    ],
+    [
+     612,
+     381
+    ]
+   ],
+   "duration": 1.2200000000000002,
+   "cue": "underline, 'what you want your agents to know'"
+  },
+  {
+   "t": 35.127,
+   "type": "up",
+   "key": "shift",
+   "cue": "release Shift, end of 'know'"
+  },
+  {
+   "t": 35.923,
+   "type": "key",
+   "keys": [
+    "f12"
+   ],
+   "cue": "stop, before 'screenshot'"
+  }
+ ]
+}

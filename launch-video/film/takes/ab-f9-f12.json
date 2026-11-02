@@ -1,0 +1,178 @@
+{
+ "name": "ab-f9-f12",
+ "start": 4.633,
+ "end": 30.933,
+ "lead": 0.6,
+ "before": [
+  "hyprctl dispatch \"hl.dsp.focus({ workspace = 1 })\"; sleep 0.9",
+  "hyprctl dispatch \"hl.dsp.focus({ window = \\\"class:firefox\\\" })\"; sleep 0.3",
+  "wtype -M ctrl a -m ctrl; wtype -k BackSpace",
+  "sleep 0.3"
+ ],
+ "qmp_before": [
+  {
+   "type": "move",
+   "x": 1150,
+   "y": 690
+  }
+ ],
+ "script": {
+  "sessions": [
+   {
+    "partials": [
+     [
+      0.53,
+      "You"
+     ],
+     [
+      0.87,
+      "You talk,"
+     ],
+     [
+      1.417,
+      "You talk, and"
+     ],
+     [
+      1.557,
+      "You talk, and then"
+     ],
+     [
+      1.677,
+      "You talk, and then you"
+     ],
+     [
+      1.897,
+      "You talk, and then you press"
+     ],
+     [
+      2.157,
+      "You talk, and then you press F9"
+     ]
+    ],
+    "final": "You talk, and then you press F9 once you're done.",
+    "final_delay": 0.89
+   },
+   {
+    "partials": [
+     [
+      0.247,
+      "Add"
+     ],
+     [
+      0.413,
+      "Add a"
+     ],
+     [
+      0.58,
+      "Add a changelog"
+     ],
+     [
+      0.747,
+      "Add a changelog entry"
+     ],
+     [
+      0.913,
+      "Add a changelog entry for"
+     ],
+     [
+      1.08,
+      "Add a changelog entry for the"
+     ],
+     [
+      1.247,
+      "Add a changelog entry for the routing"
+     ],
+     [
+      1.413,
+      "Add a changelog entry for the routing release,"
+     ],
+     [
+      1.58,
+      "Add a changelog entry for the routing release, then"
+     ],
+     [
+      1.747,
+      "Add a changelog entry for the routing release, then run"
+     ],
+     [
+      1.913,
+      "Add a changelog entry for the routing release, then run the"
+     ],
+     [
+      2.08,
+      "Add a changelog entry for the routing release, then run the tests."
+     ]
+    ],
+    "final": "Add a changelog entry for the routing release, then run the tests.",
+    "final_delay": 1.8
+   }
+  ]
+ },
+ "events": [
+  {
+   "t": 5.863,
+   "type": "key",
+   "keys": [
+    "f9"
+   ],
+   "cue": "F9 start, word 'F9'"
+  },
+  {
+   "t": 7.91,
+   "type": "key",
+   "keys": [
+    "f9"
+   ],
+   "cue": "F9 stop, second 'F9'"
+  },
+  {
+   "t": 14.799999999999999,
+   "type": "key",
+   "keys": [
+    "super",
+    "2"
+   ],
+   "cue": "desktop 2, 'they talk to their agents'"
+  },
+  {
+   "t": 16.529999999999998,
+   "type": "key",
+   "keys": [
+    "f12"
+   ],
+   "cue": "dial opens, word 'F12'"
+  },
+  {
+   "t": 18.14,
+   "type": "key",
+   "keys": [
+    "a"
+   ],
+   "cue": "hand on a Claude session, word 'Claude'"
+  },
+  {
+   "t": 18.54,
+   "type": "key",
+   "keys": [
+    "f"
+   ],
+   "cue": "hand on a Codex session, word 'Codex'"
+  },
+  {
+   "t": 20.843,
+   "type": "key",
+   "keys": [
+    "f12"
+   ],
+   "cue": "record, word 'record'"
+  },
+  {
+   "t": 22.942999999999998,
+   "type": "key",
+   "keys": [
+    "f12"
+   ],
+   "cue": "stop, second 'F12'"
+  }
+ ]
+}

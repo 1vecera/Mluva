@@ -1,0 +1,162 @@
+{
+ "name": "e-beautiful",
+ "start": 49.647,
+ "end": 56.607000000000006,
+ "lead": 0.2,
+ "before": [
+  "hyprctl dispatch \"hl.dsp.focus({ workspace = 1 })\"; sleep 0.9",
+  "hyprctl dispatch \"hl.dsp.focus({ window = \\\"class:firefox\\\" })\"; sleep 0.3",
+  "omarchy-theme-set tokyo-night; sleep 2.2"
+ ],
+ "qmp_before": [
+  {
+   "type": "move",
+   "x": 1200,
+   "y": 60
+  }
+ ],
+ "prelude": [
+  {
+   "after": 0.0,
+   "type": "key",
+   "keys": [
+    "f9"
+   ]
+  }
+ ],
+ "script": {
+  "sessions": [
+   {
+    "partials": [
+     [
+      1.54,
+      "I've"
+     ],
+     [
+      1.78,
+      "I've built"
+     ],
+     [
+      2.14,
+      "I've built Mluva"
+     ],
+     [
+      2.26,
+      "I've built Mluva to"
+     ],
+     [
+      2.38,
+      "I've built Mluva to be"
+     ],
+     [
+      2.84,
+      "I've built Mluva to be beautiful."
+     ],
+     [
+      3.24,
+      "I've built Mluva to be beautiful. It"
+     ],
+     [
+      3.66,
+      "I've built Mluva to be beautiful. It tiles,"
+     ],
+     [
+      3.82,
+      "I've built Mluva to be beautiful. It tiles, it"
+     ],
+     [
+      4.1,
+      "I've built Mluva to be beautiful. It tiles, it moves"
+     ],
+     [
+      4.3,
+      "I've built Mluva to be beautiful. It tiles, it moves with"
+     ],
+     [
+      4.54,
+      "I've built Mluva to be beautiful. It tiles, it moves with you,"
+     ],
+     [
+      4.92,
+      "I've built Mluva to be beautiful. It tiles, it moves with you, it"
+     ],
+     [
+      5.28,
+      "I've built Mluva to be beautiful. It tiles, it moves with you, it adjusts"
+     ],
+     [
+      5.38,
+      "I've built Mluva to be beautiful. It tiles, it moves with you, it adjusts to"
+     ],
+     [
+      5.5,
+      "I've built Mluva to be beautiful. It tiles, it moves with you, it adjusts to your"
+     ],
+     [
+      5.94,
+      "I've built Mluva to be beautiful. It tiles, it moves with you, it adjusts to your themes."
+     ],
+     [
+      6.4,
+      "I've built Mluva to be beautiful. It tiles, it moves with you, it adjusts to your themes. It's"
+     ],
+     [
+      6.62,
+      "I've built Mluva to be beautiful. It tiles, it moves with you, it adjusts to your themes. It's like"
+     ],
+     [
+      6.98,
+      "I've built Mluva to be beautiful. It tiles, it moves with you, it adjusts to your themes. It's like water."
+     ]
+    ],
+    "final": "I've built Mluva to be beautiful. It tiles, it moves with you, it adjusts to your themes. It's like water.",
+    "final_delay": 0.1
+   }
+  ]
+ },
+ "events": [
+  {
+   "t": 51.887,
+   "type": "key",
+   "keys": [
+    "super",
+    "t"
+   ],
+   "cue": "tile, word 'tiles'"
+  },
+  {
+   "t": 52.327,
+   "type": "key",
+   "keys": [
+    "super",
+    "t"
+   ],
+   "cue": "float again, before 'moves'"
+  },
+  {
+   "t": 52.497,
+   "type": "key",
+   "keys": [
+    "super",
+    "2"
+   ],
+   "cue": "desktop 2, word 'moves'"
+  },
+  {
+   "t": 51.776999999999994,
+   "type": "guest",
+   "command": "omarchy-theme-set osaka-jade",
+   "cue": "theme script takes about 2.5 s, so its swap lands on 'themes'"
+  },
+  {
+   "t": 54.976,
+   "type": "guest",
+   "command": "true",
+   "cue": "water"
+  }
+ ],
+ "after": [
+  "omarchy-theme-set tokyo-night; sleep 1.5",
+  "gdbus call --session --dest com.mluva.Linux --object-path /com/mluva/Linux --method org.gtk.Actions.Activate cancel '[]' '{}' >/dev/null; true"
+ ]
+}
