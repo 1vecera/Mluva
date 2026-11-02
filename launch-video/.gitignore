@@ -13,3 +13,5 @@ public/universal/
 showreel/capture/tools/
 # The generated highlight score (ElevenLabs Music) stays local with the other staged media.
 public/highlight/
+# The film's render inputs stay local, as with v7.
+public/film/

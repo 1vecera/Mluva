@@ -272,7 +272,7 @@ export const MluvaFilm: React.FC<FilmProps> = ({ plan }) => {
         />
       )}
       <Closing plan={plan} t={t} />
-      <div style={{ position: "absolute", left, bottom, height, width: height * (900 / 1200) }}>
+      <div style={{ position: "absolute", left, bottom, height, width: height * (900 / 990) }}>
         <OffthreadVideo
           src={staticFile("film/daniel.webm")}
           transparent

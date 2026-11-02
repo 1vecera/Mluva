@@ -6,7 +6,7 @@
 `w("F9", 2)` is the film time of the second "F9" he says. Offsets are the measured lag between a key press and its first
 visible frame, plus any calibration from the previous take (see calibrate.py), so the first visible change lands on the word.
 """
-import json, pathlib, sys
+import json, math, pathlib, sys
 
 edl = json.load(open(sys.argv[1]))
 out = pathlib.Path(sys.argv[2]); out.mkdir(parents=True, exist_ok=True)
@@ -90,8 +90,10 @@ fix_words = fix.split()
 press_c = you_c - 0.4 - 0.2 - 0.9  # the prelude's last F12: take start, less the lead and its hold
 fix_grow = [(word, press_c + 0.5 + (i + 1) * (stop_c - press_c - 0.7) / len(fix_words)) for i, word in enumerate(fix_words)]
 # Save button and sync row in the guest's logical pixels (workspace 3, Firefox on the left).
-circle = [(470, 400), (530, 392), (592, 412), (590, 448), (520, 472), (452, 458), (438, 424), (478, 398)]
-under = [(300, 378), (400, 382), (510, 377), (612, 381)]
+cx, cy, rx, ry = 516, 432, 86, 46
+circle = [(cx + rx * math.cos(math.radians(a)), cy + ry * math.sin(math.radians(a))) for a in range(-130, 275, 15)]
+under = [(300, 378), (380, 380), (460, 378), (540, 380), (612, 379)]
+what = after("what", hi)
 take_c = {
     "name": "c-shift", "start": you_c - 0.4, "end": auto + 2.6, "lead": 0.2,
     "before": [focus_ws(3)],
@@ -99,10 +101,13 @@ take_c = {
     "prelude": [{"after": 0.0, "type": "key", "keys": ["f12"]}, {"after": 1.1, "type": "key", "keys": ["d"]}, {"after": 1.9, "type": "key", "keys": ["f12"]}],
     "script": {"sessions": [{"partials": grow(fix_grow, press_c + 0.1), "final": fix, "final_delay": 1.2}]},
     "events": [
-        {"t": after("just", you_c) - 0.1, "type": "path", "points": [(620, 180), (560, 300), (478, 398)], "duration": 0.5, "cue": "pointer towards Save"},
+        {"t": after("just", you_c) - 0.1, "type": "path", "points": [(620, 180), (570, 290), (cx + rx * math.cos(math.radians(-130)), cy + ry * math.sin(math.radians(-130)))], "duration": 0.5, "cue": "pointer towards Save"},
         {"t": shift_t - 0.03, "type": "down", "key": "shift", "cue": "hold Shift, word 'Shift'"},
-        {"t": hi - 0.02, "type": "path", "points": circle, "duration": 0.85, "cue": "circle Save, word 'highlight'"},
-        {"t": after("want", hi) - 0.1, "type": "path", "points": [(478, 398), (380, 372), (300, 378)] + under, "duration": know - after("want", hi) - 0.1, "cue": "underline, 'what you want your agents to know'"},
+        {"t": hi - 0.02, "type": "path", "points": circle, "duration": what + 0.42 - hi, "cue": "circle Save, from word 'highlight'"},
+        {"t": what + 0.44, "type": "up", "key": "shift", "cue": "lift between marks"},
+        {"t": what + 0.46, "type": "path", "points": [circle[-1], (380, 400), under[0]], "duration": 0.2, "cue": "to the sync path, lifted"},
+        {"t": what + 0.70, "type": "down", "key": "shift", "cue": "hold again"},
+        {"t": what + 0.74, "type": "path", "points": under, "duration": know - what - 0.74, "cue": "underline, to 'know'"},
         {"t": know + 0.02, "type": "up", "key": "shift", "cue": "release Shift, end of 'know'"},
         {"t": stop_c, "type": "key", "keys": ["f12"], "cue": "stop, before 'screenshot'"},
     ],
