@@ -2,6 +2,17 @@
 
 This file records user-visible Mluva releases.
 
+## 2.5.0 — 2026-11-03
+
+- Choose Microsoft MAI-Transcribe-2 (listed first and labelled Suggested), xAI Grok Voice Transcribe 2.0 or Mistral Voxtral 3 in Settings → Providers, beside ElevenLabs Scribe, a local model and a compatible endpoint. Existing installations keep the provider they saved.
+- Pick Realtime or Batch for every cloud provider, with its price per audio hour beside the choice. Batch sends the finished recording at Stop and is never reported as a fallback.
+- Read **Why these providers** on the Providers page: a 62-clip Czech and English benchmark of word error rate, delay and price for every route, and why Alibaba Fun-ASR is not offered.
+- Keep each cloud key in its own desktop-keyring entry (`provider microsoft`, `xai`, `mistral`), with environment aliases and managed-launcher support. The Azure Speech region is a setting, never a secret.
+- When a realtime stream fails, ends with words it never finished, or returns no text for a recording of a second or more, Mluva recognizes the retained recording in batch and says so. The new routes are Experimental.
+- Settings saved by this release stay readable by 2.4.0 until you choose a new provider, mode or region.
+
+The new routes were exercised against local protocol peers, a full capture session and the isolated desktop runner, and once each against the live services with public clips. Physical microphone and Hyprland acceptance remain unverified, and the macOS app, which still dictates with ElevenLabs only, mirrors the two new settings in Swift that was not built here. ElevenLabs keeps its released behavior, including accepting an empty realtime result. Microsoft MAI is a preview without an SLA; the Azure free tier allows one live stream at a time and Mistral's entry tier returns HTTP 429 on bursts, neither of which was provoked against the live services. [Provider evidence](docs/verification/cloud-providers/README.md) · [Release verification](docs/verification/release-2.5.0/README.md).
+
 ## 2.4.0 — 2026-10-16
 
 - Sign into the same account from native Mluva and [Mluva on the web](https://mluva.danielvecera.com). The main toolbar's Account sync icon opens sign-in and device controls directly; browser returns show connection status or recovery guidance.
