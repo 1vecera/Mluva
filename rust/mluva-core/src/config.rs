@@ -373,7 +373,19 @@ impl AppConfig {
                 "config.json needs repair; refusing to overwrite it",
             ));
         }
-        let mut bytes = serde_json::to_vec_pretty(self).map_err(|_| ConfigError::Fields)?;
+        // Settings the previous release does not know stay out of the file until they differ from
+        // their defaults, so that release (which rejects unknown settings) still reads a file
+        // saved here for as long as no new provider, mode or region was chosen.
+        let mut document = serde_json::to_value(self).map_err(|_| ConfigError::Fields)?;
+        let fields = document.as_object_mut().expect("settings are an object");
+        let defaults = Self::default();
+        if self.transcription_mode == defaults.transcription_mode {
+            fields.remove("transcription_mode");
+        }
+        if self.microsoft_region == defaults.microsoft_region {
+            fields.remove("microsoft_region");
+        }
+        let mut bytes = serde_json::to_vec_pretty(&document).map_err(|_| ConfigError::Fields)?;
         bytes.push(b'\n');
         atomic_write_private(path, &bytes)?;
         Ok(())

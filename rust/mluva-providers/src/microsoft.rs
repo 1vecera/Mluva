@@ -439,9 +439,11 @@ impl StreamProtocol for UspProtocol {
                         text: text.into(),
                     }]
                 }
-                // The end-of-turn marker and ordinary no-speech outcomes carry no text.
-                Some("EndOfDictation" | "NoMatch" | "InitialSilenceTimeout" | "BabbleTimeout") => {
-                    vec![]
+                // The end-of-turn marker carries no text.
+                Some("EndOfDictation") => vec![],
+                // A segment that came to nothing: its hypothesis must not stay pending.
+                Some("NoMatch" | "InitialSilenceTimeout" | "BabbleTimeout") => {
+                    vec![StreamEvent::Discard]
                 }
                 _ => vec![StreamEvent::Failed(
                     "Microsoft realtime transcription reported an error.".into(),

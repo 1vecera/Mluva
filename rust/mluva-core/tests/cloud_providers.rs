@@ -126,6 +126,53 @@ fn choices_survive_a_save_and_load() {
 }
 
 #[test]
+fn a_saved_file_stays_readable_by_the_previous_release_until_a_new_choice_is_made() {
+    let released: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/config-defaults.json")).unwrap();
+    let released: std::collections::BTreeSet<_> =
+        released.as_object().unwrap().keys().cloned().collect();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("config.json");
+    let saved_keys = |config: &AppConfig| {
+        config.save(&path).unwrap();
+        let saved: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        saved
+            .as_object()
+            .unwrap()
+            .keys()
+            .cloned()
+            .collect::<std::collections::BTreeSet<_>>()
+    };
+    // Defaults, and a provider chosen from the released set: every saved setting is one the
+    // previous release knows, which rejects unknown settings.
+    for config in [AppConfig::default(), config("local", "realtime", "")] {
+        assert!(saved_keys(&config).is_subset(&released), "{config:?}");
+    }
+    // A non-default mode or region is written, so it is not lost.
+    for (config, name) in [
+        (config("elevenlabs", "batch", ""), "transcription_mode"),
+        (
+            config("microsoft", "realtime", "eastus2"),
+            "microsoft_region",
+        ),
+    ] {
+        assert!(saved_keys(&config).contains(name), "{name}");
+    }
+    assert!(saved_keys(&config("xai", "batch", "")).contains("transcription_mode"));
+    // Settings in memory (the settings page, the FFI) still carry both.
+    let document = serde_json::to_value(AppConfig::default()).unwrap();
+    assert_eq!(document["transcription_mode"], "realtime");
+    assert_eq!(document["microsoft_region"], "");
+    // And a file without them loads, so nothing changes on the way back in.
+    config("elevenlabs", "realtime", "").save(&path).unwrap();
+    assert_eq!(
+        AppConfig::load(&path).unwrap(),
+        config("elevenlabs", "realtime", "")
+    );
+}
+
+#[test]
 fn history_accepts_the_new_routes_and_ties_a_fallback_reason_to_a_batch_route() {
     let directory = tempfile::tempdir().unwrap();
     let history = HistoryStore::new(directory.path().join("history.sqlite3"));

@@ -2,9 +2,19 @@
 use adw::prelude::*;
 use mluva_core::config::AppConfig;
 use mluva_gtk::{async_runtime::DesktopRuntime, provider_settings::ProviderSection};
+use serde_json::{Map, Value};
 use std::rc::Rc;
 #[path = "support/dictation_ui.rs"]
 mod ui;
+
+/// Whether the edited `values` would be accepted over the `saved` settings, as the page saves them.
+fn accepted(saved: &AppConfig, values: &Map<String, Value>) -> bool {
+    let mut document = serde_json::to_value(saved).unwrap();
+    for (name, value) in values {
+        document[name] = value.clone();
+    }
+    serde_json::from_value::<AppConfig>(document).is_ok_and(|config| config.validate().is_ok())
+}
 
 /// Every label text under `widget`, in tree order.
 fn texts(widget: &impl IsA<gtk::Widget>) -> Vec<String> {
@@ -113,6 +123,22 @@ fn cloud_providers_show_their_keys_region_prices_and_the_benchmark() {
     section.select_provider("microsoft");
     section.region_entry.set_text(" Sweden Central ");
     assert_eq!(section.values()["microsoft_region"], "swedencentral");
+
+    // A region that is not a valid name blocks saving Microsoft, but never another provider: the
+    // saved region stands in for it there, so switching away is not a dead end.
+    let saved = AppConfig::default();
+    section.select_provider("microsoft");
+    section.region_entry.set_text("not.a/region");
+    assert!(!accepted(&saved, &section.values()));
+    for id in ["xai", "mistral", "elevenlabs", "local", "litellm"] {
+        section.select_provider(id);
+        let values = section.values();
+        assert_eq!(values["microsoft_region"], "", "{id}");
+        assert!(accepted(&saved, &values), "{id}");
+    }
+    section.select_provider("microsoft");
+    assert!(!accepted(&saved, &section.values()));
+    section.region_entry.set_text("");
 
     // Local and custom routes have neither keys, regions nor a mode.
     for id in ["local", "litellm"] {

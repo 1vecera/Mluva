@@ -576,6 +576,95 @@ async fn realtime_without_speech_is_an_empty_result_not_an_error() {
 }
 
 #[tokio::test]
+async fn realtime_empty_result_for_a_real_recording_fails_so_batch_recognizes_it() {
+    // One second of audio is the boundary: a service that answers a stream it could not serve with
+    // an empty success (parallel free-tier sessions did) must not look like silence.
+    for (chunks, outcome) in [(9, Ok("")), (10, Err(true)), (16, Err(true))] {
+        let (url, _, server_task) = support::websocket(|mut socket| async move {
+            receive_turn(&mut socket).await;
+            for message in end_of_turn() {
+                socket.send(message).await.unwrap();
+            }
+        })
+        .await;
+        let session = realtime_client(&url)
+            .start("eng", None, None)
+            .await
+            .unwrap();
+        for _ in 0..chunks {
+            session.submit_audio(&[0; 3200]).unwrap();
+        }
+        let result = session.finish().await;
+        match outcome {
+            Ok(text) => assert_eq!(result.unwrap().transcription.text, text, "{chunks} chunks"),
+            Err(_) => assert_eq!(
+                result.unwrap_err().to_string(),
+                "Microsoft returned no realtime text for the recording.",
+                "{chunks} chunks"
+            ),
+        }
+        server_task.await.unwrap();
+    }
+}
+
+#[tokio::test]
+async fn realtime_a_segment_that_came_to_nothing_drops_its_hypothesis() {
+    // NoMatch and the silence/babble timeouts end a segment without text. Its hypothesis must not
+    // stay pending, or the end of the turn would fail the whole stream.
+    for status in ["NoMatch", "InitialSilenceTimeout", "BabbleTimeout"] {
+        let (url, _, server_task) = support::websocket(move |mut socket| async move {
+            receive_turn(&mut socket).await;
+            socket.send(phrase("Kept.", 0)).await.unwrap();
+            socket
+                .send(server("speech.hypothesis", json!({"Text": "mumble"})))
+                .await
+                .unwrap();
+            socket
+                .send(server(
+                    "speech.phrase",
+                    json!({"RecognitionStatus": status, "Offset": 10, "Duration": 0}),
+                ))
+                .await
+                .unwrap();
+            for message in end_of_turn() {
+                socket.send(message).await.unwrap();
+            }
+        })
+        .await;
+        let previews = Arc::new(Mutex::new(vec![]));
+        let seen = previews.clone();
+        let session = realtime_client(&url)
+            .start(
+                "eng",
+                Some(Box::new(move |preview| {
+                    seen.lock().unwrap().push(preview);
+                    Ok(())
+                })),
+                None,
+            )
+            .await
+            .unwrap();
+        session.submit_audio(&[0; 3200]).unwrap();
+        let result = session
+            .finish()
+            .await
+            .unwrap_or_else(|error| panic!("{status}: {error}"));
+        assert_eq!(result.transcription.text, "Kept.", "{status}");
+        server_task.await.unwrap();
+        // The preview showed the hypothesis, then lost it.
+        let previews = previews.lock().unwrap();
+        let shown = previews
+            .iter()
+            .position(|p| p.volatile_text == "mumble")
+            .unwrap();
+        assert!(
+            previews[shown..].iter().any(|p| p.volatile_text.is_empty()),
+            "{status}"
+        );
+    }
+}
+
+#[tokio::test]
 async fn realtime_never_promotes_unfinished_hypotheses() {
     // The service previews words, then ends the turn without finishing them.
     let (url, _, server_task) = support::websocket(|mut socket| async move {

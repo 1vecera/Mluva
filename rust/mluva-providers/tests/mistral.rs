@@ -420,6 +420,26 @@ async fn realtime_without_speech_is_empty_but_words_that_never_finish_are_not() 
     assert_eq!(session.finish().await.unwrap().transcription.text, "");
     server_task.await.unwrap();
 
+    // A real recording (one second or more) with an empty final is a failed stream, not silence.
+    let (url, _, server_task) = support::websocket(|mut socket| async move {
+        socket.send(created()).await.unwrap();
+        receive(&mut socket).await;
+        socket.send(done("")).await.unwrap();
+    })
+    .await;
+    let session = realtime_client(&url)
+        .start("eng", None, None)
+        .await
+        .unwrap();
+    for _ in 0..10 {
+        session.submit_audio(&[0; 3200]).unwrap();
+    }
+    assert_eq!(
+        session.finish().await.unwrap_err().to_string(),
+        "Mistral returned no realtime text for the recording."
+    );
+    server_task.await.unwrap();
+
     // Deltas arrived, but the final text is empty: never promote the preview.
     let (url, _, server_task) = support::websocket(|mut socket| async move {
         socket.send(created()).await.unwrap();

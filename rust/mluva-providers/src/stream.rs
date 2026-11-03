@@ -37,6 +37,8 @@ pub(crate) enum StreamEvent {
     Append(String),
     /// The service finished the turn and returned its complete text, which replaces any segments.
     Final(String),
+    /// The segment in progress produced no text, such as Azure's `NoMatch`: drop its preview.
+    Discard,
     /// A finished segment. A later segment with the same key replaces the earlier one, so a
     /// repeated delivery of the same segment is counted once.
     Segment { key: i64, text: String },
@@ -67,6 +69,11 @@ type Connection = WebSocketStream<MaybeTlsStream<TcpStream>>;
 type Sender = SplitSink<Connection, Message>;
 
 const MAX_EVENT_BYTES: usize = crate::realtime::MAX_EVENT_BYTES;
+/// A recording with this much audio and no text is treated as a failed stream, not as silence:
+/// the retained recording is recognized again in batch before anything is called "no speech".
+/// Services have answered a stream they could not serve (parallel free-tier sessions) with an
+/// empty, otherwise successful result.
+const AUDIO_EXPECTING_TEXT_BYTES: usize = SAMPLE_RATE as usize * SAMPLE_WIDTH_BYTES;
 
 enum Audio {
     Frames(Vec<u8>),
@@ -181,6 +188,16 @@ impl Shared {
                         return;
                     }
                     state.volatile = trim(&text).into();
+                }
+                self.preview().await;
+            }
+            StreamEvent::Discard => {
+                {
+                    let mut state = self.policy.lock().unwrap();
+                    if state.cancelled || state.closing || state.done {
+                        return;
+                    }
+                    state.volatile.clear();
                 }
                 self.preview().await;
             }
@@ -563,8 +580,16 @@ impl StreamSession {
                     "Realtime transcription was cancelled.",
                 ));
             }
+            let text = join(state.segments.iter().map(|(_, text)| text.as_str()));
+            if text.is_empty() && state.bytes_sent >= AUDIO_EXPECTING_TEXT_BYTES {
+                drop(state);
+                self.cancel();
+                return Err(ProviderError(format!(
+                    "{name} returned no realtime text for the recording."
+                )));
+            }
             TranscriptionResult {
-                text: join(state.segments.iter().map(|(_, text)| text.as_str())),
+                text,
                 language_code: if self.shared.language == "auto" {
                     "und".into()
                 } else {

@@ -36,6 +36,8 @@ enum Realtime {
     FailsAtStop,
     /// Answers the connection with HTTP 401.
     Refuses,
+    /// Finishes the turn successfully with no text at all.
+    EmptyFinal,
 }
 
 impl Provider {
@@ -164,6 +166,23 @@ async fn stream_peer(provider: Provider, behavior: Realtime) -> String {
                     }
                 };
                 socket.send(error).await.unwrap();
+            } else if matches!(behavior, Realtime::EmptyFinal) {
+                let frames = match provider {
+                    Provider::Microsoft => vec![
+                        "Path: speech.phrase\r\n\r\n{\"RecognitionStatus\":\"EndOfDictation\"}"
+                            .to_owned(),
+                        "Path: turn.end\r\n\r\n{}".to_owned(),
+                    ],
+                    Provider::Xai => {
+                        vec![json!({"type": "transcript.done", "text": ""}).to_string()]
+                    }
+                    Provider::Mistral => vec![
+                        json!({"type": "transcription.done", "text": "", "usage": {}}).to_string(),
+                    ],
+                };
+                for frame in frames {
+                    socket.send(Message::Text(frame.into())).await.unwrap();
+                }
             } else if provider == Provider::Microsoft {
                 for frame in [
                     "Path: speech.phrase\r\n\r\n{\"RecognitionStatus\":\"Success\",\"DisplayText\":\"Realtime text.\",\"Offset\":0}",
@@ -211,8 +230,8 @@ struct Outcome {
     diagnostics: Vec<(String, String, String)>,
 }
 
-/// Dictate 0.3 s of phone audio through `provider` in `mode`; `realtime` shapes the stream peer.
-async fn dictate(provider: Provider, mode: &str, realtime: Realtime) -> Outcome {
+/// Dictate `chunks` of 0.1 s phone audio through `provider` in `mode`; `realtime` shapes the stream peer.
+async fn dictate(provider: Provider, mode: &str, realtime: Realtime, chunks: usize) -> Outcome {
     let root = tempfile::tempdir().unwrap();
     let history = HistoryStore::new(root.path().join("history.sqlite3"));
     history.initialize().unwrap();
@@ -274,7 +293,7 @@ async fn dictate(provider: Provider, mode: &str, realtime: Realtime) -> Outcome 
     )
     .unwrap();
     let ready = session.prepare_and_start().await.unwrap();
-    for _ in 0..3 {
+    for _ in 0..chunks {
         session.append_phone_audio(vec![0; 3200]).await.unwrap();
     }
     let result = session.complete(None).await.unwrap();
@@ -294,7 +313,7 @@ async fn dictate(provider: Provider, mode: &str, realtime: Realtime) -> Outcome 
 #[tokio::test(flavor = "multi_thread")]
 async fn realtime_text_is_committed_under_the_providers_realtime_route() {
     for provider in [Provider::Microsoft, Provider::Xai, Provider::Mistral] {
-        let outcome = dictate(provider, "realtime", Realtime::Succeeds).await;
+        let outcome = dictate(provider, "realtime", Realtime::Succeeds, 3).await;
         let result = &outcome.result;
         assert_eq!(result.transcription.text, "Realtime text.", "{provider:?}");
         assert_eq!(result.recognition_route, provider.route("realtime"));
@@ -328,7 +347,7 @@ async fn realtime_text_is_committed_under_the_providers_realtime_route() {
 #[tokio::test(flavor = "multi_thread")]
 async fn a_failed_stream_is_recognized_again_in_batch_and_says_so() {
     for provider in [Provider::Microsoft, Provider::Xai, Provider::Mistral] {
-        let outcome = dictate(provider, "realtime", Realtime::FailsAtStop).await;
+        let outcome = dictate(provider, "realtime", Realtime::FailsAtStop, 3).await;
         let result = &outcome.result;
         assert_eq!(result.transcription.text, "Batch text.", "{provider:?}");
         assert_eq!(result.recognition_route, provider.route("batch"));
@@ -363,7 +382,7 @@ async fn a_failed_stream_is_recognized_again_in_batch_and_says_so() {
 #[tokio::test(flavor = "multi_thread")]
 async fn a_refused_stream_starts_in_batch_and_names_the_provider_in_the_ready_status() {
     for provider in [Provider::Microsoft, Provider::Xai, Provider::Mistral] {
-        let outcome = dictate(provider, "realtime", Realtime::Refuses).await;
+        let outcome = dictate(provider, "realtime", Realtime::Refuses, 3).await;
         assert_eq!(
             outcome.ready.fallback_reason.as_deref(),
             Some("realtime-startup-failed")
@@ -387,7 +406,7 @@ async fn a_refused_stream_starts_in_batch_and_names_the_provider_in_the_ready_st
 #[tokio::test(flavor = "multi_thread")]
 async fn batch_mode_is_a_choice_not_a_fallback() {
     for provider in [Provider::Microsoft, Provider::Xai, Provider::Mistral] {
-        let outcome = dictate(provider, "batch", Realtime::Succeeds).await;
+        let outcome = dictate(provider, "batch", Realtime::Succeeds, 3).await;
         // Nothing streamed, nothing fell back: no reason, no fallback wording.
         assert_eq!(outcome.ready.fallback_reason, None);
         assert_eq!(
@@ -407,5 +426,34 @@ async fn batch_mode_is_a_choice_not_a_fallback() {
             Some(provider.route("batch"))
         );
         assert_eq!(entry.recognition_fallback_reason, None);
+    }
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn an_empty_realtime_result_for_a_real_recording_is_recognized_again_in_batch() {
+    for provider in [Provider::Microsoft, Provider::Xai, Provider::Mistral] {
+        // 1.2 s of audio and no text from the stream: the retained recording goes to batch.
+        let outcome = dictate(provider, "realtime", Realtime::EmptyFinal, 12).await;
+        let result = &outcome.result;
+        assert_eq!(result.transcription.text, "Batch text.", "{provider:?}");
+        assert_eq!(result.recognition_route, provider.route("batch"));
+        assert!(result.recognition_fallback);
+        assert_eq!(
+            result.recognition_fallback_reason.as_deref(),
+            Some("realtime-stream-failed")
+        );
+        assert_eq!(
+            result.history_entry.as_ref().unwrap().raw_text,
+            "Batch text.",
+            "{provider:?}"
+        );
+
+        // 0.3 s is a brief tap, not a recording: an empty result is genuinely no speech.
+        let outcome = dictate(provider, "realtime", Realtime::EmptyFinal, 3).await;
+        let result = &outcome.result;
+        assert_eq!(result.transcription.text, "", "{provider:?}");
+        assert_eq!(result.recognition_route, provider.route("realtime"));
+        assert!(!result.recognition_fallback);
+        assert!(result.delivery.guidance.contains("No speech detected"));
     }
 }

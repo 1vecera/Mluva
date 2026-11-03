@@ -22,7 +22,7 @@ Each cloud provider shows a **Realtime / Batch** choice with its price per audio
 | xAI Grok | $0.20 | $0.10 |
 | Mistral | $0.48 | $0.24 (Voxtral Small; Mini batch at $0.21 is not offered) |
 
-Prices were checked on 30 October 2026 at elevenlabs.io/pricing/api, microsoft.ai/models/mai-transcribe-2 and docs.x.ai/developers/pricing, and vendors change them. Realtime shows words while you speak; the committed text still comes only from finished segments. If a stream cannot start or finish, Mluva recognizes the retained recording in batch and says so in History and the capture status. Batch sends the whole recording at Stop, shows no live words and is not a fallback: nothing is labelled as one.
+Prices were checked on 30 October 2026 at elevenlabs.io/pricing/api, microsoft.ai/models/mai-transcribe-2 and docs.x.ai/developers/pricing, and vendors change them. Realtime shows words while you speak; the committed text still comes only from finished segments. If a stream cannot start or finish, Mluva recognizes the retained recording in batch and says so in History and the capture status. A realtime stream that finishes without text for a recording of one second or more counts as failed, since a service that could not serve the stream (the Azure free tier with parallel sessions) can answer with an empty success; the recording is then recognized in batch, and a silent recording that long costs one extra batch request before it is reported as no speech. ElevenLabs keeps its released behavior and is not affected. Batch sends the whole recording at Stop, shows no live words and is not a fallback: nothing is labelled as one.
 
 ## Credentials
 
@@ -35,7 +35,9 @@ Keys entered in Settings go to the desktop keyring through `secret-tool`, one en
 | xAI Grok | `xai` | `XAI_API_KEY`, `DAS_ITEM_GROK_STT_API_KEY__KEY` |
 | Mistral | `mistral` | `MISTRAL_API_KEY`, `DAS_ITEM_MISTRAL_API_KEY__KEY` |
 
-Store a key from a shell with `secret-tool store --label='Mluva Microsoft Azure Speech key' application mluva provider microsoft` (`--label='Mluva xAI API key' … provider xai`, `--label='Mluva Mistral API key' … provider mistral`), then paste the key on standard input. The Azure **region** is not secret: it is the `microsoft_region` setting, with `AZURE_SPEECH_REGION` used only when the setting is empty. Enter the region name, such as `swedencentral`; there is no default, because a wrong region fails as a rejected key. Streaming MAI-Transcribe-2 is served in `swedencentral`, `centralus`, `eastus2` and `southeastasia` (Microsoft documentation, October 2026). Keys never appear in settings, History, diagnostics or logs, and a provider's answer is never echoed in an error message.
+Store a key from a shell with `secret-tool store --label='Mluva Microsoft Azure Speech key' application mluva provider microsoft` (`--label='Mluva xAI API key' … provider xai`, `--label='Mluva Mistral API key' … provider mistral`), then paste the key on standard input. The Azure **region** is not secret: it is the `microsoft_region` setting, with `AZURE_SPEECH_REGION` used only when the setting is empty. Enter the region name, such as `swedencentral`; there is no default, because a wrong region fails as a rejected key. Streaming MAI-Transcribe-2 is served in `swedencentral`, `centralus`, `eastus2` and `southeastasia` (Microsoft documentation, October 2026). An existing managed launcher profile supplies the selected provider's key at startup, as it did for ElevenLabs (see the [Linux guide](../linux/README.md)). Keys never appear in settings, History, diagnostics or logs, and a provider's answer is never echoed in an error message.
+
+Settings written by this build omit `transcription_mode` and `microsoft_region` until they differ from their defaults, so the previous release still reads the file until a new provider, mode or region is chosen.
 
 ## Why these providers
 

@@ -6,7 +6,10 @@ use crate::{
     settings_view::{SaveSettings, proposed_config},
 };
 use adw::prelude::*;
-use mluva_core::{config::AppConfig, text};
+use mluva_core::{
+    config::{AppConfig, valid_azure_region},
+    text,
+};
 use mluva_providers::{
     catalog::{
         BENCHMARK_HEADER, BENCHMARK_ROWS, CatalogClient, CatalogRequest, Provider,
@@ -380,8 +383,21 @@ impl ProviderSection {
     pub fn provider(&self) -> &'static Provider {
         &SPEECH_PROVIDERS[self.provider_row.selected()]
     }
+    /// The edited settings. A region typed for Microsoft that is not a valid name must not block
+    /// saving another provider, so there the saved region stands in for it.
     pub fn values(&self) -> Map<String, Value> {
-        self.values.borrow().clone()
+        let mut values = self.values.borrow().clone();
+        if self.provider().id != "microsoft"
+            && values["microsoft_region"]
+                .as_str()
+                .is_some_and(|region| !region.is_empty() && !valid_azure_region(region))
+        {
+            values.insert(
+                "microsoft_region".into(),
+                Value::String(self.config.borrow().microsoft_region.clone()),
+            );
+        }
+        values
     }
     pub fn is_ready(&self) -> bool {
         self.provider().id != "local" || self.local.is_ready()
@@ -873,9 +889,7 @@ impl ProviderSettings {
         if self.speech.provider().id == "microsoft"
             && self.speech.values()["microsoft_region"]
                 .as_str()
-                .is_some_and(|region| {
-                    !region.is_empty() && !mluva_core::config::valid_azure_region(region)
-                })
+                .is_some_and(|region| !region.is_empty() && !valid_azure_region(region))
         {
             self.status.set_label(
                 "Enter the region name from your Azure Speech resource, for example swedencentral.",

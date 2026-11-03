@@ -12,7 +12,10 @@ use crate::{
 };
 use serde_json::{Value, json};
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::{
+    Arc,
+    atomic::{AtomicI64, Ordering},
+};
 use std::time::Duration;
 use tokio_tungstenite::tungstenite::{Message, client::IntoClientRequest};
 
@@ -188,7 +191,7 @@ impl XaiRealtimeClient {
             .insert("User-Agent", USER_AGENT.parse().unwrap());
         stream::connect(
             request,
-            Arc::new(GrokProtocol),
+            Arc::new(GrokProtocol::new()),
             language,
             self.options.clone(),
             on_preview,
@@ -219,7 +222,19 @@ pub fn realtime_uri(endpoint: &str, language: &str) -> Result<String> {
     Ok(url.into())
 }
 
-pub(crate) struct GrokProtocol;
+pub(crate) struct GrokProtocol {
+    /// Keys for finished segments that arrive without a usable start time, so they never
+    /// overwrite one another or a segment that really starts at 0.
+    unplaced: AtomicI64,
+}
+
+impl GrokProtocol {
+    pub(crate) fn new() -> Self {
+        Self {
+            unplaced: AtomicI64::new(0),
+        }
+    }
+}
 
 impl StreamProtocol for GrokProtocol {
     fn name(&self) -> &'static str {
@@ -258,10 +273,16 @@ impl StreamProtocol for GrokProtocol {
                 };
                 let flag = |name: &str| event.get(name).and_then(Value::as_bool) == Some(true);
                 if flag("is_final") || flag("speech_final") {
-                    // The same finished segment arrives twice; its start time identifies it.
-                    let start = event.get("start").and_then(Value::as_f64).unwrap_or(0.0);
+                    // The same finished segment arrives twice; its start time identifies it. Without
+                    // one, a segment is its own: a repeat of it would then count twice.
+                    let key = event
+                        .get("start")
+                        .and_then(Value::as_f64)
+                        .filter(|start| start.is_finite())
+                        .map(|start| (start * 1000.0).round() as i64)
+                        .unwrap_or_else(|| -1 - self.unplaced.fetch_add(1, Ordering::Relaxed));
                     vec![StreamEvent::Segment {
-                        key: (start * 1000.0).round() as i64,
+                        key,
                         text: text.into(),
                     }]
                 } else {

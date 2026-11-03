@@ -348,6 +348,74 @@ async fn realtime_without_speech_is_an_empty_result() {
 }
 
 #[tokio::test]
+async fn realtime_empty_result_for_a_real_recording_fails_so_batch_recognizes_it() {
+    for (chunks, outcome) in [(9, Ok("")), (10, Err(true))] {
+        let (url, _, server_task) = support::websocket(|mut socket| async move {
+            socket.send(created()).await.unwrap();
+            receive_audio(&mut socket).await;
+            socket.send(done()).await.unwrap();
+        })
+        .await;
+        let session = realtime_client(&url)
+            .start("eng", None, None)
+            .await
+            .unwrap();
+        for _ in 0..chunks {
+            session.submit_audio(&[0; 3200]).unwrap();
+        }
+        let result = session.finish().await;
+        match outcome {
+            Ok(text) => assert_eq!(result.unwrap().transcription.text, text, "{chunks} chunks"),
+            Err(_) => assert_eq!(
+                result.unwrap_err().to_string(),
+                "xAI returned no realtime text for the recording.",
+                "{chunks} chunks"
+            ),
+        }
+        server_task.await.unwrap();
+    }
+}
+
+#[tokio::test]
+async fn realtime_finals_without_a_usable_start_never_overwrite_another_segment() {
+    // A segment that really starts at 0 is followed by finals with no start, a null start and a
+    // textual one: each is its own segment.
+    let (url, _, server_task) = support::websocket(|mut socket| async move {
+        socket.send(created()).await.unwrap();
+        receive_audio(&mut socket).await;
+        let finished = |text: &str, start: Value| {
+            let mut event = json!({"type": "transcript.partial", "text": text, "is_final": true, "speech_final": true});
+            if !start.is_null() || text == "Null start." {
+                event["start"] = start;
+            }
+            Message::Text(event.to_string().into())
+        };
+        for message in [
+            finished("First.", json!(0.0)),
+            finished("No start.", Value::Null),
+            finished("Null start.", Value::Null),
+            finished("Text start.", json!("soon")),
+            // A repeat of a segment that has a start is still counted once.
+            finished("First.", json!(0.0)),
+        ] {
+            socket.send(message).await.unwrap();
+        }
+        socket.send(done()).await.unwrap();
+    })
+    .await;
+    let session = realtime_client(&url)
+        .start("eng", None, None)
+        .await
+        .unwrap();
+    session.submit_audio(&[0; 3200]).unwrap();
+    assert_eq!(
+        session.finish().await.unwrap().transcription.text,
+        "First. No start. Null start. Text start."
+    );
+    server_task.await.unwrap();
+}
+
+#[tokio::test]
 async fn realtime_never_promotes_an_unfinished_partial() {
     let (url, _, server_task) = support::websocket(|mut socket| async move {
         socket.send(created()).await.unwrap();

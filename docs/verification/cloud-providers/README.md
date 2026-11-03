@@ -6,11 +6,12 @@ Evidence for the realtime/batch routes added beside ElevenLabs Scribe. See [Choo
 
 | Layer | Check | Result |
 | --- | --- | --- |
-| Wire protocols | `cargo test -p mluva-providers --test microsoft --test xai --test mistral` against local HTTP and WebSocket peers: request framing and headers, multipart field order (`file` last), segment/delta handling, the xAI final segment that arrives twice, Azure `EndOfDictation`/`turn.end`, Voxtral's final message, errors, empty results, rate limits | 36 tests pass |
+| Wire protocols | `cargo test -p mluva-providers --test microsoft --test xai --test mistral` against local HTTP and WebSocket peers: request framing and headers, multipart field order (`file` last), segment/delta handling, the xAI final segment that arrives twice, Azure `EndOfDictation`/`turn.end`, Voxtral's final message, errors, empty results, rate limits | 40 tests pass (17 + 12 + 11), including empty results for real recordings, Azure segments that come to nothing and xAI finals without a start time |
 | Credentials | `cargo test -p mluva-providers --test cloud_credentials` through a synthetic `secret-tool`: one keyring entry and one cache per provider, environment alias order, exact store arguments | 6 tests pass |
-| Whole capture session | `cargo test -p mluva-workflows --test cloud_routes`: phone audio through a real `CaptureSession` for each provider in realtime, with a failed stream, with a refused stream and in batch mode, checking History route, fallback reason, status text and diagnostics | 4 tests pass |
-| Settings and History | `cargo test -p mluva-core --test cloud_providers` and the frozen `reference_contracts` | 7 and 8 tests pass |
-| Provider page | `make linux-provider-settings-test` and `make linux-settings-test` (420, 736 and 1060 px) in the private offscreen runner | pass |
+| Whole capture session | `cargo test -p mluva-workflows --test cloud_routes`: phone audio through a real `CaptureSession` for each provider in realtime, with a failed stream, with a refused stream and in batch mode, checking History route, fallback reason, status text and diagnostics | 5 tests pass |
+| Settings and History | `cargo test -p mluva-core --test cloud_providers` and the frozen `reference_contracts` | 8 and 8 tests pass; the settings file omits the two new settings until chosen, so the previous release still reads it |
+| Managed launcher | `cargo test -p mluva-workflows --lib launch`: a saved provider selects its own managed credential (`SPEECH_STUDIO_KEY`, `DAS_ITEM_GROK_STT_API_KEY__KEY`, `DAS_ITEM_MISTRAL_API_KEY__KEY`, `ELEVEN_LABS_STT_TOKEN`), Local and Custom select none; the real snapshot launcher injects exactly the one named variable | 3 tests pass |
+| Provider page | `make linux-provider-settings-test` and `make linux-settings-test` (420, 736 and 1060 px) in the private offscreen runner | pass; includes switching away from Microsoft with an invalid pending region |
 | Live services | `cargo run -p mluva-providers --example cloud_probe -- <provider> <mode> <clip.wav> <language>` once per route and clip | below |
 
 ## Live check
