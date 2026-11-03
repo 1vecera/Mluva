@@ -1,0 +1,113 @@
+{
+ "name": "f-models",
+ "start": 56.007000000000005,
+ "end": 59.873,
+ "lead": 0.2,
+ "before": [
+  "systemctl --user stop mluva; sleep 1; ~/start.sh provider; sleep 1.5",
+  "hyprctl dispatch \"hl.dsp.focus({ workspace = 9 })\"; sleep 0.9",
+  "gdbus call --session --dest com.mluva.Linux --object-path /com/mluva/Linux --method org.gtk.Actions.Activate settings '[]' '{}' >/dev/null; sleep 0.8"
+ ],
+ "qmp_before": [
+  {
+   "type": "move",
+   "x": 792,
+   "y": 171
+  },
+  {
+   "type": "sleep",
+   "seconds": 0.2
+  },
+  {
+   "type": "click"
+  },
+  {
+   "type": "sleep",
+   "seconds": 0.5
+  },
+  {
+   "type": "move",
+   "x": 441,
+   "y": 404
+  },
+  {
+   "type": "sleep",
+   "seconds": 0.2
+  },
+  {
+   "type": "click"
+  },
+  {
+   "type": "sleep",
+   "seconds": 0.5
+  },
+  {
+   "type": "move",
+   "x": 640,
+   "y": 500
+  }
+ ],
+ "events": [
+  {
+   "t": 56.887,
+   "type": "path",
+   "points": [
+    [
+     640,
+     500
+    ],
+    [
+     760,
+     450
+    ],
+    [
+     837,
+     404
+    ]
+   ],
+   "duration": 0.56,
+   "cue": "towards Local model"
+  },
+  {
+   "t": 57.467,
+   "type": "click",
+   "cue": "Local model, word 'local'"
+  },
+  {
+   "t": 58.032999999999994,
+   "type": "path",
+   "points": [
+    [
+     837,
+     404
+    ],
+    [
+     705,
+     408
+    ],
+    [
+     573,
+     404
+    ],
+    [
+     441,
+     408
+    ],
+    [
+     309,
+     404
+    ]
+   ],
+   "duration": 0.42000000000000515,
+   "cue": "across Mistral, Grok, ElevenLabs to MAI"
+  },
+  {
+   "t": 58.473,
+   "type": "click",
+   "cue": "a cloud provider, word 'cloud'"
+  }
+ ],
+ "after": [
+  "systemctl --user stop mluva; sleep 0.5; ~/start.sh mluva"
+ ]
+}

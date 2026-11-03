@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Sync settings</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #12141f; color: #e6e8f0; font: 17px/1.5 "Adwaita Sans", "Noto Sans", sans-serif; }
+  main { max-width: 620px; margin: 0 auto; padding: 40px 30px; }
+  h1 { font-size: 30px; font-weight: 650; margin: 0 0 20px; letter-spacing: -.012em; }
+  .card { background: #1a1d2c; border: 1px solid #2c3150; border-radius: 12px; padding: 18px 20px; }
+  .row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #262a40; font-size: 16px; }
+  .row:last-child { border: 0; }
+  .value { color: #9aa1bd; }
+  .wide { white-space: nowrap; }
+  button { position: relative; left: 430px; top: 16px; font: 600 16px "Adwaita Sans", sans-serif; padding: 10px 26px; color: #10131f; background: #8aa6ff; border: 0; border-radius: 9px; }
+</style>
+<main>
+  <h1>Sync settings</h1>
+  <div class="card">
+    <div class="row"><span>Account</span><span class="value">team@example.com</span></div>
+    <div class="row"><span>Interval</span><span class="value">Every hour</span></div>
+    <div class="row wide"><span>Sync folder</span><span class="value" style="margin-right:-150px">~/Documents/Team/Shared/Launch/2026/Very/Long/Path</span></div>
+  </div>
+  <button>Save</button>
+</main>

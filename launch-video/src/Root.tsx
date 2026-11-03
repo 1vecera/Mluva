@@ -1,5 +1,6 @@
 import { CalculateMetadataFunction, Composition, staticFile } from "remotion";
 import { EditPlan, IntroProps, MluvaIntro } from "./MluvaIntro";
+import { FilmPlan, FilmProps, MluvaFilm } from "./film/MluvaFilm";
 import { MluvaShowreel } from "./showreel/Showreel";
 import { HIGHLIGHT_DURATION, MluvaRustHighlight } from "./highlight/Highlight";
 import { LockupCheck, LockupCheckMode } from "./showreel/LockupCheck";
@@ -18,8 +19,25 @@ const metadata: CalculateMetadataFunction<IntroProps> = async () => {
   return { durationInFrames: Math.round(edit.duration * 60), props: { edit } };
 };
 
+const filmMetadata: CalculateMetadataFunction<FilmProps> = async () => {
+  const response = await fetch(staticFile("film/plan.json"));
+  if (!response.ok) throw new Error("Restore public/film/plan.json from the local media.");
+  const plan = (await response.json()) as FilmPlan;
+  return { durationInFrames: Math.round(plan.duration * 60), props: { plan } };
+};
+
 export const Root: React.FC = () => (
   <>
+    <Composition
+      id="MluvaFilm"
+      component={MluvaFilm}
+      calculateMetadata={filmMetadata}
+      defaultProps={{ plan: null }}
+      durationInFrames={60}
+      fps={60}
+      width={1920}
+      height={1080}
+    />
     <Composition
       id="MluvaIntro"
       component={MluvaIntro}

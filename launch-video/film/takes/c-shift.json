@@ -1,0 +1,331 @@
+{
+ "name": "c-shift",
+ "start": 28.833,
+ "end": 41.687000000000005,
+ "lead": 0.2,
+ "before": [
+  "hyprctl dispatch \"hl.dsp.focus({ workspace = 3 })\"; sleep 0.9"
+ ],
+ "qmp_before": [
+  {
+   "type": "move",
+   "x": 620,
+   "y": 180
+  }
+ ],
+ "prelude": [
+  {
+   "after": 0.0,
+   "type": "key",
+   "keys": [
+    "f12"
+   ]
+  },
+  {
+   "after": 1.1,
+   "type": "key",
+   "keys": [
+    "d"
+   ]
+  },
+  {
+   "after": 1.9,
+   "type": "key",
+   "keys": [
+    "f12"
+   ]
+  }
+ ],
+ "script": {
+  "sessions": [
+   {
+    "partials": [
+     [
+      0.868,
+      "Move"
+     ],
+     [
+      1.336,
+      "Move this"
+     ],
+     [
+      1.804,
+      "Move this Save"
+     ],
+     [
+      2.272,
+      "Move this Save button"
+     ],
+     [
+      2.741,
+      "Move this Save button inside"
+     ],
+     [
+      3.209,
+      "Move this Save button inside the"
+     ],
+     [
+      3.677,
+      "Move this Save button inside the card,"
+     ],
+     [
+      4.145,
+      "Move this Save button inside the card, and"
+     ],
+     [
+      4.613,
+      "Move this Save button inside the card, and stop"
+     ],
+     [
+      5.081,
+      "Move this Save button inside the card, and stop the"
+     ],
+     [
+      5.549,
+      "Move this Save button inside the card, and stop the sync"
+     ],
+     [
+      6.018,
+      "Move this Save button inside the card, and stop the sync path"
+     ],
+     [
+      6.486,
+      "Move this Save button inside the card, and stop the sync path running"
+     ],
+     [
+      6.954,
+      "Move this Save button inside the card, and stop the sync path running past"
+     ],
+     [
+      7.422,
+      "Move this Save button inside the card, and stop the sync path running past the"
+     ],
+     [
+      7.89,
+      "Move this Save button inside the card, and stop the sync path running past the edge."
+     ]
+    ],
+    "final": "Move this Save button inside the card, and stop the sync path running past the edge.",
+    "final_delay": 1.2
+   }
+  ]
+ },
+ "events": [
+  {
+   "t": 31.232999999999997,
+   "type": "path",
+   "points": [
+    [
+     620,
+     180
+    ],
+    [
+     570,
+     290
+    ],
+    [
+     460.7202655669576,
+     396.761955616527
+    ]
+   ],
+   "duration": 0.5,
+   "cue": "pointer towards Save"
+  },
+  {
+   "t": 31.762999999999998,
+   "type": "down",
+   "key": "shift",
+   "cue": "hold Shift, word 'Shift'"
+  },
+  {
+   "t": 32.532999999999994,
+   "type": "path",
+   "points": [
+    [
+     460.7202655669576,
+     396.761955616527
+    ],
+    [
+     479.65482949029985,
+     390.3098417963141
+    ],
+    [
+     501.066256720644,
+     386.69884336143843
+    ],
+    [
+     523.4953938762986,
+     386.1750438877797
+    ],
+    [
+     545.4137323260076,
+     388.77413944384824
+    ],
+    [
+     565.32757352619,
+     394.3190059627064
+    ],
+    [
+     581.8798221082321,
+     402.4317699544192
+    ],
+    [
+     593.9424696851519,
+     412.5595599599278
+    ],
+    [
+     600.6934667590499,
+     424.0121838273212
+    ],
+    [
+     601.6727440358901,
+     436.0091641663923
+    ],
+    [
+     596.8135653875881,
+     447.7329265929808
+    ],
+    [
+     586.4470758088532,
+     458.38451607214813
+    ],
+    [
+     571.2797344330423,
+     467.238044383473
+    ],
+    [
+     552.3451705097002,
+     473.6901582036859
+    ],
+    [
+     530.933743279356,
+     477.30115663856157
+    ],
+    [
+     508.50460612370136,
+     477.8249561122203
+    ],
+    [
+     486.5862676739925,
+     475.2258605561518
+    ],
+    [
+     466.67242647381005,
+     469.6809940372936
+    ],
+    [
+     450.12017789176787,
+     461.56823004558083
+    ],
+    [
+     438.0575303148481,
+     451.4404400400722
+    ],
+    [
+     431.3065332409501,
+     439.9878161726788
+    ],
+    [
+     430.3272559641099,
+     427.9908358336077
+    ],
+    [
+     435.18643461241186,
+     416.26707340701927
+    ],
+    [
+     445.5529241911467,
+     405.61548392785187
+    ],
+    [
+     460.7202655669576,
+     396.761955616527
+    ],
+    [
+     479.6548294902999,
+     390.3098417963141
+    ],
+    [
+     501.066256720644,
+     386.69884336143843
+    ]
+   ],
+   "duration": 1.1540000000000035,
+   "cue": "circle Save, from word 'highlight'"
+  },
+  {
+   "t": 33.727,
+   "type": "up",
+   "key": "shift",
+   "cue": "lift between marks"
+  },
+  {
+   "t": 33.747,
+   "type": "path",
+   "points": [
+    [
+     501.066256720644,
+     386.69884336143843
+    ],
+    [
+     380,
+     400
+    ],
+    [
+     300,
+     378
+    ]
+   ],
+   "duration": 0.2,
+   "cue": "to the sync path, lifted"
+  },
+  {
+   "t": 33.987,
+   "type": "down",
+   "key": "shift",
+   "cue": "hold again"
+  },
+  {
+   "t": 34.027,
+   "type": "path",
+   "points": [
+    [
+     300,
+     378
+    ],
+    [
+     380,
+     380
+    ],
+    [
+     460,
+     378
+    ],
+    [
+     540,
+     380
+    ],
+    [
+     612,
+     379
+    ]
+   ],
+   "duration": 1.0800000000000003,
+   "cue": "underline, to 'know'"
+  },
+  {
+   "t": 35.127,
+   "type": "up",
+   "key": "shift",
+   "cue": "release Shift, end of 'know'"
+  },
+  {
+   "t": 35.923,
+   "type": "key",
+   "keys": [
+    "f12"
+   ],
+   "cue": "stop, before 'screenshot'"
+  }
+ ]
+}
