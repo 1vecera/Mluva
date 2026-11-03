@@ -29,3 +29,12 @@ The model-choice shot runs a capture-only build of the in-progress provider work
 ## Limits
 
 Under motion the guest compositor draws about 30–45 distinct frames a second, so busy motion repeats frames inside the 60 fps take. Retiming holds or trims only frames at rest; it never changes playback speed. Provider replies and agent answers are scripted loopback responses; the delivered texts and annotation bundles are the app's own output.
+
+## Assets
+
+| Asset | Source |
+| --- | --- |
+| Wallpapers | Unsplash License photos, downloads reported through the Unsplash API: [Marcos Paulo Prado](https://unsplash.com/photos/sunlight-filtering-through-dark-ocean-water-588l4wraJQo) (Tokyo Night, blue) and [Pawel Czerwinski](https://unsplash.com/photos/a-close-up-view-of-a-blue-liquid-background-GTolTgC1W3Y) (Osaka Jade, teal) |
+| Music | Synthesized by `music.py`; no recording or sample is used |
+| Brand and fonts | The repository's Mluva lockup; JetBrains Mono and Adwaita Sans under the SIL Open Font License |
+| Presenter and voice | Daniel's iPhone take with the DJI mic; matte and denoising run locally, with no generated face, lips or speech |
