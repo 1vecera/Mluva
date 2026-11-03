@@ -1,0 +1,60 @@
+bash linux/tests/run_global_shortcut_portal_smoke.sh
+   Compiling syn v2.0.119
+   Compiling serde_core v1.0.229
+   Compiling generic-array v0.14.7
+   Compiling h2 v0.4.19
+   Compiling crypto-common v0.1.7
+   Compiling block-buffer v0.10.4
+   Compiling digest v0.10.7
+   Compiling sha1 v0.10.7
+   Compiling tower v0.5.3
+   Compiling tower-http v0.6.11
+   Compiling serde v1.0.229
+   Compiling serde_json v1.0.151
+   Compiling chrono v0.4.45
+   Compiling glib-macros v0.21.5
+   Compiling openssl-macros v0.1.1
+   Compiling hyper v1.11.1
+   Compiling openssl v0.10.81
+   Compiling mluva-core v2.5.0 (/home/vecera/code/mluva/.claude/worktrees/release-2.5.0/rust/mluva-core)
+   Compiling hyper-util v0.1.21
+   Compiling glib v0.21.5
+   Compiling native-tls v0.2.18
+   Compiling tokio-native-tls v0.3.1
+   Compiling hyper-tls v0.6.0
+   Compiling tungstenite v0.28.0
+   Compiling serde_urlencoded v0.7.1
+   Compiling reqwest v0.12.28
+   Compiling tokio-tungstenite v0.28.0
+   Compiling mluva-audio v2.5.0 (/home/vecera/code/mluva/.claude/worktrees/release-2.5.0/rust/mluva-audio)
+   Compiling gtk4-macros v0.10.3
+   Compiling mluva-providers v2.5.0 (/home/vecera/code/mluva/.claude/worktrees/release-2.5.0/rust/mluva-providers)
+   Compiling serde_spanned v1.1.1
+   Compiling toml_datetime v0.7.5+spec-1.1.0
+   Compiling toml v0.9.12+spec-1.1.0
+   Compiling gio v0.21.5
+   Compiling cairo-rs v0.21.5
+   Compiling graphene-rs v0.21.5
+   Compiling mluva-workflows v2.5.0 (/home/vecera/code/mluva/.claude/worktrees/release-2.5.0/rust/mluva-workflows)
+   Compiling pango v0.21.5
+   Compiling gdk-pixbuf v0.21.5
+   Compiling gdk4 v0.10.3
+   Compiling pangocairo v0.21.5
+   Compiling mluva-annotate v2.5.0 (/home/vecera/code/mluva/.claude/worktrees/release-2.5.0/rust/mluva-annotate)
+   Compiling gsk4 v0.10.3
+   Compiling gtk4 v0.10.3
+   Compiling libadwaita v0.8.1
+   Compiling mluva-gtk v2.5.0 (/home/vecera/code/mluva/.claude/worktrees/release-2.5.0/rust/mluva-gtk)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 50.57s
+  Executable tests/global_shortcuts.rs (tmp/native-build/debug/deps/global_shortcuts-7479500c133729fa)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.13s
+     Running tests/global_shortcuts.rs (tmp/native-build/debug/deps/global_shortcuts-7479500c133729fa)
+
+running 1 test
+test released_portal_approval_events_rebinding_and_shutdown ... Compared 21 released portal workflows / 59 observed states, including acknowledged cleanup
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.87s
+
+Native global shortcut portal check passed; evidence: /home/vecera/code/mluva/.claude/worktrees/release-2.5.0/tmp/global-shortcut-portal-smoke/run.9V7VhX
+exit 0

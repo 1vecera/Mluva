@@ -1,0 +1,13 @@
+offscreen_session=/home/vecera/code/mluva/.claude/worktrees/release-2.5.0/tmp/staged-startup/session.RdeeV9
+offscreen_evidence=/home/vecera/code/mluva/.claude/worktrees/release-2.5.0/tmp/staged-startup
+offscreen_display_allocation=explicit:174
+offscreen_xdg_runtime=private-short-directory
+offscreen_atspi=private
+offscreen_atspi_registry=private
+offscreen_window_manager=openbox
+PASS local: launched, owned the private bus, exported the account action, left settings untouched and quit cleanly.
+PASS upgraded-elevenlabs: launched, owned the private bus, exported the account action, left settings untouched and quit cleanly.
+PASS microsoft-batch: launched, owned the private bus, exported the account action, left settings untouched and quit cleanly.
+PASS xai-realtime: launched, owned the private bus, exported the account action, left settings untouched and quit cleanly.
+PASS mistral-batch: launched, owned the private bus, exported the account action, left settings untouched and quit cleanly.
+PASS staged binary launched outside checkout, owned a private bus, exported the account action, accepted the registered URI handler and started cleanly with local, upgraded ElevenLabs, Microsoft, xAI and Mistral settings.
