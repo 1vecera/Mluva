@@ -1,8 +1,13 @@
 //! External synthetic keyring and public credential/provider driver; never installed.
 use mluva_providers::{
     ProviderError, Secret,
-    credentials::{CredentialStore, SPEECH_KEY_VARIABLES, speech_key_from_environment},
+    credentials::{
+        CloudProvider, CredentialStore, SPEECH_KEY_VARIABLES, speech_key_from_environment,
+    },
     elevenlabs::ElevenLabsClient,
+    microsoft::MicrosoftClient,
+    mistral::MistralClient,
+    xai::XaiClient,
 };
 use serde_json::{Value, json};
 use std::collections::HashMap;
@@ -88,20 +93,41 @@ async fn send_key(
     key: Result<Secret, ProviderError>,
     spec: &Value,
 ) -> Result<Value, ProviderError> {
+    send_key_via(CloudProvider::ElevenLabs, key, spec).await
+}
+/// Send a request with `key` through `provider`'s client so the peer can see which key arrived.
+async fn send_key_via(
+    provider: CloudProvider,
+    key: Result<Secret, ProviderError>,
+    spec: &Value,
+) -> Result<Value, ProviderError> {
     let key = key?;
     assert_eq!(format!("{key:?}"), "<credential>");
-    let client = ElevenLabsClient::new(
-        key,
-        spec["endpoint"].as_str().unwrap(),
-        Duration::from_secs(2),
-    )?;
-    client
-        .transcribe(
-            Path::new(spec["audio_path"].as_str().unwrap()),
-            "auto",
-            "scribe_v2",
-        )
-        .await?;
+    let endpoint = spec["endpoint"].as_str().unwrap();
+    let audio = Path::new(spec["audio_path"].as_str().unwrap());
+    let timeout = Duration::from_secs(2);
+    match provider {
+        CloudProvider::ElevenLabs => {
+            ElevenLabsClient::new(key, endpoint, timeout)?
+                .transcribe(audio, "auto", "scribe_v2")
+                .await?;
+        }
+        CloudProvider::Microsoft => {
+            MicrosoftClient::new(key, endpoint, timeout)?
+                .transcribe(audio, "auto")
+                .await?;
+        }
+        CloudProvider::Xai => {
+            XaiClient::new(key, endpoint, timeout)?
+                .transcribe(audio, "auto")
+                .await?;
+        }
+        CloudProvider::Mistral => {
+            MistralClient::new(key, endpoint, timeout)?
+                .transcribe(audio, "auto")
+                .await?;
+        }
+    }
     Ok(json!("sent"))
 }
 
@@ -155,6 +181,28 @@ async fn main() {
                 .store_speech_key(operation["value"].as_str().unwrap())
                 .await
                 .map(|()| Value::Null),
+            // The same operations for any cloud provider, named by `provider`.
+            "key_for" => {
+                let provider =
+                    CloudProvider::from_id(operation["provider"].as_str().unwrap()).unwrap();
+                send_key_via(provider, store.api_key(provider).await, &spec).await
+            }
+            "lookup_for" => {
+                let provider =
+                    CloudProvider::from_id(operation["provider"].as_str().unwrap()).unwrap();
+                store
+                    .stored_key(provider)
+                    .await
+                    .map(|key| json!({"present":key.is_some()}))
+            }
+            "store_for" => {
+                let provider =
+                    CloudProvider::from_id(operation["provider"].as_str().unwrap()).unwrap();
+                store
+                    .store_key(provider, operation["value"].as_str().unwrap())
+                    .await
+                    .map(|()| Value::Null)
+            }
             _ => panic!("Unknown fixture operation"),
         };
         observations.push(result(value));

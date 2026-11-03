@@ -25,6 +25,8 @@ tempfile.workspace = true
 [dev-dependencies]
 rusqlite.workspace = true
 base64.workspace = true
+tokio-tungstenite.workspace = true
+futures-util.workspace = true
 
 # Reuse the owned synthetic audio peer and native memory cleanup implementation;
 # these test endpoints are never selected by distribution tooling.

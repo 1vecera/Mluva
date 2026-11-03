@@ -183,8 +183,29 @@ impl DictationWorkflow {
         match self.config.transcription_provider.as_str() {
             "litellm" => DiagnosticProvider::Litellm,
             "local" => DiagnosticProvider::Local,
+            "microsoft" => DiagnosticProvider::MicrosoftMai,
+            "xai" => DiagnosticProvider::XaiGrok,
+            "mistral" => DiagnosticProvider::MistralVoxtral,
             _ => DiagnosticProvider::ElevenlabsScribeV2,
         }
+    }
+
+    /// Capture-ready timings have always been filed under Scribe unless a newer cloud route is
+    /// selected; keep that so earlier diagnostics stay comparable.
+    pub fn capture_ready_provider(&self) -> DiagnosticProvider {
+        match self.recognition_provider() {
+            provider @ (DiagnosticProvider::MicrosoftMai
+            | DiagnosticProvider::XaiGrok
+            | DiagnosticProvider::MistralVoxtral) => provider,
+            _ => DiagnosticProvider::ElevenlabsScribeV2,
+        }
+    }
+
+    /// The model a batch fallback names, such as "Scribe v2".
+    pub fn fallback_model_name(&self) -> &'static str {
+        cloud_routes(&self.config.transcription_provider)
+            .unwrap_or(&ELEVENLABS_ROUTES)
+            .name
     }
 
     pub fn freeze_transcript_preparation(
@@ -222,14 +243,17 @@ impl DictationWorkflow {
         let mut progress = Progress::default();
         let mut used_fallback = request.recognition_used_batch_fallback;
         let recognition: WorkflowOutcome<(TranscriptionResult, f64)> = async {
+            let routes =
+                cloud_routes(&self.config.transcription_provider).unwrap_or(&ELEVENLABS_ROUTES);
             let (route, reason) = resolve_recognition_metadata(
                 request.recognized_transcription.is_some(),
                 used_fallback,
                 request.recognition_fallback_reason.as_deref(),
+                routes,
             )?;
             progress.recognition_route = Some(route.into());
             progress.recognition_fallback_reason = reason;
-            if self.config.transcription_provider != "elevenlabs" {
+            if cloud_routes(&self.config.transcription_provider).is_none() {
                 progress.recognition_route = Some(
                     if self.config.transcription_provider == "local" {
                         "managed-local"
@@ -428,7 +452,10 @@ impl DictationWorkflow {
         if used_fallback {
             warnings.insert(
                 0,
-                fallback_guidance(progress.recognition_fallback_reason.as_deref()).into(),
+                fallback_guidance(
+                    progress.recognition_fallback_reason.as_deref(),
+                    self.fallback_model_name(),
+                ),
             );
         }
         if !warnings.is_empty() {
@@ -631,7 +658,11 @@ impl DictationWorkflow {
         let route = match self.config.transcription_provider.as_str() {
             "local" => "managed-local-retry",
             "litellm" => "litellm-batch-retry",
-            _ => "scribe-v2-batch-retry",
+            provider => {
+                cloud_routes(provider)
+                    .unwrap_or(&ELEVENLABS_ROUTES)
+                    .batch_retry
+            }
         };
         Ok(self.history.mark_retry_ready(
             identifier,
@@ -692,10 +723,54 @@ fn history_input(
         ..HistoryInput::dictation("", "")
     }
 }
+/// The history route names and wording of one cloud provider's realtime and batch recognition.
+struct CloudRoutes {
+    realtime: &'static str,
+    batch: &'static str,
+    batch_retry: &'static str,
+    /// The model's name in wording: "batch {name}" and "{name} batch".
+    name: &'static str,
+}
+const ELEVENLABS_ROUTES: CloudRoutes = CloudRoutes {
+    realtime: "scribe-v2-realtime",
+    batch: "scribe-v2-batch",
+    batch_retry: "scribe-v2-batch-retry",
+    name: "Scribe v2",
+};
+const MICROSOFT_ROUTES: CloudRoutes = CloudRoutes {
+    realtime: "mai-realtime",
+    batch: "mai-batch",
+    batch_retry: "mai-batch-retry",
+    name: "MAI-Transcribe-2",
+};
+const MISTRAL_ROUTES: CloudRoutes = CloudRoutes {
+    realtime: "mistral-realtime",
+    batch: "mistral-batch",
+    batch_retry: "mistral-batch-retry",
+    name: "Mistral",
+};
+const XAI_ROUTES: CloudRoutes = CloudRoutes {
+    realtime: "grok-realtime",
+    batch: "grok-batch",
+    batch_retry: "grok-batch-retry",
+    name: "Grok",
+};
+/// None for local and compatible routes, which have no realtime/batch pair.
+fn cloud_routes(provider: &str) -> Option<&'static CloudRoutes> {
+    match provider {
+        "local" | "litellm" => None,
+        "microsoft" => Some(&MICROSOFT_ROUTES),
+        "xai" => Some(&XAI_ROUTES),
+        "mistral" => Some(&MISTRAL_ROUTES),
+        _ => Some(&ELEVENLABS_ROUTES),
+    }
+}
+
 fn resolve_recognition_metadata(
     realtime: bool,
     fallback: bool,
     reason: Option<&str>,
+    routes: &CloudRoutes,
 ) -> WorkflowOutcome<(&'static str, Option<String>)> {
     if realtime {
         if fallback {
@@ -708,7 +783,7 @@ fn resolve_recognition_metadata(
                 "A committed realtime result cannot have a batch fallback reason.",
             ));
         }
-        return Ok(("scribe-v2-realtime", None));
+        return Ok((routes.realtime, None));
     }
     if !fallback {
         if reason.is_some() {
@@ -716,7 +791,7 @@ fn resolve_recognition_metadata(
                 "A recognition fallback reason requires a batch fallback.",
             ));
         }
-        return Ok(("scribe-v2-batch", None));
+        return Ok((routes.batch, None));
     }
     let reason = reason.unwrap_or("realtime-unavailable");
     if !RECOGNITION_FALLBACKS.contains(&reason) {
@@ -724,19 +799,19 @@ fn resolve_recognition_metadata(
             "Unsupported recognition fallback reason: {reason}"
         )));
     }
-    Ok(("scribe-v2-batch", Some(reason.into())))
+    Ok((routes.batch, Some(reason.into())))
 }
-fn fallback_guidance(reason: Option<&str>) -> &'static str {
+fn fallback_guidance(reason: Option<&str>, model: &str) -> String {
     match reason {
-        Some("realtime-startup-failed") => {
-            "Realtime recognition could not start; this capture was completed with batch Scribe v2."
-        }
-        Some("realtime-stream-failed") => {
-            "Realtime recognition did not produce committed text; this capture was completed with batch Scribe v2."
-        }
-        _ => {
-            "Realtime recognition was unavailable; this capture was completed with batch Scribe v2."
-        }
+        Some("realtime-startup-failed") => format!(
+            "Realtime recognition could not start; this capture was completed with batch {model}."
+        ),
+        Some("realtime-stream-failed") => format!(
+            "Realtime recognition did not produce committed text; this capture was completed with batch {model}."
+        ),
+        _ => format!(
+            "Realtime recognition was unavailable; this capture was completed with batch {model}."
+        ),
     }
 }
 fn ready(guidance: &str) -> DeliveryReceipt {

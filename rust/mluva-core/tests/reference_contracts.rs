@@ -23,10 +23,9 @@ fn defaults_and_persisted_migrations_match_release_with_authorized_model_retirem
     let mut defaults: Value =
         serde_json::from_str(include_str!("fixtures/config-defaults.json")).unwrap();
     strip_retired(&mut defaults);
-    assert_eq!(
-        serde_json::to_value(AppConfig::default()).unwrap(),
-        defaults
-    );
+    let mut native_defaults = serde_json::to_value(AppConfig::default()).unwrap();
+    strip_native_additions(&mut native_defaults);
+    assert_eq!(native_defaults, defaults);
     let cases: Vec<ConfigCase> =
         serde_json::from_str(include_str!("fixtures/config-cases.json")).unwrap();
     let mut differences = Vec::new();
@@ -65,7 +64,9 @@ fn defaults_and_persisted_migrations_match_release_with_authorized_model_retirem
                 expected["welcome_completed"] = Value::Bool(false);
             }
             strip_retired(&mut expected);
-            if serde_json::to_value(config).unwrap() != expected {
+            let mut actual = serde_json::to_value(config).unwrap();
+            strip_native_additions(&mut actual);
+            if actual != expected {
                 differences.push(format!("{}: settings changed", case.label));
             }
         }
@@ -258,6 +259,14 @@ const RETIRED: &[&str] = &[
     "automatic_titles",
     "remember_per_application",
 ];
+/// Settings the native application added after the frozen 1.6.0 corpus. They have their own
+/// checks in `cloud_providers.rs`, and their defaults leave the released behavior unchanged.
+const NATIVE_ADDITIONS: &[&str] = &["transcription_mode", "microsoft_region"];
+fn strip_native_additions(value: &mut Value) {
+    for key in NATIVE_ADDITIONS {
+        value.as_object_mut().unwrap().remove(*key);
+    }
+}
 fn strip_retired(value: &mut Value) {
     for key in RETIRED {
         value.as_object_mut().unwrap().remove(*key);

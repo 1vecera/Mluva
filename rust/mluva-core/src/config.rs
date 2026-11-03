@@ -17,6 +17,18 @@ pub const ELEVENLABS_KEY_VARIABLES: [&str; 3] = [
     "ELEVEN_LABS_STT_TOKEN",
 ];
 pub const LOCAL_MODELS: [&str; 3] = ["whisper-tiny", "parakeet-v3", "qwen3-1.7b"];
+/// Every value `transcription_provider` accepts.
+pub const TRANSCRIPTION_PROVIDERS: [&str; 6] = [
+    "elevenlabs",
+    "microsoft",
+    "xai",
+    "mistral",
+    "litellm",
+    "local",
+];
+/// The providers that upload audio to a vendor's cloud and offer both modes.
+pub const CLOUD_PROVIDERS: [&str; 4] = ["elevenlabs", "microsoft", "xai", "mistral"];
+pub const TRANSCRIPTION_MODES: [&str; 2] = ["realtime", "batch"];
 
 #[derive(Debug, Error)]
 pub enum ConfigError {
@@ -59,6 +71,10 @@ pub struct AppConfig {
     pub transcription_base_url: String,
     pub transcription_api_key_env: String,
     pub transcription_remote_model: Option<String>,
+    /// Cloud providers only: `realtime` streams while recording, `batch` sends the finished recording.
+    pub transcription_mode: String,
+    /// Region of the Azure Speech resource used by the Microsoft provider; empty until entered.
+    pub microsoft_region: String,
     pub local_model: String,
     pub local_device: String,
     pub transcription_chunk_seconds: i64,
@@ -87,6 +103,8 @@ impl Default for AppConfig {
             transcription_base_url: "http://localhost:4000/v1".into(),
             transcription_api_key_env: "LITELLM_API_KEY".into(),
             transcription_remote_model: Some("whisper".into()),
+            transcription_mode: "realtime".into(),
+            microsoft_region: String::new(),
             local_model: "qwen3-1.7b".into(),
             local_device: "cpu".into(),
             transcription_chunk_seconds: 8,
@@ -107,7 +125,26 @@ impl Default for AppConfig {
     }
 }
 
+/// Azure region names are lowercase letters and digits. The value becomes part of a host name, so
+/// anything else is refused rather than escaped.
+pub fn valid_azure_region(region: &str) -> bool {
+    (3..=30).contains(&region.len())
+        && region
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+}
+
 impl AppConfig {
+    /// Whether this route uploads audio to a vendor's cloud and offers the realtime/batch choice.
+    pub fn is_cloud_provider(&self) -> bool {
+        CLOUD_PROVIDERS.contains(&self.transcription_provider.as_str())
+    }
+
+    /// The person chose to send each finished recording instead of streaming it.
+    pub fn prefers_batch(&self) -> bool {
+        self.is_cloud_provider() && self.transcription_mode == "batch"
+    }
+
     /// Preserve released routes/privacy bounds with the authorized three-model native lineup.
     pub fn validate(&self) -> Result<(), ConfigError> {
         if self.language_code != "auto"
@@ -130,9 +167,19 @@ impl AppConfig {
                 "Speech model must be a bounded single-line model identifier",
             )?;
         }
-        if !["elevenlabs", "litellm", "local"].contains(&self.transcription_provider.as_str()) {
+        if !TRANSCRIPTION_PROVIDERS.contains(&self.transcription_provider.as_str()) {
             return Err(ConfigError::Invalid(
-                "transcription_provider must be elevenlabs, litellm or local",
+                "transcription_provider must be elevenlabs, microsoft, xai, mistral, litellm or local",
+            ));
+        }
+        if !TRANSCRIPTION_MODES.contains(&self.transcription_mode.as_str()) {
+            return Err(ConfigError::Invalid(
+                "transcription_mode must be realtime or batch",
+            ));
+        }
+        if !self.microsoft_region.is_empty() && !valid_azure_region(&self.microsoft_region) {
+            return Err(ConfigError::Invalid(
+                "microsoft_region must be an Azure region name such as swedencentral",
             ));
         }
         if !["cpu", "cuda"].contains(&self.local_device.as_str()) {

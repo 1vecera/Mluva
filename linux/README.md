@@ -66,7 +66,7 @@ Run installed `mluva-uninstall` to remove the native app and owned launch integr
 
 ## Provider setup
 
-Choose ElevenLabs Scribe, an app-managed local model or a compatible speech API in **Settings → Providers**. First-run setup chooses speech and recorder appearance. [Onboarding](../docs/onboarding.md) covers keyring setup; [provider selection](../docs/provider-selection.md) documents local choices and endpoint restrictions. Account login never changes the speech provider.
+Choose Microsoft MAI-Transcribe-2 (suggested), ElevenLabs Scribe, xAI Grok, Mistral Voxtral, an app-managed local model or a compatible speech API in **Settings → Providers**. First-run setup chooses speech and recorder appearance. [Onboarding](../docs/onboarding.md) covers keyring setup; [provider selection](../docs/provider-selection.md) documents local choices and endpoint restrictions. Account login never changes the speech provider.
 
 Supply cloud credentials through Settings or the launch environment. Settings store key-variable names, never key values. Local recording stays on this PC; selecting a cloud speech provider explicitly sends microphone audio to that provider. Account sync distributes text only. There is no rewriting provider or generated-title request.
 

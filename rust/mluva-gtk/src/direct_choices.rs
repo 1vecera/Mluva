@@ -10,27 +10,89 @@ pub struct DirectChoices {
 }
 impl DirectChoices {
     pub fn new(labels: &[&str], changed: Rc<dyn Fn(usize)>) -> Rc<Self> {
+        Self::with_badges(labels, &[], changed)
+    }
+
+    /// `badges` names the choices that carry a small caption under their label, by index, such
+    /// as the suggested provider.
+    pub fn with_badges(
+        labels: &[&str],
+        badges: &[(usize, &str)],
+        changed: Rc<dyn Fn(usize)>,
+    ) -> Rc<Self> {
+        Self::build(labels, badges, None, changed)
+    }
+
+    /// Choices that wrap onto further lines of at most `per_line` buttons, for sets too wide
+    /// for the narrowest window in one row.
+    pub fn wrapping(
+        labels: &[&str],
+        badges: &[(usize, &str)],
+        per_line: u32,
+        changed: Rc<dyn Fn(usize)>,
+    ) -> Rc<Self> {
+        Self::build(labels, badges, Some(per_line), changed)
+    }
+
+    fn build(
+        labels: &[&str],
+        badges: &[(usize, &str)],
+        per_line: Option<u32>,
+        changed: Rc<dyn Fn(usize)>,
+    ) -> Rc<Self> {
         let widget = gtk::Box::builder()
             .spacing(0)
-            .homogeneous(true)
+            .homogeneous(per_line.is_none())
             .margin_top(8)
             .margin_bottom(8)
             .build();
-        widget.add_css_class("linked");
+        let lines = per_line.map(|per_line| {
+            let lines = gtk::FlowBox::builder()
+                .selection_mode(gtk::SelectionMode::None)
+                .homogeneous(true)
+                .min_children_per_line(1)
+                .max_children_per_line(per_line)
+                .column_spacing(6)
+                .row_spacing(6)
+                .hexpand(true)
+                .build();
+            widget.append(&lines);
+            lines
+        });
+        if lines.is_none() {
+            widget.add_css_class("linked");
+        }
         let buttons: Vec<_> = labels
             .iter()
-            .map(|label| {
-                gtk::ToggleButton::builder()
-                    .label(*label)
-                    .hexpand(true)
-                    .build()
+            .enumerate()
+            .map(|(index, label)| {
+                let button = gtk::ToggleButton::builder().hexpand(true).build();
+                match badges.iter().find(|(badged, _)| *badged == index) {
+                    Some((_, badge)) => {
+                        let content = gtk::Box::new(gtk::Orientation::Vertical, 0);
+                        content.append(&gtk::Label::new(Some(label)));
+                        let caption = gtk::Label::new(Some(badge));
+                        caption.add_css_class("caption");
+                        caption.add_css_class("accent");
+                        content.append(&caption);
+                        button.set_child(Some(&content));
+                        button.update_property(&[gtk::accessible::Property::Label(&format!(
+                            "{label}, {badge}"
+                        ))]);
+                    }
+                    None => button.set_label(label),
+                }
+                button
             })
             .collect();
         for button in &buttons {
             if button != &buttons[0] {
                 button.set_group(Some(&buttons[0]));
             }
-            widget.append(button);
+            match &lines {
+                Some(lines) => lines.append(button),
+                None => widget.append(button),
+            }
         }
         let choices = Rc::new(Self {
             widget,

@@ -72,14 +72,14 @@ fn speech_choices_catalog_recovery_and_setup_keep_the_selected_route() {
     section.endpoint_entry.set_text(&held.base);
     section.refresh_button.emit_clicked();
     ui::until(|| !held.calls.lock().unwrap().is_empty());
-    section.provider_row.set_selected(1);
+    section.select_provider("local");
     assert_eq!(section.provider().id, "local");
     fs::write(gate, "").unwrap();
     ui::settle(0.2);
     assert_eq!(section.provider().id, "local");
     assert!(!section.model_row.get_visible());
     assert_eq!(section.values()["transcription_provider"], "local");
-    section.provider_row.set_selected(2);
+    section.select_provider("litellm");
     section.endpoint_entry.set_text("not a URL");
     section.refresh_button.emit_clicked();
     assert!(section.status.get_visible());

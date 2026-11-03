@@ -8,7 +8,7 @@ The recording shortcut toggles capture. A second press during preparation cancel
 
 A successful recognition with no speech completes quietly. It does not copy, paste, create a blank history entry or replace the current conversation. Silent audio follows the successful-capture retention policy; Incognito erases it. Malformed responses, network errors and capture failures still use the normal recovery path.
 
-Scribe displays live recognition but only committed text becomes raw history or final dictation delivery. If realtime recognition cannot start or finalize, the app reports the batch fallback explicitly. Local and compatible batch providers can show provisional chunk previews; the complete recording is recognized at Stop.
+The cloud providers (ElevenLabs Scribe, Microsoft MAI-Transcribe-2, xAI Grok Voice Transcribe 2.0 and Mistral Voxtral 3) each offer a realtime and a batch mode, chosen in Settings → Providers with the price per audio hour shown beside it. Realtime displays live recognition, but only committed text becomes raw history or final dictation delivery: a finished segment, never a preview. If realtime recognition cannot start or finalize, including when a stream ends with words it never finished, the app reports the batch fallback explicitly and recognizes the retained recording. Batch mode, which the person chose, sends the recording at Stop and is never reported as a fallback. Local and compatible batch providers can show provisional chunk previews; the complete recording is recognized at Stop.
 
 Raw recognition, working edits and delivered text remain separate. Editor changes autosave after a short pause, updating only the working version. Copy remains visible; there is no Save button. Failed saves keep the draft and retry, and normal Quit flushes pending edits. Smooth following is on, honors system reduced motion and stops following when the user deliberately scrolls away.
 
@@ -18,7 +18,7 @@ There is one normal dictation mode. Polish, manual and live rewriting, prompts/t
 
 The selected speech provider determines where audio is recognized. Explicit cloud speech sends audio to that provider. The three app-managed local models keep recognition local, load only while transcribing and never use a paid fallback. Mluva has no built-in text-generation provider. Agent sessions use their own agent settings after explicit routing.
 
-Credentials enter through the application process environment or an existing managed launcher. Settings stores variable names, not values. Credentials are excluded from history, diagnostics and shell previews. ElevenLabs batch uploads and compatible endpoints reject redirects so credentials and recordings stay at the configured endpoint. Compatible endpoints reject embedded credentials; HTTPS is required except for loopback servers. [Provider setup](provider-selection.md) explains connection settings.
+Credentials enter through the desktop keyring (one entry per cloud provider), the application process environment or an existing managed launcher. Settings stores variable names and the non-secret Azure region, never key values. Credentials are excluded from history, diagnostics and shell previews. ElevenLabs batch uploads and compatible endpoints reject redirects so credentials and recordings stay at the configured endpoint. Compatible endpoints reject embedded credentials; HTTPS is required except for loopback servers. [Provider setup](provider-selection.md) explains connection settings.
 
 ## Clipboard and insertion
 

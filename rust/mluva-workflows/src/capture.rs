@@ -18,10 +18,14 @@ use mluva_core::{
 use mluva_providers::{
     batch_preview::{BatchPreviewClient, BatchPreviewSession},
     local_preview::LocalPreviewClient,
+    microsoft::MicrosoftRealtimeClient,
+    mistral::MistralRealtimeClient,
     realtime::{
         CommittedCallback, ElevenLabsRealtimeClient, PreviewCallback, RealtimePreview,
         RealtimeSession, RealtimeSessionResult,
     },
+    stream::StreamSession,
+    xai::XaiRealtimeClient,
 };
 use std::{
     path::PathBuf,
@@ -77,13 +81,18 @@ impl Default for CaptureOptions {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CaptureReady {
     pub fallback_reason: Option<String>,
+    /// The model a fallback names, such as "Scribe v2".
+    pub fallback_model: &'static str,
 }
 impl CaptureReady {
-    pub fn status(&self) -> &'static str {
+    pub fn status(&self) -> String {
         if self.fallback_reason.is_some() {
-            "Ready · microphone capture started with Scribe v2 batch fallback."
+            format!(
+                "Ready · microphone capture started with {} batch fallback.",
+                self.fallback_model
+            )
         } else {
-            "Ready · microphone capture started."
+            "Ready · microphone capture started.".into()
         }
     }
 }
@@ -116,6 +125,9 @@ pub enum CaptureError {
 #[derive(Clone)]
 pub enum CaptureRecognitionClient {
     ElevenLabs(Rc<ElevenLabsRealtimeClient>),
+    Microsoft(Rc<MicrosoftRealtimeClient>),
+    Xai(Rc<XaiRealtimeClient>),
+    Mistral(Rc<MistralRealtimeClient>),
     Batch(Rc<BatchPreviewClient>),
     Local(Rc<LocalPreviewClient>),
 }
@@ -134,6 +146,18 @@ impl CaptureRecognitionClient {
                 .start(language, preview, committed)
                 .await
                 .map(RecognitionSession::Realtime),
+            Self::Microsoft(client) => client
+                .start(language, preview, committed)
+                .await
+                .map(RecognitionSession::Stream),
+            Self::Xai(client) => client
+                .start(language, preview, committed)
+                .await
+                .map(RecognitionSession::Stream),
+            Self::Mistral(client) => client
+                .start(language, preview, committed)
+                .await
+                .map(RecognitionSession::Stream),
             Self::Batch(client) => {
                 let mut client = client.as_ref().clone();
                 if let Some(directory) = directory {
@@ -159,30 +183,35 @@ impl CaptureRecognitionClient {
 
 enum RecognitionSession {
     Realtime(RealtimeSession),
+    Stream(StreamSession),
     Batch(BatchPreviewSession),
 }
 impl RecognitionSession {
     fn snapshot(&self) -> RealtimePreview {
         match self {
             Self::Realtime(session) => session.snapshot(),
+            Self::Stream(session) => session.snapshot(),
             Self::Batch(session) => session.snapshot(),
         }
     }
     fn is_healthy(&self) -> bool {
         match self {
             Self::Realtime(session) => session.is_healthy(),
+            Self::Stream(session) => session.is_healthy(),
             Self::Batch(session) => session.is_healthy(),
         }
     }
     fn bytes_sent(&self) -> usize {
         match self {
             Self::Realtime(session) => session.bytes_sent(),
+            Self::Stream(session) => session.bytes_sent(),
             Self::Batch(session) => session.bytes_sent(),
         }
     }
     fn submit_audio(&self, frames: &[u8]) -> mluva_providers::Result<()> {
         match self {
             Self::Realtime(session) => session.submit_audio(frames).map(|_| ()),
+            Self::Stream(session) => session.submit_audio(frames).map(|_| ()),
             Self::Batch(session) => {
                 session.submit_audio(frames);
                 Ok(())
@@ -192,18 +221,21 @@ impl RecognitionSession {
     fn cancel(&self) {
         match self {
             Self::Realtime(session) => session.cancel(),
+            Self::Stream(session) => session.cancel(),
             Self::Batch(session) => session.cancel(),
         }
     }
     async fn cancel_and_wait(&self) {
         match self {
             Self::Realtime(session) => session.cancel_and_wait().await,
+            Self::Stream(session) => session.cancel_and_wait().await,
             Self::Batch(session) => session.cancel_and_wait().await,
         }
     }
     async fn finish(&self) -> mluva_providers::Result<RealtimeSessionResult> {
         match self {
             Self::Realtime(session) => session.finish().await,
+            Self::Stream(session) => session.finish().await,
             Self::Batch(session) => session.finish().await,
         }
     }
@@ -420,6 +452,8 @@ impl CaptureSession {
         }
         let started = Instant::now();
         state.fallback_reason = match &self.realtime_client {
+            // Batch is what the person chose, so there is nothing to fall back from.
+            None if self.workflow.config.prefers_batch() => None,
             None => Some("realtime-unavailable".into()),
             Some(client) => {
                 let preview = self.preview_callback.lock().unwrap().take();
@@ -469,7 +503,7 @@ impl CaptureSession {
         // terminal paths drain the ordered writes after audio cleanup.
         self.diagnostic(
             DiagnosticStage::CaptureReady,
-            DiagnosticProvider::ElevenlabsScribeV2,
+            self.workflow.capture_ready_provider(),
             if state.fallback_reason.is_some() {
                 DiagnosticOutcome::SafeFallback
             } else {
@@ -498,6 +532,7 @@ impl CaptureSession {
         self.set_phase(CapturePhase::Recording);
         Ok(CaptureReady {
             fallback_reason: state.fallback_reason.clone(),
+            fallback_model: self.workflow.fallback_model_name(),
         })
     }
 

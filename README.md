@@ -32,7 +32,7 @@ Press F12 and every agent session appears as a tick on a thin dial over your des
 
 One dictation mode, one editor. Smooth following is always enabled and respects reduced motion and intentional scrolling away from the end. **Ctrl+P** finds actions. Polish, rewriting, prompts, generated titles, Notes and Command capture modes have been removed. Existing saved replies remain readable and exportable; unfinished Notes recover into local History.
 
-Choose ElevenLabs Scribe, one of the three managed local models, or a compatible speech API. Login never changes the selected speech provider. Contextual editing belongs in the receiving agent. The separate Meeting recorder remains available. See [feature status](docs/feature-maturity.md) and [talking to Claude Code and Codex agents](docs/agent-routing.md).
+Choose Microsoft MAI-Transcribe-2 (suggested), ElevenLabs Scribe, xAI Grok, Mistral Voxtral, one of the three managed local models, or a compatible speech API. Each cloud provider offers realtime or cheaper batch. Login never changes the selected speech provider. Contextual editing belongs in the receiving agent. The separate Meeting recorder remains available. See [feature status](docs/feature-maturity.md) and [talking to Claude Code and Codex agents](docs/agent-routing.md).
 
 ## Install
 

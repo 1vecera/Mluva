@@ -16,16 +16,32 @@ use crate::private_files::{atomic_write_private, resolve_path};
 use crate::screenshots::ScreenshotStore;
 use crate::text::trim;
 
-pub const RECOGNITION_ROUTES: [&str; 9] = [
+pub const RECOGNITION_ROUTES: [&str; 18] = [
     "scribe-v2-realtime",
     "scribe-v2-batch",
     "scribe-v2-batch-retry",
+    "mai-realtime",
+    "mai-batch",
+    "mai-batch-retry",
+    "grok-realtime",
+    "grok-batch",
+    "grok-batch-retry",
+    "mistral-realtime",
+    "mistral-batch",
+    "mistral-batch-retry",
     "litellm-batch",
     "managed-local",
     "managed-local-retry",
     "voxtype-local",
     "litellm-batch-retry",
     "voxtype-local-retry",
+];
+/// Batch routes a realtime fallback can land on, one per cloud provider.
+pub const FALLBACK_BATCH_ROUTES: [&str; 4] = [
+    "scribe-v2-batch",
+    "mai-batch",
+    "grok-batch",
+    "mistral-batch",
 ];
 pub const RECOGNITION_FALLBACKS: [&str; 3] = [
     "realtime-unavailable",
@@ -111,10 +127,13 @@ impl HistoryInput {
             return Err(invalid("Unsupported recognition fallback reason"));
         }
         if self.recognition_fallback_reason.is_some()
-            && self.recognition_route.as_deref() != Some("scribe-v2-batch")
+            && !self
+                .recognition_route
+                .as_deref()
+                .is_some_and(|route| FALLBACK_BATCH_ROUTES.contains(&route))
         {
             return Err(invalid(
-                "A realtime fallback reason requires the Scribe v2 batch route",
+                "A realtime fallback reason requires a cloud batch route",
             ));
         }
         match self.enhancement_provider_id.as_deref() {

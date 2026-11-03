@@ -13,10 +13,79 @@ pub const SPEECH_KEY_VARIABLES: &[&str] = &[
     "DAS_ITEM_ELEVEN_LABS_API_KEY__CREDENTIAL",
     "ELEVEN_LABS_STT_TOKEN",
 ];
-const UNAVAILABLE: &str =
-    "Desktop keyring unavailable. Set ELEVENLABS_API_KEY in your launch environment instead.";
+/// Azure Speech key aliases, in precedence order; the region has its own variable.
+pub const MICROSOFT_KEY_VARIABLES: &[&str] = &["AZURE_SPEECH_KEY", "SPEECH_STUDIO_KEY"];
+pub const MICROSOFT_REGION_VARIABLE: &str = "AZURE_SPEECH_REGION";
+pub const XAI_KEY_VARIABLES: &[&str] = &["XAI_API_KEY", "DAS_ITEM_GROK_STT_API_KEY__KEY"];
+pub const MISTRAL_KEY_VARIABLES: &[&str] = &["MISTRAL_API_KEY", "DAS_ITEM_MISTRAL_API_KEY__KEY"];
 const INVALID_TEXT: &str = "Desktop keyring returned invalid text.";
-const MISSING: &str = "ElevenLabs credential unavailable. Set ELEVENLABS_API_KEY in Mluva's process environment through a secret manager or session service.";
+
+/// A cloud speech service with an API key. Each has its own desktop-keyring entry
+/// (`application mluva provider <id>`) and environment aliases; keys are never shared between them.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum CloudProvider {
+    ElevenLabs,
+    Microsoft,
+    Xai,
+    Mistral,
+}
+impl CloudProvider {
+    pub fn from_id(id: &str) -> Option<Self> {
+        match id {
+            "elevenlabs" => Some(Self::ElevenLabs),
+            "microsoft" => Some(Self::Microsoft),
+            "xai" => Some(Self::Xai),
+            "mistral" => Some(Self::Mistral),
+            _ => None,
+        }
+    }
+    /// Also the keyring `provider` attribute value.
+    pub fn id(self) -> &'static str {
+        match self {
+            Self::ElevenLabs => "elevenlabs",
+            Self::Microsoft => "microsoft",
+            Self::Xai => "xai",
+            Self::Mistral => "mistral",
+        }
+    }
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::ElevenLabs => "ElevenLabs",
+            Self::Microsoft => "Microsoft Azure Speech",
+            Self::Xai => "xAI",
+            Self::Mistral => "Mistral",
+        }
+    }
+    pub fn key_variables(self) -> &'static [&'static str] {
+        match self {
+            Self::ElevenLabs => SPEECH_KEY_VARIABLES,
+            Self::Microsoft => MICROSOFT_KEY_VARIABLES,
+            Self::Xai => XAI_KEY_VARIABLES,
+            Self::Mistral => MISTRAL_KEY_VARIABLES,
+        }
+    }
+    fn keyring_label(self) -> &'static str {
+        match self {
+            Self::ElevenLabs => "Mluva ElevenLabs API key",
+            Self::Microsoft => "Mluva Microsoft Azure Speech key",
+            Self::Xai => "Mluva xAI API key",
+            Self::Mistral => "Mluva Mistral API key",
+        }
+    }
+    fn unavailable(self) -> String {
+        format!(
+            "Desktop keyring unavailable. Set {} in your launch environment instead.",
+            self.key_variables()[0]
+        )
+    }
+    fn missing(self) -> String {
+        format!(
+            "{} credential unavailable. Set {} in Mluva's process environment through a secret manager or session service.",
+            self.name(),
+            self.key_variables()[0]
+        )
+    }
+}
 
 /// Validate the exact entered text; Unicode whitespace and character counts
 /// retain the released behavior, and successful storage never trims the key.
@@ -40,14 +109,14 @@ pub fn speech_key_from_environment(
             return Ok(Secret::new(value));
         }
     }
-    Err(ProviderError::message(MISSING))
+    Err(ProviderError(CloudProvider::ElevenLabs.missing()))
 }
 
 /// One application-owned cache, including an unavailable/empty lookup. Store
 /// completion invalidates it; failed saves retain the previous cached value.
 #[derive(Default)]
 pub struct CredentialStore {
-    cached: Mutex<Option<Option<Secret>>>,
+    cached: Mutex<HashMap<CloudProvider, Option<Secret>>>,
 }
 impl CredentialStore {
     pub fn new() -> Self {
@@ -55,12 +124,16 @@ impl CredentialStore {
     }
 
     pub async fn stored_speech_key(&self) -> Result<Option<Secret>> {
+        self.stored_key(CloudProvider::ElevenLabs).await
+    }
+
+    pub async fn stored_key(&self, provider: CloudProvider) -> Result<Option<Secret>> {
         let mut cache = self.cached.lock().await;
-        if let Some(value) = cache.as_ref() {
+        if let Some(value) = cache.get(&provider) {
             return Ok(value.clone());
         }
         let output = run_tool(
-            &["lookup", "application", "mluva", "provider", "elevenlabs"],
+            &["lookup", "application", "mluva", "provider", provider.id()],
             None,
             Duration::from_secs(2),
         )
@@ -76,52 +149,65 @@ impl CredentialStore {
             }
             None => None,
         };
-        *cache = Some(value.clone());
+        cache.insert(provider, value.clone());
         Ok(value)
     }
 
     pub async fn elevenlabs_api_key(&self) -> Result<Secret> {
-        if let Some(key) = self.stored_speech_key().await? {
+        self.api_key(CloudProvider::ElevenLabs).await
+    }
+
+    /// The desktop-keyring key first, then the provider's environment aliases in order.
+    pub async fn api_key(&self, provider: CloudProvider) -> Result<Secret> {
+        if let Some(key) = self.stored_key(provider).await? {
             return Ok(key);
         }
-        for name in SPEECH_KEY_VARIABLES {
+        for name in provider.key_variables() {
             if let Some(value) = std::env::var_os(name) {
                 let value = value.into_string().map_err(|_| {
-                    ProviderError::message("ElevenLabs credential contains invalid text.")
+                    ProviderError(format!(
+                        "{} credential contains invalid text.",
+                        provider.name()
+                    ))
                 })?;
                 if !value.is_empty() && !value.chars().all(text::whitespace) {
                     return Ok(Secret::new(value));
                 }
             }
         }
-        Err(ProviderError::message(MISSING))
+        Err(ProviderError(provider.missing()))
     }
 
     pub async fn store_speech_key(&self, key: &str) -> Result<()> {
+        self.store_key(CloudProvider::ElevenLabs, key).await
+    }
+
+    pub async fn store_key(&self, provider: CloudProvider, key: &str) -> Result<()> {
         validate_speech_key(key)?;
+        let unavailable = || ProviderError(provider.unavailable());
         let output = run_tool(
             &[
                 "store",
-                "--label=Mluva ElevenLabs API key",
+                &format!("--label={}", provider.keyring_label()),
                 "application",
                 "mluva",
                 "provider",
-                "elevenlabs",
+                provider.id(),
             ],
             Some(key.as_bytes()),
             Duration::from_secs(60),
         )
         .await
-        .ok_or_else(|| ProviderError::message(UNAVAILABLE))?;
+        .ok_or_else(unavailable)?;
         // The text-mode reference decodes both captured streams, even when
         // their contents are not used. Never include those bytes in an error.
         std::str::from_utf8(&output.stdout)
             .and_then(|_| std::str::from_utf8(&output.stderr))
             .map_err(|_| ProviderError::message(INVALID_TEXT))?;
         if !output.status.success() {
-            return Err(ProviderError::message(UNAVAILABLE));
+            return Err(unavailable());
         }
-        *self.cached.lock().await = None;
+        self.cached.lock().await.remove(&provider);
         Ok(())
     }
 }

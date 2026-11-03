@@ -11,6 +11,9 @@ public struct AppConfig: Codable, Equatable, Sendable {
     public var transcription_base_url: String
     public var transcription_api_key_env: String
     public var transcription_remote_model: String?
+    // Cloud-provider choices only the Linux app acts on; the Mac always dictates with ElevenLabs.
+    public var transcription_mode: String
+    public var microsoft_region: String
     public var local_model: String
     public var local_device: String
     public var transcription_chunk_seconds: Int

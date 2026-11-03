@@ -3,6 +3,17 @@ use serde_json::Value;
 use std::path::Path;
 
 pub fn encode(fields: &[(&str, &str)], path: &Path, boundary: &str) -> Result<Vec<u8>> {
+    encode_named(fields, "file", path, boundary)
+}
+
+/// Text fields first, then the audio file last under `file_field`, as providers that stream the
+/// upload (xAI) require.
+pub fn encode_named(
+    fields: &[(&str, &str)],
+    file_field: &str,
+    path: &Path,
+    boundary: &str,
+) -> Result<Vec<u8>> {
     let mut body = Vec::new();
     for (name, value) in fields {
         body.extend_from_slice(
@@ -16,7 +27,7 @@ pub fn encode(fields: &[(&str, &str)], path: &Path, boundary: &str) -> Result<Ve
         .file_name()
         .and_then(|name| name.to_str())
         .ok_or_else(|| ProviderError::message("The audio filename could not be encoded."))?;
-    body.extend_from_slice(format!("--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{filename}\"\r\nContent-Type: audio/wav\r\n\r\n").as_bytes());
+    body.extend_from_slice(format!("--{boundary}\r\nContent-Disposition: form-data; name=\"{file_field}\"; filename=\"{filename}\"\r\nContent-Type: audio/wav\r\n\r\n").as_bytes());
     body.extend_from_slice(&std::fs::read(path).map_err(|error| ProviderError(error.to_string()))?);
     body.extend_from_slice(format!("\r\n--{boundary}--\r\n").as_bytes());
     Ok(body)

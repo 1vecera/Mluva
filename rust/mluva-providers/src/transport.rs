@@ -19,6 +19,43 @@ pub(crate) fn secret_header(value: &Secret) -> Result<reqwest::header::HeaderVal
     Ok(header)
 }
 
+const MAX_RATE_LIMIT_RETRIES: usize = 3;
+const MAX_RETRY_WAIT: Duration = Duration::from_secs(10);
+
+/// Send the request `build` makes, waiting out HTTP 429 answers: the `Retry-After` seconds (two
+/// when absent, ten at most) for at most three retries. Returns the last response, whatever its
+/// status, so each provider keeps its own wording for a failure.
+pub(crate) async fn send_waiting_out_rate_limits(
+    build: impl Fn() -> Result<reqwest::RequestBuilder>,
+    cancel: &CancellationToken,
+    failure: &'static str,
+) -> Result<Response> {
+    for attempt in 0..=MAX_RATE_LIMIT_RETRIES {
+        let request = build()?;
+        let response = tokio::select! {
+            biased;
+            _ = cancel.cancelled() => return Err(ProviderError::message(failure)),
+            value = request.send() => value.map_err(|_| ProviderError::message(failure))?,
+        };
+        if response.status().as_u16() != 429 || attempt == MAX_RATE_LIMIT_RETRIES {
+            return Ok(response);
+        }
+        let wait = response
+            .headers()
+            .get("retry-after")
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.trim().parse::<u64>().ok())
+            .map_or(Duration::from_secs(2), Duration::from_secs)
+            .min(MAX_RETRY_WAIT);
+        tokio::select! {
+            biased;
+            _ = cancel.cancelled() => return Err(ProviderError::message(failure)),
+            _ = tokio::time::sleep(wait) => {}
+        }
+    }
+    unreachable!("the final attempt returns")
+}
+
 pub(crate) async fn bounded_body(
     mut response: Response,
     maximum: Option<usize>,

@@ -311,7 +311,7 @@ impl CaptureController {
                         recording: true,
                         ..Default::default()
                     });
-                    controller.page.set_status(ready.status());
+                    controller.page.set_status(&ready.status());
                     controller.start_clock();
                     (controller.callbacks.phase_changed)(CapturePhase::Recording);
                     let weak = Rc::downgrade(&controller);

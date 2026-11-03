@@ -620,7 +620,7 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         if params["repair"] == true {
             application.activate_action("settings", None);
             let providers = &owner.settings.providers;
-            providers.speech.provider_row.set_selected(2);
+            providers.speech.select_provider("litellm");
             until(|| owner.capture.page.record_button.get_sensitive());
             settle();
             stage("repaired-without-shortcuts", None, &peer);
@@ -641,11 +641,11 @@ fn released_application_portal_actions_settings_and_target_delivery() {
         if params["providers"] == true {
             application.activate_action("settings", None);
             let providers = &owner.settings.providers;
-            providers.speech.provider_row.set_selected(0);
+            providers.speech.select_provider("elevenlabs");
             until(|| !owner.capture.page.record_button.get_sensitive());
             settle();
             stage("missing-credentials-retains-shortcut", None, &peer);
-            providers.speech.provider_row.set_selected(2);
+            providers.speech.select_provider("litellm");
             until(|| owner.capture.page.record_button.get_sensitive());
             settle();
             stage("provider-restored", None, &peer);
