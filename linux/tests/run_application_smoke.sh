@@ -15,7 +15,7 @@ case "$mode" in
     account) suites=(account_sync) ;;
     agent-voice) suites=(agent_voice) ;;
     conversation) suites=(conversation_page application_shell document_surfaces) ;;
-    providers|onboarding) suites=(provider_pages) ;;
+    providers|onboarding) suites=(provider_pages provider_cloud) ;;
     settings) suites=(settings_view); settings_size="${2:-1060x780}" ;;
     history) suites=(history_controller) ;;
     capture) suites=(capture_lifecycle capture_factory) ;;

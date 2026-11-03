@@ -8,7 +8,7 @@ use crate::{
 };
 use adw::prelude::*;
 use mluva_core::{config::AppConfig, text};
-use mluva_providers::credentials::CredentialStore;
+use mluva_providers::credentials::{CloudProvider, CredentialStore};
 use std::{
     cell::{Cell, RefCell},
     path::PathBuf,
@@ -216,7 +216,20 @@ impl WelcomeView {
         if self.saving_key.get() || self.checking_key.get() || !self.speech.is_ready() {
             return;
         }
-        if self.step.get() == 0 && self.speech.provider().id == "elevenlabs" {
+        if self.step.get() == 0
+            && let Some(cloud) = self.speech.provider().cloud()
+        {
+            // Azure Speech also needs its region, from Settings or the environment.
+            if cloud == CloudProvider::Microsoft
+                && let Err(error) = mluva_providers::microsoft::resolve_region(
+                    self.speech.values()["microsoft_region"]
+                        .as_str()
+                        .unwrap_or(""),
+                )
+            {
+                self.status.set_label(&error.to_string());
+                return;
+            }
             let key = text::trim(&self.speech.api_key_entry.text()).to_owned();
             if !key.is_empty() {
                 self.speech.api_key_entry.set_text("");
@@ -226,7 +239,7 @@ impl WelcomeView {
                 let credentials = self.credentials.clone();
                 let weak = Rc::downgrade(self);
                 self.runtime.spawn(async move {
-                    let result = credentials.store_speech_key(&key).await;
+                    let result = credentials.store_key(cloud, &key).await;
                     if let Some(owner) = weak.upgrade() {
                         owner.saving_key.set(false);
                         match result {
@@ -251,7 +264,7 @@ impl WelcomeView {
             let credentials = self.credentials.clone();
             let weak = Rc::downgrade(self);
             self.runtime.spawn(async move {
-                let result = credentials.elevenlabs_api_key().await;
+                let result = credentials.api_key(cloud).await;
                 if let Some(owner) = weak.upgrade() {
                     owner.checking_key.set(false);
                     if owner.generation.get() == generation
@@ -261,9 +274,10 @@ impl WelcomeView {
                         if result.is_ok() {
                             owner.advance_validated();
                         } else {
-                            owner.status.set_label(
-                                "Paste your ElevenLabs key above, or choose a local model.",
-                            );
+                            owner.status.set_label(&format!(
+                                "Paste your {} key above, or choose another provider.",
+                                cloud.name()
+                            ));
                         }
                     }
                     owner.refresh();

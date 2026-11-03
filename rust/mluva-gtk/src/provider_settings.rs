@@ -6,10 +6,16 @@ use crate::{
     settings_view::{SaveSettings, proposed_config},
 };
 use adw::prelude::*;
-use mluva_core::{config::AppConfig, text};
+use mluva_core::{
+    config::{AppConfig, valid_azure_region},
+    text,
+};
 use mluva_providers::{
-    catalog::{CatalogClient, CatalogRequest, Provider, SPEECH_PROVIDERS, connection_hint},
-    credentials::CredentialStore,
+    catalog::{
+        BENCHMARK_HEADER, BENCHMARK_ROWS, CatalogClient, CatalogRequest, Provider,
+        SPEECH_PROVIDERS, WHY_LINES, WHY_NOTE, connection_hint,
+    },
+    credentials::{CloudProvider, CredentialStore},
     models::{Model, valid_identifier},
 };
 use serde_json::{Map, Value};
@@ -32,6 +38,12 @@ pub struct ProviderSection {
     pub description: gtk::Label,
     pub api_key_entry: adw::PasswordEntryRow,
     pub key_hint: gtk::Label,
+    pub region_entry: adw::EntryRow,
+    pub region_hint: gtk::Label,
+    pub mode_section: gtk::ListBoxRow,
+    pub mode_title: gtk::Label,
+    pub mode_row: Rc<DirectChoices>,
+    pub mode_hint: gtk::Label,
     pub fixed_model_row: adw::ActionRow,
     pub model_row: adw::ComboRow,
     pub model_entry: adw::EntryRow,
@@ -44,6 +56,7 @@ pub struct ProviderSection {
     pub chunk_row: adw::SpinRow,
     pub status: gtk::Label,
     pub local: Rc<LocalModelSettings>,
+    pub why: adw::ExpanderRow,
     runtime: Rc<DesktopRuntime>,
     config: RefCell<AppConfig>,
     values: RefCell<Map<String, Value>>,
@@ -61,9 +74,18 @@ impl ProviderSection {
             .build();
         let owner = Rc::new_cyclic(|weak: &std::rc::Weak<Self>| {
             let target = weak.clone();
-            let labels = ["ElevenLabs", "Local model", "Custom"];
-            let provider_row = DirectChoices::new(
+            let labels = SPEECH_PROVIDERS.map(|provider| provider.label);
+            let badges: Vec<(usize, &str)> = SPEECH_PROVIDERS
+                .iter()
+                .enumerate()
+                .filter(|(_, provider)| provider.suggested)
+                .map(|(index, _)| (index, "Suggested"))
+                .collect();
+            // Six choices need two lines of three on the narrowest settings page.
+            let provider_row = DirectChoices::wrapping(
                 &labels,
+                &badges,
+                3,
                 Rc::new(move |_| {
                     if let Some(owner) = target.upgrade() {
                         owner.provider_changed();
@@ -82,10 +104,8 @@ impl ProviderSection {
                 .margin_bottom(12)
                 .build();
             description.add_css_class("caption");
-            widget.add(&description);
-            let api_key_entry = adw::PasswordEntryRow::builder()
-                .title("ElevenLabs API key")
-                .build();
+            widget.add(&note_row(&description));
+            let api_key_entry = adw::PasswordEntryRow::builder().title("API key").build();
             widget.add(&api_key_entry);
             let key_hint = gtk::Label::builder()
                 .label("Saved securely in your desktop keyring when you leave this field or press Enter.")
@@ -94,7 +114,50 @@ impl ProviderSection {
                 .margin_top(8)
                 .build();
             key_hint.add_css_class("caption");
-            widget.add(&key_hint);
+            widget.add(&note_row(&key_hint));
+            let region_entry = adw::EntryRow::builder()
+                .title("Azure Speech region")
+                .build();
+            widget.add(&region_entry);
+            let region_hint = gtk::Label::builder()
+                .label("The region of your Azure Speech resource, such as swedencentral. Streaming MAI-Transcribe-2 is served in swedencentral, centralus, eastus2 and southeastasia.")
+                .xalign(0.0)
+                .wrap(true)
+                .margin_top(8)
+                .build();
+            region_hint.add_css_class("caption");
+            widget.add(&note_row(&region_hint));
+            let mode_title = gtk::Label::builder()
+                .label("Mode and price per audio hour")
+                .xalign(0.0)
+                .margin_top(8)
+                .build();
+            mode_title.add_css_class("heading");
+            let mode_target = weak.clone();
+            // Each label carries its price, so the two wrap onto separate lines when narrow.
+            let mode_row = DirectChoices::wrapping(
+                &["Realtime", "Batch"],
+                &[],
+                2,
+                Rc::new(move |_| {
+                    if let Some(owner) = mode_target.upgrade() {
+                        owner.mode_changed();
+                    }
+                }),
+            );
+            let mode_hint = gtk::Label::builder()
+                .xalign(0.0)
+                .wrap(true)
+                .margin_bottom(8)
+                .build();
+            mode_hint.add_css_class("caption");
+            // Title, choice and hint stay together in one row, in order, whatever follows.
+            let mode_block = gtk::Box::new(gtk::Orientation::Vertical, 0);
+            mode_block.append(&mode_title);
+            mode_block.append(&mode_row.widget);
+            mode_block.append(&mode_hint);
+            let mode_section = note_row_for(&mode_block);
+            widget.add(&mode_section);
             let fixed_model_row = adw::ActionRow::builder()
                 .title("Model")
                 .subtitle("Scribe v2 · live recognition")
@@ -185,12 +248,22 @@ impl ProviderSection {
                 }),
             );
             widget.add(&local.widget);
+            let why = why_providers();
+            let why_group = adw::PreferencesGroup::new();
+            why_group.add(&why);
+            widget.add(&why_group);
             Self {
                 widget,
                 provider_row,
                 description,
                 api_key_entry,
                 key_hint,
+                region_entry,
+                region_hint,
+                mode_section,
+                mode_title,
+                mode_row,
+                mode_hint,
                 fixed_model_row,
                 model_row,
                 model_entry,
@@ -203,6 +276,7 @@ impl ProviderSection {
                 chunk_row,
                 status,
                 local,
+                why,
                 runtime,
                 config: RefCell::new(config.clone()),
                 values: RefCell::new(Map::new()),
@@ -246,6 +320,20 @@ impl ProviderSection {
                     "transcription_chunk_seconds".into(),
                     Value::from(row.value() as i64),
                 );
+                owner.notify_changed();
+            }
+        });
+        let weak = Rc::downgrade(&owner);
+        owner.region_entry.connect_changed(move |entry| {
+            if let Some(owner) = weak.upgrade()
+                && !owner.updating.get()
+            {
+                // Azure shows "Sweden Central" but names the region swedencentral.
+                let region = text::trim(&entry.text()).to_lowercase().replace(' ', "");
+                owner
+                    .values
+                    .borrow_mut()
+                    .insert("microsoft_region".into(), Value::String(region));
                 owner.notify_changed();
             }
         });
@@ -295,8 +383,21 @@ impl ProviderSection {
     pub fn provider(&self) -> &'static Provider {
         &SPEECH_PROVIDERS[self.provider_row.selected()]
     }
+    /// The edited settings. A region typed for Microsoft that is not a valid name must not block
+    /// saving another provider, so there the saved region stands in for it.
     pub fn values(&self) -> Map<String, Value> {
-        self.values.borrow().clone()
+        let mut values = self.values.borrow().clone();
+        if self.provider().id != "microsoft"
+            && values["microsoft_region"]
+                .as_str()
+                .is_some_and(|region| !region.is_empty() && !valid_azure_region(region))
+        {
+            values.insert(
+                "microsoft_region".into(),
+                Value::String(self.config.borrow().microsoft_region.clone()),
+            );
+        }
+        values
     }
     pub fn is_ready(&self) -> bool {
         self.provider().id != "local" || self.local.is_ready()
@@ -324,6 +425,8 @@ impl ProviderSection {
             "local_device",
             "language_code",
             "transcription_chunk_seconds",
+            "transcription_mode",
+            "microsoft_region",
         ]);
         self.values.replace(
             names
@@ -346,8 +449,50 @@ impl ProviderSection {
             .set_text(document["transcription_api_key_env"].as_str().unwrap());
         self.chunk_row
             .set_value(config.transcription_chunk_seconds as f64);
+        self.region_entry.set_text(&config.microsoft_region);
+        self.mode_row
+            .set_selected(usize::from(config.transcription_mode == "batch"));
         self.updating.set(false);
         self.reset_catalog();
+    }
+    /// Choose a provider by its id, as a click on its choice does.
+    pub fn select_provider(&self, id: &str) {
+        let index = SPEECH_PROVIDERS
+            .iter()
+            .position(|provider| provider.id == id)
+            .expect("a known speech provider");
+        self.provider_row.set_selected(index);
+    }
+    fn mode_changed(&self) {
+        if !self.updating.get() {
+            self.values.borrow_mut().insert(
+                "transcription_mode".into(),
+                Value::String(["realtime", "batch"][self.mode_row.selected()].into()),
+            );
+            self.show_mode_hint();
+            self.notify_changed();
+        }
+    }
+    fn show_mode_hint(&self) {
+        let provider = self.provider();
+        let batch = self.mode_row.selected() == 1;
+        let mut hint = String::from(if batch {
+            "Batch sends the whole recording when you stop. Text appears after Stop, and it usually costs about half as much."
+        } else {
+            "Realtime shows words while you speak and sends audio as you record. If it cannot start or finish, Mluva recognizes the recording in batch and says so."
+        });
+        let note = provider.pricing.as_ref().and_then(|pricing| {
+            if batch {
+                pricing.batch_note
+            } else {
+                pricing.realtime_note
+            }
+        });
+        if let Some(note) = note {
+            hint.push(' ');
+            hint.push_str(note);
+        }
+        self.mode_hint.set_label(&hint);
     }
     fn provider_changed(&self) {
         if !self.updating.get() {
@@ -367,13 +512,32 @@ impl ProviderSection {
         self.catalog_loaded.set(false);
         let provider = self.provider();
         self.description.set_label(provider.description);
-        self.api_key_entry.set_visible(provider.id == "elevenlabs");
-        self.key_hint.set_visible(provider.id == "elevenlabs");
+        let cloud = provider.cloud();
+        show_note(&self.description, true);
+        self.api_key_entry.set_visible(cloud.is_some());
+        show_note(&self.key_hint, cloud.is_some());
+        if let Some(cloud) = cloud {
+            self.api_key_entry.set_title(match cloud {
+                CloudProvider::ElevenLabs => "ElevenLabs API key",
+                CloudProvider::Microsoft => "Azure Speech key",
+                CloudProvider::Xai => "xAI API key",
+                CloudProvider::Mistral => "Mistral API key",
+            });
+        }
+        self.region_entry.set_visible(provider.id == "microsoft");
+        show_note(&self.region_hint, provider.id == "microsoft");
+        self.mode_section.set_visible(provider.pricing.is_some());
+        self.mode_title.set_visible(provider.pricing.is_some());
+        self.mode_hint.set_visible(provider.pricing.is_some());
+        if let Some(pricing) = &provider.pricing {
+            self.mode_row.buttons[0].set_label(&pricing.realtime_label());
+            self.mode_row.buttons[1].set_label(&pricing.batch_label());
+            self.show_mode_hint();
+        }
         self.local.widget.set_visible(provider.id == "local");
         self.advanced.set_visible(provider.id == "litellm");
         self.preview.set_visible(provider.id == "litellm");
-        self.refresh_button
-            .set_visible(!["elevenlabs", "none", "local"].contains(&provider.id));
+        self.refresh_button.set_visible(provider.id == "litellm");
         self.fixed_model_row.set_visible(false);
         self.model_row.set_visible(provider.id == "litellm");
         self.connection.set_visible(provider.id == "litellm");
@@ -447,7 +611,7 @@ impl ProviderSection {
                 labels.push(model.name.clone());
             }
         }
-        if self.provider().id != "elevenlabs" {
+        if self.provider().cloud().is_none() {
             choices.push(ModelChoice::Manual);
             labels.push("Enter model ID…".into());
         }
@@ -467,7 +631,7 @@ impl ProviderSection {
             .set_model(Some(&gtk::StringList::new(&labels)));
         self.model_row.set_selected(index as u32);
         self.model_row
-            .set_sensitive(self.provider().id != "elevenlabs");
+            .set_sensitive(self.provider().cloud().is_none());
         self.model_entry.set_text(selected.as_deref().unwrap_or(""));
         self.model_entry.set_visible(manual);
         self.updating.set(false);
@@ -722,6 +886,16 @@ impl ProviderSettings {
                 return;
             }
         }
+        if self.speech.provider().id == "microsoft"
+            && self.speech.values()["microsoft_region"]
+                .as_str()
+                .is_some_and(|region| !region.is_empty() && !valid_azure_region(region))
+        {
+            self.status.set_label(
+                "Enter the region name from your Azure Speech resource, for example swedencentral.",
+            );
+            return;
+        }
         let baseline = serde_json::to_value(&*self.config.borrow()).expect("serializable config");
         let changes = self
             .speech
@@ -736,7 +910,9 @@ impl ProviderSettings {
             return;
         };
         let key = text::trim(&self.speech.api_key_entry.text()).to_owned();
-        if self.speech.provider().id == "elevenlabs" && !key.is_empty() {
+        if let Some(cloud) = self.speech.provider().cloud()
+            && !key.is_empty()
+        {
             self.speech.api_key_entry.set_text("");
             self.saving_key.set(true);
             self.widget.set_sensitive(false);
@@ -745,7 +921,7 @@ impl ProviderSettings {
             let weak = Rc::downgrade(self);
             self.runtime.spawn(async move {
                 let error = credentials
-                    .store_speech_key(&key)
+                    .store_key(cloud, &key)
                     .await
                     .err()
                     .map(|error| error.to_string());
@@ -781,5 +957,93 @@ impl ProviderSettings {
             self.pending.set(true);
             self.schedule(1000);
         }
+    }
+}
+
+/// The short benchmark behind the suggestion, plain and in one expander.
+fn why_providers() -> adw::ExpanderRow {
+    let why = adw::ExpanderRow::builder()
+        .title("Why these providers")
+        .subtitle("A 62-clip benchmark of Czech and English speech, word error rates in %")
+        .subtitle_lines(0)
+        .build();
+    for line in WHY_LINES {
+        let label = gtk::Label::builder()
+            .label(line)
+            .xalign(0.0)
+            .wrap(true)
+            .margin_top(6)
+            .margin_bottom(6)
+            .margin_start(12)
+            .margin_end(12)
+            .build();
+        why.add_row(&label);
+    }
+    let table = gtk::Grid::builder()
+        .column_spacing(14)
+        .row_spacing(4)
+        .margin_top(6)
+        .margin_bottom(6)
+        .margin_start(12)
+        .margin_end(12)
+        .build();
+    for (column, heading) in BENCHMARK_HEADER.iter().enumerate() {
+        let label = gtk::Label::builder()
+            .label(*heading)
+            .xalign(if column == 0 { 0.0 } else { 1.0 })
+            .build();
+        label.add_css_class("caption-heading");
+        table.attach(&label, column as i32, 0, 1, 1);
+    }
+    for (row, values) in BENCHMARK_ROWS.iter().enumerate() {
+        for (column, value) in values.iter().enumerate() {
+            let label = gtk::Label::builder()
+                .label(*value)
+                .xalign(if column == 0 { 0.0 } else { 1.0 })
+                .build();
+            label.add_css_class("caption");
+            if column > 0 {
+                label.add_css_class("numeric");
+            }
+            table.attach(&label, column as i32, row as i32 + 1, 1, 1);
+        }
+    }
+    let scroller = gtk::ScrolledWindow::builder()
+        .hscrollbar_policy(gtk::PolicyType::Automatic)
+        .vscrollbar_policy(gtk::PolicyType::Never)
+        .propagate_natural_height(true)
+        .child(&table)
+        .build();
+    why.add_row(&scroller);
+    let note = gtk::Label::builder()
+        .label(WHY_NOTE)
+        .xalign(0.0)
+        .wrap(true)
+        .margin_top(6)
+        .margin_bottom(6)
+        .margin_start(12)
+        .margin_end(12)
+        .build();
+    note.add_css_class("caption");
+    why.add_row(&note);
+    why
+}
+
+/// A caption in its own list row, so hints stay beside the control they explain.
+fn note_row(label: &gtk::Label) -> gtk::ListBoxRow {
+    note_row_for(label)
+}
+fn note_row_for(child: &impl IsA<gtk::Widget>) -> gtk::ListBoxRow {
+    gtk::ListBoxRow::builder()
+        .activatable(false)
+        .selectable(false)
+        .child(child)
+        .build()
+}
+/// Show or hide a caption together with the row that holds it.
+fn show_note(label: &gtk::Label, visible: bool) {
+    label.set_visible(visible);
+    if let Some(row) = label.parent() {
+        row.set_visible(visible);
     }
 }

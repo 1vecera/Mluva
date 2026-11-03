@@ -32,6 +32,9 @@ pub enum DiagnosticStage {
 pub enum DiagnosticProvider {
     Pipewire,
     ElevenlabsScribeV2,
+    MicrosoftMai,
+    XaiGrok,
+    MistralVoxtral,
     CodexAppServer,
     Desktop,
     Local,
@@ -64,6 +67,9 @@ impl DiagnosticProvider {
         match self {
             Self::Pipewire => "pipewire",
             Self::ElevenlabsScribeV2 => "elevenlabs-scribe-v2",
+            Self::MicrosoftMai => "microsoft-mai",
+            Self::XaiGrok => "xai-grok",
+            Self::MistralVoxtral => "mistral-voxtral",
             Self::CodexAppServer => "codex-app-server",
             Self::Desktop => "desktop",
             Self::Local => "local",

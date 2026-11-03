@@ -2,7 +2,7 @@
 
 Mluva has two steps: choose speech recognition, then preview recorder appearance. There is no rewrite account, prompt or Polish step.
 
-Choose ElevenLabs with a key, download one of the three local models, or enter a compatible speech endpoint. Readiness is checked before capture. Existing installations retain their chosen speech provider, model, privacy and audio-retention settings. Login is optional and cannot change the recognition route.
+Choose a cloud provider (Microsoft MAI, ElevenLabs, xAI Grok or Mistral) with its key, download one of the three local models, or enter a compatible speech endpoint. Readiness is checked before capture. Existing installations retain their chosen speech provider, model, privacy and audio-retention settings. Login is optional and cannot change the recognition route.
 
 The appearance preview lets you choose position, visible lines and opacity. Copy and Save stay visible in the editor. Smooth following is automatic and respects reduced motion. Finish opens ordinary dictation. Setup can be reopened through Settings.
 

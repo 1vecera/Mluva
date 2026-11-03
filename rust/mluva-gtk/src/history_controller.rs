@@ -345,7 +345,15 @@ impl HistoryController {
         self.preferences.microphone.set_sensitive(false);
         self.preferences.system_audio.set_sensitive(false);
         self.preferences.refresh_audio.set_sensitive(false);
-        self.status("Retrying transcription from retained audio with ElevenLabs Scribe v2…");
+        let engine = match self.services.config().transcription_provider.as_str() {
+            "microsoft" => "Microsoft MAI-Transcribe-2",
+            "xai" => "xAI Grok Voice Transcribe",
+            "mistral" => "Mistral Voxtral",
+            _ => "ElevenLabs Scribe v2",
+        };
+        self.status(&format!(
+            "Retrying transcription from retained audio with {engine}…"
+        ));
         let weak = Rc::downgrade(self);
         self.runtime.spawn(async move {
             let result = tokio::select! {

@@ -855,10 +855,14 @@ impl ApplicationDesktop {
                     "{} · final transcription at Stop",
                     config.transcription_provider
                 )
-            } else if config.transcription_provider == "elevenlabs" {
-                "Scribe Realtime".into()
             } else {
-                format!("{} · chunk preview", config.transcription_provider)
+                match config.transcription_provider.as_str() {
+                    "elevenlabs" => "Scribe Realtime".into(),
+                    "microsoft" => "MAI Realtime".into(),
+                    "xai" => "Grok Realtime".into(),
+                    "mistral" => "Voxtral Realtime".into(),
+                    other => format!("{other} · chunk preview"),
+                }
             };
             let microphone = if current
                 .session

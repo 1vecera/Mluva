@@ -57,3 +57,35 @@ pub fn label(code: &str) -> String {
             |language| format!("{} {}", language.flag, language.name),
         )
 }
+
+/// BCP-47 locale for services that take a region-qualified language, such as Azure Speech. Codes
+/// without a listed locale fall back to their two-letter ISO code, which the service may reject.
+pub fn locale(code: &str) -> &str {
+    match code {
+        "eng" => "en-US",
+        "ces" => "cs-CZ",
+        "spa" => "es-ES",
+        "fra" => "fr-FR",
+        "deu" => "de-DE",
+        "ita" => "it-IT",
+        "por" => "pt-BR",
+        "nld" => "nl-NL",
+        "jpn" => "ja-JP",
+        "zho" => "zh-CN",
+        "kor" => "ko-KR",
+        "pol" => "pl-PL",
+        "rus" => "ru-RU",
+        "slk" => "sk-SK",
+        "ukr" => "uk-UA",
+        other => iso(other),
+    }
+}
+
+/// The three-letter code for a locale or ISO code a service returned, such as `cs-CZ` or `cs`.
+pub fn code_for_locale(locale: &str) -> Option<&'static str> {
+    let language = locale.split(['-', '_']).next().unwrap_or("");
+    LANGUAGES
+        .iter()
+        .find(|known| known.iso.eq_ignore_ascii_case(language))
+        .map(|known| known.code.as_str())
+}

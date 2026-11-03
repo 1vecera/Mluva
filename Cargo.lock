@@ -1712,6 +1712,7 @@ version = "2.4.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
+ "futures-util",
  "libc",
  "mluva-audio",
  "mluva-core",
@@ -1722,6 +1723,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "tokio",
+ "tokio-tungstenite",
  "tokio-util",
  "uuid",
 ]

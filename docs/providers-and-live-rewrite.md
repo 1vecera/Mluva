@@ -62,13 +62,15 @@ For LiteLLM, cleanup, titles, normal rewrites and Live rewrite use the configure
 
 ## Speech providers
 
-**ElevenLabs Scribe** retains its native realtime path and controlled batch fallback. Existing credential names remain supported. **Local model** uses Mluva-owned verified ONNX weights and an on-demand CPU worker. It never reuses another app or falls back to paid speech. Configure rewriting independently, or choose Skip. See [onboarding](onboarding.md) and [model research](local-speech-models.md).
+**ElevenLabs Scribe** retains its native realtime path and controlled batch fallback. Existing credential names remain supported. **Microsoft MAI-Transcribe-2** (Azure Speech) and **xAI Grok Voice Transcribe 2.0** and **Mistral Voxtral 3** are added cloud routes with the same realtime-with-batch-fallback behavior, each also selectable as batch only; see the [provider selection guide](provider-selection.md) for prices, keys and the benchmark behind them. **Local model** uses Mluva-owned verified ONNX weights and an on-demand CPU worker. It never reuses another app or falls back to paid speech. Configure rewriting independently, or choose Skip. See [onboarding](onboarding.md) and [model research](local-speech-models.md).
 
 **LiteLLM / compatible API** uploads WAV audio using multipart `POST /audio/transcriptions`. The server must expose an audio-transcription deployment that accepts `model`, `file`, `response_format=json`, and optional language, returning a JSON `text` field. A chat-only server is insufficient. LiteLLM documents routes including OpenAI, Azure, Vertex/Gemini, Deepgram, Groq, Fireworks and Mistral; actual availability depends on the proxy configuration and account. See [audio transcription support](https://docs.litellm.ai/docs/audio_transcription) and [Vertex transcription](https://docs.litellm.ai/docs/providers/vertex_transcription). Mluva speaks the shared endpoint rather than implementing each cloud SDK.
 
 | JSON setting | Default | Meaning |
 | --- | --- | --- |
-| `transcription_provider` | `"elevenlabs"` | `elevenlabs`, `local` or `litellm`. |
+| `transcription_provider` | `"elevenlabs"` | `elevenlabs`, `microsoft`, `xai`, `mistral`, `local` or `litellm`. Existing installations keep their saved value. |
+| `transcription_mode` | `"realtime"` | `realtime` or `batch`; applies to the cloud providers (`elevenlabs`, `microsoft`, `xai`, `mistral`). Batch sends the finished recording at Stop and is not reported as a fallback. |
+| `microsoft_region` | `""` | Azure Speech region name for `microsoft`, such as `swedencentral`; lowercase letters and digits only. Empty falls back to `AZURE_SPEECH_REGION`. |
 | `transcription_base_url` | `"http://localhost:4000/v1"` | Speech API base URL, independent of rewriting. |
 | `transcription_remote_model` | `"whisper"` | Speech deployment alias on the server; replace with your configured alias. |
 | `transcription_api_key_env` | `"LITELLM_API_KEY"` | Environment variable containing the speech API key. |

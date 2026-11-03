@@ -149,11 +149,9 @@ impl AgentVoiceController {
                     mluva_providers::antigravity::titles::antigravity_summaries_db_path(),
                 ),
             )),
-            opencode_titles: Arc::new(Mutex::new(
-                mluva_providers::opencode::OpenCodeTitles::new(
-                    mluva_providers::opencode::opencode_db_path(),
-                ),
-            )),
+            opencode_titles: Arc::new(Mutex::new(mluva_providers::opencode::OpenCodeTitles::new(
+                mluva_providers::opencode::opencode_db_path(),
+            ))),
             editor: RefCell::new(None),
             draft_appendix: RefCell::new(None),
             voice_error: RefCell::new(None),

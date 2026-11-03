@@ -21,11 +21,14 @@ use mluva_core::{
 use mluva_providers::{
     Secret,
     batch_preview::BatchPreviewClient,
-    credentials::CredentialStore,
+    credentials::{CloudProvider, CredentialStore},
     local_asr::OnnxOptions,
     local_preview::LocalPreviewClient,
+    microsoft::{self, MicrosoftRealtimeClient},
+    mistral::{self, MistralRealtimeClient},
     realtime::{ElevenLabsRealtimeClient, RealtimeOptions, SCRIBE_REALTIME_ENDPOINT},
     speech::SpeechClient,
+    xai::{self, XaiRealtimeClient},
 };
 use serde_json::{Map, Value};
 use std::{
@@ -286,10 +289,9 @@ impl ApplicationServices {
         let config = self.config();
         PipeWireRecorder::from_system(config.microphone_target.clone())
             .map_err(|error| WorkflowError::Invalid(error.to_string()))?;
-        let speech_key = if config.transcription_provider == "elevenlabs" {
-            Some(self.credentials.elevenlabs_api_key().await?)
-        } else {
-            None
+        let speech_key = match CloudProvider::from_id(&config.transcription_provider) {
+            Some(provider) => Some(self.credentials.api_key(provider).await?),
+            None => None,
         };
         let mut local =
             OnnxOptions::new(&self.paths.data, &config.local_model, binaries.asr_worker);
@@ -418,29 +420,62 @@ impl CaptureServices {
             .expect("runtime workspace")
             .join("speech-previews");
         let recognition = match self.config.transcription_provider.as_str() {
-            "local" => CaptureRecognitionClient::Local(Rc::new(LocalPreviewClient::new(
-                self.local.clone(),
-                previews,
+            "local" => Some(CaptureRecognitionClient::Local(Rc::new(
+                LocalPreviewClient::new(self.local.clone(), previews),
             ))),
             "litellm" => {
                 let speech = self.speech.clone();
-                CaptureRecognitionClient::Batch(Rc::new(BatchPreviewClient {
-                    factory: Arc::new(move || {
-                        let client = speech.new_session();
-                        Box::pin(async move { Ok(Arc::new(client)) })
-                    }),
-                    directory: previews,
-                    chunk_seconds: self.config.transcription_chunk_seconds as u32,
-                    preview_enabled: true,
-                }))
+                Some(CaptureRecognitionClient::Batch(Rc::new(
+                    BatchPreviewClient {
+                        factory: Arc::new(move || {
+                            let client = speech.new_session();
+                            Box::pin(async move { Ok(Arc::new(client)) })
+                        }),
+                        directory: previews,
+                        chunk_seconds: self.config.transcription_chunk_seconds as u32,
+                        preview_enabled: true,
+                    },
+                )))
             }
-            _ => CaptureRecognitionClient::ElevenLabs(Rc::new(ElevenLabsRealtimeClient::new(
-                self.speech_key
-                    .clone()
-                    .expect("credential checked during readiness"),
-                SCRIBE_REALTIME_ENDPOINT,
-                RealtimeOptions::default(),
-            )?)),
+            // Batch mode records the whole session and sends it at Stop: no realtime stream.
+            _ if self.config.prefers_batch() => None,
+            provider => {
+                let key = || {
+                    self.speech_key
+                        .clone()
+                        .expect("credential checked during readiness")
+                };
+                Some(match provider {
+                    "microsoft" => {
+                        CaptureRecognitionClient::Microsoft(Rc::new(MicrosoftRealtimeClient::new(
+                            key(),
+                            &microsoft::realtime_endpoint(&microsoft::resolve_region(
+                                &self.config.microsoft_region,
+                            )?)?,
+                            RealtimeOptions::default(),
+                        )?))
+                    }
+                    "xai" => CaptureRecognitionClient::Xai(Rc::new(XaiRealtimeClient::new(
+                        key(),
+                        xai::REALTIME_ENDPOINT,
+                        RealtimeOptions::default(),
+                    )?)),
+                    "mistral" => {
+                        CaptureRecognitionClient::Mistral(Rc::new(MistralRealtimeClient::new(
+                            key(),
+                            mistral::REALTIME_ENDPOINT,
+                            RealtimeOptions::default(),
+                        )?))
+                    }
+                    _ => CaptureRecognitionClient::ElevenLabs(Rc::new(
+                        ElevenLabsRealtimeClient::new(
+                            key(),
+                            SCRIBE_REALTIME_ENDPOINT,
+                            RealtimeOptions::default(),
+                        )?,
+                    )),
+                })
+            }
         };
         let storage = if options.incognito {
             CaptureStorage::Incognito {
@@ -450,6 +485,6 @@ impl CaptureServices {
         } else {
             CaptureStorage::Persistent(self.data.join("recordings"))
         };
-        CaptureSession::with_recorder(workflow, recorder, storage, Some(recognition), options)
+        CaptureSession::with_recorder(workflow, recorder, storage, recognition, options)
     }
 }

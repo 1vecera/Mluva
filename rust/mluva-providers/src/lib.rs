@@ -19,6 +19,8 @@ pub mod local;
 pub mod local_asr;
 pub mod local_assets;
 pub mod local_preview;
+pub mod microsoft;
+pub mod mistral;
 pub mod models;
 pub mod multipart;
 pub mod onnx_runtime;
@@ -28,9 +30,11 @@ pub mod qwen;
 pub mod realtime;
 pub mod speech;
 pub mod spoken_reply;
+pub mod stream;
 #[cfg(test)]
 mod test_sockets;
 mod transport;
+pub mod xai;
 
 use serde::{Deserialize, Serialize};
 

@@ -309,15 +309,12 @@ fn session_title(
             .and_then(|s| antigravity_titles.get(&s.value))
             .map(String::as_str)
             .or_else(|| {
-                agent
-                    .terminal_title_stripped
-                    .as_deref()
-                    .filter(|title| {
-                        let t = title.trim();
-                        !t.eq_ignore_ascii_case("agy")
-                            && !t.eq_ignore_ascii_case("antigravity")
-                            && !t.eq_ignore_ascii_case("antigravity cli")
-                    })
+                agent.terminal_title_stripped.as_deref().filter(|title| {
+                    let t = title.trim();
+                    !t.eq_ignore_ascii_case("agy")
+                        && !t.eq_ignore_ascii_case("antigravity")
+                        && !t.eq_ignore_ascii_case("antigravity cli")
+                })
             })
     } else if kind == AgentKind::OpenCode {
         agent
@@ -327,15 +324,12 @@ fn session_title(
             .and_then(|s| opencode_titles.get(&s.value))
             .map(String::as_str)
             .or_else(|| {
-                agent
-                    .terminal_title_stripped
-                    .as_deref()
-                    .filter(|title| {
-                        let t = title.trim();
-                        !t.eq_ignore_ascii_case("opencode")
-                            && !t.eq_ignore_ascii_case("open-code")
-                            && !t.eq_ignore_ascii_case("opencode2")
-                    })
+                agent.terminal_title_stripped.as_deref().filter(|title| {
+                    let t = title.trim();
+                    !t.eq_ignore_ascii_case("opencode")
+                        && !t.eq_ignore_ascii_case("open-code")
+                        && !t.eq_ignore_ascii_case("opencode2")
+                })
             })
     } else {
         // Claude Code titles the terminal with the session's custom or generated title;
@@ -724,21 +718,17 @@ async fn discover_listed(
         });
     }
     // An agent guarded between the two reads keeps its guard, after the others.
-    targets.extend(
-        guarded
-            .into_iter()
-            .filter_map(|(_, guard, agent)| {
-                target(
-                    path,
-                    epoch,
-                    &guard,
-                    agent,
-                    codex_threads,
-                    antigravity_titles,
-                    opencode_titles,
-                )
-            }),
-    );
+    targets.extend(guarded.into_iter().filter_map(|(_, guard, agent)| {
+        target(
+            path,
+            epoch,
+            &guard,
+            agent,
+            codex_threads,
+            antigravity_titles,
+            opencode_titles,
+        )
+    }));
     Ok(Discovery {
         targets,
         guarded: true,
@@ -783,7 +773,10 @@ async fn submit_herdr_core(
         return SendOutcome::Accepted;
     }
     if let Some(kind) = response.pointer("/error/data/kind").and_then(Value::as_str)
-        && matches!(kind, "blocked" | "finished" | "not_found" | "status_mismatch")
+        && matches!(
+            kind,
+            "blocked" | "finished" | "not_found" | "status_mismatch"
+        )
     {
         return SendOutcome::Rejected;
     }
@@ -1078,7 +1071,9 @@ mod tests {
             )
             .await;
         });
-        let found = discover_named(&path, &HashMap::new(), &titles, &HashMap::new()).await.unwrap();
+        let found = discover_named(&path, &HashMap::new(), &titles, &HashMap::new())
+            .await
+            .unwrap();
         peer.await.unwrap();
         assert_eq!(found.targets.len(), 1);
         let target = &found.targets[0];
@@ -1121,7 +1116,9 @@ mod tests {
             )
             .await;
         });
-        let found = discover_named(&path, &HashMap::new(), &HashMap::new(), &titles).await.unwrap();
+        let found = discover_named(&path, &HashMap::new(), &HashMap::new(), &titles)
+            .await
+            .unwrap();
         peer.await.unwrap();
         assert_eq!(found.targets.len(), 1);
         let target = &found.targets[0];
@@ -1374,7 +1371,12 @@ mod tests {
         let peer = tokio::spawn(async move {
             let (mut stream, request) = receive(&listener).await;
             assert_eq!(request["method"], "server.status");
-            reply(&mut stream, &request, json!({"core": {"id": "c1", "name": "box"}})).await;
+            reply(
+                &mut stream,
+                &request,
+                json!({"core": {"id": "c1", "name": "box"}}),
+            )
+            .await;
             drop(stream);
 
             let (mut stream, request) = receive(&listener).await;
@@ -1528,8 +1530,17 @@ mod tests {
         drop(listener_core);
         drop(listener_holder);
 
-        assert!(candidates.contains(&core_sock), "must find herdr-core default.sock");
-        assert!(candidates.contains(&legacy_sock), "must find legacy herdr.sock");
-        assert!(!candidates.contains(&holder_sock), "must ignore .holder. socket");
+        assert!(
+            candidates.contains(&core_sock),
+            "must find herdr-core default.sock"
+        );
+        assert!(
+            candidates.contains(&legacy_sock),
+            "must find legacy herdr.sock"
+        );
+        assert!(
+            !candidates.contains(&holder_sock),
+            "must ignore .holder. socket"
+        );
     }
 }

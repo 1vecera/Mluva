@@ -6,11 +6,7 @@ use crate::{
 };
 use mluva_core::agent_voice::{Route, SendOutcome, Submission};
 use serde_json::json;
-use std::{
-    os::unix::fs::MetadataExt,
-    path::Path,
-    time::Duration,
-};
+use std::{os::unix::fs::MetadataExt, path::Path, time::Duration};
 use tokio_util::sync::CancellationToken;
 
 const TAKEN_WATCH: Duration = Duration::from_secs(20 * 60);
@@ -107,7 +103,9 @@ fn recheck_lock(lock: &Path, holder: u32, proc_start: &str) -> bool {
     if !metadata.file_type().is_file() || metadata.uid() != uid {
         return false;
     }
-    if !proc_start.is_empty() && agent_platform::process_start(holder).as_deref() != Some(proc_start) {
+    if !proc_start.is_empty()
+        && agent_platform::process_start(holder).as_deref() != Some(proc_start)
+    {
         return false;
     }
     let holders = agent_platform::flock_holders();

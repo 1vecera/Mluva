@@ -64,7 +64,11 @@ pub fn live_sessions(
             })
         })
         .collect();
-    live.sort_by(|a, b| a.since.cmp(&b.since).then_with(|| a.conversation_id.cmp(&b.conversation_id)));
+    live.sort_by(|a, b| {
+        a.since
+            .cmp(&b.since)
+            .then_with(|| a.conversation_id.cmp(&b.conversation_id))
+    });
     live
 }
 
@@ -202,7 +206,11 @@ impl AntigravitySessions {
             return vec![];
         }
 
-        let ids: Vec<String> = live.iter().take(MAX_LIVE).map(|s| s.conversation_id.clone()).collect();
+        let ids: Vec<String> = live
+            .iter()
+            .take(MAX_LIVE)
+            .map(|s| s.conversation_id.clone())
+            .collect();
         let meta = if let Some(db_path) = db_path.filter(|p| p.exists()) {
             tokio::task::spawn_blocking(move || read_summary_meta(&db_path, &ids))
                 .await
@@ -367,7 +375,10 @@ mod tests {
         let targets = sessions.discover().await;
         for target in &targets {
             assert_eq!(target.kind, AgentKind::AntigravityCli);
-            assert_eq!(target.route(), mluva_core::agent_voice::Route::AntigravityQueue);
+            assert_eq!(
+                target.route(),
+                mluva_core::agent_voice::Route::AntigravityQueue
+            );
             assert!(target.antigravity.is_some());
             assert!(!target.session_id.is_empty());
             println!(
