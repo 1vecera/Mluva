@@ -14,6 +14,7 @@ import json
 import ssl
 import sys
 import time
+from pathlib import Path
 
 from websockets.asyncio.server import serve
 
@@ -23,11 +24,13 @@ state = {"index": 0, "last": None}
 
 def log(event, **fields):
     with open(log_path, "a") as stream:
-        stream.write(json.dumps({"t": round(time.time(), 3), "event": event, **fields}) + "\n")
+        stream.write(
+            json.dumps({"t": round(time.time(), 3), "event": event, **fields}) + "\n"
+        )
 
 
 def next_session():
-    sessions = json.load(open(script_path))["sessions"]
+    sessions = json.loads(Path(script_path).read_text())["sessions"]
     entry = sessions[min(state["index"], len(sessions) - 1)]
     state["index"] += 1
     state["last"] = entry
@@ -37,14 +40,20 @@ def next_session():
 async def realtime(connection):
     session = next_session()
     log("session", index=state["index"])
-    await connection.send(json.dumps({"message_type": "session_started", "session_id": f"film{state['index']}"}))
+    await connection.send(
+        json.dumps(
+            {"message_type": "session_started", "session_id": f"film{state['index']}"}
+        )
+    )
     player = None
 
     async def play():
         start = time.monotonic()
         for at, text in session.get("partials", []):
             await asyncio.sleep(max(0, at - (time.monotonic() - start)))
-            await connection.send(json.dumps({"message_type": "partial_transcript", "text": text}))
+            await connection.send(
+                json.dumps({"message_type": "partial_transcript", "text": text})
+            )
             log("partial", text=text)
 
     async for message in connection:
@@ -59,7 +68,11 @@ async def realtime(connection):
             await asyncio.sleep(session.get("final_delay", 0))
             if player:
                 player.cancel()
-            await connection.send(json.dumps({"message_type": "committed_transcript", "text": session["final"]}))
+            await connection.send(
+                json.dumps(
+                    {"message_type": "committed_transcript", "text": session["final"]}
+                )
+            )
             log("committed", text=session["final"])
 
 
@@ -72,7 +85,8 @@ def batch_reply():
         "language_probability": 1,
         "text": entry["final"],
         "words": [
-            {"text": word, "type": "word", "start": i * step, "end": (i + 1) * step} for i, word in enumerate(words)
+            {"text": word, "type": "word", "start": i * step, "end": (i + 1) * step}
+            for i, word in enumerate(words)
         ],
     }
 
@@ -88,7 +102,9 @@ def route(connection, request):
 async def main():
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(cert, key)
-    async with serve(realtime, "127.0.0.1", 443, ssl=context, process_request=route, max_size=2**24):
+    async with serve(
+        realtime, "127.0.0.1", 443, ssl=context, process_request=route, max_size=2**24
+    ):
         log("ready")
         await asyncio.Future()
 

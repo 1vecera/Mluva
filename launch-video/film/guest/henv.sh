@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 XDG_RUNTIME_DIR=/run/user/$(id -u)
 for instance in "$XDG_RUNTIME_DIR"/hypr/*/; do [[ -S $instance.socket.sock ]] && HYPRLAND_INSTANCE_SIGNATURE=$(basename "$instance"); done
 for socket in "$XDG_RUNTIME_DIR"/wayland-[0-9]*; do [[ $socket == *.lock ]] || WAYLAND_DISPLAY=$(basename "$socket"); done

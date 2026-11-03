@@ -13,7 +13,8 @@
 # Input reaches only the guest's USB keyboard and tablet through QMP; nothing touches the host.
 set -euo pipefail
 
-HERE=/home/vecera/code/mluva/.claude/worktrees/s27-719-launch-film/docs/verification/screen-annotations/hyprland-vm/harness
+# The film reuses the screen-annotation VM harness (QMP helper, guest files) with a larger guest.
+HERE=$(cd "$(dirname "$0")/../../../docs/verification/screen-annotations/hyprland-vm/harness" && pwd)
 DIR=${VM_DIR:-$(cd "$HERE/../../../../.." && pwd)/tmp/hyprland-vm}
 RUN=$DIR/run
 PORT=${VM_SSH_PORT:-2223}

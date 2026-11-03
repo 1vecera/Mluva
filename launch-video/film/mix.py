@@ -4,15 +4,22 @@
 # ///
 """Mix voice and music: music sits about 21.5 dB under the voice across speech, as in v7, then the master goes to -16 LUFS, -1.8 dBTP.
 
-    mix.py VOICE.wav MUSIC.wav PLAN.json OUT.wav
+mix.py VOICE.wav MUSIC.wav PLAN.json OUT.wav
 """
-import json, re, subprocess, sys
-import numpy as np, soundfile as sf
+
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+import numpy as np
+import soundfile as sf
 
 voice_path, music_path, plan_path, out = sys.argv[1:5]
 voice, sr = sf.read(voice_path, dtype="float64")
 music, _ = sf.read(music_path, dtype="float64")
-plan = json.load(open(plan_path))
+plan = json.loads(Path(plan_path).read_text())
 n = len(voice)
 music = music[:n] if len(music) >= n else np.pad(music, ((0, n - len(music)), (0, 0)))
 speech = np.zeros(n, bool)
@@ -29,8 +36,48 @@ bed = music * gain * env[:, None]
 mix = np.stack([voice, voice], 1) + bed
 sf.write(out + ".pre.wav", mix, sr, subtype="FLOAT")
 options = "I=-16:TP=-1.8:LRA=8"
-first = subprocess.run(["ffmpeg", "-nostdin", "-hide_banner", "-i", out + ".pre.wav", "-af", f"loudnorm={options}:print_format=json", "-f", "null", "-"], capture_output=True)
-m = json.loads(re.search(rb'\{\s*"input_i".*?\}', first.stderr, re.S)[0])
-corr = ":".join(f"{a}={m[b]}" for a, b in [("measured_I", "input_i"), ("measured_TP", "input_tp"), ("measured_LRA", "input_lra"), ("measured_thresh", "input_thresh"), ("offset", "target_offset")])
-subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", out + ".pre.wav", "-af", f"loudnorm={options}:{corr}:linear=true,aresample=48000,apad=whole_len={n},atrim=end_sample={n}", "-c:a", "pcm_s24le", out], check=True)
+first = subprocess.run(
+    [
+        "ffmpeg",
+        "-nostdin",
+        "-hide_banner",
+        "-i",
+        out + ".pre.wav",
+        "-af",
+        f"loudnorm={options}:print_format=json",
+        "-f",
+        "null",
+        "-",
+    ],
+    capture_output=True,
+    check=False,
+)
+m = json.loads(re.search(rb'\{\s*"input_i".*?\}', first.stderr, re.DOTALL)[0])
+corr = ":".join(
+    f"{a}={m[b]}"
+    for a, b in [
+        ("measured_I", "input_i"),
+        ("measured_TP", "input_tp"),
+        ("measured_LRA", "input_lra"),
+        ("measured_thresh", "input_thresh"),
+        ("offset", "target_offset"),
+    ]
+)
+subprocess.run(
+    [
+        "ffmpeg",
+        "-nostdin",
+        "-v",
+        "error",
+        "-y",
+        "-i",
+        out + ".pre.wav",
+        "-af",
+        f"loudnorm={options}:{corr}:linear=true,aresample=48000,apad=whole_len={n},atrim=end_sample={n}",
+        "-c:a",
+        "pcm_s24le",
+        out,
+    ],
+    check=True,
+)
 print(json.dumps({"music_below_voice_db": 21.5, "music_gain": gain, "samples": n}))

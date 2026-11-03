@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck source=/dev/null
 . ~/henv.sh
 M=$HOME/film; R=$M/run
 unit() { local n=$1; shift; systemctl --user stop "$n" 2>/dev/null; systemctl --user kill --kill-whom=all -s KILL "$n" 2>/dev/null; systemctl --user reset-failed "$n" 2>/dev/null; systemd-run --user --quiet --collect --unit="$n" -p "StandardOutput=append:$R/$n.log" -p "StandardError=append:$R/$n.log" --setenv=WAYLAND_DISPLAY=$WAYLAND_DISPLAY --setenv=HYPRLAND_INSTANCE_SIGNATURE=$HYPRLAND_INSTANCE_SIGNATURE --setenv=XDG_CURRENT_DESKTOP=Hyprland --setenv=XDG_SESSION_TYPE=wayland --setenv=OMARCHY_PATH=$OMARCHY_PATH "$@"; }

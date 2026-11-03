@@ -24,6 +24,7 @@ export type FilmPlan = {
   presenter: PresenterKey[];
   name: { start: number; end: number; text: string };
   logo: { start: number; end: number };
+  intro_dim_end: number;
   dropped: { items: Dropped[]; strike: number; end: number; dim_start: number; dim_end: number };
   still: { start: number; end: number; src: string; x: number; y: number; width: number };
   closing: {
@@ -223,7 +224,10 @@ export const MluvaFilm: React.FC<FilmProps> = ({ plan }) => {
   const left = track(plan.presenter, t, "x", 0.7);
   const bottom = track(plan.presenter, t, "bottom", 0.7);
   const dim = envelope(t, plan.dropped.dim_start, plan.dropped.dim_end, 0.45);
-  const closingDim = ramp(t, plan.closing.start - 0.6, plan.closing.start + 0.2);
+  const closingDim = Math.max(
+    ramp(t, plan.closing.start - 0.6, plan.closing.start + 0.2),
+    ramp(t, plan.intro_dim_end - 0.5, plan.intro_dim_end, 1.6, 0),
+  );
   const logo = envelope(t, plan.logo.start, plan.logo.end, 0.22);
   const name = envelope(t, plan.name.start, plan.name.end, 0.25);
   const still = envelope(t, plan.still.start, plan.still.end, 0.25);

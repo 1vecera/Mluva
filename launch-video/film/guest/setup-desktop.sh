@@ -18,4 +18,4 @@ cat > ~/.config/hypr/monitors.lua <<'L'
 hl.monitor({ output = "", mode = "2560x1440@60", position = "auto", scale = 2 })
 L
 gsettings set org.gnome.desktop.interface toolkit-accessibility true || true
-echo done
+echo "setup done"

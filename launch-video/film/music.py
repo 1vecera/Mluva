@@ -8,8 +8,11 @@
 
 The harmony moves at the film's section changes, and the plucks thin out under the dropped-features passage.
 """
+
 import sys
-import numpy as np, soundfile as sf
+
+import numpy as np
+import soundfile as sf
 from scipy.signal import butter, fftconvolve, sosfilt
 
 SR = 48000
@@ -20,7 +23,20 @@ t = np.arange(N) / SR
 
 
 def note(name):
-    table = {"C": 0, "C#": 1, "D": 2, "D#": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "G#": 8, "A": 9, "A#": 10, "B": 11}
+    table = {
+        "C": 0,
+        "C#": 1,
+        "D": 2,
+        "D#": 3,
+        "E": 4,
+        "F": 5,
+        "F#": 6,
+        "G": 7,
+        "G#": 8,
+        "A": 9,
+        "A#": 10,
+        "B": 11,
+    }
     octave = int(name[-1])
     return 440.0 * 2 ** ((table[name[:-1]] + 12 * (octave + 1) - 69) / 12)
 
@@ -57,8 +73,17 @@ for i, (start, chord) in enumerate(SECTIONS):
         for detune, side in ((-0.09, 0), (0.09, 1), (0.0, 0), (0.03, 1)):
             for harmonic, gain in ((1, 1.0), (2, 0.28), (3, 0.09), (4, 0.03)):
                 phase = rng.uniform(0, 2 * np.pi)
-                vibrato = 0.0015 * np.sin(2 * np.pi * rng.uniform(0.09, 0.22) * tt + phase)
-                pad[a:b, side] += gain * env * np.sin(2 * np.pi * f * (harmonic + detune / f) * tt * (1 + vibrato) + phase)
+                vibrato = 0.0015 * np.sin(
+                    2 * np.pi * rng.uniform(0.09, 0.22) * tt + phase
+                )
+                pad[a:b, side] += (
+                    gain
+                    * env
+                    * np.sin(
+                        2 * np.pi * f * (harmonic + detune / f) * tt * (1 + vibrato)
+                        + phase
+                    )
+                )
 pad /= np.abs(pad).max()
 
 # Plucks: soft sine drops from the chord tones, sparse and uneven like water.
@@ -76,7 +101,10 @@ for i, (start, chord) in enumerate(SECTIONS):
         if a + length >= N:
             break
         tt = np.arange(length) / SR
-        drop = np.exp(-tt * 3.4) * (np.sin(2 * np.pi * f * tt) + 0.18 * np.exp(-tt * 9) * np.sin(2 * np.pi * 2 * f * tt))
+        drop = np.exp(-tt * 3.4) * (
+            np.sin(2 * np.pi * f * tt)
+            + 0.18 * np.exp(-tt * 9) * np.sin(2 * np.pi * 2 * f * tt)
+        )
         drop[:96] *= np.linspace(0, 1, 96)
         pan = rng.uniform(0.25, 0.75)
         gain = rng.uniform(0.55, 1.0)
@@ -89,7 +117,9 @@ pluck /= np.abs(pluck).max()
 ir_n = int(3.2 * SR)
 decay = np.exp(-np.arange(ir_n) / SR * 2.1)
 lp = butter(2, 3800, "low", fs=SR, output="sos")
-room = np.stack([sosfilt(lp, rng.standard_normal(ir_n)) * decay for _ in range(2)], axis=1)
+room = np.stack(
+    [sosfilt(lp, rng.standard_normal(ir_n)) * decay for _ in range(2)], axis=1
+)
 room /= np.sqrt((room**2).sum(axis=0))
 dry = 0.72 * pad + 0.42 * pluck
 wet = np.stack([fftconvolve(dry[:, c], room[:, c])[:N] for c in range(2)], axis=1)

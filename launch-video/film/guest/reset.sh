@@ -1,5 +1,6 @@
 #!/bin/bash
 # Guest side: a clean set. Close the windows, restart the app and start fresh sessions, so a take shows only its own delivery.
+# shellcheck source=/dev/null
 . ~/henv.sh
 pkill -x foot; pkill -x firefox; sleep 1.5; systemctl --user stop mluva; sleep 0.5
 rm -rf ~/.claude/projects ~/.codex/sessions ~/.local/share/mluva/annotations/* 2>/dev/null

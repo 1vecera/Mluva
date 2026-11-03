@@ -1,10 +1,11 @@
 #!/bin/bash
 # Guest side: lay out the film's desktop. Everything here is synthetic: invented notes and projects, loopback models.
+# shellcheck source=/dev/null
 . ~/henv.sh
 M=$HOME/film; R=$M/run
 export PATH=$M/tools/codex-pkg/bin:$M/tools:$PATH
 mkdir -p ~/.codex ~/work/release-notes ~/work/landing-page ~/work/portal ~/work/migration
-for d in release-notes landing-page portal migration; do (cd ~/work/$d; [ -d .git ] || git init -q; printf '# %s\n' $d > README.md; printf '## Unreleased\n' > CHANGELOG.md); done
+for d in release-notes landing-page portal migration; do (cd ~/work/"$d" || exit; [ -d .git ] || git init -q; printf '# %s\n' $d > README.md; printf '## Unreleased\n' > CHANGELOG.md); done
 { cat <<T
 model = "gpt-5.5"
 model_provider = "fixture"
