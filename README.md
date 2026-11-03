@@ -2,15 +2,15 @@
 
 **The most delightful dictation for Omarchy.**
 
-Speak freely, turn the result into a useful draft, and keep every original word. Mluva brings dictation, direct agent delivery and searchable history into a quiet native workspace that follows your desktop theme.
+Press F9, talk, and your words land in the app you were in. Press F12 and talk straight to any Claude Code or Codex session. Hold Shift and draw to show the agent what you mean. Rewriting is your agent's job now, so Mluva keeps your original words, follows your desktop theme and stays out of the way.
 
-**[Install](#install)** · **[Watch the intro](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/latest)**
+**[Install](#install)** · **[Watch the film](#meet-mluva)** · **[Choose your providers](docs/provider-selection.md)** · **[Release notes](https://github.com/1vecera/Mluva/releases/latest)**
 
 ## Meet Mluva
 
-https://github.com/user-attachments/assets/ffac3582-3146-46f2-9244-2c28c5cbef26
+https://github.com/user-attachments/assets/3faaebe3-f8b4-4cbf-a1f4-e5ed92ae6305
 
-<sub>72 seconds · Narrated by Daniel Vecera · Captions included. <a href="docs/promotion/README.md">Video credits and demo notes</a>.</sub>
+<sub>69 seconds · Daniel Vecera on camera · Every frame of the app is the real app, filmed in a virtual machine and timed to his words. Wallpapers by Marcos Paulo Prado and Pawel Czerwinski on Unsplash; synthesized music.</sub>
 
 ## From a thought to an agent
 
