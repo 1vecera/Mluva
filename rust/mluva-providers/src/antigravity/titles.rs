@@ -104,7 +104,10 @@ mod tests {
 
         let mut titles = AntigravityTitles::new(Some(db));
         let map = titles.refresh();
-        assert_eq!(map.get("conv-1").map(String::as_str), Some("Build Pipeline"));
+        assert_eq!(
+            map.get("conv-1").map(String::as_str),
+            Some("Build Pipeline")
+        );
         assert_eq!(map.get("conv-2"), None);
     }
 }

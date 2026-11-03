@@ -65,9 +65,18 @@ fn kinds_keep_herdrs_names_and_tolerate_ones_this_version_does_not_know() {
         serde_json::from_value::<AgentKind>(json!("antigravity-cli")).unwrap(),
         AgentKind::AntigravityCli
     );
-    assert_eq!(AgentKind::from_herdr("agy"), Some(AgentKind::AntigravityCli));
-    assert_eq!(AgentKind::from_herdr("antigravity"), Some(AgentKind::AntigravityCli));
-    assert_eq!(AgentKind::from_herdr("antigravity-cli"), Some(AgentKind::AntigravityCli));
+    assert_eq!(
+        AgentKind::from_herdr("agy"),
+        Some(AgentKind::AntigravityCli)
+    );
+    assert_eq!(
+        AgentKind::from_herdr("antigravity"),
+        Some(AgentKind::AntigravityCli)
+    );
+    assert_eq!(
+        AgentKind::from_herdr("antigravity-cli"),
+        Some(AgentKind::AntigravityCli)
+    );
     assert_eq!(
         serde_json::from_value::<AgentKind>(json!("open-code")).unwrap(),
         AgentKind::OpenCode
@@ -77,8 +86,14 @@ fn kinds_keep_herdrs_names_and_tolerate_ones_this_version_does_not_know() {
         AgentKind::OpenCode
     );
     assert_eq!(AgentKind::from_herdr("opencode"), Some(AgentKind::OpenCode));
-    assert_eq!(AgentKind::from_herdr("open-code"), Some(AgentKind::OpenCode));
-    assert_eq!(AgentKind::from_herdr("opencode2"), Some(AgentKind::OpenCode));
+    assert_eq!(
+        AgentKind::from_herdr("open-code"),
+        Some(AgentKind::OpenCode)
+    );
+    assert_eq!(
+        AgentKind::from_herdr("opencode2"),
+        Some(AgentKind::OpenCode)
+    );
     assert_eq!(
         serde_json::from_value::<AgentKind>(json!("future_agent")).unwrap(),
         AgentKind::Unknown
@@ -272,14 +287,20 @@ fn antigravity_session_routes_to_queue_when_unguarded_and_herdr_when_guarded() {
     agy.herdr.as_mut().unwrap().guard.clear();
     assert_eq!(agy.route(), Route::AntigravityQueue);
     assert_eq!(agy.delivery(), Delivery::Queue);
-    assert_eq!(agy.delivery_hint(), Some("Arrives as a message in Antigravity's queue"));
+    assert_eq!(
+        agy.delivery_hint(),
+        Some("Arrives as a message in Antigravity's queue")
+    );
     assert!(agy.can_receive());
 
     // When blocked (e.g. at a prompt), Antigravity message queue still accepts:
     agy.status = AgentStatus::Blocked;
     assert_eq!(agy.route(), Route::AntigravityQueue);
     assert!(agy.can_receive());
-    assert_eq!(agy.delivery_hint(), Some("Waits behind its prompt, as a message in Antigravity's queue"));
+    assert_eq!(
+        agy.delivery_hint(),
+        Some("Waits behind its prompt, as a message in Antigravity's queue")
+    );
 }
 
 #[test]
@@ -301,14 +322,20 @@ fn opencode_session_routes_to_herdr_when_guarded_and_draft_only_when_unguarded()
     opencode.herdr.as_mut().unwrap().guard.clear();
     assert_eq!(opencode.route(), Route::DraftOnly);
     assert_eq!(opencode.delivery(), Delivery::DraftOnly);
-    assert_eq!(opencode.draft_hint(), "Draft only: Herdr can't send to it now");
+    assert_eq!(
+        opencode.draft_hint(),
+        "Draft only: Herdr can't send to it now"
+    );
     assert!(!opencode.can_receive());
 
     // When outside Herdr:
     opencode.herdr = None;
     assert_eq!(opencode.route(), Route::DraftOnly);
     assert_eq!(opencode.delivery(), Delivery::DraftOnly);
-    assert_eq!(opencode.draft_hint(), "Draft only: this session has no queue");
+    assert_eq!(
+        opencode.draft_hint(),
+        "Draft only: this session has no queue"
+    );
     assert!(!opencode.can_receive());
 }
 
