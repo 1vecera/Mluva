@@ -26,7 +26,7 @@ impl Fixture {
                 "open",
                 &json!({"config_dir": base.join("config"), "data_dir": base.join("data"),
                     "herdr_config_home": base.join("xdg"), "claude_config_dir": base.join("claude"),
-                    "codex": false, "apps": false}),
+                    "codex": false, "antigravity": false, "apps": false}),
             )
             .unwrap();
         Self {
@@ -42,7 +42,15 @@ impl Fixture {
             .unwrap_or_else(|error| panic!("{method}: {error}"))
     }
 
-    fn task(&self, method: &str, params: Value) -> Result<Value, String> {
+    fn task(&self, method: &str, mut params: Value) -> Result<Value, String> {
+        if method == "agents.discover" {
+            let socket = self._root.path().join("xdg/herdr/herdr.sock");
+            params["socket"] = if socket.exists() {
+                json!(socket)
+            } else {
+                json!("")
+            };
+        }
         let task = self.call(method, params)["task"].clone();
         loop {
             let event = self.events.recv_timeout(Duration::from_secs(10)).unwrap();

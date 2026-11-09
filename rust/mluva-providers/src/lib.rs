@@ -14,6 +14,8 @@ pub mod compatible;
 pub mod credentials;
 pub mod elevenlabs;
 pub mod herdr;
+#[cfg(target_os = "linux")]
+mod herdr_core;
 pub mod languages;
 pub mod local;
 pub mod local_asr;

@@ -236,8 +236,8 @@ impl Bridge {
         };
         private_directory(&paths.config)?;
         private_directory(&paths.data)?;
-        // Tests and diagnostics may name Claude Code's directory, otherwise its own default,
-        // and may leave out Codex threads or app surfaces.
+        // Callers may name Claude Code's directory, otherwise its own default, and may leave out
+        // Codex threads, Antigravity sessions or app surfaces.
         {
             let mut reach = lock(&self.reach);
             if let Some(claude) = optional::<PathBuf>(params, "claude_config_dir")? {
@@ -249,6 +249,11 @@ impl Bridge {
             if optional::<bool>(params, "codex")? == Some(false) {
                 reach.codex = None;
                 reach.codex_names = None;
+            }
+            if optional::<bool>(params, "antigravity")? == Some(false) {
+                reach.antigravity = None;
+                reach.antigravity_titles = None;
+                reach.opencode_titles = None;
             }
             if let Some(apps) = optional::<bool>(params, "apps")? {
                 reach.apps = apps;

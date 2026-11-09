@@ -71,7 +71,7 @@ impl Found {
             });
         }
         if self.targets.iter().any(Target::has_transport) {
-            "Local agents · press to start and again to stop and deliver".into()
+            "Agents · press to start and again to stop and deliver".into()
         } else if self.herdr && !self.guarded {
             "Herdr needs the guarded prompt integration. Sending is unavailable.".into()
         } else {
@@ -383,7 +383,7 @@ mod tests {
             guarded: true,
             errors: vec![],
         };
-        assert!(reachable.summary().starts_with("Local agents"));
+        assert!(reachable.summary().starts_with("Agents"));
         let old_herdr = Found {
             targets: vec![target("")],
             herdr: true,

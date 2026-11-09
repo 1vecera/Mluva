@@ -1,5 +1,6 @@
 use super::*;
 use crate::agent_session_wheel::KEYS;
+use mluva_core::agent_voice::Host;
 
 impl AgentVoiceController {
     pub fn shortcut(&self) {
@@ -92,6 +93,48 @@ impl AgentVoiceController {
         });
         self.render_wheel();
     }
+    fn jump_wheel(self: &Rc<Self>) {
+        let Some(Target {
+            host: Host::HerdrCore { address, .. },
+            ..
+        }) = self.selected()
+        else {
+            return;
+        };
+        let runtime = self.runtime.clone();
+        let weak = Rc::downgrade(self);
+        self.runtime.spawn(async move {
+            let ok = runtime
+                .spawn_background(async move {
+                    let focused = tokio::process::Command::new("herdr-app")
+                        .args(["do", "agent.focus", "--terminal", &address])
+                        .status()
+                        .await
+                        .is_ok_and(|status| status.success());
+                    if !focused {
+                        return false;
+                    }
+                    // A second invocation raises the existing Herdr window.
+                    tokio::time::timeout(
+                        Duration::from_secs(3),
+                        tokio::process::Command::new("herdr-app")
+                            .kill_on_drop(true)
+                            .status(),
+                    )
+                    .await
+                    .is_ok_and(|result| result.is_ok_and(|status| status.success()))
+                })
+                .await
+                .unwrap_or(false);
+            if let Some(owner) = weak.upgrade() {
+                if ok {
+                    owner.wheel.window.set_visible(false);
+                } else {
+                    owner.wheel.show_jump_error();
+                }
+            }
+        });
+    }
     pub(super) fn render_wheel(&self) {
         if self.wheel.window.is_visible() {
             self.fill_wheel();
@@ -132,6 +175,12 @@ impl AgentVoiceController {
                 }
             });
         }
+        let weak = Rc::downgrade(self);
+        self.wheel.jump.connect_clicked(move |_| {
+            if let Some(owner) = weak.upgrade() {
+                owner.jump_wheel();
+            }
+        });
         let weak = Rc::downgrade(self);
         self.wheel.record.connect_clicked(move |_| {
             if let Some(owner) = weak.upgrade() {
@@ -220,6 +269,8 @@ impl AgentVoiceController {
             }
             if key == gtk::gdk::Key::Escape {
                 owner.wheel.window.set_visible(false);
+            } else if key == gtk::gdk::Key::Return && owner.wheel.jump.is_visible() {
+                owner.jump_wheel();
             } else if key == gtk::gdk::Key::Left {
                 owner.page_wheel(false);
             } else if key == gtk::gdk::Key::Right {

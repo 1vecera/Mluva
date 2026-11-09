@@ -28,6 +28,8 @@ https://github.com/user-attachments/assets/3faaebe3-f8b4-4cbf-a1f4-e5ed92ae6305
 
 Press F12 and every agent session appears as a tick on a thin dial over your desktop, Herdr's panes first from one o'clock and then sessions outside Herdr, each with its full name and its letter. Press the letter to choose a session; the hand swings to it with a light along the ring and the centre shows F12 and what then happens to your words: send, queue, prefill or keep a draft. Press F12 again to dictate to it, or Esc to leave. The dial follows your Omarchy theme.
 
+Sessions on connected Herdr-core machines appear with their machine name. Choose one and press Enter to open it in Herdr. Remote dictation stays as a draft until a guarded delivery route is available.
+
 <sub>Twenty synthetic sessions over a synthetic desktop, from Mluva's own renderer.</sub>
 
 One dictation mode, one editor. Smooth following is always enabled and respects reduced motion and intentional scrolling away from the end. **Ctrl+P** finds actions. Polish, rewriting, prompts, generated titles, Notes and Command capture modes have been removed. Existing saved replies remain readable and exportable; unfinished Notes recover into local History.

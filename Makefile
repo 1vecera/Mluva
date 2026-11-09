@@ -13,7 +13,7 @@ linux-setup:
 	bash linux/native-source-command.sh build
 
 linux-test: linux-setup
-	cargo test --locked --workspace
+	bash linux/tests/run_native_unit_tests.sh
 	cargo clippy --locked --workspace --all-targets -- -D warnings
 	cargo clippy --locked -p mluva-install --no-default-features --all-targets -- -D warnings
 	cargo fmt --all -- --check

@@ -47,6 +47,12 @@ fn main() {
             continue;
         }
         let result = match request["method"].as_str().unwrap() {
+            "server.status" if state["core_mode"] == true => {
+                json!({"core": {"id": "synthetic-core"}})
+            }
+            "terminal.list" if state["core_mode"] == true => {
+                json!({"terminals": state["terminals"]})
+            }
             "agent.guarded_list" => {
                 json!({"server_epoch": "synthetic-server", "agents": state["agents"]})
             }

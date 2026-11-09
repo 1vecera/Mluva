@@ -90,8 +90,12 @@ fn parse(args: &[String]) -> Result<Request, &'static str> {
 /// recording does.
 pub fn summary(target: &mluva_core::agent_voice::Target) -> Value {
     let pane = target.herdr.clone().unwrap_or_default();
+    let pane_id = match &target.host {
+        mluva_core::agent_voice::Host::HerdrCore { address, .. } => address.as_str(),
+        _ => pane.pane_id.as_str(),
+    };
     json!({"name":target.name,"title":target.title,"display_name":target.display_name(),
-        "pane":pane.pane_id,"kind":target.kind,
+        "pane":pane_id,"kind":target.kind,
         "project":target.project,"socket":pane.socket,"status":target.status,
         "session":target.session_id,"route":target.route().as_str(),
         "delivery":target.delivery(),"available":target.can_receive()})

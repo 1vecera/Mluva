@@ -29,10 +29,15 @@ pub struct Discovery {
     pub guarded: bool,
 }
 
-/// Only local, explicitly selected or conventionally located sockets are candidates.
+/// Only local, explicitly selected or conventionally located sockets are candidates. An empty
+/// explicit path opts out of Herdr discovery.
 pub fn socket_candidates(config_home: &Path, explicit: Option<&str>) -> Vec<PathBuf> {
     if let Some(path) = explicit {
-        return vec![PathBuf::from(path)];
+        return if path.is_empty() {
+            vec![]
+        } else {
+            vec![PathBuf::from(path)]
+        };
     }
     let mut paths = Vec::new();
 
@@ -429,7 +434,7 @@ pub(crate) fn is_herdr_core_path(path: &Path) -> bool {
     path.to_string_lossy().contains("herdr-core")
 }
 
-fn detect_herdr_core_agent(term: &Value) -> Option<AgentKind> {
+pub(crate) fn detect_herdr_core_agent(term: &Value) -> Option<AgentKind> {
     if let Some(app) = term.pointer("/status/app").and_then(Value::as_str)
         && let Some(kind) = AgentKind::from_herdr(app)
     {
@@ -601,7 +606,13 @@ async fn discover_herdr_core(
 
     let mut targets = Vec::new();
     for term in terminals {
-        if term.get("state").and_then(Value::as_str) != Some("live") {
+        if term.get("state").and_then(Value::as_str) != Some("live")
+            || (cfg!(target_os = "linux")
+                && term
+                    .get("address")
+                    .and_then(Value::as_str)
+                    .is_some_and(|address| address.contains('/')))
+        {
             continue;
         }
         if let Some(target) = herdr_core_target(
@@ -615,6 +626,8 @@ async fn discover_herdr_core(
             targets.push(target);
         }
     }
+    #[cfg(target_os = "linux")]
+    targets.extend(crate::herdr_core::parse_list(&list_resp["result"]));
 
     Ok(Discovery {
         targets,
@@ -631,17 +644,7 @@ async fn discover_listed(
     if is_herdr_core_path(path) {
         return discover_herdr_core(path, codex_threads, antigravity_titles, opencode_titles).await;
     }
-    let response = match rpc(path, "agent.guarded_list", json!({})).await {
-        Ok(resp) => resp,
-        Err(err) => {
-            if let Ok(core) =
-                discover_herdr_core(path, codex_threads, antigravity_titles, opencode_titles).await
-            {
-                return Ok(core);
-            }
-            return Err(err);
-        }
-    };
+    let response = rpc(path, "agent.guarded_list", json!({})).await?;
     if response.pointer("/error/code").and_then(Value::as_i64) == Some(-32601) {
         return discover_herdr_core(path, codex_threads, antigravity_titles, opencode_titles).await;
     }
@@ -1365,6 +1368,12 @@ mod tests {
                 "state": "live",
                 "status": {"state": "idle", "app": "opencode"},
                 "title": "opencode"
+            },
+            {
+                "address": "claw-mini/t8", "created_ms": 42,
+                "foreground": {"name": "codex", "pid": 105, "cwd": "/project/remote"},
+                "state": "live", "status": {"state": "working", "app": "codex"},
+                "title": "Remote example"
             }
         ]);
 
@@ -1388,7 +1397,7 @@ mod tests {
         peer.await.unwrap();
 
         assert!(found.guarded);
-        assert_eq!(found.targets.len(), 4, "plain shell t1 must be ignored");
+        assert_eq!(found.targets.len(), 5, "plain shell t1 must be ignored");
 
         let t2 = &found.targets[0];
         assert_eq!(t2.kind, AgentKind::ClaudeCode);
@@ -1415,6 +1424,17 @@ mod tests {
         assert_eq!(t5.locator(), "t5");
         assert_eq!(t5.route(), Route::Herdr);
         assert!(t5.can_receive());
+
+        #[cfg(target_os = "linux")]
+        {
+            let remote = &found.targets[4];
+            assert_eq!(remote.locator(), "claw-mini/t8");
+            assert_eq!(remote.place(), "claw-mini · Herdr t8");
+            assert!(
+                remote.draft_only(),
+                "an unguarded remote terminal cannot receive text"
+            );
+        }
     }
 
     #[tokio::test]
@@ -1496,14 +1516,21 @@ mod tests {
     #[tokio::test]
     async fn socket_candidates_finds_herdr_core_and_legacy_sockets() {
         let temp = tempfile::tempdir().unwrap();
-        let config_home = temp.path().join("config");
+        // Keep socket names short while the fixture itself stays under TMPDIR.
+        let alias = tempfile::Builder::new()
+            .prefix("mluva-")
+            .tempdir_in("/tmp")
+            .unwrap();
+        let short = alias.path().join("root");
+        std::os::unix::fs::symlink(temp.path(), &short).unwrap();
+        let config_home = short.join("config");
         let legacy_dir = config_home.join("herdr");
         std::fs::create_dir_all(&legacy_dir).unwrap();
         let legacy_sock = legacy_dir.join("herdr.sock");
         let listener_legacy = UnixListener::bind(&legacy_sock).unwrap();
         std::fs::set_permissions(&legacy_sock, std::fs::Permissions::from_mode(0o600)).unwrap();
 
-        let runtime = temp.path().join("runtime");
+        let runtime = short.join("runtime");
         let core_dir = runtime.join("herdr-core");
         std::fs::create_dir_all(&core_dir).unwrap();
         let core_sock = core_dir.join("default.sock");
@@ -1519,6 +1546,7 @@ mod tests {
         unsafe { std::env::set_var("XDG_RUNTIME_DIR", &runtime) };
 
         let candidates = socket_candidates(&config_home, None);
+        assert!(socket_candidates(&config_home, Some("")).is_empty());
 
         if let Some(prev) = prev_runtime {
             unsafe { std::env::set_var("XDG_RUNTIME_DIR", prev) };

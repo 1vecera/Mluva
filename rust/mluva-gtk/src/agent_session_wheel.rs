@@ -11,7 +11,7 @@
 //! Geometry depends only on the number of sessions and on their names, never on status captions
 //! or on which session is chosen, so a refresh that changes a status moves nothing.
 use adw::prelude::*;
-use mluva_core::agent_voice::{AgentKind, AgentStatus, Delivery, Target};
+use mluva_core::agent_voice::{AgentKind, AgentStatus, Delivery, Host, Target};
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 
@@ -364,14 +364,24 @@ fn legend_key(text: &str) -> gtk::Label {
 /// handle, led by its product when the sessions sharing it are different agents; a desktop app
 /// gets its product, which says where it lives.
 fn tag(entry: &Target, sharing: Option<&HashSet<AgentKind>>) -> Option<String> {
-    match sharing {
+    let machine = match &entry.host {
+        Host::HerdrCore { address, .. } => {
+            address.split_once('/').map_or("Remote", |(name, _)| name)
+        }
+        _ => "This PC",
+    };
+    let detail = match sharing {
         Some(kinds) if kinds.len() > 1 => {
             Some(format!("{} {}", entry.kind.label(), entry.locator()))
         }
         Some(_) => Some(entry.locator()),
         None if entry.kind.is_desktop() => Some(entry.kind.label().to_owned()),
         None => None,
-    }
+    };
+    Some(detail.map_or_else(
+        || machine.to_owned(),
+        |detail| format!("{machine} · {detail}"),
+    ))
 }
 
 fn natural_size(widget: &impl IsA<gtk::Widget>) -> (f64, f64) {
@@ -737,6 +747,7 @@ pub struct SessionWheel {
     pub record_key: gtk::Label,
     pub transcript: gtk::Button,
     pub transcript_key: gtk::Label,
+    pub jump: gtk::Button,
     pub cancel: gtk::Button,
     pub page: Cell<usize>,
     rendered_page: Cell<usize>,
@@ -749,6 +760,12 @@ pub struct SessionWheel {
     layout: RefCell<Option<(LayoutKey, Arrangement)>>,
 }
 impl SessionWheel {
+    pub fn show_jump_error(&self) {
+        for hint in &self.dial.hints {
+            hint.set_label("Could not open the session in Herdr");
+        }
+    }
+
     pub fn new() -> Self {
         install_style();
         let window = adw::Window::builder()
@@ -784,6 +801,7 @@ impl SessionWheel {
             "Keep an editable transcript in Mluva without copying or sending",
         ));
         let cancel = legend_item(&legend_key("Esc"), "cancel");
+        let jump = legend_item(&legend_key("Enter"), "open in Herdr");
         let pager = gtk::Box::new(gtk::Orientation::Horizontal, 2);
         pager.add_css_class("ml-wheel-pager");
         let previous = gtk::Button::builder()
@@ -808,6 +826,8 @@ impl SessionWheel {
         let footer = gtk::Box::new(gtk::Orientation::Vertical, 12);
         footer.add_css_class("ml-wheel-footer");
         footer.append(&dial.hint);
+        jump.set_halign(gtk::Align::Center);
+        footer.append(&jump);
         footer.append(&legend);
         stage.set_footer(&footer);
         window.set_content(Some(&stage));
@@ -827,6 +847,7 @@ impl SessionWheel {
             record_key,
             transcript,
             transcript_key,
+            jump,
             cancel,
             page: Cell::new(0),
             rendered_page: Cell::new(usize::MAX),
@@ -1081,6 +1102,9 @@ impl SessionWheel {
         agent_key: &str,
     ) {
         self.dial.show(target, other_page, empty, agent_key);
+        self.jump.set_visible(
+            target.is_some_and(|t| matches!(t.host, Host::HerdrCore { .. }) && !t.missing),
+        );
         let Some(target) = target else {
             self.record.set_sensitive(false);
             self.record.set_tooltip_text(None);

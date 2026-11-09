@@ -18,7 +18,7 @@ use serde_json::{Value, json};
 use std::{
     fs,
     io::{BufRead, BufReader},
-    os::unix::fs::symlink,
+    os::unix::fs::{PermissionsExt, symlink},
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
     rc::Rc,
@@ -1486,6 +1486,85 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .unwrap()
             .as_deref(),
         Some("Clipboard must remain unchanged")
+    );
+    // A remote core target is shown and can open in Herdr, but never receives input.
+    let core_dir = PathBuf::from(std::env::var_os("XDG_RUNTIME_DIR").unwrap()).join("herdr-core");
+    fs::create_dir_all(&core_dir).unwrap();
+    let core_socket = core_dir.join("default.sock");
+    let core_state = root.join("core-state.json");
+    let core_audit = root.join("core-wire.jsonl");
+    state(
+        &core_state,
+        &json!({"core_mode":true,"terminals":[{
+            "address":"claw-mini/t8", "created_ms":42, "state":"live",
+            "foreground":{"name":"codex", "pid":99, "cwd":"/synthetic"},
+            "status":{"app":"codex","state":"idle"}, "title":"Remote fixture"
+        }]}),
+    );
+    let mut core_peer = Peer(
+        Command::new(env!("CARGO_BIN_EXE_herdr-voice-fixture-peer"))
+            .arg(&core_socket)
+            .arg(&core_state)
+            .arg(&core_audit)
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap(),
+    );
+    let mut ready = String::new();
+    BufReader::new(core_peer.0.stdout.take().unwrap())
+        .read_line(&mut ready)
+        .unwrap();
+    assert_eq!(ready.trim(), "herdr-voice-peer-ready");
+    let fake_app = tools.join("herdr-app");
+    fs::write(
+        &fake_app,
+        "#!/bin/sh\nprintf '%s\\n' \"$*\" >> \"$OFFSCREEN_SESSION_ROOT/jump-audit\"\n",
+    )
+    .unwrap();
+    fs::set_permissions(&fake_app, fs::Permissions::from_mode(0o700)).unwrap();
+    owner
+        .agent_voice
+        .view
+        .socket
+        .set_text(core_socket.to_str().unwrap());
+    until(|| owner.agent_voice.settings().socket.as_deref() == core_socket.to_str());
+    owner.agent_voice.refresh();
+    until(|| row_containing(&owner, "Remote fixture").is_some());
+    owner
+        .agent_voice
+        .view
+        .recipients
+        .set_selected(row_containing(&owner, "Remote fixture").unwrap());
+    owner.agent_voice.shortcut();
+    until(|| {
+        owner.agent_voice.wheel.window.is_visible() && owner.agent_voice.wheel.jump.is_visible()
+    });
+    settle(200);
+    assert!(wheel_fits_screen(&owner.agent_voice.wheel));
+    let wheel_window = Command::new("xdotool")
+        .args(["search", "--onlyvisible", "--name", "^Choose a session$"])
+        .output()
+        .unwrap();
+    let wheel_window = String::from_utf8(wheel_window.stdout).unwrap();
+    assert!(
+        Command::new("import")
+            .args(["-window", wheel_window.lines().next().unwrap()])
+            .arg(root.join("wheel-remote.png"))
+            .status()
+            .unwrap()
+            .success()
+    );
+    assert!(owner.agent_voice.settings().selected.unwrap().draft_only());
+    owner.agent_voice.wheel.jump.emit_clicked();
+    until(|| !owner.agent_voice.wheel.window.is_visible());
+    assert_eq!(
+        fs::read_to_string(root.join("jump-audit")).unwrap(),
+        "do agent.focus --terminal claw-mini/t8\n\n"
+    );
+    assert!(
+        wire(&core_audit)
+            .iter()
+            .all(|r| ["server.status", "terminal.list"].contains(&r["method"].as_str().unwrap()))
     );
     let ended = owner.shutdown();
     glib::MainContext::default().block_on(ended).unwrap();

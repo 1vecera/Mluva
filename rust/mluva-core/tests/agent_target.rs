@@ -34,6 +34,10 @@ fn outside() -> Target {
 
 #[test]
 fn kinds_keep_herdrs_names_and_tolerate_ones_this_version_does_not_know() {
+    assert_eq!(
+        AgentKind::from_herdr("claude-code"),
+        Some(AgentKind::ClaudeCode)
+    );
     for (kind, name) in [
         (AgentKind::ClaudeCode, "claude"),
         (AgentKind::CodexCli, "codex"),
@@ -518,4 +522,31 @@ fn a_new_claude_chat_is_one_prefill_target_with_its_own_identity_and_length_limi
     // A saved target without the field is no app surface.
     let plain = serde_json::to_value(outside()).unwrap();
     assert!(plain.get("app").is_none());
+}
+
+#[test]
+fn remote_terminal_identity_survives_serialization_and_never_matches_another_machine() {
+    let target = Target {
+        kind: AgentKind::CodexCli,
+        name: "Example".into(),
+        host: Host::HerdrCore {
+            address: "claw-mini/t8".into(),
+            created_ms: 42,
+            process: 99,
+        },
+        ..Target::default()
+    };
+    let restored: Target = serde_json::from_str(&serde_json::to_string(&target).unwrap()).unwrap();
+    assert!(target.same_instance(&restored));
+    assert_eq!(target.place(), "claw-mini · Herdr t8");
+    assert_eq!(target.locator(), "claw-mini/t8");
+    assert!(target.answers_to("claw-mini/t8"));
+    assert!(target.draft_only());
+    let mut other = restored;
+    other.host = Host::HerdrCore {
+        address: "other/t8".into(),
+        created_ms: 42,
+        process: 99,
+    };
+    assert!(!target.same_instance(&other));
 }

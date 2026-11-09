@@ -74,7 +74,7 @@ impl AgentKind {
     /// Herdr's agent identifiers for the kinds it reports; anything else is not a target.
     pub fn from_herdr(agent: &str) -> Option<Self> {
         match agent {
-            "claude" | "claude_code" => Some(Self::ClaudeCode),
+            "claude" | "claude_code" | "claude-code" => Some(Self::ClaudeCode),
             "codex" => Some(Self::CodexCli),
             "agy" | "antigravity" | "antigravity-cli" | "antigravity_cli" => {
                 Some(Self::AntigravityCli)
@@ -314,7 +314,7 @@ pub enum AppLink {
     ClaudeNewChat,
 }
 
-/// Where a session outside Herdr runs, as its agent reports it.
+/// Where a session runs when it has no legacy Herdr pane.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub enum Host {
     /// A terminal Mluva cannot name.
@@ -328,6 +328,21 @@ pub enum Host {
     App,
     /// Held open by Codex's shared app-server daemon, for a TUI attached to it.
     Daemon,
+    /// An agent in a Herdr-core terminal on another machine. This identifies the terminal for
+    /// navigation only; it does not establish a guarded delivery route.
+    HerdrCore {
+        address: String,
+        created_ms: u64,
+        /// The foreground process, or the terminal's process if Herdr cannot observe it.
+        process: u32,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+struct CoreTerminal {
+    address: String,
+    created_ms: u64,
+    process: u32,
 }
 
 /// A running agent session, wherever it runs.
@@ -354,7 +369,7 @@ pub struct Target {
     pub herdr: Option<HerdrPane>,
     /// Claude Code's inbox for the session, when its registry names one. Never saved.
     pub inbox: Option<ClaudeInbox>,
-    /// Where the session runs when Herdr does not show it. Never saved.
+    /// Where the session runs without a legacy Herdr pane. A remote terminal is saved for navigation.
     pub host: Host,
     /// An application surface reached by link, such as a new Claude desktop chat.
     pub app: Option<AppLink>,
@@ -409,7 +424,9 @@ impl Target {
 
     /// Why a draft-only session cannot be delivered to.
     pub fn draft_hint(&self) -> &'static str {
-        if self.herdr.is_some() {
+        if matches!(self.host, Host::HerdrCore { .. }) {
+            "Draft only: remote Herdr needs guarded delivery"
+        } else if self.herdr.is_some() {
             // Herdr withholds a guard until it confirms the session and sees it ready.
             "Draft only: Herdr can't send to it now"
         } else if self.kind.runs_claude_code() {
@@ -446,8 +463,20 @@ impl Target {
     /// cleared session, or a new session in the same pane, never takes it over. Without a native
     /// session on both sides, such as a choice saved before sessions were known, Herdr's own
     /// identity decides: its guard when Herdr vouches for both, else the pane when neither has a
-    /// session. A link to an app surface is that surface.
+    /// session. A remote Herdr-core terminal matches its observed address, creation and process
+    /// for navigation only; that observation is not a delivery guard. A link to an app surface
+    /// is that surface.
     pub fn same_instance(&self, other: &Self) -> bool {
+        if matches!(self.host, Host::HerdrCore { .. })
+            || matches!(other.host, Host::HerdrCore { .. })
+        {
+            return matches!(
+                (&self.host, &other.host),
+                (Host::HerdrCore { address: a, created_ms: x, process: p },
+                 Host::HerdrCore { address: b, created_ms: y, process: q })
+                    if a == b && x == y && p == q && *x != 0 && *p != 0 && self.kind == other.kind
+            );
+        }
         if self.app.is_some() || other.app.is_some() {
             return self.app == other.app && self.kind == other.kind;
         }
@@ -490,7 +519,9 @@ impl Target {
     /// What tells this session apart from another with the same name: its Herdr or tmux pane,
     /// else the agent's own handle, else its process.
     pub fn locator(&self) -> String {
-        if let Some(pane) = &self.herdr {
+        if let Host::HerdrCore { address, .. } = &self.host {
+            address.clone()
+        } else if let Some(pane) = &self.herdr {
             pane.pane_id.clone()
         } else if let Host::Tmux(pane) = &self.host {
             pane.clone()
@@ -517,6 +548,10 @@ impl Target {
             Host::Background => "background".into(),
             Host::App => "app".into(),
             Host::Daemon => "Codex daemon".into(),
+            Host::HerdrCore { address, .. } => {
+                let (machine, terminal) = address.split_once('/').unwrap_or(("This PC", address));
+                format!("{machine} · Herdr {terminal}")
+            }
         }
     }
 
@@ -562,6 +597,7 @@ impl Target {
     /// native session ID. Titles are not matched; they change and repeat.
     pub fn answers_to(&self, query: &str) -> bool {
         self.name == query
+            || matches!(&self.host, Host::HerdrCore { address, .. } if address == query)
             || self
                 .herdr
                 .as_ref()
@@ -624,6 +660,8 @@ struct TargetRecord {
     started: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     app: Option<AppLink>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    hc: Option<CoreTerminal>,
 }
 
 impl From<TargetRecord> for Target {
@@ -645,7 +683,11 @@ impl From<TargetRecord> for Target {
             pid: record.pid,
             started: record.started,
             inbox: None,
-            host: Host::default(),
+            host: record.hc.map_or(Host::default(), |hc| Host::HerdrCore {
+                address: hc.address,
+                created_ms: hc.created_ms,
+                process: hc.process,
+            }),
             app: record.app,
             codex: None,
             antigravity: None,
@@ -657,6 +699,18 @@ impl From<TargetRecord> for Target {
 impl From<Target> for TargetRecord {
     fn from(target: Target) -> Self {
         let pane = target.herdr.unwrap_or_default();
+        let hc = match target.host {
+            Host::HerdrCore {
+                address,
+                created_ms,
+                process,
+            } => Some(CoreTerminal {
+                address,
+                created_ms,
+                process,
+            }),
+            _ => None,
+        };
         Self {
             socket: pane.socket,
             server_epoch: pane.server_epoch,
@@ -671,6 +725,7 @@ impl From<Target> for TargetRecord {
             pid: target.pid,
             started: target.started,
             app: target.app,
+            hc,
         }
     }
 }

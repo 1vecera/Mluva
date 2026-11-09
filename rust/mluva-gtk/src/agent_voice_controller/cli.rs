@@ -131,7 +131,7 @@ impl AgentVoiceController {
                     .ok_or("No matching recipient Mluva can deliver to. Use 'mluva agents list' to check the session.")?;
                 self.cli_select(Some((*selected).clone()))?;
                 self.connection
-                    .replace("Local agents · press to start and again to stop and deliver".into());
+                    .replace("Agents · press to start and again to stop and deliver".into());
                 self.update_targets(targets);
                 Ok(
                     json!({"ok":true,"connected":true,"selected":self.settings().selected.as_ref().map(summary),
