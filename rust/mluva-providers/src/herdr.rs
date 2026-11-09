@@ -644,7 +644,17 @@ async fn discover_listed(
     if is_herdr_core_path(path) {
         return discover_herdr_core(path, codex_threads, antigravity_titles, opencode_titles).await;
     }
-    let response = rpc(path, "agent.guarded_list", json!({})).await?;
+    let response = match rpc(path, "agent.guarded_list", json!({})).await {
+        Ok(resp) => resp,
+        Err(err) => {
+            if let Ok(core) =
+                discover_herdr_core(path, codex_threads, antigravity_titles, opencode_titles).await
+            {
+                return Ok(core);
+            }
+            return Err(err);
+        }
+    };
     if response.pointer("/error/code").and_then(Value::as_i64) == Some(-32601) {
         return discover_herdr_core(path, codex_threads, antigravity_titles, opencode_titles).await;
     }
