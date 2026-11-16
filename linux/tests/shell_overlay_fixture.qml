@@ -2,6 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+// From Qt 6.12 a bare Color is QtQuick's own type, not the shell singleton, so name it through the module.
+import qs.Commons as Commons
 import "../quickshell/mluva.dictation" as Mluva
 
 ShellRoot {
@@ -21,7 +23,7 @@ ShellRoot {
             primaryWidget.active = primary;
         }
         function theme(light: bool): void {
-            Color.loadColors(light ? 'background = "#faf4ed"\nforeground = "#575279"\naccent = "#286983"\nred = "#b4637a"'
+            Commons.Color.loadColors(light ? 'background = "#faf4ed"\nforeground = "#575279"\naccent = "#286983"\nred = "#b4637a"'
                 : 'background = "#1a1b26"\nforeground = "#c0caf5"\naccent = "#7aa2f7"\nred = "#f7768e"');
         }
         function position(): string {
@@ -87,7 +89,7 @@ ShellRoot {
         property var moduleSlots: [primarySlot, secondarySlot]
         property bool vertical: false
         property int barSize: 26
-        property color foreground: Color.foreground
+        property color foreground: Commons.Color.foreground
     }
     QtObject {
         id: primarySlot
@@ -144,7 +146,7 @@ ShellRoot {
                 targetY: overlay.scrollTarget + overlay.discardedHeight + overlay.revisionInset,
                 scrollTarget: overlay.scrollTarget, revisionProgress: overlay.revisionProgress,
                 surfaceOpacity: surface.color.a, surfaceVisible: surface.visible,
-                background: Color.popups.background.toString(), ink: Color.popups.text.toString(),
+                background: Commons.Color.popups.background.toString(), ink: Commons.Color.popups.text.toString(),
                 visible: overlay.visible, mask: overlay.mask !== null,
                 x: origin.x, y: origin.y, width: overlay.width, height: overlay.height, screenWidth: overlay.screen.width,
                 screenHeight: overlay.screen.height, focus: input.activeFocus});

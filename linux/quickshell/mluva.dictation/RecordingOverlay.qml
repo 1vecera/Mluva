@@ -4,6 +4,8 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 import qs.Commons
+// From Qt 6.12 a bare Color is QtQuick's own type, not the shell singleton, so name it through the module.
+import qs.Commons as Commons
 import qs.Ui
 import "TextMotion.js" as TextMotion
 
@@ -29,7 +31,7 @@ FloatingWindow {
     property bool dismissed: false
     readonly property bool active: ["preparing", "recording", "processing", "error"].includes(phase)
     readonly property color emphasis: phase === "recording" || phase === "error"
-        ? Color.urgent : Color.accent
+        ? Commons.Color.urgent : Commons.Color.accent
     readonly property int textSize: 14
     readonly property int lineHeight: 22
     property int previewLines: 5
@@ -277,7 +279,7 @@ FloatingWindow {
                     objectName: "recording-status"
                     Layout.fillWidth: true
                     text: root.phase === "recording" ? "" : root.status
-                    color: Color.popups.text
+                    color: Commons.Color.popups.text
                     font.family: mono.name
                     font.pixelSize: root.textSize
                     textFormat: Text.PlainText
@@ -287,7 +289,7 @@ FloatingWindow {
                     objectName: "recording-timer"
                     visible: root.phase === "recording"
                     text: root.timer
-                    color: Color.popups.text
+                    color: Commons.Color.popups.text
                     font.family: mono.name
                     font.pixelSize: root.textSize
                     Layout.alignment: Qt.AlignBottom
@@ -304,9 +306,9 @@ FloatingWindow {
             anchors.bottom: parent.bottom
             visible: root.preview.length > 0 || root.phase === "recording"
             implicitHeight: 20 + (transcriptViewport.visible ? root.lineHeight * root.previewLines : 0)
-            color: Qt.alpha(Color.popups.background, root.surfaceOpacity)
+            color: Qt.alpha(Commons.Color.popups.background, root.surfaceOpacity)
             radius: Style.cornerRadius
-            borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, 1)
+            borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, 1)
             Column {
                 id: body
                 anchors.left: parent.left
@@ -346,7 +348,7 @@ FloatingWindow {
                         width: parent.width
                         y: transcript.y + 3 * (1 - root.revisionProgress)
                         text: TextMotion.styled(root.displayedPreview, root.revisionChanges, false,
-                            1, Color.popups.text, true)
+                            1, Commons.Color.popups.text, true)
                         font: transcript.font
                         wrapMode: Text.Wrap
                         lineHeightMode: Text.FixedHeight
@@ -375,8 +377,8 @@ FloatingWindow {
                         y: previewMotion.offset + root.discardedHeight + root.revisionInset
                         text: root.revisionProgress < 1
                             ? TextMotion.styled(root.displayedPreview, root.revisionChanges, false,
-                                0, Color.popups.text) : root.displayedPreview
-                        color: Color.popups.text
+                                0, Commons.Color.popups.text) : root.displayedPreview
+                        color: Commons.Color.popups.text
                         font.family: mono.name
                         font.pixelSize: root.textSize
                         onFontChanged: root.resetPreviewLayout()
@@ -402,7 +404,7 @@ FloatingWindow {
                 anchors.margins: 1
                 height: 2
                 width: (parent.width - 2) * root.level
-                color: Color.accent
+                color: Commons.Color.accent
                 visible: root.phase === "recording"
             }
         }

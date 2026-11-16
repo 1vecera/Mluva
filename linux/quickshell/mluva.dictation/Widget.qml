@@ -2,6 +2,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+// From Qt 6.12 a bare Color is QtQuick's own type, not the shell singleton, so name it through the module.
+import qs.Commons as Commons
 
 Item {
     id: root
@@ -125,7 +127,7 @@ Item {
             visible: root.phase === "recording"
             active: root.phase === "recording"
             animate: true
-            ink: Color.urgent
+            ink: Commons.Color.urgent
             Accessible.ignored: true
         }
         Text {
@@ -135,8 +137,8 @@ Item {
             text: root.bar && root.bar.vertical ? "M" : root.phase === "recording"
                 ? Math.floor(root.elapsed / 60).toString().padStart(2, "0")
                     + ":" + (root.elapsed % 60).toString().padStart(2, "0") : root.labels[root.phase]
-            color: root.phase === "error" || root.controlFailed ? Color.urgent
-                : (root.bar ? root.bar.foreground : Color.foreground)
+            color: root.phase === "error" || root.controlFailed ? Commons.Color.urgent
+                : (root.bar ? root.bar.foreground : Commons.Color.foreground)
             font.family: mono.name
             font.pixelSize: root.bar && root.bar.vertical ? 10 : 12
             textFormat: Text.PlainText
@@ -145,7 +147,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         color: "transparent"
-        border.color: Color.accent
+        border.color: Commons.Color.accent
         radius: 2
         visible: root.activeFocus
     }
