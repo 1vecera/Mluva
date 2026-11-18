@@ -4,6 +4,7 @@ import Quickshell.Io
 import qs.Commons
 // From Qt 6.12 a bare Color is QtQuick's own type, not the shell singleton, so name it through the module.
 import qs.Commons as Commons
+import qs.Ui
 import "../quickshell/mluva.dictation" as Mluva
 
 ShellRoot {
@@ -84,28 +85,25 @@ ShellRoot {
             sourceComponent: barWidget
         }
     }
-    QtObject {
+    // The facade Omarchy hands every monitor's instance of a plugin widget. Its
+    // host lists the live instances in the order their bars attached them.
+    PluginBarApi {
         id: barHost
-        property var moduleSlots: [primarySlot, secondarySlot]
-        property bool vertical: false
-        property int barSize: 26
-        property color foreground: Commons.Color.foreground
-    }
-    QtObject {
-        id: primarySlot
-        property string moduleName: "mluva.dictation"
-        property var activeItem: primaryWidget.item
-    }
-    QtObject {
-        id: secondarySlot
-        property string moduleName: "mluva.dictation"
-        property var activeItem: secondaryWidget.item
+        pluginId: "mluva.dictation"
+        moduleName: "mluva.dictation"
+        barSize: 26
+        foreground: Commons.Color.foreground
+        property var attached: []
+        _moduleWidgets: id => id === moduleName ? attached : []
     }
     Component {
         id: barWidget
         Mluva.Widget {
+            id: instance
             bar: barHost
             settings: ({command: Quickshell.env("MLUVA_SHELL_COMMAND")})
+            Component.onCompleted: barHost.attached = barHost.attached.concat([instance])
+            Component.onDestruction: barHost.attached = barHost.attached.filter(item => item !== instance)
         }
     }
     function snapshot(): string {

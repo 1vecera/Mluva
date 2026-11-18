@@ -21,10 +21,12 @@ Item {
     property real widgetOpacity: 0.82
     property string widgetPosition: "bottom-center"
     property bool controlFailed: false
-    // Omarchy creates one widget per monitor. Only the first attached widget
+    // Omarchy creates one widget per monitor and lists the live ones, in the
+    // order their bars attached them, through bar.moduleWidgets. Only the first
     // owns the floating recorder; removing its bar hands ownership to the next.
-    readonly property bool ownsOverlay: !bar || !bar.moduleSlots
-        || bar.moduleSlots.find(slot => slot.moduleName === root.moduleName && slot.activeItem)?.activeItem === root
+    readonly property var instances: bar && typeof bar.moduleWidgets === "function"
+        ? bar.moduleWidgets(moduleName) : [root]
+    readonly property bool ownsOverlay: instances.length > 0 && instances[0] === root
     readonly property string executable: settings && settings.command ? settings.command : "mluva-shell"
     readonly property var labels: ({
         "unavailable": "Mluva unavailable", "stopped": "Mluva stopped", "idle": "Mluva ready",
@@ -51,9 +53,12 @@ Item {
         controlProcess.command = [executable, action];
         controlProcess.running = true;
     }
+    // Only the owner subscribes to the volatile preview; the other bars need
+    // just phase and elapsed time. A new command applies only to a new process.
+    onOwnsOverlayChanged: if (watcher.running) { watcher.running = false; watcher.running = true; }
     Process {
         id: watcher
-        command: [root.executable, "watch", "--overlay"]
+        command: [root.executable, "watch"].concat(root.ownsOverlay ? ["--overlay"] : [])
         running: true
         stdout: SplitParser {
             onRead: function(data) {
