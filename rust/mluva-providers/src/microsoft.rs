@@ -9,7 +9,8 @@ use crate::credentials::MICROSOFT_REGION_VARIABLE;
 use crate::realtime::{CommittedCallback, PreviewCallback, RealtimeOptions};
 use crate::stream::{self, StreamEvent, StreamProtocol, StreamSession};
 use crate::{
-    ProviderError, Result, Secret, TranscriptionResult, USER_AGENT, languages, multipart, transport,
+    ProviderError, Result, Secret, TimedWord, TranscriptionResult, USER_AGENT, languages,
+    multipart, transport,
 };
 use chrono::Utc;
 use mluva_core::config::valid_azure_region;
@@ -109,7 +110,7 @@ impl MicrosoftClient {
             "enhancedMode": {
                 "enabled": true,
                 "model": BATCH_MODEL,
-                "modelOptions": {"transcribeStyle": "verbatim"},
+                "modelOptions": {"transcribeStyle": "verbatim", "timestamps": "word"},
             }
         });
         if language != "auto" {
@@ -213,8 +214,34 @@ pub fn transcription_result(payload: &Value, language: &str) -> Result<Transcrip
             .get("durationMilliseconds")
             .and_then(Value::as_f64)
             .map(|milliseconds| (milliseconds / 1000.0).max(0.0)),
-        words: vec![],
+        words: timed_words(payload).unwrap_or_default(),
     })
+}
+
+fn timed_words(payload: &Value) -> Option<Vec<TimedWord>> {
+    let phrases = payload.get("phrases")?.as_array()?;
+    let mut result = Vec::new();
+    for phrase in phrases {
+        for word in phrase.get("words")?.as_array()? {
+            let text = word.get("text")?.as_str()?.trim();
+            let start = word.get("offsetMilliseconds")?.as_f64()?;
+            let duration = word.get("durationMilliseconds")?.as_f64()?;
+            if text.is_empty()
+                || !start.is_finite()
+                || !duration.is_finite()
+                || start < 0.0
+                || duration < 0.0
+            {
+                return None;
+            }
+            result.push(TimedWord {
+                text: text.into(),
+                start_seconds: start / 1000.0,
+                end_seconds: (start + duration) / 1000.0,
+            });
+        }
+    }
+    Some(result)
 }
 
 /// Opens streaming sessions against one region's endpoint.

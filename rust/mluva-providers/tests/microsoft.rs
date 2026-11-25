@@ -127,12 +127,55 @@ async fn batch_posts_the_definition_and_audio_and_joins_the_phrases() {
             "enhancedMode": {
                 "enabled": true,
                 "model": "MAI-Transcribe-2",
-                "modelOptions": {"transcribeStyle": "verbatim"},
+                "modelOptions": {"transcribeStyle": "verbatim", "timestamps": "word"},
             },
         })
     );
     assert_eq!(parts[1].1, "audio/wav");
     assert_eq!(parts[1].2, std::fs::read(&path).unwrap());
+}
+
+#[tokio::test]
+async fn batch_preserves_word_times_across_pauses() {
+    let (_directory, path) = audio_file();
+    let (url, _, server) = http_once(Response::ok(serde_json::to_vec(&json!({
+        "combinedPhrases": [{"text": "First point. Later change."}],
+        "phrases": [
+            {"words": [{"text": "First", "offsetMilliseconds": 500, "durationMilliseconds": 200},
+                       {"text": "point.", "offsetMilliseconds": 800, "durationMilliseconds": 300}]},
+            {"words": [{"text": "Later", "offsetMilliseconds": 12000, "durationMilliseconds": 400},
+                       {"text": "change.", "offsetMilliseconds": 12500, "durationMilliseconds": 500}]}
+        ]
+    })).unwrap())).await;
+    let result = batch_client(&url).transcribe(&path, "eng").await.unwrap();
+    server.await.unwrap();
+    let words: Vec<_> = result
+        .words
+        .iter()
+        .map(|word| (word.text.as_str(), word.start_seconds, word.end_seconds))
+        .collect();
+    assert_eq!(
+        words,
+        [
+            ("First", 0.5, 0.7),
+            ("point.", 0.8, 1.1),
+            ("Later", 12.0, 12.4),
+            ("change.", 12.5, 13.0)
+        ]
+    );
+}
+
+#[test]
+fn incomplete_batch_word_times_fall_back_without_losing_transcript() {
+    let result = mluva_providers::microsoft::transcription_result(&json!({
+        "combinedPhrases": [{"text": "First. Second."}],
+        "phrases": [
+            {"words": [{"text": "First.", "offsetMilliseconds": 100, "durationMilliseconds": 200}]},
+            {"words": [{"text": "Second.", "offsetMilliseconds": 2000}]}
+        ]
+    }), "eng").unwrap();
+    assert_eq!(result.text, "First. Second.");
+    assert!(result.words.is_empty());
 }
 
 #[tokio::test]

@@ -1497,6 +1497,8 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             "agent.list",
             "agent.prompt_guarded",
             "agent.prompt_receipt",
+            "server.status",
+            "terminal.list",
         ]
         .contains(&r["method"].as_str().unwrap())
     }));
