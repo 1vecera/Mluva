@@ -1501,7 +1501,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .as_ref()
             .unwrap()
             .locator(),
-        "claw-mini/t9h"
+        "remote-box/t9"
     );
     let _ = fs::remove_file(tools.join("raw.ready.json"));
     wheel_key("F12");
@@ -1549,7 +1549,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
         .filter(|r| r["method"] == "terminal.send")
         .collect();
     assert_eq!(remote.len(), 1);
-    assert_eq!(remote[0]["params"]["terminal"], "claw-mini/t9h");
+    assert_eq!(remote[0]["params"]["terminal"], "remote-box/t9");
     assert_eq!(remote[0]["params"]["text"], text);
 
     let clipboard = gtk::gdk::Display::default().unwrap().clipboard();

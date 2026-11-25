@@ -1475,17 +1475,17 @@ mod tests {
                 &mut stream,
                 &request,
                 json!({"terminals": [{
-                    "address": "claw-mini/t9h", "state": "live", "name": null, "created_ms": 1234,
+                    "address": "remote-box/t9", "state": "live", "name": null, "created_ms": 1234,
                     "foreground": {"name": "clauth", "argv": ["clauth", "start"], "pid": 123},
                     "status": {"app": "claude-code", "state": "working"},
-                    "title": "Chief of Staff"
+                    "title": "Remote agent"
                 }]}),
             )
             .await;
             drop(stream);
             let (mut stream, request) = receive(&listener).await;
             assert_eq!(request["method"], "terminal.get");
-            assert_eq!(request["params"]["terminal"], "claw-mini/t9h");
+            assert_eq!(request["params"]["terminal"], "remote-box/t9");
             reply(
                 &mut stream,
                 &request,
@@ -1497,7 +1497,7 @@ mod tests {
             drop(stream);
             let (mut stream, request) = receive(&listener).await;
             assert_eq!(request["method"], "terminal.send");
-            assert_eq!(request["params"]["terminal"], "claw-mini/t9h");
+            assert_eq!(request["params"]["terminal"], "remote-box/t9");
             assert_eq!(request["params"]["text"], "Synthetic note");
             assert_eq!(request["params"]["force"], false);
             tokio::time::sleep(Duration::from_millis(2200)).await;
@@ -1506,8 +1506,8 @@ mod tests {
         let found = discover(&path).await.unwrap();
         assert_eq!(found.targets.len(), 1);
         let target = found.targets.into_iter().next().unwrap();
-        assert_eq!(target.locator(), "claw-mini/t9h");
-        assert_eq!(target.display_name(), "Chief of Staff");
+        assert_eq!(target.locator(), "remote-box/t9");
+        assert_eq!(target.display_name(), "Remote agent");
         assert_eq!(target.kind, AgentKind::ClaudeCode);
         let submission = Submission {
             id: "synthetic".into(),

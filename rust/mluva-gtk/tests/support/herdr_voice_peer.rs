@@ -54,7 +54,7 @@ fn main() {
                     json!({"id": request["id"], "result": {"core": {"id": "fixture-core"}}})
                 }
                 "terminal.list" => json!({"id": request["id"], "result": {"terminals": [{
-                    "address": "claw-mini/t9h", "state": "live", "name": null, "created_ms": 1234,
+                    "address": "remote-box/t9", "state": "live", "name": null, "created_ms": 1234,
                     "foreground": {"name": "clauth", "argv": ["clauth"], "pid": 123},
                     "status": {"app": "claude-code", "state": "working"}, "title": "Remote chief"
                 }]}}),
@@ -63,7 +63,7 @@ fn main() {
                     "status": {"app": "claude-code", "state": "working"}
                 }}),
                 "terminal.send" => {
-                    assert_eq!(params["terminal"], "claw-mini/t9h");
+                    assert_eq!(params["terminal"], "remote-box/t9");
                     assert_eq!(params["force"], false);
                     json!({"id": request["id"], "result": {"turn": 1}})
                 }
