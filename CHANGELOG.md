@@ -2,6 +2,13 @@
 
 This file records user-visible Mluva releases.
 
+## 2.5.1 — 2026-11-25
+
+- Match screen highlights to Microsoft MAI batch transcription using provider word timestamps, including after realtime fallback. Existing annotation summaries retain their 12-keyframe limit.
+- Show one recording overlay across monitors and preserve the Omarchy widget theme on Qt 6.12.
+
+The Microsoft batch route and agent delivery were checked with synthetic peers; no live Microsoft request or combined highlight recording was made. The cause of the reported silence disconnect remains unconfirmed.
+
 ## 2.5.0 — 2026-11-03
 
 - Choose Microsoft MAI-Transcribe-2 (listed first and labelled Suggested), xAI Grok Voice Transcribe 2.0 or Mistral Voxtral 3 in Settings → Providers, beside ElevenLabs Scribe, a local model and a compatible endpoint. Existing installations keep the provider they saved.
