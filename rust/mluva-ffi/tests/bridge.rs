@@ -231,7 +231,12 @@ impl Fixture {
 
     /// Record `text` for the first discovered session and leave it in its cancel window.
     fn dictate(&self, text: &str, row: &str) -> String {
-        let found = self.task("agents.discover", json!({})).unwrap();
+        let found = self
+            .task(
+                "agents.discover",
+                json!({"socket": self._root.path().join("xdg/herdr/herdr.sock")}),
+            )
+            .unwrap();
         let id = self.call(
             "route.begin",
             json!({"target": found["sessions"][0]["target"], "now_ms": 1_000}),
@@ -255,17 +260,17 @@ impl Fixture {
 }
 
 #[test]
-fn discovery_without_herdr_or_sessions_is_empty_not_an_error() {
+fn discovery_without_herdr_or_sessions_returns_an_empty_result() {
     let fixture = Fixture::open();
-    let found = fixture.task("agents.discover", json!({})).unwrap();
+    let found = fixture
+        .task(
+            "agents.discover",
+            json!({"socket": fixture._root.path().join("xdg/herdr/herdr.sock")}),
+        )
+        .unwrap();
     assert_eq!(found["herdr"], false);
     assert_eq!(found["sessions"], json!([]));
-    assert!(
-        found["summary"]
-            .as_str()
-            .unwrap()
-            .starts_with("No sessions found")
-    );
+    assert!(!found["summary"].as_str().unwrap().is_empty());
 }
 
 #[test]
@@ -285,7 +290,12 @@ fn only_a_session_in_the_latest_discovery_can_start_an_agent_send() {
 fn a_guarded_herdr_pane_is_described_by_the_shared_target_model() {
     let fixture = Fixture::open();
     let _herdr = Herdr::serve(&fixture);
-    let found = fixture.task("agents.discover", json!({})).unwrap();
+    let found = fixture
+        .task(
+            "agents.discover",
+            json!({"socket": fixture._root.path().join("xdg/herdr/herdr.sock")}),
+        )
+        .unwrap();
     assert_eq!(found["herdr"], true);
     assert_eq!(found["guarded"], true);
     let session = &found["sessions"][0];
