@@ -46,6 +46,32 @@ fn main() {
         {
             continue;
         }
+        // Switch to a synthetic Core with a remote address for the F12 integration case.
+        if state["mode"] == "core" {
+            let response = match request["method"].as_str().unwrap() {
+                "agent.guarded_list" => json!({"id": request["id"], "error": {"code": -32601}}),
+                "server.status" => {
+                    json!({"id": request["id"], "result": {"core": {"id": "fixture-core"}}})
+                }
+                "terminal.list" => json!({"id": request["id"], "result": {"terminals": [{
+                    "address": "claw-mini/t9h", "state": "live", "name": null, "created_ms": 1234,
+                    "foreground": {"name": "clauth", "argv": ["clauth"], "pid": 123},
+                    "status": {"app": "claude-code", "state": "working"}, "title": "Remote chief"
+                }]}}),
+                "terminal.get" => json!({"id": request["id"], "result": {
+                    "state": "live", "created_ms": 1234, "foreground": {"pid": 123},
+                    "status": {"app": "claude-code", "state": "working"}
+                }}),
+                "terminal.send" => {
+                    assert_eq!(params["terminal"], "claw-mini/t9h");
+                    assert_eq!(params["force"], false);
+                    json!({"id": request["id"], "result": {"turn": 1}})
+                }
+                _ => panic!("Unexpected Core method"),
+            };
+            let _ = writeln!(stream, "{response}");
+            continue;
+        }
         // This peer implements legacy Herdr only; reject Core discovery without terminating
         // the server when the client probes it after a failed legacy read.
         if matches!(

@@ -74,7 +74,7 @@ impl AgentKind {
     /// Herdr's agent identifiers for the kinds it reports; anything else is not a target.
     pub fn from_herdr(agent: &str) -> Option<Self> {
         match agent {
-            "claude" | "claude_code" => Some(Self::ClaudeCode),
+            "claude" | "claude_code" | "claude-code" => Some(Self::ClaudeCode),
             "codex" => Some(Self::CodexCli),
             "agy" | "antigravity" | "antigravity-cli" | "antigravity_cli" => {
                 Some(Self::AntigravityCli)

@@ -269,7 +269,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     .unwrap();
     let text = "Synthetic message: verify the selected agent only.";
     // The twelfth capture recognises nothing: an agent route must keep it, not drop it.
-    let responses: Vec<_> = (0..18).map(|n| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":if n == 11 { "" } else { text }, "language_code":"eng"}})).collect();
+    let responses: Vec<_> = (0..19).map(|n| json!({"route":"speech", "status":200, "delay_ms":160, "payload":{"text":if n == 11 { "" } else { text }, "language_code":"eng"}})).collect();
     let mut speech = http::Peer::new(&responses);
     let paths = AppPaths {
         config: root.join("config/mluva"),
@@ -1479,6 +1479,79 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             .iter()
             .any(|e| e.stage == "route-queue-taken" && e.provider == "queued-agent")
     );
+    // F12 selects a remote Core agent, records privately and sends to the exact address.
+    owner.settings.capture.incognito.set_active(false);
+    data["mode"] = json!("core");
+    state(&peer_state, &data);
+    owner.agent_voice.refresh();
+    until(|| row_containing(&owner, "Remote chief").is_some());
+    owner
+        .agent_voice
+        .view
+        .recipients
+        .set_selected(row_containing(&owner, "Remote chief").unwrap());
+    owner.agent_voice.shortcut();
+    until(|| owner.agent_voice.wheel.window.is_visible());
+    assert_eq!(
+        owner
+            .agent_voice
+            .wheel
+            .selected
+            .borrow()
+            .as_ref()
+            .unwrap()
+            .locator(),
+        "claw-mini/t9h"
+    );
+    let _ = fs::remove_file(tools.join("raw.ready.json"));
+    wheel_key("F12");
+    until(|| owner.capture.phase() == Some(CapturePhase::Recording));
+    until(|| tools.join("raw.ready.json").exists());
+    settle(60);
+    owner.agent_voice.shortcut();
+    until(|| owner.capture.phase().is_none());
+    assert!(
+        matches!(
+            owner
+                .agent_voice
+                .route
+                .borrow()
+                .attempt
+                .as_ref()
+                .unwrap()
+                .phase,
+            RoutePhase::Grace { .. } | RoutePhase::Submitting | RoutePhase::Delivered
+        ),
+        "remote route {:?}; capture status: {}; notice: {}; error: {:?}",
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .unwrap()
+            .phase,
+        owner.capture.page.status.label(),
+        owner.capture.page.workspace.notice.label(),
+        owner.capture.page.setup_body.tooltip_text()
+    );
+    until(|| {
+        owner
+            .agent_voice
+            .route
+            .borrow()
+            .attempt
+            .as_ref()
+            .is_some_and(|a| a.phase == RoutePhase::Delivered)
+    });
+    let remote: Vec<_> = wire(&audit)
+        .into_iter()
+        .filter(|r| r["method"] == "terminal.send")
+        .collect();
+    assert_eq!(remote.len(), 1);
+    assert_eq!(remote[0]["params"]["terminal"], "claw-mini/t9h");
+    assert_eq!(remote[0]["params"]["text"], text);
+
     let clipboard = gtk::gdk::Display::default().unwrap().clipboard();
     assert_eq!(
         glib::MainContext::default()
@@ -1490,7 +1563,7 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
     let ended = owner.shutdown();
     glib::MainContext::default().block_on(ended).unwrap();
     let observed = speech.finish();
-    assert_eq!(observed.len(), 18);
+    assert_eq!(observed.len(), 19);
     assert!(wire(&audit).iter().all(|r| {
         [
             "agent.guarded_list",
@@ -1499,6 +1572,8 @@ fn toggle_route_cancel_edit_replace_and_uncertain_delivery_in_the_real_applicati
             "agent.prompt_receipt",
             "server.status",
             "terminal.list",
+            "terminal.get",
+            "terminal.send",
         ]
         .contains(&r["method"].as_str().unwrap())
     }));
