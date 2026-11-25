@@ -104,8 +104,17 @@ fn secure_socket(path: &Path) -> Result<()> {
 }
 
 async fn rpc(path: &Path, method: &str, params: Value) -> Result<Value> {
+    rpc_with_timeout(path, method, params, Duration::from_secs(2)).await
+}
+
+async fn rpc_with_timeout(
+    path: &Path,
+    method: &str,
+    params: Value,
+    timeout: Duration,
+) -> Result<Value> {
     secure_socket(path)?;
-    tokio::time::timeout(Duration::from_secs(2), async {
+    tokio::time::timeout(timeout, async {
         let stream = UnixStream::connect(path)
             .await
             .map_err(|_| ProviderError::message(UNAVAILABLE))?;
@@ -566,7 +575,11 @@ fn herdr_core_target(
             socket: path.to_string_lossy().into_owned(),
             server_epoch: epoch.into(),
             pane_id: address.to_string(),
-            guard: "core".into(),
+            guard: if address.contains('/') {
+                remote_guard(term).unwrap_or_default()
+            } else {
+                "core".into()
+            },
         }),
         name: label(name, 80),
         title,
@@ -577,6 +590,14 @@ fn herdr_core_target(
         session_id: String::new(),
         ..Target::default()
     })
+}
+
+// Remote process IDs belong to another host; the terminal's creation time and foreground
+// process together prevent a refreshed selection from following a replacement session.
+fn remote_guard(term: &Value) -> Option<String> {
+    let created = term.get("created_ms")?.as_u64()?;
+    let pid = term.pointer("/foreground/pid")?.as_u64()?;
+    (created > 0 && pid > 0).then(|| format!("core:{created}:{pid}"))
 }
 
 async fn discover_herdr_core(
@@ -756,17 +777,39 @@ async fn submit_herdr_core(
     submission: &Submission,
     cancel: &CancellationToken,
 ) -> SendOutcome {
+    if pane.pane_id.contains('/') {
+        let check = rpc_with_timeout(
+            path,
+            "terminal.get",
+            json!({"terminal": pane.pane_id}),
+            Duration::from_secs(10),
+        );
+        let observed = tokio::select! {
+            _ = cancel.cancelled() => return SendOutcome::Rejected,
+            result = check => match result { Ok(value) => value, Err(_) => return SendOutcome::Rejected },
+        };
+        let Some(terminal) = observed.get("result") else {
+            return SendOutcome::Rejected;
+        };
+        if terminal.get("state").and_then(Value::as_str) != Some("live")
+            || remote_guard(terminal).as_deref() != Some(pane.guard.as_str())
+            || detect_herdr_core_agent(terminal) != Some(submission.target.kind)
+        {
+            return SendOutcome::Rejected;
+        }
+    }
     let params = json!({
         "terminal": pane.pane_id,
         "text": submission.text,
         "force": false,
     });
-    let send = rpc(path, "terminal.send", params);
+    // Herdr waits for a human draft to clear (at least 60 seconds over a remote link).
+    let send = rpc_with_timeout(path, "terminal.send", params, Duration::from_secs(120));
     let response = tokio::select! {
         _ = cancel.cancelled() => return SendOutcome::Unconfirmed,
         res = send => match res {
             Ok(v) => v,
-            Err(_) => return SendOutcome::Rejected,
+            Err(_) => return SendOutcome::Unconfirmed,
         }
     };
     if response.pointer("/result/turn").is_some() {
@@ -780,7 +823,8 @@ async fn submit_herdr_core(
     {
         return SendOutcome::Rejected;
     }
-    SendOutcome::Rejected
+    // An unexpected reply cannot prove that the remote write did not happen.
+    SendOutcome::Unconfirmed
 }
 
 /// Send once, then reconcile only by reading its receipt. Cancellation never triggers replay.
@@ -1415,6 +1459,155 @@ mod tests {
         assert_eq!(t5.locator(), "t5");
         assert_eq!(t5.route(), Route::Herdr);
         assert!(t5.can_receive());
+    }
+
+    #[tokio::test]
+    async fn remote_claude_code_is_discovered_and_a_slow_send_is_confirmed() {
+        let (_temp, path, listener) = core_peer();
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "server.status");
+            reply(&mut stream, &request, json!({"core": {"id": "local"}})).await;
+            drop(stream);
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "terminal.list");
+            reply(
+                &mut stream,
+                &request,
+                json!({"terminals": [{
+                    "address": "remote-box/t9", "state": "live", "name": null, "created_ms": 1234,
+                    "foreground": {"name": "clauth", "argv": ["clauth", "start"], "pid": 123},
+                    "status": {"app": "claude-code", "state": "working"},
+                    "title": "Remote agent"
+                }]}),
+            )
+            .await;
+            drop(stream);
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "terminal.get");
+            assert_eq!(request["params"]["terminal"], "remote-box/t9");
+            reply(
+                &mut stream,
+                &request,
+                json!({"state": "live", "created_ms": 1234,
+                "foreground": {"name": "clauth", "pid": 123},
+                "status": {"app": "claude-code", "state": "working"}}),
+            )
+            .await;
+            drop(stream);
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "terminal.send");
+            assert_eq!(request["params"]["terminal"], "remote-box/t9");
+            assert_eq!(request["params"]["text"], "Synthetic note");
+            assert_eq!(request["params"]["force"], false);
+            tokio::time::sleep(Duration::from_millis(2200)).await;
+            reply(&mut stream, &request, json!({"turn": 42})).await;
+        });
+        let found = discover(&path).await.unwrap();
+        assert_eq!(found.targets.len(), 1);
+        let target = found.targets.into_iter().next().unwrap();
+        assert_eq!(target.locator(), "remote-box/t9");
+        assert_eq!(target.display_name(), "Remote agent");
+        assert_eq!(target.kind, AgentKind::ClaudeCode);
+        let submission = Submission {
+            id: "synthetic".into(),
+            text: "Synthetic note".into(),
+            target,
+        };
+        assert_eq!(
+            submit(&submission, &CancellationToken::new()).await,
+            SendOutcome::Accepted
+        );
+        peer.await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn replaced_remote_process_is_rejected_before_send() {
+        let (_temp, path, listener) = core_peer();
+        let target = Target {
+            herdr: Some(HerdrPane {
+                socket: path.to_string_lossy().into(),
+                server_epoch: "core:test".into(),
+                pane_id: "remote/t1".into(),
+                guard: "core:1234:123".into(),
+            }),
+            kind: AgentKind::ClaudeCode,
+            status: AgentStatus::Idle,
+            ..Target::default()
+        };
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "terminal.get");
+            reply(
+                &mut stream,
+                &request,
+                json!({"state": "live", "created_ms": 1234,
+                "foreground": {"pid": 456}, "status": {"app": "claude-code"}}),
+            )
+            .await;
+            drop(stream);
+            assert!(
+                tokio::time::timeout(Duration::from_millis(200), listener.accept())
+                    .await
+                    .is_err()
+            );
+        });
+        let submission = Submission {
+            id: "synthetic".into(),
+            text: "Synthetic note".into(),
+            target,
+        };
+        assert_eq!(
+            submit(&submission, &CancellationToken::new()).await,
+            SendOutcome::Rejected
+        );
+        peer.await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn remote_send_without_a_receipt_is_unconfirmed_and_not_retried() {
+        let (_temp, path, listener) = core_peer();
+        let target = Target {
+            herdr: Some(HerdrPane {
+                socket: path.to_string_lossy().into(),
+                server_epoch: "core:test".into(),
+                pane_id: "remote/t1".into(),
+                guard: "core:1234:123".into(),
+            }),
+            kind: AgentKind::ClaudeCode,
+            status: AgentStatus::Idle,
+            ..Target::default()
+        };
+        let peer = tokio::spawn(async move {
+            let (mut stream, request) = receive(&listener).await;
+            assert_eq!(request["method"], "terminal.get");
+            reply(
+                &mut stream,
+                &request,
+                json!({"state": "live", "created_ms": 1234,
+                "foreground": {"pid": 123}, "status": {"app": "claude-code"}}),
+            )
+            .await;
+            drop(stream);
+            let (stream, request) = receive(&listener).await;
+            assert_eq!(request["params"]["terminal"], "remote/t1");
+            drop(stream);
+            assert!(
+                tokio::time::timeout(Duration::from_millis(200), listener.accept())
+                    .await
+                    .is_err()
+            );
+        });
+        let submission = Submission {
+            id: "synthetic".into(),
+            text: "Synthetic note".into(),
+            target,
+        };
+        assert_eq!(
+            submit(&submission, &CancellationToken::new()).await,
+            SendOutcome::Unconfirmed
+        );
+        peer.await.unwrap();
     }
 
     #[tokio::test]
