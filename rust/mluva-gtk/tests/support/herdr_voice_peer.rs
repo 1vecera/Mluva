@@ -46,6 +46,19 @@ fn main() {
         {
             continue;
         }
+        // This peer implements legacy Herdr only; reject Core discovery without terminating
+        // the server when the client probes it after a failed legacy read.
+        if matches!(
+            request["method"].as_str(),
+            Some("server.status" | "terminal.list")
+        ) {
+            let _ = writeln!(
+                stream,
+                "{}",
+                json!({"id": request["id"], "error": {"message": "unsupported"}})
+            );
+            continue;
+        }
         let result = match request["method"].as_str().unwrap() {
             "agent.guarded_list" => {
                 json!({"server_epoch": "synthetic-server", "agents": state["agents"]})
