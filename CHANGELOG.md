@@ -2,6 +2,13 @@
 
 This file records user-visible Mluva releases.
 
+## 2.5.2 — 2026-11-25
+
+- Choose connected remote Herdr Core agents from the agent dictation wheel and send a finished note to their machine and terminal address.
+- Check the remote terminal's creation time and foreground process before sending, and report a lost acknowledgement as unconfirmed without retrying.
+
+Remote delivery was exercised with synthetic Core peers and an isolated application; a real remote send remains unverified. Herdr Core checks identity and sends in separate calls, so a replacement between them remains possible.
+
 ## 2.5.1 — 2026-11-25
 
 - Match screen highlights to Microsoft MAI batch transcription using provider word timestamps, including after realtime fallback. Existing annotation summaries retain their 12-keyframe limit.

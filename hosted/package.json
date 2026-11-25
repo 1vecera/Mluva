@@ -1,6 +1,6 @@
 {
   "name": "mluva-everywhere",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "private": true,
   "type": "module",
   "workspaces": [
